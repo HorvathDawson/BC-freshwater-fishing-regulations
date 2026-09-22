@@ -1,27 +1,26 @@
-"""Export stage ③ — the flat rule dicts `corpus.rules()` hands the table layer.
+"""Export stage ③ — the rules, and nothing derived from them.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules OUT.json
 
-For someone designing the UI who has no pipeline to run: the real records, a field dictionary,
-and the species and group objects a reader needs to make sense of them.
+THE SHAPE, and why it is this one (see `pipeline/docs/06-ui-data-contract.md`):
 
-THREE THINGS THIS DOES TO THE RAW RECORDS, and why:
+  · RULES ARE INTERNED, keyed by `entry::rule`, and everything else indexes into them. A rule
+    binds a region and every water in it; repeating it per place triples the file and makes two
+    copies of one sentence that can disagree. The bundle interns rule SETS for the same reason.
+  · NOTHING SETTLED IS SHIPPED. No tables. Settling — which counter carves which, what the
+    numbers come to — is the pipeline's job and a layer of its own; this is the input to it.
+  · THE CORRECTNESS EVIDENCE TRAVELS WITH THE RULES. Each region carries its printed-synopsis
+    panel: every line of the book's own table, whether the rules agree with it, and which rule
+    proves each one. "Can we generate the base region tables and check they are correct" is
+    answered inside the file rather than by trusting it.
 
-  · SPECIES CODES ARE EXPANDED. A rule as curated says `species: ["TROUT_CHAR"]`, and a front
-    end that reads that has to know the group's members before it can answer "is my bull trout
-    in this". Every rule here carries the BASE codes, with what the book actually wrote kept
-    beside it as `species_written` — so the groups can be rebuilt (draw trout and char as one
-    line where their answers agree) without every consumer re-expanding first.
-  · EVERY RULE CARRIES ITS PROVENANCE. The sentence from the printed book, the entry it came
-    from, who wrote it and what it binds to. A regulation a reader cannot trace to the book is
-    a regulation they cannot check.
-  · A WATER CARRIES ONLY ITS OWN RULES, and names its region and areas. The atlas binds the
-    regional and provincial rules to every section as well; repeating them per water triples
-    the file and hides which lines are the water's. Look its region up in `regions` instead.
+Three things done to the raw records, all reversible and all labelled:
 
-No settled tables. How a table is built from these is `pipeline/regs/table/display.py` and
-`pipeline/docs/05-table-generation.md`; it is being reworked, so this file is the input to that
-question, not an answer to it.
+  · SPECIES CODES ARE EXPANDED to base codes, with `species_written` keeping what the book said,
+    so a consumer answering "is my bull trout in this" does not expand TROUT_CHAR first.
+  · EVERY RULE CARRIES ITS PROVENANCE — the sentence, who wrote it, what it binds to, its rank.
+  · `reads_as` gives the four-way answer a `take: 0` needs (closed / release / size gate /
+    method closed), because every consumer that re-derived it got it wrong differently.
 
 Change `REGIONS` / `WATERS` below to widen it. Nothing here is cached or committed.
 """
@@ -38,7 +37,9 @@ from pipeline.regs.table.authority import source_of
 from pipeline.regs.table.corpus import rid, rules, sections
 from pipeline.regs.table.subject import expand
 
-REGIONS = ["province", "1", "2", "3", "4", "5", "6", "7a", "7b", "8"]
+#: Every chapter the book has. `1hg` is Haida Gwaii, which is administered as Region 1 and
+#: printed as a table of its own — listing it under Region 1 offers one table under two names.
+REGIONS = ["province", "1", "1hg", "2", "3", "4", "5", "6", "7a", "7b", "8"]
 #: Chosen to exercise the cases, not for coverage:
 #:   Cowichan       sits inside Region 1's "MUs 1-1 to 1-6", so the area match is demonstrated
 #:   Fording        the only stretch where a rank-0 rule and six inherited ones speak at once
@@ -50,7 +51,7 @@ REGIONS = ["province", "1", "2", "3", "4", "5", "6", "7a", "7b", "8"]
 WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
           ("Atlin Lake", 0), ("Shuswap Lake", 0), ("Fording River", 1), ("Kootenay Lake", 1),
           ("Fraser River", 17), ("Kootenay River", 6), ("Okanagan River", 0)]
-CHAPTER = {"province": "zp", "1": "z1", "2": "z2", "3": "z3", "4": "z4",
+CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
            "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
 
 FIELDS = {
@@ -433,34 +434,67 @@ def _targets(x: dict, e: dict) -> list:
     return sorted(set(out))
 
 
+def _panel(reg: str, kind: str) -> dict:
+    """The printed synopsis, line by line, against what the rules say.
+
+    This is the answer to "are the base region tables correct" — not a claim, the check. Each
+    line is the book's own sentence, `ok` is whether the rules agree, and `by_rule` is the rule
+    that proves it. A line we cannot prove says so.
+    """
+    from pipeline.regs.table import quota_print as QP
+    from pipeline.regs.table.build import name as fish_name_
+    P = QP.check_province(fish_name_) if reg in ("province", "p") \
+        else QP.check_region(reg, kind, fish_name_)
+    return {
+        "title": P.title, "source": P.source, "edition_md5": P.md5,
+        "agree": sum(1 for c in P.checks if c.ok), "of": len(P.checks),
+        "lines": [{"printed": c.line, "ok": bool(c.ok), "by_rule": c.rule or None,
+                   "proof": c.found or None, "why_not": c.why or None} for c in P.checks],
+    }
+
+
 def main(out_path: str) -> int:
     all_rules = list(rules())
     by_chapter = defaultdict(list)
     for x in all_rules:
         by_chapter[(x.get("entry") or "").split(":")[0]].append(x)
 
+    kept: dict = {}                       # entry::rule -> the exported record, interned
+
+    def take(xs) -> list:
+        ids = []
+        for x in xs:
+            k = rid(x)
+            if k not in kept:
+                kept[k] = _rule(x)
+            ids.append(k)
+        return sorted(set(ids))
+
     regions = []
     for reg in REGIONS:
-        rs = by_chapter.get(CHAPTER[reg], [])
-        kinds = ("lake", "stream")
         areas = []
-        for kind in kinds:
+        for kind in ("lake", "stream"):
             for a in ST.areas(reg, kind):
-                got = [r for r in areas if r["name"] == a.name]
-                entry = got[0] if got else None
-                if entry is None:
-                    entry = {"name": a.name, "water_kinds": [], "rules": []}
-                    areas.append(entry)
-                entry["water_kinds"].append(kind)
-                have = {r["provenance"]["rule"] for r in entry["rules"]}
-                entry["rules"] += [_rule(x) for x in a.rule_dicts if rid(x) not in have]
+                got = next((e for e in areas if e["name"] == a.name), None)
+                if got is None:
+                    got = {"name": a.name, "water_kinds": [], "rule_ids": []}
+                    areas.append(got)
+                got["water_kinds"].append(kind)
+                got["rule_ids"] = sorted(set(got["rule_ids"]) | set(take(a.rule_dicts)))
         regions.append({
             "region": reg,
-            "name": "British Columbia (province-wide)" if reg == "province" else f"Region {reg.upper()}",
+            "name": "British Columbia (province-wide)" if reg == "province"
+                    else f"Region {reg.upper()}",
             "chapter": CHAPTER[reg],
-            "rule_count": len(rs),
-            "rules": [_rule(x) for x in sorted(rs, key=rid)],
+            # Region 1 and Haida Gwaii share the `z1` chapter and are different tables;
+            # `state.region_rules` is the one place that knows how to split them.
+            "rule_ids": take(sorted(ST.region_rules(reg), key=rid)),
             "areas": areas,
+            # THE PROVINCE'S PANEL HAS NO LAKE/STREAM SPLIT — `check_province` ignores the
+            # argument, so asking for both counted every provincial line twice.
+            "checked_against_the_book": ({"both": _panel(reg, "lake")}
+                                         if reg in ("province", "p")
+                                         else {k: _panel(reg, k) for k in ("lake", "stream")}),
         })
 
     D = sections()
@@ -472,72 +506,65 @@ def main(out_path: str) -> int:
         runs = w.get("runs") or []
         seg = runs[run] if run < len(runs) else {}
         waters.append({
-            "water": water,
-            "run": run,
-            "label": label or None,
+            "water": water, "run": run, "label": label or None,
             "stretch_km": [seg.get("from"), seg.get("to")],
-            "water_kind": ST.section_kind(water),
-            "item_id": w.get("item"),
+            "water_kind": ST.section_kind(water), "item_id": w.get("item"),
             "regions": sorted(here),
-            "areas": _areas_for(here, ST.section_kind(water), _mus(mine)),
             "management_units": sorted(_mus(mine)),
+            "areas": _areas_for(here, ST.section_kind(water), _mus(mine)),
             "curated_entry": {k: v for k, v in (w.get("entry") or {}).items()
                               if k in ("name", "full", "verbatim")},
-            "_rules_note": "The water's OWN rules only. Its region's are under `regions` — look "
-                           "up the ids in `regions` above. `via: trib` means the rule reached "
-                           "this water from another one downstream.",
-            "rule_count": len(mine),
-            "rules": [_rule(x) for x in sorted(mine, key=rid)],
+            "_rules_note": "This water's OWN rules only — `scope` water or inherited. The rules "
+                           "of its region are under `regions`; a section really gets both, and "
+                           "repeating them here would be the same sentence twice. `via: trib` "
+                           "means the rule reached this water from another one downstream.",
+            "rule_ids": take(mine),
         })
 
     doc = {
         "_what_this_is":
-            "Stage ③ of pipeline/docs/05-table-generation.md — the flat rule dicts "
-            "`corpus.rules()` hands the table layer. Real records, unedited except that species "
-            "codes are expanded and provenance is spelled out (see the module docstring).",
+            "Stage ③ of pipeline/docs/05-table-generation.md — the rules as `corpus.rules()` "
+            "hands them to the table layer. Interned by `entry::rule`; regions and waters index "
+            "into them.",
         "_the_stages":
             "curated entry → bundle → RULE (this file) → allowance → ledger → row → table",
         "_not_included":
-            "No settled tables. How a table is built from these is being reworked; this file is "
-            "the input to that question, not an answer to it.",
+            "Nothing settled. No tables, no ledgers. Settling is a layer of its own and this is "
+            "its input; see pipeline/docs/06-ui-data-contract.md for what that layer would add "
+            "and what it costs (3.9 KB per rule set and stretch).",
         "_counts": {
             "rules in the whole corpus": len(all_rules),
-            "regions exported": len(regions),
-            "regional rules exported": sum(r["rule_count"] for r in regions),
-            "waters exported": len(waters),
-            "water rules exported": sum(w["rule_count"] for w in waters),
+            "rules in this file": len(kept),
+            "regions": len(regions),
+            "waters": len(waters),
         },
         "closures_and_exemptions": {
             "how_a_zero_reads": ZERO_READINGS,
             "exemptions": EXEMPTIONS,
-            "_on_every_rule": "`reads_as` is the four-way answer derived from take / may_target / "
-                              "size / method, so no consumer re-derives it. `exempts[].resolves_to` "
-                              "is the rule ids the lift points at.",
+            "_on_every_rule": "`reads_as` is the four-way answer derived from take / may_target "
+                              "/ size / method. `exempts[].resolves_to` is the rule ids a lift "
+                              "points at.",
         },
         "rule_types": {
-            "_note": "EVERY kind of rule is in this file, not just quotas. A region's chapter and "
-                     "a water's listing both carry their gear, licensing and conduct rules "
-                     "alongside the numbers, because they are the same kind of object and the "
-                     "same ladder settles them.",
-            "by_type": RULE_TYPES,
-            "by_family": RULE_FAMILIES,
+            "_note": "EVERY kind of rule is here, not just quotas — gear, licensing, conduct and "
+                     "vessel rules are the same kind of object and the same ladder settles them.",
+            "by_type": RULE_TYPES, "by_family": RULE_FAMILIES,
         },
         "field_dictionary": FIELDS,
         "species": species_object(),
+        "rules": kept,
         "regions": regions,
         "waters": waters,
         "groups": {
             "_note": "The book writes rules about groups, and a table draws a group as ONE line "
-                     "where every member's answer agrees — 'Trout and char, 4 a day between "
-                     "them'. Every rule above carries base codes, so this is here to rebuild "
-                     "that grouping, never to expand a rule.",
+                     "where every member's answer agrees. Every rule above carries base codes, "
+                     "so this is for rebuilding that grouping, never for expanding a rule.",
             **{g: {"name": _name(g), "members": sorted(expand(frozenset({g})))}
                for g in sorted(SPECIES_GROUPS) if expand(frozenset({g}))},
             **{g: {"name": _name(g), "members": [], "open_set": True, "means": why,
                    "_warning": "Empty ON PURPOSE. A rule about this group has an empty `species` "
                                "and carries `species_open` instead. Reading the empty list as "
-                               "'no fish' silently narrows the widest rules in the book — it is "
-                               "what told a reader that a snagged coho need not be released."}
+                               "'no fish' silently narrows the widest rules in the book."}
                for g, why in OPEN_GROUPS.items()},
         },
     }
@@ -547,6 +574,14 @@ def main(out_path: str) -> int:
     print(f"wrote {out_path} ({os.path.getsize(out_path)/1e6:.2f} MB)")
     for k, v in doc["_counts"].items():
         print(f"  {k}: {v}")
+    bad = [(r["region"], k, p["agree"], p["of"])
+           for r in regions for k, p in r["checked_against_the_book"].items()
+           if p["agree"] < p["of"]]
+    tot = sum(p["of"] for r in regions for p in r["checked_against_the_book"].values())
+    ok = sum(p["agree"] for r in regions for p in r["checked_against_the_book"].values())
+    print(f"  checked against the printed book: {ok}/{tot} lines agree")
+    for b in bad:
+        print(f"     {b[0]} {b[1]}: {b[2]}/{b[3]}")
     return 0
 
 

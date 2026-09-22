@@ -1281,9 +1281,19 @@ def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for
 
 
 def _base_present(region, kind):
-    from pipeline.regs.table import provenance
-    from pipeline.tools.emit_base_tables import _quota_rows
-    rows_ = _quota_rows(region, kind)
+    """The base table's own rows, and the presentation pass over them.
+
+    `_quota_rows` lived in `emit_base_tables`, which is gone with the artifact it fed. Inlined
+    here rather than lost: it is three lines, and it is NOT `provenance.base_tables()` — that
+    list is derived from the sections that ship, so it is keyed by label, omits Haida Gwaii and
+    Region 7B, and carries composites ("Regions 3 and 5 · streams") no single region owns. The
+    print panels are the complete spine, one per region per kind, so the rows are built from the
+    same ledger the panel checked and every region gets a table whether a section uses it or not.
+    """
+    from pipeline.regs.table import provenance, quota_print as QP
+    from pipeline.regs.table.rows import rows as ROWS
+    L = QP.base_ledger(region, kind)
+    rows_ = [provenance.row_json(L, r) for r in ROWS(L)]
     return rows_, provenance.present({"rows": rows_})
 
 
