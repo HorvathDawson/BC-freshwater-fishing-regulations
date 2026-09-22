@@ -133,6 +133,16 @@ belongs in git is the owner's call — the suite is green without them.
 
 ## Open curation defects (data, not code — do not paper over in code)
 
+- **`zp:national_park_reserves.r1` is one place under a second name.** `Source.place` falls
+  back to `extent_text` for an area-scoped rule (`authority.py:177`), so this rule's place is
+  "Pacific Rim National Park Reserve Of Canada, Gwaii Haanas…" while every other National Park
+  rule's place is "National Parks" — and the areas picker, which keys on `place`, offers two
+  Where items for one place. It is also **redundant**: its own sibling `r2` lists the seven
+  parks as "Kootenay, Yoho, Glacier, Mount Revelstoke, Pacific Rim, Gwaii Haanas and Gulf
+  Islands", so the three reserves are inside the parks `superior_closures.r1` already shuts,
+  which is why it measures as changing no line a reader reads. Fix by curation (one place
+  name), not by matching strings in the picker.
+
 | # | defect | effect |
 |---|---|---|
 | 1 | `r5:fraser_river@5-2` extents are `{"op":"whole"}` | binds all 20 Fraser stretches; a Region 5 sturgeon closure **shuts the lower Fraser fishery 304 days/yr** |

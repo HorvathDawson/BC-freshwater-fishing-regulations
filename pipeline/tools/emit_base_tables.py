@@ -90,12 +90,13 @@ def _table(region: str, kind: str, area=None) -> dict:
     rows = [provenance.row_json(st.ledger, r) for r in st.rows]
     segs = st.schedule()
     terms = list(getattr(st.gear, "terms", ()) or ())
+    against = {"rows": rows, "gear": None}
     return {"rows": rows,
             "present": provenance.present({"rows": rows}) if rows else {"entries": [], "bands": {}},
-            "views": _views(st, segs, any(t.applies.windows for t in terms))}
+            "views": _views(st, segs, any(t.applies.windows for t in terms), against)}
 
 
-def _views(st, segs, seasonal_gear: bool) -> list:
+def _views(st, segs, seasonal_gear: bool, against=None) -> list:
     """THE YEAR, AS TABLES A READER CAN PICK FROM.
 
     A standing table is the table of a year: where a rule is seasonal it can state no number,
@@ -109,6 +110,12 @@ def _views(st, segs, seasonal_gear: bool) -> list:
     carries a window, because everywhere else it would be the same table repeated.
     """
     extra = list(st.area.rule_dicts) if st.area is not None else []
+    # THE BASELINE A SEASON IS MEASURED AGAINST MUST INCLUDE ITS GEAR. Comparing a dated gear
+    # table against nothing made every line on it read as newly in force — a bait ban arriving
+    # on Nov 1 alongside the nine provincial rules that were there all along.
+    if against is not None and seasonal_gear:
+        against = dict(against,
+                       gear=method_provenance.base_table(st.region, st.kind, None, extra))
     out = []
     for seg in segs:
         v = dict(seg)
@@ -121,8 +128,147 @@ def _views(st, segs, seasonal_gear: bool) -> list:
             v["same"] = True
         if seasonal_gear:
             v["gear"] = method_provenance.base_table(st.region, st.kind, on, extra)
+        if against is not None and not seg["whole_year"]:
+            v["delta"] = _delta(against, {"rows": v["rows"], "gear": v.get("gear")})
         out.append(v)
     return out
+
+
+_MON = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def _when(applies) -> str:
+    if not applies.windows:
+        return ""
+    w = ", ".join(f"{_MON[f[0]]} {f[1]} – {_MON[t[0]]} {t[1]}" for f, t in applies.windows)
+    return ("every day but " + w) if applies.unless else w
+
+
+def conditional(region: str, kind: str) -> list:
+    """EVERY RULE HERE THAT DEPENDS ON WHERE OR WHEN YOU ARE, in one list.
+
+    The states are all reachable — and a reviewer still has to guess which chip to press to
+    find a given sentence, which is no way to check a chapter against a book. Region 1's
+    stream rules are four lines in the synopsis: a bait ban and a hook rule that hold all
+    year, a summer closure in six management units, and a bait ban in two more. Three of the
+    four are conditional, and until now nothing on the page said so in one place.
+
+    So: every rule with a season, and every rule that belongs to a named area, with the place
+    and the dates it answers to and the words the book uses. The page hangs a button on each
+    one that goes to the state where it bites, which is the difference between "the state
+    exists" and "a reviewer can find it".
+    """
+    out, seen = [], set()
+
+    def add(src, applies, where, side, needs_when=False, rank=0):
+        if src.rule_id in seen:
+            return
+        when = _when(applies)
+        # A REGION'S OWN RULES ARE NOT A CONDITION OF BEING IN IT. Haida Gwaii IS Management
+        # Units 6-12 and 6-13, so every rule in its base names that place; listing all nine
+        # buries the one line that actually turns on something — the bait ban, Nov 1 – Apr 30.
+        # A base rule earns a place here by having a season; an AREA rule earns it by being
+        # narrower than the table you are looking at.
+        if needs_when and not when:
+            return
+        if not when and not where:
+            return
+        seen.add(src.rule_id)
+        out.append({"rule": src.rule_id, "verbatim": (src.verbatim or "").strip(),
+                    "who": src.who, "where": where, "when": when, "side": side, "rank": rank,
+                    "on": [applies.windows[0][0][0], applies.windows[0][0][1]]
+                          if applies.windows and not applies.unless else None})
+
+    # an area's rules first — they are the ones a reader cannot find by scrolling
+    for area in ST.areas(region, kind):
+        # A PARK IS EVERY REGION'S AREA; A MANAGEMENT UNIT IS THIS ONE'S. The province's
+        # closures are true here and identical on the other ten chapters, so they go last —
+        # a reviewer checking Region 1 against its page is looking for Region 1's sentences.
+        rs = area.rule_dicts
+        own = 0 if rs and ST.chapter(rs[0]["entry"]) == region else 1
+        for x in rs:
+            add(source_of(x), _applies_of(x), area.name, "area", rank=own)
+    st = ST.state(region, kind)
+    # ...then whatever the region's own table only says sometimes. A base rule can still name
+    # a place — Haida Gwaii IS Management Units 6-12 and 6-13, so its bait ban is an area rule
+    # that happens to cover the whole of it, and saying so is how a reader recognises the
+    # sentence in the book.
+    for a in st.ledger.allowances:
+        if a.derived_from is None:
+            add(a.source, a.applies, _place(a.source, region), "quota", needs_when=True)
+    for t in getattr(st.gear, "terms", ()) or ():
+        add(t.source, t.applies, _place(t.source, region), "gear", needs_when=True)
+    return sorted(out, key=lambda r: (r["rank"], not r["when"], r["rule"]))
+
+
+def _place(src, region: str) -> str:
+    """The place a rule names, where that is narrower than the whole region."""
+    p = (src.place or "").strip()
+    return p if p.startswith("MU") or "Park" in p or "Reserve" in p else ""
+
+
+def _applies_of(x: dict):
+    from pipeline.regs.table.build import _applies
+    return _applies(x, "")
+
+
+def _answers(rows: list) -> dict:
+    """{species → what you may do with it}. Keyed by SPECIES, not by row, because a state can
+    regroup the rows themselves: Region 3's bull trout, Dolly Varden and lake trout are one
+    row until the lake trout is released, and then they are two. A row-to-row diff would call
+    that "one row gone, one row new" and say nothing about the fish."""
+    out = {}
+    for r in rows:
+        for sp in r["fish"]:
+            out[sp] = r["keep"]
+    return out
+
+
+def _delta(base: dict, now: dict) -> dict:
+    """WHAT THIS STATE CHANGES, against the region's year-round table.
+
+    The whole model rests on "a table is its base plus named overrides, and every difference is
+    attributable to one of them". The page could show a state and leave the reader to spot the
+    difference by eye across two screens — which is how a wrong number survives a review. This
+    says it: these fish, from this to that, and this gear line came or went.
+    """
+    a, b = _answers(base["rows"]), _answers(now["rows"])
+    by = {}
+    for sp in sorted(set(a) | set(b)):
+        was, is_ = a.get(sp), b.get(sp)
+        if was == is_:
+            continue
+        by.setdefault((was, is_), []).append(sp)
+    from pipeline.regs.table.build import name as fish_name
+    from pipeline.regs.table.rows import HIDDEN
+    fish = [{"was": k[0], "now": k[1],
+             "fish": sorted(fish_name(c) for c in v if c not in HIDDEN)}
+            for k, v in by.items()]
+    fish = [f for f in fish if f["fish"]]
+
+    def rig(t, steady=False):
+        """`steady` keeps only the lines in force EVERY day. That is what a stretch has to be
+        measured against: the year-round gear table lists every seasonal rule too, each with
+        its dates, so comparing a stretch to it showed no difference at all — the bait ban is
+        on both, and the whole point is that it only bites on one."""
+        out = set()
+        def take(ts, topic):
+            for x in ts:
+                if steady and x.get("windows"):
+                    continue
+                out.add((topic, x.get("plain") or x.get("text") or ""))
+        for row in ((t or {}).get("rows") or []):
+            for topic, ts in (row.get("rig") or {}).items():
+                take(ts, topic)
+        for topic, ts in (((t or {}).get("band") or {}).get("rig") or {}).items():
+            take(ts, topic)
+        return {x for x in out if x[1]}
+
+    ga, gb = rig(base.get("gear"), steady=True), rig(now.get("gear"))
+    gear = ([{"how": "now", "topic": t, "says": w} for t, w in sorted(gb - ga)] +
+            [{"how": "gone", "topic": t, "says": w} for t, w in sorted(ga - gb)])
+    return {"fish": fish, "gear": gear}
 
 
 def _seen(d: dict) -> str:
@@ -290,9 +436,14 @@ def collect() -> dict:
                 g = method_provenance.base_table(region, kind, None, area.rule_dicts)
                 if json.dumps(g, sort_keys=True) != json.dumps(g_base, sort_keys=True):
                     entry["gear"] = {"table": g}
+                entry["delta"] = _delta({"rows": q["rows"], "gear": g_base},
+                                        {"rows": st["rows"], "gear": g})
                 pl.append(entry)
         out.append({
             "places": pl,
+            "conditional": (conditional(region, kind)
+                            if kind in ("lake", "stream") and region not in ("province", "p")
+                            else []),
             "key": f"{region}:{kind}",
             "region": region,
             "kind": kind,

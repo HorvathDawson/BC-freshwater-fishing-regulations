@@ -65,7 +65,7 @@ class Area:
         return [x for x in all_rules() if rid(x) in want]
 
 
-def _chapter(entry: str) -> str:
+def chapter(entry: str) -> str:
     """Whose chapter an entry is in: `z1:` → Region 1, `zp:` → every region."""
     head = entry.split(":")[0]
     return "" if head == "zp" else head[1:]
@@ -100,7 +100,7 @@ def areas(region: str, kind: str) -> Tuple[Area, ...]:
             continue
         if x["entry"].startswith("z1:hg_"):
             continue
-        if _chapter(x["entry"]) not in ("", region):
+        if chapter(x["entry"]) not in ("", region):
             continue
         w = x.get("water")
         if w and w != kind:

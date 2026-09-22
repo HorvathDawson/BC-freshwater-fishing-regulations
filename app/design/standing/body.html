@@ -120,12 +120,18 @@ function drawPicker() {
 
 function bindDate() {
   const pick = el => {
+    if (el.classList.contains("goto")) {
+      WHERE = el.dataset.where || null;
+      ON = el.dataset.on ? el.dataset.on.split("-").map(Number) : null;
+      draw();
+      return;
+    }
     if (el.dataset.where !== undefined) { WHERE = el.dataset.where || null; draw(); return; }
     const v = el.dataset.on;
     ON = v ? v.split("-").map(Number) : null;
     draw();
   };
-  document.querySelectorAll(".ypc,.chip").forEach(b => b.onclick = () => pick(b));
+  document.querySelectorAll(".ypc,.chip,.goto").forEach(b => b.onclick = () => pick(b));
   const inp = document.getElementById("dateIn");
   if (inp) inp.onchange = () => {
     const p = (inp.value || "").split("-").map(Number);
@@ -1174,6 +1180,46 @@ function whereCard(e) {
     </div></div>`;
 }
 
+/* EVERY RULE HERE THAT DEPENDS ON WHERE OR WHEN YOU ARE, in one list, each with a button to
+   the state where it bites. The states were all reachable before this and a reviewer still had
+   to guess which chip to press to find a given sentence, which is no way to check a chapter
+   against a book: Region 1's stream rules are four lines in the synopsis and three of them are
+   conditional. "The state exists" and "a reviewer can find it" are not the same thing. */
+function conditionCard(e) {
+  const cs = e.conditional || [];
+  if (!cs.length) return "";
+  const li = c => `<li>
+    <span class="ctags">${c.where ? `<span class="rtag">${esc(c.where)}</span>` : ""}
+      ${c.when ? `<span class="when">${esc(c.when)}</span>` : ""}</span>
+    <span class="csays">${esc(c.verbatim)}</span>
+    <button class="goto" data-where="${esc(c.side === "area" ? c.where : "")}"
+      data-on="${c.on ? c.on.join("-") : ""}">show me</button></li>`;
+  return `<div class="card">
+    <header><span class="eyebrow">What changes here</span>
+      <span class="mem">${cs.length} rule${cs.length > 1 ? "s" : ""} depend${cs.length > 1 ? "" : "s"}
+        on where or when you are &mdash; the rest hold everywhere in this region, all year</span></header>
+    <div class="body"><ul class="cond">${cs.map(li).join("")}</ul></div></div>`;
+}
+
+/* WHAT THIS STATE CHANGES. The model rests on "a table is its base plus named overrides, and
+   every difference is attributable to one of them"; showing a state and leaving the reader to
+   spot the difference by eye across two screens is how a wrong number survives a review. */
+function deltaBlock(d) {
+  if (!d || (!(d.fish || []).length && !(d.gear || []).length)) return "";
+  const word = k => k == null ? "nothing set"
+    : k === "release" ? "Put it back" : (k === "0" || k === "closed") ? "No fishing"
+    : (k === "∞" || k === "unlimited") ? "No limit" : k;
+  const rows = (d.fish || []).map(f =>
+    `<div class="dline"><span class="dfish">${esc(f.fish.join(", "))}</span>
+      <span class="dwas">${esc(word(f.was))}</span><span class="darr">&rarr;</span>
+      <span class="dnow">${esc(word(f.now))}</span></div>`).join("") +
+    (d.gear || []).map(g =>
+    `<div class="dline"><span class="dfish">${esc(g.topic)}</span>
+      <span class="dnow">${esc(g.says)}</span>
+      <span class="dwas">${g.how === "now" ? "now in force" : "does not apply"}</span></div>`).join("");
+  return `<div class="delta"><span class="eyebrow">What is different here</span>${rows}</div>`;
+}
+
 function asOfBanner(t) {
   if (!ON || !t.view) return "";
   // A REGION WITH NO SEASONS MUST NOT BE TOLD IT HAS ONE. "The seasons are inside these
@@ -1214,6 +1260,7 @@ function draw() {
   const always = (e.always || []).map(a =>
     `<li><b>${esc(a.where || "")}</b>${a.verbatim ? ` &mdash; ${esc(a.verbatim)}` : ""}</li>`).join("");
   host.innerHTML = `
+    ${conditionCard(e)}
     ${whereCard(e)}
     ${scheduleCard(e)}
     ${always ? `<div class="card always"><header><span class="eyebrow">True everywhere, on every water</span></header>
@@ -1222,7 +1269,8 @@ function draw() {
       you have to know them.</p><ul class="alist">${always}</ul></div></div>` : ""}
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; what you may keep</h2>${score(e.quota.print)}</header>
-      <div class="body">${asOfBanner(t)}${t.area && t.area.shut
+      <div class="body">${asOfBanner(t)}${deltaBlock(
+        (t.view && t.view.delta) || (t.area && t.area.delta))}${t.area && t.area.shut
         ? `<p class="empty">Closed &mdash; see the rules above.</p>`
         : quotaTable(t.present, t.rows)}</div>
     </div>
