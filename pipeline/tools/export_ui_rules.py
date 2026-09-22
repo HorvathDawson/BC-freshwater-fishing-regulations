@@ -121,7 +121,13 @@ FIELDS = {
         "authority": "'superior' | 'province' | 'region' — WHO WROTE IT",
         "extents": "the places it reaches, as area ids / area kinds",
         "extent_text": "a prose extent nothing can draw on a map. Becomes a caveat, not a "
-                       "counter — EXCEPT inside the area it names, where the place is drawn.",
+                       "counter — EXCEPT inside the area it names, where the place is drawn.\n"
+                       "IT IS ALSO WHAT TELLS TWO RULES APART when nothing else does. Mahood "
+                       "Lake has two closure areas, each with its own catch-and-release, bait "
+                       "ban and barbless-hook rule; the bundle keeps no structured extent for "
+                       "either ('lake has no bindable cut-point'), so the six rules flatten to "
+                       "two identical triples and only this field says which is the western tip "
+                       "and which the Mahood River outlet. Nine such groups exist. Show it.",
         "includes_tributaries / tributaries_only": "how far up it reaches",
         "via": "on a water's rule: 'reach' (written for this water) or 'trib' (it reached here "
                "from a water downstream, by the tributary walk)",
@@ -142,6 +148,19 @@ FIELDS = {
         "water_class": "'I' | 'II' for classified waters",
         "angler_class": "who it is about — set on only 38 of 3,422 rules",
         "grantor / allocation / record_retention": "permits and day allocations",
+    },
+    "_two_rules_that_look_identical": {
+        "_note": "No rule in the corpus duplicates another. Every apparent repeat is told apart "
+                 "by a field, and three different fields do it — so a comparison that checks "
+                 "only the obvious ones will report duplicates that are not there.",
+        "extent_text": "9 groups — two places, one sentence, no drawable cut-point",
+        "extents": "5 groups — one sentence over several reaches, e.g. the Fraser's trout "
+                   "closure downstream of Hell's Gate, between it and the Thompson, and above",
+        "max_kmh / aspect": "5 groups — 'speed restriction on parts (8 and 60 km/h)' is TWO "
+                            "rules, one per zone; 'speed restrictions or no vessels' is a speed "
+                            "rule and a propulsion rule",
+        "_and": "the `verbatim` is shared on purpose in all of these: both rules were read from "
+                "the one sentence, and that sentence is the provenance of each.",
     },
     "other": {
         "exempts": "what this rule LIFTS — this is how a closure is reopened",
