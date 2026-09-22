@@ -730,8 +730,25 @@ def main() -> None:
                 # blanket for a park, one river for a sign zone drawn across a confluence.
                 scope = {n: a["cuts"] for n, a in load_area_attrs(ad).items() if a.get("cuts")}
                 apts = resolve_area_splits(polys, chains, term=ad.get("label_term"), scope=scope)
+                # OFFERED IS NOT APPLIED, and the line used to print only the first.
+                #
+                # Cuts are resolved against the FWA CHAINS while the graph has already been
+                # pruned, so an area can be handed a cut on water the graph no longer holds:
+                # blk 360244272 is an unnamed 1.7 km stream inside the Kispiox sign zone, cut
+                # 0 nodes because the leaf prune had removed it. Nothing was harmed — no node,
+                # no binding — but the count said 6 where 3 happened, and a cut that vanishes
+                # without a word is the same shape as the two real bugs this area found.
+                #
+                # Offering is skipped for a blk the graph does not have, and both numbers are
+                # printed so a silent refusal shows up as a gap rather than as nothing.
+                live = {n.blk for n in graph.nodes.values()}
+                apts = [p for p in apts if p.blk in live]
+                before = len(applied_splits)
                 split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
-                print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
+                done = len(applied_splits) - before
+                note = "" if done == len(apts) else f"  ** {len(apts) - done} not applied **"
+                print(f"  area '{ad['id']}': {len(polys)} polygon(s), "
+                      f"{done}/{len(apts)} transition cut(s) applied{note}")
             else:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
         _tick("blanket area splits (cut only)")

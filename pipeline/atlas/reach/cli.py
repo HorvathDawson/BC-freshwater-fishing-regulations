@@ -46,7 +46,12 @@ def main() -> int:
         for note in parse_io.skipped_sources():
             print(f"  (not an EntryFile source — {note})")
 
-    result = build_reaches(entries, registry, graph, build=build.name)
+    # The DIGEST, not just the folder name. Promotion renames directories, so a run built
+    # against a scratch path would otherwise stop matching its own atlas the moment it is
+    # promoted — see `BuildReport.handles`.
+    from pipeline.common.section_handles import digest_for
+    result = build_reaches(entries, registry, graph, build=build.name,
+                           handles=digest_for(build))
     r = result.report
     print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
     for k, v in sorted(r.outcomes.items()):

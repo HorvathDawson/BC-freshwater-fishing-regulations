@@ -339,3 +339,41 @@ class TestSmallAreasAndScopedCuts:
         from pipeline.common.curated import CURATED
         for f in json.loads(CURATED.waters.added_areas.read_text())["features"]:
             assert f["properties"].get("cuts"), f"{f['properties']['id']} declares no `cuts`"
+
+
+class TestOfferedIsNotApplied:
+    """A cut offered on water the graph does not hold.
+
+    Cuts are resolved against the FWA CHAINS; the graph has already been pruned by then. The
+    two do not hold the same set of blue lines, so an area can be handed a cut for a stream
+    that no longer exists as a node — and `split_graph_at` finds no piece and moves on without
+    a word. Harmless in itself (no node, no binding), but indistinguishable from the two real
+    bugs the sign zones turned up, both of which also looked like a cut that simply did not
+    happen.
+    """
+
+    def test_an_unnamed_pruned_stream_offers_a_cut_that_lands_nowhere(self):
+        """blk 360244272 — an unnamed 1.7 km stream inside the Kispiox sign zone. It has a
+        chain and no graph nodes, because the leaf prune removed it."""
+        from pathlib import Path
+        import pytest
+        from pipeline.common.curated import GENERATED
+        from pipeline.common.io.serialize import read_artifact
+
+        build = Path(GENERATED.build())
+        if not (build / "graph.pkl").exists():
+            pytest.skip("no built atlas on this machine")
+        g = read_artifact(build / "graph.pkl")
+        live = {n.blk for n in g.nodes.values()}
+        assert "360244272" not in live, (
+            "this blk is expected to be pruned out of the graph; if it is back, the case this "
+            "test describes has changed and the filter in build.py needs re-checking")
+
+    def test_the_filter_keeps_only_blks_the_graph_still_holds(self):
+        """The filter itself, in isolation — offering is skipped for water that is gone."""
+        from pipeline.common.models import SplitPoint, AnchorType
+        live = {"a", "b"}
+        offered = [SplitPoint(split_id="area:z", blk=b, route_measure=1.0, fid="", label="z",
+                              anchor_type=AnchorType.area_boundary) for b in ("a", "gone", "b")]
+        kept = [p for p in offered if p.blk in live]
+        assert [p.blk for p in kept] == ["a", "b"]

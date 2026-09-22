@@ -113,6 +113,15 @@ class BuildReport:
     """What a human reads after a build."""
 
     build: str = ""
+    #: THE ATLAS'S CONTENT IDENTITY, not its folder name. `build` is a directory, and
+    #: promotion works by RENAMING directories (`full_next` -> `full`), so a run built
+    #: against a scratch path stops matching its own atlas the moment it is promoted while
+    #: the stale run beside it starts matching. That is not hypothetical: it silently handed
+    #: the bundle the previous run's rule->section rows, and only the handle-table check
+    #: downstream stopped a bundle binding rules to sections that no longer exist.
+    #: `section_handles.txt` is the one file whose contents define what a section id means,
+    #: so its digest is what "the same atlas" actually means. See `bundle.build._reach_run`.
+    handles: str = ""
     n_entries: int = 0
     n_rules: int = 0
     outcomes: dict[str, int] = field(default_factory=dict)

@@ -127,17 +127,34 @@ def _reach_run(build_dir: Path) -> Path | None:
     its output is corrected and the older one is the stale copy. The choice is printed
     rather than assumed.
     """
-    runs = []
+    from pipeline.common.section_handles import digest_for
+    try:
+        want = digest_for(build_dir)
+    except Exception:
+        want = ""
+
+    runs, by_name = [], []
     for report in sorted((GENERATED.reaches).glob("*/report.json")):
         try:
             got = json.loads(report.read_text())
         except (OSError, ValueError):
             continue
-        if got.get("build") == build_dir.name:
+        if want and got.get("handles") == want:
             runs.append((report.stat().st_mtime, report.parent))
-    if not runs:
+        elif not got.get("handles") and got.get("build") == build_dir.name:
+            # A run written before the digest existed. Matched by folder name, which is what
+            # this always did — kept so an older run still pairs rather than vanishing.
+            by_name.append((report.stat().st_mtime, report.parent))
+    # CONTENT BEATS NAME, ALWAYS. Promotion renames directories, so a run built against a
+    # scratch path (`full_next`) stops matching the moment its atlas becomes `full` — while
+    # the stale run that was renamed to `full.prev` still carries `build: "full"` and wins.
+    # That happened: the bundle was handed the previous run's rule->section rows, and only
+    # the handle-table check in `rules.write` stopped it shipping rules bound to sections
+    # that no longer exist. A digest of `section_handles.txt` cannot be renamed.
+    chosen = runs or by_name
+    if not chosen:
         return None
-    return max(runs)[1]
+    return max(chosen)[1]
 
 
 def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:

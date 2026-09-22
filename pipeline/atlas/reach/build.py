@@ -30,8 +30,8 @@ class ReachResult:
     report: BuildReport
 
 
-def build_reaches(entries, registry, graph, *, build: str = "", covered_fn=None,
-                  overrides_path="__default__") -> ReachResult:
+def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
+                  covered_fn=None, overrides_path="__default__") -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -46,7 +46,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", covered_fn=None,
     match = make_matcher(registry, overrides_path)
     bindings: list[RuleBinding] = []
     diagnostics: list[Diagnostic] = []
-    report = BuildReport(build=build)
+    report = BuildReport(build=build, handles=handles)
 
     for e in sorted(iter_entries(entries), key=lambda x: x["entry_id"]):
         report.n_entries += 1
