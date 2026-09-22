@@ -128,7 +128,11 @@ ADMIN: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="sign_zone", geometry="polygon", ladder="area", minzoom=9,
-        attrs=("area_id", "name", "kind", "cuts"),
+        # NO `kind`. Every other admin layer carries one because it separates two things a
+        # reader must not confuse — national from provincial park, closed land from permit
+        # land. A sign zone has no second kind, so the field would be a column of nulls, and
+        # a declared attribute nothing writes is the gap the contract exists to catch.
+        attrs=("area_id", "name", "cuts"),
         why="Sign-bounded closures — the area a regulation encloses with fishing boundary "
             "signs, drawn by hand because no fetched layer has them.\n\n"
             "ITS OWN LAYER BECAUSE IT IS NOT A PLACE, IT IS A RULE. A park is geography that "

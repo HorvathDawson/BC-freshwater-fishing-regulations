@@ -268,7 +268,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                    ((i, e, r, s) for i, rows in enumerate(sets) for e, r, s in rows))
     cov.filled("ruleset", sum(len(s) for s in sets))
 
-    n_uncertain = sum(1 for r in rule_rows if r[8])
+    # COUNTED FROM THE SET, NOT FROM A TUPLE INDEX. This read `r[8]` — which is
+    # `json.dumps(species)`, a string that is never empty ("[]" at minimum) and therefore
+    # always truthy. Every build reported EVERY rule as uncertain: 3,422 of 3,422, a number
+    # so obviously wrong it read as normal. The column itself was always right (256), so
+    # nothing downstream was affected and nothing failed — only the line a person reads to
+    # decide whether a build is healthy. The INSERT below names its columns for exactly this
+    # reason; the summary went positional and drifted the moment a field moved.
+    n_uncertain = len(unresolved & {(r[0], r[1]) for r in rule_rows})
     print(f"     rules: {len(entry_rows):,} entries · {len(rule_rows):,} rules "
           f"({n_uncertain} uncertain) · {len(section_set):,} sections carry one, "
           f"sharing {len(sets):,} distinct sets")

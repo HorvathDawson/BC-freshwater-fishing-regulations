@@ -97,7 +97,6 @@
       "attrs": [
         "area_id",
         "name",
-        "kind",
         "cuts"
       ],
       "featureId": "area_id",
