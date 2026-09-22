@@ -27,6 +27,8 @@ in-season) versioned apart from the bundle, bathymetry, and ordered steps with a
 | [14-waterbody-split-curation](14-waterbody-split-curation.md) | Curating splits |
 | [15-live-data-flow](15-live-data-flow.md) | Gauges + stocking: bundle vs feed, who computes the percentile |
 | [DESIGN-regs-to-sections](DESIGN-regs-to-sections.md) | Long-form design of regs → sections |
+| **[06-ui-data-contract](06-ui-data-contract.md)** | **What crosses into the client, and what it is never asked to work out** |
+| [05-table-generation](05-table-generation.md) | How a table was built from rules — **the code is removed; this is the reference to rebuild from** |
 
 Numbering has gaps because superseded docs moved to `archive/`; the remaining numbers are unchanged
 so existing links still resolve.
@@ -42,6 +44,11 @@ so existing links still resolve.
 Superseded designs and one-off data, kept for provenance: the v1 pipeline map (`02`), early
 architecture (`07`), pre-registry data structures (`08`), the delivered implementation plan (`11`),
 and the six docs `10-plan` replaces. Nothing reads these.
+
+Added 2026-09-22, when the settling layer was removed: `HANDOFF-regs-tables.md` (its state, open
+defects and next steps — all of the code it hands over is gone), `DUPLICATION.md` (the review of
+the `regs-v3` prototype, which is now a design reference rather than a running page) and
+`optimize-web-bundle.md` (a scratch note about the deployed site's JS bundle).
 
 ## Where the work is
 

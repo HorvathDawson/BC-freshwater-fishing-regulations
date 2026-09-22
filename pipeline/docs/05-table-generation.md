@@ -1,5 +1,20 @@
 # How a regulation table is generated
 
+> ## ⚠ THE CODE THIS DESCRIBES IS NOT IN THE REPOSITORY
+>
+> The settling layer was removed to be rebuilt properly — `ledger.py`, `build.py`, `rows.py`,
+> `display.py`, `quota_print.py`, `comply.py`, `oracle.py` and the eight `method_*` modules, about
+> 7,000 lines. What remains is `corpus.py`, `authority.py` and `state.py`: the rules, how a rule is
+> classified, and which rules apply where.
+>
+> **This document is kept as the reference to rebuild from**, and every number in it was measured
+> against the code when it ran. Read it as a record of what the problem is and how it was solved
+> once, not as a map of the current tree. `06-ui-data-contract.md` is what the rebuilt layer owes.
+>
+> Two of the removed modules were not settling and are wanted back: `quota_print` checked every
+> line of each region's printed quota box against the rule accounting for it (**384 of 384**), and
+> `comply` guaranteed that settling drops nothing silently.
+
 Read in order. One real rule is followed all the way through — Region 2's **"2 from streams
 (must be hatchery)"** — and every step of the logic tree has a worked example beside it.
 
