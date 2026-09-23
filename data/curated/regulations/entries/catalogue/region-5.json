@@ -697,7 +697,7 @@
        ]
       }
      ],
-     "reason": "Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing"
+     "suspended_while": "atnarko_bella_coola_rivers.r13"
     }
    ]
   },
@@ -2085,7 +2085,7 @@
        ]
       }
      ],
-     "reason": "Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing"
+     "suspended_while": "burnt_bridge_creek.r2"
     },
     {
      "rule_id": "burnt_bridge_creek.r4",

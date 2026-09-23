@@ -413,3 +413,34 @@ def test_the_three_wider_than_game_rules_say_so():
                     seen.add(key)
                     assert rule["species"] == ["ALL_FIN_FISH"], f"{key} narrowed to {rule['species']}"
     assert seen == want, f"missing: {want - seen}"
+
+
+def test_reason_is_gone_and_a_notice_is_only_a_notice():
+    """`reason` held a citation, an explanation and a hidden condition. It is refused now, and the
+    citation has its own field that takes nothing but a notice number."""
+    with pytest.raises(ValueError):
+        _r(type=RuleType.advisory, reason="located in an Ecological Reserve")
+    assert _r(type=RuleType.advisory, notice="FN0679").notice == "FN0679"
+    with pytest.raises(ValueError):
+        _r(type=RuleType.advisory, notice="for the conservation of chinook")
+
+
+def test_a_suspended_requirement_says_what_suspends_it():
+    """"Classified Waters Licence … not required until reopened to steelhead fishing": the licence
+    rule sleeps while the steelhead closure binds, and its label says so from the closure's own
+    label — not from prose."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    e = CatalogueEntry.model_validate({
+        "entry_id": "x", "name": "X", "regs_verbatim": "No Fishing for steelhead. Class II water",
+        "rules": [
+            {"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing for steelhead",
+             "species": ["ST"], "take": 0, "may_target": False},
+            {"rule_id": "x.r2", "type": "document_required", "verbatim": "Class II water",
+             "document": "classified_waters_licence", "water_class": "II",
+             "suspended_while": "x.r1"}]})
+    sib = {r.rule_id: r for r in e.rules}
+    assert label(e.rules[1], sib).endswith("— not while “No fishing for steelhead” is in force")
+    with pytest.raises(ValueError, match="names no other rule"):
+        CatalogueEntry.model_validate({**e.model_dump(mode="json", exclude_defaults=True),
+                                       "rules": [e.rules[1].model_dump(mode="json",
+                                                                       exclude_defaults=True)]})

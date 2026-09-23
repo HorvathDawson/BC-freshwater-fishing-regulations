@@ -103,7 +103,7 @@ _NOT_CONDITIONS = frozenset({
 })
 
 
-def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None):
+def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, siblings=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -151,7 +151,7 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None):
                   and not any(v is e or v == e for e in _EMPTY)
                   and (v is not False or k in _FALSE_MEANS_SOMETHING)}
     return (
-        entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r),
+        entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r, siblings),
         _specificity(raw),
         json.dumps(_windows(raw), separators=(",", ":")),
         json.dumps(list(r.species), separators=(",", ":")),
@@ -247,10 +247,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                 e.get("scope_note") or None,
                 json.dumps(e.get("extents") or [], separators=(",", ":")),
             ))
+            # A rule may name another in its entry (`suspended_while`), and its label says what
+            # that rule is in words — so each label is built with its siblings to hand.
+            from pipeline.regs.parsing.catalogue import CatalogueRule
+            siblings = {r["rule_id"]: CatalogueRule.model_validate(r) for r in e.get("rules") or []}
             for r in e.get("rules") or []:
                 rule_rows.append(_rule_row(
                     e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved,
-                    e.get("extents")))
+                    e.get("extents"), siblings))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild

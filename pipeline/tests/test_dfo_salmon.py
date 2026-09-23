@@ -2172,7 +2172,7 @@ def test_a_bundled_row_is_two_rules_of_different_types():
     assert quota.type is RuleType.retention_limit and quota.take == 2
     assert bait.type is RuleType.bait_restriction
     assert [c.model_dump(mode="json") for c in bait.gear] == [{"slot": "bait", "ban": ["any_bait"]}]
-    assert quota.reason == bait.reason == "FN0846", "the notice that set the row is provenance"
+    assert quota.notice == bait.notice == "FN0846", "the notice that set the row is provenance"
 
 
 def test_a_gear_rule_is_scoped_by_what_you_fish_for_not_what_you_may_keep():

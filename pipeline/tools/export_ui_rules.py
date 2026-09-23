@@ -232,7 +232,9 @@ FIELDS = {
         "exempts": "what this rule LIFTS — this is how a closure is reopened",
         "obligation / on_retention / required": "duties, e.g. 'must be released immediately'",
         "uncertain": "the curator was not sure",
-        "reason": "why, where the book gives one",
+        "notice": "the DFO fishery notice a rule was published in ('FN0679'); provenance only",
+        "suspended_while": "a rule id in the same entry: this rule is dormant while that one binds "
+                           "('licence not required until reopened to steelhead fishing')",
     },
 }
 

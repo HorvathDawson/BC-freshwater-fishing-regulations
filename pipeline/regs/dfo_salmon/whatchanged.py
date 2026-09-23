@@ -44,7 +44,7 @@ HISTORY = Path(DEFAULT_CACHE) / "history"
 #: Fields that are NOT the rule. `rule_id` is positional, `verbatim` and `reason` are prose that
 #: drifts without the regulation changing — 2017's "Sockeye, Pink & Chum" is 2026's
 #: "Sockeye, pink and chum", and an in-season notice number changes every time one is issued.
-_NOT_THE_RULE = ("rule_id", "verbatim", "reason")
+_NOT_THE_RULE = ("rule_id", "verbatim", "notice")
 
 
 def signature(rule: CatalogueRule) -> Tuple:

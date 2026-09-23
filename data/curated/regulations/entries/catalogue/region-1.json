@@ -7690,7 +7690,6 @@
      ],
      "take": 0,
      "may_target": false,
-     "reason": "located in an Ecological Reserve",
      "extents": [
       {
        "op": "whole"

@@ -308,12 +308,12 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         windows = [raw_dates]
     unreadable = bool(raw_dates) and not when["parsed"]
     fn = _RE_FN.search(gear)
-    reason = f"FN{fn.group(1)}" if fn else ""
+    notice = f"FN{int(fn.group(1)):04d}" if fn else None     # "FN 679" and "FN0679" are one notice
     rid = f"{rule_base}.r{order}"
     out: List[CatalogueRule] = []
 
     def base(times=None, **kw) -> dict:
-        d = dict(verbatim=gear or (rec.get("species") or "row"), reason=reason)
+        d = dict(verbatim=gear or (rec.get("species") or "row"), notice=notice)
         w = _when(windows, times)
         if w is not None:
             d["when"] = w

@@ -926,6 +926,8 @@ class GearClause(_Terse):
 #: held by a registry rather than a type: a token must appear here, and adding one is a reviewed
 #: change carrying the verbatim that motivated it.
 CONDUCT_ACTS = {
+    "be_accompanied_by_licensed_adult":
+        "Must be accompanied by a person 16 or older who holds the appropriate licences and stamps",
     "do_not_waste_catch": "Do not waste the fish you catch",
     "do_not_release_harmfully": "Do not release fish in a harmful manner",
     "do_not_buy_sell_or_barter_catch": "Do not buy, sell or barter your catch",
@@ -1211,7 +1213,19 @@ class CatalogueRule(BaseModel):
     exempts: List[Exempts] = Field(default_factory=list)
     standing: bool = False
     authority: Optional[str] = Field(default=None, pattern="^superior$")
-    reason: str = ""
+    #: WHERE THE RULE WAS PUBLISHED, when that is a notice and not the synopsis: a DFO fishery
+    #: notice number ("FN0679"). This was `reason` — a free-text field that held a citation here,
+    #: an explanation ("located in an Ecological Reserve") on three book rules, and a hidden
+    #: condition on three more. A citation says where a rule came from, never why or when.
+    notice: Optional[str] = Field(default=None, pattern=r"^FN\d{4}$")
+    #: THIS RULE IS DORMANT WHILE THAT ONE BINDS — a rule id in the same entry. "Classified Waters
+    #: Licence or Steelhead Stamp not required until reopened to steelhead fishing": the licence
+    #: requirement sleeps while the steelhead closure stands. It sat in `reason` as prose, so every
+    #: reader was shown the requirement and none could tell it was lifted.
+    #:
+    #: NOT `condition_of`, which points the other way — at the rule this one is the proviso of.
+    #: One field for both would be a pointer whose meaning depends on the rule holding it.
+    suspended_while: Optional[str] = None
     extent_text: str = ""
     #: Locator phrases that could not be bound to a cut-point — "the outlet", "signs 500 m below
     #: the falls". Non-empty forces `needs_review`; curation maps each to a split id.
@@ -1720,27 +1734,34 @@ def _where(r: CatalogueRule) -> str:
     return f" — {r.extent_text}" if r.extent_text else ""
 
 
-def _because(r: CatalogueRule) -> str:
-    """The condition that has no field of its own, appended.
-
-    `reason` is the catalogue's slot for a qualifier the schema cannot hold structurally — "not
-    required until reopened to steelhead fishing", "alone in a boat". Five rules carried one and
-    NOTHING rendered it: it reached `conditions` in the bundle and stopped there, so a reader was
-    shown a licence requirement without the condition that lifts it.
-
-    It is appended, never substituted. A reason narrows the sentence in front of it; printed on
-    its own it would read as the whole rule.
-    """
-    return f" — {r.reason}" if r.reason else ""
+def _suspended(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
+    """"— not while <the rule it sleeps under>", read off that rule's own label. Without the
+    entry's other rules to hand it names the rule by id, which is ugly and still true."""
+    if not r.suspended_while:
+        return ""
+    other = (siblings or {}).get(r.suspended_while)
+    said = label(other) if other is not None else f"rule {r.suspended_while}"
+    return f" — not while “{said}” is in force"
 
 
-def label(r: CatalogueRule) -> str:
-    """The line a reader sees. Verbatim is always available underneath."""
+def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
+    """The line a reader sees. Verbatim is always available underneath.
+
+    `siblings` is {rule_id: CatalogueRule} for the rule's entry, so a rule that points at another
+    (`suspended_while`) can say what it points at in words."""
     # GEAR AND CONDUCT ARE READ FIRST, FOR EVERY TYPE. A converted rule has no `method`,
     # `permitted`, `allowed`, `required`, `barbless` or `max_lines` — the direction now lives in
     # the clause that carries the subject, which is the whole point of the field. Wired into one
     # type's branch instead, every OTHER type fell through to printing its bare verbatim: a
     # "You must not:" fragment then reads as a permission, which is the inversion this replaced.
+    # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it. "Not required
+    # for under-16 non-residents" is only half the sentence — the waiver holds while accompanied —
+    # and rendered alone it read as an unconditional waiver.
+    if r.conduct and not r.gear and r.type not in (
+            RuleType.tackle_restriction, RuleType.bait_restriction,
+            RuleType.method_rule, RuleType.handling_rule):
+        acts = "; ".join(CONDUCT_ACTS.get(a, a.replace("_", " ")) for a in r.conduct)
+        return label(r.model_copy(update={"conduct": []}), siblings) + " — " + acts[:1].lower() + acts[1:]
     if r.gear or r.conduct:
         said = _gear_words(r)
         if said:
@@ -1749,7 +1770,7 @@ def label(r: CatalogueRule) -> str:
             named = {m for c in r.gear for m in ((c.allow or []) + (c.only or []) + (c.ban or []))}
             bare = r.model_copy(update={"method": None}) if (
                 r.method and r.method.value in named) else r
-            return said + _scope(bare) + _dates(bare) + _where(bare) + _because(bare)
+            return said + _scope(bare) + _dates(bare) + _where(bare) + _suspended(bare, siblings)
     t = r.type
     sp = species_words(r.species, r.species_except)
 
@@ -1768,7 +1789,7 @@ def label(r: CatalogueRule) -> str:
             if r.method:                      # "No fishing by spear fishing", not ", by spear fishing"
                 head += f" by {r.method.value.replace('_', ' ')}"
             rest = _scope(r.model_copy(update={"water": None, "method": None}), taking=False)
-            return head + rest + _dates(r) + _where(r) + _because(r)
+            return head + rest + _dates(r) + _where(r) + _suspended(r, siblings)
         if r.take == 0:
             # Both arms of a conditional here produced the SAME string — it read the size fields
             # and did nothing with them. `_size` appends the bound afterwards either way.
@@ -1791,7 +1812,7 @@ def label(r: CatalogueRule) -> str:
             head = sp                      # a size gate with no count: the region supplies it
         else:
             return r.verbatim              # nothing numeric to generate from
-        out = head + _size(r) + _who(r) + _scope(r) + _dates(r) + _where(r) + _because(r)
+        out = head + _size(r) + _who(r) + _scope(r) + _dates(r) + _where(r) + _suspended(r, siblings)
         if r.record_retention:
             out += " — record your retention on your licence immediately"
         return out
@@ -1816,7 +1837,7 @@ def label(r: CatalogueRule) -> str:
                     PropulsionLevel.power_capped:
                         f"Engine power restriction {kw:g} kW ({_HP.get(kw, '')} hp)" if kw
                         else "Engine power restriction"}[r.level]
-        return head + _dates(r) + _where(r) + _because(r)
+        return head + _dates(r) + _where(r) + _suspended(r, siblings)
 
     if t is RuleType.angling_from_vessel_prohibited:
         return "No angling from boats" + _scope(r) + _dates(r)
@@ -1844,7 +1865,7 @@ def label(r: CatalogueRule) -> str:
         # `taking=False`: you do not need a licence FROM a stream, you need one IN one. Its own
         # docstring says the wrong preposition reads as nonsense, and it did — "A Classified
         # Waters Licence is required, from streams".
-        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r) + _because(r)
+        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r) + _suspended(r, siblings)
 
     if t is RuleType.access_permission:
         # ONE WHO-BUILDER. This branch had its own, and the two disagreed: it spelled
@@ -1858,7 +1879,7 @@ def label(r: CatalogueRule) -> str:
             return f"Permission of the {r.grantor} is required" + _dates(r)
         head = f"Angling prohibited for {subject}" if r.permitted is False \
             else f"{subject[:1].upper() + subject[1:]} may fish here"
-        return head + _scope(r, taking=False) + _dates(r) + _where(r) + _because(r)
+        return head + _scope(r, taking=False) + _dates(r) + _where(r) + _suspended(r, siblings)
 
     if r.required is False and t in _PROHIBITABLE:
         return _quoted_prohibition(r)
@@ -1867,7 +1888,7 @@ def label(r: CatalogueRule) -> str:
     return r.verbatim
 
 
-def _quoted_prohibition(r: "CatalogueRule", quote_is_whole: bool = False) -> str:
+def _quoted_prohibition(r: "CatalogueRule") -> str:
     """"Do not …" around a quote whose own sentence carried the prohibition.
 
         THE PROHIBITION IS IN THE HEADING, NOT THE BULLET. The synopsis prints these under
@@ -1880,11 +1901,7 @@ def _quoted_prohibition(r: "CatalogueRule", quote_is_whole: bool = False) -> str
     So the prohibition lives in the DATA — `required: false` — and is rendered here.
     """
     body = r.verbatim.strip().rstrip(".")
-    # `quote_is_whole`: the caller is the duty branch, where the quoted sentence already says
-    # everything — its `reason` is there to mark it as a duty, not to add to it. Appending it
-    # printed "…during a No Fishing period — gear in the water during a No Fishing period".
-    tail = _dates(r) + _where(r) + ("" if quote_is_whole else _because(r))
-    return "Do not " + body[0].lower() + body[1:] + tail
+    return "Do not " + body[0].lower() + body[1:] + _dates(r) + _where(r)
 
 
 # --------------------------------------------------------------------------------------- #
@@ -1926,6 +1943,12 @@ class CatalogueEntry(BaseModel):
             needle = squash(r.verbatim)
             if needle not in haystack:
                 e.append(f"{r.rule_id}: verbatim is not a contiguous substring of regs_verbatim")
+        ids = {r.rule_id for r in self.rules}
+        for r in self.rules:
+            if r.suspended_while and (r.suspended_while not in ids
+                                      or r.suspended_while == r.rule_id):
+                e.append(f"{r.rule_id}: suspended_while={r.suspended_while!r} names no other rule "
+                         f"in this entry")
         if not self.rules:
             e.append("an entry with no rules says nothing")
         if e:

@@ -157,6 +157,9 @@ when           WHEN THE RULE BINDS — see "Seasons and times" below. One object
 angler_class · when_open
 extent_text    the reach in the page's own words, when no split can express it
 exempts        what this rule LIFTS
+suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. "Classified
+               Waters Licence not required until reopened to steelhead fishing" is the licence rule
+               with suspended_while = the steelhead closure's rule_id.
 obligation     must (default) | should — "anglers are encouraged" is should, not law
 review_reason  why a human must look. THERE IS NO `needs_review` (refused): a reason
                present IS the flag, and one longer than 20 characters is expected.

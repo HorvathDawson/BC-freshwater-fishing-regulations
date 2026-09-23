@@ -1488,13 +1488,15 @@
      },
      "document": "basic_licence",
      "required": false,
-     "reason": "you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps, and your catch counts against theirs",
      "review_reason": "REFUSED, not approximated: the child's catch counts against the ACCOMPANYING angler's quota. Quotas aggregate over water, water-group, region and province; there is no per-angler axis. Passed through as prose a parent would read it as two full quotas.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "be_accompanied_by_licensed_adult"
      ]
     },
     {
