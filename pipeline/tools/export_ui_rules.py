@@ -86,11 +86,11 @@ FIELDS = {
         "may_target": "0 where you may not even fish for it (a closure, not a release)",
         "unlimited": "true where there is no number",
         "period": "'daily' | 'possession' | 'annual' — which clock the number is on",
-        "combined": "the book's own word, set on only 21 of 265 group quotas. Read "
-                    "`shared_number` instead — an unset `combined` is NOT a claim that the "
-                    "number is one each.",
-        "shared_number": "DERIVED: whether the number is shared across the fish it names. More "
-                         "than one fish named IS shared; the flag marks where the book says so.",
+        "shared_number": "whether the number is shared across the fish it names. MORE THAN ONE "
+                         "FISH NAMED IS SHARED — no flag, no exception. A `combined` field used "
+                         "to sit on the rule; it marked 31 of the 1,188 rules this applies to "
+                         "and was written `false` on the rest, so its absence read as a denial. "
+                         "It has been removed from the corpus.",
         "within": "the rule id this is a clause of — '1 over 50 cm' inside 'Trout/char: 4'. A "
                   "clause counts INSIDE its parent, never against it.",
         "per_daily": "a possession multiple: N times the daily number",
@@ -355,24 +355,23 @@ SIZE_READINGS = {
 def _shared(x: dict, species: list) -> dict:
     """Is the number shared across the fish it names, or one each?
 
-    COMBINED IS THE DEFAULT WHEREVER MORE THAN ONE FISH IS NAMED. "Char daily quota = 1" means
-    one char between them, and the book does not write "combined" because naming a group already
-    says it. The `combined` flag marks the places the book spells it out — 21 of 265 group
-    quotas — and ITS ABSENCE IS NOT THE OPPOSITE CLAIM. A consumer that reads the unset flag as
-    "one each" multiplies a Region 2 bass limit of 20 into 40.
+    SHARED, WHENEVER MORE THAN ONE FISH IS NAMED. "Char daily quota = 1" is one char between
+    them; "Bass: 20" is twenty bass, not twenty largemouth and twenty smallmouth.
+
+    There is no flag and no exception. A `combined` field used to sit on the rule and has been
+    removed from the corpus: it marked 31 rules, every one of which already named more than one
+    fish — as did 1,157 that were never flagged — and it was stored as an explicit `false` on
+    the other 3,379, so its absence read as a denial. Nothing in the corpus means "one each":
+    the four group quotas whose sentence contains "each" all say "each day" or "each year".
 
     A quota on a single fish has no pool to share and is neither.
     """
     if x.get("take") is None and not x.get("unlimited"):
         return {}
-    if x.get("combined"):
-        return {"shared": True, "said_by": "the book writes 'combined'"}
     if len(species) > 1:
         return {"shared": True,
-                "said_by": "it names more than one fish, which is what makes it shared — the "
-                           "flag is only set where the book spells it out"}
+                "said_by": "it names more than one fish, and that is what makes a number shared"}
     return {"shared": False, "said_by": "one fish: there is no pool to share"}
-
 
 def _size_rule(x: dict) -> dict:
     """What a rule's size fields mean, decided once, here.
@@ -630,6 +629,38 @@ LAST_CHECKED = {
 }
 
 
+def _size_examples() -> dict:
+    """BOTH BOUNDS MEAN TWO OPPOSITE THINGS, so the file shows one of each rather than asserting
+    it. 29 rules in the corpus carry an `over_cm` AND an `under_cm`: 15 are holes and 14 are
+    windows, and only `band` separates them.
+
+    Four windows were flagged as holes until 2026-09-22 — "Lake trout = 2 (none under 40 cm or
+    over 60 cm)" read as "keep nothing between 40 and 60", which permits exactly the fish the
+    rule protects. Gwillim Lake sat beside a correctly curated twin using "and none over" rather
+    than "or over", the same numbers, no flag: one sentence, two spellings, opposite curation.
+
+    These examples come from waters outside the sampled set, because none of the sampled ones
+    carries a band.
+    """
+    want = {"teslin_lake.r3": "hole", "gwillim_lake.r1": "window",
+            "coquitlam_river.r3": "window"}
+    out = {"_note": "29 rules carry both bounds — 15 holes, 14 windows. `lo` is always the "
+                    "smaller length; what differs is whether the fish you may keep are inside "
+                    "that range or outside it.",
+           "examples": []}
+    for x in rules():
+        k = want.get(x.get("rule"))
+        if not k:
+            continue
+        out["examples"].append({
+            "rule": rid(x), "verbatim": " ".join((x.get("verbatim") or "").split()),
+            "over_cm": x.get("over_cm"), "under_cm": x.get("under_cm"),
+            "band": bool(x.get("band")), "size_rule": _size_rule(x),
+        })
+    out["examples"].sort(key=lambda e: e["size_rule"]["kind"])
+    return out
+
+
 def main(out_path: str) -> int:
     all_rules = list(rules())
     by_chapter = defaultdict(list)
@@ -732,6 +763,7 @@ def main(out_path: str) -> int:
                      "vessel rules are the same kind of object and the same ladder settles them.",
             "by_type": RULE_TYPES, "by_family": RULE_FAMILIES,
         },
+        "size_rule_examples": _size_examples(),
         "field_dictionary": FIELDS,
         "species": species_object(),
         "rules": kept,
