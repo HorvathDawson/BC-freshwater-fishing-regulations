@@ -1830,7 +1830,11 @@
      "period": "possession",
      "lengths": [
       {
-       "min_cm": 50
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
       }
      ],
      "over_cm": 50,
@@ -6697,7 +6701,11 @@
      "period": "possession",
      "lengths": [
       {
-       "min_cm": 50
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
       }
      ],
      "over_cm": 50,

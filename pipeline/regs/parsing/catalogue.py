@@ -415,6 +415,14 @@ def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
     denies = t == 0 or t is None
     if not o and not u:
         return None
+    # A SIZE ON A RULE THAT IS NOT ABOUT KEEPING SAYS WHICH FISH THE RULE IS ABOUT. "Conservation
+    # Surcharge Stamp required to catch and keep rainbow trout over 50 cm" limits nobody's fish —
+    # it says the stamp is needed for the big ones. Read with the retention branches below it came
+    # out as "keep zero rainbow trout over 50 cm", which is the sentence inverted: a paperwork rule
+    # turned into a ban. A range with no `take`, on a rule with no `take`, says exactly what is
+    # meant — these are the fish this rule speaks about, and it sets no number.
+    if getattr(r, "type", None) not in (RuleType.retention_limit, None):
+        return [LengthBand(min_cm=o) if o else LengthBand(max_cm=u)]
     if o and u:
         if r.band:
             # A HOLE. The band names the fish you may NOT keep, and that is the claim. Where the
@@ -430,7 +438,7 @@ def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
         # the big ones instead, which is what a clause and an annual ceiling both do.
         if denies:
             return [LengthBand(min_cm=o, take=0)]
-        if r.within or r.period is not Period.daily:
+        if r.within or r.period is Period.annual:
             return [LengthBand(min_cm=o)]
         return [LengthBand(max_cm=o), LengthBand(min_cm=o, take=0)]
     # `under_cm` IS ALWAYS A FLOOR. "1 bull trout over 60 cm" and "none under 60 cm" are one
@@ -439,6 +447,12 @@ def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
     # handing it back to the parent quota.
     if denies:
         return [LengthBand(max_cm=u, take=0)]
+    # AN ANNUAL QUOTA COUNTS A SIZE CLASS AND FORBIDS NOTHING. "Rainbow trout: 5 over 50 cm" is
+    # five big ones per licence year and says nothing whatever about a 30 cm rainbow, which the
+    # DAILY quota governs. Adding the floor beneath it fabricated an annual ban on every small
+    # rainbow in Shuswap and Kootenay Lake.
+    if r.period is Period.annual:
+        return [LengthBand(min_cm=u)]
     return [LengthBand(min_cm=u), LengthBand(max_cm=u, take=0)]
 
 
@@ -497,7 +511,7 @@ class CatalogueRule(BaseModel):
             return v
         got = lengths_from_bounds(SimpleNamespace(
             over_cm=v.get("over_cm"), under_cm=v.get("under_cm"), band=v.get("band") or False,
-            take=v.get("take"), within=v.get("within"),
+            take=v.get("take"), within=v.get("within"), type=v.get("type"),
             period=Period(v.get("period") or "daily")))
         if got is not None:
             v = dict(v, lengths=[b.model_dump(exclude_none=True) for b in got])

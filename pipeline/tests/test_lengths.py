@@ -5,16 +5,17 @@ reconstructed, and that consumers kept reconstructing differently.
 """
 import pytest
 
-from pipeline.regs.parsing.catalogue import LengthBand, Period, lengths_from_bounds
+from pipeline.regs.parsing.catalogue import (LengthBand, Period, RuleType,
+                                             lengths_from_bounds)
 from pipeline.regs.table.corpus import rules
 
 
 class Bounds:
     """The fields `lengths_from_bounds` reads, and nothing else."""
     def __init__(self, over_cm=None, under_cm=None, band=False, take=None, within=None,
-                 period=Period.daily):
+                 period=Period.daily, type=RuleType.retention_limit):
         self.over_cm, self.under_cm, self.band = over_cm, under_cm, band
-        self.take, self.within, self.period = take, within, period
+        self.take, self.within, self.period, self.type = take, within, period, type
 
 
 def keep(bands, cm, take=None):
@@ -126,3 +127,35 @@ def test_the_four_rules_whose_band_was_backwards_read_as_windows():
         assert keep(bands, mid, x.get("take")) not in (0, None), \
             f"{x['rule']}: {mid} cm is inside the window and must be keepable"
     assert seen == len(want)
+
+
+# ---------------------------------------------------------------------------------------
+# The three readings a size can have that are NOT a retention limit at all.
+# Each was found by a reviewer reading the sentence, after the first cut of this file
+# shipped them inverted.
+# ---------------------------------------------------------------------------------------
+def test_a_size_on_a_rule_that_is_not_about_keeping_names_the_fish_and_sets_no_number():
+    """"Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm" says
+    the stamp is needed for the big ones. Read with the retention branches it came out as "keep
+    zero rainbow trout over 50 cm" — a paperwork rule turned into a ban."""
+    b = lengths_from_bounds(Bounds(over_cm=50, type=RuleType.document_required))
+    assert keep(b, 60) is None, "a document rule sets no number for the fish it names"
+    assert keep(b, 60, 0) != 0 or b[0].take is None
+    assert b[0].take is None and b[0].min_cm == 50
+
+
+def test_an_annual_quota_counts_a_size_class_and_forbids_nothing_beneath_it():
+    """"Rainbow trout: 5 over 50 cm" is five big ones per licence year and says NOTHING about a
+    30 cm rainbow, which the daily quota governs. A floor here is an invented annual ban."""
+    b = lengths_from_bounds(Bounds(under_cm=50, take=5, period=Period.annual))
+    assert keep(b, 60, 5) == 5
+    assert keep(b, 30, 5) is None
+
+
+def test_a_possession_limit_is_a_plain_ceiling_and_not_an_annual_count():
+    """"Trout/char daily and possession quotas = 2 (none over 50 cm)" carries the same ceiling
+    as its daily twin. Lumped in with `annual` as "not daily" it granted the 2 to fish OVER
+    50 cm — exactly the ones the sentence forbids — and said nothing about the ones it allows."""
+    b = lengths_from_bounds(Bounds(over_cm=50, take=2, period=Period.possession))
+    assert keep(b, 40, 2) == 2
+    assert keep(b, 60, 2) == 0

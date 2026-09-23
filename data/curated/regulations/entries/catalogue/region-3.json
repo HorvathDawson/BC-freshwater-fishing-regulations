@@ -13927,8 +13927,7 @@
      "period": "daily",
      "lengths": [
       {
-       "min_cm": 50,
-       "take": 0
+       "min_cm": 50
       }
      ],
      "over_cm": 50,
@@ -13966,8 +13965,7 @@
      "period": "daily",
      "lengths": [
       {
-       "min_cm": 60,
-       "take": 0
+       "min_cm": 60
       }
      ],
      "over_cm": 60,
@@ -16426,10 +16424,6 @@
      "lengths": [
       {
        "min_cm": 50
-      },
-      {
-       "max_cm": 50,
-       "take": 0
       }
      ],
      "under_cm": 50,
@@ -16471,10 +16465,6 @@
      "lengths": [
       {
        "min_cm": 60
-      },
-      {
-       "max_cm": 60,
-       "take": 0
       }
      ],
      "under_cm": 60,

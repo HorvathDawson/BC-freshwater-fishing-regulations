@@ -21392,10 +21392,6 @@
      "lengths": [
       {
        "min_cm": 50
-      },
-      {
-       "max_cm": 50,
-       "take": 0
       }
      ],
      "under_cm": 50,
