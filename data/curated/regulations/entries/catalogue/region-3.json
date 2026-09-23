@@ -9040,8 +9040,6 @@
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Region 3, all year.",
      "water": "stream",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
@@ -9049,6 +9047,18 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }

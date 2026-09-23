@@ -8546,12 +8546,7 @@
      "rule_id": "set_lining.r1",
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-     "method": "set_lining",
-     "permitted": true,
      "water": "lake",
-     "max_lines": 1,
-     "hook_count": 1,
-     "min_gap_cm": 3,
      "extents": [
       {
        "op": "within",
@@ -8560,16 +8555,37 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
      ]
     },
     {
      "rule_id": "set_lining.r2",
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-     "method": "set_lining",
-     "permitted": true,
      "water": "lake",
-     "extent_text": "marked with the angler's name, address and telephone number"
+     "extent_text": "marked with the angler's name, address and telephone number",
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1
+      },
+      {
+       "slot": "hooks_per_line",
+       "max": 1
+      },
+      {
+       "slot": "hook_gap_mm",
+       "min": 30
+      }
+     ],
+     "while": [
+      "set_lining"
+     ]
     },
     {
      "rule_id": "set_lining.r3",
@@ -8621,8 +8637,6 @@
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Region 6, all year.",
      "water": "stream",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
@@ -8630,6 +8644,18 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8649,8 +8675,6 @@
      "rule_id": "skeena_nass_bait_ban.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
-     "bait": "any",
-     "allowed": false,
      "extent_text": "Skeena River and its tributaries",
      "extents": [
       {
@@ -8658,20 +8682,34 @@
        "item_id": "gnis:2936",
        "includes_tributaries": true
       }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
      ]
     },
     {
      "rule_id": "skeena_nass_bait_ban.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
-     "bait": "any",
-     "allowed": false,
      "extent_text": "Nass River and its tributaries",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:3206",
        "includes_tributaries": true
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     }

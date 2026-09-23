@@ -298,6 +298,13 @@ def test_a_quoted_prohibition_reads_as_one():
                 continue
             if r.required is False:
                 continue                      # says so in the data; the label renders it
+            # A GENERATED LABEL IS NOT A QUOTE DOING DUTY AS ONE. `gear` and `conduct` carry the
+            # prohibition structurally — a `ban`, an `only`, a `must_be`, a `do_not_` act — and
+            # the label is then BUILT from those fields rather than lifted from a bullet whose
+            # forbidding heading is missing. The failure this test names is a quote standing in
+            # for a label; where the label is generated, it cannot arise.
+            if (r.gear or r.conduct) and squash(label(r)) != needle:
+                continue
             bad.append(f"{e.entry_id}::{r.rule_id} [{r.type.value}]"
                        f"\n      forbidden by: …{run_up.strip()[-28:]!r}"
                        f"\n      but renders : {label(r)[:64]!r}")

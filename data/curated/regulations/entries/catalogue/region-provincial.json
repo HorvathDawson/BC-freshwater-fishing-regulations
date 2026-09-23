@@ -20,26 +20,24 @@
      "rule_id": "terminal_tackle.r1",
      "type": "tackle_restriction",
      "verbatim": "angle with one fishing line",
-     "max_lines": 1,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
-    },
-    {
-     "rule_id": "terminal_tackle.r2",
-     "type": "tackle_restriction",
-     "verbatim": "Angle with more than one line, EXCEPT a person who is alone in a boat on a lake may angle with two lines.",
-     "max_lines": 2,
-     "required": false,
-     "reason": "alone in a boat",
-     "water": "lake",
-     "extents": [
+     ],
+     "gear": [
       {
-       "op": "within",
-       "area_kind": "region"
+       "slot": "lines_per_angler",
+       "max": 2,
+       "when": {
+        "water": "lake",
+        "angler": "alone_in_boat"
+       }
+      },
+      {
+       "slot": "lines_per_angler",
+       "max": 1
       }
      ]
     },
@@ -47,11 +45,16 @@
      "rule_id": "terminal_tackle.r3",
      "type": "tackle_restriction",
      "verbatim": "Angle with a fishing line to which more than one artificial fly is attached (i.",
-     "max_flies": 1,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "flies_per_line",
+       "max": 1
       }
      ]
     },
@@ -59,12 +62,21 @@
      "rule_id": "terminal_tackle.r4",
      "type": "tackle_restriction",
      "verbatim": "Angle with a fishing line to which more than 1 kg of weight is attached (this does not apply to downrigger weights).",
-     "max_weight_kg": 1.0,
-     "reason": "does not apply to downrigger weights",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "weight_per_line_kg",
+       "max": 1.0,
+       "unless": [
+        {
+         "gear_in_use": "downrigger_weight"
+        }
+       ]
       }
      ]
     },
@@ -72,11 +84,23 @@
      "rule_id": "terminal_tackle.r5",
      "type": "tackle_restriction",
      "verbatim": "Use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook.",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "light",
+       "must_be": [
+        "submerged",
+        "attached_to_line"
+       ]
+      },
+      {
+       "slot": "light_to_hook_mm",
+       "max": 1000
       }
      ]
     },
@@ -84,11 +108,21 @@
      "rule_id": "terminal_tackle.r6",
      "type": "tackle_restriction",
      "verbatim": "to which only one hook, one artificial lure OR one artificial fly is attached",
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "terminal_attachments_per_line",
+       "max": 1,
+       "members": [
+        "hook",
+        "artificial_lure",
+        "artificial_fly"
+       ]
       }
      ]
     }
@@ -114,12 +148,18 @@
      "type": "tackle_restriction",
      "verbatim": "use barbed hooks",
      "water": "stream",
-     "barbless": true,
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
       }
      ]
     },
@@ -128,11 +168,16 @@
      "type": "tackle_restriction",
      "verbatim": "a hook with more than one point in any river, stream, creek or slough in B.C.",
      "water": "stream",
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -181,7 +226,6 @@
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
      "water": "lake",
      "method": "set_lining",
-     "permitted": true,
      "extents": [
       {
        "op": "within",
@@ -203,6 +247,14 @@
        "default_id": "set_lining.r1b",
        "note": "set lining is permitted in these lakes and nowhere else"
       }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "set_lining"
+       ]
+      }
      ]
     },
     {
@@ -210,7 +262,6 @@
      "type": "method_rule",
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
      "method": "set_lining",
-     "permitted": false,
      "derived_from": "set_lining.r1",
      "review_reason": "the word 'only' in r1's sentence; the ban is printed nowhere and was stored nowhere, so set lining outside R6/7A lakes was unconstrained. r1 lifts this where the book permits it.",
      "extents": [
@@ -218,17 +269,20 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "set_lining"
+       ]
+      }
      ]
     },
     {
      "rule_id": "set_lining.r2",
      "type": "method_rule",
      "verbatim": "You are allowed to use only one line with one hook (no smaller than 3 cm from point to shank).",
-     "method": "set_lining",
-     "hook_count": 1,
-     "min_gap_cm": 3,
-     "max_lines": 1,
-     "permitted": true,
      "extents": [
       {
        "op": "within",
@@ -244,6 +298,23 @@
         "lake"
        ]
       }
+     ],
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1
+      },
+      {
+       "slot": "hooks_per_line",
+       "max": 1
+      },
+      {
+       "slot": "hook_gap_mm",
+       "min": 30
+      }
+     ],
+     "while": [
+      "set_lining"
      ]
     },
     {
@@ -280,9 +351,6 @@
      "rule_id": "set_lining.r4",
      "type": "method_rule",
      "verbatim": "Set lines must be marked with angler's name, address, and telephone number.",
-     "method": "set_lining",
-     "permitted": true,
-     "reason": "marked with the angler's name, address and telephone number",
      "extents": [
       {
        "op": "within",
@@ -298,6 +366,12 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
      ]
     }
    ]
@@ -382,7 +456,6 @@
      "type": "method_rule",
      "verbatim": "No spear fishing of any kind is permitted in Region 1, 2, and 4.",
      "method": "spear_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "within",
@@ -398,7 +471,15 @@
       }
      ],
      "extent_text": "Regions 1, 2 and 4",
-     "review_reason": "Region-scoped: bind to area:region:{1,2,4}. Bound province-wide it prohibits spear fishing everywhere, contradicting r1's permission."
+     "review_reason": "Region-scoped: bind to area:region:{1,2,4}. Bound province-wide it prohibits spear fishing everywhere, contradicting r1's permission.",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "spear_fishing"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "spear_fishing.r4",
@@ -440,11 +521,18 @@
      "type": "method_rule",
      "verbatim": "trap crayfish with any number or size of traps for personal consumption.",
      "method": "crayfish_trapping",
-     "permitted": true,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "crayfish_trapping"
+       ]
       }
      ]
     },
@@ -503,12 +591,18 @@
      "type": "method_rule",
      "verbatim": "Fish with nets, including dip nets, minnow nets, gill nets or cast nets.",
      "method": "netting",
-     "permitted": false,
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "netting"
+       ]
       }
      ]
     },
@@ -517,11 +611,18 @@
      "type": "method_rule",
      "verbatim": "Snag (foul hook) fish.",
      "method": "snagging",
-     "permitted": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "snagging"
+       ]
       }
      ]
     },
@@ -547,12 +648,18 @@
      "type": "method_rule",
      "verbatim": "Chumming — attempting to attract fish by depositing any substance in the water, is prohibited.",
      "method": "other",
-     "permitted": false,
-     "reason": "chumming",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "chumming"
+       ]
       }
      ]
     },
@@ -588,12 +695,21 @@
      "rule_id": "bait.r1",
      "type": "bait_restriction",
      "verbatim": "The use of fin fish (dead or alive) or parts of fin fish other than roe is prohibited throughout the province",
-     "bait": "fin_fish",
-     "allowed": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "fin_fish"
+       ],
+       "except": [
+        "roe"
+       ]
       }
      ]
     },
@@ -602,9 +718,6 @@
      "type": "bait_restriction",
      "verbatim": "when set lining in lakes of Region 6 or in lakes of Zone A of Region 7",
      "water": "lake",
-     "method": "set_lining",
-     "bait": "fin_fish_head_or_headless_body",
-     "allowed": true,
      "extents": [
       {
        "op": "within",
@@ -628,14 +741,22 @@
       }
      ],
      "extent_text": "lakes of Region 6 and Zone A of Region 7",
-     "review_reason": "the regional tables abbreviate this to 'dead fin fish' (nilkitkwa_lake.r3, fraser_river_upstream_of_mission.r1, harrison_river.r2); the province prints head-or-headless-body. Confirm which the law means before harmonising them."
+     "gear": [
+      {
+       "slot": "bait",
+       "allow": [
+        "dead_fin_fish"
+       ]
+      }
+     ],
+     "while": [
+      "set_lining"
+     ]
     },
     {
      "rule_id": "bait.r3",
      "type": "bait_restriction",
      "verbatim": "(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
-     "bait": "fin_fish_head_or_headless_body",
-     "allowed": true,
      "when_targeting": [
       "WSG"
      ],
@@ -652,19 +773,32 @@
       }
      ],
      "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2",
-     "review_reason": "the regional tables abbreviate this to 'dead fin fish' (nilkitkwa_lake.r3, fraser_river_upstream_of_mission.r1, harrison_river.r2); the province prints head-or-headless-body. Confirm which the law means before harmonising them."
+     "gear": [
+      {
+       "slot": "bait",
+       "allow": [
+        "dead_fin_fish"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "bait.r4",
      "type": "bait_restriction",
      "verbatim": "crayfish) in streams as bait unless a bait ban applies.",
      "water": "stream",
-     "bait": "invertebrate",
-     "allowed": true,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "allow": [
+        "invertebrate"
+       ]
       }
      ]
     },
@@ -673,12 +807,18 @@
      "type": "bait_restriction",
      "verbatim": "No person shall use as bait or possess for that purpose any freshwater invertebrate at a lake.",
      "water": "lake",
-     "bait": "invertebrate",
-     "allowed": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "invertebrate"
+       ]
       }
      ]
     },
@@ -686,14 +826,22 @@
      "rule_id": "bait.r6",
      "type": "bait_restriction",
      "verbatim": "Roe — you must not have more than 1 kg of roe (fish eggs) in your possession for use as bait unless the roe was obtained from a commercial source that lawfully obtained that roe, or you have in your possession the freshly dressed fish from which the roe in excess of 1 kg was taken.",
-     "bait": "roe",
-     "allowed": true,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "gear": [
+      {
+       "slot": "bait_possession_kg",
+       "of": [
+        "roe"
+       ],
+       "max": 1
+      }
+     ],
+     "review_reason": "the two escapes — roe from a lawful commercial source, or the freshly dressed fish it came from in your possession — are provenance tests with no field. The cap stands stricter than the law until they have one."
     }
    ]
   },
@@ -795,6 +943,9 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "release_immediately"
      ]
     }
    ]
@@ -1399,48 +1550,56 @@
      "rule_id": "conduct.r1",
      "type": "handling_rule",
      "verbatim": "Waste the fish you catch.",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_waste_catch"
      ]
     },
     {
      "rule_id": "conduct.r2",
      "type": "handling_rule",
      "verbatim": "Release fish in a harmful manner if you are not going to keep your catch.",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_release_harmfully"
      ]
     },
     {
      "rule_id": "conduct.r3",
      "type": "handling_rule",
      "verbatim": "Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing.",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_buy_sell_or_barter_catch"
      ]
     },
     {
      "rule_id": "conduct.r4",
      "type": "handling_rule",
      "verbatim": "Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C.",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_possess_or_move_live_fish"
      ]
     },
     {
@@ -1452,6 +1611,9 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "leave_head_tail_and_fins_until_residence"
      ]
     },
     {
@@ -1575,35 +1737,61 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "gear": [
+      {
+       "slot": "downrigger",
+       "must_be": [
+        "quick_release_to_line"
+       ]
+      }
      ]
     },
     {
      "rule_id": "allowable_methods.r2",
      "type": "method_rule",
      "verbatim": "ice fish with one line and one lure, artificial fly or other terminal attractor",
-     "method": "ice_fishing",
-     "max_lines": 1,
-     "permitted": true,
-     "reason": "one lure, artificial fly or other terminal attractor",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1
+      },
+      {
+       "slot": "terminal_attachments_per_line",
+       "max": 1,
+       "members": [
+        "artificial_lure",
+        "artificial_fly",
+        "terminal_attractor"
+       ]
+      }
+     ],
+     "while": [
+      "ice_fishing"
      ]
     },
     {
      "rule_id": "allowable_methods.r3",
      "type": "method_rule",
      "verbatim": "It is your legal responsibility to warn other people of the existence of your ice hole and remove your ice hut before ice breakup.",
-     "method": "ice_fishing",
-     "permitted": true,
-     "reason": "warn others of your ice hole; remove your hut before breakup",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "while": [
+      "ice_fishing"
+     ],
+     "conduct": [
+      "remove_ice_hut_before_breakup",
+      "warn_others_of_ice_hole"
      ]
     },
     {
@@ -1611,11 +1799,18 @@
      "type": "method_rule",
      "verbatim": "fish with a spear or an arrow propelled by a spring, an elastic band, compressed air, a bow, or by hand.",
      "method": "spear_fishing",
-     "permitted": true,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "spear_fishing"
+       ]
       }
      ]
     }
@@ -1640,27 +1835,28 @@
      "rule_id": "further_prohibitions.r1",
      "type": "method_rule",
      "verbatim": "place any fishing gear in any water during a No Fishing period",
-     "method": "other",
-     "permitted": false,
-     "required": false,
-     "reason": "gear in the water during a No Fishing period",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "no_gear_in_water_during_closure"
      ]
     },
     {
      "rule_id": "further_prohibitions.r2",
      "type": "handling_rule",
      "verbatim": "damage or interfere with a trap set for furbearers",
-     "required": false,
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_interfere_with_furbearer_trap"
      ]
     },
     {
@@ -1672,6 +1868,9 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "return_unfit_fish_gently"
      ]
     }
    ]
@@ -1813,6 +2012,9 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_can_bottle_or_fillet_away_from_residence"
      ]
     },
     {
@@ -1824,6 +2026,9 @@
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "conduct": [
+      "do_not_freeze_in_unrecognizable_block"
      ]
     }
    ]

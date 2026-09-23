@@ -270,6 +270,50 @@ def coerce_shapes(data: dict) -> int:
     return n
 
 
+def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
+    """A LIFT MUST SIT INSIDE THE RULE IT LIFTS.
+
+    `zp:bait.r2` permits dead fin fish "when set lining in lakes of Region 6 or in lakes of Zone A
+    of Region 7", lifting the PROVINCE-WIDE fin fish ban. It resolved instead against Zone B's fin
+    fish ban, and the corpus still carries that in its own `review_reason`. Checking the SUBJECT
+    would not have caught it — Zone B bans fin fish too, so "does the target ban what this
+    permits?" answers yes for the wrong rule. Checking the PLACE does: Region 6 lakes are not
+    inside Zone B, so the pairing is impossible.
+
+    Only same-entry targets are checked here. A `default_id` names a standing rule in another
+    entry whose extents this function cannot see, and guessing at them would be worse than
+    silence — `resolve_exempt_ids` above owns that half.
+    """
+    out: list[str] = []
+    rules = {r.get("rule_id"): r for r in (entry_data.get("rules") or []) if isinstance(r, dict)}
+    entry_ex = entry_data.get("extents") or []
+
+    def places(rule: dict) -> set:
+        got = set()
+        for ex in (rule.get("extents") or entry_ex or []):
+            if not isinstance(ex, dict):
+                continue
+            a = ex.get("area_id") or ex.get("area_kind")
+            if a:
+                got.add(str(a))
+        return got
+
+    for rid, rule in rules.items():
+        for ex in (rule.get("exempts") or []):
+            target = (ex or {}).get("target")
+            if not target or target not in rules:
+                continue                       # a default_id, or a target in another entry
+            mine, theirs = places(rule), places(rules[target])
+            if not mine or not theirs or mine & theirs:
+                continue                       # unplaced, or overlapping — nothing provable
+            out.append(
+                f"{rid}: exempts {target}, but they share no ground — this lift binds "
+                f"{sorted(mine)} and the rule it lifts binds {sorted(theirs)}. A lift that sits "
+                f"outside what it lifts either names the wrong rule or reaches further than the "
+                f"rule it is an exception to.")
+    return out
+
+
 def check_entry(entry_data: dict, source_text: str,
                 item: dict | None = None) -> tuple[CatalogueEntry | None, list[str]]:
     """Returns (entry, errors). `source_text` is the printed row the agent was given.
@@ -282,6 +326,7 @@ def check_entry(entry_data: dict, source_text: str,
     coerce_shapes(entry_data)
     # An exemption that names a zone entry by the BOOK's wording lifts nothing.
     resolve_exempt_ids(entry_data)
+    errors += exemptions_stay_inside_what_they_lift(entry_data)
     default_extents(entry_data)
     if item is not None:
         # Before model validation: this rewrites aliases, and the rewritten value is what the

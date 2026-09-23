@@ -9472,9 +9472,13 @@
      "rule_id": "ice_fishing_huts.r1",
      "type": "method_rule",
      "verbatim": "ICE FISHING HUTS: WARNING Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
-     "method": "ice_fishing",
-     "permitted": true,
-     "extent_text": "huts must be removed before spring breakup"
+     "extent_text": "huts must be removed before spring breakup",
+     "while": [
+      "ice_fishing"
+     ],
+     "conduct": [
+      "remove_ice_hut_before_breakup"
+     ]
     }
    ]
   },
@@ -9570,8 +9574,6 @@
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Region 5, all year.",
      "water": "stream",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
@@ -9579,6 +9581,18 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }

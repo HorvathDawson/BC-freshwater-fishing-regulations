@@ -77,8 +77,6 @@
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
      "water": "stream",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
@@ -86,6 +84,18 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -115,14 +125,20 @@
      "type": "bait_restriction",
      "verbatim": "Bait ban: applies to all streams of Zone A, all year.",
      "water": "stream",
-     "bait": "any",
-     "allowed": false,
      "extents": [
       {
        "op": "within",
        "area_id": "area:region:7a",
        "feature_types": [
         "stream"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]
@@ -153,11 +169,6 @@
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
      "water": "lake",
-     "method": "set_lining",
-     "hook_count": 1,
-     "min_gap_cm": 3,
-     "max_lines": 1,
-     "permitted": true,
      "extents": [
       {
        "op": "within",
@@ -166,16 +177,37 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
      ]
     },
     {
      "rule_id": "set_lining.r2",
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-     "method": "set_lining",
-     "permitted": true,
      "water": "lake",
-     "extent_text": "marked with the angler's name, address and telephone number"
+     "extent_text": "marked with the angler's name, address and telephone number",
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1
+      },
+      {
+       "slot": "hooks_per_line",
+       "max": 1
+      },
+      {
+       "slot": "hook_gap_mm",
+       "min": 30
+      }
+     ],
+     "while": [
+      "set_lining"
+     ]
     },
     {
      "rule_id": "set_lining.r3",
@@ -652,9 +684,13 @@
      "rule_id": "ice_fishing_huts.r1",
      "type": "method_rule",
      "verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
-     "method": "ice_fishing",
-     "permitted": true,
-     "extent_text": "huts must be removed before spring breakup"
+     "extent_text": "huts must be removed before spring breakup",
+     "while": [
+      "ice_fishing"
+     ],
+     "conduct": [
+      "remove_ice_hut_before_breakup"
+     ]
     }
    ]
   },

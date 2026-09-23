@@ -100,12 +100,10 @@ class Bait(str, Enum):
     any = "any"
     fin_fish = "fin_fish"
     dead_fin_fish = "dead_fin_fish"
-    #: THE PROVINCE PERMITS LESS THAN "DEAD FIN FISH". `zp:bait`'s own printed text is "You may use
-    #: THE HEAD of fin fish or THE HEADLESS BODY of fin fish as bait, only: …" — a whole dead
-    #: herring is not permitted and was stored as though it were, on both province-wide
-    #: exceptions. The regional tables abbreviate it to "dead fin fish"; those rules keep
-    #: `dead_fin_fish`, because their own verbatim is what they are evidence of.
-    fin_fish_head_or_headless_body = "fin_fish_head_or_headless_body"
+    #: `dead_fin_fish` IS THE GENERAL TERM and covers the province's "the head of fin fish or the
+    #: headless body of fin fish". A `fin_fish_head_or_headless_body` member was added on the
+    #: reading that the province permitted strictly less than the regional tables; it does not —
+    #: the tables abbreviate the same permission, and the two say one thing.
     invertebrate = "invertebrate"
     roe = "roe"
 
@@ -799,6 +797,10 @@ class Slot(str, Enum):
     hook_gap_mm = "hook_gap_mm"
     weight_per_line_kg = "weight_per_line_kg"
     bait_possession_kg = "bait_possession_kg"
+    #: "unless the light is submerged and attached to the fishing line WITHIN 1 M of the hook" —
+    #: a distance, so it is its own slot with the unit in the name. Written as a bound on `light`
+    #: it read as "at most one light", which is the founding complaint of this enum.
+    light_to_hook_mm = "light_to_hook_mm"
 
 
 #: Which slots take a SET and which take a NUMBER. A slot cannot take both, and `_check` refuses
@@ -811,7 +813,8 @@ _SPEC_SLOTS = frozenset({Slot.set_lining, Slot.crayfish_trapping, Slot.downrigge
                          Slot.ice_hut})
 
 #: The slots whose bound is a MEASUREMENT rather than a count, and so may be fractional.
-_MEASURED = frozenset({Slot.hook_gap_mm, Slot.weight_per_line_kg, Slot.bait_possession_kg})
+_MEASURED = frozenset({Slot.hook_gap_mm, Slot.weight_per_line_kg, Slot.bait_possession_kg,
+                       Slot.light_to_hook_mm})
 
 
 class AnglerState(str, Enum):
@@ -1002,35 +1005,38 @@ class GearClause(BaseModel):
         return self
 
 
-class Conduct(BaseModel):
-    """WHAT YOU MUST OR MUST NOT DO — an act, not a piece of gear.
-
-    Exactly one of `must` / `must_not` is set, so the DIRECTION IS THE KEY and there is no flag
-    to set backwards. `required: false` was that flag: it sat on "Waste the fish you catch" and
-    on "Fish with nets", both off a printed "You must not" list, and read literally it says those
-    are merely optional. It was `false` on all 25 of its uses and absent on the requirements
-    beside them, so its presence meant nothing and its absence meant nothing.
-
-    "Set lines must be marked with angler's name, address, and telephone number" was stored as
-    `{method: "set_lining", permitted: true, reason: "marked with…"}` — a duty demoted to free
-    text with a permission fabricated to give it somewhere to sit. The same shape put
-    `{method: "ice_fishing", permitted: true}` on a warning about removing huts, so a query for
-    "may I ice fish here" answered yes from a sentence that grants nothing.
-    """
-    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
-
-    must: str = ""                           # mark_gear, remove_ice_hut, release_immediately
-    must_not: str = ""                       # waste_catch, chum, sell_catch, gear_during_closure
-    with_: List[str] = Field(default_factory=list, alias="with")
-    by: str = ""                             # "spring_breakup", "permanent_residence"
-    when: Optional[GearWhen] = None
-    note: str = ""                           # the act in the book's words where no term fits
-
-    @model_validator(mode="after")
-    def _one_direction(self) -> "Conduct":
-        if bool(self.must) == bool(self.must_not):
-            raise ValueError("a conduct rule is a `must` OR a `must_not`, exactly one")
-        return self
+#: WHAT YOU MUST AND MUST NOT DO, as act tokens NAMED IN THEIR LAWFUL DIRECTION.
+#:
+#: `do_not_waste_catch`, never `waste_catch` plus a flag. A `must`/`must_not` key beside a token
+#: that already carries its direction is a second place to state polarity — and `must:
+#: "do_not_waste_catch"` is a double negative that reads as law. `required: false` was that flag:
+#: it sat on "Waste the fish you catch" AND on "Fish with nets", both off a printed "You must
+#: not" list, and read literally it made them optional; it was `false` on all 25 of its uses and
+#: ABSENT on the requirements beside them, so its presence meant nothing and its absence meant
+#: nothing.
+#:
+#: The vocabulary is open by necessity — each synopsis edition can print a new duty — so it is
+#: held by a registry rather than a type: a token must appear here, and adding one is a reviewed
+#: change carrying the verbatim that motivated it.
+CONDUCT_ACTS = {
+    "do_not_waste_catch": "Do not waste the fish you catch",
+    "do_not_release_harmfully": "Do not release fish in a harmful manner",
+    "do_not_buy_sell_or_barter_catch": "Do not buy, sell or barter your catch",
+    "do_not_possess_or_move_live_fish": "Do not possess or move live fish or invertebrates",
+    "do_not_can_bottle_or_fillet_away_from_residence":
+        "Do not can, bottle or fillet your catch away from your residence",
+    "do_not_freeze_in_unrecognizable_block": "Do not freeze fish in an unrecognizable block",
+    "do_not_interfere_with_furbearer_trap": "Do not damage or interfere with a furbearer trap",
+    "no_gear_in_water_during_closure": "Do not place gear in the water during a No Fishing period",
+    "leave_head_tail_and_fins_until_residence":
+        "Leave the head, tail and fins on your catch until your residence",
+    "release_immediately": "Release it immediately, where you caught it",
+    "warn_others_of_ice_hole": "Warn others of your ice hole",
+    "remove_ice_hut_before_breakup": "Remove your ice hut before breakup",
+    "mark_set_line_with_contact_details":
+        "Mark your set line with your name, address and telephone number",
+    "return_unfit_fish_gently": "Return a fish you cannot keep gently to the water",
+}
 
 
 class LengthBand(BaseModel):
@@ -1071,6 +1077,28 @@ class CatalogueRule(BaseModel):
     verbatim: str = Field(..., min_length=1, description="the synopsis sentence, exactly")
 
     @model_validator(mode="after")
+    def _acts_are_registered(self) -> "CatalogueRule":
+        for act in self.conduct:
+            if act not in CONDUCT_ACTS:
+                raise ValueError(f"conduct: {act!r} is not a registered act — adding one is a "
+                                 f"reviewed change that carries the verbatim motivating it")
+        return self
+
+    @model_validator(mode="after")
+    def _ordered_within_a_slot(self) -> "CatalogueRule":
+        """A clause with no condition matches everything, so nothing after it on that slot is ever
+        reached. Writing the general case first silently deletes its own exception."""
+        seen_open: set = set()
+        for c in self.gear:
+            if c.slot in seen_open:
+                raise ValueError(
+                    f"{c.slot.value}: a clause follows one that has no `when`, so it can never be "
+                    f"reached — put the narrow case first and the general case last")
+            if c.when is None or c.when.is_empty():
+                seen_open.add(c.slot)
+        return self
+
+    @model_validator(mode="after")
     def _circumstances_are_real(self) -> "CatalogueRule":
         known = {m.value for m in Method} | {s.value for s in _SPEC_SLOTS}
         for w in self.while_:
@@ -1079,11 +1107,17 @@ class CatalogueRule(BaseModel):
         # AN EXEMPTION WITH NO CIRCUMSTANCE LIFTS EVERYWHERE. The same argument that refuses
         # `ban: []` — an empty list is what a dropped key also writes — applies here, and the
         # stakes are higher: a lift that should have been narrow and is not is the Babine failure.
-        if self.exempts and self.gear and not self.while_:
+        # A LIFT MUST BE SCOPED BY SOMETHING. A PLACE counts: `zp:set_lining.r1` permits set
+        # lining in the lakes of Region 6 and 7A and lifts the province-wide ban, and its extents
+        # are what narrow it — it needs no circumstance because it names where instead. What is
+        # refused is a lift scoped by NOTHING, which applies everywhere and deletes the rule it
+        # was meant to narrow. That is the Babine failure, and it cost that river a season.
+        if self.exempts and self.gear and not self.while_ and not self.extents:
             if not any(c.when is not None and not c.when.is_empty() for c in self.gear):
-                raise ValueError("a gear rule that exempts another must say WHEN it lifts it — "
-                                 "`while`, or a `when` on the clause; a lift with no circumstance "
-                                 "applies everywhere and deletes the rule it was meant to narrow")
+                raise ValueError("a gear rule that exempts another must say WHERE or WHEN it "
+                                 "lifts it — `extents`, `while`, or a `when` on the clause; a "
+                                 "lift scoped by nothing applies everywhere and deletes the rule "
+                                 "it was meant to narrow")
         return self
 
     @model_validator(mode="before")
@@ -1151,7 +1185,19 @@ class CatalogueRule(BaseModel):
     angler_class: Optional[AnglerClass] = None
     #: "When no date is listed, the regulations apply ALL YEAR. Start and end dates are
     #: INCLUSIVE." So an empty list is a fact, never "unknown".
-    #: HOW YOU MAY FISH — an ORDERED list of clauses, FIRST MATCH WINS. See `GearClause`. This
+    #: HOW YOU MAY FISH. Clauses on DIFFERENT slots are unordered and all apply — they constrain
+    #: different things and never compete. Clauses on the SAME slot are ORDERED and FIRST MATCH
+    #: WINS, which is the one place an exception can live inside the rule it modifies.
+    #:
+    #: "It is unlawful to angle with more than one line, EXCEPT a person who is alone in a boat on
+    #: a lake may angle with two lines" is ONE printed sentence. Stored as two rules it produced
+    #: two records with BYTE-IDENTICAL extents, so the scope ladder — which orders by place — could
+    #: not rank them, and something unwritten decided which won. Stored as two bounds on
+    #: `lines_per_angler`, the narrow one first, the general one last, there is nothing to rank
+    #: and the general case cannot be lost.
+    #:
+    #: A conditionless clause on a slot is therefore the LAST word on it: anything after it is
+    #: unreachable. See `GearClause`. This
     #: is where `allowed`, `permitted`, `required`, `barbless`, `hook_count`, `lure`, `bait`,
     #: `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and `max_gap_mm` are going. It is
     #: NOT yet migrated: the old fields are still the ones in use, and this is the target shape
@@ -1169,6 +1215,17 @@ class CatalogueRule(BaseModel):
     #: rule carries its source's `verbatim`, as every other rule split from one sentence does.
     derived_from: Optional[str] = None
 
+    #: THE OTHER HALF OF ONE SENTENCE, BY ID. "You may use a downrigger, PROVIDED the line has a
+    #: quick-release" is two rules — one allows the means, one holds the condition — and the only
+    #: thing linking them used to be that they shared a `verbatim`. Two unrelated rules share a
+    #: verbatim by accident: `z7b:single_barbless_hook.r1` and `z7b:bait.r1` both read "all
+    #: streams of Zone B, all year." and are a hook rule and a bait ban. Matching on the string
+    #: glues them together.
+    #:
+    #: A rule id cannot collide by accident, and the corpus already names a parent this way —
+    #: a sub-quota carries `within: "trout_quota.r1"`.
+    condition_of: Optional[str] = None
+
     #: WHAT YOU ARE DOING, for a clause that binds only then. Drawn from `Method` members AND
     #: spec-slot names, because a spec slot's name IS a means token — see the note on `Method`.
     #: A LIFT WHOSE CIRCUMSTANCE IS NOT MET IS NOT APPLIED, which is the Babine rule on a new
@@ -1180,7 +1237,7 @@ class CatalogueRule(BaseModel):
     #: permission. "Set lines must be marked with angler's name, address, and telephone number"
     #: was `{permitted: true, reason: "marked with…"}`: a duty demoted to free text with a grant
     #: invented to house it.
-    conduct: List[Conduct] = Field(default_factory=list)
+    conduct: List[str] = Field(default_factory=list)
 
     #: WHEN THIS RULE BINDS, said once — see `When`. This replaces `windows` (210 distinct free
     #: text strings), `windows_are` (a flag that INVERTED the field beside it, the `band`
@@ -1452,15 +1509,20 @@ class CatalogueRule(BaseModel):
                 e.append("power_capped needs max_power_kw")
         if t is RuleType.document_required and self.document is None:
             e.append("document_required needs a document")
-        if t is RuleType.method_rule:
+        # THESE ARE THE FIELDS `gear` AND `conduct` REPLACE. A rule carrying either has stated
+        # its direction inside the clause that carries its subject, which is the whole point;
+        # demanding the old flag as well would mean two places to state one thing.
+        said_in_gear = bool(self.gear) or bool(self.conduct)
+        if t is RuleType.method_rule and not said_in_gear:
             if self.method is None:
                 e.append("method_rule needs a method")
             if self.permitted is None:
                 e.append("method_rule needs permitted — None read as 'prohibited' here and as "
                          "'permitted' in access_permission, from the same absent value")
-        if t is RuleType.access_permission and self.permitted is None and not self.grantor:
+        if (t is RuleType.access_permission and self.permitted is None and not self.grantor
+                and not said_in_gear):
             e.append("access_permission needs permitted or a grantor")
-        if t is RuleType.bait_restriction and self.allowed is None:
+        if t is RuleType.bait_restriction and self.allowed is None and not said_in_gear:
             e.append("bait_restriction needs allowed (a permission is a rule too)")
 
         for f in ("take", "hook_count", "max_lines", "max_gap_mm"):
@@ -1615,6 +1677,56 @@ def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
     return out
 
 
+def _gear_words(r: CatalogueRule) -> str:
+    """`gear` and `conduct`, in words. ONE place, so a reader and a renderer cannot disagree.
+
+    The direction is never inferred: it is the key the clause used (`allow` / `only` / `ban` /
+    `must_be`) or the act token's own name. That is what makes the label impossible to invert —
+    `{barbless: true, required: false}` printed "barbless" and meant the opposite, because the
+    words came from one field and the polarity from another.
+    """
+    UNIT = {"hook_gap_mm": "mm", "light_to_hook_mm": "mm",
+            "weight_per_line_kg": "kg", "bait_possession_kg": "kg"}
+    bits = []
+    for c in r.gear:
+        name = c.slot.value.replace("_", " ")
+        if c.allow is not None:
+            bits.append(f"{', '.join(c.allow).replace('_', ' ')} may be used")
+        elif c.only is not None:
+            bits.append(f"{', '.join(c.only).replace('_', ' ')} only")
+        elif c.ban is not None:
+            got = f"no {', '.join(c.ban).replace('_', ' ')}"
+            if c.except_:
+                got += f" other than {', '.join(c.except_).replace('_', ' ')}"
+            bits.append(got)
+        elif c.must_be:
+            bits.append(f"{name} must be {', '.join(c.must_be).replace('_', ' ')}")
+        else:
+            u = UNIT.get(c.slot.value, "")
+            for kind, v in (("at most", c.max), ("at least", c.min)):
+                if v is None:
+                    continue
+                if u:
+                    bits.append(f"{kind} {v:g}{u} {name.removesuffix(' ' + u)}")
+                else:
+                    # "at most 1 points per hook" — the slot name is plural because it names a
+                    # measurand, and a bound of one reads as a count.
+                    head, _, tail = name.partition(" per ")
+                    one = head.removesuffix("s") if v == 1 else head
+                    bits.append(f"{kind} {v:g} {one}" + (f" per {tail}" if tail else ""))
+        if c.when is not None and not c.when.is_empty():
+            w = [x for x in (getattr(c.when.water, "value", None),
+                             getattr(c.when.angler, "value", None)) if x]
+            if w:
+                bits[-1] += " (" + ", ".join(x.replace("_", " ") for x in w) + ")"
+    for act in r.conduct:
+        bits.append(CONDUCT_ACTS.get(act, act.replace("_", " ")))
+    out = "; ".join(bits)
+    if r.while_ and out:
+        out += " — while " + " or ".join(w.replace("_", " ") for w in r.while_)
+    return out
+
+
 def _dates(r: CatalogueRule) -> str:
     """The season, in words. There is no "except …" branch any more: `windows_are: excepts` stored
     the days a rule did NOT hold and `When` stores the days it does, so the phrase is always the
@@ -1763,6 +1875,20 @@ def _because(r: CatalogueRule) -> str:
 
 def label(r: CatalogueRule) -> str:
     """The line a reader sees. Verbatim is always available underneath."""
+    # GEAR AND CONDUCT ARE READ FIRST, FOR EVERY TYPE. A converted rule has no `method`,
+    # `permitted`, `allowed`, `required`, `barbless` or `max_lines` — the direction now lives in
+    # the clause that carries the subject, which is the whole point of the field. Wired into one
+    # type's branch instead, every OTHER type fell through to printing its bare verbatim: a
+    # "You must not:" fragment then reads as a permission, which is the inversion this replaced.
+    if r.gear or r.conduct:
+        said = _gear_words(r)
+        if said:
+            # `_scope` must not re-state a method a clause already named — "no netting, taken by
+            # netting". Where gear says it, gear is the one that says it.
+            named = {m for c in r.gear for m in ((c.allow or []) + (c.only or []) + (c.ban or []))}
+            bare = r.model_copy(update={"method": None}) if (
+                r.method and r.method.value in named) else r
+            return said + _scope(bare) + _dates(bare) + _where(bare) + _because(bare)
     t = r.type
     sp = species_words(r.species, r.species_except)
 
@@ -1813,7 +1939,6 @@ def label(r: CatalogueRule) -> str:
         # EXHAUSTIVE ON PURPOSE — a subscript, not `.get`. A member missing here is a KeyError at
         # build time; a default would render the wrong bait and ship it.
         what = {Bait.any: "Bait", Bait.fin_fish: "Fin fish", Bait.dead_fin_fish: "Dead fin fish",
-                Bait.fin_fish_head_or_headless_body: "The head or headless body of fin fish",
                 Bait.invertebrate: "Freshwater invertebrates", Bait.roe: "Roe"}[r.bait or Bait.any]
         head = f"{what} may be used" if r.allowed else (
             "Bait ban" if (r.bait or Bait.any) is Bait.any else f"{what} may not be used as bait")

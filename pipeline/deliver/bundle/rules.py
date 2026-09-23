@@ -121,7 +121,11 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None):
             f"{entry_id}/{raw.get('rule_id')}: rule has no `type` — this is a retired prose "
             f"rule and the bundle no longer has columns for it")
     r = CatalogueRule.model_validate(raw)
-    dumped = r.model_dump(exclude_none=True, mode="json")
+    # BY_ALIAS, OR THE PYTHON NAME SHIPS. `while`, `except` and `with` are Python keywords, so
+    # the fields are `while_`/`except_`/`with_` in the model and the JSON name is the alias. A
+    # dump without this puts `while_` in the bundle, where a reader looking for `while` finds
+    # nothing and the circumstance a rule binds in silently disappears.
+    dumped = r.model_dump(exclude_none=True, mode="json", by_alias=True)
     # A RULE WITH NO EXTENTS OF ITS OWN TAKES ITS ENTRY'S. 130 rules do, and reading only the
     # rule dict wrote `[]` for every one of them — which says "binds nowhere", not "binds
     # wherever the entry does". `corpus.catalogue()` applied this inheritance when it read the

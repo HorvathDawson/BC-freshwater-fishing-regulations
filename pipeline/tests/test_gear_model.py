@@ -7,7 +7,7 @@ than what the book says.
 """
 import pytest
 
-from pipeline.regs.parsing.catalogue import (CatalogueRule, Conduct, GearClause, GearSpec,
+from pipeline.regs.parsing.catalogue import (CONDUCT_ACTS, CatalogueRule, GearClause, GearSpec,
                                              GearWhen, Method, RuleType, Slot)
 
 _METHOD_RULE = dict(type=RuleType.method_rule, verbatim="v",
@@ -106,11 +106,20 @@ def test_an_exemption_must_say_when_it_lifts():
     steelhead closure carried an exemption whose PLACE could not be drawn, was applied everywhere,
     and cost the Babine a season; "dead fin fish when set lining" applied everywhere took a
     water's bait tile from "banned" to "no rule at all"."""
-    with pytest.raises(ValueError, match="must say WHEN it lifts"):
+    with pytest.raises(ValueError, match="must say WHERE or WHEN"):
         CatalogueRule(rule_id="d", **_METHOD_RULE,
                       gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
                       exempts=[{"target": "bait.r1"}])
+    # a CIRCUMSTANCE scopes it…
     assert CatalogueRule(rule_id="e", **_METHOD_RULE, **{"while": ["set_lining"]},
+                         gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
+                         exempts=[{"target": "bait.r1"}])
+    # …and so does a PLACE. `zp:set_lining.r1` permits set lining in the lakes of Region 6 and
+    # 7A and lifts the province-wide ban; its extents are what narrow it, and it needs no
+    # circumstance because it names where instead. The first draft of this guard demanded a
+    # circumstance and fired on real data.
+    assert CatalogueRule(rule_id="f2", **_METHOD_RULE,
+                         extents=[{"op": "within", "area_id": "area:region:6"}],
                          gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
                          exempts=[{"target": "bait.r1"}])
 
@@ -133,8 +142,49 @@ def test_an_aliased_field_survives_a_round_trip():
     assert CatalogueRule.model_validate(r.model_dump(by_alias=True)).while_ == ["set_lining"]
 
 
-def test_a_conduct_act_runs_one_way():
-    with pytest.raises(ValueError, match="exactly one"):
-        Conduct(must="a", must_not="b")
-    with pytest.raises(ValueError, match="exactly one"):
-        Conduct()
+def test_a_conduct_act_carries_its_own_direction_and_must_be_registered():
+    """The act token IS the direction — `do_not_waste_catch`, never `waste_catch` plus a flag.
+    A `must`/`must_not` key beside it would be a second place to state polarity, and
+    `must: "do_not_waste_catch"` a double negative that reads as law.
+
+    The vocabulary is open by necessity — each edition can print a new duty — so it is held by a
+    registry rather than a type, and an unregistered token is refused rather than absorbed. That
+    is what stops it becoming `reason` under a new name."""
+    ok = CatalogueRule(rule_id="g", type=RuleType.handling_rule, verbatim="Waste the fish.",
+                       conduct=["do_not_waste_catch"])
+    assert ok.conduct == ["do_not_waste_catch"]
+    assert all(a.startswith(("do_not_", "no_")) or " " not in a for a in CONDUCT_ACTS)
+    with pytest.raises(ValueError, match="not a registered act"):
+        CatalogueRule(rule_id="h", type=RuleType.handling_rule, verbatim="v",
+                      conduct=["waste_catch"])
+
+
+def test_the_converted_provincial_rules_say_what_the_book_says():
+    """The six conversions that were materially wrong before, read back off the entries."""
+    import json
+    from pipeline.common.curated import CURATED
+    d = json.loads((CURATED.regulations.entries.catalogue / "region-provincial.json").read_text())
+    by = {r["rule_id"]: r for e in d["entries"] for r in e.get("rules", [])}
+
+    # was {barbless: true, required: false} — "barbed hooks are legal in every B.C. stream".
+    # `only`, not `allow`: `barb` has two members and the law CLOSES the set — "Single barbless
+    # hook must be used in all streams". `allow` renders "barbless may be used", which is the
+    # permission reading of a prohibition and the very failure this field replaced.
+    assert by["barbless_single_hook_streams.r1"]["gear"] == [
+        {"slot": "barb", "only": ["barbless"]}]
+    # was {required: false} and NOTHING else; the submersion and the 1 m were gone
+    assert {c["slot"] for c in by["terminal_tackle.r5"]["gear"]} == {"light", "light_to_hook_mm"}
+    # was hook_count: 1 — capped hooks and left a lure AND a fly addable
+    assert by["terminal_tackle.r6"]["gear"][0]["slot"] == "terminal_attachments_per_line"
+    # was {} — the quick-release proviso was its whole content and it was stored nowhere
+    assert by["allowable_methods.r1"]["gear"] == [
+        {"slot": "downrigger", "must_be": ["quick_release_to_line"]}]
+    # was two rules with identical extents that nothing could rank
+    lines = by["terminal_tackle.r1"]["gear"]
+    assert [c["max"] for c in lines] == [2, 1], "narrow first, general last"
+    assert lines[0]["when"] and "when" not in lines[1]
+    # was {bait: roe, allowed: true} — a "you must not have more than 1 kg" stored as a permission
+    assert by["bait.r6"]["gear"] == [{"slot": "bait_possession_kg", "of": ["roe"], "max": 1}]
+    # "…or parts of fin fish OTHER THAN ROE is prohibited"
+    assert by["bait.r1"]["gear"] == [
+        {"slot": "bait", "ban": ["fin_fish"], "except": ["roe"]}]

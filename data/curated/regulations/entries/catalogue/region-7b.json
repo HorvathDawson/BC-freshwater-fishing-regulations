@@ -25,8 +25,6 @@
      "type": "tackle_restriction",
      "verbatim": "all streams of Zone B, all year.",
      "water": "stream",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "within",
@@ -34,6 +32,18 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -60,12 +70,18 @@
      "type": "bait_restriction",
      "verbatim": "all streams of Zone B, all year.",
      "water": "stream",
-     "bait": "any",
-     "allowed": false,
      "extents": [
       {
        "op": "within",
        "area_id": "area:region:7b"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -73,12 +89,18 @@
      "rule_id": "bait.r2",
      "type": "bait_restriction",
      "verbatim": "Fin fish may not be used as bait in any waters of Zone B.",
-     "bait": "fin_fish",
-     "allowed": false,
      "extents": [
       {
        "op": "within",
        "area_id": "area:region:7b"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "fin_fish"
+       ]
       }
      ]
     }
@@ -105,11 +127,18 @@
      "type": "method_rule",
      "verbatim": "Set lining: not permitted in Zone B.",
      "method": "set_lining",
-     "permitted": false,
      "extents": [
       {
        "op": "within",
        "area_id": "area:region:7b"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "set_lining"
+       ]
       }
      ]
     }
@@ -888,9 +917,13 @@
      "rule_id": "ice_fishing_huts.r2",
      "type": "method_rule",
      "verbatim": "Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
-     "method": "ice_fishing",
-     "permitted": true,
-     "extent_text": "huts must be removed before spring breakup"
+     "extent_text": "huts must be removed before spring breakup",
+     "while": [
+      "ice_fishing"
+     ],
+     "conduct": [
+      "remove_ice_hut_before_breakup"
+     ]
     }
    ]
   },
