@@ -19,8 +19,11 @@ Three things done to the raw records, all reversible and all labelled:
   · SPECIES CODES ARE EXPANDED to base codes, with `species_written` keeping what the book said,
     so a consumer answering "is my bull trout in this" does not expand TROUT_CHAR first.
   · EVERY RULE CARRIES ITS PROVENANCE — the sentence, who wrote it, what it binds to, its rank.
-  · `reads_as` gives the four-way answer a `take: 0` needs (closed / release / size gate /
-    method closed), because every consumer that re-derived it got it wrong differently.
+  · NOTHING ELSE IS COMPUTED. The rules are dumped as the corpus holds them. `reads_as`,
+    `size_rule` and `shared_number` were derived here until 2026-09-22 and are gone: this file
+    is data, and a reading is not data. What they encoded was not thrown away — it is in
+    `field_dictionary` as the conditions a consumer applies, so there is one written answer
+    rather than a computed one that hides how it was reached.
 
 Change `REGIONS` / `WATERS` below to widen it. Nothing here is cached or committed.
 """
@@ -55,6 +58,28 @@ WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
 CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
            "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
 
+#: THE POLARITY OF A SIZE BOUND — which end it shuts, and whether it shuts anything at all.
+#:
+#: `over_cm` / `under_cm` do not mean the same thing in every rule, and the difference is not
+#: guessable from the pair alone. This is the table the removed `size.py` applied, carried here
+#: so no consumer re-derives it — the last consumer that tried read "1 (none under 50 cm)" as
+#: "only 1 may be UNDER 50 cm", which is the Shuswap rainbow rule upside down on the fish it
+#: exists to protect.
+#:
+#: `under_cm` IS ALWAYS A FLOOR AND NEVER A CEILING. "1 bull trout over 60 cm" is stored as
+#: `under_cm: 60`, and "none under 60 cm" is the same sentence said the other way.
+SIZE_READINGS = {
+    "floor": "you may keep none SMALLER than this",
+    "ceiling": "you may keep none LARGER than this",
+    "slot": "you may keep only between these two lengths",
+    "band": "you may keep none BETWEEN these two lengths",
+    "counts over": "the number counts only the fish larger than this; smaller ones are not "
+                   "limited by this rule",
+    "which fish": "not a limit — it says which fish the rule is about (a stamp needed for the "
+                  "big ones, say)",
+}
+
+
 FIELDS = {
     "_note": "Every rule is a flat dict. 26 fields are on all 3,422 rules in the corpus; the "
              "rest appear only where they mean something. Nothing parses prose — sizes, dates, "
@@ -86,11 +111,18 @@ FIELDS = {
         "may_target": "0 where you may not even fish for it (a closure, not a release)",
         "unlimited": "true where there is no number",
         "period": "'daily' | 'possession' | 'annual' — which clock the number is on",
-        "shared_number": "whether the number is shared across the fish it names. MORE THAN ONE "
-                         "FISH NAMED IS SHARED — no flag, no exception. A `combined` field used "
-                         "to sit on the rule; it marked 31 of the 1,188 rules this applies to "
-                         "and was written `false` on the rest, so its absence read as a denial. "
-                         "It has been removed from the corpus.",
+        "_shared_or_each": "THERE IS NO FIELD: count `species`. More than one fish named means "
+                           "the number is SHARED between them — 'Char daily quota = 1' is one "
+                           "char between them, 'Bass: 20' is twenty bass and not twenty of each. "
+                           "One fish has no pool to share and is neither. A `combined` field "
+                           "used to say this; it marked 31 of the 1,188 rules carrying a number, "
+                           "every one of which already named more than one fish, as did 1,157 it "
+                           "never marked — and it was written `false` on the other 3,379, so its "
+                           "absence read as a denial. It has been removed from the corpus. "
+                           "Nothing in the book means 'one each': the four group quotas whose "
+                           "sentence contains 'each' all say 'each day' or 'each year'. Count "
+                           "`species` (expanded), not `species_written`: ['TROUT_CHAR'] is 13 "
+                           "fish, not one.",
         "within": "the rule id this is a clause of — '1 over 50 cm' inside 'Trout/char: 4'. A "
                   "clause counts INSIDE its parent, never against it.",
         "per_daily": "a possession multiple: N times the daily number",
@@ -98,10 +130,35 @@ FIELDS = {
     "size": {
         "over_cm": "the number counts (or the gate forbids) fish OVER this length",
         "under_cm": "…UNDER this length",
-        "band": "true where the pair is a forbidden band rather than a slot",
-        "size_rule": "DERIVED, and the one field here that is not raw: what the bounds MEAN, "
-                     "decided by the table in `_size_rule`. `over_cm`/`under_cm` do not read the "
-                     "same way in every rule and the pair alone does not say which.",
+        "band": "ONLY where BOTH bounds are set, and it decides which of two OPPOSITE readings "
+                "they have: true = a hole (keep none between the two lengths), absent = a slot "
+                "(keep only between them). The numbers look identical either way. 29 rules "
+                "carry both bounds — 15 holes, 14 windows — and all 29 are in this file under "
+                "`size_rule_examples`.",
+        "_which_reading": {
+            "_note": "`over_cm`/`under_cm` DO NOT READ THE SAME WAY IN EVERY RULE, and the pair "
+                     "alone does not say which. Test in this order; each branch was forced by a "
+                     "real rule. This used to be computed onto every rule as `size_rule`.",
+            "1. type is not retention_limit":
+                "WHICH FISH, not a limit. 'Conservation Surcharge Stamp required to catch and "
+                "keep rainbow trout over 50 cm' limits nobody's fish — it says the stamp is "
+                "needed for the big ones. Read as a ceiling it turns a licence condition into a "
+                "size limit.",
+            "2. both bounds set": "a slot, or with `band` a hole — see `band` above",
+            "3. take == 0":
+                "a PROHIBITION — the only reading where the bound sends a fish back. `over_cm` "
+                "is a ceiling, `under_cm` a floor.",
+            "4. period is not daily, and take":
+                "an annual or possession ceiling COUNTS a size class and sets no minimum. "
+                "'Rainbow trout: 5 over 50 cm' limits the big ones and says nothing about a "
+                "40 cm fish.",
+            "5. within, and take, and over_cm":
+                "asymmetric on purpose: inside a clause `over_cm` counts, `under_cm` is a floor",
+            "6. anything else":
+                "a flat prohibition. 'Rainbow trout daily quota = 1 (none under 50 cm)' is a "
+                "quota of one AND a floor at 50; it is NOT 'only one may be under 50 cm'.",
+            "what each reading means": SIZE_READINGS,
+        },
         "_read": "take=2 and no size → keep 2, any size. take=1 over_cm=50 → only 1 may be over "
                  "50 cm, a CAP on a size class. take=0 under_cm=30 → none under 30 cm, a FLOOR. "
                  "take=0 over_cm=50 → a ceiling. A floor is an allowance of zero on a size "
@@ -330,88 +387,6 @@ def _mus_of(area_id: str) -> set:
     return {f"{lo_r}-{n}" for n in range(lo_n, hi_n + 1)}
 
 
-#: THE POLARITY OF A SIZE BOUND — which end it shuts, and whether it shuts anything at all.
-#:
-#: `over_cm` / `under_cm` do not mean the same thing in every rule, and the difference is not
-#: guessable from the pair alone. This is the table the removed `size.py` applied, carried here
-#: so no consumer re-derives it — the last consumer that tried read "1 (none under 50 cm)" as
-#: "only 1 may be UNDER 50 cm", which is the Shuswap rainbow rule upside down on the fish it
-#: exists to protect.
-#:
-#: `under_cm` IS ALWAYS A FLOOR AND NEVER A CEILING. "1 bull trout over 60 cm" is stored as
-#: `under_cm: 60`, and "none under 60 cm" is the same sentence said the other way.
-SIZE_READINGS = {
-    "floor": "you may keep none SMALLER than this",
-    "ceiling": "you may keep none LARGER than this",
-    "slot": "you may keep only between these two lengths",
-    "band": "you may keep none BETWEEN these two lengths",
-    "counts over": "the number counts only the fish larger than this; smaller ones are not "
-                   "limited by this rule",
-    "which fish": "not a limit — it says which fish the rule is about (a stamp needed for the "
-                  "big ones, say)",
-}
-
-
-def _shared(x: dict, species: list) -> dict:
-    """Is the number shared across the fish it names, or one each?
-
-    SHARED, WHENEVER MORE THAN ONE FISH IS NAMED. "Char daily quota = 1" is one char between
-    them; "Bass: 20" is twenty bass, not twenty largemouth and twenty smallmouth.
-
-    There is no flag and no exception. A `combined` field used to sit on the rule and has been
-    removed from the corpus: it marked 31 rules, every one of which already named more than one
-    fish — as did 1,157 that were never flagged — and it was stored as an explicit `false` on
-    the other 3,379, so its absence read as a denial. Nothing in the corpus means "one each":
-    the four group quotas whose sentence contains "each" all say "each day" or "each year".
-
-    A quota on a single fish has no pool to share and is neither.
-    """
-    if x.get("take") is None and not x.get("unlimited"):
-        return {}
-    if len(species) > 1:
-        return {"shared": True,
-                "said_by": "it names more than one fish, and that is what makes a number shared"}
-    return {"shared": False, "said_by": "one fish: there is no pool to share"}
-
-def _size_rule(x: dict) -> dict:
-    """What a rule's size fields mean, decided once, here.
-
-    The branches, in the order they are tested — each was forced by a real rule:
-
-      both bounds        a slot you may keep, or (with `band`) a hole you may not
-      take == 0          a PROHIBITION: the only reading where the bound sends a fish back
-      not daily, take    an annual ceiling COUNTS a size class and sets no daily minimum —
-                         "Rainbow trout: 5 over 50 cm" limits the big ones and says nothing
-                         about a 40 cm fish
-      within, take       asymmetric on purpose: `over_cm` counts, `under_cm` is a floor
-      anything else      a flat prohibition — a bare allowance carrying a bound
-    """
-    over, under, take = x.get("over_cm"), x.get("under_cm"), x.get("take")
-    if not over and not under:
-        return {}
-    # A SIZE ON A RULE THAT IS NOT ABOUT KEEPING says WHICH FISH the rule is about, not how big
-    # one may be. "Conservation Surcharge Stamp required to catch and keep rainbow trout over
-    # 50 cm" limits nobody's fish — it says the stamp is needed for the big ones — and reading
-    # it as a ceiling turns a licence condition into a size limit.
-    if x.get("type") != "retention_limit":
-        return {"kind": "which fish", "cm": over or under, "end": "over" if over else "under",
-                "means": "this rule is about fish of this size; it is not itself a size limit"}
-    if over and under:
-        kind = "band" if x.get("band") else "slot"
-        return {"kind": kind, "lo": under, "hi": over, "means": SIZE_READINGS[kind]}
-    if take == 0:
-        k = "ceiling" if over else "floor"
-        return {"kind": k, "cm": over or under, "means": SIZE_READINGS[k]}
-    if (x.get("period") or "daily") != "daily" and take:
-        return {"kind": "counts over", "cm": over or under,
-                "means": SIZE_READINGS["counts over"]}
-    if x.get("within") and take and over:
-        return {"kind": "counts over", "cm": over, "means": SIZE_READINGS["counts over"]}
-    k = "ceiling" if over else "floor"
-    return {"kind": k, "cm": over or under, "means": SIZE_READINGS[k],
-            "_note": "A bare allowance carrying a bound is a flat prohibition. "
-                     "'Rainbow trout daily quota = 1 (none under 50 cm)' is a quota of one AND "
-                     "a floor at 50; it is NOT 'only one may be under 50 cm'."}
 
 
 def _rule(x: dict) -> dict:
@@ -443,33 +418,15 @@ def _rule(x: dict) -> dict:
     if ex:
         out["species_except_written"] = ex
         out["species_except"] = sorted(c for c in expand_species(ex) if c not in OPEN_GROUPS)
-    # WHAT THIS RULE READS AS — derived from the fields above, in one place, because every
-    # consumer that re-derived it got it wrong in a different way.
-    take, may = x.get("take"), x.get("may_target")
-    sized = x.get("over_cm") is not None or x.get("under_cm") is not None
-    if x.get("unlimited"):
-        out["reads_as"] = "no limit"
-    elif take == 0 and x.get("method"):
-        out["reads_as"] = "method closed"
-    elif take == 0 and sized:
-        out["reads_as"] = "size gate"
-    elif take == 0 and may == 0:
-        out["reads_as"] = "closed"
-    elif take == 0:
-        out["reads_as"] = "release"
-    elif take is not None:
-        out["reads_as"] = "quota"
-    else:
-        out["reads_as"] = None
+    # NOTHING IS DERIVED ONTO THE RECORD BELOW THIS LINE. `reads_as`, `size_rule` and
+    # `shared_number` were computed here and have been removed: this file is the corpus's data,
+    # and a reading of it is not data. Every one of them is now written out as a condition in
+    # `field_dictionary` — `closures_and_exemptions.how_a_zero_reads` for what a `take: 0` is,
+    # `size._which_reading` for what a bound means, `the number._shared_or_each` for whether a
+    # number is split. A consumer applies those; it does not get an answer it cannot see behind.
     if x.get("exempts"):
         out["exempts"] = [dict(e, resolves_to=_targets(x, e)) for e in x["exempts"]]
     e = entries().get(x.get("entry")) or {}
-    sz = _size_rule(x)
-    if sz:
-        out["size_rule"] = sz
-    sh = _shared(x, out["species"])
-    if sh:
-        out["shared_number"] = sh
     out["provenance"] = {
         "says": (x.get("verbatim") or "").strip(),
         "who": s.words(),
@@ -647,14 +604,16 @@ def _size_examples(take) -> dict:
     both = [x for x in rules() if x.get("over_cm") and x.get("under_cm")]
     by_kind = defaultdict(list)
     for x in both:
-        by_kind[_size_rule(x).get("kind") or "not a size limit"].append(x)
+        by_kind["band (a hole)" if x.get("band") else "slot (a window)"].append(x)
     return {
-        "_note": "Every rule in the corpus carrying BOTH an over_cm and an under_cm. `lo` is "
-                 "always the smaller length; what differs is whether the fish you may keep are "
-                 "inside that range or outside it. Read `size_rule` on the rule, never the two "
-                 "numbers on their own.",
-        "_readings": SIZE_READINGS,
-        "by_kind": {k: {"count": len(xs), "means": SIZE_READINGS.get(k, ""),
+        "_note": "Every rule in the corpus carrying BOTH an over_cm and an under_cm, because "
+                 "the pair has two OPPOSITE readings and only `band` separates them. Grouped "
+                 "here by that raw flag — the grouping is the flag, not a judgement about it. "
+                 "`under_cm` is always the smaller length.",
+        "_readings": {k: SIZE_READINGS[k] for k in ("band", "slot")},
+        "by_kind": {k: {"count": len(xs), "flag": "band: true" if k.startswith("band")
+                                                 else "band: absent",
+                        "means": SIZE_READINGS["band" if k.startswith("band") else "slot"],
                         "rule_ids": take(sorted(xs, key=rid))}
                     for k, xs in sorted(by_kind.items())},
         "read_one_of_each": {
@@ -761,9 +720,13 @@ def main(out_path: str) -> int:
         "closures_and_exemptions": {
             "how_a_zero_reads": ZERO_READINGS,
             "exemptions": EXEMPTIONS,
-            "_on_every_rule": "`reads_as` is the four-way answer derived from take / may_target "
-                              "/ size / method. `exempts[].resolves_to` is the rule ids a lift "
-                              "points at.",
+            "_on_every_rule": "There is NO `reads_as` field. `how_a_zero_reads` above is the "
+                              "whole test and a consumer applies it against `take`, "
+                              "`may_target`, `method` and the size bounds — in that order, "
+                              "because a zero can be three different things and reading "
+                              "`take == 0` alone called 1,674 of 1,693 rule sets closed. "
+                              "`exempts[].resolves_to` IS on the rule: it is the rule ids a "
+                              "lift points at, which is lookup, not judgement.",
         },
         "rule_types": {
             "_note": "EVERY kind of rule is here, not just quotas — gear, licensing, conduct and "
