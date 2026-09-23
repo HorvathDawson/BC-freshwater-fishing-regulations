@@ -28,6 +28,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -86,7 +89,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "includes_tributaries": true,
    "rules": [
@@ -169,6 +172,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -339,6 +345,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -348,7 +357,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:10012"
@@ -480,7 +489,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:12117",
@@ -596,7 +605,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:13103"
@@ -635,7 +644,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream\n**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30\nArtificial fly only upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)\nBait ban",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:9238"
@@ -743,7 +752,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:9694"
@@ -799,6 +808,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -977,7 +989,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **upstream of 12th Avenue\n**No Fishing **downstream of 12th Avenue Apr 1-June 30\n**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\n**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:7250"
@@ -1150,7 +1162,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence\nBait ban, Aug 1-Oct 31; steelhead catch and release",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:5922"
@@ -1426,7 +1438,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** (including Brohm Creek)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:5659"
@@ -1557,7 +1569,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:13015"
@@ -1689,7 +1701,7 @@
    "scope_note": "does not include Sumas River",
    "regs_verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:8634",
@@ -2018,7 +2030,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:7946"
@@ -2141,6 +2153,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2150,7 +2165,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:19983"
@@ -2751,6 +2766,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2780,6 +2798,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2865,7 +2886,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:9405"
@@ -2936,7 +2957,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2275"
@@ -3041,7 +3062,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:19019"
@@ -3198,6 +3219,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3465,7 +3489,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-Mar 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "wbk:329566911"
@@ -3532,6 +3556,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3679,6 +3706,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3863,7 +3893,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:16098"
@@ -3899,7 +3929,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** for Sturgeon in Hatzic Lake; speed restriction on parts (8 and 50 km/h)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "wbk:329291809",
@@ -3977,6 +4007,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4111,6 +4144,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4152,7 +4188,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:22355"
@@ -4237,7 +4273,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-Mar 31[Includes Tributaries]; single barbless hook, Apr 1-Oct 31\nNo cutthroat trout 40 cm or more; engine power restriction - 7.5 kW (10 hp)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "wbk:329566912"
@@ -4427,7 +4463,8 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Dec 1-Mar 31; trout/char catch and release, bait ban, single barbless hook",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs",
+    "Stocked"
    ],
    "matched": [
     "wbk:328977104"
@@ -4933,6 +4970,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5083,6 +5123,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5313,6 +5356,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5548,6 +5594,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Stocked"
    ]
   },
   {
@@ -5577,6 +5627,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5853,6 +5906,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5886,6 +5942,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5919,6 +5978,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5977,6 +6039,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6054,6 +6119,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6354,6 +6422,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6536,6 +6607,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6569,6 +6643,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6707,6 +6784,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6762,6 +6842,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6798,6 +6881,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6900,6 +6986,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7022,6 +7111,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7214,6 +7306,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7267,6 +7362,9 @@
      "extent_text": "in One Mile Bay",
      "review_reason": "'One Mile Bay' has no bindable split; this item allows only op:whole"
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7390,6 +7488,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7423,6 +7524,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7452,6 +7556,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7624,6 +7731,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7842,6 +7952,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7891,6 +8004,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7954,6 +8070,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8066,6 +8185,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8099,6 +8221,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8132,6 +8257,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8249,6 +8377,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8285,6 +8416,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8318,6 +8452,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8568,6 +8705,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8646,6 +8786,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8746,6 +8889,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8814,6 +8960,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8929,6 +9078,9 @@
      ],
      "review_reason": "no registry match — attach an item and bind extents"
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9018,6 +9170,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9051,6 +9206,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9216,6 +9374,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9249,6 +9410,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9361,6 +9525,9 @@
      ],
      "take": 1
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9431,7 +9598,8 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs",
+    "Stocked"
    ],
    "matched": [
     "wbk:329177889",
@@ -9536,6 +9704,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {

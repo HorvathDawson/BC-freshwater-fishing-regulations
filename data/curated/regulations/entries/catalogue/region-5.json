@@ -23,6 +23,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -134,6 +137,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -315,6 +321,7 @@
    "scope_note": "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 — covered by separate entries",
    "regs_verbatim": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
    "symbols": [
+    "Classified",
     "Incl. Tribs"
    ],
    "matched": [
@@ -929,6 +936,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1020,6 +1030,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1187,7 +1200,7 @@
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**\nIncludes: Beaver, Chambers, Joan, McCauley, Opheim, and Roberts lakes, Lake George, and the unnamed lake known locally as \"Rye\" lake",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:11119"
@@ -1268,6 +1281,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -1334,6 +1350,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1559,6 +1578,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1583,6 +1605,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1743,6 +1768,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1958,6 +1986,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2014,6 +2045,7 @@
    "region": "5",
    "regs_verbatim": "Bait ban; **No Fishing** for steelhead\n**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
    "symbols": [
+    "Classified",
     "Incl. Tribs"
    ],
    "matched": [
@@ -2552,6 +2584,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -2933,6 +2968,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -3175,6 +3213,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -3333,6 +3374,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4083,6 +4127,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -4255,6 +4302,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4345,6 +4395,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4456,6 +4509,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4537,6 +4593,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4592,6 +4651,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4682,6 +4744,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4890,6 +4955,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4989,6 +5057,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5032,6 +5103,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5271,6 +5345,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5470,6 +5547,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5869,6 +5949,9 @@
      ],
      "review_reason": "closure is limited to a bay near Watch Creek's mouth; Green Lake has no bindable boundaries to express a partial-lake closure"
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5962,6 +6045,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5992,6 +6078,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6115,6 +6204,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6385,6 +6477,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6541,6 +6636,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -6571,6 +6669,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6971,6 +7072,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7131,7 +7235,8 @@
    "region": "5",
    "regs_verbatim": "**Class II water Apr 1-May 31; Steelhead Stamp mandatory Apr 1-May 31**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:31586"
@@ -7311,6 +7416,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8021,6 +8129,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8127,6 +8238,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8363,6 +8477,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8577,6 +8694,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8647,6 +8767,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8718,6 +8841,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8820,6 +8946,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9161,6 +9290,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9241,7 +9373,7 @@
    "region": "5",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:23858"
@@ -9777,6 +9909,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9906,6 +10041,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10049,6 +10187,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10387,6 +10528,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10481,6 +10625,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10729,7 +10876,7 @@
    "region": "5",
    "regs_verbatim": "**No Fishing** for steelhead\nBait ban\nDownstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:1914"

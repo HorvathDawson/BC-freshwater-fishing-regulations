@@ -217,40 +217,37 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # curation. `rule_unresolved` is the table that must never be silently short.
     unresolved = {(r["entry_id"], r["rule_id"]) for r in _jsonl(reaches / "rule_unresolved.jsonl")}
 
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+
     entry_rows, rule_rows = [], []
     for path in sorted(entries_dir.rglob("*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         for e in doc.get("entries", []):
             # A catalogue entry is FLAT: name/region at the top, the MUs the synopsis row was
-            # printed under encoded in entry_id after the `@`, provenance in `source_pages` /
-            # `symbols`. The retired prose entry nested all of it under `identity`/`source`.
-            ident = e.get("identity") or {}
-            matched = e.get("matched") or []
+            # printed under encoded in entry_id after the `@`. Read through the model, so a key
+            # from the retired nested prose shape (`identity`, `source`) is refused, not read
+            # as a fallback.
+            ce = CatalogueEntry.model_validate(e)
+            matched = list(ce.matched)
             entry_rows.append((
-                e["entry_id"],
+                ce.entry_id,
                 # The first match, or nothing. An entry that never matched a water keeps its
                 # rules and its text and carries a null item — the app shows "we have a rule
                 # for a water we cannot place" rather than dropping it (77 of these).
                 matched[0] if matched else None,
-                ident.get("display_name") or e.get("display_name")
-                or ident.get("name") or e.get("name"),
+                ce.display_name or ce.name,
                 # What the page printed, kept whole — see the note in schema.sql.
-                ident.get("name") or e.get("name"),
-                e.get("regs_verbatim"),
-                # Provenance is nested under `source` now; it was a flat `source_symbols`
-                # until the page number joined it and made it obvious they were one fact.
-                json.dumps(e.get("symbols") or (e.get("source") or {}).get("symbols") or [],
-                           separators=(",", ":")),
-                json.dumps(ident.get("mus") or _mus_of(e["entry_id"]), separators=(",", ":")),
-                json.dumps(e.get("source_pages") or (e.get("source") or {}).get("pages") or [],
-                           separators=(",", ":")),
-                e.get("scope_note") or None,
+                ce.name,
+                ce.regs_verbatim,
+                json.dumps(list(ce.symbols), separators=(",", ":")),
+                json.dumps(_mus_of(ce.entry_id), separators=(",", ":")),
+                json.dumps(list(ce.source_pages), separators=(",", ":")),
+                ce.scope_note or None,
                 json.dumps(e.get("extents") or [], separators=(",", ":")),
             ))
             # A rule may name another in its entry (`suspended_while`), and its label says what
             # that rule is in words — so each label is built with its siblings to hand.
-            from pipeline.regs.parsing.catalogue import CatalogueRule
-            siblings = {r["rule_id"]: CatalogueRule.model_validate(r) for r in e.get("rules") or []}
+            siblings = {r.rule_id: r for r in ce.rules}
             for r in e.get("rules") or []:
                 rule_rows.append(_rule_row(
                     e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved,

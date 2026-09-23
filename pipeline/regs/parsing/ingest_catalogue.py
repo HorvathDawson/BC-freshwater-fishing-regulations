@@ -26,6 +26,7 @@ from pathlib import Path
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
 from pipeline.regs.parsing.io import dump_entry
+from pipeline.regs.parsing.rows import TRIBUTARIES_SYMBOL
 from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
 
@@ -103,6 +104,13 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
         for key in ("name", "display_name", "region"):
             if item.get(key):
                 data[key] = item[key]
+        # AND THE ROW'S SYMBOLS. The model was handed them and asked to copy them back; it kept
+        # Classified on 20 of 68 rows, Stocked on 11 of 304. The row's symbols always survive; a
+        # symbol the model adds is kept too, because the extractor misses glyphs the text states
+        # (West Road is classified in its text and carries no symbol). One spelling per symbol.
+        canon = {"Includes Tributaries": TRIBUTARIES_SYMBOL}
+        had = [canon.get(x, x) for x in (data.get("symbols") or [])]
+        data["symbols"] = list(dict.fromkeys(list(item.get("symbols") or []) + had))
         # `item` carries the boundary menu, so this also checks every split id and rewrites an
         # alias to its canonical spelling — the same gate the agent runs on itself.
         entry, errors = check_entry(data, source, item)

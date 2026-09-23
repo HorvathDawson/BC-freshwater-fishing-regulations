@@ -29,6 +29,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -177,6 +180,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -376,6 +382,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -444,6 +453,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -742,6 +754,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -831,6 +846,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -909,6 +927,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1080,6 +1101,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1154,6 +1178,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1252,6 +1279,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1562,6 +1592,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1652,6 +1685,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1680,6 +1716,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1711,6 +1750,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1813,6 +1855,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1871,6 +1916,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1963,6 +2011,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1992,6 +2043,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2084,6 +2138,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2398,6 +2455,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2466,6 +2526,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2509,6 +2572,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2630,6 +2696,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2659,6 +2728,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2867,6 +2939,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2896,6 +2971,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3058,6 +3136,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3880,6 +3961,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3909,6 +3993,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4031,6 +4118,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4076,6 +4166,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4138,6 +4231,9 @@
      ],
      "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4361,6 +4457,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4370,7 +4469,7 @@
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban, Apr 1-Oct 31; exempt from spring closure",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:26324"
@@ -4730,6 +4829,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4851,6 +4953,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4882,6 +4987,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4909,6 +5017,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5297,6 +5408,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5821,6 +5935,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {

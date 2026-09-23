@@ -250,7 +250,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:17687"
@@ -537,7 +538,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:15535"
@@ -923,6 +924,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -1243,7 +1247,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2195"
@@ -1895,6 +1900,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -1977,6 +1985,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -2164,6 +2175,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2257,6 +2271,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -2517,6 +2535,9 @@
      "extent_text": "opposite the spawning channels, as signed",
      "review_reason": "reach marked 'as signed' on the water — no corresponding split id in the registry"
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -2653,6 +2674,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -2771,6 +2796,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -2780,7 +2808,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert\nIncludes \"Oldfield\" Creek",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:4152"
@@ -2850,7 +2878,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:37312"
@@ -2982,6 +3010,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -3167,6 +3198,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -3214,6 +3248,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -3223,7 +3260,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**\nBait ban\nNo angling from boats, no powered boats\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nSee Skeena River/Kispiox River confluence",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2308"
@@ -3404,7 +3442,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3225"
@@ -3772,6 +3810,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -3781,7 +3823,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3227"
@@ -4058,7 +4101,8 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2343"
@@ -4351,7 +4395,8 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3815"
@@ -4441,7 +4486,8 @@
    "region": "6",
    "regs_verbatim": "**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nBait ban",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:14170"
@@ -4545,6 +4591,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -4770,7 +4820,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:4903"
@@ -5134,6 +5185,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5199,6 +5253,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -5442,6 +5499,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -5922,6 +5983,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6632,6 +6696,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6823,6 +6890,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7028,6 +7098,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -7277,7 +7350,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** on Saturdays and Sundays, all year\nBait ban\n**Class I water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2637"
@@ -7399,7 +7473,8 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:25386"
@@ -7546,6 +7621,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7860,6 +7938,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -7909,7 +7990,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:25405"
@@ -8028,7 +8109,8 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31\nBait ban\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
    "symbols": [
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:24733"
@@ -8400,6 +8482,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -8788,7 +8873,8 @@
    "region": "6",
    "regs_verbatim": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3137"

@@ -253,3 +253,13 @@ def test_identity_comes_from_the_batch_not_the_model():
     accepted, problems = ingest([cand], {cand["entry_id"]: item})
     e = accepted[cand["entry_id"]]
     assert (e.name, e.display_name, e.region) == ("ATNARKO RIVER", "Atnarko River", "5"), problems
+
+
+def test_the_rows_symbols_survive_whatever_the_model_writes():
+    """The model kept Classified on 20 of 68 rows and Stocked on 11 of 304."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    item = _batch_item(symbols=["Classified", "Stocked"])
+    cand = _candidate([])
+    cand["symbols"] = ["Includes Tributaries"]
+    accepted, _ = ingest([cand], {cand["entry_id"]: item})
+    assert accepted[cand["entry_id"]].symbols == ["Classified", "Stocked", "Incl. Tribs"]

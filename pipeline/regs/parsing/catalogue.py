@@ -1916,7 +1916,7 @@ class CatalogueEntry(BaseModel):
     sample, and what refused a Classified Waters entry whose text mentioned Kootenay Class II
     waters that no rule covered.
     """
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     entry_id: str
     name: str

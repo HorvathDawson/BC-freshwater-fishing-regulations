@@ -8,7 +8,7 @@
    "region": "1",
    "regs_verbatim": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:28136"
@@ -51,8 +51,8 @@
    "region": "1",
    "regs_verbatim": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
    "symbols": [
-    "Includes Tributaries",
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:9105"
@@ -403,6 +403,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -412,7 +415,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:28190"
@@ -575,6 +578,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -681,6 +687,9 @@
      "extent_text": "on parts",
      "review_reason": "'no towing on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent."
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -690,7 +699,7 @@
    "region": "1",
    "regs_verbatim": "Fly fishing only",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:28247"
@@ -756,7 +765,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:13152"
@@ -1009,6 +1018,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1035,6 +1047,9 @@
      "extent_text": "on parts",
      "review_reason": "'on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent."
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1303,7 +1318,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:18410"
@@ -1551,6 +1566,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -1699,7 +1717,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** upstream of the West Main logging road bridge (approximately 7.5 km upstream of the Hwy 19 bridge), Dec 1-May 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:30049"
@@ -1750,7 +1768,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:18118"
@@ -1825,7 +1843,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:30071"
@@ -1992,6 +2010,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -2434,6 +2455,9 @@
      "extent_text": "on parts",
      "review_reason": "'on parts' implies a specific reach of the river but the available split ids do not identify which stretch carries the power cap"
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2443,7 +2467,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:1851"
@@ -2542,6 +2566,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2623,7 +2650,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:36224"
@@ -2679,6 +2706,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -2688,7 +2718,8 @@
    "region": "1",
    "regs_verbatim": "Bait ban Nov 1-Apr 30;** Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3344"
@@ -2783,7 +2814,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** downstream of Schoen Lake, Dec 1-May 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:6655"
@@ -2956,6 +2987,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Stocked"
    ]
   },
   {
@@ -3145,6 +3180,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3203,6 +3241,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3232,6 +3273,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3261,6 +3305,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3338,6 +3385,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -3588,6 +3638,9 @@
      ],
      "extent_text": "upstream of the fishing boundary signs near the South Main Bridge crossing, approximately 5.4 km downstream of the Hwy 19 bridge"
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -3944,7 +3997,7 @@
    "region": "1",
    "regs_verbatim": "No Fishing Dec 1-May 31 and July 15-Aug 31[Includes Tributaries]",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:44111"
@@ -4041,6 +4094,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4080,6 +4136,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4267,7 +4326,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2521"
@@ -4303,7 +4362,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** July 15-Aug 31\n**No Fishing** upstream of Bugaboo Creek, Nov 1-Apr 30; artificial fly only upstream of Bugaboo Creek when open",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:18167"
@@ -4421,6 +4480,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4564,6 +4626,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -4573,7 +4638,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:11051"
@@ -4753,7 +4818,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** upstream of and including Hemmingsen Creek[Includes Tributaries],",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:15312"
@@ -5005,7 +5070,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence\nFolpye fnishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:20215"
@@ -5098,7 +5163,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:20701"
@@ -5422,6 +5487,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -5806,6 +5875,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -5835,6 +5908,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -5961,6 +6037,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -6091,6 +6171,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -6236,6 +6319,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6524,6 +6610,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6702,6 +6791,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6738,6 +6830,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -6767,6 +6862,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7169,6 +7267,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
    ]
   },
   {
@@ -7198,6 +7300,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7305,6 +7410,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7334,6 +7442,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7390,6 +7501,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -7607,7 +7721,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:29031"
@@ -7705,7 +7819,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Dec 1-May 31, **No Fishing** from Menzies Bay logging mainline bridge crossing to Morton Lake",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:5316"
@@ -7800,7 +7914,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Dec 1-May 15; no wild rainbow trout over 50 cm",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:15784"
@@ -8208,7 +8322,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** upstream of Davie River, Dec 1-May 15",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:21141"
@@ -8285,7 +8399,7 @@
    "region": "1",
    "regs_verbatim": "Exempt from July 15-Aug 31 summer closure\n**No Fishing** upstream of Parker Creek\n**No Fishing** between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\n**No Fishing** between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:23318"
@@ -8569,6 +8683,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -8578,8 +8695,8 @@
    "region": "1",
    "regs_verbatim": "Bait ban Nov 1-Apr 30;** Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
    "symbols": [
-    "Includes Tributaries",
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:8515"
@@ -8948,6 +9065,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9372,6 +9492,10 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Stocked"
    ]
   },
   {
@@ -9416,6 +9540,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9512,6 +9639,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9584,6 +9714,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9855,6 +9988,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -9921,6 +10057,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -9983,6 +10122,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -10037,6 +10179,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Classified"
    ]
   },
   {
@@ -10094,6 +10239,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10278,6 +10426,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Incl. Tribs"
    ]
   },
   {
@@ -10321,6 +10472,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10502,6 +10656,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10648,6 +10805,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10796,6 +10956,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -10988,6 +11151,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -11084,6 +11250,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -11093,8 +11262,8 @@
    "region": "1",
    "regs_verbatim": "Bait ban Nov 1-Apr 30; Cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**\nTidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
    "symbols": [
-    "Includes Tributaries",
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:35583"
@@ -11356,7 +11525,7 @@
    "region": "1",
    "regs_verbatim": "Fly fishing only upstream of the Toquart mainline logging bridge when open; **No Fishing** upstream of the boundary sign located near the\nfalls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the\nriver upstream of the lake",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2915"
@@ -11498,7 +11667,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:27647"
@@ -11623,7 +11792,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:28508"
@@ -11743,7 +11912,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing**",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:29265"
@@ -12546,8 +12715,8 @@
    "region": "1",
    "regs_verbatim": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
    "symbols": [
-    "Includes Tributaries",
-    "Classified"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:31815"
@@ -12672,6 +12841,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -12681,7 +12853,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** between fishing boundary signs at the salmon viewing pool\n**No Fishing** upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:2923"
@@ -12916,6 +13088,9 @@
       }
      ]
     }
+   ],
+   "symbols": [
+    "Stocked"
    ]
   },
   {
@@ -12925,7 +13100,8 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30\nBait ban Nov 1-Apr 30\nCutthroat trout catch and release\nNo powered boats\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
    "symbols": [
-    "Includes Tributaries"
+    "Classified",
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:3485"
@@ -13109,7 +13285,7 @@
    "region": "1",
    "regs_verbatim": "**No Fishing** Nov 1-Apr 30",
    "symbols": [
-    "Includes Tributaries"
+    "Incl. Tribs"
    ],
    "matched": [
     "gnis:30471"
