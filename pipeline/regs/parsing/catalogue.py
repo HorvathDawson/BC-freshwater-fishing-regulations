@@ -1157,7 +1157,6 @@ class CatalogueRule(BaseModel):
     # --- shared scoping ----------------------------------------------------
     water: Optional[WaterKind] = None
     origin: Optional[Origin] = None
-    method: Optional[Method] = None
 
     # --- gear / tackle / bait: see `gear` -----------------------------------
     #: The species a bait or tackle rule is ABOUT — "no natural bait when fishing for salmon".
@@ -1268,9 +1267,12 @@ class CatalogueRule(BaseModel):
         if t is RuleType.document_required:
             return self.document.value if self.document else "unspecified"
         if t is RuleType.method_rule:
-            if self.method:
-                return self.method.value
-            return ",".join(sorted({c.slot.value for c in self.gear})) or "unspecified"
+            # THE METHODS NAMED, not just the slot: every method rule constrains `method`, so the
+            # slot alone would let a water's "no ice fishing" displace the zone's "no set lining".
+            said = sorted({f"{c.slot.value}:{m}" if c.slot is Slot.method else c.slot.value
+                           for c in self.gear
+                           for m in ((c.allow or []) + (c.only or []) + (c.ban or []) or [""])})
+            return ",".join(said) or ("conduct" if self.conduct else "unspecified")
         if t is RuleType.tackle_restriction:
             # THE SET OF SLOTS CONSTRAINED. A water's "single barbless hook" displaces the zone's
             # "single barbless hook"; its bare "barbless hook" does not, because displacing would
@@ -1644,9 +1646,9 @@ def _scope(r: CatalogueRule, taking: bool = True) -> str:
         bits.append(f"{'from' if taking else 'in'} {r.water.value}s")
     if r.origin:
         bits.append(f"{r.origin.value} only")
-    if r.method:
-        bits.append("taken on a set line" if r.method is Method.set_lining
-                    else f"taken by {r.method.value.replace('_', ' ')}")
+    for m in r.while_:
+        bits.append("taken on a set line" if m == Method.set_lining.value
+                    else f"taken by {m.replace('_', ' ')}")
     if r.when and r.when.weekdays:
         bits.append("on " + " and ".join(f"{d}s" for d in r.when.weekdays))
     if r.when and r.when.hours:
@@ -1765,11 +1767,9 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
     if r.gear or r.conduct:
         said = _gear_words(r)
         if said:
-            # `_scope` must not re-state a method a clause already named — "no netting, taken by
-            # netting". Where gear says it, gear is the one that says it.
-            named = {m for c in r.gear for m in ((c.allow or []) + (c.only or []) + (c.ban or []))}
-            bare = r.model_copy(update={"method": None}) if (
-                r.method and r.method.value in named) else r
+            # `_gear_words` has already said the `while` ("— while set lining"); `_scope` must not
+            # say it again as "taken on a set line".
+            bare = r.model_copy(update={"while_": []})
             return said + _scope(bare) + _dates(bare) + _where(bare) + _suspended(bare, siblings)
     t = r.type
     sp = species_words(r.species, r.species_except)
@@ -1786,9 +1786,9 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
                 head = f"No fishing for {sp.lower()}"
             if r.water:                       # "in streams" reads as part of the phrase, not an aside
                 head += f" in {r.water.value}s"
-            if r.method:                      # "No fishing by spear fishing", not ", by spear fishing"
-                head += f" by {r.method.value.replace('_', ' ')}"
-            rest = _scope(r.model_copy(update={"water": None, "method": None}), taking=False)
+            for m in r.while_:                # "No fishing by spear fishing", not ", by spear fishing"
+                head += f" by {m.replace('_', ' ')}"
+            rest = _scope(r.model_copy(update={"water": None, "while_": []}), taking=False)
             return head + rest + _dates(r) + _where(r) + _suspended(r, siblings)
         if r.take == 0:
             # Both arms of a conditional here produced the SAME string — it read the size fields

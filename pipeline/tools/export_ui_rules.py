@@ -94,7 +94,6 @@ FIELDS = {
         "species_except": "species carved out (also expanded), with `species_except_written`.",
         "origin": "'wild' | 'hatchery' | absent. ABSENT MEANS BOTH, not a third kind.",
         "water": "'stream' | 'lake' | absent (absent = either)",
-        "method": "the fishing method a gear rule is about",
         "family / dimension / type": "how the rule was classified when curated",
     },
     "the number": {

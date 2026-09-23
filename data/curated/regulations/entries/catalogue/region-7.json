@@ -64,7 +64,6 @@
           "rule_id": "airline_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -294,7 +293,6 @@
           "rule_id": "arctic_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -556,7 +554,6 @@
           "rule_id": "bednesti_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -1271,7 +1268,6 @@
           "rule_id": "carina_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -1863,7 +1859,6 @@
           "rule_id": "chuchi_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -2136,7 +2131,6 @@
           "rule_id": "cluculz_lake.r2",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -2317,7 +2311,6 @@
           "rule_id": "cunningham_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -2499,7 +2492,6 @@
           "rule_id": "dem_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -3006,7 +2998,6 @@
           "rule_id": "east_hautete_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -4142,7 +4133,6 @@
           "rule_id": "hatdudatehl_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -4217,7 +4207,6 @@
           "rule_id": "hautete_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -4558,7 +4547,6 @@
           "rule_id": "humphrey_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -4639,7 +4627,6 @@
           "rule_id": "indata_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -5060,7 +5047,6 @@
           "rule_id": "klwali_lake.r3",
           "type": "method_rule",
           "verbatim": "not set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -5543,7 +5529,6 @@
           "rule_id": "little_tomas_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -5623,7 +5608,6 @@
           "rule_id": "lower_beaverpond_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -6753,7 +6737,6 @@
           "rule_id": "nakinilerak_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -6867,7 +6850,6 @@
           "rule_id": "narrow_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -7415,7 +7397,6 @@
           "rule_id": "pacific_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -7830,7 +7811,6 @@
           "rule_id": "portage_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -7949,7 +7929,6 @@
           "rule_id": "purvis_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -8349,7 +8328,6 @@
           "rule_id": "slender_lake.r1",
           "type": "method_rule",
           "verbatim": "No set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -8733,7 +8711,6 @@
           "rule_id": "stony_lake.r1",
           "type": "method_rule",
           "verbatim": "No set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -9019,7 +8996,6 @@
           "rule_id": "tacheeda_lakes.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -9134,7 +9110,6 @@
           "rule_id": "tchentlo_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -9328,7 +9303,6 @@
           "rule_id": "tomas_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -9408,7 +9382,6 @@
           "rule_id": "tomias_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -9525,7 +9498,6 @@
           "rule_id": "tsayta_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -10063,7 +10035,6 @@
           "rule_id": "whitefish_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -10620,7 +10591,6 @@
           "rule_id": "witch_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"
@@ -10804,7 +10774,6 @@
           "rule_id": "yellowhead_lake.r3",
           "type": "method_rule",
           "verbatim": "no set lines",
-          "method": "set_lining",
           "extents": [
             {
               "op": "whole"

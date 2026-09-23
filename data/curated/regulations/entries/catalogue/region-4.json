@@ -1568,7 +1568,6 @@
      "rule_id": "champion_lakes_no_1_2.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -3039,7 +3038,6 @@
      "rule_id": "echoes_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4912,7 +4910,6 @@
      "rule_id": "idlewild_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6752,7 +6749,6 @@
      "rule_id": "larchwood_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7331,7 +7327,6 @@
      "rule_id": "little_mitten_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7854,7 +7849,6 @@
      "rule_id": "loon_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8041,7 +8035,6 @@
      "rule_id": "lower_elk_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8375,7 +8368,6 @@
      "rule_id": "mcclain_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -9280,7 +9272,6 @@
      "rule_id": "nine_bay_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -10712,7 +10703,6 @@
      "rule_id": "sowerby_grundy_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -11042,7 +11032,6 @@
      "rule_id": "summer_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -11678,7 +11667,6 @@
      "rule_id": "upper_elk_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -12324,7 +12312,6 @@
      "rule_id": "whitetail_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -12655,7 +12642,6 @@
      "rule_id": "wilbur_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"

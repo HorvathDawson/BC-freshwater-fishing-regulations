@@ -164,7 +164,7 @@ def test_excepting_windows_are_inverted_rather_than_flagged():
 
 def test_species_except_reads_as_the_sentence_does():
     r = _r(type=RuleType.retention_limit, species=["ALL_GAME_FISH"], species_except=["BB"],
-           take=0, may_target=True, method=Method.set_lining)
+           take=0, may_target=True, **{"while": ["set_lining"]})
     assert label(r) == "All game fish other than burbot — release all, taken on a set line"
 
 

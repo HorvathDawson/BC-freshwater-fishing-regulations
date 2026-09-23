@@ -800,7 +800,6 @@
      "rule_id": "big_o_k_island_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2054,7 +2053,6 @@
      "rule_id": "community_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2144,7 +2142,6 @@
      "rule_id": "courtney_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -3922,7 +3919,6 @@
      "rule_id": "hatheume_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4338,7 +4334,6 @@
      "rule_id": "jacko_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4959,7 +4954,6 @@
      "rule_id": "little_peter_hope_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5032,7 +5026,6 @@
      "rule_id": "lloyd_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5267,7 +5260,6 @@
      "rule_id": "loon_lake.r2",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing** within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs",
-     "method": "ice_fishing",
      "extent_text": "within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs",
      "review_reason": "lake has no bindable cut-point for the marked boundary near the outlet stream",
      "gear": [
@@ -6172,7 +6164,6 @@
      "rule_id": "mellin_jerry_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6416,7 +6407,6 @@
      "rule_id": "morgan_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7086,7 +7076,6 @@
      "rule_id": "pat_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7262,7 +7251,6 @@
      "rule_id": "pennask_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7416,7 +7404,6 @@
      "rule_id": "peter_hope_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7721,7 +7708,6 @@
      "rule_id": "rainbow_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7869,7 +7855,6 @@
      "rule_id": "roche_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7951,7 +7936,6 @@
      "rule_id": "rock_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8154,7 +8138,6 @@
      "rule_id": "salmon_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8703,7 +8686,6 @@
      "rule_id": "shuswap_lake.r6",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -10127,7 +10109,6 @@
      "rule_id": "walker_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"

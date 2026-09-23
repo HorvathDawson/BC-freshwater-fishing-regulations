@@ -56,7 +56,6 @@
      "rule_id": "abbott_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -993,7 +992,6 @@
      "rule_id": "ballon_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -1152,7 +1150,6 @@
      "rule_id": "basalt_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -1580,7 +1577,6 @@
      "rule_id": "blue_lake_near_alexandria.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -1764,7 +1760,6 @@
      "rule_id": "boar_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -3448,7 +3443,6 @@
      "rule_id": "cook_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4386,7 +4380,6 @@
      "rule_id": "dewar_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4493,7 +4486,6 @@
      "rule_id": "dog_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4589,7 +4581,6 @@
      "rule_id": "donnely_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4706,7 +4697,6 @@
      "rule_id": "dorsey_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4854,7 +4844,6 @@
      "rule_id": "earle_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5071,7 +5060,6 @@
      "rule_id": "elk_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5170,7 +5158,6 @@
      "rule_id": "faulkner_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5464,7 +5451,6 @@
      "rule_id": "forest_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5774,7 +5760,6 @@
      "rule_id": "frog_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5939,7 +5924,6 @@
      "rule_id": "geese_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6206,7 +6190,6 @@
      "rule_id": "greenlee_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6338,7 +6321,6 @@
      "rule_id": "grizzly_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6494,7 +6476,6 @@
      "rule_id": "hidden_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7632,7 +7613,6 @@
      "rule_id": "nolan_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -7861,7 +7841,6 @@
      "rule_id": "patenaude_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8657,7 +8636,6 @@
      "rule_id": "sandy_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8754,7 +8732,6 @@
      "rule_id": "sardine_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8829,7 +8806,6 @@
      "rule_id": "secret_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -8961,7 +8937,6 @@
      "rule_id": "simon_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -9223,7 +9198,6 @@
      "rule_id": "snag_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -10002,7 +9976,6 @@
      "rule_id": "tilgatgo_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -10376,7 +10349,6 @@
      "rule_id": "valentine_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -10980,7 +10952,6 @@
      "rule_id": "whale_lake_gustafsen.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -11242,7 +11213,6 @@
      "rule_id": "wolf_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"

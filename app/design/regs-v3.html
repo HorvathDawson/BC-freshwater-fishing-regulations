@@ -1568,11 +1568,11 @@ function narrows(r, groups){
    * A CLOSURE ON ONE WAY OF FISHING DOES NOT SHUT THE RIVER.
    *
    * "Only non-game fish may be speared" is a retention limit of zero on every game fish — which
-   * is exactly what it says — and it carries `method: spear_fishing`. Without reading the
-   * method it is indistinguishable from "No fishing", so it shut every river in the province.
+   * is exactly what it says — and it carries `while: [spear_fishing]`. Without reading the
+   * method (its `while`) it is indistinguishable from "No fishing", so it shut every river.
    * You may still angle: it narrows on METHOD.
    */
-  if(r.method) return "method";
+  if(r["while"] && r["while"].length) return "method";
   /*
    * ALL_GAME_FISH IS NOT A NARROWING, IT IS THE WHOLE WATER.
    *

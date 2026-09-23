@@ -126,7 +126,6 @@
      "rule_id": "set_lining.r1",
      "type": "method_rule",
      "verbatim": "Set lining: not permitted in Zone B.",
-     "method": "set_lining",
      "extents": [
       {
        "op": "within",

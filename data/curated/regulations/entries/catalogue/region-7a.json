@@ -221,7 +221,6 @@
      ],
      "take": 0,
      "may_target": true,
-     "method": "set_lining",
      "water": "lake",
      "extents": [
       {
@@ -231,6 +230,9 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
      ]
     }
    ]

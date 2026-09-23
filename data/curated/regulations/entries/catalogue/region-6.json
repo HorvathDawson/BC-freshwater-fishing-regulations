@@ -469,7 +469,6 @@
      "rule_id": "basalt_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2540,7 +2539,6 @@
      "rule_id": "francois_lake.r7",
      "type": "method_rule",
      "verbatim": "no set lining",
-     "method": "set_lining",
      "extent_text": "the area at the outlet of François Lake described on map 1",
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
@@ -6466,7 +6464,6 @@
      "rule_id": "ogston_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -9045,7 +9042,6 @@
      "rule_id": "unnamed_lake_329318485.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -9715,7 +9711,6 @@
      ],
      "take": 0,
      "may_target": true,
-     "method": "set_lining",
      "water": "lake",
      "extents": [
       {
@@ -9725,6 +9720,9 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
      ]
     }
    ]

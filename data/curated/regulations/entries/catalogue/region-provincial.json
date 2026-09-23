@@ -225,7 +225,6 @@
      "type": "method_rule",
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
      "water": "lake",
-     "method": "set_lining",
      "extents": [
       {
        "op": "within",
@@ -261,7 +260,6 @@
      "rule_id": "set_lining.r1b",
      "type": "method_rule",
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
-     "method": "set_lining",
      "derived_from": "set_lining.r1",
      "review_reason": "the word 'only' in r1's sentence; the ban is printed nowhere and was stored nowhere, so set lining outside R6/7A lakes was unconstrained. r1 lifts this where the book permits it.",
      "extents": [
@@ -329,7 +327,6 @@
      ],
      "take": 0,
      "may_target": true,
-     "method": "set_lining",
      "extents": [
       {
        "op": "within",
@@ -345,6 +342,9 @@
         "lake"
        ]
       }
+     ],
+     "while": [
+      "set_lining"
      ]
     },
     {
@@ -400,12 +400,14 @@
      ],
      "take": 0,
      "may_target": false,
-     "method": "spear_fishing",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "while": [
+      "spear_fishing"
      ]
     },
     {
@@ -415,7 +417,6 @@
      "species": [
       "BB"
      ],
-     "method": "spear_fishing",
      "extents": [
       {
        "op": "within",
@@ -449,13 +450,15 @@
       }
      ],
      "extent_text": "Regions 3, 5, 6, 7 and 8",
-     "review_reason": "Region-scoped: bind to area:region:{3,5,6,7a,7b,8}. Bound province-wide it permits burbot spearing in Regions 1, 2 and 4, where ALL spear fishing is prohibited."
+     "review_reason": "Region-scoped: bind to area:region:{3,5,6,7a,7b,8}. Bound province-wide it permits burbot spearing in Regions 1, 2 and 4, where ALL spear fishing is prohibited.",
+     "while": [
+      "spear_fishing"
+     ]
     },
     {
      "rule_id": "spear_fishing.r3",
      "type": "method_rule",
      "verbatim": "No spear fishing of any kind is permitted in Region 1, 2, and 4.",
-     "method": "spear_fishing",
      "extents": [
       {
        "op": "within",
@@ -490,13 +493,15 @@
      ],
      "take": 0,
      "may_target": false,
-     "method": "spear_fishing",
      "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "while": [
+      "spear_fishing"
      ]
     }
    ]
@@ -520,7 +525,6 @@
      "rule_id": "crayfish_trapping.r1",
      "type": "method_rule",
      "verbatim": "trap crayfish with any number or size of traps for personal consumption.",
-     "method": "crayfish_trapping",
      "extents": [
       {
        "op": "within",
@@ -548,13 +552,15 @@
      ],
      "take": 0,
      "may_target": true,
-     "method": "crayfish_trapping",
      "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "while": [
+      "crayfish_trapping"
      ]
     },
     {
@@ -590,7 +596,6 @@
      "rule_id": "prohibited_methods.r1",
      "type": "method_rule",
      "verbatim": "Fish with nets, including dip nets, minnow nets, gill nets or cast nets.",
-     "method": "netting",
      "extents": [
       {
        "op": "within",
@@ -610,7 +615,6 @@
      "rule_id": "prohibited_methods.r2",
      "type": "method_rule",
      "verbatim": "Snag (foul hook) fish.",
-     "method": "snagging",
      "extents": [
       {
        "op": "within",
@@ -635,19 +639,20 @@
      ],
      "take": 0,
      "may_target": true,
-     "method": "snagging",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
+     ],
+     "while": [
+      "snagging"
      ]
     },
     {
      "rule_id": "prohibited_methods.r4",
      "type": "method_rule",
      "verbatim": "Chumming — attempting to attract fish by depositing any substance in the water, is prohibited.",
-     "method": "other",
      "extents": [
       {
        "op": "within",
@@ -1800,7 +1805,6 @@
      "rule_id": "allowable_methods.r4",
      "type": "method_rule",
      "verbatim": "fish with a spear or an arrow propelled by a spring, an elastic band, compressed air, a bow, or by hand.",
-     "method": "spear_fishing",
      "extents": [
       {
        "op": "within",

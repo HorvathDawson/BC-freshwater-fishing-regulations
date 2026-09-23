@@ -987,10 +987,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 # buried in `conditions` — a table that has to parse a JSON blob per cell is a
                 # table nobody will keep working. `conditions` still carries everything else.
                 **{k: cond[k] for k in ("unlimited", "lengths", "period", "water",
-                                        "origin", "band", "within", "record_retention",
-                                        # `method` decides whether a closure shuts the WATER or
+                                        "origin", "within", "record_retention",
+                                        # `while` decides whether a closure shuts the WATER or
                                         # only one way of fishing it — see `narrows` in the page.
-                                        "method", "angler_class", "when_targeting", "permitted",
+                                        "while", "angler_class", "when_targeting", "permitted",
                                         # the licence table's own columns
                                         "on_retention", "when_open", "water_class", "document",
                                         "required")

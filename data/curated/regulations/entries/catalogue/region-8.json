@@ -311,7 +311,6 @@
      "rule_id": "burnell_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -436,7 +435,6 @@
      "rule_id": "butler_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -507,7 +505,6 @@
      "rule_id": "chain_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -569,7 +566,6 @@
      "rule_id": "chapman_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -930,7 +926,6 @@
      "rule_id": "eastmere_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -1126,7 +1121,6 @@
      "rule_id": "five_oclock_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -1891,7 +1885,6 @@
      "rule_id": "idleback_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2492,7 +2485,6 @@
      "rule_id": "kidd_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2629,7 +2621,6 @@
      "rule_id": "kump_lost_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2752,7 +2743,6 @@
      "rule_id": "larry_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -2945,7 +2935,6 @@
      "rule_id": "loch_drinkie.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -3019,7 +3008,6 @@
      "rule_id": "loon_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -3411,7 +3399,6 @@
      "rule_id": "meadow_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -4978,7 +4965,6 @@
      "rule_id": "south_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -5052,7 +5038,6 @@
      "rule_id": "square_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6116,7 +6101,6 @@
      "rule_id": "wood_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "method": "ice_fishing",
      "extents": [
       {
        "op": "whole"
@@ -6301,7 +6285,6 @@
      "type": "method_rule",
      "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
      "obligation": "should",
-     "method": "crayfish_trapping",
      "extent_text": "use traps with minimally-sized circular openings",
      "gear": [
       {
