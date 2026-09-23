@@ -1777,6 +1777,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -4386,6 +4395,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "duck_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 40
+      }
+     ],
      "over_cm": 40,
      "band": false,
      "record_retention": false,
@@ -5090,6 +5104,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "aggregation_domain": "both lakes",
@@ -5307,6 +5330,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "elk_river_downstream_of_elko_dam.r1",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -5344,6 +5373,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "elk_river_downstream_of_elko_dam.r1",
+     "lengths": [
+      {
+       "max_cm": 75,
+       "take": 0
+      }
+     ],
      "under_cm": 75,
      "band": false,
      "record_retention": false,
@@ -5541,6 +5576,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -5832,6 +5876,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -6117,6 +6170,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -6358,6 +6420,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -6526,6 +6597,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -8980,6 +9060,12 @@
      "when_open": true,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 75,
+       "take": 0
+      }
+     ],
      "under_cm": 75,
      "band": false,
      "record_retention": false,
@@ -9640,6 +9726,11 @@
      "take": 20,
      "unlimited": false,
      "period": "annual",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -10503,6 +10594,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "kootenay_river_upper.r5",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -10543,6 +10640,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "kootenay_river_upper.r5",
+     "lengths": [
+      {
+       "max_cm": 75,
+       "take": 0
+      }
+     ],
      "under_cm": 75,
      "band": false,
      "record_retention": false,
@@ -10623,6 +10726,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "kootenay_river_upper.r8",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -10662,6 +10771,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "kootenay_river_upper.r8",
+     "lengths": [
+      {
+       "max_cm": 75,
+       "take": 0
+      }
+     ],
      "under_cm": 75,
      "band": false,
      "record_retention": false,
@@ -10983,6 +11098,12 @@
      "unlimited": false,
      "period": "daily",
      "within": "larchwood_lake.r2",
+     "lengths": [
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -11910,6 +12031,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -12441,6 +12571,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -12666,6 +12805,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -13294,6 +13442,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -13472,6 +13629,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -13683,6 +13849,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -14804,6 +14979,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -16983,6 +17167,12 @@
      "when_open": false,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 60,
+       "take": 0
+      }
+     ],
      "under_cm": 60,
      "band": false,
      "record_retention": false,
@@ -17239,6 +17429,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -18470,6 +18669,15 @@
      "unlimited": false,
      "period": "daily",
      "within": "upper_arrow_lake_drawdown_area.r1",
+     "lengths": [
+      {
+       "min_cm": 60
+      },
+      {
+       "max_cm": 60,
+       "take": 0
+      }
+     ],
      "under_cm": 60,
      "band": false,
      "record_retention": false,
@@ -19232,6 +19440,12 @@
      "when_open": false,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 60,
+       "take": 0
+      }
+     ],
      "under_cm": 60,
      "band": false,
      "record_retention": false,
@@ -19424,6 +19638,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -19829,6 +20052,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -20395,6 +20627,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -21148,6 +21389,15 @@
      "take": 20,
      "unlimited": false,
      "period": "annual",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -21611,6 +21861,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "species_quotas.r4",
+     "lengths": [
+      {
+       "min_cm": 30
+      }
+     ],
      "over_cm": 30,
      "band": false,
      "record_retention": false,
@@ -21985,6 +22240,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,

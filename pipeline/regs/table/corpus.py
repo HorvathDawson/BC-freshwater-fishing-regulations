@@ -20,7 +20,8 @@ _CATALOGUE = None
 
 
 def catalogue() -> dict:
-    """`(entry_id, rule_id)` -> the rule's `extents` and its entry's display name and region.
+    """`(entry_id, rule_id)` -> the rule's `extents` and `lengths`, and its entry's display name
+    and region.
 
     THE BUNDLE DROPS `extents`. It keeps `scope` — `section` or `area` — which says a rule was
     written against a place or an area, and nothing more: it cannot tell "within Region 4"
@@ -38,10 +39,13 @@ def catalogue() -> dict:
             for e in (d.get("entries") if isinstance(d, dict) else d) or []:
                 eid = e.get("entry_id")
                 for r in e.get("rules") or []:
-                    idx[(eid, r.get("rule_id"))] = {
+                    got = {
                         "extents": list(r.get("extents") or e.get("extents") or []),
                         "entry_name": e.get("display_name") or e.get("name") or "",
                         "entry_region": str(e.get("region") or "")}
+                    if r.get("lengths"):
+                        got["lengths"] = r["lengths"]
+                    idx[(eid, r.get("rule_id"))] = got
         _CATALOGUE = idx
     return _CATALOGUE
 

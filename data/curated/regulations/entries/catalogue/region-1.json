@@ -253,6 +253,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -1508,6 +1514,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -2603,6 +2615,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -2898,6 +2916,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -3357,6 +3381,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -4672,6 +4705,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -5776,6 +5815,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -5930,6 +5978,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -6083,6 +6140,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -6204,6 +6267,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -6588,6 +6657,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -7246,6 +7321,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -8768,6 +8849,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -9805,6 +9892,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -11051,6 +11147,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -12064,6 +12166,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -12597,6 +12705,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -12709,6 +12823,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -13549,6 +13669,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -13945,6 +14071,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -15502,6 +15637,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -16759,6 +16900,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -17207,6 +17354,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -18288,6 +18441,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -20649,6 +20808,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -21521,6 +21686,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "hg_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -21625,6 +21795,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -22228,6 +22404,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -22264,6 +22445,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,

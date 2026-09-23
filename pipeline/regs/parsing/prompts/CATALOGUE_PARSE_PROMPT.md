@@ -132,6 +132,9 @@ per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
 over_cm        a CAP on big fish        under_cm  a FLOOR under which fish go back
 band           true only for "none BETWEEN x and y"
+lengths        the same size limit said PLAINLY — see "Size polarity" below. Emit it whenever
+               you emit over_cm/under_cm, and make the two agree: the loader rejects the rule
+               if they do not.
 water          stream | lake            origin  hatchery | wild
 
 REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY
@@ -234,6 +237,37 @@ wrong point is far worse than one visibly sent to review.
 
 The word "over" appears in all three and maps to a different field in each. Ask **which fish go
 back**: they are the ones outside the bound you store.
+
+### `lengths` — say the same thing so no one has to work it out
+
+`over_cm`/`under_cm`/`band` store the NUMBERS and leave the MEANING to be reconstructed from the
+fields around them, which is why the table above exists and why four rules ended up with `band`
+set backwards — permitting exactly the fish they protect. `lengths` writes the range and its
+number, so there is nothing left to infer.
+
+An ORDERED list of ranges, FIRST MATCH WINS. `min_cm`/`max_cm` are INCLUSIVE, either may be
+omitted for "open at that end", and a range without its own `take` uses the rule's `take`.
+**A length no range covers is not spoken about by this rule** — at the top level nothing else
+grants it, and inside a `within` clause the parent quota governs it.
+
+```
+"Trout daily quota = 2 (none over 50 cm)"   [{"max_cm":50}, {"min_cm":50,"take":0}]
+"no trout over 50 cm"                       [{"min_cm":50,"take":0}]
+"not more than 1 over 50 cm"  (a clause)    [{"min_cm":50}]
+"1 bull trout over 60 cm"                   [{"min_cm":60}, {"max_cm":60,"take":0}]
+"20-30 cm only", quota 2                    [{"min_cm":20,"max_cm":30},
+                                             {"max_cm":20,"take":0},{"min_cm":30,"take":0}]
+"none between 70 cm and 100 cm"             [{"min_cm":70,"max_cm":100,"take":0}]
+```
+
+Write the grant BEFORE the denial beneath it, so a fish of exactly 60 cm is granted rather than
+denied. Where a clause carries both a hole and a number — "only 1 over 100 cm, none between 70
+and 100 cm" — the number belongs to the piece ABOVE the hole and the piece below is left out,
+because the parent quota governs it:
+
+```
+[{"min_cm":70,"max_cm":100,"take":0}, {"min_cm":100}]
+```
 
 ---
 

@@ -20,6 +20,8 @@ import re
 from enum import Enum
 from typing import List, Optional
 
+from types import SimpleNamespace
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -401,6 +403,72 @@ class Exempts(BaseModel):
         return self
 
 
+def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
+    """`over_cm`/`under_cm`/`band` -> `lengths`. The ONLY place those three are interpreted.
+
+    This is the migration, and it is also the proof: run against the corpus it reproduces the
+    old reading for 264 of the 270 rules carrying a size, length by length from 1 to 400 cm. The
+    six it changes are Bennett Lake's "only 1 over 100 cm, none between 70 cm and 100 cm" under
+    a parent quota of 4, where the old reading capped a 50 cm pike at 1 and the book allows 4.
+    """
+    o, u, t = r.over_cm, r.under_cm, r.take
+    denies = t == 0 or t is None
+    if not o and not u:
+        return None
+    if o and u:
+        if r.band:
+            # A HOLE. The band names the fish you may NOT keep, and that is the claim. Where the
+            # rule also carries a number the number belongs to the piece ABOVE the hole; the
+            # piece below is left unspoken, because the parent quota governs it.
+            out = [LengthBand(min_cm=u, max_cm=o, take=0)]
+            return out + ([LengthBand(min_cm=o)] if t is not None else [])
+        # A WINDOW: keep only inside it, and none outside it either way.
+        return [LengthBand(min_cm=u, max_cm=o), LengthBand(max_cm=u, take=0),
+                LengthBand(min_cm=o, take=0)]
+    if o:
+        # `over_cm` IS THE OVERLOADED ONE — it bounds the fish granted, unless the number COUNTS
+        # the big ones instead, which is what a clause and an annual ceiling both do.
+        if denies:
+            return [LengthBand(min_cm=o, take=0)]
+        if r.within or r.period is not Period.daily:
+            return [LengthBand(min_cm=o)]
+        return [LengthBand(max_cm=o), LengthBand(min_cm=o, take=0)]
+    # `under_cm` IS ALWAYS A FLOOR. "1 bull trout over 60 cm" and "none under 60 cm" are one
+    # sentence said two ways and are stored identically. THE FLOOR IS ABSOLUTE even inside a
+    # clause: "no more than 1 char (none under 60 cm)" forbids a 50 cm char outright rather than
+    # handing it back to the parent quota.
+    if denies:
+        return [LengthBand(max_cm=u, take=0)]
+    return [LengthBand(min_cm=u), LengthBand(max_cm=u, take=0)]
+
+
+class LengthBand(BaseModel):
+    """ONE RANGE OF FISH LENGTHS, AND HOW MANY OF THEM YOU MAY KEEP.
+
+    `min_cm` and `max_cm` are INCLUSIVE, and null is open at that end. `take` is how many of
+    THESE you may keep; omitted, the rule's own `take` applies to them.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    min_cm: Optional[int] = None
+    max_cm: Optional[int] = None
+    take: Optional[int] = None
+
+    @model_validator(mode="after")
+    def _real(self) -> "LengthBand":
+        if self.min_cm is None and self.max_cm is None:
+            raise ValueError("a length band open at both ends is every fish; say nothing instead")
+        if self.min_cm is not None and self.max_cm is not None and self.min_cm >= self.max_cm:
+            raise ValueError(f"min_cm {self.min_cm} >= max_cm {self.max_cm} is an empty range")
+        if self.take is not None and self.take < 0:
+            raise ValueError("take cannot be negative")
+        return self
+
+    def holds(self, cm: int) -> bool:
+        return ((self.min_cm is None or cm >= self.min_cm) and
+                (self.max_cm is None or cm <= self.max_cm))
+
+
 class CatalogueRule(BaseModel):
     """One regulation, typed. `verbatim` is the synopsis sentence and is REQUIRED — the generated
     label is a summary and never a replacement, so the words the law used must always be reachable.
@@ -410,6 +478,30 @@ class CatalogueRule(BaseModel):
     rule_id: str
     type: RuleType
     verbatim: str = Field(..., min_length=1, description="the synopsis sentence, exactly")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _fill_lengths(cls, v):
+        """`lengths` IS DERIVED WHERE IT IS NOT GIVEN, so a producer that only knows the old
+        three fields still gets it. The DFO salmon feed builds its rules in code from scraped
+        rows and writes `over_cm`; refusing those would have made this field something only
+        curated entries could have, which is the opposite of the point."""
+        if not isinstance(v, dict) or v.get("lengths") is not None:
+            return v
+        if not (v.get("over_cm") or v.get("under_cm")):
+            return v
+        # AN IMPOSSIBLE SLOT IS REPORTED IN THE WORDS THE CURATOR WROTE. Deriving first would
+        # refuse it as "min_cm 90 >= max_cm 60", naming two fields that are not in the file;
+        # `_check` below says "under_cm 90 >= over_cm 60", which is the line to go and fix.
+        if v.get("over_cm") and v.get("under_cm") and v["under_cm"] >= v["over_cm"]:
+            return v
+        got = lengths_from_bounds(SimpleNamespace(
+            over_cm=v.get("over_cm"), under_cm=v.get("under_cm"), band=v.get("band") or False,
+            take=v.get("take"), within=v.get("within"),
+            period=Period(v.get("period") or "daily")))
+        if got is not None:
+            v = dict(v, lengths=[b.model_dump(exclude_none=True) for b in got])
+        return v
     obligation: Obligation = Obligation.must
 
     # --- who / what / when -------------------------------------------------
@@ -432,6 +524,42 @@ class CatalogueRule(BaseModel):
     period: Period = Period.daily
     per_daily: Optional[int] = None
     within: Optional[str] = None
+    #: WHICH FISH, BY LENGTH, AND HOW MANY — an ORDERED list, FIRST MATCH WINS.
+    #:
+    #: This replaces reading `over_cm`/`under_cm`/`band` and guessing. Those three said what the
+    #: numbers WERE and left what they MEANT to be reconstructed from the fields around them,
+    #: and `over_cm` alone meant three different things: the ceiling on a granted fish ("quota 2,
+    #: none over 50 cm"), the class a number COUNTS ("only 1 over 40 cm", inside a clause), and
+    #: the fish denied outright ("no trout over 50 cm"). Six branches told them apart. Every
+    #: consumer that re-derived those branches got them wrong differently — and the one flag that
+    #: did carry meaning, `band`, was set backwards on four rules, permitting exactly the fish
+    #: they protect.
+    #:
+    #: A band writes the range and its number, so there is nothing left to infer and the
+    #: inversion is not expressible:
+    #:
+    #:   "Trout daily quota = 2 (none over 50 cm)"   [{max_cm: 50}, {min_cm: 50, take: 0}]
+    #:   "1 bull trout over 60 cm"                   [{min_cm: 60}, {max_cm: 60, take: 0}]
+    #:   "only 1 over 40 cm" (a clause)              [{min_cm: 40}]
+    #:   "20-30 cm only", quota 2                    [{min_cm: 20, max_cm: 30},
+    #:                                                {max_cm: 20, take: 0},
+    #:                                                {min_cm: 30, take: 0}]
+    #:   "none between 70 cm and 100 cm"             [{min_cm: 70, max_cm: 100, take: 0}]
+    #:
+    #: ORDER SETTLES THE SHARED ENDPOINT. A grant is written before the denial beneath it, so a
+    #: fish of exactly 60 cm is granted rather than denied. (The book's "over 60" and "60 cm or
+    #: more" differ by one fish and `over_cm`/`under_cm` never stored which was meant; that is a
+    #: pre-existing loss and is not invented here.)
+    #:
+    #: A LENGTH NO BAND COVERS IS NOT SPOKEN ABOUT by this rule — at the top level nothing else
+    #: grants it, and inside a `within` clause the parent quota governs it. That is what makes
+    #: "northern pike = 4" + "only 1 over 100 cm, none between 70 and 100" come out right: the
+    #: old reading capped a 50 cm pike at 1, when the book allows the parent's 4.
+    lengths: Optional[List[LengthBand]] = None
+
+    #: THE THREE FIELDS `lengths` REPLACES. Still written by the parser and still the curated
+    #: source of truth until the next parse run emits `lengths` directly; `_lengths_agree` below
+    #: fails the build if the two ever say different things.
     over_cm: Optional[int] = None
     under_cm: Optional[int] = None
     band: bool = False
@@ -601,6 +729,21 @@ class CatalogueRule(BaseModel):
                 e.append("band needs both over_cm and under_cm")
             if self.over_cm and self.under_cm and self.under_cm >= self.over_cm:
                 e.append(f"under_cm {self.under_cm} >= over_cm {self.over_cm} is an impossible slot")
+            # TWO FIELDS THAT MUST AGREE ARE ONE FIELD AND A CHECK. `lengths` is the answer and
+            # the three old fields are on their way out, but the parser still writes them, so
+            # until a parse run emits `lengths` directly they both exist and this fails the
+            # build the moment they diverge. That is the whole reason the redundancy is safe.
+            # Only where the bounds are possible at all: deriving from a slot already known to
+            # be impossible raises out of LengthBand and buries the line above, which is the one
+            # naming the fields the curator actually wrote.
+            want = (None if (self.over_cm and self.under_cm and self.under_cm >= self.over_cm)
+                    else lengths_from_bounds(self))
+            if self.lengths is not None and want is not None and \
+                    [b.model_dump(exclude_none=True) for b in self.lengths] != \
+                    [b.model_dump(exclude_none=True) for b in want]:
+                e.append(f"lengths {[b.model_dump(exclude_none=True) for b in self.lengths]} "
+                         f"does not match over_cm/under_cm/band "
+                         f"{[b.model_dump(exclude_none=True) for b in want]}")
         else:
             for f in ("take", "unlimited", "per_daily", "within", "band"):
                 if getattr(self, f) not in (None, False):

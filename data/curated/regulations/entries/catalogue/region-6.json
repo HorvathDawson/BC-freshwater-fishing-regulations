@@ -35,6 +35,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -125,6 +131,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "atlin_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60
+      }
+     ],
      "over_cm": 60,
      "band": false,
      "record_retention": false,
@@ -195,6 +206,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "atlin_lake.r3",
+     "lengths": [
+      {
+       "min_cm": 35
+      }
+     ],
      "over_cm": 35,
      "band": false,
      "record_retention": false,
@@ -265,6 +281,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "atlin_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 70
+      }
+     ],
      "over_cm": 70,
      "band": false,
      "record_retention": false,
@@ -1107,6 +1128,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      },
+      {
+       "min_cm": 90
+      }
+     ],
      "over_cm": 90,
      "under_cm": 60,
      "band": true,
@@ -1178,6 +1209,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r3",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      },
+      {
+       "min_cm": 90
+      }
+     ],
      "over_cm": 90,
      "under_cm": 60,
      "band": true,
@@ -1249,6 +1290,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      },
+      {
+       "min_cm": 44
+      }
+     ],
      "over_cm": 44,
      "under_cm": 36,
      "band": true,
@@ -1320,6 +1371,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r7",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      },
+      {
+       "min_cm": 44
+      }
+     ],
      "over_cm": 44,
      "under_cm": 36,
      "band": true,
@@ -1391,6 +1452,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r9",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      },
+      {
+       "min_cm": 100
+      }
+     ],
      "over_cm": 100,
      "under_cm": 70,
      "band": true,
@@ -1462,6 +1533,16 @@
      "unlimited": false,
      "period": "daily",
      "within": "bennett_lake.r11",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      },
+      {
+       "min_cm": 100
+      }
+     ],
      "over_cm": 100,
      "under_cm": 70,
      "band": true,
@@ -1703,6 +1784,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -1738,6 +1828,11 @@
      "take": 2,
      "unlimited": false,
      "period": "possession",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -1894,6 +1989,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -2018,6 +2122,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -2647,6 +2760,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "cheslatta_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -3368,6 +3486,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -3911,6 +4035,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "francois_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -5752,6 +5881,15 @@
      "take": 5,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -5789,6 +5927,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
      "under_cm": 50,
      "band": false,
      "record_retention": false,
@@ -6504,6 +6651,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -6539,6 +6695,11 @@
      "take": 2,
      "unlimited": false,
      "period": "possession",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -7590,6 +7751,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "laidlaw_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60
+      }
+     ],
      "over_cm": 60,
      "band": false,
      "record_retention": false,
@@ -7660,6 +7826,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "laidlaw_lake.r3",
+     "lengths": [
+      {
+       "min_cm": 35
+      }
+     ],
      "over_cm": 35,
      "band": false,
      "record_retention": false,
@@ -7730,6 +7901,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "laidlaw_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 70
+      }
+     ],
      "over_cm": 70,
      "band": false,
      "record_retention": false,
@@ -7851,6 +8027,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -8428,6 +8610,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -9020,6 +9208,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 90
+      }
+     ],
      "over_cm": 90,
      "band": false,
      "record_retention": false,
@@ -9055,6 +9248,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
      "over_cm": 90,
      "under_cm": 60,
      "band": true,
@@ -9126,6 +9326,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r4",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
      "over_cm": 44,
      "band": false,
      "record_retention": false,
@@ -9161,6 +9366,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r4",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
      "over_cm": 44,
      "under_cm": 36,
      "band": true,
@@ -9232,6 +9444,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r7",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
      "over_cm": 100,
      "band": false,
      "record_retention": false,
@@ -9267,6 +9484,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "morley_lake.r7",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
      "over_cm": 100,
      "under_cm": 70,
      "band": true,
@@ -9494,6 +9718,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "murray_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -10397,6 +10626,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -10692,6 +10927,15 @@
      "take": 2,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -10847,6 +11091,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "rancheria_river_tributaries.r1",
+     "lengths": [
+      {
+       "min_cm": 35
+      }
+     ],
      "over_cm": 35,
      "band": false,
      "record_retention": false,
@@ -12464,6 +12713,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "swift_river.r1",
+     "lengths": [
+      {
+       "min_cm": 35
+      }
+     ],
      "over_cm": 35,
      "band": false,
      "record_retention": false,
@@ -12653,6 +12907,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 90
+      }
+     ],
      "over_cm": 90,
      "band": false,
      "record_retention": false,
@@ -12688,6 +12947,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
      "over_cm": 90,
      "under_cm": 60,
      "band": true,
@@ -12793,6 +13059,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
      "over_cm": 44,
      "band": false,
      "record_retention": false,
@@ -12828,6 +13099,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
      "over_cm": 44,
      "under_cm": 36,
      "band": true,
@@ -12933,6 +13211,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r9",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
      "over_cm": 100,
      "band": false,
      "record_retention": false,
@@ -12968,6 +13251,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "tagish_lake.r9",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
      "over_cm": 100,
      "under_cm": 70,
      "band": true,
@@ -13583,6 +13873,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "teslin_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
      "over_cm": 90,
      "under_cm": 60,
      "band": true,
@@ -13688,6 +13985,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "teslin_lake.r4",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
      "over_cm": 44,
      "band": false,
      "record_retention": false,
@@ -13723,6 +14025,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "teslin_lake.r4",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
      "over_cm": 44,
      "under_cm": 36,
      "band": true,
@@ -13828,6 +14137,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "teslin_lake.r8",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
      "over_cm": 100,
      "band": false,
      "record_retention": false,
@@ -13863,6 +14177,13 @@
      "unlimited": false,
      "period": "daily",
      "within": "teslin_lake.r8",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
      "over_cm": 100,
      "under_cm": 70,
      "band": true,
@@ -14540,6 +14861,15 @@
      "take": 1,
      "unlimited": false,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 50
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -16222,6 +16552,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -16366,6 +16701,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -16554,6 +16895,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_char_quota.r2",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,

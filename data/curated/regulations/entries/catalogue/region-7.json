@@ -645,6 +645,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -1255,6 +1264,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -1776,6 +1791,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 30
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -2135,6 +2159,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            }
+          ],
           "under_cm": 40,
           "band": false,
           "record_retention": false,
@@ -2925,6 +2958,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -4314,6 +4356,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 25,
+              "take": 0
+            }
+          ],
           "under_cm": 25,
           "band": false,
           "record_retention": false,
@@ -5042,6 +5090,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -5180,6 +5237,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 60
+            },
+            {
+              "max_cm": 60,
+              "take": 0
+            }
+          ],
           "under_cm": 60,
           "band": false,
           "record_retention": false,
@@ -5648,6 +5714,20 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
           "over_cm": 60,
           "under_cm": 40,
           "band": false,
@@ -5926,6 +6006,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -6488,6 +6577,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 35
+            },
+            {
+              "max_cm": 35,
+              "take": 0
+            }
+          ],
           "under_cm": 35,
           "band": false,
           "record_retention": false,
@@ -6767,6 +6865,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -7435,6 +7542,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            }
+          ],
           "under_cm": 40,
           "band": false,
           "record_retention": false,
@@ -7957,6 +8073,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -8110,6 +8235,20 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 30,
+              "max_cm": 50
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "under_cm": 30,
           "band": false,
@@ -8149,6 +8288,20 @@
           "take": 1,
           "unlimited": false,
           "period": "possession",
+          "lengths": [
+            {
+              "min_cm": 30,
+              "max_cm": 50
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "under_cm": 30,
           "band": false,
@@ -8661,6 +8814,20 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
           "over_cm": 60,
           "under_cm": 40,
           "band": false,
@@ -9496,6 +9663,20 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
           "over_cm": 60,
           "under_cm": 40,
           "band": false,
@@ -9535,6 +9716,20 @@
           "take": 1,
           "unlimited": false,
           "period": "possession",
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
           "over_cm": 60,
           "under_cm": 40,
           "band": false,
@@ -9959,6 +10154,20 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
           "over_cm": 60,
           "under_cm": 40,
           "band": false,
@@ -10696,6 +10905,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 35,
+              "take": 0
+            }
+          ],
           "under_cm": 35,
           "band": false,
           "record_retention": false,
@@ -10992,6 +11207,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -12212,6 +12436,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -12554,6 +12787,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -13521,6 +13763,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 50
+            },
+            {
+              "max_cm": 50,
+              "take": 0
+            }
+          ],
           "under_cm": 50,
           "band": false,
           "record_retention": false,
@@ -14916,6 +15167,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -15147,6 +15407,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 30
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -15496,6 +15765,15 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 40
+            },
+            {
+              "min_cm": 40,
+              "take": 0
+            }
+          ],
           "over_cm": 40,
           "band": false,
           "record_retention": false,
@@ -15618,6 +15896,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -15806,6 +16090,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -15913,6 +16203,20 @@
           "take": 1,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 30,
+              "max_cm": 50
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "under_cm": 30,
           "band": false,
@@ -15952,6 +16256,15 @@
           "take": 3,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "min_cm": 30
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -15991,6 +16304,11 @@
           "unlimited": false,
           "period": "daily",
           "within": "williston_lake_zone_b.r5",
+          "lengths": [
+            {
+              "min_cm": 50
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,
@@ -16085,6 +16403,12 @@
           "when_open": false,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
           "under_cm": 30,
           "band": false,
           "record_retention": false,
@@ -16359,6 +16683,15 @@
           "take": 2,
           "unlimited": false,
           "period": "daily",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
           "over_cm": 50,
           "band": false,
           "record_retention": false,

@@ -135,29 +135,36 @@ FIELDS = {
                 "(keep only between them). The numbers look identical either way. 29 rules "
                 "carry both bounds — 15 holes, 14 windows — and all 29 are in this file under "
                 "`size_rule_examples`.",
-        "_which_reading": {
-            "_note": "`over_cm`/`under_cm` DO NOT READ THE SAME WAY IN EVERY RULE, and the pair "
-                     "alone does not say which. Test in this order; each branch was forced by a "
-                     "real rule. This used to be computed onto every rule as `size_rule`.",
-            "1. type is not retention_limit":
-                "WHICH FISH, not a limit. 'Conservation Surcharge Stamp required to catch and "
-                "keep rainbow trout over 50 cm' limits nobody's fish — it says the stamp is "
-                "needed for the big ones. Read as a ceiling it turns a licence condition into a "
-                "size limit.",
-            "2. both bounds set": "a slot, or with `band` a hole — see `band` above",
-            "3. take == 0":
-                "a PROHIBITION — the only reading where the bound sends a fish back. `over_cm` "
-                "is a ceiling, `under_cm` a floor.",
-            "4. period is not daily, and take":
-                "an annual or possession ceiling COUNTS a size class and sets no minimum. "
-                "'Rainbow trout: 5 over 50 cm' limits the big ones and says nothing about a "
-                "40 cm fish.",
-            "5. within, and take, and over_cm":
-                "asymmetric on purpose: inside a clause `over_cm` counts, `under_cm` is a floor",
-            "6. anything else":
-                "a flat prohibition. 'Rainbow trout daily quota = 1 (none under 50 cm)' is a "
-                "quota of one AND a floor at 50; it is NOT 'only one may be under 50 cm'.",
-            "what each reading means": SIZE_READINGS,
+        "lengths": "READ THIS AND NOT THE THREE FIELDS ABOVE. An ORDERED list of length "
+                   "ranges, each with the number you may keep in it; the FIRST range that "
+                   "contains a fish's length wins. `min_cm`/`max_cm` are inclusive and null is "
+                   "open at that end; a range with no `take` of its own uses the rule's `take`. "
+                   "A length NO range covers is not spoken about by this rule — at the top "
+                   "level nothing else grants it, and inside a `within` clause the parent quota "
+                   "governs it. Present on all 270 rules that carry a size and on no others.",
+        "_why_lengths_exists":
+            "`over_cm` meant three different things depending on the fields around it: the "
+            "ceiling on a granted fish ('quota 2, none over 50 cm'), the class a number COUNTS "
+            "('only 1 over 40 cm', inside a clause), and the fish denied outright ('no trout "
+            "over 50 cm'). Six branches told them apart and every consumer that re-derived them "
+            "got it wrong differently — and `band`, the one flag that did carry meaning, was "
+            "set backwards on four rules, permitting exactly the fish they protect. `lengths` "
+            "writes the range and its number, so there is nothing left to infer.",
+        "_worked": {
+            "Trout daily quota = 2 (none over 50 cm)":
+                "[{max_cm: 50}, {min_cm: 50, take: 0}] — the 2 applies up to 50, none above",
+            "1 bull trout over 60 cm":
+                "[{min_cm: 60}, {max_cm: 60, take: 0}] — the floor is absolute",
+            "only 1 over 40 cm (a clause)":
+                "[{min_cm: 40}] — smaller fish are the parent quota's business, not this rule's",
+            "20-30 cm only, quota 2":
+                "[{min_cm: 20, max_cm: 30}, {max_cm: 20, take: 0}, {min_cm: 30, take: 0}]",
+            "none between 70 cm and 100 cm":
+                "[{min_cm: 70, max_cm: 100, take: 0}] — the hole, and only the hole",
+            "_endpoints": "A grant is written before the denial beneath it, so a fish of "
+                          "exactly 60 cm is granted rather than denied. The book's 'over 60' "
+                          "and '60 cm or more' differ by one fish and the corpus never stored "
+                          "which was meant; that loss predates this field and is not invented.",
         },
         "_read": "take=2 and no size → keep 2, any size. take=1 over_cm=50 → only 1 may be over "
                  "50 cm, a CAP on a size class. take=0 under_cm=30 → none under 30 cm, a FLOOR. "

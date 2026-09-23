@@ -269,6 +269,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "over_cm": 50,
      "band": false,
      "record_retention": false,
@@ -375,6 +380,20 @@
      "unlimited": false,
      "period": "daily",
      "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 30,
+       "max_cm": 50
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      },
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
      "over_cm": 50,
      "under_cm": 30,
      "band": false,
@@ -449,6 +468,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -646,6 +671,12 @@
      "unlimited": false,
      "may_target": true,
      "period": "daily",
+     "lengths": [
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
      "under_cm": 30,
      "band": false,
      "record_retention": false,
@@ -681,6 +712,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "arctic_grayling.r1",
+     "lengths": [
+      {
+       "min_cm": 45
+      }
+     ],
      "over_cm": 45,
      "band": false,
      "record_retention": false,
@@ -1002,6 +1038,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "species_quotas.r6",
+     "lengths": [
+      {
+       "min_cm": 90
+      }
+     ],
      "over_cm": 90,
      "band": false,
      "record_retention": false,
@@ -1070,6 +1111,11 @@
      "unlimited": false,
      "period": "daily",
      "within": "species_quotas.r8",
+     "lengths": [
+      {
+       "min_cm": 70
+      }
+     ],
      "over_cm": 70,
      "band": false,
      "record_retention": false,
