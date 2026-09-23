@@ -7,6 +7,12 @@
    "display_name": "108 Mile Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329494722"
    ],
@@ -23,9 +29,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -34,6 +37,12 @@
    "display_name": "Abbott Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW)",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328986884"
    ],
@@ -137,9 +146,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -148,6 +154,9 @@
    "display_name": "Abuntlet Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329601585"
    ],
@@ -219,6 +228,9 @@
    "display_name": "Agnus Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook; unnamed lake approximately 1 km north of Miner Lake",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329238230"
    ],
@@ -287,9 +299,12 @@
   {
    "entry_id": "r5:alexis_lake@5-13",
    "name": "ALEXIS LAKE",
-   "display_name": "Alexis Lake",
+   "display_name": "Tigulhdzin",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329276293"
    ],
@@ -316,10 +331,13 @@
   {
    "entry_id": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
    "name": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)",
-   "display_name": "Atnarko/Bella Coola Rivers",
+   "display_name": "Bella Coola River",
    "region": "5",
    "scope_note": "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 — covered by separate entries",
    "regs_verbatim": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
+   "source_pages": [
+    49
+   ],
    "symbols": [
     "Classified",
     "Incl. Tribs"
@@ -714,6 +732,9 @@
    "display_name": "Avalanche Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329021793"
    ],
@@ -785,6 +806,9 @@
    "display_name": "Baby Charlotte Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329021828"
    ],
@@ -856,6 +880,12 @@
    "display_name": "Baker Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31\nYouth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "gnis:7956"
    ],
@@ -936,17 +966,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r5:ballon_lake@5-2",
    "name": "BALLON LAKE",
-   "display_name": "Ballon Lake",
+   "display_name": "Baillon Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480864"
    ],
@@ -1030,9 +1063,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1041,6 +1071,9 @@
    "display_name": "Banana Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329021787"
    ],
@@ -1109,9 +1142,11 @@
   {
    "entry_id": "r5:basalt_lake@6-1",
    "name": "BASALT LAKE",
-   "display_name": "Basalt Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "rules": [
     {
      "rule_id": "basalt_lake.r1",
@@ -1196,9 +1231,12 @@
   {
    "entry_id": "r5:beaver_creek_chain_of_lakes@5-2",
    "name": "BEAVER CREEK chain of lakes",
-   "display_name": "Beaver Creek chain of lakes",
+   "display_name": "Beaver Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**\nIncludes: Beaver, Chambers, Joan, McCauley, Opheim, and Roberts lakes, Lake George, and the unnamed lake known locally as \"Rye\" lake",
+   "source_pages": [
+    49
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -1235,6 +1273,9 @@
    "display_name": "Beaver Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329480780"
    ],
@@ -1267,6 +1308,12 @@
    "display_name": "Bella Coola River",
    "region": "5",
    "regs_verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:11611"
    ],
@@ -1281,9 +1328,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -1292,6 +1336,12 @@
    "display_name": "Big Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060780"
    ],
@@ -1350,9 +1400,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1361,6 +1408,9 @@
    "display_name": "Big Lake",
    "region": "5",
    "regs_verbatim": "Lake trout daily quota = 1, none over 50 cm; lake trout catch and release Oct 1-Nov 30",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329480768"
    ],
@@ -1422,6 +1472,9 @@
    "display_name": "Bishop Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329430941"
    ],
@@ -1488,6 +1541,9 @@
    "display_name": "West Road (Blackwater) River",
    "region": "5",
    "regs_verbatim": "See West Road River",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "gnis:26104"
    ],
@@ -1510,6 +1566,12 @@
    "display_name": "Blue Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing; **Trout daily quota = 1 (none under 50 cm); single barbless hook",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329413147"
    ],
@@ -1578,9 +1640,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1589,6 +1648,12 @@
    "display_name": "Blue Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329586265"
    ],
@@ -1605,9 +1670,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1616,6 +1678,9 @@
    "display_name": "Blue Lead Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing** downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "gnis:14477"
    ],
@@ -1658,6 +1723,9 @@
    "region": "5",
    "scope_note": "unnamed lake approximately 2 km east/northeast of Spout Lake",
    "regs_verbatim": "No powered boats; unnamed lake approximately 2 km east/northeast of Spout Lake",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329354763"
    ],
@@ -1682,6 +1750,12 @@
    "display_name": "Boar Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing; **Trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329116770"
    ],
@@ -1768,9 +1842,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1779,6 +1850,9 @@
    "display_name": "Bootjack Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 8",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329480775"
    ],
@@ -1805,6 +1879,9 @@
    "display_name": "Bowron Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily and possession quotas = 2",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329058703"
    ],
@@ -1845,6 +1922,9 @@
    "name": "BOWRON LAKE Park waters other than Bowron Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily and possession quotas = 1 (none under 30 cm or over 50 cm)\nBait ban, single barbless hook; no powered boats",
+   "source_pages": [
+    49
+   ],
    "rules": [
     {
      "rule_id": "bowron_lake_park_waters.r1",
@@ -1968,6 +2048,12 @@
    "display_name": "Bridge Lake",
    "region": "5",
    "regs_verbatim": "Lake trout daily quota = 1",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060770"
    ],
@@ -1986,9 +2072,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1997,6 +2080,9 @@
    "display_name": "Bishop Lake",
    "region": "5",
    "regs_verbatim": "See Bishop Lake",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329430941"
    ],
@@ -2019,6 +2105,9 @@
    "display_name": "Bunting Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329586263"
    ],
@@ -2044,6 +2133,9 @@
    "display_name": "Burnt Bridge Creek",
    "region": "5",
    "regs_verbatim": "Bait ban; **No Fishing** for steelhead\n**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+   "source_pages": [
+    49
+   ],
    "symbols": [
     "Classified",
     "Incl. Tribs"
@@ -2140,6 +2232,9 @@
    "display_name": "Cameron Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing** Oct 1-June 30\nTrout/char catch and release; bait ban; artificial fly only",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "gnis:17747"
    ],
@@ -2229,6 +2324,9 @@
    "display_name": "Canim Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329354707"
    ],
@@ -2273,6 +2371,9 @@
    "display_name": "Canim River",
    "region": "5",
    "regs_verbatim": "Trout/char catch and release; bait ban",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "gnis:1992"
    ],
@@ -2323,6 +2424,9 @@
    "display_name": "Cariboo River",
    "region": "5",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "gnis:37911"
    ],
@@ -2355,6 +2459,9 @@
    "display_name": "Chambers Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing **for bass",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329480788"
    ],
@@ -2387,6 +2494,12 @@
    "display_name": "Chilcotin River",
    "region": "5",
    "regs_verbatim": "**No Fishing** upstream of Chilko River, Apr 1-June 30\n**No Fishing** downstream of Chilko River, Oct 1-June 10\nNo trout/char under 30 cm downstream of Chilko River\nNo hooks greater than 15 mm from point to shank, Oct 1-May 31; bait ban\nNo angling from powered boats\n**Downstream of Chilko River**[Includes Tributaries]**: Class II water Oct 1-May 31 and Steelhead Stamp mandatory Oct 1-May 31** (if opened for fall or spring\nfishing; see Notice on page 42)",
+   "source_pages": [
+    49
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:13744"
    ],
@@ -2584,17 +2697,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
    "entry_id": "r5:chilko_lake@5-4",
    "name": "CHILKO LAKE",
-   "display_name": "Chilko Lake",
+   "display_name": "Tŝilhqox Biny",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2 (no rainbow trout over 70 cm; only 1 bull trout and it may not be under 60 cm)\nBait ban, single barbless hook\nNo powered boats on Big Lagoon (west side of lake)",
+   "source_pages": [
+    49
+   ],
    "matched": [
     "wbk:329079684"
    ],
@@ -2721,9 +2834,12 @@
   {
    "entry_id": "r5:chilko_lake_s_tributary_streams@5-4",
    "name": "CHILKO LAKE'S tributary streams",
-   "display_name": "Chilko Lake's tributary streams",
+   "display_name": "Tŝilhqox Biny",
    "region": "5",
    "regs_verbatim": "**No Fishing** Aug 1-June 30\nDolly Varden (bull trout) catch and release",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329079684"
    ],
@@ -2785,6 +2901,12 @@
    "display_name": "Chilko River",
    "region": "5",
    "regs_verbatim": "**No Fishing** Nov 1-June 10\nTrout/char catch and release; bait ban\nFly fishing only upstream of Brittany Creek\nNo angling from powered boats upstream of bridge at Henry's Crossing, Sept 11-Sept 30; speed restriction (5 km/h) on part\n**Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31 (Steelhead Stamp not required)**",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:13741"
    ],
@@ -2968,9 +3090,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -2979,6 +3098,9 @@
    "display_name": "Chimney Creek",
    "region": "5",
    "regs_verbatim": "Open all year downstream of Brunson Lake",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "gnis:39269"
    ],
@@ -3010,6 +3132,9 @@
    "display_name": "Chipmunk Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329126718"
    ],
@@ -3081,6 +3206,9 @@
    "display_name": "Christopher Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329354761"
    ],
@@ -3112,6 +3240,12 @@
    "display_name": "Chuckwalla River",
    "region": "5",
    "regs_verbatim": "**No Fishing** entire river, June 1-Aug 31; **No Fishing** between fishing boundary signs at Ten Mile Pool\n**Class II water**[Includes Tributaries]** Apr 1-May 31 and Steelhead Stamp mandatory Apr 1-May 31**",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:31700"
    ],
@@ -3213,9 +3347,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -3224,6 +3355,9 @@
    "display_name": "Cohen Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329021814"
    ],
@@ -3295,6 +3429,12 @@
    "display_name": "Cook Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char catch and release; artificial fly only, bait ban",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480895"
    ],
@@ -3374,9 +3514,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -3385,6 +3522,9 @@
    "display_name": "Crag Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "gnis:12809"
    ],
@@ -3417,6 +3557,9 @@
    "display_name": "Crazy Bear (Ginny) Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329021788"
    ],
@@ -3488,6 +3631,9 @@
    "display_name": "Cruise Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook\nUnnamed lake approximately 500 m south of Stewart Lake",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329021826"
    ],
@@ -3559,6 +3705,9 @@
    "display_name": "Cutthroat Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329021868"
    ],
@@ -3630,6 +3779,9 @@
    "display_name": "Davidson Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329021816"
    ],
@@ -3701,6 +3853,12 @@
    "display_name": "Dean River",
    "region": "5",
    "regs_verbatim": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:16075"
    ],
@@ -4127,9 +4285,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -4138,6 +4293,9 @@
    "display_name": "Deception Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    50
+   ],
    "matched": [
     "wbk:329354827"
    ],
@@ -4209,6 +4367,12 @@
    "display_name": "Dewar Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout catch and release; bait ban, single barbless hook\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329494751"
    ],
@@ -4302,9 +4466,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4313,6 +4474,12 @@
    "display_name": "Dog Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1; bait ban, single barbless hook\nUnnamed lake approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329116771"
    ],
@@ -4395,9 +4562,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4406,6 +4570,12 @@
    "display_name": "Donnely Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none under 50 cm); bait ban, single barbless hook, no powered boats",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329354723"
    ],
@@ -4509,9 +4679,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4520,6 +4687,12 @@
    "display_name": "Dorsey Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**; Trout daily quota = 1 (none under 50 cm); single barbless hook",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480884"
    ],
@@ -4593,9 +4766,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4604,6 +4774,12 @@
    "display_name": "Dragon Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek, Apr 1-May 31\nTrout daily quota = 1",
+   "source_pages": [
+    50
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480769"
    ],
@@ -4651,9 +4827,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4662,6 +4835,12 @@
    "display_name": "Earle Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060797"
    ],
@@ -4744,9 +4923,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4755,6 +4931,9 @@
    "display_name": "East King Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban; single barbless hook; engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329060821"
    ],
@@ -4839,6 +5018,9 @@
    "display_name": "Edmund Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329060782"
    ],
@@ -4870,6 +5052,12 @@
    "display_name": "Elk Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480815"
    ],
@@ -4955,9 +5143,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4966,6 +5151,12 @@
    "display_name": "Faulkner Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060857"
    ],
@@ -5057,9 +5248,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5068,6 +5256,12 @@
    "display_name": "Fawn Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060800"
    ],
@@ -5103,9 +5297,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5114,6 +5305,9 @@
    "display_name": "Fish Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 8",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329554404"
    ],
@@ -5142,9 +5336,12 @@
   {
    "entry_id": "r5:fish_lake_unnamed_lake_approx_2_km_northwest_of_mcclinchy_la@5-6",
    "name": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
-   "display_name": "Fish Lake",
+   "display_name": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329238149"
    ],
@@ -5216,6 +5413,9 @@
    "display_name": "Fly Lake",
    "region": "5",
    "regs_verbatim": "No powered boats",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329494927"
    ],
@@ -5245,6 +5445,12 @@
    "display_name": "Forest Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none under 50 cm); artificial fly only; bait ban; engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329586230"
    ],
@@ -5345,9 +5551,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5356,6 +5559,9 @@
    "display_name": "Fraser River",
    "region": "5",
    "regs_verbatim": "**No Fishing **for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31\nMainstem open all year; bait ban Sept 15-July 15\n**No Fishing** for sturgeon Sept 15-July 15\n**No Fishing** for sturgeon in the Fraser River Watershed upstream of Williams Lake River (sturgeon catch and release)\n**No Fishing** for steelhead from the confluence with the Chilcotin River downstream to the Region 5 boundary Jan 1-Dec 31",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "gnis:39325"
    ],
@@ -5525,6 +5731,12 @@
    "display_name": "French Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329354737"
    ],
@@ -5547,9 +5759,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5557,6 +5766,9 @@
    "name": "FROG LAKE",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "rules": [
     {
      "rule_id": "frog_lake.r1",
@@ -5642,6 +5854,9 @@
    "name": "GATCHO LAKE",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "rules": [
     {
      "rule_id": "gatcho_lake.r1",
@@ -5708,6 +5923,9 @@
    "display_name": "Geese Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329126819"
    ],
@@ -5799,6 +6017,9 @@
    "display_name": "Gotchen Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329184482"
    ],
@@ -5870,6 +6091,9 @@
    "display_name": "Grassy Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2\nNo powered boats",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329061097"
    ],
@@ -5913,6 +6137,12 @@
    "display_name": "Green Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329170743"
    ],
@@ -5949,9 +6179,6 @@
      ],
      "review_reason": "closure is limited to a bay near Watch Creek's mouth; Green Lake has no bindable boundaries to express a partial-lake closure"
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5960,6 +6187,12 @@
    "display_name": "Greenlee Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329354783"
    ],
@@ -6045,9 +6278,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6056,6 +6286,12 @@
    "display_name": "Greeny Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329494736"
    ],
@@ -6078,9 +6314,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6089,6 +6322,9 @@
    "display_name": "Grizzly Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329074474"
    ],
@@ -6180,6 +6416,12 @@
    "display_name": "Hathaway Lake",
    "region": "5",
    "regs_verbatim": "Lake trout catch and release",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060778"
    ],
@@ -6204,9 +6446,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6215,6 +6454,9 @@
    "display_name": "Hawkins Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329354718"
    ],
@@ -6242,9 +6484,11 @@
   {
    "entry_id": "r5:hidden_lake@5-6",
    "name": "HIDDEN LAKE",
-   "display_name": "Hidden Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "rules": [
     {
      "rule_id": "hidden_lake.r1",
@@ -6331,6 +6575,9 @@
    "display_name": "Higgins Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329060848"
    ],
@@ -6370,6 +6617,9 @@
    "display_name": "High Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2\nBait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329060853"
    ],
@@ -6441,6 +6691,12 @@
    "display_name": "Homathko River",
    "region": "5",
    "regs_verbatim": "**No Fishing** Apr 1-June 30",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:8173"
    ],
@@ -6477,9 +6733,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -6488,6 +6741,12 @@
    "display_name": "Horsefly River",
    "region": "5",
    "regs_verbatim": "**No Fishing** Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\n**Class II water**[Includes Tributaries]** June 1-Oct 31; Steelhead Stamp not required**",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:24531"
    ],
@@ -6636,9 +6895,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -6647,6 +6903,12 @@
    "display_name": "Howard Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329354719"
    ],
@@ -6669,9 +6931,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6680,6 +6939,9 @@
    "display_name": "Jack of Clubs Lake",
    "region": "5",
    "regs_verbatim": "**WARNING: lake trout over 45 cm may contain elevated mercury levels. Limit your consumption.**",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329677094"
    ],
@@ -6707,6 +6969,9 @@
    "display_name": "Jacobie Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 8",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329480795"
    ],
@@ -6738,6 +7003,9 @@
    "display_name": "Joan Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329480782"
    ],
@@ -6770,6 +7038,9 @@
    "display_name": "Keno Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 8",
+   "source_pages": [
+    51
+   ],
    "matched": [
     "wbk:329480776"
    ],
@@ -6801,6 +7072,9 @@
    "display_name": "Lake George",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480802"
    ],
@@ -6902,6 +7176,9 @@
    "display_name": "Mitchell Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** within 100 m radius of the weir at the lake's outlet",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480767"
    ],
@@ -6935,6 +7212,12 @@
    "display_name": "Mitchell River",
    "region": "5",
    "regs_verbatim": "**No Fishing** within 100 m radius of the weir at the outlet of Michell Lake\n**No Fishing** from Michell Lake to Cameron Creek\n**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30\nTrout/char catch and release, bait ban, artificial fly only downstream of Cameron Creek (including Cameron Creek)",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:29965"
    ],
@@ -7072,9 +7355,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -7083,6 +7363,9 @@
    "display_name": "Moffat Creek",
    "region": "5",
    "regs_verbatim": "Trout/char catch and release and bait ban downstream of falls 8 km from Horsefly River",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "gnis:14045"
    ],
@@ -7165,9 +7448,11 @@
   {
    "entry_id": "r5:naglico_lake@6-1",
    "name": "NAGLICO LAKE",
-   "display_name": "Naglico Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
    "rules": [
     {
      "rule_id": "naglico_lake.r1",
@@ -7234,6 +7519,9 @@
    "display_name": "Nekite River",
    "region": "5",
    "regs_verbatim": "**Class II water Apr 1-May 31; Steelhead Stamp mandatory Apr 1-May 31**",
+   "source_pages": [
+    52
+   ],
    "symbols": [
     "Classified",
     "Incl. Tribs"
@@ -7330,6 +7618,12 @@
    "display_name": "Nolan Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none under 50 cm); single barbless hook, bait ban",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329170758"
    ],
@@ -7416,9 +7710,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -7427,6 +7718,9 @@
    "display_name": "One Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:328975711"
    ],
@@ -7556,6 +7850,9 @@
    "display_name": "Patenaude Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char catch and release; bait ban; single barbless hook",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329184513"
    ],
@@ -7642,6 +7939,9 @@
    "display_name": "Peach Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329354750"
    ],
@@ -7664,9 +7964,11 @@
   {
    "entry_id": "r5:pettry_lake@6-1",
    "name": "PETTRY LAKE",
-   "display_name": "Pettry Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
    "rules": [
     {
      "rule_id": "pettry_lake.r1",
@@ -7770,6 +8072,9 @@
    "display_name": "Polley Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 8",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480772"
    ],
@@ -7801,6 +8106,9 @@
    "display_name": "Preacher Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329354751"
    ],
@@ -7832,6 +8140,9 @@
    "display_name": "Quesnel Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay, Mar 1-May 31\n**No Fishing** in North Arm, north of a line between Watt and Service Creeks, Mar 1-May 31\nLake trout daily quota = 5 (any size); rainbow trout daily quota = 2 (none over 50 cm); bull trout catch and release\nBait ban, barbless hook",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480766"
    ],
@@ -7984,6 +8295,9 @@
    "display_name": "Quesnel River",
    "region": "5",
    "regs_verbatim": "**No Fishing** from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\n**No Fishing** upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "gnis:27867"
    ],
@@ -8107,6 +8421,12 @@
    "display_name": "Raven Lake",
    "region": "5",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329276296"
    ],
@@ -8129,17 +8449,16 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r5:redfern_lake@5-15",
    "name": "REDFERN LAKE",
-   "display_name": "Redfern Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
    "rules": [
     {
      "rule_id": "redfern_lake.r1",
@@ -8206,6 +8525,12 @@
    "display_name": "Rimrock Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 1 (none under 50 cm)",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329413012"
    ],
@@ -8238,9 +8563,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8249,6 +8571,9 @@
    "display_name": "Robert Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480818"
    ],
@@ -8281,6 +8606,9 @@
    "display_name": "Rye Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing for bass**\nUnnamed lake approximately 1.6 km downstream of Joan Lake",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329480817"
    ],
@@ -8313,6 +8641,9 @@
    "display_name": "Sandy Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook\nUnnamed lake approximately 3.2 km south of Le Bourdais Lake",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329481525"
    ],
@@ -8404,6 +8735,12 @@
    "display_name": "Sardine Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329480905"
    ],
@@ -8477,9 +8814,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8487,6 +8821,9 @@
    "name": "SECRET LAKE",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
    "rules": [
     {
      "rule_id": "secret_lake.r1",
@@ -8573,6 +8910,9 @@
    "display_name": "Sepa Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    52
+   ],
    "matched": [
     "wbk:329494812"
    ],
@@ -8602,6 +8942,12 @@
    "display_name": "Simon Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban; single barbless hook; **WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329494735"
    ],
@@ -8694,9 +9040,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8705,6 +9048,9 @@
    "display_name": "Sinkhole Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2\nUnnamed lake approximately 100 m east of Sneezie Lake",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329495189"
    ],
@@ -8736,6 +9082,12 @@
    "display_name": "Skulow Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329586268"
    ],
@@ -8767,9 +9119,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8778,6 +9127,12 @@
    "display_name": "Slim Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook\nUnnamed lake in Taseko River drainage approximately 4 km north of Cone Hill",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329554444"
    ],
@@ -8841,9 +9196,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8852,6 +9204,12 @@
    "display_name": "Snag Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1; bait ban; single barbless hook; no powered boats\nUnnamed lake approximately 500 m south/southeast of West King Lake",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060886"
    ],
@@ -8946,9 +9304,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8957,6 +9312,9 @@
    "display_name": "Sneezie Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329494762"
    ],
@@ -8987,6 +9345,9 @@
    "name": "SQUARE LAKE",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "rules": [
     {
      "rule_id": "square_lake.r1",
@@ -9052,6 +9413,9 @@
    "name": "SQUIRREL LAKE",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "rules": [
     {
      "rule_id": "squirrel_lake.r1",
@@ -9118,6 +9482,9 @@
    "display_name": "Stewart Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021795"
    ],
@@ -9186,9 +9553,12 @@
   {
    "entry_id": "r5:stum_lake@5-13",
    "name": "STUM LAKE",
-   "display_name": "Stum Lake",
+   "display_name": "Tegunlin",
    "region": "5",
    "regs_verbatim": "**No Fishing** Mar 1-Aug 31",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329276269"
    ],
@@ -9232,6 +9602,12 @@
    "display_name": "Sulphurous Lake",
    "region": "5",
    "regs_verbatim": "Lake trout daily quota = 1, none over 50 cm; lake trout catch and release Oct 1-Nov 30",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060774"
    ],
@@ -9290,17 +9666,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r5:sunshine_ant_lake@5-11",
    "name": "SUNSHINE (\"Ant\") LAKE",
-   "display_name": "Sunshine Lake",
+   "display_name": "Ant Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2\nBait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021811"
    ],
@@ -9372,6 +9748,9 @@
    "display_name": "Takia River",
    "region": "5",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    53
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -9405,9 +9784,12 @@
   {
    "entry_id": "r5:tanya_lake_s_tributaries@5-10",
    "name": "TANYA LAKE'S TRIBUTARIES",
-   "display_name": "Tanya Lake's Tributaries",
+   "display_name": "Tanya Lakes",
    "region": "5",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329283053"
    ],
@@ -9435,6 +9817,9 @@
    "display_name": "Teepee Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** Nov 1-June 14\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban, barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329047331"
    ],
@@ -9555,6 +9940,9 @@
    "display_name": "Tenas Lake",
    "region": "5",
    "regs_verbatim": "**No Fishing** Apr 1-June 30",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021804"
    ],
@@ -9598,6 +9986,9 @@
    "display_name": "Tilgatgo Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout catch and release; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329126731"
    ],
@@ -9689,6 +10080,9 @@
    "display_name": "Toms Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329126712"
    ],
@@ -9760,6 +10154,9 @@
    "display_name": "Tsuniah Lake",
    "region": "5",
    "regs_verbatim": "Bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329079686"
    ],
@@ -9817,6 +10214,9 @@
    "display_name": "Turner Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021784"
    ],
@@ -9888,6 +10288,12 @@
    "display_name": "Two Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329276383"
    ],
@@ -9909,9 +10315,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -9920,6 +10323,9 @@
    "display_name": "Tyee Lake",
    "region": "5",
    "regs_verbatim": "Kokanee daily quota = 5",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329480771"
    ],
@@ -9951,6 +10357,12 @@
    "display_name": "Valentine Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2\nArtificial fly only, bait ban\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329060793"
    ],
@@ -10041,9 +10453,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -10052,6 +10461,9 @@
    "display_name": "Vista Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021817"
    ],
@@ -10123,6 +10535,9 @@
    "display_name": "Watch Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing** Mar 1-May 31",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "gnis:35507"
    ],
@@ -10166,6 +10581,12 @@
    "display_name": "Watch Lake",
    "region": "5",
    "regs_verbatim": "Speed restriction (8 km/h)",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329170746"
    ],
@@ -10187,17 +10608,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r5:wentworth_lakes@5-13",
    "name": "WENTWORTH LAKES",
-   "display_name": "Wentworth Lakes",
+   "display_name": "WENTWORTH LAKES",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329430971",
     "wbk:329430952"
@@ -10230,6 +10651,9 @@
    "display_name": "West King Lake",
    "region": "5",
    "regs_verbatim": "Trout daily quota = 2\nBait ban, single barbless hook\nEngine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329060802"
    ],
@@ -10314,8 +10738,8 @@
    "display_name": "West Road (Blackwater) River",
    "region": "5",
    "regs_verbatim": "**No Fishing** in mainstem (only) Nov 1-June 14; tributaries subject to spring closure\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban\nElectric motor only - max 7.5 kW\n**Mainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required**",
-   "symbols": [
-    "Classified"
+   "source_pages": [
+    53
    ],
    "matched": [
     "gnis:26104"
@@ -10452,9 +10876,15 @@
   {
    "entry_id": "r5:whale_lake_canim_lake_area@5-15",
    "name": "WHALE LAKE (Canim Lake area)",
-   "display_name": "Whale Lake (Canim Lake area)",
+   "display_name": "Whale Lake",
    "region": "5",
    "regs_verbatim": "Trout daily and possession quotas = 2\nBait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329354776"
    ],
@@ -10528,17 +10958,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r5:whale_lake_gustafsen_lake_area@5-2",
    "name": "\"WHALE\" LAKE (Gustafsen Lake area)",
-   "display_name": "Whale Lake (Gustafsen Lake area)",
+   "display_name": "Whale Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none less than 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 4 km northeast of Gustafsen Lake",
+   "source_pages": [
+    53
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329116791"
    ],
@@ -10625,9 +11058,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -10636,6 +11066,9 @@
    "display_name": "Whitestone Lake",
    "region": "5",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329480977"
    ],
@@ -10665,6 +11098,9 @@
    "display_name": "Widgeon Lake",
    "region": "5",
    "regs_verbatim": "Trout/char daily quota = 2\nBait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329021796"
    ],
@@ -10736,6 +11172,9 @@
    "display_name": "Williams Lake",
    "region": "5",
    "regs_verbatim": "Speed restriction on parts (8 km/h)",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329494714"
    ],
@@ -10762,6 +11201,9 @@
    "display_name": "Williams Lake River",
    "region": "5",
    "regs_verbatim": "Open all year",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "gnis:27764"
    ],
@@ -10789,6 +11231,9 @@
    "display_name": "Wolf Lake",
    "region": "5",
    "regs_verbatim": "**No Ice Fishing;** trout/char catch and release\nBait ban, single barbless hook",
+   "source_pages": [
+    53
+   ],
    "matched": [
     "wbk:329354830"
    ],
@@ -10872,9 +11317,12 @@
   {
    "entry_id": "r5:young_creek_upstream_of_hwy_20@5-11",
    "name": "YOUNG CREEK (upstream of Hwy 20)",
-   "display_name": "Young Creek (upstream of Hwy 20)",
+   "display_name": "Young Creek",
    "region": "5",
    "regs_verbatim": "**No Fishing** for steelhead\nBait ban\nDownstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+   "source_pages": [
+    53
+   ],
    "symbols": [
     "Incl. Tribs"
    ],

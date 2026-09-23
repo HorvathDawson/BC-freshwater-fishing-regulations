@@ -7,6 +7,12 @@
    "display_name": "Alleyne Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329451901"
    ],
@@ -29,9 +35,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -40,6 +43,9 @@
    "display_name": "Arlington Lakes",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329216635"
    ],
@@ -71,6 +77,9 @@
    "display_name": "Ashnola River",
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release; exempt from spring closure",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:17159"
    ],
@@ -120,9 +129,12 @@
   {
    "entry_id": "r8:asp_china_creek@8-5",
    "name": "ASP (China) CREEK",
-   "display_name": "Asp (China) Creek",
+   "display_name": "Asp Creek",
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:17171"
    ],
@@ -159,6 +171,12 @@
    "display_name": "Baird Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329664029"
    ],
@@ -180,17 +198,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:bighorn_reservoir_lakeview_irrigation_district@8-11",
    "name": "BIGHORN RESERVOIR (Lakeview Irrigation District)",
-   "display_name": "Bighorn Reservoir (Lakeview Irrigation District)",
+   "display_name": "Big Horn Reservoir",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:708021450"
    ],
@@ -216,10 +234,13 @@
   },
   {
    "entry_id": "r8:bluey_lake_potholes@8-6",
-   "name": "BLUEY LAKE POTHOLES",
-   "display_name": "Bluey Lake Potholes",
+   "name": "\"BLUEY LAKE POTHOLES\"",
+   "display_name": "Kentucky Se Pothole",
    "region": "8",
    "regs_verbatim": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:328985532",
     "wbk:329520282",
@@ -268,9 +289,15 @@
   {
    "entry_id": "r8:burnell_sawmill_lake@8-1",
    "name": "BURNELL (Sawmill) LAKE",
-   "display_name": "Burnell (Sawmill) Lake",
+   "display_name": "Burnell Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328985738"
    ],
@@ -382,17 +409,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:butler_lake_east_of_allison_lake@8-6",
    "name": "BUTLER LAKE (east of Allison Lake)",
-   "display_name": "Butler Lake (East of Allison Lake)",
+   "display_name": "Butler Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520086"
    ],
@@ -453,9 +483,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -464,6 +491,9 @@
    "display_name": "Chain Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329519997"
    ],
@@ -523,6 +553,9 @@
    "display_name": "Chapman Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:328985759"
    ],
@@ -573,6 +606,9 @@
    "display_name": "Christina Creek",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:13822"
    ],
@@ -618,6 +654,9 @@
    "display_name": "Christina Lake",
    "region": "8",
    "regs_verbatim": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329216611"
    ],
@@ -703,6 +742,9 @@
    "display_name": "Chute Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459153"
    ],
@@ -730,9 +772,15 @@
   {
    "entry_id": "r8:clifford_cliff_lake@8-5",
    "name": "CLIFFORD (Cliff ) LAKE",
-   "display_name": "Clifford (Cliff ) Lake",
+   "display_name": "Clifford Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520059"
    ],
@@ -754,9 +802,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -765,6 +810,9 @@
    "display_name": "Conkle Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329216612"
    ],
@@ -795,6 +843,9 @@
    "display_name": "Dobbin Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:328985757"
    ],
@@ -824,6 +875,12 @@
    "display_name": "Dry Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520015"
    ],
@@ -846,9 +903,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -857,6 +911,12 @@
    "display_name": "Eastmere Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban\nMotorized vehicle closure. Walk-in access only. See sign at trailhead.",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459222"
    ],
@@ -927,9 +987,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -938,6 +995,9 @@
    "display_name": "Eholt Creek",
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:10695"
    ],
@@ -974,6 +1034,9 @@
    "display_name": "Ellison Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459126"
    ],
@@ -1005,6 +1068,9 @@
    "display_name": "Eneas Creek",
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:17340"
    ],
@@ -1038,9 +1104,15 @@
   {
    "entry_id": "r8:five_o_clock_lake_approx_800_m_southeast_of_cup_lake@8-14",
    "name": "FIVE O'CLOCK LAKE (approx. 800 m southeast of Cup Lake)",
-   "display_name": "Five O'Clock Lake (approx. 800 m southeast of Cup Lake)",
+   "display_name": "Five O'Clock Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329216683"
    ],
@@ -1101,9 +1173,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1112,6 +1181,9 @@
    "display_name": "Frazer Lake",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459820"
    ],
@@ -1154,9 +1226,15 @@
   {
    "entry_id": "r8:friday_lake@8-6",
    "name": "FRIDAY LAKE",
-   "display_name": "Friday Lake",
+   "display_name": "Tepee Lakes",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520049"
    ],
@@ -1178,9 +1256,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1189,6 +1264,9 @@
    "display_name": "Gallagher Lake",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459318"
    ],
@@ -1234,6 +1312,12 @@
    "display_name": "Gardom Lake",
    "region": "8",
    "regs_verbatim": "Trout/char daily quota = 2\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328995923"
    ],
@@ -1279,9 +1363,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1290,6 +1371,9 @@
    "display_name": "Garnet Lake",
    "region": "8",
    "regs_verbatim": "**No Fishing**\nElectric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459155"
    ],
@@ -1344,6 +1428,9 @@
    "display_name": "Goose Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329520066"
    ],
@@ -1373,6 +1460,9 @@
    "display_name": "Granby River",
    "region": "8",
    "regs_verbatim": "Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1\nDownstream of Burrell Creek: bait ban July 1-Oct 31; rainbow trout catch and release",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:18775"
    ],
@@ -1511,6 +1601,9 @@
    "display_name": "Granby River",
    "region": "8",
    "regs_verbatim": "Bait ban",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:18775"
    ],
@@ -1544,9 +1637,15 @@
   {
    "entry_id": "r8:hall_road_mission_pond@8-10",
    "name": "HALL ROAD (Mission) POND",
-   "display_name": "Hall Road (Mission) Pond",
+   "display_name": "HALL ROAD POND",
    "region": "8",
    "regs_verbatim": "Trout daily quota = 1; Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329460964",
     "wbk:-3"
@@ -1592,9 +1691,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1603,6 +1699,9 @@
    "display_name": "Harvey Hall Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329520063"
    ],
@@ -1629,10 +1728,13 @@
   {
    "entry_id": "r8:haynes_lake@8-10",
    "name": "HAYNES LAKE",
-   "display_name": "Haynes Lake",
+   "display_name": "McCulloch Reservoir",
    "region": "8",
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459137"
    ],
@@ -1660,9 +1762,15 @@
   {
    "entry_id": "r8:headwater_lake_1@8-8",
    "name": "HEADWATER LAKE #1",
-   "display_name": "Headwater Lake #1",
+   "display_name": "Headwater Lakes",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459136"
    ],
@@ -1685,9 +1793,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1696,6 +1801,12 @@
    "display_name": "Hidden Lake",
    "region": "8",
    "regs_verbatim": "No towing",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329663960"
    ],
@@ -1716,18 +1827,21 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:hydraulic_lake@8-10",
    "name": "HYDRAULIC LAKE",
-   "display_name": "Hydraulic Lake",
+   "display_name": "McCulloch Reservoir",
    "region": "8",
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459122"
    ],
@@ -1750,9 +1864,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1761,6 +1872,12 @@
    "display_name": "Idleback Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1; bait ban, single barbless hook; electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329216655"
    ],
@@ -1855,17 +1972,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:islaht_horseshoe_lake@8-11",
    "name": "ISLAHT (Horseshoe) LAKE",
-   "display_name": "Islaht (Horseshoe) Lake",
+   "display_name": "Islaht Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "wbk:329459158"
    ],
@@ -1895,6 +2012,12 @@
    "display_name": "Jackpine Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    75
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459145"
    ],
@@ -1916,9 +2039,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1927,6 +2047,9 @@
    "display_name": "Jewel Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
+   "source_pages": [
+    75
+   ],
    "matched": [
     "gnis:17440"
    ],
@@ -1963,6 +2086,12 @@
    "display_name": "Jewel Lake",
    "region": "8",
    "regs_verbatim": "Brook trout daily quota = 20\nEngine power restriction - 7.5 kW (10 hp) and speed restriction (8 km/h)",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329216614"
    ],
@@ -2011,9 +2140,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2022,6 +2148,12 @@
    "display_name": "Johnny Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520169"
    ],
@@ -2043,9 +2175,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2054,6 +2183,9 @@
    "display_name": "Kalamalka Lake",
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5, Yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459117"
    ],
@@ -2116,6 +2248,12 @@
    "display_name": "Kentucky Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329451906"
    ],
@@ -2138,9 +2276,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2149,6 +2284,9 @@
    "display_name": "Kettle River",
    "region": "8",
    "regs_verbatim": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:11984"
    ],
@@ -2255,6 +2393,9 @@
    "display_name": "Kettle River",
    "region": "8",
    "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:11984"
    ],
@@ -2332,6 +2473,12 @@
    "display_name": "Kidd Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520029"
    ],
@@ -2455,17 +2602,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:kump_lost_lake@8-5",
    "name": "KUMP (Lost) LAKE",
-   "display_name": "Kump (Lost) Lake",
+   "display_name": "Kump Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328988962"
    ],
@@ -2526,17 +2676,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:lambly_bear_lake@8-11",
    "name": "LAMBLY (Bear) LAKE",
-   "display_name": "Lambly (Bear) Lake",
+   "display_name": "Lambly Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459132"
    ],
@@ -2572,17 +2725,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:larry_lake_unnamed_lake_located_about_400_m_west_of_thalia_l@8-5",
    "name": "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)",
-   "display_name": "Larry Lake (unnamed lake located about 400 m west of Thalia Lake)",
+   "display_name": "Larry Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520255"
    ],
@@ -2696,9 +2852,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2707,6 +2860,12 @@
    "display_name": "Link Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520037"
    ],
@@ -2728,9 +2887,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2739,6 +2895,9 @@
    "display_name": "Little Pinaus Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459266"
    ],
@@ -2770,6 +2929,9 @@
    "display_name": "Loch Drinkie",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459189"
    ],
@@ -2838,6 +3000,12 @@
    "display_name": "Loon Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329664027"
    ],
@@ -2939,9 +3107,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2950,6 +3115,12 @@
    "display_name": "Lost Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459181"
    ],
@@ -2971,9 +3142,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2982,6 +3150,9 @@
    "display_name": "Mabel Lake",
    "region": "8",
    "regs_verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329663955"
    ],
@@ -3067,6 +3238,9 @@
    "display_name": "Mara Lake",
    "region": "8",
    "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329518146"
    ],
@@ -3103,6 +3277,12 @@
    "display_name": "Martin Lake",
    "region": "8",
    "regs_verbatim": "Trout daily quota = 2\n**WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520322"
    ],
@@ -3136,9 +3316,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -3147,6 +3324,9 @@
    "display_name": "McCulloch Reservoir",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:328985739"
    ],
@@ -3177,6 +3357,9 @@
    "display_name": "McRae Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:27258"
    ],
@@ -3212,6 +3395,9 @@
    "display_name": "Meadow Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459325"
    ],
@@ -3277,10 +3463,13 @@
   {
    "entry_id": "r8:minnow_lake@8-10",
    "name": "MINNOW LAKE",
-   "display_name": "Minnow Lake",
+   "display_name": "McCulloch Reservoir",
    "region": "8",
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:328985739"
    ],
@@ -3311,6 +3500,9 @@
    "display_name": "Mission Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:29608"
    ],
@@ -3346,6 +3538,9 @@
    "display_name": "Okanagan Lake",
    "region": "8",
    "regs_verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm), bass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459116"
    ],
@@ -3423,6 +3618,9 @@
    "display_name": "Okanagan River",
    "region": "8",
    "regs_verbatim": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:32069"
    ],
@@ -3547,9 +3745,12 @@
   {
    "entry_id": "r8:okanagan_river_oxbows@8-1",
    "name": "OKANAGAN RIVER OXBOWS",
-   "display_name": "Okanagan River Oxbows",
+   "display_name": "OKANAGAN RIVER OXBOWS",
    "region": "8",
    "regs_verbatim": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:328948249",
     "wbk:328947490",
@@ -3626,6 +3827,9 @@
    "display_name": "Osoyoos Lake",
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:328961724"
    ],
@@ -3780,6 +3984,9 @@
    "display_name": "Osprey Lake",
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329519999"
    ],
@@ -3810,6 +4017,9 @@
    "display_name": "Peachland Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from Hardy Falls to Okanagan Lake",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:5012"
    ],
@@ -3845,6 +4055,9 @@
    "display_name": "Pinaus Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329459127"
    ],
@@ -3876,6 +4089,9 @@
    "display_name": "Powers Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:22758"
    ],
@@ -3911,6 +4127,9 @@
    "display_name": "Rickey Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329520185"
    ],
@@ -3940,6 +4159,12 @@
    "display_name": "Robertson Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520198"
    ],
@@ -3961,17 +4186,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:rose_valley_reservoir_lakeview_irrigation_district@8-11",
    "name": "ROSE VALLEY RESERVOIR (Lakeview Irrigation District)",
-   "display_name": "Rose Valley Reservoir (Lakeview Irrigation District)",
+   "display_name": "Rose Valley Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459139"
    ],
@@ -3993,9 +4221,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4004,6 +4229,9 @@
    "display_name": "Rosemond Lake",
    "region": "8",
    "regs_verbatim": "No powered boats south of the CPR Bridge",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329518151"
    ],
@@ -4038,6 +4266,9 @@
    "display_name": "Sandner Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "gnis:20585"
    ],
@@ -4067,9 +4298,12 @@
   {
    "entry_id": "r8:saturday_lake@8-6",
    "name": "SATURDAY LAKE",
-   "display_name": "Saturday Lake",
+   "display_name": "Tepee Lakes",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    76
+   ],
    "matched": [
     "wbk:329520046"
    ],
@@ -4096,9 +4330,15 @@
   {
    "entry_id": "r8:sawmill_lake@8-1",
    "name": "SAWMILL LAKE",
-   "display_name": "Sawmill Lake",
+   "display_name": "Burnell Lake",
    "region": "8",
    "regs_verbatim": "See Burnell Lake",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328985738"
    ],
@@ -4118,17 +4358,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:shannon_lake@8-11",
    "name": "SHANNON LAKE",
-   "display_name": "Shannon Lake",
+   "display_name": "Shannon Lake — proper",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:-23"
    ],
@@ -4166,17 +4409,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:shannon_lake_netted_off_portion_on_the_south_end_of_the_lake@8-11",
    "name": "SHANNON LAKE (netted off portion on the south end of the lake)",
-   "display_name": "Shannon Lake (netted off portion on the south end of the lake)",
+   "display_name": "Shannon Lake — netted-off portion",
    "region": "8",
    "regs_verbatim": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:-15"
    ],
@@ -4231,9 +4477,6 @@
      ],
      "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4242,6 +4485,9 @@
    "display_name": "Shorts Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:25455"
    ],
@@ -4277,6 +4523,9 @@
    "display_name": "Shuswap River",
    "region": "8",
    "regs_verbatim": "**No Fishing** from Mara Lake upstream to Mara Bridge\n**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: **No fishing** Sept 1-Oct 31; bait ban",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:25478"
    ],
@@ -4436,6 +4685,12 @@
    "display_name": "Silver Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328985755"
    ],
@@ -4457,9 +4712,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4468,6 +4720,9 @@
    "display_name": "Similkameen River",
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban, Apr 1-Oct 31; exempt from spring closure",
+   "source_pages": [
+    77
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -4553,6 +4808,9 @@
    "display_name": "Sitkum Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 15",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:27124"
    ],
@@ -4596,6 +4854,9 @@
    "display_name": "Skaha Lake",
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5 (none over 35 cm from July 10-Oct 31)\nBass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459118"
    ],
@@ -4701,6 +4962,9 @@
    "display_name": "South Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459172"
    ],
@@ -4769,6 +5033,12 @@
    "display_name": "Square Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328985756"
    ],
@@ -4829,9 +5099,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4840,6 +5107,9 @@
    "display_name": "Stony Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329520336"
    ],
@@ -4869,6 +5139,9 @@
    "display_name": "Sugar Lake",
    "region": "8",
    "regs_verbatim": "Bull trout/Dolly Varden daily quota = 1 (none under 50 cm); single barbless hook",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329663956"
    ],
@@ -4929,9 +5202,15 @@
   {
    "entry_id": "r8:sunday_lake@8-6",
    "name": "SUNDAY LAKE",
-   "display_name": "Sunday Lake",
+   "display_name": "Tepee Lakes",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520017"
    ],
@@ -4953,9 +5232,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4964,6 +5240,12 @@
    "display_name": "Swan Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459120"
    ],
@@ -4987,17 +5269,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:tee_pee_lakes@8-6",
    "name": "TEE PEE LAKES",
-   "display_name": "Tee Pee Lakes",
+   "display_name": "Tepee Lakes",
    "region": "8",
    "regs_verbatim": "See Friday, Saturday, and Sunday Lakes",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520017"
    ],
@@ -5017,9 +5302,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -5028,6 +5310,9 @@
    "display_name": "Thirsk Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459141"
    ],
@@ -5057,6 +5342,9 @@
    "display_name": "Tommy Lee Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329520505"
    ],
@@ -5083,9 +5371,12 @@
   {
    "entry_id": "r8:trepanier_river@8-8",
    "name": "TREPANIER RIVER",
-   "display_name": "Trepanier River",
+   "display_name": "Trépanier Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:27648"
    ],
@@ -5121,6 +5412,9 @@
    "display_name": "Trout Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:28474"
    ],
@@ -5178,6 +5472,9 @@
    "display_name": "Trout Lake",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459300"
    ],
@@ -5232,9 +5529,12 @@
   {
    "entry_id": "r8:tuc_el_nuit_lake@8-1",
    "name": "TUC-EL-NUIT LAKE",
-   "display_name": "Tuc-el-Nuit Lake",
+   "display_name": "Tugulnuit Lake",
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459143"
    ],
@@ -5292,6 +5592,9 @@
    "display_name": "Tulameen River",
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban Apr 1-Oct 31\nExempt from spring closure",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:29844"
    ],
@@ -5373,6 +5676,12 @@
    "display_name": "Twin Lakes",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329459160"
    ],
@@ -5408,17 +5717,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r8:unnamed_lakes_located_immediately_north_and_south_of_bluey_l@8-6",
    "name": "UNNAMED LAKES (located immediately north and south of Bluey Lake)",
-   "display_name": "Unnamed Lakes (located immediately north and south of Bluey Lake)",
+   "display_name": "\"BLUEY LAKE POTHOLES\"",
    "region": "8",
    "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329521064",
     "wbk:329520774",
@@ -5466,9 +5775,12 @@
   {
    "entry_id": "r8:vaseux_lake_including_two_lagoons_on_the_west_side_of_okanag@8-1",
    "name": "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
-   "display_name": "Vaseux Lake (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
+   "display_name": "Vaseux Lake",
    "region": "8",
    "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459123"
    ],
@@ -5526,6 +5838,9 @@
    "display_name": "Wap Creek",
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:1806"
    ],
@@ -5594,6 +5909,9 @@
    "display_name": "West Kettle River",
    "region": "8",
    "regs_verbatim": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:6358"
    ],
@@ -5697,9 +6015,12 @@
   {
    "entry_id": "r8:west_kettle_river_s_tributaries@8-12",
    "name": "WEST KETTLE RIVER'S tributaries",
-   "display_name": "West Kettle River's tributaries",
+   "display_name": "West Kettle River",
    "region": "8",
    "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "gnis:6358"
    ],
@@ -5779,6 +6100,9 @@
    "display_name": "Wood Lake",
    "region": "8",
    "regs_verbatim": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+   "source_pages": [
+    77
+   ],
    "matched": [
     "wbk:329459119"
    ],
@@ -5889,6 +6213,12 @@
    "display_name": "Yellow Lake",
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration**",
+   "source_pages": [
+    77
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329520002"
    ],
@@ -5935,9 +6265,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {

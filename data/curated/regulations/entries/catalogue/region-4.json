@@ -321,8 +321,8 @@
     37
    ],
    "symbols": [
-    "Classified",
-    "Incl. Tribs"
+    "Incl. Tribs",
+    "Classified"
    ],
    "matched": [
     "gnis:9343"
@@ -805,8 +805,8 @@
     37
    ],
    "symbols": [
-    "Classified",
-    "Incl. Tribs"
+    "Incl. Tribs",
+    "Classified"
    ],
    "matched": [
     "gnis:12449"
@@ -977,8 +977,8 @@
     37
    ],
    "symbols": [
-    "Classified",
-    "Incl. Tribs"
+    "Incl. Tribs",
+    "Classified"
    ],
    "matched": [
     "gnis:10583"
@@ -1142,6 +1142,12 @@
    "display_name": "Cadorna Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:16777"
    ],
@@ -1250,9 +1256,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -1261,6 +1264,9 @@
    "display_name": "Lewis Slough",
    "region": "4",
    "regs_verbatim": "See Lewis Slough",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "wbk:329524002"
    ],
@@ -1289,6 +1295,9 @@
    "display_name": "Caribou Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "gnis:7966"
    ],
@@ -1333,9 +1342,12 @@
   {
    "entry_id": "r4:caribou_lakes@4-32",
    "name": "CARIBOU LAKES",
-   "display_name": "Caribou Lakes",
+   "display_name": "North Caribou Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "wbk:329262668",
     "wbk:329262653"
@@ -1366,6 +1378,12 @@
    "display_name": "Cartwright Lake",
    "region": "4",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093917"
    ],
@@ -1388,9 +1406,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1399,6 +1414,12 @@
    "display_name": "Cedar Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329220501"
    ],
@@ -1420,9 +1441,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1431,6 +1449,9 @@
    "display_name": "Cerulean Lake",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release; bait ban",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "wbk:329247800"
    ],
@@ -1478,9 +1499,15 @@
   {
    "entry_id": "r4:champion_lake_no_3@4-8",
    "name": "CHAMPION LAKE NO. 3",
-   "display_name": "Champion Lake No. 3",
+   "display_name": "Champion Lakes",
    "region": "4",
    "regs_verbatim": "Open to fishing all year; no powered boats",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329262654"
    ],
@@ -1513,17 +1540,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:champion_lakes_no_1_2@4-8",
    "name": "CHAMPION LAKES NO. 1 & 2",
-   "display_name": "Champion Lakes No. 1 & 2",
+   "display_name": "Champion Lake #1",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328974978",
     "wbk:329262641"
@@ -1619,9 +1649,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1630,6 +1657,9 @@
    "display_name": "Chatter Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "gnis:7718"
    ],
@@ -1662,6 +1692,12 @@
    "display_name": "Cleland Lake",
    "region": "4",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093934"
    ],
@@ -1684,9 +1720,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1695,6 +1728,12 @@
    "display_name": "Coal Creek",
    "region": "4",
    "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)\n**Part described is NOT a Classified Water**",
+   "source_pages": [
+    37
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "gnis:17550"
    ],
@@ -1729,9 +1768,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -1740,6 +1776,9 @@
    "display_name": "Coffee Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "gnis:17589"
    ],
@@ -1776,6 +1815,9 @@
    "display_name": "Columbia Lake",
    "region": "4",
    "regs_verbatim": "Burbot catch and release; bass daily quota = unlimited; speed restriction (10 km/h) near eastern shore and at south end, as buoyed and\nsigned",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "wbk:329093897"
    ],
@@ -1828,9 +1870,12 @@
   {
    "entry_id": "r4:columbia_lake_s_tributaries@4-25",
    "name": "COLUMBIA LAKE'S TRIBUTARIES",
-   "display_name": "Columbia Lake's Tributaries",
+   "display_name": "Columbia Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** (except Dutch Creek)",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "wbk:329093897"
    ],
@@ -1862,6 +1907,9 @@
    "display_name": "Columbia River",
    "region": "4",
    "regs_verbatim": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+   "source_pages": [
+    37
+   ],
    "matched": [
     "gnis:37414",
     "gnis:17696",
@@ -2132,9 +2180,12 @@
   {
    "entry_id": "r4:connor_lake@4-23",
    "name": "CONNOR LAKE",
-   "display_name": "Connor Lake",
+   "display_name": "Connor Lakes",
    "region": "4",
    "regs_verbatim": "**No Fishing** May 1-June 30",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "wbk:329123411"
    ],
@@ -2175,9 +2226,12 @@
   {
    "entry_id": "r4:connor_lake_s_tributaries@4-23",
    "name": "CONNOR LAKE'S TRIBUTARIES",
-   "display_name": "Connor Lake's Tributaries",
+   "display_name": "Connor Lakes",
    "region": "4",
    "regs_verbatim": "**No Fishing** Apr 1-June 30",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "wbk:329123411"
    ],
@@ -2223,6 +2277,12 @@
    "display_name": "Cottonwood Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329246387"
    ],
@@ -2244,9 +2304,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2255,6 +2312,9 @@
    "display_name": "Crawford Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** June 15-Oct 31",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:7716"
    ],
@@ -2298,6 +2358,9 @@
    "display_name": "Crawford Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:12852"
    ],
@@ -2327,9 +2390,11 @@
   {
    "entry_id": "r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
    "name": "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS",
-   "display_name": "Region 4",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach\nLake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)\nPermit required see note on page 34",
+   "source_pages": [
+    38
+   ],
    "rules": [
     {
      "rule_id": "creston_valley_wma_waters.r1",
@@ -2376,6 +2441,12 @@
    "display_name": "Cub Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329094337"
    ],
@@ -2397,9 +2468,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -2408,6 +2476,9 @@
    "display_name": "Cultus Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of Laib Creek",
+   "source_pages": [
+    38
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -2447,6 +2518,9 @@
    "display_name": "Deer Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:20600"
    ],
@@ -2479,6 +2553,12 @@
    "display_name": "Dorothy Lake",
    "region": "4",
    "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329094281"
    ],
@@ -2498,18 +2578,18 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:duck_lake_permit_required_see_note_on_page_34@4-6",
-   "name": "DUCK LAKE",
+   "name": "DUCK LAKE (permit required see Note on page 34)",
    "display_name": "Duck Lake",
    "region": "4",
    "scope_note": "Permit required — see note on page 34",
    "regs_verbatim": "Bass daily quota = 3 (only 1 over 40 cm), June 16-May 14; bass catch and release, May 15-June 15\nYellow perch daily quota = 20\nNo powered boats",
+   "source_pages": [
+    38
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -2636,9 +2716,12 @@
   {
    "entry_id": "r4:duncan_lake_s_tributaries@4-27",
    "name": "DUNCAN LAKE'S TRIBUTARIES",
-   "display_name": "Duncan Lake's Tributaries",
+   "display_name": "Duncan Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "wbk:329120714"
    ],
@@ -2670,6 +2753,9 @@
    "display_name": "Duncan River",
    "region": "4",
    "regs_verbatim": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+   "source_pages": [
+    38
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -2794,6 +2880,9 @@
    "display_name": "Dutch Creek",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River\nBait ban, June 15-Oct 31\nBurbot catch and release\nEXEMPT from Columbia Lake's tributaries closure",
+   "source_pages": [
+    38
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -2896,6 +2985,9 @@
    "display_name": "East White River",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:10163"
    ],
@@ -2925,9 +3017,15 @@
   {
    "entry_id": "r4:echoes_lake_near_kimberley@4-20",
    "name": "ECHOES LAKE (near Kimberley)",
-   "display_name": "Echoes Lake",
+   "display_name": "Echoes Lakes",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524034"
    ],
@@ -3019,17 +3117,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:edwards_lake@4-2",
    "name": "EDWARDS LAKE",
-   "display_name": "Edwards Lake",
+   "display_name": "Edwards Lakes",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329069252"
    ],
@@ -3051,9 +3152,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -3062,9 +3160,11 @@
    "display_name": "Elk River",
    "region": "4",
    "regs_verbatim": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
+   "source_pages": [
+    38
+   ],
    "symbols": [
-    "Classified",
-    "Incl. Tribs"
+    "Classified"
    ],
    "matched": [
     "gnis:16880"
@@ -3225,9 +3325,15 @@
   {
    "entry_id": "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23",
    "name": "ELK RIVER'S TRIBUTARIES (see exceptions)",
-   "display_name": "Elk River's Tributaries",
+   "display_name": "Elk River",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\n**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River\nALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:16880"
    ],
@@ -3369,9 +3475,6 @@
      "extent_text": "(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)",
      "review_reason": "'except Coal Creek downstream of...' is a named-water carve-out from this tributary-wide Class II declaration; catalogue schema has no per-rule exclusion op — Coal Creek carries its own reciprocal 'not a Classified Water' entry"
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -3380,9 +3483,11 @@
    "display_name": "Elk River",
    "region": "4",
    "regs_verbatim": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
+   "source_pages": [
+    38
+   ],
    "symbols": [
-    "Classified",
-    "Incl. Tribs"
+    "Classified"
    ],
    "matched": [
     "gnis:16880"
@@ -3556,6 +3661,9 @@
    "display_name": "Erie Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "wbk:328974966"
    ],
@@ -3601,6 +3709,12 @@
    "display_name": "Findlay Creek",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:19077"
    ],
@@ -3735,9 +3849,6 @@
      ],
      "review_reason": "row redirects to a separate listing for Lavington Creek, a tributary — not parsed independently"
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -3746,6 +3857,12 @@
    "display_name": "Fisher Maiden Lake",
    "region": "4",
    "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524272"
    ],
@@ -3765,9 +3882,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -3776,6 +3890,9 @@
    "display_name": "Flathead River",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:19843"
    ],
@@ -3868,9 +3985,12 @@
   {
    "entry_id": "r4:flathead_river_s_tributaries@4-1",
    "name": "FLATHEAD RIVER'S TRIBUTARIES",
-   "display_name": "Flathead River's Tributaries",
+   "display_name": "Flathead River",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nBull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:19843"
    ],
@@ -3997,6 +4117,12 @@
    "display_name": "Fording River",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:19955"
    ],
@@ -4082,9 +4208,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -4093,6 +4216,13 @@
    "display_name": "Fording River",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
    "matched": [
     "gnis:19955"
    ],
@@ -4121,10 +4251,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -4133,6 +4259,12 @@
    "display_name": "Forsyth Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** from Connor Lake downstream 3 km\nFor remainder, see Elk River's tributaries\n**Class II water when/where open, including tributaries**",
+   "source_pages": [
+    38
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:11815"
    ],
@@ -4182,9 +4314,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -4193,6 +4322,9 @@
    "display_name": "French Slough",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "gnis:12525"
    ],
@@ -4235,9 +4367,12 @@
   {
    "entry_id": "r4:garbutt_lake@4-22",
    "name": "GARBUTT LAKE",
-   "display_name": "Norbury Lake",
+   "display_name": "Norbury Lakes",
    "region": "4",
    "regs_verbatim": "See Norbury Lake",
+   "source_pages": [
+    38
+   ],
    "matched": [
     "wbk:329524023"
    ],
@@ -4266,6 +4401,12 @@
    "display_name": "Goat River",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek\nBait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:11220"
    ],
@@ -4332,9 +4473,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -4343,6 +4481,12 @@
    "display_name": "Gold Creek",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release; bait ban",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:17130"
    ],
@@ -4386,9 +4530,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -4397,6 +4538,12 @@
    "display_name": "Grave Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:19452"
    ],
@@ -4422,9 +4569,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -4433,6 +4577,9 @@
    "display_name": "Grizzly Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:329247884"
    ],
@@ -4465,6 +4612,9 @@
    "display_name": "Haha Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:329069279"
    ],
@@ -4510,6 +4660,9 @@
    "display_name": "Halfway River",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of falls approximately 11 km from Arrow Lake",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:7059"
    ],
@@ -4545,6 +4698,9 @@
    "display_name": "Hall Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:329523986"
    ],
@@ -4574,6 +4730,12 @@
    "display_name": "Hellroaring Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of Angus Creek\n**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:20676"
    ],
@@ -4619,9 +4781,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -4630,6 +4789,9 @@
    "display_name": "Hiawatha Lake",
    "region": "4",
    "regs_verbatim": "Yellow perch daily quota = unlimited",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:329246408"
    ],
@@ -4661,6 +4823,9 @@
    "display_name": "Hill Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:21408"
    ],
@@ -4693,6 +4858,12 @@
    "display_name": "Horseshoe Lake",
    "region": "4",
    "regs_verbatim": "No powered boats",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329523983"
    ],
@@ -4714,9 +4885,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4725,6 +4893,12 @@
    "display_name": "Idlewild Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing**\nYouth/Disabled Accompanied Water year round (see page 4)",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524502"
    ],
@@ -4763,9 +4937,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4774,6 +4945,9 @@
    "display_name": "Illecillewaet River",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of Albert Canyon",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:7586"
    ],
@@ -4809,6 +4983,9 @@
    "display_name": "Irishman Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:10286"
    ],
@@ -4841,6 +5018,12 @@
    "display_name": "Jade Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093973"
    ],
@@ -4862,9 +5045,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4873,6 +5053,12 @@
    "display_name": "Jim Smith Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited; no powered boats",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329523981"
    ],
@@ -4922,9 +5108,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -4933,6 +5116,12 @@
    "display_name": "Jordan River",
    "region": "4",
    "regs_verbatim": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:19117"
    ],
@@ -5051,9 +5240,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -5062,6 +5248,9 @@
    "display_name": "Joseph Creek",
    "region": "4",
    "regs_verbatim": "This tributary of St. Mary River is not a Classified Water",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:2563"
    ],
@@ -5091,6 +5280,9 @@
    "display_name": "Kaslo River",
    "region": "4",
    "regs_verbatim": "**Bull trout daily quota = 2 (any size)\nBait ban**",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:11345"
    ],
@@ -5140,6 +5332,9 @@
    "display_name": "Keen Creek",
    "region": "4",
    "regs_verbatim": "**Bull trout daily quota = 2 (any size)**",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:11410"
    ],
@@ -5168,9 +5363,11 @@
   {
    "entry_id": "r4:kikomun_creek_park_all_lakes_in_the_park@4-22",
    "name": "KIKOMUN CREEK PARK (all lakes in the park)",
-   "display_name": "Kikomun Creek Park",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited\nNo powered boats",
+   "source_pages": [
+    39
+   ],
    "rules": [
     {
      "rule_id": "kikomun_creek_park_lakes.r1",
@@ -5208,6 +5405,9 @@
    "display_name": "Kinbasket Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:328961767"
    ],
@@ -5238,9 +5438,12 @@
   {
    "entry_id": "r4:kinbasket_mcnaughton_lake_s_tributaries@4-36",
    "name": "KINBASKET (McNaughton) LAKE'S TRIBUTARIES",
-   "display_name": "Kinbasket Lake's Tributaries",
+   "display_name": "Kinbasket Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release\nDoes not include Columbia River upstream of Kinbasket Reservoir",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:328961767"
    ],
@@ -5285,6 +5488,9 @@
    "display_name": "Kitchener Creek",
    "region": "4",
    "regs_verbatim": "EXEMPT from Apr 1-June 14 closure",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:30933"
    ],
@@ -5321,6 +5527,9 @@
    "display_name": "Koch Creek",
    "region": "4",
    "regs_verbatim": "A tributary of Slocan River. See Slocan River [Includes Tributaries]",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:2349"
    ],
@@ -5346,9 +5555,12 @@
   {
    "entry_id": "r4:koocanusa_reservoir@4-2+4-22+4-3",
    "name": "KOOCANUSA RESERVOIR",
-   "display_name": "Koocanusa Reservoir",
+   "display_name": "Lake Koocanusa",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release Nov 1-Mar 31; no bull trout under 75 cm when open; bait ban Sept 15-June 30; burbot catch and release\nSee page 75 - Fluctuating Reservoir Levels",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:328961702"
    ],
@@ -5464,9 +5676,12 @@
   {
    "entry_id": "r4:kootenay_lake_all_parts_main_body_upper_west_arm_and_lower_w@4-19",
    "name": "KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)",
-   "display_name": "Kootenay Lake, All Parts",
+   "display_name": "Kootenay Lake — Main Body",
    "region": "4",
    "regs_verbatim": "Burbot catch and release\nBass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:-20",
     "wbk:-21",
@@ -5526,9 +5741,12 @@
   {
    "entry_id": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7",
    "name": "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)",
-   "display_name": "Kootenay Lake - Lower West Arm",
+   "display_name": "Kootenay Lake — Lower West Arm",
    "region": "4",
    "regs_verbatim": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, **but only on Saturday and Sunday of each week.** Kokanee catch\nand release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:-22"
    ],
@@ -5642,9 +5860,12 @@
   {
    "entry_id": "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19",
    "name": "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)",
-   "display_name": "Kootenay Lake - Main Body",
+   "display_name": "Kootenay Lake — Main Body",
    "region": "4",
    "regs_verbatim": "**A person in a boat may angle with an unlimited number of rods.**\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:-20"
    ],
@@ -5765,9 +5986,12 @@
   {
    "entry_id": "r4:kootenay_lake_s_tributaries@4-19+4-7",
    "name": "KOOTENAY LAKE'S TRIBUTARIES",
-   "display_name": "Kootenay Lake's Tributaries",
+   "display_name": "Kootenay Lake — Main Body",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release\nDoes not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:-20",
     "wbk:-21",
@@ -5811,9 +6035,12 @@
   {
    "entry_id": "r4:kootenay_lake_upper_west_arm_for_location_see_map_on_page_34@4-7",
    "name": "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)",
-   "display_name": "Kootenay Lake - Upper West Arm",
+   "display_name": "Kootenay Lake — Upper West Arm",
    "region": "4",
    "regs_verbatim": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "wbk:-21"
    ],
@@ -5956,9 +6183,12 @@
   {
    "entry_id": "r4:kootenay_river_downstream_of_idaho_border@4-7+4-8",
    "name": "KOOTENAY RIVER (downstream of Idaho border)",
-   "display_name": "Kootenay River (Downstream of Idaho Border)",
+   "display_name": "Kootenay River",
    "region": "4",
    "regs_verbatim": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:14097",
     "gnis:39068",
@@ -6127,9 +6357,15 @@
   {
    "entry_id": "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35",
    "name": "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
-   "display_name": "Kootenay River (Upstream of Koocanusa Reservoir)",
+   "display_name": "Kootenay River",
    "region": "4",
    "regs_verbatim": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\n**Upstream of White River, including tributaries: Class II water when open**",
+   "source_pages": [
+    39
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:14097"
    ],
@@ -6392,9 +6628,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -6403,6 +6636,9 @@
    "display_name": "Kuskanax Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of falls 1 km upstream of Gardiner Creek",
+   "source_pages": [
+    39
+   ],
    "matched": [
     "gnis:14145"
    ],
@@ -6430,9 +6666,12 @@
   {
    "entry_id": "r4:lake_revelstoke@4-38+4-39",
    "name": "LAKE REVELSTOKE",
-   "display_name": "Lake Revelstoke",
+   "display_name": "Revelstoke Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329484653"
    ],
@@ -6455,9 +6694,12 @@
   {
    "entry_id": "r4:lake_revelstoke_s_tributaries@4-38",
    "name": "LAKE REVELSTOKE'S TRIBUTARIES",
-   "display_name": "Lake Revelstoke's Tributaries",
+   "display_name": "Revelstoke Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329484653"
    ],
@@ -6491,6 +6733,12 @@
    "display_name": "Larchwood Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524012"
    ],
@@ -6593,9 +6841,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6604,6 +6849,12 @@
    "display_name": "Lardeau River",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of fishing boundary signs at Trout Lake outlet,** to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:16359"
    ],
@@ -6699,9 +6950,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -6710,6 +6958,9 @@
    "display_name": "Larix Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:328974357"
    ],
@@ -6742,6 +6993,12 @@
    "display_name": "Lavington Creek",
    "region": "4",
    "regs_verbatim": "Brook trout daily quota = 20; cutthroat and bull trout catch and release; bait ban Jun 15-Oct 31",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:20058"
    ],
@@ -6811,9 +7068,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -6822,6 +7076,12 @@
    "display_name": "Lazy Lake",
    "region": "4",
    "regs_verbatim": "Speed restriction (8 km/h)",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329523970"
    ],
@@ -6843,9 +7103,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -6854,6 +7111,9 @@
    "display_name": "Leadqueen Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329094047"
    ],
@@ -6883,6 +7143,9 @@
    "display_name": "Lemon Creek",
    "region": "4",
    "regs_verbatim": "No Fishing",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "gnis:9516"
    ],
@@ -6912,9 +7175,12 @@
   {
    "entry_id": "r4:lewis_cameron_slough@4-21",
    "name": "LEWIS (\"Cameron\") SLOUGH",
-   "display_name": "Lewis (\"Cameron\") Slough",
+   "display_name": "Lewis Slough",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited, yellow perch daily quota = unlimited; electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329524002"
    ],
@@ -6972,6 +7238,12 @@
    "display_name": "Lillian Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093935"
    ],
@@ -6993,9 +7265,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -7004,6 +7273,12 @@
    "display_name": "Line Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:10373"
    ],
@@ -7029,9 +7304,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -7040,6 +7312,12 @@
    "display_name": "Little Mitten Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329220512"
    ],
@@ -7131,17 +7409,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:little_slocan_lake_s_tributaries@4-16",
    "name": "LITTLE SLOCAN LAKE'S TRIBUTARIES",
-   "display_name": "Little Slocan Lake's Tributaries",
+   "display_name": "Upper Little Slocan Lake",
    "region": "4",
    "regs_verbatim": "EXEMPT from Slocan River's[Includes Tributaries] closure and Slocan River's[Includes Tributaries] trout/char catch and release: bait ban, June 15-Oct 31",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329523072",
     "wbk:329523070"
@@ -7227,6 +7505,9 @@
    "display_name": "Little Slocan River",
    "region": "4",
    "regs_verbatim": "A tributary of Slocan River. See Slocan River[Includes Tributaries]",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "gnis:10895"
    ],
@@ -7252,9 +7533,15 @@
   {
    "entry_id": "r4:lodgepole_creek_downstream_of_falls_near_the_km_26_post_on_l@4-2",
    "name": "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
-   "display_name": "Lodgepole Creek (Downstream of Falls)",
+   "display_name": "Lodgepole Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release, June 15-Aug 31\nBait ban\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:17044"
    ],
@@ -7364,17 +7651,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
    "entry_id": "r4:lodgepole_creek_upstream_of_falls@4-2",
    "name": "LODGEPOLE CREEK (upstream of falls)",
-   "display_name": "Lodgepole Creek (Upstream of Falls)",
+   "display_name": "Lodgepole Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:17044"
    ],
@@ -7503,9 +7793,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -7514,6 +7801,9 @@
    "display_name": "Lomond Lake",
    "region": "4",
    "regs_verbatim": "Yellow perch daily quota = unlimited",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329262675"
    ],
@@ -7545,6 +7835,12 @@
    "display_name": "Loon Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329069272"
    ],
@@ -7648,9 +7944,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -7659,6 +7952,12 @@
    "display_name": "Lost Lake",
    "region": "4",
    "regs_verbatim": "Yellow perch daily quota = unlimited\nUnnamed lake approximately 2 km east/southeast of Elkford",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329123527"
    ],
@@ -7682,17 +7981,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:lower_arrow_lake_s_tributaries@4-14",
    "name": "LOWER ARROW LAKE'S TRIBUTARIES",
-   "display_name": "Lower Arrow Lake's Tributaries",
+   "display_name": "Lower Arrow Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:328961720"
    ],
@@ -7726,6 +8025,9 @@
    "display_name": "Lower Elk Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329123422"
    ],
@@ -7828,6 +8130,9 @@
    "display_name": "Lower Halgrave Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329093994"
    ],
@@ -7857,6 +8162,9 @@
    "display_name": "Lund Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329069298"
    ],
@@ -7902,6 +8210,9 @@
    "display_name": "Lussier River",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "gnis:2567"
    ],
@@ -8017,6 +8328,9 @@
    "name": "MACKENZIE CREEK",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
    "rules": [
     {
      "rule_id": "mackenzie_creek.r1",
@@ -8042,6 +8356,12 @@
    "display_name": "Mcclain Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 750 m south of Mitten Lake",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329220417"
    ],
@@ -8133,9 +8453,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8144,6 +8461,9 @@
    "display_name": "Kinbasket Lake",
    "region": "4",
    "regs_verbatim": "See Kinbasket Lake",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:328961767"
    ],
@@ -8169,9 +8489,15 @@
   {
    "entry_id": "r4:michel_creek_downstream_of_the_easternmost_hwy_3_bridge@4-23",
    "name": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
-   "display_name": "Michel Creek (Downstream of Hwy 3 Bridge)",
+   "display_name": "Michel Creek",
    "region": "4",
    "regs_verbatim": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:28953"
    ],
@@ -8267,17 +8593,21 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
    "entry_id": "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23",
    "name": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)",
-   "display_name": "Michel Creek (Upstream of Hwy 3 Bridge)",
+   "display_name": "Michel Creek",
    "region": "4",
    "regs_verbatim": "**Class II water when open, including tributaries**\nTrout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31.",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:28953"
    ],
@@ -8366,10 +8696,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -8378,6 +8704,12 @@
    "display_name": "Midge Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:28986"
    ],
@@ -8403,9 +8735,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -8414,6 +8743,9 @@
    "display_name": "Monroe Lake",
    "region": "4",
    "regs_verbatim": "Yellow perch daily quota = unlimited",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329246313"
    ],
@@ -8445,6 +8777,12 @@
    "display_name": "Moose Lake",
    "region": "4",
    "regs_verbatim": "Trout/char daily quota = 2; electric motor only - max 7.5 kW",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329247797"
    ],
@@ -8480,9 +8818,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8491,6 +8826,13 @@
    "display_name": "Morrissey Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Classified",
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:14951"
    ],
@@ -8599,10 +8941,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -8611,6 +8949,9 @@
    "display_name": "Moses Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wsc:300-751058"
    ],
@@ -8643,6 +8984,12 @@
    "display_name": "Moyie Lake",
    "region": "4",
    "regs_verbatim": "Burbot catch and release Feb 14-Feb 28; bull trout catch and release",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329246294"
    ],
@@ -8693,9 +9040,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8704,6 +9048,12 @@
    "display_name": "Moyie River",
    "region": "4",
    "regs_verbatim": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:15783"
    ],
@@ -8759,9 +9109,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -8770,6 +9117,9 @@
    "display_name": "Murphy Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "gnis:15870"
    ],
@@ -8802,6 +9152,9 @@
    "display_name": "Nagle Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "gnis:7889"
    ],
@@ -8834,6 +9187,12 @@
    "display_name": "Nancy Greene Lake",
    "region": "4",
    "regs_verbatim": "No powered boats",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328974967"
    ],
@@ -8855,9 +9214,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -8866,6 +9222,12 @@
    "display_name": "New Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** - this lake has been closed to fishing due to illegal introduction of perch",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "wbk:329524078"
    ],
@@ -8891,9 +9253,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -8902,6 +9261,12 @@
    "display_name": "Nine Bay Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329220283"
    ],
@@ -8993,9 +9358,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -9004,6 +9366,9 @@
    "display_name": "Norbury Lakes",
    "region": "4",
    "regs_verbatim": "No powered boats",
+   "source_pages": [
+    40
+   ],
    "matched": [
     "wbk:329524023",
     "wbk:329524047"
@@ -9034,6 +9399,12 @@
    "display_name": "Norbury Creek",
    "region": "4",
    "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "source_pages": [
+    40
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "gnis:23373"
    ],
@@ -9053,9 +9424,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -9064,6 +9432,9 @@
    "display_name": "Norns Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of falls approximately 2 km from Columbia River",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:23396"
    ],
@@ -9099,6 +9470,12 @@
    "display_name": "North White River",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release; bait ban; Class II water when open, including tributaries",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:24059"
    ],
@@ -9155,9 +9532,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -9166,6 +9540,12 @@
    "display_name": "North Star Lake",
    "region": "4",
    "regs_verbatim": "Brook trout daily quota = 20",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329069264"
    ],
@@ -9189,17 +9569,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:peckhams_lake@4-22",
    "name": "PECKHAMS LAKE",
-   "display_name": "Peckhams Lake",
+   "display_name": "Norbury Lakes",
    "region": "4",
    "regs_verbatim": "No powered boats",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524023"
    ],
@@ -9221,17 +9604,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:pend_d_oreille_river_includes_the_reservoirs_behind_waneta_d@4-8",
    "name": "PEND D'OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam)",
-   "display_name": "Pend D'Oreille River",
+   "display_name": "Pend-d'Oreille River",
    "region": "4",
    "regs_verbatim": "EXEMPT from single barbless hooks\nEXEMPT from the Apr 1-June 14 closure\nBull trout catch and release, walleye daily quota = unlimited\nNorthern pike daily quota = unlimited, yellow perch daily quota = unlimited, bass daily quota = unlimited",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:4927"
    ],
@@ -9352,9 +9735,12 @@
   {
    "entry_id": "r4:pend_d_oreille_river_s_tributaries_except_salmo_river_includ@4-8",
    "name": "PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River[Includes Tributaries])",
-   "display_name": "Pend D'Oreille River's Tributaries",
+   "display_name": "Pend-d'Oreille River",
    "region": "4",
    "regs_verbatim": "INCLUDES tributaries of the reservoirs behind Waneta Dam and Seven Mile Dam\nBull trout catch and release\nBait ban, June 15-Oct 31",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:4927"
    ],
@@ -9428,6 +9814,13 @@
    "display_name": "Perry Creek",
    "region": "4",
    "regs_verbatim": "Bait ban\nCutthroat trout and bull trout catch and release; brook trout daily quota = 20\n**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
    "matched": [
     "gnis:14741"
    ],
@@ -9504,10 +9897,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -9516,6 +9905,9 @@
    "display_name": "Phillipps Lake",
    "region": "4",
    "regs_verbatim": "Trout daily quota = 2",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329123638"
    ],
@@ -9547,6 +9939,9 @@
    "display_name": "Prattle Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:8227"
    ],
@@ -9579,6 +9974,12 @@
    "display_name": "Premier Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329523945"
    ],
@@ -9656,17 +10057,17 @@
      "extent_text": "south half only",
      "review_reason": "'south half only' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:premier_lake_s_tributaries@4-21",
    "name": "PREMIER LAKE'S TRIBUTARIES",
-   "display_name": "Premier Lake's Tributaries",
+   "display_name": "Premier Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329523945"
    ],
@@ -9699,6 +10100,9 @@
    "display_name": "Revelstoke Lake",
    "region": "4",
    "regs_verbatim": "See Lake Revelstoke",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329484653"
    ],
@@ -9724,9 +10128,12 @@
   {
    "entry_id": "r4:revelstoke_lake_s_tributaries@4-38",
    "name": "REVELSTOKE LAKE'S TRIBUTARIES",
-   "display_name": "Revelstoke Lake's Tributaries",
+   "display_name": "Revelstoke Lake",
    "region": "4",
    "regs_verbatim": "See Lake Revelstoke's tributaries",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329484653"
    ],
@@ -9752,9 +10159,12 @@
   {
    "entry_id": "r4:rock_island_lake@4-25",
    "name": "ROCK ISLAND LAKE",
-   "display_name": "Rock Island Lake",
+   "display_name": "Rock Isle Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:328974366"
    ],
@@ -9787,6 +10197,12 @@
    "display_name": "Rosebud Lake",
    "region": "4",
    "regs_verbatim": "Trout/char daily quota = 2; no powered boats",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329262645"
    ],
@@ -9822,9 +10238,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -9833,6 +10246,9 @@
    "display_name": "Rykerts Lake",
    "region": "4",
    "regs_verbatim": "Much of this lake is private property, angling access requires permission of the Creston Valley Rod & Gun Club (see signs at lake)\nBass daily quota = unlimited",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329246391"
    ],
@@ -9873,9 +10289,15 @@
   {
    "entry_id": "r4:sam_s_folly_lake@4-34",
    "name": "SAM'S FOLLY LAKE",
-   "display_name": "Sam's Folly Lake",
+   "display_name": "Sam'S Folly Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328966176"
    ],
@@ -9897,9 +10319,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -9908,6 +10327,9 @@
    "display_name": "Sandown Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:20588"
    ],
@@ -9940,6 +10362,9 @@
    "display_name": "Saugum Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329523969"
    ],
@@ -9971,6 +10396,9 @@
    "display_name": "Schroeder Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:23600"
    ],
@@ -10000,9 +10428,11 @@
   {
    "entry_id": "r4:seven_mile_reservoir@4-8",
    "name": "SEVEN MILE RESERVOIR",
-   "display_name": "Seven Mile Reservoir",
    "region": "4",
    "regs_verbatim": "See Pend d'Oreille River",
+   "source_pages": [
+    41
+   ],
    "rules": [
     {
      "rule_id": "seven_mile_reservoir.r1",
@@ -10020,9 +10450,11 @@
   {
    "entry_id": "r4:seven_mile_reservoir_s_tributaries@4-8",
    "name": "SEVEN MILE RESERVOIR'S TRIBUTARIES",
-   "display_name": "Seven Mile Reservoir's Tributaries",
    "region": "4",
    "regs_verbatim": "See Pend d'Oreille River's tributaries",
+   "source_pages": [
+    41
+   ],
    "rules": [
     {
      "rule_id": "seven_mile_reservoir_s_tributaries.r1",
@@ -10043,6 +10475,9 @@
    "display_name": "Silverton Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:26319"
    ],
@@ -10072,8 +10507,15 @@
   {
    "entry_id": "r4:slewiskin_macdonald_creek@4-15",
    "name": "SLEWISKIN (Macdonald) CREEK",
+   "display_name": "McDonald Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:6159"
    ],
@@ -10099,9 +10541,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -10110,6 +10549,9 @@
    "display_name": "Slocan Lake",
    "region": "4",
    "regs_verbatim": "No bull trout under 60 cm",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329523065"
    ],
@@ -10143,9 +10585,12 @@
   {
    "entry_id": "r4:slocan_lake_s_tributaries@4-17",
    "name": "SLOCAN LAKE'S TRIBUTARIES",
-   "display_name": "Slocan Lake's Tributaries",
+   "display_name": "Slocan Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329523065"
    ],
@@ -10175,8 +10620,12 @@
   {
    "entry_id": "r4:snow_creek@4-15",
    "name": "SNOW CREEK",
+   "display_name": "Snow Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of Hail Creek",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:27411"
    ],
@@ -10209,8 +10658,12 @@
   {
    "entry_id": "r4:snowshoe_lake@4-32",
    "name": "SNOWSHOE LAKE",
+   "display_name": "Snowshoe Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329262639"
    ],
@@ -10237,8 +10690,15 @@
   {
    "entry_id": "r4:sowerby_grundy_lake@4-21",
    "name": "SOWERBY (\"Grundy\") LAKE",
+   "display_name": "Sowerby Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); bait ban; single barbless hook",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:328989174"
    ],
@@ -10330,9 +10790,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -10341,6 +10798,9 @@
    "display_name": "Spillimacheen River",
    "region": "4",
    "regs_verbatim": "Burbot catch and release",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:22997"
    ],
@@ -10370,8 +10830,12 @@
   {
    "entry_id": "r4:spring_lake@4-22",
    "name": "\"SPRING\" LAKE",
+   "display_name": "Spring Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited\nUnnamed lake approximately 1.5 km west/northwest of the west end of Tie Lake",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329069329"
    ],
@@ -10403,6 +10867,9 @@
    "display_name": "St. Leon Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of barrier approximately 1 km upstream of the Hwy 23 bridge",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "gnis:20482"
    ],
@@ -10438,6 +10905,9 @@
    "display_name": "St. Mary Lake",
    "region": "4",
    "regs_verbatim": "Burbot and cutthroat trout catch and release",
+   "source_pages": [
+    41
+   ],
    "matched": [
     "wbk:329523943"
    ],
@@ -10468,8 +10938,15 @@
   {
    "entry_id": "r4:steamboat_lake@4-34",
    "name": "STEAMBOAT LAKE",
+   "display_name": "Steamboat Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329094173"
    ],
@@ -10491,16 +10968,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:sullivan_river@4-40",
    "name": "SULLIVAN RIVER",
+   "display_name": "Sullivan River",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:7883"
    ],
@@ -10537,16 +11018,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
    "entry_id": "r4:summer_lake@4-22",
    "name": "SUMMER LAKE",
+   "display_name": "Summer Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329069249"
    ],
@@ -10634,8 +11116,15 @@
   {
    "entry_id": "r4:summit_creek@4-7",
    "name": "SUMMIT CREEK",
+   "display_name": "Summit Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**, June 15-July 15; bull trout catch and release",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
    "matched": [
     "gnis:8041"
    ],
@@ -10687,9 +11176,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Incl. Tribs"
    ]
   },
   {
@@ -10698,6 +11184,12 @@
    "display_name": "Summit Lake",
    "region": "4",
    "regs_verbatim": "Trout/char daily quota = 2",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329523068"
    ],
@@ -10721,16 +11213,20 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:suzanne_lake@4-22",
    "name": "SUZANNE LAKE",
+   "display_name": "Suzanne Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329069255"
    ],
@@ -10754,16 +11250,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:tie_lake@4-22",
    "name": "TIE LAKE",
+   "display_name": "Tie Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329069248"
    ],
@@ -10809,6 +11306,9 @@
    "display_name": "Tonkawatla Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:6416"
    ],
@@ -10838,8 +11338,15 @@
   {
    "entry_id": "r4:topaz_lake@4-34",
    "name": "TOPAZ LAKE",
+   "display_name": "Topaz Lake",
    "region": "4",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093989"
    ],
@@ -10861,9 +11368,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -10872,6 +11376,9 @@
    "display_name": "Trout Lake",
    "region": "4",
    "regs_verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329120715"
    ],
@@ -10911,6 +11418,9 @@
    "display_name": "Trout Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329120715"
    ],
@@ -10936,9 +11446,15 @@
   {
    "entry_id": "r4:twin_lakes@4-34",
    "name": "TWIN LAKES",
-   "display_name": "Twin Lakes",
+   "display_name": "Yankee Lake",
    "region": "4",
    "regs_verbatim": "Brook trout daily quota = 20; electric motor only - max 7.5 kW",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329524100",
     "wbk:328989162"
@@ -10970,9 +11486,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -10981,6 +11494,9 @@
    "display_name": "Upper Arrow Lake",
    "region": "4",
    "regs_verbatim": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:328961689"
    ],
@@ -11115,6 +11631,9 @@
    "display_name": "Upper Arrow Lake",
    "region": "4",
    "regs_verbatim": "Bull trout catch and release",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:328961689"
    ],
@@ -11140,8 +11659,12 @@
   {
    "entry_id": "r4:upper_elk_lake@4-23",
    "name": "UPPER ELK LAKE",
+   "display_name": "Upper Elk Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329123413"
    ],
@@ -11241,8 +11764,15 @@
   {
    "entry_id": "r4:upper_halgrave_lake@4-34",
    "name": "UPPER HALGRAVE LAKE",
+   "display_name": "Upper Halgrave Lake",
    "region": "4",
    "regs_verbatim": "Trout/char daily quota = 2; electric motor only - max 7.5 kW",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329094046"
    ],
@@ -11278,16 +11808,17 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
    "entry_id": "r4:valenciennes_river@4-36",
    "name": "VALENCIENNES RIVER",
+   "display_name": "Valenciennes River",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:28947"
    ],
@@ -11319,6 +11850,9 @@
    "name": "WANETA RESERVOIR",
    "region": "4",
    "regs_verbatim": "See Pend d'Oreille River",
+   "source_pages": [
+    42
+   ],
    "rules": [
     {
      "rule_id": "waneta_reservoir.r1",
@@ -11338,6 +11872,9 @@
    "name": "WANETA RESERVOIR'S TRIBUTARIES",
    "region": "4",
    "regs_verbatim": "See Pend d'Oreille River's tributaries",
+   "source_pages": [
+    42
+   ],
    "rules": [
     {
      "rule_id": "waneta_reservoir_s_tributaries.r1",
@@ -11355,8 +11892,12 @@
   {
    "entry_id": "r4:wasa_lake@4-21",
    "name": "WASA LAKE",
+   "display_name": "Wasa Lake",
    "region": "4",
    "regs_verbatim": "Bass daily quota = unlimited, yellow perch daily quota = unlimited",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329523947"
    ],
@@ -11399,8 +11940,12 @@
   {
    "entry_id": "r4:whatshan_lake@4-32",
    "name": "WHATSHAN LAKE",
+   "display_name": "Whatshan Lake",
    "region": "4",
    "regs_verbatim": "No bull trout under 60 cm",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329262633"
    ],
@@ -11437,6 +11982,9 @@
    "display_name": "Whatshan River",
    "region": "4",
    "regs_verbatim": "**No Fishing** upstream of Whatshan Lake",
+   "source_pages": [
+    42
+   ],
    "symbols": [
     "Incl. Tribs"
    ],
@@ -11476,6 +12024,13 @@
    "display_name": "White River",
    "region": "4",
    "regs_verbatim": "Upstream of and including North White River; trout/char catch and release\nBull trout catch and release on all parts, Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31\nBait ban on all parts, June 15-Oct 31\n**Class II water when open, including tributaries**",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
    "matched": [
     "gnis:26897"
    ],
@@ -11605,10 +12160,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -11617,6 +12168,9 @@
    "display_name": "Whiteswan Lake",
    "region": "4",
    "regs_verbatim": "Single hook; no towing",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329247790"
    ],
@@ -11660,6 +12214,9 @@
    "name": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
    "region": "4",
    "regs_verbatim": "**No Fishing** EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, **No Fishing** Aug 1-Mar 31, rainbow\ntrout daily quota = 5 (catch and release all other species) when open",
+   "source_pages": [
+    42
+   ],
    "rules": [
     {
      "rule_id": "whiteswan_lakes_inlet_outlet_streams.r1",
@@ -11748,6 +12305,12 @@
    "display_name": "Whitetail Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20\nBait ban, single barbless hook\nNo towing",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329093904"
    ],
@@ -11864,9 +12427,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -11874,6 +12434,9 @@
    "name": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    42
+   ],
    "rules": [
     {
      "rule_id": "whitetail_lakes_inlet_outlet_streams.r1",
@@ -11899,6 +12462,12 @@
    "display_name": "Wigwam River",
    "region": "4",
    "regs_verbatim": "Trout/char catch and release\nBait ban\n**Class II water when open, including tributaries**",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Classified"
+   ],
    "matched": [
     "gnis:27703"
    ],
@@ -11959,9 +12528,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified"
    ]
   },
   {
@@ -11970,6 +12536,13 @@
    "display_name": "Wigwam River",
    "region": "4",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release; bait ban\n**Class II water when open, including tributaries**",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
    "matched": [
     "gnis:27703"
    ],
@@ -12060,10 +12633,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Classified",
-    "Incl. Tribs"
    ]
   },
   {
@@ -12072,6 +12641,12 @@
    "display_name": "Wilbur Lake",
    "region": "4",
    "regs_verbatim": "**No Ice Fishing**; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329220402"
    ],
@@ -12158,9 +12733,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -12169,6 +12741,9 @@
    "display_name": "Wilkie Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:27735"
    ],
@@ -12201,6 +12776,12 @@
    "display_name": "Williamson Lake",
    "region": "4",
    "regs_verbatim": "Yellow perch daily quota = unlimited",
+   "source_pages": [
+    42
+   ],
+   "symbols": [
+    "Stocked"
+   ],
    "matched": [
     "wbk:329590094"
    ],
@@ -12224,9 +12805,6 @@
       }
      ]
     }
-   ],
-   "symbols": [
-    "Stocked"
    ]
   },
   {
@@ -12235,6 +12813,9 @@
    "display_name": "Wilson Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of Burkitt Creek",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:28553"
    ],
@@ -12270,6 +12851,9 @@
    "display_name": "Windermere Creek",
    "region": "4",
    "regs_verbatim": "Burbot catch and release",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:28568"
    ],
@@ -12302,6 +12886,9 @@
    "display_name": "Windermere Lake",
    "region": "4",
    "regs_verbatim": "Burbot catch and release; bass daily quota = unlimited",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "wbk:329093898"
    ],
@@ -12348,6 +12935,9 @@
    "display_name": "Winlaw Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing**",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:3011"
    ],
@@ -12380,6 +12970,9 @@
    "display_name": "Wood River",
    "region": "4",
    "regs_verbatim": "**No Fishing** within Hamber Provincial Park, Sept 1-Nov 30",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:8372"
    ],
@@ -12426,6 +13019,9 @@
    "display_name": "Woodbury Creek",
    "region": "4",
    "regs_verbatim": "**No Fishing** downstream of falls at small hydro structure approximately 800 m upstream of Hwy 31 bridge",
+   "source_pages": [
+    42
+   ],
    "matched": [
     "gnis:29329"
    ],

@@ -60,7 +60,8 @@ def test_an_agent_response_in_the_documented_shape_reaches_disk(tmp_path):
              "level": "electric_only"},
         ],
     }
-    batch = {"r3:tranquille_lake@3-29": {"entry_id": "r3:tranquille_lake@3-29", "raw_regs": ROW}}
+    batch = {"r3:tranquille_lake@3-29": {"entry_id": "r3:tranquille_lake@3-29", "raw_regs": ROW,
+                                         "name": "TRANQUILLE LAKE", "region": "3"}}
 
     accepted, problems = ingest([candidate], batch)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
@@ -83,7 +84,7 @@ def test_an_agent_response_in_the_documented_shape_reaches_disk(tmp_path):
 
 
 def test_the_gate_refuses_the_mistakes_the_prompt_warns_about(tmp_path):
-    batch = {"x@1-1": {"entry_id": "x@1-1", "raw_regs": ROW}}
+    batch = {"x@1-1": {"entry_id": "x@1-1", "raw_regs": ROW, "name": "X", "region": "1"}}
 
     def cand(rule):
         return {"entry_id": "x@1-1", "name": "X", "region": "1", "rules": [rule]}

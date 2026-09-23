@@ -15,7 +15,8 @@ import pytest
 from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, write
 
 SRC = "TRANQUILLE LAKE 3-29 Rainbow trout daily quota = 8. Bait ban."
-BATCH = {"r3:tranquille@3-29": {"entry_id": "r3:tranquille@3-29", "raw_regs": SRC}}
+BATCH = {"r3:tranquille@3-29": {"entry_id": "r3:tranquille@3-29", "raw_regs": SRC,
+                                "name": "TRANQUILLE LAKE", "region": "3"}}
 
 
 def _cand(**over):
@@ -255,11 +256,18 @@ def test_identity_comes_from_the_batch_not_the_model():
     assert (e.name, e.display_name, e.region) == ("ATNARKO RIVER", "Atnarko River", "5"), problems
 
 
-def test_the_rows_symbols_survive_whatever_the_model_writes():
-    """The model kept Classified on 20 of 68 rows and Stocked on 11 of 304."""
+def test_every_row_fact_is_the_batchs_and_none_is_the_models():
+    """Classified was kept on 20 of 68 rows, Stocked on 11 of 304, 843 of 1,021 names retyped.
+    The batch's value wins, and a field the model wrote where the batch has none is dropped —
+    `symbols` are the printed glyphs, one to one."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    item = _batch_item(symbols=["Classified", "Stocked"])
+    item = _batch_item(symbols=["Classified", "Stocked"], pages=[54], display_name="",
+                       also_item_ids=["gnis:2"])
     cand = _candidate([])
-    cand["symbols"] = ["Includes Tributaries"]
+    cand.update(symbols=["Includes Tributaries", "Classified"], source_pages=[9],
+                display_name="Invented", matched=["gnis:999"])
     accepted, _ = ingest([cand], {cand["entry_id"]: item})
-    assert accepted[cand["entry_id"]].symbols == ["Classified", "Stocked", "Incl. Tribs"]
+    e = accepted[cand["entry_id"]]
+    assert e.symbols == ["Classified", "Stocked"]
+    assert e.source_pages == [54] and e.display_name == ""
+    assert e.matched == ["gnis:1", "gnis:2"]

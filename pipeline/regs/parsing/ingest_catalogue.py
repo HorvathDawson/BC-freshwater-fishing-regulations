@@ -26,7 +26,6 @@ from pathlib import Path
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
 from pipeline.regs.parsing.io import dump_entry
-from pipeline.regs.parsing.rows import TRIBUTARIES_SYMBOL
 from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
 
@@ -68,11 +67,19 @@ def is_stale(rows: list) -> bool:
     return False
 
 
-def _source_of(item: dict) -> str:
-    for k in ("raw_regs", "regs_verbatim", "text", "source_text"):
-        if item.get(k):
-            return str(item[k])
-    return ""
+def _passthrough(item: dict) -> dict:
+    """The entry fields that are facts about the synopsis ROW, exactly as the batch carries them."""
+    return {
+        "entry_id": str(item["entry_id"]),
+        "regs_verbatim": str(item["raw_regs"]),
+        "name": item.get("name") or "",
+        "display_name": item.get("display_name") or "",
+        "region": item.get("region") or "",
+        "symbols": list(item.get("symbols") or []),
+        "source_pages": list(item.get("pages") or []),
+        "matched": ([item["item_id"], *(item.get("also_item_ids") or [])]
+                    if item.get("item_id") else []),
+    }
 
 
 def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, CatalogueEntry],
@@ -94,23 +101,15 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
         if item is None:
             problems.append(f"{eid}: not in the batch — an entry_id was invented or altered")
             continue
-        source = _source_of(item)
-        # The passage comes from the batch. Anything the model wrote here is discarded.
+        # EVERY FACT ABOUT THE ROW COMES FROM THE BATCH — the model gets no vote on any of them,
+        # and nothing it wrote in these fields survives, even where the batch is empty. Each was
+        # left to the model once and came back wrong: 843 of 1,021 names retyped (66 losing the
+        # parenthetical that carries the reach), Classified kept on 20 of 68 rows, Stocked on 11
+        # of 304. `symbols` are the printed glyphs and nothing else: a water the TEXT calls
+        # classified is a fact for the rules, not a symbol.
         data = json.loads(json.dumps(data))     # deep copy: the split check rewrites in place
-        data["regs_verbatim"] = source or data.get("regs_verbatim", "")
-        # SO DOES WHO THE ENTRY IS ABOUT. The model retyped it: 843 of 1,021 entries once came
-        # back with a name that was not the synopsis's, and 66 rewrites ate the parenthetical that
-        # carries the reach. Export-time knowledge; the model gets no vote.
-        for key in ("name", "display_name", "region"):
-            if item.get(key):
-                data[key] = item[key]
-        # AND THE ROW'S SYMBOLS. The model was handed them and asked to copy them back; it kept
-        # Classified on 20 of 68 rows, Stocked on 11 of 304. The row's symbols always survive; a
-        # symbol the model adds is kept too, because the extractor misses glyphs the text states
-        # (West Road is classified in its text and carries no symbol). One spelling per symbol.
-        canon = {"Includes Tributaries": TRIBUTARIES_SYMBOL}
-        had = [canon.get(x, x) for x in (data.get("symbols") or [])]
-        data["symbols"] = list(dict.fromkeys(list(item.get("symbols") or []) + had))
+        data.update(_passthrough(item))
+        source = data["regs_verbatim"]
         # `item` carries the boundary menu, so this also checks every split id and rewrites an
         # alias to its canonical spelling — the same gate the agent runs on itself.
         entry, errors = check_entry(data, source, item)
