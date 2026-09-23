@@ -55,6 +55,27 @@ class Method(str, Enum):
     #: `chumming` had no value here, so `method: "other"` plus `reason: "chumming"` carried it —
     #: the prohibited act's own NAME in a free-text field.
     chumming = "chumming"
+    #: `downrigger` AND `light` WERE MEMBERS HERE AND ARE NOT ANY MORE.
+    #:
+    #: The goal was one vocabulary for `while`, and that is met a better way (below). What putting
+    #: a device in `method` cost was a FABRICATED PERMISSION. A "provided that" sentence becomes
+    #: two rules — one allowing the means, one holding the condition — and run through that
+    #: template both of these produce `method: {allow: [...]}`:
+    #:
+    #:   zp:allowable_methods   "angle with a downrigger, PROVIDED the line is attached by a
+    #:                           quick-release"        — an ALLOWABLE list. The grant is real.
+    #:   zp:terminal_tackle     "Use a light … UNLESS submerged and within 1 m of the hook"
+    #:                          — from a list headed "It is UNLAWFUL to". It grants nothing.
+    #:
+    #: "Provided" and "unless" are opposite polarity through one template, so a Region 6 lake
+    #: answered "what may I fish with here" with `light` — the one piece of tackle the province
+    #: forbids outright. That is `{method: "ice_fishing", permitted: true}` on a hut-removal
+    #: warning, rebuilt on a new field; `Conduct` below names that failure.
+    #:
+    #: `while` DRAWS FROM METHOD MEMBERS AND SPEC-SLOT NAMES, and a spec slot's name already IS a
+    #: means token — `set_lining`, `crayfish_trapping`. So `while: ["downrigger"]` has a referent
+    #: without `downrigger` being a way of fishing, and the only thing lost is the ability to
+    #: write the permission the book never printed.
     other = "other"
 
 
@@ -599,7 +620,7 @@ class Clock(BaseModel):
     clock without a date and a latitude, which is the client's to do and not the parser's, so it
     is carried as what it is.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     at: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
     solar: Optional[Solar] = None
@@ -633,7 +654,7 @@ class DateRange(BaseModel):
     A range may WRAP the year end — "Nov 1-Apr 30" is one winter, not an error — so `to` before
     `from` is meaningful and is not rejected.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     from_month: int = Field(ge=1, le=12)
     from_day: int = Field(ge=1, le=31)
@@ -690,7 +711,7 @@ class Hours(BaseModel):
     """A RANGE WITHIN THE DAY. Either end may be a clock time or a solar one, so "from one hour
     after sunset to one hour before sunrise" is sayable. It WRAPS midnight the same way a
     `DateRange` wraps the year end, and needs no flag for that either."""
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     start: Clock
     end: Clock
@@ -715,7 +736,7 @@ class When(BaseModel):
     `dates` EMPTY MEANS ALL YEAR, per the synopsis: "When no date is listed, the regulations apply
     ALL YEAR. Start and end dates are INCLUSIVE."
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     dates: List[DateRange] = Field(default_factory=list)
     hours: Optional[Hours] = None
@@ -754,7 +775,19 @@ class Slot(str, Enum):
     lure = "lure"                       # the terminal object: artificial_fly, artificial_lure
     method = "method"                   # how you fish: fly_fishing, set_lining, ice_fishing
     barb = "barb"                       # barbed | barbless
-    light = "light"                     # a light used to attract fish
+    # SPEC SLOTS — `must_be`, how the thing must be built or carried.
+    #
+    # THE SLOT AND THE MEANS SHARE ONE TOKEN. A set line IS how you set-line and a crayfish trap
+    # IS how you crayfish-trap, so the slot is named for the means and `while: ["set_lining"]`
+    # needs no lookup to reach `set_lining: {must_be: [...]}`. They were `set_line` and
+    # `crayfish_trap`, which forced a correspondence map in the register for no gain.
+    set_lining = "set_lining"
+    crayfish_trapping = "crayfish_trapping"
+    downrigger = "downrigger"
+    light = "light"
+    # …EXCEPT WHERE THE OBJECT IS NOT THE MEANS. An ice hut is not how you ice fish; it is a thing
+    # you leave on a lake. So this slot keeps its own name and carries `while: ["ice_fishing"]`.
+    ice_hut = "ice_hut"
     # COUNTED — `max`/`min` are whole numbers of the thing the name says.
     hooks_per_line = "hooks_per_line"
     points_per_hook = "points_per_hook"
@@ -770,7 +803,12 @@ class Slot(str, Enum):
 
 #: Which slots take a SET and which take a NUMBER. A slot cannot take both, and `_check` refuses
 #: the mixture — that is what stops a count being written where a whitelist belongs.
-_SET_SLOTS = frozenset({Slot.bait, Slot.lure, Slot.method, Slot.barb, Slot.light})
+_SET_SLOTS = frozenset({Slot.bait, Slot.lure, Slot.method, Slot.barb})
+
+#: The slots whose bound is `must_be` — how the thing must be built or carried, never a count and
+#: never a whitelist. Presence asserts; absence is silence; there is no negation to write.
+_SPEC_SLOTS = frozenset({Slot.set_lining, Slot.crayfish_trapping, Slot.downrigger, Slot.light,
+                         Slot.ice_hut})
 
 #: The slots whose bound is a MEASUREMENT rather than a count, and so may be fractional.
 _MEASURED = frozenset({Slot.hook_gap_mm, Slot.weight_per_line_kg, Slot.bait_possession_kg})
@@ -791,7 +829,7 @@ class GearWhen(BaseModel):
     named term, and anything the book says that does not fit goes in `note` — which REQUIRES a
     `review_reason` on the rule, so the gap is visible rather than absorbed.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     water: Optional[WaterKind] = None
     method: Optional[Method] = None          # "…when set lining"
@@ -822,17 +860,21 @@ class GearSpec(BaseModel):
     an open spec would be that field again. What does not fit goes in `note`, which costs a
     `review_reason`, so the gap stays visible instead of being absorbed.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
+    #: `submerged: Optional[bool]` WAS HERE and it was the last polarity flag in the model.
+    #: `submerged: false` reads as "a light is lawful only if it is NOT submerged", the inverse of
+    #: the printed clause — `{barbless: true, required: false}` in a new house, evicted from
+    #: `GearClause` and re-admitted one object down. A state the thing must be IN is a `must_be`
+    #: token on the spec slot, where negation is unwriteable.
     attached_to: Optional[str] = None        # fishing_line
     attachment: Optional[str] = None         # quick_release
-    submerged: Optional[bool] = None
     within_m_of_hook: Optional[float] = None
     opening_shape: Optional[str] = None      # circular
     note: str = ""
 
     def is_empty(self) -> bool:
-        return not (self.attached_to or self.attachment or self.submerged is not None
+        return not (self.attached_to or self.attachment
                     or self.within_m_of_hook or self.opening_shape or self.note)
 
 
@@ -845,14 +887,27 @@ class GearClause(BaseModel):
     legal in every stream in B.C. A clause carries its verdict in the same object as its numbers,
     so there is no neighbour left to invert.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     slot: Slot
     #: WHICH members this clause speaks about. Absent = ALL of them, so "bait ban" is a bare
     #: `{slot: bait, allow: []}` while "fin fish is prohibited" is `of: ["fin_fish"]` with the
     #: same empty allow — a TOTAL ban and a PARTIAL one, which without `of` are one record.
     of: List[str] = Field(default_factory=list)
-    allow: Optional[List[str]] = None        # set slots; [] is the ban
+    #: THREE BOUNDS, ONE MEANING EACH. `allow` permits and says nothing about the rest; `only` is
+    #: a whitelist that closes the slot ("fly fishing only"); `ban` prohibits what it names. With
+    #: `allow` alone, a permission and a whitelist are the same record and a reader must guess.
+    allow: Optional[List[str]] = None
+    only: Optional[List[str]] = None
+    ban: Optional[List[str]] = None
+    #: MEMBERS THIS CLAUSE'S BOUND DOES NOT REACH. "The use of fin fish (dead or alive) or parts
+    #: of fin fish OTHER THAN ROE is prohibited throughout the province" is one sentence with one
+    #: bound and one carve-out, and `gear` being a map means a ban and an allow cannot both sit on
+    #: `bait` in one rule. Without this the exception produced NO FIELD, and its whole force fell
+    #: on one register line parenting `roe` to `any_bait` rather than to `fin_fish` — a line that
+    #: reads like under-specification, whose correction would ban roe province-wide, and which no
+    #: verbatim-seeded check could catch because there was no field to compare against.
+    except_: List[str] = Field(default_factory=list, alias="except")
     members: List[str] = Field(default_factory=list)  # a choice of ONE from several kinds
     max: Optional[float] = None
     min: Optional[float] = None
@@ -860,6 +915,7 @@ class GearClause(BaseModel):
     #: HOW THE THING ITSELF MUST BE — see `GearSpec`. A property of the subject this clause
     #: names, not a separate condition on the angler or the water.
     requires: Optional[GearSpec] = None
+    must_be: List[str] = Field(default_factory=list)
     #: WHAT LIFTS THIS CLAUSE. "more than 1 kg of weight … (this does not apply to downrigger
     #: weights)" is one clause with one escape; the carve-out used to sit in `reason`, the same
     #: free-text field that elsewhere held an obligation and elsewhere the prohibited act's name.
@@ -868,22 +924,77 @@ class GearClause(BaseModel):
     @model_validator(mode="after")
     def _shape(self) -> "GearClause":
         counted = self.max is not None or self.min is not None
-        if self.slot in _SET_SLOTS:
-            if counted and self.slot is not Slot.light:
-                raise ValueError(f"{self.slot.value} is chosen from a set: use `allow`, not max/min")
-            if self.allow is None:
-                raise ValueError(f"{self.slot.value} needs `allow` (an empty list IS the ban)")
-            if self.allow and self.of and not set(self.allow) <= set(self.of):
-                raise ValueError(f"{self.slot.value}: allow {self.allow} is not within of {self.of}")
+        bounds = [b for b in (self.allow, self.only, self.ban) if b is not None]
+        if self.slot in _SPEC_SLOTS:
+            # NO BOUND AT ALL ON A SPEC SLOT. `light: {max: 1}` read as "at most one light" when
+            # the printed 1 is METRES — "within 1 m of the hook" — and `light` was the one slot
+            # admitted to a number without the unit in its name, which is the founding complaint
+            # of this enum.
+            if bounds or counted:
+                raise ValueError(f"{self.slot.value} says HOW the thing must be: use `must_be` "
+                                 f"(a distance is its own slot, with the unit in the name)")
+            if not self.must_be and not self.requires:
+                raise ValueError(f"{self.slot.value} needs a `must_be`")
+        elif self.slot in _SET_SLOTS:
+            if counted:
+                raise ValueError(f"{self.slot.value} is chosen from a set: "
+                                 f"use allow/only/ban, not max/min")
+            if len(bounds) != 1:
+                raise ValueError(f"{self.slot.value} takes exactly one of allow / only / ban")
+            # A BAN NAMES ITS MEMBERS. An empty list is also what a dropped key, a failed parse and
+            # a half-filled field produce, so `ban: []` would make the most dangerous statement in
+            # the schema the easiest one to write by accident.
+            # NO EMPTY LIST, ON ANY OF THE THREE. An empty list is what a dropped key, a failed
+            # parse and a half-filled field all produce. `allow: []` was the sanctioned spelling
+            # of "everything in this slot is banned" — the widest statement in the schema, written
+            # in the one shape three accidents also write. "Bait ban" is `ban: ["any_bait"]`, and
+            # the whole-slot member has to be typed.
+            if self.except_ and self.ban is None:
+                raise ValueError(f"{self.slot.value}: `except` carves members out of a ban")
+            for key, val in (("allow", self.allow), ("only", self.only), ("ban", self.ban)):
+                if val is not None and not val:
+                    raise ValueError(
+                        f"{self.slot.value}: `{key}: []` says nothing or says everything, and is "
+                        f"what a dropped key also writes — name the members "
+                        f"(a total ban is the whole-slot member, e.g. any_bait)")
         else:
-            if self.allow is not None:
-                raise ValueError(f"{self.slot.value} is counted or measured: use max/min, not `allow`")
-            if not counted and not self.members:
+            if self.except_:
+                raise ValueError(f"{self.slot.value} is counted: `except` carves out set members")
+            # ALL THREE SET BOUNDS, not just `allow`. `{hooks_per_line, only: ["single"], max: 1}`
+            # rebuilds the exact collapse this enum exists to end — a statement about hook TYPE
+            # riding on the slot that COUNTS hooks.
+            if bounds:
+                raise ValueError(f"{self.slot.value} is counted or measured: "
+                                 f"use max/min, not allow/only/ban")
+            # `members` QUALIFIES a bound and never substitutes for one. Without this,
+            # "only one hook, one lure OR one fly is attached" — the basic licence entitlement,
+            # on every angler on every water — inverts into unlimited terminal tackle.
+            if not counted:
                 raise ValueError(f"{self.slot.value} needs a max or a min")
+        # AN ESCAPE THAT MATCHES EVERYTHING LIFTS EVERYTHING. `GearWhen()` with every field at its
+        # default is a valid object, so "(this does not apply to downrigger weights)" with the one
+        # key dropped becomes "there is no weight limit in B.C." — and a dropped key is exactly
+        # what a parse that scanned the parenthetical and matched nothing produces.
+        for u in self.unless:
+            if u.is_empty():
+                raise ValueError(f"{self.slot.value}: an `unless` with no condition lifts the "
+                                 f"clause everywhere — say what lifts it")
+        if self.requires is not None and self.requires.is_empty():
+            raise ValueError(f"{self.slot.value}: `requires` states nothing")
         if self.max is not None and self.min is not None and self.min > self.max:
             raise ValueError(f"min {self.min} > max {self.max} permits nothing")
         # A COUNT IS A WHOLE NUMBER. Only the measured slots carry a fraction, and letting a
         # count be 1.5 would make "one and a half hooks" a storable rule.
+        # THE BOOK PRINTS BOTH UNITS — "gap not less than 3 cm" on a set line, "no hooks greater
+        # than 15 mm from point to shank" on a hook. One unit in the slot name is what stops them
+        # diverging, and the cost is that an unconverted 3 is a LEGAL value meaning 3 mm, which is
+        # no constraint at all. Nothing in the corpus goes below 15.
+        if self.slot is Slot.hook_gap_mm:
+            for v in (self.max, self.min):
+                if v is not None and v < 10:
+                    raise ValueError(f"hook_gap_mm {v} is smaller than any gap the book prints — "
+                                     f"the synopsis states this in cm as well as mm, so confirm "
+                                     f"the unit ('3 cm' is 30)")
         if self.slot not in _MEASURED:
             for v in (self.max, self.min):
                 if v is not None and float(v) != int(v):
@@ -906,7 +1017,7 @@ class Conduct(BaseModel):
     `{method: "ice_fishing", permitted: true}` on a warning about removing huts, so a query for
     "may I ice fish here" answered yes from a sentence that grants nothing.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     must: str = ""                           # mark_gear, remove_ice_hut, release_immediately
     must_not: str = ""                       # waste_catch, chum, sell_catch, gear_during_closure
@@ -928,7 +1039,7 @@ class LengthBand(BaseModel):
     `min_cm` and `max_cm` are INCLUSIVE, and null is open at that end. `take` is how many of
     THESE you may keep; omitted, the rule's own `take` applies to them.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     min_cm: Optional[int] = None
     max_cm: Optional[int] = None
@@ -953,11 +1064,27 @@ class CatalogueRule(BaseModel):
     """One regulation, typed. `verbatim` is the synopsis sentence and is REQUIRED — the generated
     label is a summary and never a replacement, so the words the law used must always be reachable.
     """
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     rule_id: str
     type: RuleType
     verbatim: str = Field(..., min_length=1, description="the synopsis sentence, exactly")
+
+    @model_validator(mode="after")
+    def _circumstances_are_real(self) -> "CatalogueRule":
+        known = {m.value for m in Method} | {s.value for s in _SPEC_SLOTS}
+        for w in self.while_:
+            if w not in known and w != "alone_in_a_boat":
+                raise ValueError(f"while: {w!r} is not a means of fishing or a spec slot")
+        # AN EXEMPTION WITH NO CIRCUMSTANCE LIFTS EVERYWHERE. The same argument that refuses
+        # `ban: []` — an empty list is what a dropped key also writes — applies here, and the
+        # stakes are higher: a lift that should have been narrow and is not is the Babine failure.
+        if self.exempts and self.gear and not self.while_:
+            if not any(c.when is not None and not c.when.is_empty() for c in self.gear):
+                raise ValueError("a gear rule that exempts another must say WHEN it lifts it — "
+                                 "`while`, or a `when` on the clause; a lift with no circumstance "
+                                 "applies everywhere and deletes the rule it was meant to narrow")
+        return self
 
     @model_validator(mode="before")
     @classmethod
@@ -1041,6 +1168,13 @@ class CatalogueRule(BaseModel):
     #: otherwise find a rule with no source text. This says which sentence licensed it. Such a
     #: rule carries its source's `verbatim`, as every other rule split from one sentence does.
     derived_from: Optional[str] = None
+
+    #: WHAT YOU ARE DOING, for a clause that binds only then. Drawn from `Method` members AND
+    #: spec-slot names, because a spec slot's name IS a means token — see the note on `Method`.
+    #: A LIFT WHOSE CIRCUMSTANCE IS NOT MET IS NOT APPLIED, which is the Babine rule on a new
+    #: axis: "dead fin fish when set lining" applied everywhere deleted the province-wide fin
+    #: fish ban and a water's bait tile went from "banned" to "no rule at all".
+    while_: List[str] = Field(default_factory=list, alias="while")
 
     #: ACTS — what you must and must not DO, kept apart from gear so a duty is never stored as a
     #: permission. "Set lines must be marked with angler's name, address, and telephone number"

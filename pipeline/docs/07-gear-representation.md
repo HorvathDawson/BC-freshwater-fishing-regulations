@@ -117,23 +117,61 @@ already settles rule-against-rule.
 
 **THE SLOT NAME CARRIES MEASURAND, DIRECTION AND UNIT.**
 
-    lines_per_angler   attachments_per_line   hooks_per_line   flies_per_line
-    points_per_hook    barbs_per_hook         hook_gap_min_mm  hook_gap_max_mm
-    weight_per_line_kg roe_in_possession_kg   light_to_hook_mm
+    COUNTED / MEASURED
+    lines_per_angler       attachments_per_line   hooks_per_line   flies_per_line
+    points_per_hook        hook_gap_min_mm        hook_gap_max_mm
+    weight_per_line_kg     roe_in_possession_kg   light_to_hook_mm
 
-`hook_count` was three quantities — attachments on the line, hooks on the line, POINTS on one hook
-— and a treble is one hook with three points. You can no longer write `1` without choosing which.
+    CHOSEN FROM A SET
+    bait   lure   method   barb   (barbed | barbless)
+
+    HOW THE THING MUST BE (`must_be`)
+    set_lining   crayfish_trapping   downrigger   light   ice_hut
+
+`hook_count` confused TWO hook measurements — how many hooks on the line, and how many POINTS on
+one hook. A treble is one hook with three points, so the same `1` banned it and permitted it. Those
+are the two that were genuinely conflated.
+
+`attachments_per_line` is NOT a third meaning of the same thing, and calling it one blurred the
+diagnosis. "only one hook, one artificial lure OR one artificial fly is attached" is a property of
+the LINE — one item on it, drawn from three kinds — and it was filed under `hook_count` because
+there was nowhere else to put it. A missing slot, not a confused one.
 `min_gap_cm: 3` and `max_gap_mm: 15` were one measurement in two units; there is one slot and one
 unit, so 3 cm is entered as `30`.
 
-**`barbs_per_hook: {max: 0}` IS "barbless".** Barbs go on the same axis as every other quantity, so
-no boolean exists to invert and `{barbless: true, required: false}` has no spelling at all. The
-opposite — barbs permitted — is correctly the ABSENCE of a clause, not a value.
+**`barb` IS AN ORDINARY SET SLOT** — `{allow: ["barbless"]}`. An earlier draft made it
+`barbs_per_hook: {max: 0}`, on the reasoning that `{barbless: true, required: false}` was inverted
+and therefore the boolean had to go. That diagnosis was wrong: what inverted it was `required`, a
+SECOND FIELD that reinterpreted the first. `barb` was never the problem, and with `required` gone
+there is nothing left to flip it. "A maximum of zero barbs" is cleverness where the book says
+barbed or barbless.
 
-**SETS ARE `{allow: [...]}` OR `{ban: [...]}`, and `ban` is non-empty.** Direction is the key, so it
-cannot be flipped by a neighbour. An earlier draft made `allow: []` the ban; that was wrong, because
-an empty list is what a dropped key, a failed parse and a serializer omitting empties all produce —
-it turns an omission into an inversion. Vocabularies are closed: `bait`, `lure`, `method`. There is
+**SETS TAKE ONE OF THREE BOUNDS, AND `allow` MEANS EXACTLY ONE THING.**
+
+    {allow: [...]}   these are permitted; NOTHING ELSE IS SAID   "worms may be used in streams"
+    {only:  [...]}   these MEMBERS and no other MEMBER            "fly fishing only"
+    {ban:   [...]}   these are prohibited                        "bait ban"
+    except: [...]    members a `ban` does not reach              "…other than roe"
+
+**`only` CLOSES THE SLOT, NOT THE PLACE, AND THE PRINTED WORD DOES BOTH.** "You may ONLY fish with
+a set line in lakes of Region 6 and Region 7A" is not `method: {only: ["set_lining"]}` — that says
+set lining is the one lawful method on those lakes, outlawing fly fishing and trolling on every one
+of them. There the word scopes the PLACE, and a place-scoped "only" is two rules: `allow` where the
+book permits it, and a ban elsewhere carrying `derived_from`, which is how `zp:set_lining.r1b` is
+already written. Reach for `only` when the sentence narrows WHAT, never WHERE.
+
+An earlier draft had `allow` and `ban` alone, and `allow` was silently doing two jobs — a
+permission that forbids nothing, and a whitelist that forbids everything else. That is the
+`over_cm` disease: one key, two meanings, decided by the reader's guess at context. `only` is the
+word "only" promoted out of the prose, and it is the bound that lets "Fly fishing only" close the
+lure slot without a second field asserting the closure.
+
+**`ban` NAMES ITS MEMBERS.** Direction is the key,
+so a neighbour cannot flip it. An earlier draft made `allow: []` the total ban — compact, and
+dangerous: an empty list is also what a dropped key, a failed parse, a serializer omitting empties
+and a half-filled field all produce, so every one of those accidents would have become a
+province-wide ban. "Bait ban" is `{"bait": {"ban": ["any_bait"]}}`, and `any_bait` has to be typed.
+THE MOST DANGEROUS STATEMENT MUST NOT BE THE EASIEST ONE TO PRODUCE BY ACCIDENT. Vocabularies are closed: `bait`, `lure`, `method`. There is
 no `other` member, which is what kills `{method: "other", reason: "chumming"}`.
 
 **`must_be: [...]` IS PRESENCE-ONLY.** How the thing must be built or carried — the downrigger's
@@ -141,11 +179,57 @@ quick-release, the light's submersion, the crayfish trap's circular openings, th
 marking, the ice hut's removal. Presence asserts; absence is silence; negation is not expressible,
 so there is no `false` to write.
 
+**MEMBERS HAVE PARENTS, DECLARED IN THE REGISTER.** `ban: ["any_bait"]` has to cover roe,
+invertebrates and fin fish; `allow: ["dead_fin_fish"]` has to sit visibly under a `fin_fish` ban so
+a reader can see it is a carve-out and not a contradiction. The containment is a small PARENT map
+(`roe -> any_bait`, `dead_fin_fish -> fin_fish`, `fly -> any_lure`), declared once. Without it a
+consumer has to know by hand that roe is bait.
+
+**AN EXEMPTION WITH A `while` LIFTS ONLY INSIDE THAT CIRCUMSTANCE.** This is the most consequential
+rule here and it was found by converting, not by design. "Dead fin fish may be used when set
+lining" exempts the province-wide fin fish ban — but only WHILE set lining. Applied everywhere, it
+lifted the ban outright and Atlin's bait tile went from "banned" to "no rule at all". The ban
+stands, and the exception rides beside it as "dead fish while set lining".
+
+This is the Babine rule on a new axis. `z6`'s steelhead closure carried an exemption whose PLACE
+could not be drawn; applied everywhere it deleted the closure from a river the note never
+exempted, and the standing rule is that a lift whose place cannot be drawn is not applied. A lift
+whose CIRCUMSTANCE is not met is the same failure and gets the same answer.
+
 **`while` SPLITS A FIELD THAT DID TWO JOBS.** `method` is the SUBJECT of an assertion on 135 rules
 (`{method: set_lining, permitted: false}`) and the CIRCUMSTANCE on 10 others
 (`set_lining.r3` is a retention limit that happens WHILE set lining). Which job it was doing had to
 be inferred from the other fields present — the `over_cm` disease in a field nobody had examined.
 The assertion is `gear.method`; the circumstance is `while`.
+
+**A "PROVIDED THAT" SENTENCE IS TWO RULES SHARING A VERBATIM.** One says the means is allowed; the
+other holds the condition under `while`, so the condition binds only while you are using the thing.
+This is the one-sentence-many-rules convention the corpus already runs on, not a new mechanism.
+
+    "angle with a downrigger, provided the line is attached by a quick-release"
+      {gear: {method: {allow: ["downrigger"]}}}
+      {gear: {downrigger: {must_be: ["quick_release_to_line"]}}, while: ["downrigger"]}
+
+    "Use a light … unless submerged and attached within 1 m of the hook"
+      {gear: {method: {allow: ["light"]}}}
+      {gear: {light: {must_be: ["submerged"]}, light_to_hook_mm: {max: 1000}}, while: ["light"]}
+
+**A DEVICE IS NOT A MEANS OF FISHING, AND PUTTING IT IN `method` FABRICATES A PERMISSION.** The
+goal — one vocabulary for `while` — is met by letting `while` draw from method members AND
+spec-slot names, since a spec slot's name already IS a means token (`set_lining`,
+`crayfish_trapping`). `while: ["downrigger"]` then has a referent with no lookup and no membership.
+
+What membership cost: the two-rules pattern turns a "provided that" sentence into an allow plus a
+condition, and it is POLARITY-BLIND. `zp:allowable_methods` is headed "angle with a downrigger,
+PROVIDED…" — an allowable list, the grant is real. `zp:terminal_tackle` is headed "It is UNLAWFUL
+to…" — its light clause grants nothing. Through one template both produced
+`method: {allow: [...]}`, so a Region 6 lake answered "what may I fish with here" with `light`, the
+one piece of tackle the province forbids outright. That is `{method: "ice_fishing",
+permitted: true}` on a hut-removal warning, rebuilt on a new field.
+
+THE TOKEN IS THE SAME ONLY WHERE THE OBJECT IS THE MEANS. An ice hut is not how you ice fish, it is
+something you leave on the lake, so `ice_hut` is its own spec slot carrying `while: ["ice_fishing"]`
+— the object and the circumstance are genuinely two things there and the rule does not reach it.
 
 **`conduct` NAMES THE ACT IN ITS LAWFUL DIRECTION** — `do_not_waste_catch`, not `waste_catch` plus a
 flag. The direction is declared once per act, so there is no polarity key to set backwards.
