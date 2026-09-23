@@ -23,10 +23,13 @@ you must follow it, not your intuition about what the words mean.
    appear in that rule's own `verbatim`.
 5. **If you cannot bind a location, say so** — give a `review_reason` that names what is
    missing. An honest flag beats a wrong guess.
-6. **A `bait_restriction` or `tackle_restriction` MUST carry `allowed`.** `true` or `false`, every
-   time. *"Bait ban"* is `allowed: false`; *"roe may be used"* is `allowed: true`. Both are the
-   same type and the field is the entire difference between them, so it is never optional and
-   `permitted` is not a substitute for it. **Seven of twenty-one rejections in one run were this.**
+6. **A `bait_restriction`, `tackle_restriction`, `method_rule` or `handling_rule` says what it
+   constrains in `gear` (or `conduct`) — never in a flag.** *"Bait ban"* is
+   `gear: [{"slot": "bait", "ban": ["any_bait"]}]`; *"roe may be used"* is
+   `{"slot": "bait", "allow": ["roe"]}`. The direction is the KEY the clause uses, so it cannot
+   sit in a neighbouring field and be read backwards. See "Gear" below. `allowed`, `barbless`,
+   `hook_count`, `lure`, `bait`, `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and
+   `max_gap_mm` no longer exist and are refused.
 7. **A `vessel_rule` with `aspect: propulsion` MUST carry `level`.** One ordered scale, strictest
    first — and `permitted: false` says none of them:
 
@@ -86,7 +89,7 @@ These were each filed two ways in the old corpus. The right column is the rule:
 
 | statement | type | why |
 |---|---|---|
-| *"No ice fishing"* | `method_rule(ice_fishing, permitted=false)` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
+| *"No ice fishing"* | `method_rule`, `gear: [{"slot": "method", "ban": ["ice_fishing"]}]` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
 | *"No powered boats"* | `vessel_rule(aspect=propulsion)` | restricts the boat, not the tackle |
 | *"No angling from boats"* | `angling_from_vessel_prohibited` | restricts ANGLING, not boating — a water can allow motoring and forbid fishing from the boat |
 | *"Class I/II water"* | `document_required` | a licence classification; the water's `Classified` symbol carries the fact |
@@ -131,16 +134,13 @@ period         daily (default) | possession | annual (licence year, Apr 1 - Mar 
 per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
 lengths        THE SIZE LIMIT, and the only field for it — see "Sizes" below.
-               `over_cm`, `under_cm` and `band` are RETIRED. They are still accepted and
-               converted so an older output still loads, but emit `lengths` directly.
+               `over_cm`, `under_cm` and `band` no longer exist and are refused.
 water          stream | lake            origin  hatchery | wild
 
 REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY
 the rule runs, and none of them can be inferred from the words afterwards:
 
-allowed        bait_restriction and tackle_restriction. true or false, ALWAYS.
-               "bait ban" is allowed=false. "roe may be used" is allowed=true. A permission
-               is a rule too, so the field is never optional and never `permitted`.
+gear           bait_restriction, tackle_restriction, method_rule. See "Gear" below.
 aspect+level   vessel_rule. aspect is propulsion | speed | towing.
                For propulsion, `level` is required and is an ORDERED scale, strictest first:
                  none        no vessels at all          ("No vessels")
@@ -149,18 +149,17 @@ aspect+level   vessel_rule. aspect is propulsion | speed | towing.
                  power_capped  a kW limit, with max_power_kw ("7.5 kW / 10 hp")
                `permitted: false` is NOT a substitute — "No vessels" and "No powered boats"
                are both a refusal and they are different rules.
-method+permitted  method_rule. Both, always.
-method         angling | set_lining | spear_fishing | crayfish_trapping | ice_fishing | netting
+while          the methods during which the rule binds: "dead fin fish may be used WHEN SET
+               LINING" is gear on bait with while: ["set_lining"].
 when           WHEN THE RULE BINDS — see "Seasons and times" below. One object holding
                `dates`, `hours`, `weekdays` and `unparsed`. `windows`, `windows_are`,
-               `from_time`, `to_time` and `weekdays` are RETIRED (accepted and converted).
+               `from_time` and `to_time` no longer exist and are refused.
 angler_class · when_open
 extent_text    the reach in the page's own words, when no split can express it
 exempts        what this rule LIFTS
 obligation     must (default) | should — "anglers are encouraged" is should, not law
-review_reason  why a human must look. THERE IS NO `needs_review`: a reason present IS the
-               flag, and one longer than 20 characters is expected. `aggregation_domain` is
-               also retired — say it in the verbatim.
+review_reason  why a human must look. THERE IS NO `needs_review` (refused): a reason
+               present IS the flag, and one longer than 20 characters is expected.
 ```
 
 ## Extents — WHERE the rule applies
@@ -315,6 +314,58 @@ because the parent quota governs it:
 ```
 [{"min_cm":70,"max_cm":100,"take":0}, {"min_cm":100}]
 ```
+
+---
+
+## Gear — `gear`, `while`, `conduct`
+
+`gear` is an ORDERED list of clauses. Each names ONE `slot` and how far it is constrained.
+Within one slot the FIRST clause whose `when` matches wins, so a narrow case goes before the
+general one; clauses on different slots are independent and all apply.
+
+```
+SET slots        bait · lure · method · barb
+                 exactly ONE of  allow  (permits what it names, says nothing of the rest)
+                                 only   (a whitelist: closes the slot to everything else)
+                                 ban    (prohibits what it names)
+                 of      narrows which members the clause speaks about
+                 except  members a ban does not reach
+COUNTED/MEASURED hooks_per_line · points_per_hook · lines_per_angler · flies_per_line ·
+                 terminal_attachments_per_line · hook_gap_mm · weight_per_line_kg ·
+                 bait_possession_kg · light_to_hook_mm
+                 max / min, in the UNIT THE NAME CARRIES ("3 cm" is hook_gap_mm min 30)
+SPEC slots       set_lining · crayfish_trapping · downrigger · light · ice_hut
+                 must_be: how the thing must be built ("quick_release_to_line")
+any clause       when:   {water, method, targeting, angler}   — the clause holds only then
+                 unless: [{…same…, gear_in_use}]               — what lifts it
+```
+
+| the page says | `gear` |
+|---|---|
+| *"Bait ban"* | `[{"slot": "bait", "ban": ["any_bait"]}]` |
+| *"Single barbless hook"* | `[{"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]` |
+| *"Single hook"* | `[{"slot": "points_per_hook", "max": 1}]` — a POINT, not a hook: one attachment per line is already the provincial rule |
+| *"Fly fishing only"* | `[{"slot": "method", "only": ["fly_fishing"]}]` |
+| *"Artificial fly only"* | `[{"slot": "lure", "only": ["artificial_fly"]}]` — NOT the same as fly fishing, which also forbids floats and sinkers |
+| *"No ice fishing"* | `[{"slot": "method", "ban": ["ice_fishing"]}]` |
+| *"No hooks greater than 15 mm from point to shank"* | `[{"slot": "hook_gap_mm", "max": 15}]` |
+| *"fin fish … other than roe is prohibited"* | `[{"slot": "bait", "ban": ["fin_fish"], "except": ["roe"]}]` |
+| *"more than 1 kg of weight (not downrigger weights)"* | `[{"slot": "weight_per_line_kg", "max": 1, "unless": [{"gear_in_use": "downrigger_weight"}]}]` |
+| *"one line, EXCEPT two when alone in a boat on a lake"* | `[{"slot": "lines_per_angler", "max": 2, "when": {"water": "lake", "angler": "alone_in_boat"}}, {"slot": "lines_per_angler", "max": 1}]` — ONE rule, narrow case first |
+
+**One sentence with an "except" is one rule;** the book printing two rows is two rules.
+
+**`while`** is the method during which the rule binds (*"dead fin fish may be used when set
+lining"* → bait allow + `while: ["set_lining"]`). **`when_targeting`** is the species being fished
+FOR (*"bait ban when fishing for salmon"*). Neither is a clause of its own.
+
+**`conduct`** is an act the angler must do or refrain from, as a registered token named in the
+LAWFUL direction: `do_not_waste_catch`, `release_immediately`, `remove_ice_hut_before_breakup`,
+`mark_set_line_with_contact_details`. It is never a piece of gear.
+
+**An exemption carries no gear of its own.** *"EXEMPT from single barbless hooks"* is `exempts` on
+a `tackle_restriction` and nothing else; a sentence you cannot write as a clause (*"unlimited
+number of rods"*) is an exemption from the rule it lifts, plus a `review_reason`.
 
 ---
 

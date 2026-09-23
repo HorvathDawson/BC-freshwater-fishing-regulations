@@ -3,12 +3,12 @@
 The rebuilt parser never extracts geometry from prose. For each synopsis row it is given exactly one
 registry item and the closed set of bindable cut-points on it (`item.boundaries`), and it must express
 every rule's reach by *selecting* from that set (op + boundary ids) — or, when no boundary fits, record
-the unbindable phrase in `unresolved_locators` and flag `needs_review`. This module turns a
+the unbindable phrase in `unresolved_locators` and give a `review_reason`. This module turns a
 `RegistryItem` into that menu and renders the per-entry user message; the stable instructions + worked
 examples live in `PARSE_PROMPT.md`.
 
 `within(area)` scopes (Garibaldi/reserve closures) are NOT auto-bound by the parser — they're a curation
-step (DECISION 2026-08-16): an area reg is flagged `needs_review` and a curator adds the extent (matched
+step (DECISION 2026-08-16): an area reg is given a `review_reason` and a curator adds the extent (matched
 area for a blanket closure, or a `within(area)` extent for a system-scoped one), pointing at a catalog
 `area_id`. So the parse menu carries only the item's own boundaries, never an area list.
 
@@ -244,8 +244,8 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append(f"Reason: {ctx.registry_note or 'unmatched'}")
         lines.append("This row has NO registry item, so there are NO boundaries to bind. Still do the "
                      "real work: split `regs_verbatim` into catalogue rules — `type`, its required "
-                     "conditions, `species`, `windows`, and a `verbatim` that is a substring of the "
-                     "regs below. For EVERY rule set `extents: []`, `needs_review: true`, and a "
+                     "conditions, `species`, `when`, and a `verbatim` that is a substring of the "
+                     "regs below. For EVERY rule set `extents: []` and a "
                      "`review_reason` (e.g. \"no registry match — attach an item and bind extents\"). "
                      "Do NOT invent split ids or op:whole. Leave `registry_status`/`registry_note` "
                      "unset (ingest fills them).")
@@ -281,7 +281,7 @@ Return ONLY a JSON array — one object per ITEM above, in this exact shape:
 - Pick `species` from the menu shown with each item — the GROUP the regulation's own words use
   (`TROUT_CHAR`, `ALL_GAME_FISH`) unless the sentence names one fish. Empty is not "all".
 - Bind `extents.splits` only to that item's listed boundary ids. If none fit, record the phrase in
-  `unresolved_locators` and set `needs_review` — never invent an id.
+  `unresolved_locators` and give a `review_reason` — never invent an id.
 
 This is a single-shot parse: emit the JSON directly. Your output is validated (Entry schema + split-id
 check) after you submit, and any batch that fails is re-run — so get each entry right in one pass.

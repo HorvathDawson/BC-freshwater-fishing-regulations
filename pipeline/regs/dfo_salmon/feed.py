@@ -65,7 +65,7 @@ def build(scraped: dict) -> dict:
             # The rows this locator published, verbatim. A rule's `verbatim` is a span of one of
             # these, so whoever joins the feed can check the quote without the page.
             "rows": [row_text(r) for r in recs],
-            "rules": [r.model_dump(mode="json", exclude_defaults=True) for r in rules],
+            "rules": [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules],
         })
 
     return {

@@ -40,8 +40,9 @@ The two readings are opposite and the page distinguishes them:
                                 lengths [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
 ```
 
-`over_cm`, `under_cm` and `band` are RETIRED — `lengths` is the size field. A rule still carrying
-the old three is converted on load, but flag it so the next pass emits `lengths` directly.
+`over_cm`, `under_cm` and `band` no longer exist — `lengths` is the size field, and a rule
+carrying the old three is refused on load. The same holds for the old gear flags (`allowed`,
+`barbless`, `hook_count`, `lure`, `bait`, `max_lines`, …): gear is `gear` clauses only.
 
 The word "over" appears in all three and maps to a different field in each. **Ask which fish go
 back**: they are the ones outside the bound stored. Getting this backwards inverts the rule on the

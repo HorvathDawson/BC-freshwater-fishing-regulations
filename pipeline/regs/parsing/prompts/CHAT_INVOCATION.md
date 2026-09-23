@@ -65,4 +65,4 @@ the model supplied.
 * reword `regs_verbatim`, or stitch it across a sentence boundary
 * state a number that is not in that rule's own `verbatim`
 * put several restrictions in one rule (see the parse prompt's check 6)
-* guess a location — set `needs_review` with a reason that names what is missing
+* guess a location — set a `review_reason` that names what is missing

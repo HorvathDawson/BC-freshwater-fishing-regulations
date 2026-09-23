@@ -212,12 +212,8 @@ def coerce_shapes(data: dict) -> int:
     where the meaning would have to be INFERRED is left to fail — a rejected entry is cheap, and
     a silently wrong one is not.
 
-    Three shapes, all seen in one 34-entry run:
-
-    `windows` as objects. The schema takes plain strings — "Oct 1-June 30" — because that is how
-    the synopsis prints them and copying is checkable. The model reaches for
-    ``{"start": "Oct 1", "end": "June 30"}``, which carries exactly the same two dates. Nine
-    rules in one run.
+    Two shapes, both seen in one 34-entry run. (A third, `windows` written as objects, went with
+    `windows` itself: seasons are `when`, and the old field is refused.)
 
     `exempts` as a bare string. The schema takes a list of exemptions, each naming what it lifts;
     the model writes the name on its own — ``"spring closure"``. Same value, no list around it.
@@ -225,7 +221,7 @@ def coerce_shapes(data: dict) -> int:
     `electric_only: true`, which is not a field at all. It is `aspect: propulsion` with
     `level: electric_only`, and the model invents it because that is what the book calls the rule.
 
-    NOT coerced, deliberately: a `bait_restriction` with no `allowed`, and a propulsion rule with
+    NOT coerced, deliberately: a `bait_restriction` with no `gear`, and a propulsion rule with
     no `level`. "No powered boats" and "No vessels" are both a refusal, and they are different
     rules — deriving one from the other means reading the sentence, which is the one thing this
     file exists to avoid. Those entries fail, and the prompt now documents the fields.
@@ -236,20 +232,6 @@ def coerce_shapes(data: dict) -> int:
     for rule in data.get("rules") or []:
         if not isinstance(rule, dict):
             continue
-
-        wins = rule.get("windows")
-        if isinstance(wins, list) and any(isinstance(w, dict) for w in wins):
-            out = []
-            for w in wins:
-                if isinstance(w, dict):
-                    a = w.get("start") or w.get("from") or ""
-                    b = w.get("end") or w.get("to") or ""
-                    joined = f"{a}-{b}".strip("-") if (a or b) else ""
-                    out.append(joined or str(w))
-                else:
-                    out.append(w)
-            rule["windows"] = [w for w in out if w]
-            n += 1
 
         ex = rule.get("exempts")
         if ex is not None and not isinstance(ex, list):
@@ -351,16 +333,28 @@ def check_entry(entry_data: dict, source_text: str,
         # Every number must be in the rule's OWN sentence. This is what stops a limit being
         # attributed to a rule whose text never stated it.
         numbers = [(f, getattr(rule, f)) for f in
-                   ("take", "max_kmh", "max_power_kw", "per_daily",
-                    "max_gap_mm", "min_gap_cm", "max_weight_kg")]
+                   ("take", "max_kmh", "max_power_kw", "per_daily")]
         # THE SIZES ARE INSIDE `lengths` NOW, and they are exactly the numbers this check exists
         # for: a bound the sentence never stated is a size limit invented by the parser.
         for i, b in enumerate(rule.lengths or []):
             numbers += [(f"lengths[{i}].min_cm", b.min_cm), (f"lengths[{i}].max_cm", b.max_cm)]
+        # A MEASURED gear bound is a printed number too. It is stored in the unit its slot names,
+        # and the book may print it in another ("3 cm" is `hook_gap_mm: 30`, "1 m" is 1000), so
+        # any of the unit's spellings will do. Counts are not checked: "single" is a 1 in words.
+        spell = {}
+        for i, c in enumerate(rule.gear):
+            for k in ("max", "min"):
+                v = getattr(c, k)
+                if v is not None and c.slot.value.endswith(("_mm", "_kg")):
+                    f = f"gear[{i}].{k}"
+                    numbers.append((f, v))
+                    spell[f] = [v, v / 10, v / 1000] if c.slot.value.endswith("_mm") else [v]
         for field, value in numbers:
             if value in (None, 0):
                 continue
             printed = f"{value:g}" if isinstance(value, float) else str(value)
+            if field in spell and any(f"{x:g}" in rule.verbatim for x in spell[field]):
+                continue
             if printed not in rule.verbatim:
                 errors.append(
                     f"{rule.rule_id}: {field}={printed} does not appear in its own verbatim "

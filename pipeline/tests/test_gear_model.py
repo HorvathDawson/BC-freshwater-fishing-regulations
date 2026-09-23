@@ -10,8 +10,8 @@ import pytest
 from pipeline.regs.parsing.catalogue import (CONDUCT_ACTS, CatalogueRule, GearClause, GearSpec,
                                              GearWhen, Method, RuleType, Slot)
 
-_METHOD_RULE = dict(type=RuleType.method_rule, verbatim="v",
-                    method=Method.set_lining, permitted=True)
+_BARE = dict(type=RuleType.method_rule, verbatim="v")
+_METHOD_RULE = dict(_BARE, gear=[{"slot": "method", "allow": ["set_lining"]}])
 
 
 def test_an_escape_with_no_condition_is_refused():
@@ -107,18 +107,18 @@ def test_an_exemption_must_say_when_it_lifts():
     and cost the Babine a season; "dead fin fish when set lining" applied everywhere took a
     water's bait tile from "banned" to "no rule at all"."""
     with pytest.raises(ValueError, match="must say WHERE or WHEN"):
-        CatalogueRule(rule_id="d", **_METHOD_RULE,
+        CatalogueRule(rule_id="d", **_BARE,
                       gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
                       exempts=[{"target": "bait.r1"}])
     # a CIRCUMSTANCE scopes it…
-    assert CatalogueRule(rule_id="e", **_METHOD_RULE, **{"while": ["set_lining"]},
+    assert CatalogueRule(rule_id="e", **_BARE, **{"while": ["set_lining"]},
                          gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
                          exempts=[{"target": "bait.r1"}])
     # …and so does a PLACE. `zp:set_lining.r1` permits set lining in the lakes of Region 6 and
     # 7A and lifts the province-wide ban; its extents are what narrow it, and it needs no
     # circumstance because it names where instead. The first draft of this guard demanded a
     # circumstance and fired on real data.
-    assert CatalogueRule(rule_id="f2", **_METHOD_RULE,
+    assert CatalogueRule(rule_id="f2", **_BARE,
                          extents=[{"op": "within", "area_id": "area:region:6"}],
                          gear=[GearClause(slot=Slot.bait, ban=["fin_fish"])],
                          exempts=[{"target": "bait.r1"}])

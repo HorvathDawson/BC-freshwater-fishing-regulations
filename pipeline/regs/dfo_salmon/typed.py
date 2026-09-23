@@ -12,7 +12,7 @@ mean nothing at all for ten rows.
 One row can be several rules. `"2 per day, bait ban — FN0851"` is a retention limit AND a bait
 restriction, and they are different types because they never compete — you obey both:
 
-    "2 per day, bait ban"   ->   retention_limit(take=2) + bait_restriction(allowed=False)
+    "2 per day, bait ban"   ->   retention_limit(take=2) + bait_restriction(gear: bait ban)
 
 THE BIT THAT MATTERS. `take=0` does not mean closed. `may_target` is what separates "do not fish
 for this" from "fish for it and release it", and the catalogue refuses a `take=0` rule that does
@@ -40,11 +40,14 @@ import re
 from typing import List, Optional
 
 from pipeline.regs.parsing.catalogue import (
-    Bait,
     CatalogueRule,
-    Lure,
+    Hours,
+    LengthBand,
     Origin,
     RuleType,
+    When,
+    parse_clock,
+    parse_date_range,
 )
 
 #: DFO's species column, verbatim -> catalogue codes. Eight distinct values across 438 rules and
@@ -144,7 +147,7 @@ def decode(limits: str) -> dict:
 #
 # It earns its place here rather than merely sitting here. `CatalogueRule` does NOT check that a
 # window parses — the retired prose `Rule` did, via `date_parse_errors` — so a rule can be built
-# today with `windows=["Smarch 40 to Bluneteen 99"]` and nothing objects. `to_rules` now runs this
+# today with a window of "Smarch 40 to Bluneteen 99" and nothing objects. `to_rules` now runs this
 # and sends an unreadable window to review, which restores the guard the catalogue dropped.
 # --------------------------------------------------------------------------------------- #
 
@@ -263,6 +266,24 @@ def _first(*values):
     return None
 
 
+
+def _when(windows: List[str], times) -> Optional[When]:
+    """The row's season and hours as one `when`. A window that does not parse is kept VERBATIM in
+    `unparsed` rather than dropped: an unreadable season and no season are opposite facts."""
+    dates, unparsed = [], []
+    for w in windows:
+        got = parse_date_range(w)
+        (dates if got is not None else unparsed).append(got if got is not None else w)
+    hours = None
+    if times is not None:
+        a, b = parse_clock(times.group(1)), parse_clock(times.group(2))
+        if a is None or b is None:
+            raise ValueError(f"times {times.group(0)!r} do not parse")
+        hours = Hours(start=a, end=b)
+    if not dates and not unparsed and hours is None:
+        return None
+    return When(dates=dates, hours=hours, unparsed=unparsed)
+
 def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     """One scraped row -> the rules it states. `rule_base` is the entry's id stem.
 
@@ -291,9 +312,11 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     rid = f"{rule_base}.r{order}"
     out: List[CatalogueRule] = []
 
-    def base(**kw) -> dict:
-        d = dict(verbatim=gear or (rec.get("species") or "row"), windows=list(windows),
-                 reason=reason)
+    def base(times=None, **kw) -> dict:
+        d = dict(verbatim=gear or (rec.get("species") or "row"), reason=reason)
+        w = _when(windows, times)
+        if w is not None:
+            d["when"] = w
         d.update(kw)
         return d
 
@@ -301,20 +324,20 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     # "To be determined" is a published state, not a gap in the scrape, so it is stored as an
     # advisory that names itself for review rather than being dropped or guessed at.
     if _RE_TBD.search(gear):
-        return [CatalogueRule(rule_id=rid, type=RuleType.advisory, needs_review=True,
+        return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
                               review_reason="DFO has not set this row yet ('to be determined')",
                               **base())]
 
     # A season nobody can read must not publish as though it had none — an unparsed window and an
     # absent one are opposite facts, and `CatalogueRule` does not tell them apart on its own.
     if unreadable:
-        return [CatalogueRule(rule_id=rid, type=RuleType.advisory, needs_review=True,
+        return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
                               review_reason=f"dates do not parse to a calendar window: "
                                             f"{raw_dates!r}",
                               **base())]
 
     if not codes and gear:
-        return [CatalogueRule(rule_id=rid, type=RuleType.advisory, needs_review=True,
+        return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
                               review_reason=f"unmapped species cell {rec.get('species')!r}",
                               **base())]
 
@@ -348,31 +371,31 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
             rule_id=rid, type=RuleType.retention_limit, species=codes, take=take,
             may_target=may_target,
             origin=Origin.hatchery if says["hatchery_marked_only"] else None,
-            from_time=times.group(1) if times else None,
-            to_time=times.group(2) if times else None,
-            needs_review=zero_quota,
             review_reason=("a bare '0 per day' says the quota is zero but not whether you may "
                            "fish at all; published closed, confirm against the page")
                           if zero_quota else "",
-            **base(verbatim=quoted or gear or (rec.get("species") or "row"))))
+            **base(times=times, verbatim=quoted or gear or (rec.get("species") or "row"))))
 
         # --- the size sub-limit, as its own rule pointing at the parent ----
         sub = _first(_RE_ONLY_OVER.search(gear), _RE_WHICH_MAY.search(gear))
         if sub:
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=int(sub.group(1)), over_cm=int(sub.group(2)), within=parent_id,
+                take=int(sub.group(1)), lengths=[LengthBand(min_cm=int(sub.group(2)))],
+                within=parent_id,
                 **base(verbatim=sub.group(0))))
         elif (none_over := _RE_NONE_OVER.search(gear)):
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=0, may_target=True, over_cm=int(none_over.group(1)), within=parent_id,
+                take=0, may_target=True,
+                lengths=[LengthBand(min_cm=int(none_over.group(1)), take=0)], within=parent_id,
                 **base(verbatim=none_over.group(0))))
         elif (mx := _RE_MAX_SIZE.search(gear)):
             cm = int(mx.group(1) or mx.group(2))
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=0, may_target=True, over_cm=cm, within=parent_id,
+                take=0, may_target=True, lengths=[LengthBand(min_cm=cm, take=0)],
+                within=parent_id,
                 **base(verbatim=mx.group(0))))
 
     # --- gear. Never scoped by `species` — a hook rule binds everything you
@@ -380,27 +403,30 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     if says["bait_ban"]:
         quoted = _span(gear, re.compile(r"no\s+natural\s+bait[\w\s]*|bait\s+ban", re.I))
         out.append(CatalogueRule(
-            rule_id=f"{rid}_bait", type=RuleType.bait_restriction, bait=Bait.any, allowed=False,
+            rule_id=f"{rid}_bait", type=RuleType.bait_restriction,
+            gear=[{"slot": "bait", "ban": ["any_bait"]}],
             when_targeting=codes, **base(verbatim=quoted or gear)))
 
     if says["single_barbless_hook"]:
         gap = _RE_GAP.search(gear)
         quoted = _span(gear, re.compile(r"single,?\s+barbless\s+hook[\w\s,.]*", re.I))
         out.append(CatalogueRule(
-            rule_id=f"{rid}_hook", type=RuleType.tackle_restriction, barbless=True, hook_count=1,
-            max_gap_mm=int(gap.group(1)) if gap else None,
+            rule_id=f"{rid}_hook", type=RuleType.tackle_restriction,
+            gear=[{"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]
+                 + ([{"slot": "hook_gap_mm", "max": int(gap.group(1))}] if gap else []),
             when_targeting=codes, **base(verbatim=quoted or gear)))
 
     if _RE_FLY.search(gear):
         out.append(CatalogueRule(
-            rule_id=f"{rid}_fly", type=RuleType.tackle_restriction, lure=Lure.fly_fishing,
+            rule_id=f"{rid}_fly", type=RuleType.tackle_restriction,
+            gear=[{"slot": "method", "only": ["fly_fishing"]}],
             when_targeting=codes, **base(verbatim=_span(gear, _RE_FLY) or gear)))
 
     # A row that stated nothing the scrape could type still has to survive into the entry, or the
     # regulation silently disappears between the page and the app.
     if not out:
         out.append(CatalogueRule(
-            rule_id=rid, type=RuleType.advisory, needs_review=True,
+            rule_id=rid, type=RuleType.advisory,
             review_reason="row states no limit, closure or gear rule the scrape could type",
             **base()))
     return out

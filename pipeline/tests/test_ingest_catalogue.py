@@ -71,7 +71,8 @@ def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
         {"region": "3", "entries": [{"entry_id": "r3:other@3-1", "name": "Other",
                                      "regs_verbatim": "Bait ban.",
                                      "rules": [{"rule_id": "o.r1", "type": "bait_restriction",
-                                                "verbatim": "Bait ban.", "allowed": False}]}]}))
+                                                "verbatim": "Bait ban.",
+                                                "gear": [{"slot": "bait", "ban": ["any_bait"]}]}]}]}))
     written = write(accepted, out)
     assert written == {"region-3.json": 1}
     both = json.loads((out / "region-3.json").read_text())["entries"]
@@ -156,7 +157,6 @@ def test_a_no_registry_row_is_not_split_checked():
     item = _batch_item(no_registry=True, bindable_ids=[], boundaries=[])
     cand = _candidate([])
     cand["rules"][0]["extents"] = []
-    cand["rules"][0]["needs_review"] = True
     cand["rules"][0]["review_reason"] = "no registry match — attach an item and bind extents"
     accepted, problems = ingest([cand], {"e1": item})
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems

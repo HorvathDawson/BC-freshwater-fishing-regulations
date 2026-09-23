@@ -28,7 +28,7 @@ generated from that. If the meaning says 90 cm, the label says 90 cm. It cannot 
 type:      retention_limit          "this is about how many you may keep"
 species:   ["LT"]                   lake trout
 take:      2                        two of them
-over_cm:   90                       and no more than one over 90 cm
+lengths:   [{max_cm: 90}, {min_cm: 90, take: 1}]   and no more than one over 90 cm
 verbatim:  "Lake trout daily quota = 2 (only 1 over 90 cm...)"
 ```
 
@@ -90,12 +90,13 @@ sub-limit. The call is no-targeting, on the fishery rather than the typography.)
 ### Size limits point two ways
 
 ```
-"not more than 1 over 50 cm"    you MAY keep one big one       take=1, over_cm=50, within=parent
-"none over 50 cm"               you may keep NO big ones       take=0, over_cm=50
-"1 bull trout over 60 cm"       the one you keep must BE big   take=1, under_cm=60
+"not more than 1 over 50 cm"    you MAY keep one big one       take=1, within=parent, lengths [{min_cm: 50}]
+"none over 50 cm"               you may keep NO big ones       take=0, lengths [{min_cm: 50, take: 0}]
+"1 bull trout over 60 cm"       the one you keep must BE big   take=1, lengths [{min_cm: 60}, {max_cm: 60, take: 0}]
 ```
 
-The same two fields carry all three. Get it backwards and you invert the rule on exactly the fish
+One English word carries all three; `lengths` writes the range and its number, so the reader
+never has to work out which is meant. Get it backwards and you invert the rule on exactly the fish
 it was written to protect.
 
 ---
@@ -122,7 +123,7 @@ is **four** rules: the 5, and three limits that live inside it. Each names its p
 `feature_types: ["stream"]`. A rule that says *"in any stream"* and forgets that narrowing closes
 every lake in the region — which has actually happened.
 
-**5. If you cannot bind it, say so.** Set `needs_review` with a real reason. An honest flag beats a
+**5. If you cannot bind it, say so.** Give a `review_reason` that says why. An honest flag beats a
 wrong guess; 49 of the 302 rules carry one today.
 
 The result:
@@ -224,7 +225,7 @@ each:
 | a bait or tackle rule **with** species | 20 gear rules carry codes copied from a neighbouring clause. "Trout: bait ban" is narrower than the law — the ban applies to everyone |
 | a sub-limit bigger than its parent | 20 brook trout inside a limit of 4 is not a sub-limit; it is a replacement |
 | a `verbatim` that is not in the entry's text | the only thing stopping a number nobody printed from being invented |
-| `needs_review` with no reason | a flag nobody can act on is not a flag |
+| a `review_reason` of a few words | a flag nobody can act on is not a flag |
 
 ---
 

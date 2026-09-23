@@ -45,10 +45,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -79,10 +86,17 @@
      "rule_id": "abbott_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -90,11 +104,21 @@
      "rule_id": "abbott_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -145,10 +169,17 @@
      "rule_id": "abuntlet_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -156,11 +187,21 @@
      "rule_id": "abuntlet_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -199,10 +240,17 @@
      "rule_id": "agnus_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -210,11 +258,21 @@
      "rule_id": "agnus_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -548,12 +606,19 @@
       ],
       "weekdays": []
      },
-     "allowed": false,
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]
@@ -669,10 +734,17 @@
      "rule_id": "avalanche_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -680,11 +752,21 @@
      "rule_id": "avalanche_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -723,10 +805,17 @@
      "rule_id": "baby_charlotte_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -734,11 +823,21 @@
      "rule_id": "baby_charlotte_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -852,10 +951,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -878,10 +984,17 @@
      "rule_id": "ballon_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -889,11 +1002,21 @@
      "rule_id": "ballon_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -932,10 +1055,17 @@
      "rule_id": "banana_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -943,11 +1073,21 @@
      "rule_id": "banana_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -965,13 +1105,20 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "basalt_lake.r2",
@@ -993,26 +1140,43 @@
      "rule_id": "basalt_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "basalt_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -1134,10 +1298,17 @@
      "rule_id": "big_lake_100_mile_house.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -1145,11 +1316,21 @@
      "rule_id": "big_lake_100_mile_house.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -1244,10 +1425,17 @@
      "rule_id": "bishop_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -1255,11 +1443,21 @@
      "rule_id": "bishop_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -1302,10 +1500,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -1336,11 +1541,21 @@
      "rule_id": "blue_lake_near_alexandria.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -1451,10 +1666,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -1485,10 +1707,17 @@
      "rule_id": "boar_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -1496,11 +1725,21 @@
      "rule_id": "boar_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -1642,26 +1881,43 @@
      "rule_id": "bowron_lake_park_waters.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "bowron_lake_park_waters.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     },
     {
      "rule_id": "bowron_lake_park_waters.r5",
@@ -1769,12 +2025,19 @@
      "rule_id": "burnt_bridge_creek.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]
@@ -1894,10 +2157,17 @@
      "rule_id": "cameron_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -1905,10 +2175,17 @@
      "rule_id": "cameron_creek.r4",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     }
@@ -1992,10 +2269,17 @@
      "rule_id": "canim_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     }
@@ -2175,10 +2459,15 @@
       ],
       "weekdays": []
      },
-     "max_gap_mm": 15,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "hook_gap_mm",
+       "max": 15
       }
      ]
     },
@@ -2186,10 +2475,17 @@
      "rule_id": "chilcotin_river.r5",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -2336,10 +2632,17 @@
      "rule_id": "chilko_lake.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -2347,11 +2650,21 @@
      "rule_id": "chilko_lake.r5",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -2491,10 +2804,17 @@
      "rule_id": "chilko_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -2502,12 +2822,19 @@
      "rule_id": "chilko_river.r4",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only upstream of Brittany Creek",
-     "lure": "fly_fishing",
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "chilko_river__brittany_creek_into_chilko_river"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "only": [
+        "fly_fishing"
        ]
       }
      ]
@@ -2672,10 +2999,17 @@
      "rule_id": "chipmunk_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -2683,11 +3017,21 @@
      "rule_id": "chipmunk_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -2866,10 +3210,17 @@
      "rule_id": "cohen_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -2877,11 +3228,21 @@
      "rule_id": "cohen_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -2907,10 +3268,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -2933,10 +3301,17 @@
      "rule_id": "cook_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -2944,10 +3319,17 @@
      "rule_id": "cook_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     }
@@ -3018,10 +3400,17 @@
      "rule_id": "crazy_bear_ginny_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3029,11 +3418,21 @@
      "rule_id": "crazy_bear_ginny_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3072,10 +3471,17 @@
      "rule_id": "cruise_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3083,11 +3489,21 @@
      "rule_id": "cruise_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3126,10 +3542,17 @@
      "rule_id": "cutthroat_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3137,11 +3560,21 @@
      "rule_id": "cutthroat_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3180,10 +3613,17 @@
      "rule_id": "davidson_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3191,11 +3631,21 @@
      "rule_id": "davidson_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3372,11 +3822,18 @@
      "rule_id": "dean_river.r7",
      "type": "bait_restriction",
      "verbatim": "Bait ban all parts[Includes Tributaries]",
-     "allowed": false,
      "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3395,13 +3852,20 @@
       ],
       "weekdays": []
      },
-     "lure": "fly_fishing",
      "extents": [
       {
        "op": "between",
        "splits": [
         "dean_river__anahim_lake",
         "dean_river__iltasyuko_river_into_dean_river"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "only": [
+        "fly_fishing"
        ]
       }
      ]
@@ -3421,13 +3885,20 @@
       ],
       "weekdays": []
      },
-     "lure": "fly_fishing",
      "extents": [
       {
        "op": "between",
        "splits": [
         "dean_river__crag_creek_into_dean_river",
         "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "only": [
+        "fly_fishing"
        ]
       }
      ]
@@ -3647,10 +4118,17 @@
      "rule_id": "deception_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3658,11 +4136,21 @@
      "rule_id": "deception_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3688,10 +4176,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -3714,10 +4209,17 @@
      "rule_id": "dewar_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3725,11 +4227,21 @@
      "rule_id": "dewar_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -3765,10 +4277,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -3790,10 +4309,17 @@
      "rule_id": "dog_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3801,11 +4327,21 @@
      "rule_id": "dog_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -3831,10 +4367,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -3865,10 +4408,17 @@
      "rule_id": "donnely_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -3876,11 +4426,21 @@
      "rule_id": "donnely_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -3918,10 +4478,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -3952,11 +4519,21 @@
      "rule_id": "dorsey_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -4037,10 +4614,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -4062,10 +4646,17 @@
      "rule_id": "earle_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4073,11 +4664,21 @@
      "rule_id": "earle_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -4116,10 +4717,17 @@
      "rule_id": "east_king_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4127,11 +4735,21 @@
      "rule_id": "east_king_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -4201,10 +4819,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -4235,11 +4860,21 @@
      "rule_id": "elk_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -4277,10 +4912,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -4311,10 +4953,17 @@
      "rule_id": "faulkner_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4322,11 +4971,21 @@
      "rule_id": "faulkner_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -4439,10 +5098,17 @@
      "rule_id": "fish_lake_mcclinchy.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4450,11 +5116,21 @@
      "rule_id": "fish_lake_mcclinchy.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -4509,10 +5185,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -4543,10 +5226,17 @@
      "rule_id": "forest_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -4554,10 +5244,17 @@
      "rule_id": "forest_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4654,10 +5351,17 @@
       ],
       "weekdays": []
      },
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4779,13 +5483,20 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "frog_lake.r2",
@@ -4806,26 +5517,43 @@
      "rule_id": "frog_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "frog_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -4854,26 +5582,43 @@
      "rule_id": "gatcho_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "gatcho_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -4897,10 +5642,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -4923,10 +5675,17 @@
      "rule_id": "geese_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4934,11 +5693,21 @@
      "rule_id": "geese_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -4977,10 +5746,17 @@
      "rule_id": "gotchen_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -4988,11 +5764,21 @@
      "rule_id": "gotchen_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -5105,10 +5891,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -5139,11 +5932,21 @@
      "rule_id": "greenlee_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -5211,10 +6014,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -5237,10 +6047,17 @@
      "rule_id": "grizzly_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -5248,11 +6065,21 @@
      "rule_id": "grizzly_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -5332,13 +6159,20 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "hidden_lake.r2",
@@ -5359,26 +6193,43 @@
      "rule_id": "hidden_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "hidden_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -5454,10 +6305,17 @@
      "rule_id": "high_lake.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -5465,11 +6323,21 @@
      "rule_id": "high_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -5579,10 +6447,17 @@
      "rule_id": "horsefly_river.r3",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -5590,10 +6465,17 @@
      "rule_id": "horsefly_river.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -6051,12 +6933,19 @@
      "rule_id": "mitchell_river.r5",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "mitchell_river__cameron_creek_into_mitchell_river"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]
@@ -6065,12 +6954,19 @@
      "rule_id": "mitchell_river.r6",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "mitchell_river__cameron_creek_into_mitchell_river"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
        ]
       }
      ]
@@ -6109,12 +7005,19 @@
      "rule_id": "moffat_creek.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "moffat_creek__falls_8_10_km_above_horsefly"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]
@@ -6181,26 +7084,43 @@
      "rule_id": "naglico_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "naglico_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -6314,10 +7234,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -6348,11 +7275,21 @@
      "rule_id": "nolan_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -6360,10 +7297,17 @@
      "rule_id": "nolan_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     }
@@ -6513,10 +7457,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -6539,10 +7490,17 @@
      "rule_id": "patenaude_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -6550,11 +7508,21 @@
      "rule_id": "patenaude_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -6611,26 +7579,43 @@
      "rule_id": "pettry_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "pettry_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -6851,10 +7836,17 @@
      "rule_id": "quesnel_lake.r6",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -6862,10 +7854,17 @@
      "rule_id": "quesnel_lake.r7",
      "type": "tackle_restriction",
      "verbatim": "barbless hook",
-     "barbless": true,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
       }
      ]
     }
@@ -6978,10 +7977,17 @@
      "rule_id": "quesnel_river.r5",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     }
@@ -7043,26 +8049,43 @@
      "rule_id": "redfern_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "redfern_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -7190,10 +8213,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -7216,10 +8246,17 @@
      "rule_id": "sandy_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -7227,11 +8264,21 @@
      "rule_id": "sandy_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -7257,10 +8304,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -7291,11 +8345,21 @@
      "rule_id": "sardine_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -7312,13 +8376,20 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "secret_lake.r2",
@@ -7339,26 +8410,43 @@
      "rule_id": "secret_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "secret_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -7411,10 +8499,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -7436,10 +8531,17 @@
      "rule_id": "simon_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -7447,11 +8549,21 @@
      "rule_id": "simon_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -7570,10 +8682,17 @@
      "rule_id": "slim_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -7581,11 +8700,21 @@
      "rule_id": "slim_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -7611,10 +8740,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -7636,10 +8772,17 @@
      "rule_id": "snag_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -7647,11 +8790,21 @@
      "rule_id": "snag_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -7725,26 +8878,43 @@
      "rule_id": "square_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "square_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -7773,26 +8943,43 @@
      "rule_id": "squirrel_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
+     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "squirrel_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
+     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
+      }
+     ]
     }
    ]
   },
@@ -7829,10 +9016,17 @@
      "rule_id": "stewart_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -7840,11 +9034,21 @@
      "rule_id": "stewart_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -7992,10 +9196,17 @@
      "rule_id": "sunshine_ant_lake.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8003,11 +9214,21 @@
      "rule_id": "sunshine_ant_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8144,10 +9365,17 @@
      "rule_id": "teepee_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "Artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -8155,10 +9383,17 @@
      "rule_id": "teepee_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8166,10 +9401,17 @@
      "rule_id": "teepee_lake.r5",
      "type": "tackle_restriction",
      "verbatim": "barbless hook",
-     "barbless": true,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
       }
      ]
     }
@@ -8238,10 +9480,17 @@
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -8264,10 +9513,17 @@
      "rule_id": "tilgatgo_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8275,11 +9531,21 @@
      "rule_id": "tilgatgo_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8318,10 +9584,17 @@
      "rule_id": "toms_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8329,11 +9602,21 @@
      "rule_id": "toms_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8358,10 +9641,17 @@
      "rule_id": "tsuniah_lake.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8369,11 +9659,21 @@
      "rule_id": "tsuniah_lake.r2",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8412,10 +9712,17 @@
      "rule_id": "turner_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8423,11 +9730,21 @@
      "rule_id": "turner_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8513,10 +9830,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -8538,10 +9862,17 @@
      "rule_id": "valentine_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "Artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -8549,10 +9880,17 @@
      "rule_id": "valentine_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8603,10 +9941,17 @@
      "rule_id": "vista_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8614,11 +9959,21 @@
      "rule_id": "vista_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -8761,10 +10116,17 @@
      "rule_id": "west_king_lake.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8772,11 +10134,21 @@
      "rule_id": "west_king_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     },
@@ -8866,10 +10238,17 @@
      "rule_id": "west_road_blackwater_river.r3",
      "type": "tackle_restriction",
      "verbatim": "Artificial fly only",
-     "lure": "artificial_fly",
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
       }
      ]
     },
@@ -8877,10 +10256,17 @@
      "rule_id": "west_road_blackwater_river.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8965,10 +10351,17 @@
      "rule_id": "whale_lake_canim.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -8976,11 +10369,21 @@
      "rule_id": "whale_lake_canim.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -9001,10 +10404,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -9035,10 +10445,17 @@
      "rule_id": "whale_lake_gustafsen.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -9046,11 +10463,21 @@
      "rule_id": "whale_lake_gustafsen.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -9118,10 +10545,17 @@
      "rule_id": "widgeon_lake.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -9129,11 +10563,21 @@
      "rule_id": "widgeon_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -9207,10 +10651,17 @@
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
      "method": "ice_fishing",
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
       }
      ]
     },
@@ -9233,10 +10684,17 @@
      "rule_id": "wolf_lake.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
       }
      ]
     },
@@ -9244,11 +10702,21 @@
      "rule_id": "wolf_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "barbless": true,
-     "hook_count": 1,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1
       }
      ]
     }
@@ -9290,12 +10758,19 @@
      "rule_id": "young_creek.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "allowed": false,
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "young_creek__young_hwy20"
+       ]
+      }
+     ],
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
        ]
       }
      ]

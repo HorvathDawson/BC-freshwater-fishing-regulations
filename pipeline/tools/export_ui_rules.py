@@ -58,21 +58,13 @@ WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
 CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
            "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
 
-#: THE POLARITY OF A SIZE BOUND — which end it shuts, and whether it shuts anything at all.
-#:
-#: `over_cm` / `under_cm` do not mean the same thing in every rule, and the difference is not
-#: guessable from the pair alone. This is the table the removed `size.py` applied, carried here
-#: so no consumer re-derives it — the last consumer that tried read "1 (none under 50 cm)" as
-#: "only 1 may be UNDER 50 cm", which is the Shuswap rainbow rule upside down on the fish it
-#: exists to protect.
-#:
-#: `under_cm` IS ALWAYS A FLOOR AND NEVER A CEILING. "1 bull trout over 60 cm" is stored as
-#: `under_cm: 60`, and "none under 60 cm" is the same sentence said the other way.
+#: THE SHAPES A `lengths` LIST TAKES, in words. Nothing here is inferred: each is read straight
+#: off the ranges and their `take`, and is listed so a consumer can name what it is looking at.
 SIZE_READINGS = {
     "floor": "you may keep none SMALLER than this",
     "ceiling": "you may keep none LARGER than this",
-    "slot": "you may keep only between these two lengths",
-    "band": "you may keep none BETWEEN these two lengths",
+    "window": "you may keep only between these two lengths",
+    "hole": "you may keep none BETWEEN these two lengths",
     "counts over": "the number counts only the fish larger than this; smaller ones are not "
                    "limited by this rule",
     "which fish": "not a limit — it says which fish the rule is about (a stamp needed for the "
@@ -128,20 +120,15 @@ FIELDS = {
         "per_daily": "a possession multiple: N times the daily number",
     },
     "size": {
-        "over_cm": "the number counts (or the gate forbids) fish OVER this length",
-        "under_cm": "…UNDER this length",
-        "band": "ONLY where BOTH bounds are set, and it decides which of two OPPOSITE readings "
-                "they have: true = a hole (keep none between the two lengths), absent = a slot "
-                "(keep only between them). The numbers look identical either way. 29 rules "
-                "carry both bounds — 15 holes, 14 windows — and all 29 are in this file under "
-                "`size_rule_examples`.",
-        "lengths": "READ THIS AND NOT THE THREE FIELDS ABOVE. An ORDERED list of length "
+        "lengths": "THE ONLY SIZE FIELD. An ORDERED list of length "
                    "ranges, each with the number you may keep in it; the FIRST range that "
                    "contains a fish's length wins. `min_cm`/`max_cm` are inclusive and null is "
                    "open at that end; a range with no `take` of its own uses the rule's `take`. "
                    "A length NO range covers is not spoken about by this rule — at the top "
                    "level nothing else grants it, and inside a `within` clause the parent quota "
-                   "governs it. Present on all 270 rules that carry a size and on no others.",
+                   "governs it. Present on all 270 rules that carry a size and on no others. "
+                   "Every rule with a range closed at both ends is in this file under "
+                   "`size_rule_examples`.",
         "_why_lengths_exists":
             "`over_cm` meant three different things depending on the fields around it: the "
             "ceiling on a granted fish ('quota 2, none over 50 cm'), the class a number COUNTS "
@@ -166,18 +153,19 @@ FIELDS = {
                           "and '60 cm or more' differ by one fish and the corpus never stored "
                           "which was meant; that loss predates this field and is not invented.",
         },
-        "_read": "take=2 and no size → keep 2, any size. take=1 over_cm=50 → only 1 may be over "
-                 "50 cm, a CAP on a size class. take=0 under_cm=30 → none under 30 cm, a FLOOR. "
-                 "take=0 over_cm=50 → a ceiling. A floor is an allowance of zero on a size "
-                 "class, which is why closures, releases and size limits are one kind of thing.",
+        "_read": "take=2 and no lengths → keep 2, any size. A range with take 0 is fish that "
+                 "go back; a floor is an allowance of zero on a size class, which is why "
+                 "closures, releases and size limits are one kind of thing.",
     },
     "dates": {
-        "windows": "list of {from:{month,day}, to:{month,day}} — the days it speaks about",
-        "windows_are": "'applies' | 'excepts' — whether those are the days it holds, or the days "
-                       "it does NOT ('Kokanee catch and release, EXCEPT Apr 1-3…')",
+        "when": "{dates, hours, weekdays, unparsed}. `dates` is a list of {from_month, "
+                "from_day, to_month, to_day}, inclusive, wrapping the year end where to < from; "
+                "EMPTY MEANS ALL YEAR. There is no 'except' flag: a rule printed as 'open "
+                "except…' stores the days it DOES hold. `hours` is {start, end}, each "
+                "{at: 'HH:MM'} or {solar: sunrise|sunset, offset_min}, wrapping midnight the "
+                "same way. `unparsed` is a printed season nobody could read, kept verbatim — "
+                "treat it as uncertain, never as absent.",
         "when_open": "true where it binds only while the water is open at all; carries no dates",
-        "weekdays / from_time / to_time": "rules that never resolve to a date — the client "
-                                          "applies these itself",
         "_read": "no window is not 'undated' — it is the standing answer, true on every day "
                  "nothing seasonal speaks.",
     },
@@ -202,9 +190,22 @@ FIELDS = {
                  "(rank 0) speaks there before the region's table (rank 3).",
     },
     "gear": {
-        "hook_count / barbless / max_lines / max_flies / max_weight_kg": "the rig",
-        "bait / lure": "what may be on the hook",
-        "permitted / allowed": "whether the method is allowed at all",
+        "gear": "an ORDERED list of clauses, each {slot, …}. Within one slot the FIRST "
+                "clause whose `when` matches wins; different slots are independent. A set "
+                "slot (bait, lure, method, barb) takes exactly one of `allow` (permits what it "
+                "names), `only` (a whitelist that closes the slot) or `ban`; `of` narrows which "
+                "members it speaks about and `except` carves members out of a ban. A counted or "
+                "measured slot takes `max`/`min` in the unit its name carries "
+                "(hook_gap_mm, weight_per_line_kg). A spec slot (light, downrigger, …) takes "
+                "`must_be`. `unless` lists what lifts the clause. See "
+                "pipeline/docs/07-gear-representation.md.",
+        "while": "the methods during which the rule binds — 'dead fin fish may be used WHILE "
+                 "set lining'",
+        "conduct": "acts the angler must do or refrain from, as tokens named in the lawful "
+                   "direction ('do_not_waste_catch')",
+        "when_targeting": "species the angler is fishing FOR, not what they may catch — 'bait "
+                          "ban when fishing for salmon'",
+        "permitted": "access_permission only: whether the access is granted",
         "max_power_kw / max_kmh": "boat rules",
         "level / aspect / standing": "how the gear term was classified",
     },
@@ -338,7 +339,7 @@ RULE_FAMILIES = {
 ZERO_READINGS = {
     "closed": "`take: 0` AND `may_target: 0` — you may not fish for it at all",
     "release": "`take: 0`, `may_target` not 0 — you may fish for it and must let every one go",
-    "size gate": "`take: 0` with `over_cm` or `under_cm` — a floor or a ceiling, not a closure. "
+    "size gate": "a range in `lengths` with `take: 0` — a floor or a ceiling, not a closure. "
                  "'none under 30 cm' is an allowance of zero on a SIZE CLASS.",
     "_and": "a `take: 0` carrying a `method` is not a closure of the water either — it closes "
             "that method.",
@@ -601,33 +602,27 @@ LAST_CHECKED = {
 
 
 def _size_examples(take) -> dict:
-    """BOTH BOUNDS MEAN TWO OPPOSITE THINGS, so every rule that carries both is in this file —
-    all 29 of them, interned into `rules` like any other, with their verbatim sentence.
+    """A RANGE CLOSED AT BOTH ENDS MEANS ONE OF TWO OPPOSITE THINGS, so every rule carrying one is
+    in this file, interned into `rules` like any other, with its verbatim sentence.
 
-    15 are HOLES (`band`: keep none between) and 14 are WINDOWS (keep only between). The numbers
-    look identical; only `band` separates them, which is why listing them as ids a consumer can
-    look up beats asserting a count it cannot check. Only ONE of the 29 belongs to a sampled
-    region or water, so without this they would not be in the file at all and a consumer would
-    never see a band record.
-
-    Four windows were flagged as holes until 2026-09-22 — "Lake trout = 2 (none under 40 cm or
-    over 60 cm)" read as "keep nothing between 40 and 60", which permits exactly the fish the
-    rule protects. Gwillim Lake sat beside a correctly curated twin using "and none over" rather
-    than "or over", the same numbers, no flag: one sentence, two spellings, opposite curation.
+    A HOLE is a closed range with `take: 0` — keep none between. A WINDOW is a closed range you may
+    keep from, with the lengths either side of it denied. Under the old fields the two were the
+    same pair of numbers and one flag, `band`, set backwards on four rules; `lengths` writes the
+    `take` on the range, so which one a rule is can be read off it rather than trusted.
     """
-    both = [x for x in rules() if x.get("over_cm") and x.get("under_cm")]
+    closed = lambda b: b.get("min_cm") is not None and b.get("max_cm") is not None
     by_kind = defaultdict(list)
-    for x in both:
-        by_kind["band (a hole)" if x.get("band") else "slot (a window)"].append(x)
+    for x in rules():
+        bands = [b for b in (x.get("lengths") or []) if closed(b)]
+        if not bands:
+            continue
+        hole = any(b.get("take") == 0 for b in bands)
+        by_kind["hole" if hole else "window"].append(x)
     return {
-        "_note": "Every rule in the corpus carrying BOTH an over_cm and an under_cm, because "
-                 "the pair has two OPPOSITE readings and only `band` separates them. Grouped "
-                 "here by that raw flag — the grouping is the flag, not a judgement about it. "
-                 "`under_cm` is always the smaller length.",
-        "_readings": {k: SIZE_READINGS[k] for k in ("band", "slot")},
-        "by_kind": {k: {"count": len(xs), "flag": "band: true" if k.startswith("band")
-                                                 else "band: absent",
-                        "means": SIZE_READINGS["band" if k.startswith("band") else "slot"],
+        "_note": "Every rule in the corpus whose `lengths` has a range closed at both ends. "
+                 "Grouped by that range's own `take`: 0 is a hole, anything else a window.",
+        "_readings": {k: SIZE_READINGS[k] for k in ("hole", "window")},
+        "by_kind": {k: {"count": len(xs), "means": SIZE_READINGS[k],
                         "rule_ids": take(sorted(xs, key=rid))}
                     for k, xs in sorted(by_kind.items())},
         "read_one_of_each": {

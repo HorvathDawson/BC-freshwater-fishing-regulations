@@ -50,7 +50,8 @@ def test_an_agent_response_in_the_documented_shape_reaches_disk(tmp_path):
             {"rule_id": "tranquille_lake.r1", "type": "retention_limit",
              "verbatim": "Rainbow trout daily quota = 8", "species": ["RB"], "take": 8},
             {"rule_id": "tranquille_lake.r2", "type": "bait_restriction",
-             "verbatim": "Bait ban.", "bait": "any", "allowed": False},
+             "verbatim": "Bait ban.",
+             "gear": [{"slot": "bait", "ban": ["any_bait"]}]},
             {"rule_id": "tranquille_lake.r3", "type": "retention_limit",
              "verbatim": "No fishing for kokanee in streams.", "species": ["KO"],
              "take": 0, "may_target": False, "water": "stream"},
@@ -95,7 +96,7 @@ def test_the_gate_refuses_the_mistakes_the_prompt_warns_about(tmp_path):
 
     # a species on a bait rule — the ban is the whole river
     acc, _ = ingest([cand({"rule_id": "x.r1", "type": "bait_restriction", "verbatim": "Bait ban.",
-                           "bait": "any", "allowed": False, "species": ["RB"]})], batch)
+                           "gear": [{"slot": "bait", "ban": ["any_bait"]}], "species": ["RB"]})], batch)
     assert not acc
 
     # a number that is not in the rule's own sentence

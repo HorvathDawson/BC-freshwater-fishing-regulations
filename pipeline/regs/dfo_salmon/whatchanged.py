@@ -49,7 +49,7 @@ _NOT_THE_RULE = ("rule_id", "verbatim", "reason")
 
 def signature(rule: CatalogueRule) -> Tuple:
     """What makes two rules the same rule. Structure only."""
-    d = rule.model_dump(mode="json", exclude_defaults=True)
+    d = rule.model_dump(mode="json", exclude_defaults=True, by_alias=True)
     for k in _NOT_THE_RULE:
         d.pop(k, None)
     return tuple(sorted((k, str(v)) for k, v in d.items()))

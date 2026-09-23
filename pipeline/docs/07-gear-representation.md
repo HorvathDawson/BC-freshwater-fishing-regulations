@@ -1,9 +1,9 @@
 # Gear — what is wrong with it, and the shape that fixes it
 
-**Status: the types are implemented and validated; the DATA is not migrated.** `Slot`,
-`GearClause`, `GearWhen` and `Conduct` are in `catalogue.py` with their validation, and
-`CatalogueRule` carries `gear` and `conduct`. Nothing writes them yet — the old fields are still
-the ones in use. It is written down because six
+**Status (2026-09-23): implemented and migrated.** Every gear rule — provincial, regional, water
+and the DFO salmon feed — is written as `gear` / `while` / `conduct`. The old fields (`allowed`,
+`barbless`, `hook_count`, `lure`, `bait`, `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm`,
+`max_gap_mm`) are gone from `CatalogueRule` and refused on load. It is written down because six
 independent reviews of the whole gear corpus converged on the same answer, and because three of
 the defects below are wrong answers in the shipped data today.
 

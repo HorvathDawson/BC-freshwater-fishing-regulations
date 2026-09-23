@@ -9,8 +9,8 @@ from __future__ import annotations
 import pytest
 
 from pipeline.regs.parsing.catalogue import (
-    Bait, CatalogueRule, Document, Lure, Method, Obligation, Period, PropulsionLevel,
-    RuleType, VesselAspect, WaterKind, WindowsAre, label,
+    CatalogueRule, Document, Method, Obligation, Period, PropulsionLevel,
+    RuleType, VesselAspect, WaterKind, complement, label, parse_date_range,
 )
 
 
@@ -38,15 +38,15 @@ def test_gear_rules_refuse_species():
     and uses `when_targeting`; see the test below."""
     for t in (RuleType.bait_restriction, RuleType.tackle_restriction):
         with pytest.raises(ValueError, match="must not carry `species`"):
-            _r(type=t, species=["RB"], allowed=False, barbless=True)
+            _r(type=t, species=["RB"], gear=[{"slot": "barb", "only": ["barbless"]}])
 
 
 def test_a_bait_rule_may_be_scoped_to_what_you_are_FISHING_FOR():
     """A stream can carry a salmon bait ban and no other. That is not a species the ban protects —
     it is the fishery the ban applies to, which is why it is a separate field."""
-    r = _r(type=RuleType.bait_restriction, bait=Bait.any, allowed=False, when_targeting=["SA"])
+    r = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}], when_targeting=["SA"])
     assert label(r) == "Bait ban when fishing for salmon"
-    general = _r(type=RuleType.bait_restriction, bait=Bait.any, allowed=False)
+    general = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}])
     assert r.dimension != general.dimension    # they coexist; neither displaces the other
 
 
@@ -65,8 +65,9 @@ def test_take_zero_demands_an_explicit_may_target():
 
 
 def test_an_impossible_slot_is_refused():
-    with pytest.raises(ValueError, match="impossible slot"):
-        _r(type=RuleType.retention_limit, species=["LT"], take=2, under_cm=90, over_cm=60)
+    with pytest.raises(ValueError):
+        _r(type=RuleType.retention_limit, species=["LT"], take=2,
+           lengths=[{"min_cm": 90, "max_cm": 60}])
 
 
 def test_unknown_species_codes_are_refused():
@@ -77,13 +78,14 @@ def test_unknown_species_codes_are_refused():
 
 def test_half_a_time_window_is_refused():
     """_scope needs both ends; with one, "No fishing 21:00-05:00" renders as a total closure."""
-    with pytest.raises(ValueError, match="both ends"):
-        _r(type=RuleType.retention_limit, species=["RB"], take=2, from_time="21:00")
+    with pytest.raises(ValueError):
+        _r(type=RuleType.retention_limit, species=["RB"], take=2,
+           when={"hours": {"start": {"at": "21:00"}}})
 
 
 def test_retention_fields_are_refused_on_other_types():
     with pytest.raises(ValueError, match="belongs to retention_limit"):
-        _r(type=RuleType.bait_restriction, allowed=False, take=2)
+        _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}], take=2)
 
 
 def test_power_capped_needs_a_number():
@@ -92,19 +94,15 @@ def test_power_capped_needs_a_number():
            level=PropulsionLevel.power_capped)
 
 
-def test_band_needs_both_bounds():
-    with pytest.raises(ValueError, match="band needs"):
-        _r(type=RuleType.retention_limit, species=["LT"], take=1, over_cm=90, band=True)
-
-
 # --------------------------------------------------------------------------- the dimension
 
 def test_tackle_facets_are_separate_dimensions():
     """A fly-only rule and a barbless rule are ADDITIVE — a fly must be barbless and singly
     hooked. `r1:farewell_lake@1-10` says all three in one sentence. Sharing a dimension would let
     one strike the other."""
-    fly = _r(type=RuleType.tackle_restriction, lure=Lure.fly_fishing)
-    hook = _r(type=RuleType.tackle_restriction, hook_count=1, barbless=True)
+    fly = _r(type=RuleType.tackle_restriction, gear=[{"slot": "method", "only": ["fly_fishing"]}])
+    hook = _r(type=RuleType.tackle_restriction, gear=[{"slot": "barb", "only": ["barbless"]},
+                                                      {"slot": "points_per_hook", "max": 1}])
     assert fly.dimension != hook.dimension
 
 
@@ -154,8 +152,9 @@ def test_excepting_windows_are_inverted_rather_than_flagged():
     the days it does NOT apply — a flag that inverted the field beside it, which is what `band`
     did to the size fields. `When` stores the days the rule DOES hold, computed once, so there is
     no flag left for a reader to apply or forget."""
+    held = complement([parse_date_range("Apr 1-3"), parse_date_range("Jul 1-2")])
     r = _r(type=RuleType.retention_limit, species=["KO"], take=0, may_target=True,
-           windows=["Apr 1-3", "Jul 1-2"], windows_are=WindowsAre.excepts)
+           when={"dates": [d.model_dump() for d in held]})
     assert "except" not in label(r)
     assert "Jul 3-Mar 31 and Apr 4-Jun 30" in label(r)
     # and the excepted days are genuinely outside it
@@ -177,26 +176,30 @@ def test_verbatim_is_required():
 def test_size_polarity_on_a_sub_limit():
     """`r2:cultus_lake` — "1 bull trout over 60 cm": the fish you keep must BE over 60.
     Rendered as "no more than 1 under 60 cm" it inverts the rule on the fish it protects."""
-    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, under_cm=60, within="parent")
+    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, within="parent",
+           lengths=[{"min_cm": 60}, {"max_cm": 60, "take": 0}])
     assert label(r) == "Bull trout (no more than 1, none under 60 cm)"
 
 
-def test_over_cm_on_a_sub_limit_allows_the_big_fish():
+def test_a_counted_size_class_on_a_sub_limit_allows_the_big_fish():
     """"not more than 1 over 50 cm" ALLOWS one big fish; "none over 50 cm" forbids them."""
-    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=1, over_cm=50, within="parent")
+    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=1, within="parent",
+           lengths=[{"min_cm": 50}])
     assert label(r) == "Trout (no more than 1 over 50 cm)"
 
 
 def test_a_flat_size_prohibition_still_reads_as_one():
-    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=0, may_target=True, over_cm=50)
+    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=0, may_target=True,
+           lengths=[{"min_cm": 50, "take": 0}])
     assert label(r) == "Trout — release all over 50 cm"
 
 
 def test_a_slot_sub_limit_keeps_its_count():
     """`z7a` — "not more than 1 bull trout (Dolly Varden) ... only 30-50 cm in length".
     Dropping the 1 turns a one-fish allowance into an unlimited one inside the slot."""
-    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, under_cm=30, over_cm=50,
-           within="parent")
+    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, within="parent",
+           lengths=[{"min_cm": 30, "max_cm": 50}, {"max_cm": 30, "take": 0},
+                    {"min_cm": 50, "take": 0}])
     assert label(r) == "Bull trout (no more than 1, 30–50 cm only)"
 
 
@@ -332,24 +335,10 @@ def test_every_field_the_prompts_name_exists_on_the_model():
 # --------------------------------------------------------------------------------------- #
 # SHAPE COERCION — a value written the wrong way is not a wrong value.
 #
-# All five shapes below came out of ONE 34-entry parse run. Three carry their meaning intact
+# Four shapes below came out of ONE 34-entry parse run. Two carry their meaning intact
 # and are rewritten; two do not, and must keep failing, because deriving them means reading
 # the sentence.
 # --------------------------------------------------------------------------------------- #
-
-def test_windows_written_as_objects_become_the_strings_the_schema_takes():
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "windows": [{"start": "Oct 1", "end": "June 30"}]}]}
-    assert coerce_shapes(d) == 1
-    assert d["rules"][0]["windows"] == ["Oct 1-June 30"]
-
-
-def test_windows_already_strings_are_left_alone():
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "windows": ["Oct 1-June 30"]}]}
-    assert coerce_shapes(d) == 0
-    assert d["rules"][0]["windows"] == ["Oct 1-June 30"]
-
 
 def test_a_bare_exemption_name_becomes_a_list():
     from pipeline.regs.parsing.validate_catalogue import coerce_shapes
@@ -367,13 +356,13 @@ def test_electric_only_is_a_propulsion_level_not_a_field():
     assert r["aspect"] == "propulsion" and r["level"] == "electric_only"
 
 
-def test_a_bait_rule_with_no_allowed_is_NOT_guessed():
+def test_a_bait_rule_with_no_gear_is_NOT_guessed():
     """"Bait ban" and "bait may be used" are both `bait_restriction`, and the difference is the
     whole rule. Inferring it from the word "ban" is reading the sentence; the entry fails."""
     from pipeline.regs.parsing.validate_catalogue import coerce_shapes
     d = {"rules": [{"rule_id": "r1", "type": "bait_restriction", "verbatim": "bait ban"}]}
     assert coerce_shapes(d) == 0
-    assert "allowed" not in d["rules"][0]
+    assert "gear" not in d["rules"][0]
 
 
 def test_a_propulsion_rule_with_no_level_is_NOT_guessed():

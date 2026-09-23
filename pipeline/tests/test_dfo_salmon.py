@@ -2170,7 +2170,8 @@ def test_a_bundled_row_is_two_rules_of_different_types():
     from pipeline.regs.parsing.catalogue import RuleType
     quota, bait = _typed(species="Sockeye", limits_gear="2 per day, bait ban — FN0846")
     assert quota.type is RuleType.retention_limit and quota.take == 2
-    assert bait.type is RuleType.bait_restriction and bait.allowed is False
+    assert bait.type is RuleType.bait_restriction
+    assert [c.model_dump(mode="json") for c in bait.gear] == [{"slot": "bait", "ban": ["any_bait"]}]
     assert quota.reason == bait.reason == "FN0846", "the notice that set the row is provenance"
 
 
@@ -2268,14 +2269,15 @@ def test_the_somass_binding_is_what_the_feed_joins_to():
 
 def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
     """`CatalogueRule` does not check that a window parses — the retired prose `Rule` did, via
-    `date_parse_errors`. So `windows=["Smarch 40 to Bluneteen 99"]` builds without complaint, and
+    `date_parse_errors`. So a season of "Smarch 40 to Bluneteen 99" could build without complaint, and
     an unparsed window would reach the app indistinguishable from a rule that states no season.
     They are opposite facts: no window means the rule applies ALL YEAR."""
     from pipeline.regs.parsing.catalogue import CatalogueRule, RuleType
 
     accepted = CatalogueRule(rule_id="x.r1", type=RuleType.retention_limit, verbatim="2 per day",
-                             species=["CH"], take=2, windows=["Smarch 40 to Bluneteen 99"])
-    # The catalogue no longer drops an unreadable season on the floor OR refuses the rule: it
+                             species=["CH"], take=2,
+                             when={"unparsed": ["Smarch 40 to Bluneteen 99"]})
+    # The catalogue neither drops an unreadable season on the floor NOR refuses the rule: it
     # keeps the text in `when.unparsed`, the time analogue of `unresolved_locators`. An unparsed
     # season and an ABSENT one are opposite facts, and the second reads as "open all year".
     assert accepted.when.unparsed == ["Smarch 40 to Bluneteen 99"]
@@ -2327,7 +2329,8 @@ def test_a_row_that_states_a_size_always_binds_it():
             if not re.search(r"\d+\s*cm", rec["limits_gear"], re.I):
                 continue
             typed = to_rules(rec, "t", i)
-            if not any(r.lengths or r.max_gap_mm for r in typed):
+            if not any(r.lengths or any(c.slot.value == "hook_gap_mm" for c in r.gear)
+                       for r in typed):
                 missed.append(rec["limits_gear"])
     assert not missed, f"a size the decode cannot read: {missed}"
 

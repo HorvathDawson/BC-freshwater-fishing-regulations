@@ -20,9 +20,8 @@ import re
 from enum import Enum
 from typing import List, Optional
 
-from types import SimpleNamespace
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 
 class RuleType(str, Enum):
@@ -96,26 +95,6 @@ class Origin(str, Enum):
     wild = "wild"
 
 
-class Bait(str, Enum):
-    any = "any"
-    fin_fish = "fin_fish"
-    dead_fin_fish = "dead_fin_fish"
-    #: `dead_fin_fish` IS THE GENERAL TERM and covers the province's "the head of fin fish or the
-    #: headless body of fin fish". A `fin_fish_head_or_headless_body` member was added on the
-    #: reading that the province permitted strictly less than the regional tables; it does not —
-    #: the tables abbreviate the same permission, and the two say one thing.
-    invertebrate = "invertebrate"
-    roe = "roe"
-
-
-class Lure(str, Enum):
-    """NEVER merge these two. 'Artificial fly' constrains the lure; 'fly fishing' additionally
-    forbids floats and sinkers on the line. `r1:campbell_river@1-10` uses both on adjacent reaches
-    with different windows."""
-    artificial_fly = "artificial_fly"
-    fly_fishing = "fly_fishing"
-
-
 class VesselAspect(str, Enum):
     propulsion = "propulsion"
     speed = "speed"
@@ -178,14 +157,6 @@ def squash(text: str) -> str:
     t = re.sub(r"(?m)^\s*[>|]\s?", " ", t)
     t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)
     return re.sub(r"\s+", " ", t).strip().lower()
-
-
-class WindowsAre(str, Enum):
-    """`applies` is the default. `excepts` marks a window that says when the rule does NOT apply —
-    `r4:kootenay_lake_upper_west_arm` stores [Apr 1-3, Jul 1-2] on a catch-and-release rule, and
-    read as `applies` it says kokanee may be kept the other 360 days."""
-    applies = "applies"
-    excepts = "excepts"
 
 
 class AnglerClass(BaseModel):
@@ -431,59 +402,6 @@ class Exempts(BaseModel):
         return self
 
 
-def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
-    """`over_cm`/`under_cm`/`band` -> `lengths`. The ONLY place those three are interpreted.
-
-    This is the migration, and it is also the proof: run against the corpus it reproduces the
-    old reading for 264 of the 270 rules carrying a size, length by length from 1 to 400 cm. The
-    six it changes are Bennett Lake's "only 1 over 100 cm, none between 70 cm and 100 cm" under
-    a parent quota of 4, where the old reading capped a 50 cm pike at 1 and the book allows 4.
-    """
-    o, u, t = r.over_cm, r.under_cm, r.take
-    denies = t == 0 or t is None
-    if not o and not u:
-        return None
-    # A SIZE ON A RULE THAT IS NOT ABOUT KEEPING SAYS WHICH FISH THE RULE IS ABOUT. "Conservation
-    # Surcharge Stamp required to catch and keep rainbow trout over 50 cm" limits nobody's fish —
-    # it says the stamp is needed for the big ones. Read with the retention branches below it came
-    # out as "keep zero rainbow trout over 50 cm", which is the sentence inverted: a paperwork rule
-    # turned into a ban. A range with no `take`, on a rule with no `take`, says exactly what is
-    # meant — these are the fish this rule speaks about, and it sets no number.
-    if getattr(r, "type", None) not in (RuleType.retention_limit, None):
-        return [LengthBand(min_cm=o) if o else LengthBand(max_cm=u)]
-    if o and u:
-        if r.band:
-            # A HOLE. The band names the fish you may NOT keep, and that is the claim. Where the
-            # rule also carries a number the number belongs to the piece ABOVE the hole; the
-            # piece below is left unspoken, because the parent quota governs it.
-            out = [LengthBand(min_cm=u, max_cm=o, take=0)]
-            return out + ([LengthBand(min_cm=o)] if t is not None else [])
-        # A WINDOW: keep only inside it, and none outside it either way.
-        return [LengthBand(min_cm=u, max_cm=o), LengthBand(max_cm=u, take=0),
-                LengthBand(min_cm=o, take=0)]
-    if o:
-        # `over_cm` IS THE OVERLOADED ONE — it bounds the fish granted, unless the number COUNTS
-        # the big ones instead, which is what a clause and an annual ceiling both do.
-        if denies:
-            return [LengthBand(min_cm=o, take=0)]
-        if r.within or r.period is Period.annual:
-            return [LengthBand(min_cm=o)]
-        return [LengthBand(max_cm=o), LengthBand(min_cm=o, take=0)]
-    # `under_cm` IS ALWAYS A FLOOR. "1 bull trout over 60 cm" and "none under 60 cm" are one
-    # sentence said two ways and are stored identically. THE FLOOR IS ABSOLUTE even inside a
-    # clause: "no more than 1 char (none under 60 cm)" forbids a 50 cm char outright rather than
-    # handing it back to the parent quota.
-    if denies:
-        return [LengthBand(max_cm=u, take=0)]
-    # AN ANNUAL QUOTA COUNTS A SIZE CLASS AND FORBIDS NOTHING. "Rainbow trout: 5 over 50 cm" is
-    # five big ones per licence year and says nothing whatever about a 30 cm rainbow, which the
-    # DAILY quota governs. Adding the floor beneath it fabricated an annual ban on every small
-    # rainbow in Shuswap and Kootenay Lake.
-    if r.period is Period.annual:
-        return [LengthBand(min_cm=u)]
-    return [LengthBand(min_cm=u), LengthBand(max_cm=u, take=0)]
-
-
 #: Month name -> number, and the last day of each. February is 29 ON PURPOSE: the book says
 #: "February", which includes the 29th in the years it exists, and 28 would quietly shorten it.
 _MONTHS = {m: i + 1 for i, m in enumerate(
@@ -672,39 +590,6 @@ class DateRange(BaseModel):
         return f"{nm[self.from_month]} {self.from_day}-{nm[self.to_month]} {self.to_day}"
 
 
-def _when_from_old(old: dict) -> Optional[dict]:
-    """The five old time fields -> one `when`. Raises where a window does not parse, because a
-    season nobody can read must not publish as though the rule had none."""
-    ranges, unparsed = [], []
-    for w in old.get("windows") or []:
-        got = parse_date_range(w)
-        (ranges if got is not None else unparsed).append(got if got is not None else w)
-    # A FLAG THAT INVERTS ITS NEIGHBOUR IS REPLACED BY THE FACT ITSELF. `windows_are: excepts`
-    # meant the stored dates are when the rule does NOT hold; the complement is the days it does.
-    # `getattr(..., "value", ...)` because this arrives BOTH ways: the curated files hold the
-    # raw string "excepts", and a producer constructing a rule in code passes the enum member —
-    # whose `str()` is "WindowsAre.excepts", which silently matched nothing.
-    kind = old.get("windows_are") or "applies"
-    if ranges and getattr(kind, "value", kind) == "excepts":
-        ranges = complement(ranges)
-    hours = None
-    a, b = old.get("from_time"), old.get("to_time")
-    # HALF A WINDOW IS WORSE THAN NONE. "No fishing 21:00-" with the end dropped renders as a
-    # total closure, so one end without the other is refused rather than quietly discarded.
-    if bool(a) != bool(b):
-        raise ValueError("a time-of-day window needs both ends, or it renders as no window at all")
-    if a and b:
-        ca, cb = parse_clock(a), parse_clock(b)
-        if ca is None or cb is None:
-            raise ValueError(f"times {a!r}..{b!r} do not parse")
-        hours = Hours(start=ca, end=cb)
-    wd = list(old.get("weekdays") or [])
-    if not ranges and hours is None and not wd and not unparsed:
-        return None
-    return When(dates=ranges, hours=hours, weekdays=wd,
-                unparsed=unparsed).model_dump(exclude_none=True)
-
-
 class Hours(BaseModel):
     """A RANGE WITHIN THE DAY. Either end may be a clock time or a solar one, so "from one hour
     after sunset to one hour before sunrise" is sayable. It WRAPS midnight the same way a
@@ -823,7 +708,18 @@ class AnglerState(str, Enum):
     from_shore = "from_shore"
 
 
-class GearWhen(BaseModel):
+class _Terse(BaseModel):
+    """DUMPS ONLY WHAT WAS SAID. Every list on a gear clause defaults empty and an empty `allow`,
+    `only` or `ban` is refused, so an empty list here never carries meaning — yet each one shipped
+    as `except: [], members: [], must_be: [], of: []` on every clause in the bundle, four keys of
+    noise a reader has to prove are noise."""
+
+    @model_serializer(mode="wrap")
+    def _terse(self, handler):
+        return {k: v for k, v in handler(self).items() if v != [] and v != "" and v is not None}
+
+
+class GearWhen(_Terse):
     """WHEN A GEAR CLAUSE APPLIES — and a CLOSED vocabulary on purpose.
 
     `reason` was a free-text field that ended up carrying six different jobs: a carve-out, a
@@ -846,7 +742,7 @@ class GearWhen(BaseModel):
                     or self.gear_in_use or self.note)
 
 
-class GearSpec(BaseModel):
+class GearSpec(_Terse):
     """HOW THE THING MUST BE BUILT OR CARRIED, for the clause to hold.
 
     Three sentences needed this and only this, and without it all three read as unrepresentable:
@@ -881,7 +777,7 @@ class GearSpec(BaseModel):
                     or self.within_m_of_hook or self.opening_shape or self.note)
 
 
-class GearClause(BaseModel):
+class GearClause(_Terse):
     """ONE THING CONSTRAINED, AND HOW FAR. Ordered within `gear`; FIRST MATCH WINS.
 
     THERE IS NO POLARITY FLAG. `allowed`, `permitted` and `required` were three booleans on one
@@ -1120,63 +1016,6 @@ class CatalogueRule(BaseModel):
                                  "it was meant to narrow")
         return self
 
-    @model_validator(mode="before")
-    @classmethod
-    def _adopt_lengths(cls, v):
-        """ACCEPT THE OLD SIZE FIELDS, KEEP THE NEW ONE. `over_cm`, `under_cm` and `band` are no
-        longer fields on this model: `lengths` says everything they said and says it once. They
-        are still ACCEPTED here, converted, and dropped — because the parser still writes them
-        until a run with the new prompt lands, and the DFO salmon feed builds its rules in code
-        from scraped rows. Refusing them would make `lengths` something only re-parsed data
-        could have, which is the opposite of the point.
-
-        This shim is the whole migration. When the parser emits `lengths` directly it goes, and
-        `lengths_from_bounds` with it."""
-        if not isinstance(v, dict):
-            return v
-        # The five time fields are accepted and folded into `when`.
-        old_when = {k: v.get(k) for k in
-                    ("windows", "windows_are", "weekdays", "from_time", "to_time") if k in v}
-        if old_when:
-            v = {k: x for k, x in v.items() if k not in old_when}
-            if v.get("when") is None:
-                built = _when_from_old(old_when)
-                if built:
-                    v = dict(v, when=built)
-        # `needs_review` is accepted and dropped: it only ever meant "review_reason is filled".
-        if "needs_review" in v:
-            flag, why = v.get("needs_review"), (v.get("review_reason") or "").strip()
-            if flag and not why:
-                raise ValueError("needs_review is set with no review_reason to say why")
-            v = {k: x for k, x in v.items() if k != "needs_review"}
-        old = {k: v.get(k) for k in ("over_cm", "under_cm", "band") if k in v}
-        if not old:
-            return v
-        v = {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
-        if v.get("lengths") is not None:
-            return v
-        # A BAND NEEDS BOTH ENDS. Dropping the field took this check with it, and a malformed
-        # band was then silently REINTERPRETED as a ceiling rather than refused — the parser
-        # would have been told its mistake was fine. `lengths` cannot express the error at all,
-        # which is the point, but the old spelling can still arrive and must still be caught.
-        if old.get("band") and not (old.get("over_cm") and old.get("under_cm")):
-            raise ValueError("band needs both over_cm and under_cm")
-        v = dict(v, over_cm=old.get("over_cm"), under_cm=old.get("under_cm"),
-                 band=old.get("band") or False)
-        if not (v.get("over_cm") or v.get("under_cm")):
-            return {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
-        # AN IMPOSSIBLE SLOT IS REPORTED IN THE WORDS THE CURATOR WROTE. Deriving first would
-        # refuse it as "min_cm 90 >= max_cm 60", naming two fields that are not in the file;
-        # `_check` below says "under_cm 90 >= over_cm 60", which is the line to go and fix.
-        if v.get("over_cm") and v.get("under_cm") and v["under_cm"] >= v["over_cm"]:
-            raise ValueError(f"under_cm {v['under_cm']} >= over_cm {v['over_cm']} is an "
-                             f"impossible slot")
-        got = lengths_from_bounds(SimpleNamespace(
-            over_cm=v.get("over_cm"), under_cm=v.get("under_cm"), band=v.get("band") or False,
-            take=v.get("take"), within=v.get("within"), type=v.get("type"),
-            period=Period(v.get("period") or "daily")))
-        v = {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
-        return dict(v, lengths=[b.model_dump(exclude_none=True) for b in got]) if got else v
     obligation: Obligation = Obligation.must
 
     # --- who / what / when -------------------------------------------------
@@ -1197,11 +1036,9 @@ class CatalogueRule(BaseModel):
     #: and the general case cannot be lost.
     #:
     #: A conditionless clause on a slot is therefore the LAST word on it: anything after it is
-    #: unreachable. See `GearClause`. This
-    #: is where `allowed`, `permitted`, `required`, `barbless`, `hook_count`, `lure`, `bait`,
-    #: `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and `max_gap_mm` are going. It is
-    #: NOT yet migrated: the old fields are still the ones in use, and this is the target shape
-    #: with its validation, so the conversion has something to convert INTO.
+    #: unreachable. See `GearClause`. This replaced `allowed`, `barbless`, `hook_count`,
+    #: `lure`, `bait`, `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and `max_gap_mm`,
+    #: which are gone from the model and refused on load.
     #: See pipeline/docs/07-gear-representation.md.
     gear: List[GearClause] = Field(default_factory=list)
     #: A RULE THE BOOK ASSERTS BUT DOES NOT PRINT AS ITS OWN CLAUSE, naming the rule it was read
@@ -1241,8 +1078,8 @@ class CatalogueRule(BaseModel):
 
     #: WHEN THIS RULE BINDS, said once — see `When`. This replaces `windows` (210 distinct free
     #: text strings), `windows_are` (a flag that INVERTED the field beside it, the `band`
-    #: failure), `from_time`, `to_time` and `weekdays`. All five are still accepted from the
-    #: parser and converted; `_adopt_when` below is the whole migration.
+    #: failure), `from_time`, `to_time` and `weekdays`. All five are now REFUSED (`extra=forbid`):
+    #: a rule still spelling its season the old way is sent back, not converted.
     when: Optional[When] = None
     when_open: bool = False
 
@@ -1309,22 +1146,13 @@ class CatalogueRule(BaseModel):
     origin: Optional[Origin] = None
     method: Optional[Method] = None
 
-    # --- gear / tackle / bait ---------------------------------------------
-    bait: Optional[Bait] = None
-    allowed: Optional[bool] = None
+    # --- gear / tackle / bait: see `gear` -----------------------------------
     #: The species a bait or tackle rule is ABOUT — "no natural bait when fishing for salmon".
     #: Distinct from `species`, which on those types would mean the ban is scoped to what you may
     #: CATCH, and the tables say it is not: "banned for all angling and for all species". A stream
     #: can carry a salmon bait ban and no other, so the scoping is by TARGET, not by catch.
     when_targeting: List[str] = Field(default_factory=list)
-    barbless: Optional[bool] = None
-    hook_count: Optional[int] = None
-    max_gap_mm: Optional[int] = None
-    min_gap_cm: Optional[int] = None
-    lure: Optional[Lure] = None
-    max_flies: Optional[int] = None
-    max_weight_kg: Optional[float] = None
-    max_lines: Optional[int] = None
+    #: access_permission only: whether the access is granted.
     permitted: Optional[bool] = None
 
     # --- vessel ------------------------------------------------------------
@@ -1415,18 +1243,22 @@ class CatalogueRule(BaseModel):
         if t is RuleType.document_required:
             return self.document.value if self.document else "unspecified"
         if t is RuleType.method_rule:
-            return self.method.value if self.method else "unspecified"
+            if self.method:
+                return self.method.value
+            return ",".join(sorted({c.slot.value for c in self.gear})) or "unspecified"
         if t is RuleType.tackle_restriction:
-            for facet in ("lure", "barbless", "hook_count", "max_gap_mm",
-                          "max_flies", "max_weight_kg", "max_lines"):
-                if getattr(self, facet) is not None:
-                    return facet
-            return "unspecified"
+            # THE SET OF SLOTS CONSTRAINED. A water's "single barbless hook" displaces the zone's
+            # "single barbless hook"; its bare "barbless hook" does not, because displacing would
+            # drop the zone's one-point cap, which the water never lifted.
+            return ",".join(sorted({c.slot.value for c in self.gear})) or "unspecified"
         if t is RuleType.bait_restriction:
             # A salmon bait ban and a general bait ban are different subjects, not two values of
-            # one — a stream can carry both. The TARGET is part of what the rule controls.
+            # one — a stream can carry both. The TARGET is part of what the rule controls, and so
+            # is WHICH bait: a water's "dead fin fish may be used" displaces nothing about roe.
             tgt = ("/" + ",".join(sorted(self.when_targeting))) if self.when_targeting else ""
-            return f"bait:{self.bait.value if self.bait else 'any'}{tgt}"
+            named = sorted({m for c in self.gear if c.slot is Slot.bait
+                            for m in (c.of or (c.allow or []) + (c.only or []) + (c.ban or []))})
+            return f"bait:{','.join(named) or 'any_bait'}{tgt}"
         return t.value
 
     @model_validator(mode="after")
@@ -1509,27 +1341,21 @@ class CatalogueRule(BaseModel):
                 e.append("power_capped needs max_power_kw")
         if t is RuleType.document_required and self.document is None:
             e.append("document_required needs a document")
-        # THESE ARE THE FIELDS `gear` AND `conduct` REPLACE. A rule carrying either has stated
-        # its direction inside the clause that carries its subject, which is the whole point;
-        # demanding the old flag as well would mean two places to state one thing.
-        said_in_gear = bool(self.gear) or bool(self.conduct)
-        if t is RuleType.method_rule and not said_in_gear:
-            if self.method is None:
-                e.append("method_rule needs a method")
-            if self.permitted is None:
-                e.append("method_rule needs permitted — None read as 'prohibited' here and as "
-                         "'permitted' in access_permission, from the same absent value")
+        # A GEAR RULE SAYS WHAT IT CONSTRAINS IN `gear` OR `conduct`. The direction lives inside
+        # the clause that carries the subject; with neither, the rule states nothing a reader
+        # can act on. An exemption is the one other thing such a rule may be — it lifts a clause
+        # stated elsewhere ("EXEMPT from single barbless hooks").
+        said = bool(self.gear) or bool(self.conduct) or bool(self.exempts)
+        if t in (RuleType.method_rule, RuleType.tackle_restriction,
+                 RuleType.bait_restriction, RuleType.handling_rule) and not said:
+            e.append(f"{t.value} needs `gear`, `conduct` or `exempts` — it states nothing else")
         if (t is RuleType.access_permission and self.permitted is None and not self.grantor
-                and not said_in_gear):
+                and not self.gear and not self.conduct):
             e.append("access_permission needs permitted or a grantor")
-        if t is RuleType.bait_restriction and self.allowed is None and not said_in_gear:
-            e.append("bait_restriction needs allowed (a permission is a rule too)")
 
-        for f in ("take", "hook_count", "max_lines", "max_gap_mm"):
-            v = getattr(self, f)
-            if v is not None and v < 0:
-                e.append(f"{f} cannot be negative")
-        for f in ("max_kmh", "max_power_kw", "max_weight_kg"):
+        if self.take is not None and self.take < 0:
+            e.append("take cannot be negative")
+        for f in ("max_kmh", "max_power_kw"):
             v = getattr(self, f)
             if v is not None and v <= 0:
                 e.append(f"{f} must be positive")
@@ -1688,9 +1514,27 @@ def _gear_words(r: CatalogueRule) -> str:
     UNIT = {"hook_gap_mm": "mm", "light_to_hook_mm": "mm",
             "weight_per_line_kg": "kg", "bait_possession_kg": "kg"}
     bits = []
-    for c in r.gear:
+    gear = list(r.gear)
+
+    def plain(c: GearClause) -> bool:
+        return c.when is None and not c.unless and not c.of and not c.except_
+
+    # THE BOOK'S OWN WORDS FOR ITS COMMONEST SHAPES. 800 waters print "Single barbless hook" and
+    # "Bait ban"; spelled clause by clause those came out "barbless only; at most 1 point per
+    # hook" and "no any bait", which are right and which nobody says.
+    barb = next((c for c in gear if c.slot is Slot.barb and c.only == ["barbless"] and plain(c)), None)
+    one = next((c for c in gear if c.slot is Slot.points_per_hook and c.max == 1
+                and c.min is None and plain(c)), None)
+    if barb or one:
+        bits.append(f"{'single ' if one else ''}{'barbless ' if barb else ''}hook")
+        gear = [c for c in gear if c is not barb and c is not one]
+    for c in gear:
         name = c.slot.value.replace("_", " ")
-        if c.allow is not None:
+        if c.slot is Slot.bait and c.ban == ["any_bait"] and plain(c):
+            bits.append("bait ban")
+        elif c.slot is Slot.hook_gap_mm and c.max is not None and c.min is None and plain(c):
+            bits.append(f"no hook more than {c.max:g} mm from point to shank")
+        elif c.allow is not None:
             bits.append(f"{', '.join(c.allow).replace('_', ' ')} may be used")
         elif c.only is not None:
             bits.append(f"{', '.join(c.only).replace('_', ' ')} only")
@@ -1712,7 +1556,8 @@ def _gear_words(r: CatalogueRule) -> str:
                     # "at most 1 points per hook" — the slot name is plural because it names a
                     # measurand, and a bound of one reads as a count.
                     head, _, tail = name.partition(" per ")
-                    one = head.removesuffix("s") if v == 1 else head
+                    one = ({"flies": "fly"}.get(head, head.removesuffix("s"))
+                           if v == 1 else head)
                     bits.append(f"{kind} {v:g} {one}" + (f" per {tail}" if tail else ""))
         if c.when is not None and not c.when.is_empty():
             w = [x for x in (getattr(c.when.water, "value", None),
@@ -1722,6 +1567,9 @@ def _gear_words(r: CatalogueRule) -> str:
     for act in r.conduct:
         bits.append(CONDUCT_ACTS.get(act, act.replace("_", " ")))
     out = "; ".join(bits)
+    out = out[:1].upper() + out[1:]
+    if r.when_targeting and out:
+        out += f" when fishing for {species_words(r.when_targeting).lower()}"
     if r.while_ and out:
         out += " — while " + " or ".join(w.replace("_", " ") for w in r.while_)
     return out
@@ -1787,7 +1635,7 @@ def _size(r: CatalogueRule) -> str:
     POLARITY USED TO BE THE WHOLE JOB HERE. "not more than 1 over 50 cm" ALLOWS one big fish;
     "none over 50 cm" FORBIDS them — and `over_cm` carried both, so which was meant had to be
     worked out from `take`, `within` and `period`. This function held one copy of that reasoning
-    and `lengths_from_bounds` holds the other; two copies of a six-way branch is how "1 bull
+    and a migration shim held the other; two copies of a six-way branch is how "1 bull
     trout over 60 cm" got rendered "none over 60 cm", inverting the rule on the fish it exists
     to protect.
 
@@ -1935,61 +1783,10 @@ def label(r: CatalogueRule) -> str:
             out += " — record your retention on your licence immediately"
         return out
 
-    if t is RuleType.bait_restriction:
-        # EXHAUSTIVE ON PURPOSE — a subscript, not `.get`. A member missing here is a KeyError at
-        # build time; a default would render the wrong bait and ship it.
-        what = {Bait.any: "Bait", Bait.fin_fish: "Fin fish", Bait.dead_fin_fish: "Dead fin fish",
-                Bait.invertebrate: "Freshwater invertebrates", Bait.roe: "Roe"}[r.bait or Bait.any]
-        head = f"{what} may be used" if r.allowed else (
-            "Bait ban" if (r.bait or Bait.any) is Bait.any else f"{what} may not be used as bait")
-        if r.when_targeting:
-            head += f" when fishing for {species_words(r.when_targeting).lower()}"
-        return head + _scope(r) + _dates(r) + _where(r) + _because(r)
-
-    if t is RuleType.tackle_restriction:
-        if r.lure:
-            head = ("Artificial fly only" if r.lure is Lure.artificial_fly else "Fly fishing only")
-        elif r.max_lines is not None:
-            head = ("Unlimited rods" if r.max_lines == 0
-                    else f"{r.max_lines} line{'s' if r.max_lines != 1 else ''} per angler")
-        elif r.max_weight_kg is not None:
-            head = f"No more than {r.max_weight_kg:g} kg of weight on the line"
-        elif r.max_flies is not None:
-            head = f"No more than {r.max_flies} artificial fly on the line"
-        elif r.hook_count is None and r.barbless is None and r.max_gap_mm is None:
-            return r.verbatim              # no facet to generate from — the sentence IS the rule
-        else:
-            head = (f"{'Single ' if r.hook_count == 1 else ''}"
-                    f"{'barbless ' if r.barbless else ''}hook").strip().capitalize()
-            if r.max_gap_mm:
-                head += f" (no more than {r.max_gap_mm} mm from point to shank)"
-        if r.when_targeting:
-            head += f" when fishing for {species_words(r.when_targeting).lower()}"
-        return head + _scope(r) + _dates(r) + _where(r) + _because(r)
-
-    if t is RuleType.method_rule:
-        if (r.extent_text or r.reason) and not any((r.max_lines, r.hook_count, r.min_gap_cm)):
-            # a procedural duty; no template renders a duty — but a FORBIDDEN one still has
-            # to read as forbidden, or the quote is the label and the label is inverted.
-            #
-            # `reason` counts as well as `extent_text`. This test used `extent_text` alone as
-            # the signal, which meant a duty had to claim a PLACE to be printed at all — and a
-            # rule that claims a place the atlas cannot draw binds to no section and is lost on
-            # every water. Four provincial duties sat in exactly that trap ("set lines must be
-            # marked with the angler's name", "chumming is prohibited", the ice-hut duty, "do
-            # not place gear in the water during a No Fishing period"); moving their words to
-            # `reason` lets the atlas place them, and this keeps them readable.
-            return (_quoted_prohibition(r, quote_is_whole=True) if r.required is False
-                    else r.verbatim)
-        m = r.method.value.replace("_", " ")
-        head = f"{m.capitalize()} is permitted" if r.permitted else f"{m.capitalize()} is prohibited"
-        rig = []
-        if r.max_lines: rig.append(f"{r.max_lines} line")
-        if r.hook_count: rig.append(f"{r.hook_count} hook")
-        if r.min_gap_cm: rig.append(f"gap {r.min_gap_cm} cm or more from point to shank")
-        if rig: head += " — " + ", ".join(rig)
-        rest = _scope(r.model_copy(update={"method": None}))
-        return head + rest + _dates(r) + _where(r) + _because(r)
+    if t in (RuleType.bait_restriction, RuleType.tackle_restriction, RuleType.method_rule):
+        # Everything these types say is in `gear`/`conduct`, rendered above. What reaches here
+        # is an exemption with no clause of its own, and the sentence IS the rule.
+        return r.verbatim
 
     if t is RuleType.vessel_rule:
         if r.aspect is VesselAspect.speed:
