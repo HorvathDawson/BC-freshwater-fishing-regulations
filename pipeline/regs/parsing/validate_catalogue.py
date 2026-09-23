@@ -305,9 +305,14 @@ def check_entry(entry_data: dict, source_text: str,
     for rule in entry.rules:
         # Every number must be in the rule's OWN sentence. This is what stops a limit being
         # attributed to a rule whose text never stated it.
-        for field in ("take", "over_cm", "under_cm", "max_kmh", "max_power_kw", "per_daily",
-                      "max_gap_mm", "min_gap_cm", "max_weight_kg"):
-            value = getattr(rule, field)
+        numbers = [(f, getattr(rule, f)) for f in
+                   ("take", "max_kmh", "max_power_kw", "per_daily",
+                    "max_gap_mm", "min_gap_cm", "max_weight_kg")]
+        # THE SIZES ARE INSIDE `lengths` NOW, and they are exactly the numbers this check exists
+        # for: a bound the sentence never stated is a size limit invented by the parser.
+        for i, b in enumerate(rule.lengths or []):
+            numbers += [(f"lengths[{i}].min_cm", b.min_cm), (f"lengths[{i}].max_cm", b.max_cm)]
+        for field, value in numbers:
             if value in (None, 0):
                 continue
             printed = f"{value:g}" if isinstance(value, float) else str(value)

@@ -2149,14 +2149,20 @@ def test_a_size_sublimit_is_its_own_rule_pointing_at_its_parent():
     """`z2:trout_char_quota.r2` is the convention: "1 over 50 cm" WITHIN "Trout/char: 4".
     One rule carrying both numbers is the shape that loses the 4."""
     parent, sub = _typed(limits_gear="4 per day, only 2 over 50 cm.")
-    assert (parent.take, parent.over_cm) == (4, None)
-    assert (sub.take, sub.over_cm, sub.within) == (2, 50, parent.rule_id)
+    assert (parent.take, parent.lengths) == (4, None)
+    # "only 2 over 50 cm" COUNTS the big ones and leaves the rest to the parent's 4, so the
+    # band is a bare minimum with no denial beneath it.
+    assert (sub.take, sub.within) == (2, parent.rule_id)
+    assert [b.model_dump(exclude_none=True) for b in sub.lengths] == [{"min_cm": 50}]
 
 
 def test_none_over_is_a_release_rule_not_a_closure():
     parent, sub = _typed(limits_gear="4 per day, none over 50 cm")
     assert parent.take == 4
-    assert (sub.take, sub.over_cm, sub.may_target) == (0, 50, True)
+    # "none over 50 cm" denies the big ones and says nothing about the small ones — a release,
+    # not a closure, which is what `may_target` carries.
+    assert (sub.take, sub.may_target) == (0, True)
+    assert [b.model_dump(exclude_none=True) for b in sub.lengths] == [{"min_cm": 50, "take": 0}]
 
 
 def test_a_bundled_row_is_two_rules_of_different_types():
@@ -2316,7 +2322,7 @@ def test_a_row_that_states_a_size_always_binds_it():
             if not re.search(r"\d+\s*cm", rec["limits_gear"], re.I):
                 continue
             typed = to_rules(rec, "t", i)
-            if not any(r.over_cm or r.under_cm or r.max_gap_mm for r in typed):
+            if not any(r.lengths or r.max_gap_mm for r in typed):
                 missed.append(rec["limits_gear"])
     assert not missed, f"a size the decode cannot read: {missed}"
 

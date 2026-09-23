@@ -456,6 +456,82 @@ def lengths_from_bounds(r) -> Optional[List["LengthBand"]]:
     return [LengthBand(min_cm=u), LengthBand(max_cm=u, take=0)]
 
 
+#: Month name -> number, and the last day of each. February is 29 ON PURPOSE: the book says
+#: "February", which includes the 29th in the years it exists, and 28 would quietly shorten it.
+_MONTHS = {m: i + 1 for i, m in enumerate(
+    ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
+_LAST_DAY = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30,
+             7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+
+
+class Solar(str, Enum):
+    sunrise = "sunrise"
+    sunset = "sunset"
+
+
+class Clock(BaseModel):
+    """A TIME OF DAY, either off the clock or off the sun.
+
+    The book writes both and the corpus stored both as prose — "21:00", "21:00 hours" and "one
+    hour after sunset" all sat in the same string field, so the first two were the same instant
+    spelled two ways and the third was not a time at all. A solar time cannot be resolved to a
+    clock without a date and a latitude, which is the client's to do and not the parser's, so it
+    is carried as what it is.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    at: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    solar: Optional[Solar] = None
+    #: Minutes from the solar event. NEGATIVE IS BEFORE — "30 minutes before sunrise" is
+    #: `{solar: sunrise, offset_min: -30}`, and the sign is the whole difference between
+    #: fishing legally and not.
+    offset_min: int = 0
+
+    @model_validator(mode="after")
+    def _one_kind(self) -> "Clock":
+        if bool(self.at) == bool(self.solar):
+            raise ValueError("a time is a clock time OR a solar time, not both and not neither")
+        if self.at and self.offset_min:
+            raise ValueError("an offset belongs to a solar time; put it in the clock time")
+        return self
+
+    def words(self) -> str:
+        if self.at:
+            return self.at
+        n = abs(self.offset_min)
+        if not n:
+            return self.solar.value
+        unit = f"{n} minutes" if n % 60 else ("one hour" if n == 60 else f"{n // 60} hours")
+        return f"{unit} {'before' if self.offset_min < 0 else 'after'} {self.solar.value}"
+
+
+class DateRange(BaseModel):
+    """A RANGE OF CALENDAR DAYS, no year. Both ends INCLUSIVE, per the synopsis: "When no date
+    is listed, the regulations apply ALL YEAR. Start and end dates are INCLUSIVE."
+
+    A range may WRAP the year end — "Nov 1-Apr 30" is one winter, not an error — so `to` before
+    `from` is meaningful and is not rejected.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    from_month: int = Field(ge=1, le=12)
+    from_day: int = Field(ge=1, le=31)
+    to_month: int = Field(ge=1, le=12)
+    to_day: int = Field(ge=1, le=31)
+
+    @model_validator(mode="after")
+    def _real_days(self) -> "DateRange":
+        for m, d, side in ((self.from_month, self.from_day, "from"),
+                           (self.to_month, self.to_day, "to")):
+            if d > _LAST_DAY[m]:
+                raise ValueError(f"{side}: day {d} does not exist in month {m}")
+        return self
+
+    def words(self) -> str:
+        nm = {v: k.capitalize() for k, v in _MONTHS.items()}
+        return f"{nm[self.from_month]} {self.from_day}-{nm[self.to_month]} {self.to_day}"
+
+
 class LengthBand(BaseModel):
     """ONE RANGE OF FISH LENGTHS, AND HOW MANY OF THEM YOU MAY KEEP.
 
@@ -495,27 +571,46 @@ class CatalogueRule(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _fill_lengths(cls, v):
-        """`lengths` IS DERIVED WHERE IT IS NOT GIVEN, so a producer that only knows the old
-        three fields still gets it. The DFO salmon feed builds its rules in code from scraped
-        rows and writes `over_cm`; refusing those would have made this field something only
-        curated entries could have, which is the opposite of the point."""
-        if not isinstance(v, dict) or v.get("lengths") is not None:
+    def _adopt_lengths(cls, v):
+        """ACCEPT THE OLD SIZE FIELDS, KEEP THE NEW ONE. `over_cm`, `under_cm` and `band` are no
+        longer fields on this model: `lengths` says everything they said and says it once. They
+        are still ACCEPTED here, converted, and dropped — because the parser still writes them
+        until a run with the new prompt lands, and the DFO salmon feed builds its rules in code
+        from scraped rows. Refusing them would make `lengths` something only re-parsed data
+        could have, which is the opposite of the point.
+
+        This shim is the whole migration. When the parser emits `lengths` directly it goes, and
+        `lengths_from_bounds` with it."""
+        if not isinstance(v, dict):
             return v
+        old = {k: v.get(k) for k in ("over_cm", "under_cm", "band") if k in v}
+        if not old:
+            return v
+        v = {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
+        if v.get("lengths") is not None:
+            return v
+        # A BAND NEEDS BOTH ENDS. Dropping the field took this check with it, and a malformed
+        # band was then silently REINTERPRETED as a ceiling rather than refused — the parser
+        # would have been told its mistake was fine. `lengths` cannot express the error at all,
+        # which is the point, but the old spelling can still arrive and must still be caught.
+        if old.get("band") and not (old.get("over_cm") and old.get("under_cm")):
+            raise ValueError("band needs both over_cm and under_cm")
+        v = dict(v, over_cm=old.get("over_cm"), under_cm=old.get("under_cm"),
+                 band=old.get("band") or False)
         if not (v.get("over_cm") or v.get("under_cm")):
-            return v
+            return {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
         # AN IMPOSSIBLE SLOT IS REPORTED IN THE WORDS THE CURATOR WROTE. Deriving first would
         # refuse it as "min_cm 90 >= max_cm 60", naming two fields that are not in the file;
         # `_check` below says "under_cm 90 >= over_cm 60", which is the line to go and fix.
         if v.get("over_cm") and v.get("under_cm") and v["under_cm"] >= v["over_cm"]:
-            return v
+            raise ValueError(f"under_cm {v['under_cm']} >= over_cm {v['over_cm']} is an "
+                             f"impossible slot")
         got = lengths_from_bounds(SimpleNamespace(
             over_cm=v.get("over_cm"), under_cm=v.get("under_cm"), band=v.get("band") or False,
             take=v.get("take"), within=v.get("within"), type=v.get("type"),
             period=Period(v.get("period") or "daily")))
-        if got is not None:
-            v = dict(v, lengths=[b.model_dump(exclude_none=True) for b in got])
-        return v
+        v = {k: x for k, x in v.items() if k not in ("over_cm", "under_cm", "band")}
+        return dict(v, lengths=[b.model_dump(exclude_none=True) for b in got]) if got else v
     obligation: Obligation = Obligation.must
 
     # --- who / what / when -------------------------------------------------
@@ -571,12 +666,6 @@ class CatalogueRule(BaseModel):
     #: old reading capped a 50 cm pike at 1, when the book allows the parent's 4.
     lengths: Optional[List[LengthBand]] = None
 
-    #: THE THREE FIELDS `lengths` REPLACES. Still written by the parser and still the curated
-    #: source of truth until the next parse run emits `lengths` directly; `_lengths_agree` below
-    #: fails the build if the two ever say different things.
-    over_cm: Optional[int] = None
-    under_cm: Optional[int] = None
-    band: bool = False
     #: `combined` WAS HERE, and it said nothing. It marked 31 rules as "the count is shared
     #: across the species" — and every one of those names more than one fish, as do 1,157 rules
     #: that were never flagged. The flag was a subset of a fact already on the rule, and its
@@ -687,7 +776,7 @@ class CatalogueRule(BaseModel):
         barbless), so their dimension is the FACET each constrains, not the type."""
         t = self.type
         if t is RuleType.retention_limit:
-            return f"{self.period.value}{'/size' if (self.over_cm or self.under_cm) and self.take is None else ''}"
+            return f"{self.period.value}{'/size' if self.lengths and self.take is None else ''}"
         if t is RuleType.vessel_rule:
             return self.aspect.value if self.aspect else "unspecified"
         if t is RuleType.document_required:
@@ -739,10 +828,6 @@ class CatalogueRule(BaseModel):
                 e.append("a release rule is a daily-period rule")
             if self.per_daily is not None and self.period is not Period.possession:
                 e.append("per_daily is a possession multiplier")
-            if self.band and not (self.over_cm and self.under_cm):
-                e.append("band needs both over_cm and under_cm")
-            if self.over_cm and self.under_cm and self.under_cm >= self.over_cm:
-                e.append(f"under_cm {self.under_cm} >= over_cm {self.over_cm} is an impossible slot")
             # `lengths` IS THE ANSWER, NOT A COPY OF THE OTHER THREE. It used to be checked
             # for equality against over_cm/under_cm/band, which quietly made it subordinate to
             # the fields it exists to replace: it could only ever say what THEY could say.
@@ -755,7 +840,11 @@ class CatalogueRule(BaseModel):
             # then a rule whose hand-written `lengths` differs from them is a CORRECTION, and
             # the difference is the point.
         else:
-            for f in ("take", "unlimited", "per_daily", "within", "band"):
+            # `lengths` IS NOT ON THIS LIST. `band` was, because a band was only ever a
+            # retention thing — but a size on a document rule names WHICH FISH need the stamp
+            # ("required to catch and keep rainbow trout over 50 cm"), so `lengths` belongs to
+            # both and refusing it here rejected the two rules that prove the distinction.
+            for f in ("take", "unlimited", "per_daily", "within"):
                 if getattr(self, f) not in (None, False):
                     e.append(f"{f} belongs to retention_limit, not {t.value}")
 
@@ -797,7 +886,7 @@ class CatalogueRule(BaseModel):
         if t is RuleType.bait_restriction and self.allowed is None:
             e.append("bait_restriction needs allowed (a permission is a rule too)")
 
-        for f in ("over_cm", "under_cm", "take", "hook_count", "max_lines", "max_gap_mm"):
+        for f in ("take", "hook_count", "max_lines", "max_gap_mm"):
             v = getattr(self, f)
             if v is not None and v < 0:
                 e.append(f"{f} cannot be negative")
@@ -1006,47 +1095,74 @@ def _scope(r: CatalogueRule, taking: bool = True) -> str:
 
 
 def _size(r: CatalogueRule) -> str:
-    """POLARITY IS THE WHOLE JOB HERE.
+    """The size limit, in words, READ OFF `lengths`.
 
-    "not more than 1 over 50 cm" ALLOWS one big fish; "none over 50 cm" FORBIDS them. The same two
-    fields carry both, and which one is meant depends on `take`:
+    POLARITY USED TO BE THE WHOLE JOB HERE. "not more than 1 over 50 cm" ALLOWS one big fish;
+    "none over 50 cm" FORBIDS them — and `over_cm` carried both, so which was meant had to be
+    worked out from `take`, `within` and `period`. This function held one copy of that reasoning
+    and `lengths_from_bounds` holds the other; two copies of a six-way branch is how "1 bull
+    trout over 60 cm" got rendered "none over 60 cm", inverting the rule on the fish it exists
+    to protect.
 
-        take = 0            the size says WHICH fish must go back  -> "none over 50 cm"
-        take = n, within    the size says which fish the CAP counts -> "no more than n over 50 cm"
-
-    `r2:cultus_lake` is the corpus proving it matters: "1 bull trout over 60 cm" means the one you
-    keep must BE over 60, and rendering it "none over 60 cm" inverts the rule on the fish it exists
-    to protect."""
-    if r.over_cm and r.under_cm:
-        if r.band:
-            # A BAND protects the middle. `r6:bennett_lake` is "only 1 over 90 cm, NONE between
-            # 60 and 90" — two facts, and returning only the band swallowed the number the module
-            # docstring cites as its motivating case. A band with a take needs a second rule.
-            return (f" (none between {r.under_cm} cm and {r.over_cm} cm)" if r.take is None
-                    else f" (no more than {r.take}, none between {r.under_cm} cm and "
-                         f"{r.over_cm} cm)")
-        slot = f"{r.under_cm}–{r.over_cm} cm only"
-        # A slot inside a parent still carries its own COUNT. `z7a` is "not more than 1 bull trout,
-        # 30-50 cm" — dropping the 1 turns a one-fish allowance into an unlimited one.
-        return f" (no more than {r.take}, {slot})" if (r.within and r.take) else f" ({slot})"
-    bound = "over" if r.over_cm else ("under" if r.under_cm else None)
-    if bound is None:
+    `lengths` has already decided. What is left is reading a shape and naming it: a range with a
+    zero is fish going back, a range without one is fish you may keep.
+    """
+    bands = list(r.lengths or [])
+    if not bands:
         return ""
-    cm = r.over_cm or r.under_cm
-    if r.take == 0:
-        return f" {bound} {cm} cm"                       # which fish go back
-    if r.period is not Period.daily and r.take:
-        # "Rainbow trout: 5 over 50 cm" (annual) COUNTS fish over 50 cm; it does not forbid
-        # keeping smaller ones, which the daily quota governs. Printing "(none under 50 cm)" put a
+    denied = [b for b in bands if b.take == 0]
+    granted = [b for b in bands if b.take != 0]
+
+    # A HOLE protects the middle. `r6:bennett_lake` is "only 1 over 90 cm, NONE between 60 and
+    # 90" — two facts, and naming only the hole swallows the number.
+    hole = next((b for b in denied if b.min_cm is not None and b.max_cm is not None), None)
+    if hole:
+        between = f"none between {hole.min_cm} cm and {hole.max_cm} cm"
+        return f" ({between})" if r.take is None else f" (no more than {r.take}, {between})"
+
+    # A WINDOW is the opposite: the middle is the only part you may keep. A window inside a
+    # parent still carries its own COUNT — `z7a` is "not more than 1 bull trout, 30-50 cm", and
+    # dropping the 1 turns a one-fish allowance into an unlimited one.
+    win = next((b for b in granted if b.min_cm is not None and b.max_cm is not None), None)
+    if win:
+        slot = f"{win.min_cm}\u2013{win.max_cm} cm only"
+        return f" (no more than {r.take}, {slot})" if (r.within and r.take) else f" ({slot})"
+
+    if not granted:
+        # NOTHING IS GRANTED, so the range names the fish that go back and nothing else is
+        # claimed. "no trout over 50 cm" says nothing about a 40 cm trout.
+        #
+        # THE PARENTHESES ARE ABOUT THE SENTENCE, NOT THE SIZE. An explicit `take: 0` has
+        # already put "release all" in front of this, so the bound appends bare — "release all
+        # over 50 cm". With no take there is no quota phrase to append to, and the bare form
+        # reads as a description of a fish rather than a prohibition: "Trout under 25 cm"
+        # instead of "Trout (none under 25 cm)". That is the one thing `lengths` cannot say,
+        # because both spellings of the prohibition make the same band.
+        b = denied[0]
+        end, cm = ("over", b.min_cm) if b.min_cm is not None else ("under", b.max_cm)
+        return f" {end} {cm} cm" if r.take == 0 else f" (none {end} {cm} cm)"
+
+    g = granted[0]
+    if not denied:
+        # A GRANT WITH NO DENIAL BENEATH IT COUNTS A SIZE CLASS rather than bounding one.
+        # "Rainbow trout: 5 over 50 cm" (annual) counts the big ones and does not forbid keeping
+        # smaller ones, which the daily quota governs; printing "(none under 50 cm)" put a
         # minimum size on the page that neither the Shuswap nor the Kootenay chapter states.
-        return f" over {cm} cm" if bound == "under" else f" {bound} {cm} cm"
-    if r.within and r.take:
-        # ASYMMETRIC ON PURPOSE. over_cm caps how many BIG fish the allowance includes; under_cm is
-        # a FLOOR on every fish kept. "no more than 1 under 60 cm" would say the opposite of
-        # `r2:cultus_lake`'s "1 bull trout over 60 cm", where the fish you keep must BE over 60.
-        return (f" (no more than {r.take} over {cm} cm)" if bound == "over"
-                else f" (no more than {r.take}, none under {cm} cm)")
-    return f" (none {bound} {cm} cm)"                    # a flat size prohibition
+        if g.min_cm is not None:
+            n = g.take if g.take is not None else r.take
+            return (f" (no more than {n} over {g.min_cm} cm)" if r.within and n
+                    else f" over {g.min_cm} cm")
+        return f" under {g.max_cm} cm"
+
+    # A GRANT WITH A DENIAL BENEATH IT is bounded: the fish you keep must lie on this side.
+    # ASYMMETRIC ON PURPOSE — a maximum caps how big a kept fish may be, a minimum is a floor on
+    # every fish kept, and "no more than 1 under 60 cm" would say the opposite of
+    # `r2:cultus_lake`'s "1 bull trout over 60 cm", where the fish you keep must BE over 60.
+    if g.max_cm is not None:
+        return f" (none over {g.max_cm} cm)"
+    n = g.take if g.take is not None else r.take
+    return (f" (no more than {n}, none under {g.min_cm} cm)" if r.within and n
+            else f" (none under {g.min_cm} cm)")
 
 
 def _where(r: CatalogueRule) -> str:
@@ -1092,13 +1208,15 @@ def label(r: CatalogueRule) -> str:
             rest = _scope(r.model_copy(update={"water": None, "method": None}), taking=False)
             return head + rest + _dates(r) + _where(r) + _because(r)
         if r.take == 0:
-            head = f"{sp} — release all" if not (r.over_cm or r.under_cm) else f"{sp} — release all"
+            # Both arms of a conditional here produced the SAME string — it read the size fields
+            # and did nothing with them. `_size` appends the bound afterwards either way.
+            head = f"{sp} — release all"
         elif r.unlimited:
             head = f"{sp} — no limit"
         elif r.take is not None:
             noun = {Period.daily: "per day", Period.possession: "in possession",
                     Period.annual: "per licence year", Period.monthly: "per month"}[r.period]
-            if r.within and (r.over_cm or r.under_cm):
+            if r.within and r.lengths:
                 head = sp                                # the size phrase carries the count
             else:
                 head = f"{sp} — {r.take} {noun}"
@@ -1107,7 +1225,7 @@ def label(r: CatalogueRule) -> str:
         elif r.per_daily is not None:
             head = f"{sp or 'All game fish'} — possession quota is {r.per_daily} daily quota" \
                    + ("s" if r.per_daily != 1 else "")
-        elif r.over_cm or r.under_cm:
+        elif r.lengths:
             head = sp                      # a size gate with no count: the region supplies it
         else:
             return r.verbatim              # nothing numeric to generate from

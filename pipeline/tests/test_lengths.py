@@ -105,11 +105,24 @@ def test_a_range_that_holds_no_fish_or_every_fish_is_refused(kw):
 # ---------------------------------------------------------------------------------------
 # And it is actually on the data
 # ---------------------------------------------------------------------------------------
-def test_every_rule_with_a_size_bound_carries_lengths_and_no_other_rule_does():
+def test_the_corpus_carries_no_trace_of_the_fields_lengths_replaced():
+    """`over_cm`, `under_cm` and `band` are gone from the model, the entries AND the bundle.
+    They are still ACCEPTED on the way in and converted, so the only way to know they did not
+    quietly survive that conversion is to look at what a reader actually gets."""
     rs = rules()
-    sized = {id(x) for x in rs if x.get("over_cm") or x.get("under_cm")}
-    got = {id(x) for x in rs if x.get("lengths")}
-    assert sized and got == sized
+    left = [x for x in rs if any(k in x for k in ("over_cm", "under_cm", "band"))]
+    assert not left, f"{len(left)} rules still carry a field lengths replaced"
+
+
+def test_only_a_rule_about_fish_of_a_size_carries_lengths_and_every_band_is_real():
+    rs = [x for x in rules() if x.get("lengths")]
+    assert rs, "no rule carries lengths — the join or the bundle has dropped them"
+    for x in rs:
+        assert x.get("type") in ("retention_limit", "document_required"), \
+            f"{x.get('rule')}: a size on a {x.get('type')} rule"
+        for d in x["lengths"]:
+            b = LengthBand(**d)                       # refuses empty and open-both-ends ranges
+            assert b.min_cm is not None or b.max_cm is not None
 
 
 def test_the_four_rules_whose_band_was_backwards_read_as_windows():
@@ -121,9 +134,9 @@ def test_the_four_rules_whose_band_was_backwards_read_as_windows():
         if x.get("rule") not in want or not x.get("lengths"):
             continue
         seen += 1
-        lo, hi = x["under_cm"], x["over_cm"]
-        mid = (lo + hi) // 2
         bands = [LengthBand(**b) for b in x["lengths"]]
+        span = next(b for b in bands if b.min_cm is not None and b.max_cm is not None)
+        mid = (span.min_cm + span.max_cm) // 2
         assert keep(bands, mid, x.get("take")) not in (0, None), \
             f"{x['rule']}: {mid} cm is inside the window and must be keepable"
     assert seen == len(want)
