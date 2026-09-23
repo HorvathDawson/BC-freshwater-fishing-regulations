@@ -241,6 +241,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                 json.dumps(e.get("source_pages") or (e.get("source") or {}).get("pages") or [],
                            separators=(",", ":")),
                 e.get("scope_note") or None,
+                json.dumps(e.get("extents") or [], separators=(",", ":")),
             ))
             for r in e.get("rules") or []:
                 rule_rows.append(_rule_row(
@@ -252,7 +253,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # — which then wrote a 42 MB bundle with zero entries in it. Naming the columns makes that
     # failure impossible rather than merely tested.
     db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
-                   "                   mus, pages, scope_note) VALUES (?,?,?,?,?,?,?,?,?)",
+                   "                   mus, pages, scope_note, extents)"
+                   " VALUES (?,?,?,?,?,?,?,?,?,?)",
                    entry_rows)
     cov.filled("entry", len(entry_rows))
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional

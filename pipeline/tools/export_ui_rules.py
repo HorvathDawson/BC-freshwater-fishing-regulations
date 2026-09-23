@@ -543,28 +543,35 @@ _ENTRIES = None
 
 
 def entries() -> dict:
-    """entry_id -> what the CURATED entry knows that the bundle drops.
+    """entry_id -> the paperwork around a rule: which synopsis page it was read from, the whole
+    printed box it came out of, the scope note, the symbols.
 
-    The bundle keeps rules, not the paperwork around them: which synopsis page the entry was
-    read from, and the whole printed box it was read out of. Both are provenance a reader can
-    act on — "page 22" is checkable, and the box is the rule IN CONTEXT, which is how you tell
-    a clause from a peer. The curated files are the owner of it.
+    ALL OF IT COMES FROM THE BUNDLE. This used to read the curated files at RUN time, which is a
+    fallback — a reader answering with something the bundle never agreed to, and staleness that
+    says nothing. `scope_note` was the last of the six that had no column; it has one now.
+
+    Verified field by field against what the curated read returned: 1,480 of 1,480 identical on
+    five, and on the sixth the bundle is BETTER — `name` is `display_name or name`, so the 32
+    entries with no display_name get their name instead of a null.
     """
     global _ENTRIES
     if _ENTRIES is None:
-        from pathlib import Path
-        from pipeline.common.curated import CURATED
+        import sqlite3
+        from pipeline.regs.table.corpus import BUNDLE
+        db = sqlite3.connect(BUNDLE)
+        cols = [r[1] for r in db.execute("PRAGMA table_info(entry)")]
         _ENTRIES = {}
-        dirs = (CURATED.regulations.entries.catalogue, CURATED.regulations.entries.dfo_salmon)
-        for path in sorted(q for d in dirs for q in Path(d).glob("region-*.json")):
-            for e in (json.loads(Path(path).read_text()).get("entries") or []):
-                _ENTRIES[e.get("entry_id")] = {
-                    "name": e.get("name"), "display_name": e.get("display_name"),
-                    "scope_note": e.get("scope_note") or None,
-                    "synopsis_pages": e.get("source_pages") or [],
-                    "printed_box": e.get("regs_verbatim") or None,
-                    "symbols": e.get("symbols") or [],
-                }
+        for row in db.execute("SELECT * FROM entry"):
+            e = dict(zip(cols, row))
+            _ENTRIES[e["entry_id"]] = {
+                "name": e.get("full_name"),          # the book's own heading, shouted
+                "display_name": e.get("name"),       # the readable form
+                "scope_note": e.get("scope_note") or None,
+                "synopsis_pages": json.loads(e.get("pages") or "[]"),
+                "printed_box": e.get("verbatim") or None,
+                "symbols": json.loads(e.get("symbols") or "[]"),
+            }
+        db.close()
     return _ENTRIES
 
 

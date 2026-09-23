@@ -465,22 +465,30 @@ def _entry_areas() -> dict[str, list[str]]:
     Haida Gwaii's own. Told apart by prefix they are indistinguishable, and the Yakoun River
     showed Trout 4 and Trout/char 5 one above the other, both labelled "Region 1".
 
-    The bundle keeps no structured extents (only `rule.extent_text`, which is prose), so this
-    reads the curated files the bundle was built from.
+    FROM THE BUNDLE. This read the curated files at RUN time because the bundle shipped only
+    `rule.extent_text`, which is prose — that stopped being true when `extents` were baked into
+    the rule's `conditions`, and a reader that keeps its own path to the curated data can answer
+    with something the bundle never agreed to.
+
+    The ENTRY's own extents are a column of their own, because they are not recoverable from its
+    rules: a rule with narrower extents does not say what the entry's were, and taking the union
+    across rules widened `zp:bait` from the region to three named regions and lost
+    `z5:spring_stream_closure` entirely.
     """
-    from pipeline.common.curated import CURATED
+    import sqlite3
+    from pipeline.regs.table.corpus import BUNDLE
 
     out: dict[str, list[str]] = {}
-    dirs = (CURATED.regulations.entries.catalogue, CURATED.regulations.entries.dfo_salmon)
-    for path in sorted(q for d in dirs for q in Path(d).glob("region-*.json")):
-        for e in json.loads(path.read_text(encoding="utf-8")).get("entries", []):
-            got: list[str] = []
-            for ex in (e.get("extents") or []):
-                a = ex.get("area_id") or (("kind:" + ex["area_kind"]) if ex.get("area_kind") else "")
-                if a and a not in got:
-                    got.append(a)
-            if got:
-                out[e["entry_id"]] = got
+    db = sqlite3.connect(BUNDLE)
+    for eid, raw in db.execute("SELECT entry_id, extents FROM entry"):
+        got: list[str] = []
+        for ex in json.loads(raw or "[]"):
+            a = ex.get("area_id") or (("kind:" + ex["area_kind"]) if ex.get("area_kind") else "")
+            if a and a not in got:
+                got.append(a)
+        if got:
+            out[eid] = got
+    db.close()
     return out
 
 

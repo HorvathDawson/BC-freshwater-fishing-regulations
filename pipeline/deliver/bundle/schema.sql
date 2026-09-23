@@ -57,8 +57,14 @@ CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 -- `scope_note` is the curated sentence saying what part of the water the ENTRY covers. It was
 -- the last thing a reader had to open the curated files to get, which is a fallback: an answer
 -- the bundle never agreed to, and staleness that says nothing. It ships here now.
+-- `extents` is the ENTRY's OWN reach, and it is not recoverable from its rules: a rule with
+-- narrower extents of its own does not say what the entry's were, and a rule with none inherits
+-- them at build time. `_entry_areas` needs exactly this — "z1: is the Region 1 quota table the
+-- book prints '(excluding Haida Gwaii)' and z1: is also Haida Gwaii's own" is told apart by the
+-- entry's area ids, not by the id prefix.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
-                    verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT);
+                    verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
+                    extents TEXT);
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.
