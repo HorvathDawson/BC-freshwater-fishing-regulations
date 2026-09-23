@@ -5650,7 +5650,7 @@
           "period": "daily",
           "over_cm": 60,
           "under_cm": 40,
-          "band": true,
+          "band": false,
           "record_retention": false,
           "when_targeting": [],
           "required": true,
@@ -5661,7 +5661,7 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": "",
+          "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects.",
           "extents": [
             {
               "op": "whole"
@@ -8663,7 +8663,7 @@
           "period": "daily",
           "over_cm": 60,
           "under_cm": 40,
-          "band": true,
+          "band": false,
           "record_retention": false,
           "when_targeting": [],
           "required": true,
@@ -8674,7 +8674,7 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": "",
+          "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects.",
           "extents": [
             {
               "op": "whole"
@@ -15915,7 +15915,7 @@
           "period": "daily",
           "over_cm": 50,
           "under_cm": 30,
-          "band": true,
+          "band": false,
           "record_retention": false,
           "when_targeting": [],
           "required": true,
@@ -15932,7 +15932,7 @@
           "extent_text": "",
           "unresolved_locators": [],
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
         },
         {
           "rule_id": "williston_lake_zone_b.r5",

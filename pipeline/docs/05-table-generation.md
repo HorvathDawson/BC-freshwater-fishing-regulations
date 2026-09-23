@@ -52,44 +52,6 @@ fields like any other**, so nothing downstream parses prose.
 | `windows_are` | `applies` | `applies` | `applies` | `applies` |
 | `when_open` | `false` | `false` | `false` | `false` |
 
-**And what those fields MEAN, on the rule.** Three readings that are not guessable from the
-fields and are not the same in every rule, so the export carries each as its own field rather
-than leaving every consumer to re-derive it:
-
-| field | our `r4` | a sized sibling `r2` | a floor `r8` | a seasonal rule |
-|---|---|---|---|---|
-| `reads_as` | `quota` | `quota` | `size gate` | `closed` |
-| `size_rule` | — | `counts over 50` | `floor 30` | — |
-| `shared_number` | **`shared`** — it names 13 fish | `shared` | `shared` | `shared` |
-
-- **`reads_as`** — a `take: 0` is a closure, *or* a release, *or* a size gate, *or* one method
-  shut. Reading it as a closure called 1,674 of 1,693 rule sets closed.
-- **`size_rule`** — `under_cm` is **always a floor and never a ceiling**, except on an annual
-  quota, where the number *counts* the fish above it. "Rainbow trout daily quota = 1 (none under
-  50 cm)" is a quota of one AND a floor at 50; it is not "only one may be under 50 cm". On a rule
-  that is not about keeping, a size says *which fish* the rule is about — a stamp for the big
-  ones is not a size limit.
-- **`shared_number`** — **more than one fish named is one number between them.** "Bass: 20" is
-  twenty bass, not twenty of each. There is no flag and no exception: a `combined` field used to
-  sit on the rule, it marked 31 of the 1,188 cases and was written `false` on the other 3,379, so
-  its absence read as a denial. It has been removed from the corpus.
-
-**And its provenance, on the rule itself.** A regulation a reader cannot trace to the book is a
-regulation they cannot check, so the trace is a field like any other rather than something a
-consumer joins for itself:
-
-| field | our `r4` |
-|---|---|
-| `who` · `authority` · `binds_to` · `rank` | "Region 2 · region-wide" · `region` · `region` · `3` |
-| `entry` · `entry_name` | `z2:trout_char_quota` · "Trout and char daily quota" |
-| **`synopsis_pages`** | `[22]` — checkable by anyone holding the book |
-| **`printed_box`** | *"Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm … 2 from streams (must be hatchery) …"* — the rule IN CONTEXT, which is how a clause is told from a peer |
-| **`proves_printed_line`** | `"• 2 from streams (must be hatchery)"` — page 23. Not "it came from page 22" but "it is the answer to this line of that page" |
-
-The last one is produced by checking, not by claiming: `quota_print` reads the printed box out of
-the PDF and matches every line to the rule that accounts for it, so a rule that proves nothing —
-or a printed line nothing proves — is visible rather than assumed.
-
 **Size is one pair of fields**, and every size statement in the book falls out of it:
 
 | `take` | `over_cm` | `under_cm` | means |

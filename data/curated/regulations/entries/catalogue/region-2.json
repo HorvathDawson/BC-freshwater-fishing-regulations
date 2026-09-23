@@ -3757,7 +3757,7 @@
      "period": "daily",
      "over_cm": 30,
      "under_cm": 20,
-     "band": true,
+     "band": false,
      "record_retention": false,
      "origin": "hatchery",
      "when_targeting": [],
@@ -3778,7 +3778,7 @@
      "reason": "",
      "extent_text": "",
      "needs_review": false,
-     "review_reason": ""
+     "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
     }
    ]
   },

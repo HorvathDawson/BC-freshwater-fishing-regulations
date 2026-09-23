@@ -51,7 +51,7 @@ REGIONS = ["province", "1", "1hg", "2", "3", "4", "5", "6", "7a", "7b", "8"]
 WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
           ("Atlin Lake", 0), ("Shuswap Lake", 0), ("Fording River", 1), ("Kootenay Lake", 1),
           ("Fraser River", 17), ("Kootenay River", 6), ("Okanagan River", 0),
-          ("Kootenay River", 8)]
+          ("Kootenay River", 8), ("Chilliwack River", 3)]
 CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
            "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
 
