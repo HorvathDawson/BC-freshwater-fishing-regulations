@@ -206,7 +206,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "east of a line from Gullwing Creek to the south shore of Babine Lake",
-     "needs_review": true,
      "review_reason": "line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole"
     },
     {
@@ -222,7 +221,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "within a 400 m radius of the mouth of Pinkut Creek",
-     "needs_review": true,
      "review_reason": "radius closure has no cut-point — item has no bindable boundaries besides op:whole"
     },
     {
@@ -411,7 +409,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -428,7 +425,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -441,7 +437,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -455,7 +450,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -869,7 +863,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of outlet",
-     "needs_review": true,
      "review_reason": "radius-from-outlet closure has no cut-point — item has no bindable boundaries besides op:whole"
     },
     {
@@ -1431,7 +1424,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -1543,7 +1535,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "between fishing boundary signs upstream of and downstream of Cranberry River Canyon",
-     "needs_review": true,
      "review_reason": "no split id for 'Cranberry River Canyon' in the water's boundary menu"
     },
     {
@@ -1918,7 +1909,6 @@
      "verbatim": "Steelhead Stamp not required unless angling for steelhead",
      "document": "steelhead_stamp",
      "required": false,
-     "needs_review": true,
      "review_reason": "conditional on target species; document_required has no per-target field (when_targeting is restricted to bait/tackle rules)",
      "extents": [
       {
@@ -1989,7 +1979,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2004,7 +1993,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2025,7 +2013,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2041,7 +2028,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2053,7 +2039,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2066,7 +2051,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     },
     {
@@ -2079,7 +2063,6 @@
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "needs_review": true,
      "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
     }
    ]
@@ -2137,7 +2120,6 @@
      "permitted": true,
      "extents": [],
      "extent_text": "opposite the spawning channels, as signed",
-     "needs_review": true,
      "review_reason": "reach marked 'as signed' on the water — no corresponding split id in the registry"
     }
    ]
@@ -2162,7 +2144,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -2175,7 +2156,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -2189,7 +2169,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -2395,7 +2374,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "northwest of a line between fishing boundary signs on opposite shores of the outlet bay",
-     "needs_review": true,
      "review_reason": "sub-area of the lake bounded by signage, not a polygon or cut-point in the registry"
     }
    ]
@@ -2908,7 +2886,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension"
     },
     {
@@ -3002,7 +2979,6 @@
      "period": "annual",
      "origin": "hatchery",
      "extent_text": "province-wide",
-     "needs_review": true,
      "review_reason": "this is a province-wide annual quota mentioned on the Kitimat's row, not a Kitimat-specific reach"
     },
     {
@@ -3308,7 +3284,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of outlet",
-     "needs_review": true,
      "review_reason": "Radius-based closure (100 m of the outlet) cannot be bound as a reach on a lake with no cut-points; recorded as extent_text instead of a split-bound extent."
     },
     {
@@ -4339,7 +4314,6 @@
      "rule_id": "mcqueen_creek.r1",
      "type": "advisory",
      "verbatim": "See Hevenor Creek",
-     "needs_review": true,
      "review_reason": "this row is a redirect; the actual regulations are recorded under Hevenor Creek's own entry and should be reconciled with it",
      "extents": [
       {
@@ -4884,7 +4858,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4898,7 +4871,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4911,7 +4883,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -5132,7 +5103,6 @@
      "verbatim": "That section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year",
      "extents": [],
      "extent_text": "that section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\"",
-     "needs_review": true,
      "review_reason": "this reach lies between Babine and Nilkitkwa Lakes, not on Nilkitkwa Lake's own bindable boundaries (only op:whole is available here) — likely belongs on the Babine River entry"
     }
    ]
@@ -5273,7 +5243,6 @@
      "rule_id": "oldfield_creek.r2",
      "type": "advisory",
      "verbatim": "see Hays Creek",
-     "needs_review": true,
      "review_reason": "redirect — confirm this closure matches Hays Creek's own entry",
      "extents": [
       {
@@ -5341,7 +5310,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5355,7 +5323,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5368,7 +5335,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -5617,7 +5583,6 @@
      "rule_id": "seaskinnish_creek.r1",
      "type": "advisory",
      "verbatim": "See Ksi Sgasginist Creek",
-     "needs_review": true,
      "review_reason": "this row is a redirect; the actual regulations are recorded under Ksi Sgasginist Creek's own entry",
      "extents": [
       {
@@ -5735,7 +5700,6 @@
      "unresolved_locators": [
       "within 50 m of the outlet"
      ],
-     "needs_review": true,
      "review_reason": "no cut-point available for 'within 50 m of the outlet' — item has no bindable boundaries beyond op:whole"
     }
    ]
@@ -5864,7 +5828,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "Steelhead Stamp is required only when targeting steelhead in Skeena River 2; document_required has no when_targeting field to express this condition"
     },
     {
@@ -5958,7 +5921,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5971,7 +5933,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5985,7 +5946,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -6133,7 +6093,6 @@
      "rule_id": "stellako_river.r6",
      "type": "advisory",
      "verbatim": "See restrictions for François Lake's outlet area",
-     "needs_review": true,
      "review_reason": "cross-reference to François Lake's outlet regulations — not resolved to a specific rule",
      "extents": [
       {
@@ -6722,7 +6681,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement",
-     "needs_review": true,
      "review_reason": "no split id on this lake expresses the boundary line; bound to whole water pending a curated cut-point"
     }
    ]
@@ -7262,7 +7220,6 @@
      "rule_id": "tseax_river.r1",
      "type": "advisory",
      "verbatim": "See Ksi Sii Aks River",
-     "needs_review": true,
      "review_reason": "alias entry — this row points to the Ksi Sii Aks River entry for its regulations; no rules are stated under this name",
      "extents": [
       {
@@ -8250,7 +8207,6 @@
        "note": "mainstem Skeena, Nass, Iskut, Stikine and Taku, where not already closed"
       }
      ],
-     "needs_review": true,
      "review_reason": "INVERSE EXEMPTION: the rule names its own exempt waters AND qualifies them by the evaluated state of other rules ('not currently closed under existing winter/spring closure'). Nothing here evaluates.",
      "extents": [
       {

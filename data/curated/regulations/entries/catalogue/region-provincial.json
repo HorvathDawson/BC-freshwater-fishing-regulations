@@ -354,7 +354,6 @@
       }
      ],
      "extent_text": "Regions 3, 5, 6, 7 and 8",
-     "needs_review": true,
      "review_reason": "Region-scoped: bind to area:region:{3,5,6,7a,7b,8}. Bound province-wide it permits burbot spearing in Regions 1, 2 and 4, where ALL spear fishing is prohibited."
     },
     {
@@ -378,7 +377,6 @@
       }
      ],
      "extent_text": "Regions 1, 2 and 4",
-     "needs_review": true,
      "review_reason": "Region-scoped: bind to area:region:{1,2,4}. Bound province-wide it prohibits spear fishing everywhere, contradicting r1's permission."
     },
     {
@@ -391,7 +389,6 @@
      "take": 0,
      "may_target": false,
      "method": "spear_fishing",
-     "needs_review": true,
      "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print.",
      "extents": [
       {
@@ -443,7 +440,6 @@
      "take": 0,
      "may_target": true,
      "method": "crayfish_trapping",
-     "needs_review": true,
      "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not.",
      "extents": [
       {
@@ -611,7 +607,6 @@
       }
      ],
      "extent_text": "lakes of Region 6 and Zone A of Region 7",
-     "needs_review": true,
      "review_reason": "Region-scoped. `default_id=finfish_bait_ban` resolved to z7b's Zone B rule, not the provincial ban this actually lifts."
     },
     {
@@ -636,7 +631,6 @@
       }
      ],
      "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2",
-     "needs_review": true,
      "review_reason": "Region-scoped, and it applies ONLY when fishing for sturgeon — without when_targeting it lifted the province-wide fin fish ban for ALL angling on three major rivers. Three named rivers with bounded reaches; unbound rather than bound to all of Region 2, which is the permissive direction."
     },
     {
@@ -706,7 +700,6 @@
      ],
      "period": "possession",
      "per_daily": 2,
-     "aggregation_domain": "province",
      "extents": [
       {
        "op": "within",
@@ -811,7 +804,6 @@
      "may_target": false,
      "standing": true,
      "extent_text": "within 23 m downstream of any fishway, canal, obstacle or leap",
-     "needs_review": true,
      "review_reason": "STANDING: no dataset of fishways, canals, obstacles or leaps exists, so this cannot be bound to a reach. Show on every water; keep out of the override contest.",
      "extents": [
       {
@@ -831,7 +823,6 @@
      "may_target": false,
      "standing": true,
      "extent_text": "within 100 m of any government fish counting, passing or rearing facility",
-     "needs_review": true,
      "review_reason": "STANDING: no dataset of government fish facilities exists.",
      "extents": [
       {
@@ -877,7 +868,6 @@
      ],
      "take": 10,
      "period": "annual",
-     "aggregation_domain": "province",
      "origin": "hatchery",
      "extents": [
       {
@@ -1000,7 +990,6 @@
      "document": "kootenay_rainbow_stamp",
      "on_retention": true,
      "extent_text": "Main body of Kootenay Lake, rainbow trout over 50 cm only",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped: the main body of Kootenay Lake. Unbound rather than province-wide — a licensing rule bound too widely tells anglers they need an endorsement they do not.",
      "extents": [
       {
@@ -1027,7 +1016,6 @@
      "document": "shuswap_char_stamp",
      "on_retention": true,
      "extent_text": "Shuswap Lake, char over 60 cm only",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped: Shuswap Lake, and the size gate is what triggers the stamp.",
      "extents": [
       {
@@ -1054,7 +1042,6 @@
      "document": "shuswap_rainbow_stamp",
      "on_retention": true,
      "extent_text": "Shuswap system, rainbow trout over 50 cm only",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped and names SEVEN waters: Shuswap, Little Shuswap, South Thompson between them, Seymour, Anstey and Salmon Arms, Mara Lake.",
      "extents": [
       {
@@ -1129,7 +1116,6 @@
      "rule_id": "white_sturgeon_licence.r3",
      "type": "advisory",
      "verbatim": "This is the only white sturgeon fishery in the province's non-tidal waters.",
-     "needs_review": true,
      "review_reason": "A COMPLETENESS CLAIM, not a rule about a water: 'this is the only white sturgeon fishery in the province's non-tidal waters' asserts that every other sturgeon water in B.C. is closed. Nothing in the catalogue states things about the rest of the corpus, so it shows province-wide as an advisory and is the one sentence that would let a reader notice a missing closure.",
      "extents": [
       {
@@ -1156,7 +1142,6 @@
      "when_open": true,
      "water": "stream",
      "document": "classified_waters_licence",
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
      "extents": [
       {
@@ -1169,7 +1154,6 @@
      "type": "document_required",
      "verbatim": "A Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present.",
      "document": "steelhead_stamp",
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
      "extents": [
       {
@@ -1185,7 +1169,6 @@
       "residency": "resident"
      },
      "document": "classified_waters_licence",
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
      "extents": [
       {
@@ -1202,7 +1185,6 @@
      },
      "document": "classified_waters_licence",
      "allocation": "per_day_max_8_consecutive",
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
      "extents": [
       {
@@ -1220,7 +1202,6 @@
      "document": "classified_waters_licence",
      "allocation": "one_per_licence_year",
      "extent_text": "Dean River",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped (Dean River) AND angler-class scoped.",
      "extents": [
       {
@@ -1255,7 +1236,6 @@
      "when_open": true,
      "water": "stream",
      "document": "basic_licence",
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
      "extents": [
       {
@@ -1301,7 +1281,6 @@
      "verbatim": "Basic and supplementary licences and stamps are not valid in National Parks.",
      "document": "national_park_permit",
      "extent_text": "a provincial licence is not valid inside a National Park",
-     "needs_review": true,
      "review_reason": "NOT 'no licence required': the provincial licence does not WORK there and a National Park Fishing Permit is needed instead. Encoding it as required=False on basic_licence told the reader they need nothing.",
      "extents": [
       {
@@ -1338,7 +1317,6 @@
      "document": "basic_licence",
      "required": false,
      "reason": "you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps, and your catch counts against theirs",
-     "needs_review": true,
      "review_reason": "REFUSED, not approximated: the child's catch counts against the ACCOMPANYING angler's quota. Quotas aggregate over water, water-group, region and province; there is no per-angler axis. Passed through as prose a parent would read it as two full quotas.",
      "extents": [
       {
@@ -1772,7 +1750,6 @@
      "may_target": false,
      "authority": "superior",
      "extent_text": "Pacific Rim, Gwaii Haanas and Gulf Islands National Park Reserves",
-     "needs_review": true,
      "review_reason": "An UNCONDITIONAL closure on three named reserves. zp:superior_closures says 'prohibited unless opened' — this says closed, full stop, and the two are different.",
      "extents": [
       {

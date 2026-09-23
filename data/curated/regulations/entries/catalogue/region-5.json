@@ -290,7 +290,6 @@
      "unresolved_locators": [
       "plus Tenas Lake"
      ],
-     "needs_review": true,
      "review_reason": "the Tweedsmuir Park boundary is bound but Tenas Lake has only a lake cut-point (not an area) available, so the 'plus Tenas Lake' portion cannot be confidently bound"
     },
     {
@@ -892,7 +891,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -909,7 +907,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -922,7 +919,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -936,7 +932,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -1515,7 +1510,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -1546,7 +1540,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -1559,7 +1552,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -1573,7 +1565,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -1587,7 +1578,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -1844,7 +1834,6 @@
      "unresolved_locators": [
       "small bay at the mouth of Eagle Creek"
      ],
-     "needs_review": true,
      "review_reason": "closure applies only to a small bay at Eagle Creek's mouth; Canim Lake has no bindable boundaries to express a partial-lake closure"
     }
    ]
@@ -2217,7 +2206,6 @@
      "unresolved_locators": [
       "Big Lagoon (west side of lake)"
      ],
-     "needs_review": true,
      "review_reason": "Big Lagoon has no cut-point; the lake only has op:whole bindable"
     }
    ]
@@ -2378,7 +2366,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "'on part' is vague; assumed to be the same reach as the adjacent powered-boat restriction (upstream of Henry's Crossing bridge) but the printed text does not confirm this"
     },
     {
@@ -2448,7 +2435,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "'open all year' implies an exemption from some other closure, but the rule it lifts is not identified in this row's text"
     }
    ]
@@ -3693,7 +3679,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek",
-     "needs_review": true,
      "review_reason": "lake has no bindable split ids; the closure is bounded by fishing boundary signs at the mouth of Hallis Creek, a sub-area of the lake with no cut-point to bind"
     },
     {
@@ -4397,7 +4382,6 @@
       }
      ],
      "extent_text": "confluence with the Chilcotin River downstream to the Region 5 boundary",
-     "needs_review": true,
      "review_reason": "downstream terminus is stated as \"the Region 5 boundary\" but the boundary menu offers only area ids (area:5, area:3, area:7A) of unclear polygon-vs-line semantics — bound the confirmed upstream end (Chilcotin confluence) and flag the downstream cutoff for a curator to confirm"
     }
    ]
@@ -4449,7 +4433,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4465,7 +4448,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4478,7 +4460,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4492,7 +4473,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -4516,7 +4496,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4529,7 +4508,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4543,7 +4521,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -4744,7 +4721,6 @@
      "unresolved_locators": [
       "bay at the mouth of Watch Creek"
      ],
-     "needs_review": true,
      "review_reason": "closure is limited to a bay near Watch Creek's mouth; Green Lake has no bindable boundaries to express a partial-lake closure"
     }
    ]
@@ -5002,7 +4978,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5018,7 +4993,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5031,7 +5005,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5045,7 +5018,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -5578,7 +5550,6 @@
      "unresolved_locators": [
       "within 100 m radius of the weir at the lake's outlet"
      ],
-     "needs_review": true,
      "review_reason": "Lake has no bindable boundaries (cut-points); the closure is localized to a 100 m radius around the outlet weir, which cannot be expressed with op:whole and no split id exists to bound a smaller area."
     }
    ]
@@ -5804,7 +5775,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5817,7 +5787,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -5831,7 +5800,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -6221,7 +6189,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6234,7 +6201,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6248,7 +6214,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -6378,7 +6343,6 @@
      "unresolved_locators": [
       "southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay"
      ],
-     "needs_review": true,
      "review_reason": "no cut-point available for this line description; item has no bindable boundaries"
     },
     {
@@ -6397,7 +6361,6 @@
      "unresolved_locators": [
       "in North Arm, north of a line between Watt and Service Creeks"
      ],
-     "needs_review": true,
      "review_reason": "no cut-point available for this line description; item has no bindable boundaries"
     },
     {
@@ -6634,7 +6597,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6647,7 +6609,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6661,7 +6622,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -6918,7 +6878,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6934,7 +6893,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6947,7 +6905,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -6961,7 +6918,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -7323,7 +7279,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -7336,7 +7291,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -7350,7 +7304,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -7374,7 +7327,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
     },
     {
@@ -7387,7 +7339,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
     },
     {
@@ -7401,7 +7352,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
     }
    ]
@@ -8715,7 +8665,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     }
    ]
@@ -8903,7 +8852,6 @@
      "verbatim": "All anglers are required to buy a Classified Waters Licence to fish the classified portions of the Dean River.",
      "document": "classified_waters_licence",
      "extent_text": "Dean River",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped to the Dean River.",
      "extents": [
       {
@@ -8921,7 +8869,6 @@
      },
      "document": "classified_waters_licence",
      "extent_text": "Dean River",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped to the Dean River, and angler-class scoped: Canadian residents have NO day limit, which is the counterpart to the non-resident-alien restriction in r3.",
      "extents": [
       {
@@ -8942,7 +8889,6 @@
      "water_class": "I",
      "allocation": "limited_entry_draw",
      "extent_text": "Dean River Class I Main Section, Crag Creek to signs 500 m above the canyon",
-     "needs_review": true,
      "review_reason": "BOUND — named water. A rationing mechanism, not a restriction on water: allocation=limited_entry_draw.",
      "extents": [
       {
@@ -8961,7 +8907,6 @@
      "document": "classified_waters_licence",
      "allocation": "one_per_licence_year",
      "extent_text": "Dean River — one Classified Waters Licence per licence year",
-     "needs_review": true,
      "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
      "extents": [
       {
@@ -8980,7 +8925,6 @@
      "document": "classified_waters_licence",
      "allocation": "one_classified_section_only",
      "extent_text": "Dean River — one classified section only",
-     "needs_review": true,
      "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
      "extents": [
       {
@@ -8999,7 +8943,6 @@
      "document": "classified_waters_licence",
      "allocation": "max_8_consecutive_days_per_year",
      "extent_text": "Dean River — 8 consecutive days per year, guided or not",
-     "needs_review": true,
      "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
      "extents": [
       {
@@ -9304,7 +9247,6 @@
      "type": "advisory",
      "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
      "extent_text": "Chilcotin River watershed",
-     "needs_review": true,
      "review_reason": "BOUND — watershed: the named water plus its tributary walk. Conditional ('may be closed') and watershed-scoped. RECOVERED — absent from the corpus.",
      "extents": [
       {
@@ -9496,7 +9438,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "Fraser watershed upstream of Williams Lake River",
-     "needs_review": true,
      "review_reason": "Bound upstream of the Williams Lake River confluence (the split exists). Note `r5:fraser_river@5-2` carries the same pair at water level, and its `gnis:39325.r5` has the reach and the permission CROSSED — it labels the upstream closure 'catch and release'. The water rule is the one to fix; this zone rule states the regional default.",
      "extents": [
       {
@@ -9518,7 +9459,6 @@
      "take": 0,
      "may_target": true,
      "extent_text": "Fraser watershed downstream of and including Williams Lake River",
-     "needs_review": true,
      "review_reason": "Bound downstream of and including the Williams Lake River confluence. `downstream_of` must INCLUDE the confluence section — the synopsis says 'downstream of AND INCLUDING Williams Lake River'.",
      "extents": [
       {
@@ -9543,7 +9483,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "Fraser River downstream of and including Williams Lake River",
-     "needs_review": true,
      "review_reason": "Mainstem only, not the watershed, and seasonal — narrower than r2 and it closes what r2 opens for Sept 15 - Jul 15.",
      "extents": [
       {

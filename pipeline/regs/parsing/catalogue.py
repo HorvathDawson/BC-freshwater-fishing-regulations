@@ -583,6 +583,12 @@ class CatalogueRule(BaseModel):
         `lengths_from_bounds` with it."""
         if not isinstance(v, dict):
             return v
+        # `needs_review` is accepted and dropped: it only ever meant "review_reason is filled".
+        if "needs_review" in v:
+            flag, why = v.get("needs_review"), (v.get("review_reason") or "").strip()
+            if flag and not why:
+                raise ValueError("needs_review is set with no review_reason to say why")
+            v = {k: x for k, x in v.items() if k != "needs_review"}
         old = {k: v.get(k) for k in ("over_cm", "under_cm", "band") if k in v}
         if not old:
             return v
@@ -674,7 +680,14 @@ class CatalogueRule(BaseModel):
     #:
     #: NAMING MORE THAN ONE FISH IS WHAT MAKES A NUMBER SHARED. Nothing in the corpus means "one
     #: each": the four group quotas whose sentence says "each" all say "each day" or "each year".
-    aggregation_domain: Optional[str] = None
+    #: `aggregation_domain` WAS HERE and said "across what is this number pooled" in prose. Four
+    #: of its five uses restated the entry: two were `"province"` on `zp:` rules, which IS
+    #: province-wide, and two were the same kokanee rule on the Upper and Lower West Arm entries,
+    #: where sitting on both is the sharing. The fifth said "both lakes" and its own verbatim
+    #: already says "in the aggregate from both lakes". Nothing could act on any of them.
+    #:
+    #: The real idea underneath — a pool SHARED across entries, not a number repeated at each —
+    #: wants a structural link like `within`, not a sentence. It is not in the corpus today.
     record_retention: bool = False
 
     # --- shared scoping ----------------------------------------------------
@@ -756,7 +769,13 @@ class CatalogueRule(BaseModel):
     #: not express is precisely what must not be dropped silently, which is the whole point of the
     #: field.
     unresolved_locators: List[str] = Field(default_factory=list)
-    needs_review: bool = False
+    #: `needs_review` WAS HERE and was exactly `bool(review_reason)`: not one rule in the corpus
+    #: carried the flag without a reason, and every producer that set it passed one in the same
+    #: call. A flag whose only job is to say that the field beside it is filled in.
+    #:
+    #: It is still ACCEPTED and dropped, like the old size fields, because the parser writes it.
+    #: A reason with no flag is now simply a rule needing review, which is what it always meant —
+    #: and that resolves the 7 rules that had one and were not flagged.
     review_reason: str = ""
 
     # ------------------------------------------------------------------ #
@@ -869,8 +888,9 @@ class CatalogueRule(BaseModel):
                 e.append("vessel_rule needs an aspect")
             elif self.aspect is VesselAspect.propulsion and self.level is None:
                 e.append("propulsion needs a level")
-            elif self.aspect is VesselAspect.speed and self.max_kmh is None and not self.needs_review:
-                e.append("speed needs max_kmh, or needs_review if the synopsis states none")
+            elif self.aspect is VesselAspect.speed and self.max_kmh is None \
+                    and not self.review_reason:
+                e.append("speed needs max_kmh, or a review_reason if the synopsis states none")
             if self.level is PropulsionLevel.power_capped and self.max_power_kw is None:
                 e.append("power_capped needs max_power_kw")
         if t is RuleType.document_required and self.document is None:
@@ -898,12 +918,10 @@ class CatalogueRule(BaseModel):
             e.append("a species cannot be both included and excepted")
         if self.from_time and not self.to_time or self.to_time and not self.from_time:
             e.append("a time-of-day window needs both ends, or it renders as no window at all")
-        if self.needs_review and not self.review_reason:
-            e.append("needs_review requires a review_reason")
-        if self.unresolved_locators and not self.needs_review:
-            e.append("unresolved_locators is set but needs_review is False — a locator nobody "
+        if self.unresolved_locators and not self.review_reason:
+            e.append("unresolved_locators is set with no review_reason — a locator nobody "
                      "could bind is exactly what a human has to look at")
-        if self.standing and not self.needs_review:
+        if self.standing and not self.review_reason:
             e.append("a standing rule must be flagged: its extent is unknowable, not merely absent")
 
         if e:

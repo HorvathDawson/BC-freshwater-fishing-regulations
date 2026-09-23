@@ -281,7 +281,7 @@ def test_unresolved_locators_is_a_field_the_prompt_can_actually_ask_for():
     from pipeline.regs.parsing.catalogue import CatalogueRule
     r = CatalogueRule(rule_id="r1", type="retention_limit", species=["ALL_GAME_FISH"], take=0,
                       may_target=False, verbatim="No fishing above the falls",
-                      unresolved_locators=["above the falls"], needs_review=True,
+                      unresolved_locators=["above the falls"],
                       review_reason="locator has no cut-point")
     assert r.unresolved_locators == ["above the falls"]
 
@@ -289,7 +289,7 @@ def test_unresolved_locators_is_a_field_the_prompt_can_actually_ask_for():
 def test_an_unbound_locator_forces_review():
     import pytest
     from pipeline.regs.parsing.catalogue import CatalogueRule
-    with pytest.raises(Exception, match="needs_review"):
+    with pytest.raises(Exception, match="review_reason"):
         CatalogueRule(rule_id="r1", type="retention_limit", species=["ALL_GAME_FISH"], take=0,
                       may_target=False, verbatim="x", unresolved_locators=["the outlet"])
 

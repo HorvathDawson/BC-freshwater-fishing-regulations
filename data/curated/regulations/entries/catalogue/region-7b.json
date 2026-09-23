@@ -227,7 +227,6 @@
       }
      ],
      "extent_text": "Liard River watershed, or other specified waters",
-     "needs_review": true,
      "review_reason": "Bound to the Liard watershed, where the chapter says bull trout may be retained. The operative quota is stated water-specifically by `r7:liard_river_watershed…@7-53` ('daily and possession quotas = 1 (none under 30 cm or over 50 cm), Oct 16-Aug 14'), which outranks this. Kept because it is the REGION's statement that bull trout may be kept nowhere else in Zone B — '(or other specified waters)' is the carve-out and it is not enumerated.",
      "extents": [
       {
@@ -308,7 +307,6 @@
      "take": 0,
      "may_target": true,
      "extent_text": "Peace River watershed",
-     "needs_review": true,
      "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b.",
      "extents": [
       {
@@ -331,7 +329,6 @@
      "take": 0,
      "may_target": true,
      "extent_text": "Liard River watershed",
-     "needs_review": true,
      "review_reason": "The LIARD half, with its own window. `r7:liard_river_watershed…@7-53` states it water-specifically and outranks this, but the zone rule is what renders where the water rule does not reach.",
      "extents": [
       {
@@ -446,7 +443,6 @@
      "take": 0,
      "may_target": true,
      "extent_text": "Williston Lake and its tributaries",
-     "needs_review": true,
      "review_reason": "BOUND — watershed: the named water plus its tributary walk. Water-scoped with includes_tributaries.",
      "extents": [
       {
@@ -545,7 +541,6 @@
      "may_target": true,
      "water": "stream",
      "extent_text": "except the Peace River",
-     "needs_review": true,
      "review_reason": "A carve-out with NO replacement rule to win the contest — this is the case that genuinely needs a subtraction, unlike the nested-area ones."
     },
     {
@@ -764,7 +759,6 @@
      "type": "hazard",
      "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
      "extent_text": "Peace River at the Site C site",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped safety notice. RECOVERED — absent from the corpus.",
      "extents": [
       {
@@ -803,7 +797,6 @@
      "type": "hazard",
      "verbatim": "It is prohibited to enter within the fenced area surrounding the aerator.",
      "extent_text": "the fenced area surrounding the aerator",
-     "needs_review": true,
      "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — as access_permission it rendered 'Angling prohibited', which would tell a reader the lake is closed to fishing when it is not. Typed hazard until an access type exists that can say 'do not enter' without implying a fishing ban. Sundance Lake is not in the registry index."
     }
    ]

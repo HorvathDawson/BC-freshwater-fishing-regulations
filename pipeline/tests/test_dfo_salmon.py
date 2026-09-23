@@ -2120,7 +2120,7 @@ def test_release_written_the_other_three_ways(gear):
     published a water with no rule rather than one you must release."""
     rules = _typed(species="All", limits_gear=gear)
     assert rules[0].take == 0 and rules[0].may_target is True
-    assert not any(r.needs_review for r in rules)
+    assert not any(r.review_reason for r in rules)
 
 
 def test_finfish_closure_is_a_closure():
@@ -2189,7 +2189,7 @@ def test_all_on_a_salmon_page_means_all_salmon():
 
 def test_to_be_determined_is_a_state_not_a_parse_failure():
     rule, = _typed(species="All", limits_gear="To be determined")
-    assert rule.needs_review and "determined" in rule.review_reason
+    assert "determined" in rule.review_reason
 
 
 def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
@@ -2278,11 +2278,11 @@ def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
     assert accepted.windows, "if the catalogue starts refusing these, this guard can move there"
 
     rules = _typed(dates="Smarch 40 to Bluneteen 99", limits_gear="2 per day")
-    assert all(r.needs_review for r in rules)
+    assert all(r.review_reason for r in rules)
     assert "do not parse" in rules[0].review_reason
 
     # An EMPTY cell is a fact, not a failure: the regulation applies all year.
-    assert not any(r.needs_review for r in _typed(dates="", limits_gear="2 per day"))
+    assert not any(r.review_reason for r in _typed(dates="", limits_gear="2 per day"))
 
 
 def test_a_repaired_window_is_published_repaired():
@@ -2290,7 +2290,7 @@ def test_a_repaired_window_is_published_repaired():
     hands the app a season it cannot parse; the repair is recorded, never silent."""
     rules = _typed(dates="Aprl 1 to Jun 15", limits_gear="2 per day")
     assert rules[0].windows == ["Apr 1 to Jun 15"]
-    assert not rules[0].needs_review
+    assert not rules[0].review_reason
 
 
 def test_a_row_that_says_per_day_always_yields_a_quota():

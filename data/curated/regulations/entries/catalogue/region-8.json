@@ -572,7 +572,6 @@
      "unresolved_locators": [
       "north of a line between Bald and Knob Points"
      ],
-     "needs_review": true,
      "review_reason": "boundary is a named-point line (Bald Point to Knob Point); this item allows only op:whole and has no matching split for that line"
     },
     {
@@ -1880,7 +1879,6 @@
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
      "extent_text": "various locations (as buoyed and signed)",
-     "needs_review": true,
      "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
     },
     {
@@ -1890,7 +1888,6 @@
      "aspect": "propulsion",
      "level": "none",
      "extent_text": "various locations (as buoyed and signed)",
-     "needs_review": true,
      "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
     }
    ]
@@ -2606,7 +2603,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet",
-     "needs_review": true,
      "review_reason": "this lake has no bindable cut-points in the registry, so 'south of a line ... approximately 800 m north of Shuswap River inlet' cannot be bound to a reach"
     },
     {
@@ -2678,7 +2674,6 @@
      "aspect": "propulsion",
      "level": "unpowered",
      "extent_text": "south of the CPR bridge",
-     "needs_review": true,
      "review_reason": "this lake has no bindable cut-points in the registry, so 'south of the CPR bridge' cannot be bound to a reach"
     }
    ]
@@ -2932,7 +2927,6 @@
       "RB"
      ],
      "take": 2,
-     "needs_review": true,
      "review_reason": "the sub-cap 'only one over 50 cm' spells the count as a word, not a digit; digit-literal validation cannot accept a spelled number, so only the base quota of 2 is captured structurally — see verbatim for the full restriction",
      "extents": [
       {
@@ -2974,7 +2968,6 @@
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
      "extent_text": "various locations (as buoyed and signed)",
-     "needs_review": true,
      "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
     },
     {
@@ -2984,7 +2977,6 @@
      "aspect": "propulsion",
      "level": "none",
      "extent_text": "various locations (as buoyed and signed)",
-     "needs_review": true,
      "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
     }
    ]
@@ -3294,7 +3286,6 @@
      "unresolved_locators": [
       "on parts"
      ],
-     "needs_review": true,
      "review_reason": "no km/h value is given in the source text, and 'on parts' does not name which reach; this item has no bindable boundaries besides whole."
     },
     {
@@ -3312,7 +3303,6 @@
      "unresolved_locators": [
       "5 signed swimming areas"
      ],
-     "needs_review": true,
      "review_reason": "the 5 signed swimming areas are not bindable cut-points; this item has no boundary for them besides whole."
     }
    ]
@@ -3565,7 +3555,6 @@
      "unresolved_locators": [
       "south of the CPR Bridge"
      ],
-     "needs_review": true,
      "review_reason": "'south of the CPR Bridge' names a reach but this item has no bindable boundaries besides op:whole; binding to the whole lake overstates the restriction."
     }
    ]
@@ -3735,7 +3724,6 @@
      "unresolved_locators": [
       "netted off portion on the south end of the lake"
      ],
-     "needs_review": true,
      "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
     },
     {
@@ -3754,7 +3742,6 @@
      "unresolved_locators": [
       "netted off portion on the south end of the lake"
      ],
-     "needs_review": true,
      "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
     }
    ]
@@ -4159,7 +4146,6 @@
      "unresolved_locators": [
       "various locations (as buoyed and signed)"
      ],
-     "needs_review": true,
      "review_reason": "The synopsis states the restriction varies by buoyed/signed location and gives no single speed value or bindable reach; this item has no bindable boundaries besides op:whole."
     }
    ]
@@ -5216,7 +5202,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "Speed restriction applies only to 'parts' of the lake per the synopsis; no cut-point is available to bind the specific reach"
     }
    ]
@@ -5336,7 +5321,6 @@
      "may_target": false,
      "reason": "illegal introduction of largemouth bass",
      "extent_text": "Garnet Lake",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried.",
      "extents": [
       {
@@ -5363,7 +5347,6 @@
      "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
      "obligation": "should",
      "extent_text": "Okanagan Lake Dam",
-     "needs_review": true,
      "review_reason": "BOUND — named water. RECOVERED — the fourth of 4 tagging programmes the archive dropped.",
      "extents": [
       {

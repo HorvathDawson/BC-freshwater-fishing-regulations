@@ -96,12 +96,15 @@ def test_a_sub_limit_never_exceeds_its_parent():
 
 
 @pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
-def test_needs_review_always_says_why():
+def test_a_review_reason_is_long_enough_to_act_on():
+    """`needs_review` was removed: it was exactly `bool(review_reason)`. The reason itself is now
+    the flag, which makes an EMPTY-but-present reason the only way left to say "review this" and
+    not say why — so the length floor moved here from the flag."""
     for p, e in _entries():
         for r in e.rules:
-            if r.needs_review:
+            if r.review_reason:
                 assert len(r.review_reason) > 20, (
-                    f"{p.name}: {e.entry_id}::{r.rule_id} is flagged with no usable reason")
+                    f"{p.name}: {e.entry_id}::{r.rule_id} asks for review with no usable reason")
 
 
 @pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
@@ -112,7 +115,7 @@ def test_an_unbound_rule_is_flagged():
     for p, e in _entries():
         for r in e.rules:
             if not e.extents and not r.extents:
-                assert r.needs_review, (
+                assert r.review_reason, (
                     f"{p.name}: {e.entry_id}::{r.rule_id} binds to nothing and does not say so")
 
 

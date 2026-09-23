@@ -95,7 +95,7 @@ def _specificity(rule: dict) -> str:
 #: staleness stopped being visible. They ship here now and that reader is gone.
 _NOT_CONDITIONS = frozenset({
     "rule_id", "type", "verbatim", "species", "species_except", "windows", "take",
-    "may_target", "extent_text", "needs_review", "review_reason",
+    "may_target", "extent_text", "review_reason",
     "unresolved_locators",
     # Build-time only: a carve-out the reach builder applies before any section reaches the
     # bundle. Shipping it as a `condition` would put a resolver's input in front of a reader.

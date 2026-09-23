@@ -67,7 +67,6 @@
      "aspect": "propulsion",
      "level": "none",
      "extent_text": "in swimming areas, as buoyed and signed",
-     "needs_review": true,
      "review_reason": "no cut-point for the buoyed/signed swimming area — extent falls back to whole lake"
     },
     {
@@ -77,7 +76,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake",
-     "needs_review": true,
      "review_reason": "no cut-point for the south-end dividing line — extent falls back to whole lake"
     }
    ]
@@ -103,7 +101,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link fence) of the Alouette River Management Society",
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -120,7 +117,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "upstream of 216th Street (including North Alouette River)",
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -134,7 +130,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -762,7 +757,6 @@
       }
      ],
      "extent_text": "upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
-     "needs_review": true,
      "review_reason": "Salamander Creek is not in the boundary menu — the 'Cariboo Dam to Salamander Creek' portion of this closure cannot be bound"
     },
     {
@@ -1192,7 +1186,6 @@
       }
      ],
      "extent_text": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
-     "needs_review": true,
      "review_reason": "'the falls' and the point 100 m below it have no bindable split id — extent falls back to whole creek"
     }
    ]
@@ -2008,7 +2001,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "the printed date window is cut off after 'Nov' in the source row — could not bind an end date without inventing one"
     },
     {
@@ -2024,7 +2016,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "the printed date window is cut off after 'Nov' in the source row — could not bind an end date without inventing one"
     }
    ]
@@ -2072,7 +2063,6 @@
      "aspect": "propulsion",
      "level": "unpowered",
      "extent_text": "on parts of the river",
-     "needs_review": true,
      "review_reason": "'on parts' does not name a bindable reach"
     },
     {
@@ -2282,7 +2272,6 @@
      "aspect": "propulsion",
      "level": "none",
      "extent_text": "on parts of the lake",
-     "needs_review": true,
      "review_reason": "'on parts' does not name a bindable reach"
     },
     {
@@ -2292,7 +2281,6 @@
      "aspect": "speed",
      "max_kmh": 5.0,
      "extent_text": "at the north end, as buoyed and signed",
-     "needs_review": true,
      "review_reason": "'north end, as buoyed and signed' has no bindable cut-point"
     },
     {
@@ -2873,7 +2861,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "non-tidal portion of the Fraser River in Region 2",
-     "needs_review": true,
      "review_reason": "'Region 2' is not a bindable area for this item (only area:5, area:7A, area:3 boundaries are listed), and 'non-tidal' has no cut-point on this water"
     },
     {
@@ -2889,7 +2876,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel",
-     "needs_review": true,
      "review_reason": "named side channels are not in the bindable boundary menu for this combined entry; cannot bind to a specific item or split"
     },
     {
@@ -3147,7 +3133,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -3156,7 +3141,6 @@
      "verbatim": "no towing on parts",
      "aspect": "towing",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     }
    ]
@@ -3259,7 +3243,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "at south end, as buoyed and signed",
-     "needs_review": true,
      "review_reason": "'south end' has no bindable boundary for this lake (only op:whole)"
     }
    ]
@@ -3317,7 +3300,6 @@
      "verbatim": "Speed restriction or no powered boats in small bays along the river as signed",
      "aspect": "speed",
      "extent_text": "in small bays along the river as signed",
-     "needs_review": true,
      "review_reason": "no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location"
     }
    ]
@@ -3431,7 +3413,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones"
     },
     {
@@ -3441,7 +3422,6 @@
      "aspect": "speed",
      "max_kmh": 50.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones"
     }
    ]
@@ -4772,7 +4752,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "Steelhead in this aggregate are hatchery-origin per the printed text, but rainbow trout's origin is not stated in the same clause; a single `origin` field cannot capture that asymmetry, and how this aggregate relates to the 'hatchery rainbow trout = 6' figure in the line above is not fully clear from the text alone."
     },
     {
@@ -5908,7 +5887,6 @@
      "verbatim": "no towing on parts",
      "aspect": "towing",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' does not name a specific reach among the bindable boundaries for this item"
     },
     {
@@ -5917,7 +5895,6 @@
      "verbatim": "speed restriction (16 km/h)",
      "aspect": "speed",
      "max_kmh": 16.0,
-     "needs_review": true,
      "review_reason": "the printed text does not state which reach the speed restriction covers",
      "extents": [
       {
@@ -5949,7 +5926,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' does not name a specific reach among the bindable boundaries for this item"
     }
    ]
@@ -6153,7 +6129,6 @@
      "rule_id": "paq_lake.r1",
      "type": "advisory",
      "verbatim": "See Lily Lake",
-     "needs_review": true,
      "review_reason": "cross-reference only — this entry carries no rule text of its own; regulations are printed under Lily Lake and need curation to bind or merge",
      "extents": [
       {
@@ -6299,7 +6274,6 @@
      "may_target": true,
      "origin": "wild",
      "extent_text": "north of fishing boundary signs (east and west shores) near the head of the lake",
-     "needs_review": true,
      "review_reason": "'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole"
     },
     {
@@ -6309,7 +6283,6 @@
      "barbless": true,
      "hook_count": 1,
      "extent_text": "north of fishing boundary signs (east and west shores) near the head of the lake",
-     "needs_review": true,
      "review_reason": "'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole"
     }
    ]
@@ -6353,7 +6326,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "at Grant Narrows",
-     "needs_review": true,
      "review_reason": "'Grant Narrows' has no matching split in the bindable boundaries menu for this item"
     },
     {
@@ -6435,7 +6407,6 @@
      "aspect": "propulsion",
      "level": "unpowered",
      "extent_text": "in One Mile Bay",
-     "needs_review": true,
      "review_reason": "'One Mile Bay' has no bindable split; this item allows only op:whole"
     }
    ]
@@ -6779,7 +6750,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "in the outlet bay within 100 m of the head of Ruby Creek",
-     "needs_review": true,
      "review_reason": "'outlet bay within 100 m of the head of Ruby Creek' has no bindable split; this item allows only op:whole"
     },
     {
@@ -6848,7 +6818,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W",
-     "needs_review": true,
      "review_reason": "boundary is described by a compass line between named signs/coordinates; this item allows only op:whole and has no matching split"
     },
     {
@@ -6864,7 +6833,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore",
-     "needs_review": true,
      "review_reason": "boundary is described by a compass line between named signs/coordinates in 'Bear Bay'; this item allows only op:whole and has no matching split"
     },
     {
@@ -7707,7 +7675,6 @@
       }
      ],
      "extent_text": "tributaries only, except Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
-     "needs_review": true,
      "review_reason": "named tributary exceptions (Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, Squamish Powerhouse Channel) cannot be structurally excluded from a tributary-only closure with the available extent ops — flagging for curated tributary exclusion"
     }
    ]
@@ -7771,7 +7738,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
-     "needs_review": true,
      "review_reason": "no boundary in the menu for the Ruskin spawning channel's inlet-near-dam or boat-ramp-crossing points — reach left unbound rather than applied to the whole river"
     },
     {
@@ -7785,7 +7751,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries",
-     "needs_review": true,
      "review_reason": "no boundary in the menu for the Northrop Spawning Channel's intake or its confluence with the Stave River main — reach left unbound rather than applied to the whole river"
     }
    ]
@@ -7843,7 +7808,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -7871,7 +7835,6 @@
      "max_kmh": 8.0,
      "extents": [],
      "extent_text": "on parts (8 km/h)",
-     "needs_review": true,
      "review_reason": "the speed restriction covers only part of Strawberry Slough per the synopsis (\"on parts\") but no boundary is available to bind the reach — left unbound rather than applied to the whole water"
     }
    ]
@@ -8626,7 +8589,6 @@
      "type": "hazard",
      "verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
      "extent_text": "Rubble Creek Landslide Hazard Area",
-     "needs_review": true,
      "review_reason": "Water-scoped to a named hazard area; unbound until matched. Recovered from the chapter — absent from the corpus."
     }
    ]
@@ -8806,7 +8768,6 @@
      "verbatim": "Maxillary (jaw) clipping is being used to assess hatchery release strategies. Refer to page 76 for instructions on what to do if you catch a maxillary clipped fish.",
      "obligation": "should",
      "extent_text": "Stave River",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped. Recovered from the chapter — one of 4 of 7 tagging programmes the archive dropped.",
      "extents": [
       {

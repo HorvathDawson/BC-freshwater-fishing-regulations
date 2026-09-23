@@ -591,7 +591,6 @@
      "verbatim": "no towing on parts",
      "aspect": "towing",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'no towing on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent."
     }
    ]
@@ -892,7 +891,6 @@
      "aspect": "speed",
      "max_kmh": 60.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent."
     }
    ]
@@ -966,7 +964,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "Thelwood Creek",
-     "needs_review": true,
      "review_reason": "Thelwood Creek is a named tributary with no cut-point or registry id in this item's boundary menu (none listed) to bind it precisely."
     }
    ]
@@ -1060,7 +1057,6 @@
      "may_target": false,
      "tributaries_only": true,
      "extent_text": "in any tributaries (except Quinsam River)",
-     "needs_review": true,
      "review_reason": "Closes all tributaries except the Quinsam River; the extent model has no exclusion op to carve one named tributary out of a tributary-wide closure."
     },
     {
@@ -1756,7 +1752,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on part",
-     "needs_review": true,
      "review_reason": "'on part' implies a specific reach of the river; the only bindable boundary is a single gauge point (5th Avenue Bridge) and the text does not say which side of it the restriction covers"
     }
    ]
@@ -1871,7 +1866,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -1881,7 +1875,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "within 60 m of shore",
-     "needs_review": true,
      "review_reason": "a shoreline proximity band is not expressible as a split or area; this item has no bindable boundaries besides op:whole"
     }
    ]
@@ -2044,7 +2037,6 @@
      "aspect": "speed",
      "max_kmh": 8.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the river but the available split ids do not identify which stretch carries the speed limit"
     },
     {
@@ -2055,7 +2047,6 @@
      "level": "power_capped",
      "max_power_kw": 7.5,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the river but the available split ids do not identify which stretch carries the power cap"
     }
    ]
@@ -2407,7 +2398,6 @@
      "may_target": false,
      "includes_tributaries": true,
      "extent_text": "upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary",
-     "needs_review": true,
      "review_reason": "Deena Creek has no bindable cut-points besides op:whole; 'second bridge approximately 5 km upstream of the tidal boundary' cannot be bound to a real split"
     },
     {
@@ -2779,7 +2769,6 @@
      "level": "power_capped",
      "max_power_kw": 7.5,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -2789,7 +2778,6 @@
      "aspect": "propulsion",
      "level": "none",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -2799,7 +2787,6 @@
      "aspect": "propulsion",
      "level": "unpowered",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -2808,7 +2795,6 @@
      "verbatim": "no towing on parts",
      "aspect": "towing",
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -3547,7 +3533,6 @@
       }
      ],
      "extent_text": "downstream of the Muchalat River confluence, not including the Muchalat or Heber Rivers",
-     "needs_review": true,
      "review_reason": "'but not including the Muchalat or Heber Rivers' excludes those tributaries from this closure's tributary walk; the schema has no field to exclude a named tributary from includes_tributaries, so a curator must bind that exclusion by hand."
     },
     {
@@ -3781,7 +3766,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
-     "needs_review": true,
      "review_reason": "Great Central Lake has no bindable cut-points in the registry; the closure reach 'from the dam to fishing boundary signs ~50 m upstream of the Ash Main Bridge' cannot be bound and needs a curator to attach a location."
     },
     {
@@ -4289,7 +4273,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "Printed with no date, reading as a year-round closure downstream of the canyon, but the next line ('Folpye fnishing only downstream of Saunders Creek...') implies part of this reach is open under a fly-only rule. The source text appears garbled/incomplete; a curator should confirm against the printed page."
     },
     {
@@ -4307,7 +4290,6 @@
        ]
       }
      ],
-     "needs_review": true,
      "review_reason": "Source text is garbled ('Folpye fnishing' appears to be an OCR error for 'Fly fishing') and truncated ('...when' has no continuation, likely 'when open'). Inferred as fly-fishing-only but wording and season could not be confirmed."
     }
    ]
@@ -5041,7 +5023,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "from boundary signs in Kokish canyon to Ida Lake",
-     "needs_review": true,
      "review_reason": "'Ida Lake' is not a cut-point on this water's boundary menu — the reach cannot be bound past the canyon signs"
     },
     {
@@ -5627,7 +5608,6 @@
      "aspect": "speed",
      "max_kmh": 60.0,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' names a partial reach but this lake has no bindable cut-points"
     },
     {
@@ -5700,7 +5680,6 @@
      "may_target": false,
      "tributaries_only": true,
      "extent_text": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
-     "needs_review": true,
      "review_reason": "The closure extends onto a named reach of Campbell River (Strathcona Dam to Campbell Lake), but this item's own boundary menu lists no split ids to bind it; those splits exist only on the separate Campbell River item."
     }
    ]
@@ -5951,7 +5930,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "upstream of fishing boundary signs on third bridge, approximately 10 km upstream of the tidal boundary",
-     "needs_review": true,
      "review_reason": "'fishing boundary signs on third bridge' is not a listed cut-point on this water's boundary menu"
     },
     {
@@ -6850,7 +6828,6 @@
      "unresolved_locators": [
       "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake"
      ],
-     "needs_review": true,
      "review_reason": "two identically named 'Nanaimo Lakes' split points are listed in the boundary menu; cannot determine which is the westernmost lake known locally as 'Second' Lake without additional geographic data"
     },
     {
@@ -6861,7 +6838,6 @@
      "level": "power_capped",
      "max_power_kw": 7.5,
      "extent_text": "on parts",
-     "needs_review": true,
      "review_reason": "'on parts' does not name which reach; no boundary in the menu matches the specific part described"
     }
    ]
@@ -7472,7 +7448,6 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "needs_review": true,
      "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -7486,7 +7461,6 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 60.0,
-     "needs_review": true,
      "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -7896,7 +7870,6 @@
      "verbatim": "speed restriction on parts (8 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "needs_review": true,
      "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -8428,7 +8401,6 @@
      "verbatim": "Steelhead Stamp not required unless fishing for steelhead",
      "document": "steelhead_stamp",
      "required": false,
-     "needs_review": true,
      "review_reason": "the stamp is stated as conditionally required only when targeting steelhead, but document_required has no per-target scoping to express that exception",
      "extents": [
       {
@@ -8473,7 +8445,6 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "needs_review": true,
      "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -8487,7 +8458,6 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 65.0,
-     "needs_review": true,
      "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -8925,7 +8895,6 @@
      "aspect": "propulsion",
      "level": "power_capped",
      "max_power_kw": 7.5,
-     "needs_review": true,
      "review_reason": "synopsis states the restriction applies only to parts of the river, but no split ids are bindable for this water to express which reach",
      "extents": [
       {
@@ -9148,7 +9117,6 @@
      "level": "unpowered",
      "extents": [],
      "extent_text": "any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -10432,7 +10400,6 @@
      "unresolved_locators": [
       "within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River"
      ],
-     "needs_review": true,
      "review_reason": "the closure is bounded above by 'the falls', which has no bindable split id in the menu; only the point 100 m downstream of the falls ('wahpeeto_creek__within_100_m_downstream') is listed, and a single point cannot express the bounded reach between the falls and that point"
     }
    ]
@@ -10588,7 +10555,6 @@
      "unresolved_locators": [
       "between fishing boundary signs at the salmon viewing pool"
      ],
-     "needs_review": true,
      "review_reason": "'the salmon viewing pool' boundary signs are not in the bindable-boundaries menu; no split id names this location"
     },
     {
@@ -10990,7 +10956,6 @@
      "verbatim": "Comox Lake, Cowichan Lake, Horne Lake and Oyster River: $100 reward tags are being used to assess the cutthroat trout fishery.",
      "obligation": "should",
      "extent_text": "Comox Lake, Cowichan Lake, Horne Lake and Oyster River",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped to four named waters; unbound until they are matched. Recovered from the chapter — the archive dropped 4 of 7 tagging programmes.",
      "extents": [
       {

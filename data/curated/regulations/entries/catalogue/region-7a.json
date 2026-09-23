@@ -581,7 +581,6 @@
      "may_target": false,
      "authority": "superior",
      "extent_text": "Upper Fraser and Nechako watersheds",
-     "needs_review": true,
      "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply.",
      "extents": [
       {

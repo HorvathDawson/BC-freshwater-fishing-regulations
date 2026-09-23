@@ -394,7 +394,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -417,7 +416,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -912,7 +910,6 @@
      "unresolved_locators": [
       "Quinn Creek"
      ],
-     "needs_review": true,
      "review_reason": "Quinn Creek has no cut-point in this item's boundary menu — the Galbraith-Van and Aberfeldie-Tie Mill reaches are bound, but the Quinn Creek reach cannot be"
     },
     {
@@ -1001,7 +998,6 @@
      "unresolved_locators": [
       "Hwy 6 bridge"
      ],
-     "needs_review": true,
      "review_reason": "Hwy 6 bridge has no cut-point in this item's boundary menu, so the reach cannot be closed at its downstream end (only the Woden Creek confluence is bindable)"
     }
    ]
@@ -1115,7 +1111,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row is a redirect to the Lewis Slough entry — not parsed independently"
     }
    ]
@@ -1601,7 +1596,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "near eastern shore and at south end, as buoyed and signed",
-     "needs_review": true,
      "review_reason": "no split or area id exists for 'near eastern shore' / 'south end' — this item's boundary menu offers only op:whole for this lake"
     }
    ]
@@ -1633,7 +1627,6 @@
      "may_target": false,
      "tributaries_only": true,
      "extent_text": "(except Dutch Creek)",
-     "needs_review": true,
      "review_reason": "'except Dutch Creek' is a named-water carve-out from this tributary closure; catalogue schema has no per-rule exclusion op to bind it — Dutch Creek carries its own reciprocal exemption rule"
     }
    ]
@@ -1803,7 +1796,6 @@
       }
      ],
      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
-     "needs_review": true,
      "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
     },
     {
@@ -1824,7 +1816,6 @@
       }
      ],
      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
-     "needs_review": true,
      "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
     },
     {
@@ -1849,7 +1840,6 @@
      "aspect": "speed",
      "max_kmh": 10.0,
      "extent_text": "from Mud Lake to Columbia Lake",
-     "needs_review": true,
      "review_reason": "'Mud Lake' has no bindable boundary id in this item's boundary menu"
     },
     {
@@ -1859,7 +1849,6 @@
      "aspect": "propulsion",
      "level": "unpowered",
      "extent_text": "in wetlands",
-     "needs_review": true,
      "review_reason": "'wetlands' is not a bindable area id in this item's boundary menu"
     },
     {
@@ -2092,7 +2081,6 @@
      "unlimited": true,
      "extents": [],
      "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)",
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -2105,7 +2093,6 @@
      "unlimited": true,
      "extents": [],
      "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)",
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -2119,7 +2106,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -2384,7 +2370,6 @@
      "may_target": true,
      "tributaries_only": true,
      "extent_text": "(includes Upper Duncan River and tributaries)",
-     "needs_review": true,
      "review_reason": "'Upper Duncan River and tributaries' is a separate registry item not matched to this entry — the extension of this rule onto it cannot be bound here"
     }
    ]
@@ -2669,7 +2654,6 @@
        "take": 0
       }
      ],
-     "aggregation_domain": "both lakes",
      "extents": [
       {
        "op": "whole"
@@ -2959,7 +2943,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "lists tributaries carried on their own separate rows and excluded from these tributary-wide defaults — not parsed independently"
     },
     {
@@ -2971,7 +2954,6 @@
      "water_class": "II",
      "tributaries_only": true,
      "extent_text": "(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)",
-     "needs_review": true,
      "review_reason": "'except Coal Creek downstream of...' is a named-water carve-out from this tributary-wide Class II declaration; catalogue schema has no per-rule exclusion op — Coal Creek carries its own reciprocal 'not a Classified Water' entry"
     }
    ]
@@ -3075,7 +3057,6 @@
       }
      ],
      "extent_text": "All other parts",
-     "needs_review": true,
      "review_reason": "'All other parts' is the complement of the four catch-and-release reaches named above; no negation op exists to express a complement, so this falls back to the entry's whole upstream-of-Elko-Dam scope"
     },
     {
@@ -3225,7 +3206,6 @@
       }
      ],
      "extent_text": "other parts (including tributaries, except Lavington Creek)",
-     "needs_review": true,
      "review_reason": "'other parts' is the complement of the mainstem catch-and-release reach named above; no negation op exists to express a complement"
     },
     {
@@ -3241,7 +3221,6 @@
      "take": 1,
      "within": "findlay_creek.r2",
      "extent_text": "other parts (including tributaries, except Lavington Creek)",
-     "needs_review": true,
      "review_reason": "nested sub-limit of findlay_creek.r2, which sits on the same unbindable 'other parts' complement"
     },
     {
@@ -3267,7 +3246,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row redirects to a separate listing for Lavington Creek, a tributary — not parsed independently"
     }
    ]
@@ -3600,7 +3578,6 @@
      "unresolved_locators": [
       "Connor Lake downstream 3 km"
      ],
-     "needs_review": true,
      "review_reason": "the closure runs from Connor Lake to a point 3000 m downstream, but three 'Connor Lakes' cut-points exist on this creek and none is unambiguously 'the' Connor Lake this text names — bound to extent_text rather than guessing among them"
     },
     {
@@ -3612,7 +3589,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row redirects the remainder of this creek to the Elk River's tributaries entry — not parsed independently"
     },
     {
@@ -3700,7 +3676,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row is a redirect to the Norbury Lake entry — not parsed independently"
     }
    ]
@@ -3749,7 +3724,6 @@
       "Leadville Creek",
       "Cameron Creek"
      ],
-     "needs_review": true,
      "review_reason": "two names printed after the mainstem-only clause with no connecting word — likely a dropped exception or reference to separate listings for these tributaries; preserved verbatim without inventing a relationship"
     },
     {
@@ -3761,7 +3735,6 @@
      ],
      "allowed": false,
      "extent_text": "(EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
-     "needs_review": true,
      "review_reason": "'except Kitchener Creek' is a named-water carve-out from this tributary-wide bait ban; catalogue schema has no per-rule exclusion op — Kitchener Creek carries its own separate listing"
     }
    ]
@@ -4538,7 +4511,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -4552,7 +4524,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -4586,7 +4557,6 @@
      "unresolved_locators": [
       "within 200 m of Bush-Sullivan Road Bridge in Bush Arm"
      ],
-     "needs_review": true,
      "review_reason": "no cut-point for Bush-Sullivan Road Bridge in Bush Arm; this item has no bindable boundaries besides op:whole"
     }
    ]
@@ -4631,7 +4601,6 @@
      "unresolved_locators": [
       "Columbia River upstream of Kinbasket Reservoir"
      ],
-     "needs_review": true,
      "review_reason": "this exclusion needs a cut-point on the Columbia River to carve it out of r1's tributary walk; none is in this item's boundary menu"
     }
    ]
@@ -4886,7 +4855,6 @@
       }
      ],
      "extent_text": "Lower West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -4904,7 +4872,6 @@
       }
      ],
      "extent_text": "Lower West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -4925,7 +4892,6 @@
       }
      ],
      "extent_text": "Lower West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -4950,7 +4916,6 @@
       }
      ],
      "extent_text": "Lower West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -4961,14 +4926,12 @@
       "KO"
      ],
      "take": 5,
-     "aggregation_domain": "kokanee daily quota shared between the Upper West Arm and Lower West Arm (combined cannot exceed 5)",
      "extents": [
       {
        "op": "whole"
       }
      ],
      "extent_text": "Lower West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     }
    ]
@@ -4999,7 +4962,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5017,7 +4979,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5034,7 +4995,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5051,7 +5011,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5066,7 +5025,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5089,7 +5047,6 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     }
    ]
@@ -5136,7 +5093,6 @@
      "unresolved_locators": [
       "Kootenay River upstream from Kootenay Lake to the U.S. border near Creston"
      ],
-     "needs_review": true,
      "review_reason": "this exclusion needs a cut-point on the Kootenay River to carve it out of r1's tributary walk; none is in this item's boundary menu"
     }
    ]
@@ -5174,7 +5130,6 @@
       }
      ],
      "extent_text": "Upper West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5191,7 +5146,6 @@
       }
      ],
      "extent_text": "Upper West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5209,7 +5163,6 @@
       }
      ],
      "extent_text": "Upper West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5232,7 +5185,6 @@
       }
      ],
      "extent_text": "Upper West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
@@ -5247,14 +5199,12 @@
       "July 1-July 2"
      ],
      "take": 5,
-     "aggregation_domain": "kokanee daily quota shared between the Upper West Arm and Lower West Arm (combined cannot exceed 5)",
      "extents": [
       {
        "op": "whole"
       }
      ],
      "extent_text": "Upper West Arm of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     }
    ]
@@ -5720,7 +5670,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
-     "needs_review": true,
      "review_reason": "no bindable boundary available for this reach (Mica Dam / narrows below Bigmouth Creek); only op:whole is available for this lake"
     }
    ]
@@ -7061,7 +7010,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -7160,7 +7108,6 @@
      "rule_id": "mcnaughton_lake.r1",
      "type": "advisory",
      "verbatim": "See Kinbasket Lake",
-     "needs_review": true,
      "review_reason": "row is a redirect to the Kinbasket Lake entry — not parsed independently",
      "extents": [
       {
@@ -7624,7 +7571,6 @@
      "may_target": false,
      "extents": [],
      "extent_text": "Irishman Creek (Moyie River tributary)",
-     "needs_review": true,
      "review_reason": "Irishman Creek is a named tributary of the Moyie River; no bindable split identifies it on this item's boundary menu"
     },
     {
@@ -8420,7 +8366,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "south of fishing boundary signs on the lake shore",
-     "needs_review": true,
      "review_reason": "lake has no bindable boundaries besides op:whole; 'south of fishing boundary signs on the lake shore' cannot be bound to a real split"
     },
     {
@@ -8457,7 +8402,6 @@
      "verbatim": "No towing",
      "aspect": "towing",
      "extent_text": "south half only",
-     "needs_review": true,
      "review_reason": "'south half only' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     },
     {
@@ -8467,7 +8411,6 @@
      "aspect": "speed",
      "max_kmh": 15.0,
      "extent_text": "south half only",
-     "needs_review": true,
      "review_reason": "'south half only' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
     }
    ]
@@ -8528,7 +8471,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row is a redirect to the Lake Revelstoke entry — not parsed independently"
     }
    ]
@@ -8557,7 +8499,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "row is a redirect to the Lake Revelstoke's Tributaries entry — not parsed independently"
     }
    ]
@@ -8820,7 +8761,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents; this row points to Pend d'Oreille River's regulations for the dammed portion of the reservoir"
     }
    ]
@@ -8841,7 +8781,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -9614,7 +9553,6 @@
      "unresolved_locators": [
       "a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake"
      ],
-     "needs_review": true,
      "review_reason": "item has no bindable split for the boundary-sign line; closure covers only part of the lake and op:whole would overstate it"
     }
    ]
@@ -10003,7 +9941,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents; this row points to Pend d'Oreille River's regulations for the dammed reservoir portion"
     }
    ]
@@ -10023,7 +9960,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents; this row points to Pend d'Oreille River's tributaries regulations"
     }
    ]
@@ -10311,7 +10247,6 @@
      "unresolved_locators": [
       "the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake"
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -10331,7 +10266,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -10348,7 +10282,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     },
     {
@@ -10369,7 +10302,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -10494,7 +10426,6 @@
        "op": "whole"
       }
      ],
-     "needs_review": true,
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -11010,7 +10941,6 @@
      "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
      "document": "classified_waters_licence",
      "includes_tributaries": true,
-     "needs_review": true,
      "review_reason": "BIND BY SYMBOL: Region 4 carries 27 'Classified' entries, more than any region. RECOVERED — region-4.json had no licensing rule at all.",
      "extents": [
       {
@@ -11080,7 +11010,6 @@
      "take": 0,
      "may_target": false,
      "extent_text": "the Kootenay Region, except waters listed in the tables",
-     "needs_review": true,
      "review_reason": "NOT a duplicate of z4:species_quotas — those are four separate quota rows; this is one enforcement notice with an unexpressed carve-out. Merging them would delete the perch, pike and walleye closures."
     }
    ]
@@ -11110,7 +11039,6 @@
       }
      ],
      "extent_text": "main body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules.",
      "extents": [
       {
@@ -11142,7 +11070,6 @@
      "type": "advisory",
      "verbatim": "Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse.",
      "extent_text": "Main Body of Kootenay Lake",
-     "needs_review": true,
      "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
     },
     {
@@ -11150,7 +11077,6 @@
      "type": "advisory",
      "verbatim": "Upper West Arm — the area west of that line, to McDonalds Landing (Six Mile).",
      "extent_text": "Upper West Arm",
-     "needs_review": true,
      "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
     },
     {
@@ -11158,14 +11084,12 @@
      "type": "advisory",
      "verbatim": "Lower West Arm — the area between McDonalds Landing (Six Mile) and Corra Linn Dam.",
      "extent_text": "Lower West Arm",
-     "needs_review": true,
      "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
     },
     {
      "rule_id": "kootenay_lake_boundaries.r2",
      "type": "advisory",
      "verbatim": "IMPORTANT Kootenay Lake recovery may require in-season regulation changes.",
-     "needs_review": true,
      "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true.",
      "extents": [
       {
