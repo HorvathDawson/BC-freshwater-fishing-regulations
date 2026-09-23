@@ -77,14 +77,22 @@ def test_a_hole_carrying_a_number_gives_it_to_the_piece_above_only():
     assert keep(b, 50, x["take"]) is None
 
 
-def test_a_size_on_a_rule_that_is_not_about_keeping_names_the_fish_and_sets_no_number():
+def test_a_size_on_a_licence_names_the_fish_and_sets_no_number():
     """"Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm" says
     the stamp is needed for the big ones. Read as retention it became "keep zero rainbow trout
-    over 50 cm" — a paperwork rule turned into a ban."""
-    x = _rule("shuswap_lake.r13", "r3:shuswap_lake")
-    assert x["type"] == "document_required"
-    assert x.get("take") is None
-    assert [b.model_dump(exclude_none=True) for b in _bands(x)] == [{"min_cm": 50}]
+    over 50 cm" — a paperwork rule turned into a ban. It is a licensing REQUIREMENT now, not a
+    rule, and its band names which fish — a band on a requirement cannot carry a number."""
+    import json
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.parsing.catalogue import CatalogueFile, Requirement
+    path = CURATED.regulations.entries.catalogue / "region-3.json"
+    cf = CatalogueFile.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    e = next(e for e in cf.entries if e.entry_id.startswith("r3:shuswap_lake"))
+    assert not [r for r in e.rules if r.lengths and r.take is None and "Stamp" in r.verbatim]
+    x = next(x for x in e.licensing if x.id == "shuswap_rainbow_stamp")
+    assert isinstance(x, Requirement) and x.doing.act == "retaining"
+    assert x.doing.species == ["RB"]
+    assert [b.model_dump(exclude_none=True) for b in x.doing.lengths] == [{"min_cm": 50}]
 
 
 def test_an_annual_quota_counts_a_size_class_and_forbids_nothing_beneath_it():
@@ -119,7 +127,8 @@ def test_only_a_rule_about_fish_of_a_size_carries_lengths_and_every_band_is_real
     rs = [x for x in rules() if x.get("lengths")]
     assert rs, "no rule carries lengths — the join or the bundle has dropped them"
     for x in rs:
-        assert x.get("type") in ("retention_limit", "document_required"), \
+        # A size on a licence is on the licensing record (see above), never a rule row.
+        assert x.get("type") == "retention_limit", \
             f"{x.get('rule')}: a size on a {x.get('type')} rule"
         for d in x["lengths"]:
             b = LengthBand(**d)                       # refuses empty and open-both-ends ranges

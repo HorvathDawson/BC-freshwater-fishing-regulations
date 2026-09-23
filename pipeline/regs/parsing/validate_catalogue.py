@@ -33,7 +33,8 @@ from typing import Iterable
 
 from pydantic import ValidationError
 
-from pipeline.regs.parsing.catalogue import CatalogueEntry, squash, RuleType, label
+from pipeline.regs.parsing.catalogue import CatalogueEntry, squash, RuleType, label, \
+    licensing_label
 
 # `squash` is the ONE normaliser and lives in catalogue.py, beside the model validator that
 # also needs it — two copies drifted once and cost a whole parse.
@@ -146,6 +147,12 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
     for i, r in enumerate(data.get("rules") or ()):
         if isinstance(r, dict):
             visit(r.get("extents"), f"rule {i + 1}")
+    # A LICENSING RECORD BINDS BY THE SAME CUT-POINTS a rule does — a designation's reach, a
+    # requirement's place, a carve-out from its tributaries — so the same menu governs it.
+    for i, x in enumerate(data.get("licensing") or ()):
+        if isinstance(x, dict):
+            visit(x.get("extents"), f"licensing {i + 1}")
+            visit(x.get("tributary_excludes"), f"licensing {i + 1} tributary_excludes")
     return errors
 
 
@@ -379,6 +386,17 @@ def check_entry(entry_data: dict, source_text: str,
 
         if not label(rule).strip():
             errors.append(f"{rule.rule_id}: generates an empty label")
+
+    # A SIZE ON A LICENCE is a printed number like any other: "to keep rainbow trout over 50 cm".
+    for x in entry.licensing:
+        doing = getattr(x, "doing", None)
+        for i, b in enumerate((doing.lengths if doing else None) or []):
+            for f, v in (("min_cm", b.min_cm), ("max_cm", b.max_cm)):
+                if v and str(v) not in x.verbatim:
+                    errors.append(f"licensing {x.id}: doing.lengths[{i}].{f}={v} does not appear "
+                                  f"in its own verbatim ({x.verbatim[:70]!r})")
+        if not licensing_label(x).strip():
+            errors.append(f"licensing {x.id}: generates an empty label")
 
     by_id = {r.rule_id: r for r in entry.rules}
     for rule in entry.rules:

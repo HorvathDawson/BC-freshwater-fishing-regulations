@@ -8816,40 +8816,83 @@
        "max": 1
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "shuswap_lake.r13",
-     "type": "document_required",
-     "verbatim": "Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm",
-     "lengths": [
+     "kind": "requirement",
+     "id": "shuswap_rainbow_stamp",
+     "satisfied_by": [
       {
-       "min_cm": 50
+       "hold": [
+        "shuswap_rainbow_stamp"
+       ]
       }
      ],
-     "document": "shuswap_rainbow_stamp",
-     "on_retention": true,
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "restates": {
+      "entry_id": "zp:shuswap_rainbow_stamp",
+      "id": "shuswap_rainbow_stamp"
+     },
+     "verbatim": "Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm"
     },
     {
-     "rule_id": "shuswap_lake.r14",
-     "type": "document_required",
-     "verbatim": "char over 60 cm",
-     "lengths": [
+     "kind": "requirement",
+     "id": "shuswap_char_stamp",
+     "satisfied_by": [
       {
-       "min_cm": 60
+       "hold": [
+        "shuswap_char_stamp"
+       ]
       }
      ],
-     "document": "shuswap_char_stamp",
-     "on_retention": true,
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "LT",
+       "BT"
+      ],
+      "lengths": [
+       {
+        "min_cm": 60
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "restates": {
+      "entry_id": "zp:shuswap_char_stamp",
+      "id": "shuswap_char_stamp"
+     },
+     "verbatim": "char over 60 cm"
     }
    ]
   },
@@ -9490,11 +9533,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "thompson_river_downstream_of_kamloops_lake.r7",
-     "type": "document_required",
-     "verbatim": "Class II water Oct 1-Dec 31",
+     "kind": "designation",
+     "id": "thompson_river",
+     "classified": "II",
+     "unit": "thompson_river",
+     "unit_name": "Thompson River",
      "when": {
       "dates": [
        {
@@ -9503,11 +9550,8 @@
         "to_month": 12,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "downstream_of",
@@ -9515,32 +9559,21 @@
         "thompson_river__kamloops_lake"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "thompson_river_downstream_of_kamloops_lake.r8",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
-     "when": {
-      "dates": [
-       {
-        "from_month": 10,
-        "from_day": 1,
-        "to_month": 12,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "thompson_river__kamloops_lake"
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 10,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
        ]
-      }
-     ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Oct 1-Dec 31 (when open)"
+     },
+     "verbatim": "Class II water Oct 1-Dec 31"
     }
    ]
   },
@@ -10678,18 +10711,32 @@
    "source_pages": [
     28
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "steelhead_stamp.r1",
-     "type": "document_required",
-     "verbatim": "a Steelhead Stamp is mandatory when fishing most Classified Waters regardless of the species being angled for",
-     "document": "steelhead_stamp",
-     "review_reason": "BIND BY SYMBOL: applies to entries carrying source.symbols 'Classified'. Region 3 has 1 such entry. RECOVERED — region-3.json had no stamp rule at all.",
-     "extents": [
+     "kind": "requirement",
+     "id": "classified_steelhead_stamp",
+     "satisfied_by": [
       {
-       "op": "whole"
+       "hold": [
+        "steelhead_stamp"
+       ]
       }
-     ]
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "on": "steelhead_period",
+     "restates": {
+      "entry_id": "zp:classified_waters_licence",
+      "id": "classified_steelhead_stamp"
+     },
+     "verbatim": "a Steelhead Stamp is mandatory when fishing most Classified Waters regardless of the species being angled for"
     }
    ]
   },

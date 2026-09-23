@@ -45,7 +45,7 @@ you must follow it, not your intuition about what the words mean.
 
 ---
 
-## The catalogue is TWO TIERS: six families, fifteen types
+## The catalogue is TWO TIERS: six families, fourteen types
 
 The family is how the reader's screen is sectioned. The type is what you choose.
 
@@ -64,9 +64,12 @@ VESSEL             boats
   angling_from_vessel_prohibited     you may boat here but not fish from the boat
   navigation_duty                    an obligation toward other vessels
 
-LICENSING          paperwork and permission
-  document_required          you must hold document D
-  access_permission          WHO may fish here
+ACCESS             who may fish here at all
+  angler_closure             closed to ONE KIND of angler (`closed_to`) — e.g. non-guided
+                             non-resident aliens on weekends
+
+LICENSING is NOT a rule type. What you must hold goes in the entry's `licensing` list —
+see "Licensing — `licensing`" below. `document_required` and `access_permission` are REFUSED.
 
 CONDUCT
   handling_rule              what you must do with the fish after catching it
@@ -92,15 +95,15 @@ These were each filed two ways in the old corpus. The right column is the rule:
 | *"No ice fishing"* | `method_rule`, `gear: [{"slot": "method", "ban": ["ice_fishing"]}]` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
 | *"No powered boats"* | `vessel_rule(aspect=propulsion)` | restricts the boat, not the tackle |
 | *"No angling from boats"* | `angling_from_vessel_prohibited` | restricts ANGLING, not boating — a water can allow motoring and forbid fishing from the boat |
-| *"Class I/II water"* | `document_required` | a licence classification; the water's `Classified` symbol carries the fact |
+| *"Class I/II water"* | **not a rule** — a `designation` in `licensing` | a fact about the water; the provincial requirement fires on it |
 | *"Youth/disabled accompanied water"* | `program_membership` | an ACCESS provision — who may be brought along, not what licence is held |
-| *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `access_permission` | it restricts **who** may fish, not what may be kept. Filed as a closure it collides with quotas and with its own sibling. |
+| *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `angler_closure`, `closed_to: {"residency": ["non_resident_alien"], "guidance": ["non_guided"]}` | it closes the water to **one kind of angler**. Filed as `retention_limit` it shares a key with — and can displace — a quota that binds everyone. |
 | *"Exempt from the spring closure"* | **not a type** — `exempts` on the rule it lifts | an exemption takes the type of whatever it removes |
 | *"Bass: 0 quota, closed to fishing"* | `retention_limit(take=0, may_target=false)` | a closure IS a limit. Filed apart from quotas the override never fires. |
 
 **Quick test:** `retention_limit` limits what you keep · `bait_restriction` what goes in the water ·
 `tackle_restriction` what is on the line · `method_rule` how you fish · `vessel_rule` the boat ·
-`document_required` what you must hold · `access_permission` who may fish · `handling_rule` the fish
+`angler_closure` who may not fish · `handling_rule` the fish
 after capture · the note types impose nothing.
 
 ---
@@ -154,7 +157,8 @@ while          the methods during which the rule binds: "dead fin fish may be us
 when           WHEN THE RULE BINDS — see "Seasons and times" below. One object holding
                `dates`, `hours`, `weekdays` and `unparsed`. `windows`, `windows_are`,
                `from_time` and `to_time` no longer exist and are refused.
-angler_class · when_open
+closed_to      angler_closure only: WHO the water is closed to, as a `Who` (below)
+when_open
 extent_text    the reach in the page's own words, when no split can express it
 exempts        what this rule LIFTS
 suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. "Classified
@@ -389,6 +393,41 @@ number of rods"* is `{"slot": "lines_per_angler", "unlimited": true, "when": {"a
 * **An asterisk in the first column** means every rule reaches tributaries → `includes_tributaries`
   on the ENTRY. **An asterisk after one regulation** means only that one does → on the RULE.
 * **(CW)** is a symbol on the entry, not a rule. The licence obligation is provincial.
+
+---
+
+## Licensing — `licensing`
+
+Licensing is a list of records on the ENTRY, beside `rules`, each with a `kind`. It never
+competes, never opens or closes a water, and every record's `verbatim` (and every nested quote)
+is a contiguous run of `regs_verbatim`.
+
+```
+designation     "Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30"
+                {"kind": "designation", "id": "<unit>", "classified": "II", "unit": "<slug>",
+                 "unit_name": "<the name a non-resident's licence names>",
+                 "when": {"dates": [...]},                       # absent = all year / "when open"
+                 "steelhead_stamp_during": {"when": {...}, "verbatim": "Steelhead Stamp mandatory …"}
+                   OR "steelhead_stamp_waived": {"verbatim": "Steelhead Stamp not required"},
+                 "suspended_while": [{"rule_id": "<closure in this entry>", "verbatim": "… until reopened …"}],
+                 "extents": [...], "verbatim": "Class II water Sept 1-Apr 30"}
+not_classified  "Part described is NOT a Classified Water"
+requirement     an obligation stated once (provincial/zone): who, doing, satisfied_by paths
+licence_terms   how a licence is sold (per day, 8 consecutive days, draw, booking)
+exemption       a named `who` released from named documents
+alternative     a place where another document also satisfies a requirement
+```
+
+* **"Class II water when open" needs no field** — licensing is only consulted where the water is
+  open. Leave `when` out.
+* **"X classified licence required for non-resident anglers"** is the designation's `unit`
+  (`slug(X)`), NOT a requirement scoped to non-residents — every angler needs the licence there.
+* **A waiver lifts only the classified-water stamp.** "Steelhead Stamp not required unless
+  fishing for steelhead" is `steelhead_stamp_waived`; the "unless" is the provincial rule.
+* **`Who`** is a set per axis: `residency` (resident / non_resident / non_resident_alien), `age`
+  (under_16 / 16_plus), `guidance` (guided / non_guided), `status`. "non-resident" in the book
+  means `["non_resident", "non_resident_alien"]`; "Canadian resident" means
+  `["resident", "non_resident"]`. Never name every member of an axis — leave it out.
 
 ---
 

@@ -296,8 +296,6 @@ def test_a_quoted_prohibition_reads_as_one():
             run_up = hay[:hay.index(needle)].rsplit(".", 1)[-1]
             if not governing.search(run_up):
                 continue
-            if r.required is False:
-                continue                      # says so in the data; the label renders it
             # A GENERATED LABEL IS NOT A QUOTE DOING DUTY AS ONE. `gear` and `conduct` carry the
             # prohibition structurally — a `ban`, an `only`, a `must_be`, a `do_not_` act — and
             # the label is then BUILT from those fields rather than lifted from a bullet whose
@@ -309,7 +307,7 @@ def test_a_quoted_prohibition_reads_as_one():
                        f"\n      forbidden by: …{run_up.strip()[-28:]!r}"
                        f"\n      but renders : {label(r)[:64]!r}")
     assert not bad, ("a quote is doing duty as a label without the clause that forbids it — "
-                     "set `required: false`:\n  " + "\n  ".join(bad))
+                     "state the duty as a `conduct` act named in its lawful direction:\n  " + "\n  ".join(bad))
 
 
 def test_a_quota_of_zero_is_not_a_prohibition():

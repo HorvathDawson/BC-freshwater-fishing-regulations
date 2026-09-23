@@ -204,15 +204,16 @@ FIELDS = {
                    "direction ('do_not_waste_catch')",
         "when_targeting": "species the angler is fishing FOR, not what they may catch — 'bait "
                           "ban when fishing for salmon'",
-        "permitted": "access_permission only: whether the access is granted",
+        "closed_to": "angler_closure only: WHO the water is closed to — {residency, age, "
+                     "guidance, status}, each a list of the members included",
         "max_power_kw / max_kmh": "boat rules",
         "level / aspect / standing": "how the gear term was classified",
     },
     "licensing": {
-        "document / licence_name": "the licence or stamp required",
-        "water_class": "'I' | 'II' for classified waters",
-        "angler_class": "who it is about — set on only 38 of 3,422 rules",
-        "grantor / allocation / record_retention": "permits and day allocations",
+        "_note": "NOT a rule. Licensing is its own list on each entry (designation, "
+                 "not_classified, requirement, licence_terms, exemption, alternative); it never "
+                 "votes on open/closed. `document_required` and `access_permission` are gone.",
+        "record_retention": "on a retention rule: record the fish on your licence",
     },
     "_two_rules_that_look_identical": {
         "_note": "No rule in the corpus duplicates another. Every apparent repeat is told apart "
@@ -229,7 +230,7 @@ FIELDS = {
     },
     "other": {
         "exempts": "what this rule LIFTS — this is how a closure is reopened",
-        "obligation / on_retention / required": "duties, e.g. 'must be released immediately'",
+        "obligation": "duties, e.g. 'must be released immediately'",
         "uncertain": "the curator was not sure",
         "notice": "the DFO fishery notice a rule was published in ('FN0679'); provenance only",
         "suspended_while": "a rule id in the same entry: this rule is dormant while that one binds "
@@ -297,8 +298,8 @@ RULE_TYPES = {
                    "snagging, traps",
     "tackle_restriction": "the rig — hooks, lines, flies, weights",
     "bait_restriction": "what may be on the hook, and bait bans",
-    "document_required": "a licence, stamp or permit you must hold",
-    "access_permission": "whose permission you need to be there",
+    "angler_closure": "the water is closed to ONE KIND of angler (non-guided non-resident "
+                      "aliens on weekends) — a closure, never a quota",
     "handling_rule": "what you must DO — release immediately, do not remove from the water",
     "vessel_rule": "boats — where they may go, under what power, whether at all (384 rules "
                    "corpus-wide, the third largest type and easy to miss)",
@@ -312,23 +313,22 @@ RULE_TYPES = {
                 "advisory; see 05-table-generation.md §6.4)",
     "_counts_corpus_wide": {
         "retention_limit": 1769, "bait_restriction": 397, "vessel_rule": 384,
-        "tackle_restriction": 356, "document_required": 148, "method_rule": 135,
-        "advisory": 127, "hazard": 25, "access_permission": 21, "program_membership": 19,
-        "angling_from_vessel_prohibited": 15, "facility": 13, "handling_rule": 10,
-        "stop_fishing_after_quota": 2, "navigation_duty": 1,
+        "tackle_restriction": 355, "method_rule": 136, "advisory": 127, "hazard": 25,
+        "program_membership": 19, "angler_closure": 15, "angling_from_vessel_prohibited": 15,
+        "facility": 13, "handling_rule": 11, "stop_fishing_after_quota": 2, "navigation_duty": 1,
     },
 }
 
 RULE_FAMILIES = {
     "retention": "what you may keep",
     "gear_and_method": "how you may fish",
-    "licensing": "what you must hold",
+    "access": "who may fish here at all — a closure to one kind of angler",
     "conduct": "what you must do",
     "vessel": "what your boat may do — 400 rules corpus-wide, a whole half of the book that no "
               "table currently draws",
     "information": "what the book tells you, governing nothing",
     "_counts_corpus_wide": {"retention": 1771, "gear_and_method": 888, "vessel": 400,
-                            "information": 184, "licensing": 169, "conduct": 10},
+                            "information": 184, "access": 15, "conduct": 11},
 }
 
 

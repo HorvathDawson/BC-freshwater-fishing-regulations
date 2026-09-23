@@ -69,11 +69,14 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "ahnuhati_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-Oct 31",
+     "kind": "designation",
+     "id": "ahnuhati_river",
+     "classified": "II",
+     "unit": "ahnuhati_river",
+     "unit_name": "Ahnuhati River",
      "when": {
       "dates": [
        {
@@ -82,38 +85,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "ahnuhati_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 6,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-Oct 31"
     }
    ]
   },
@@ -2076,11 +2068,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "copper_creek.r4",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "copper_creek",
+     "classified": "II",
+     "unit": "copper_creek",
+     "unit_name": "Copper Creek",
      "when": {
       "dates": [
        {
@@ -2089,40 +2085,28 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "copper_creek.r5",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
+     },
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -2900,11 +2884,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "datlamen_creek.r2",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "datlamen_creek",
+     "classified": "II",
+     "unit": "datlamen_creek",
+     "unit_name": "Datlamen Creek",
      "when": {
       "dates": [
        {
@@ -2913,38 +2901,27 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "datlamen_creek.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -3092,11 +3069,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "deena_creek.r4",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "deena_creek",
+     "classified": "II",
+     "unit": "deena_creek",
+     "unit_name": "Deena Creek",
      "when": {
       "dates": [
        {
@@ -3105,38 +3086,27 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "deena_creek.r5",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -5718,11 +5688,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "honna_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "honna_river",
+     "classified": "II",
+     "unit": "honna_river",
+     "unit_name": "Honna River",
      "when": {
       "dates": [
        {
@@ -5731,38 +5705,27 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "honna_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -6127,11 +6090,14 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "kakweiken_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-Oct 31",
+     "kind": "designation",
+     "id": "kakweiken_river",
+     "classified": "II",
+     "unit": "kakweiken_river",
+     "unit_name": "Kakweiken River",
      "when": {
       "dates": [
        {
@@ -6140,38 +6106,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "kakweiken_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 6,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-Oct 31"
     }
    ]
   },
@@ -6298,11 +6253,14 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "kingcome_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-Oct 31",
+     "kind": "designation",
+     "id": "kingcome_river",
+     "classified": "II",
+     "unit": "kingcome_river",
+     "unit_name": "Kingcome River",
      "when": {
       "dates": [
        {
@@ -6311,38 +6269,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "kingcome_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 6,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-Oct 31"
     }
    ]
   },
@@ -7532,51 +7479,6 @@
    "includes_tributaries": true,
    "rules": [
     {
-     "rule_id": "mamin_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "mamin_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "mamin_river.r3",
      "type": "retention_limit",
      "verbatim": "No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30",
@@ -7627,6 +7529,44 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "mamin_river",
+     "classified": "II",
+     "unit": "mamin_river",
+     "unit_name": "Mamin River",
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
+     },
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -9174,11 +9114,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "pallant_creek.r2",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "pallant_creek",
+     "classified": "II",
+     "unit": "pallant_creek",
+     "unit_name": "Pallant Creek",
      "when": {
       "dates": [
        {
@@ -9187,38 +9131,27 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "pallant_creek.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -10642,11 +10575,14 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "seymour_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Aug 15-Oct 31",
+     "kind": "designation",
+     "id": "seymour_river",
+     "classified": "II",
+     "unit": "seymour_river",
+     "unit_name": "Seymour River",
      "when": {
       "dates": [
        {
@@ -10655,30 +10591,18 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "seymour_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not required unless fishing for steelhead",
-     "document": "steelhead_stamp",
-     "required": false,
-     "review_reason": "the stamp is stated as conditionally required only when targeting steelhead, but document_required has no per-target scoping to express that exception",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required unless fishing for steelhead"
+     },
+     "verbatim": "Class II water Aug 15-Oct 31"
     }
    ]
   },
@@ -11871,51 +11795,6 @@
      ]
     },
     {
-     "rule_id": "tlell_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "tlell_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "tlell_river.r5",
      "type": "advisory",
      "verbatim": "Tidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
@@ -11927,6 +11806,44 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "tlell_river",
+     "classified": "II",
+     "unit": "tlell_river",
+     "unit_name": "Tlell River",
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
+     },
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },
@@ -13344,11 +13261,14 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "wakeman_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-Oct 31",
+     "kind": "designation",
+     "id": "wakeman_river",
+     "classified": "II",
+     "unit": "wakeman_river",
+     "unit_name": "Wakeman River",
      "when": {
       "dates": [
        {
@@ -13357,38 +13277,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "wakeman_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 6,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-Oct 31"
     }
    ]
   },
@@ -13833,11 +13742,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "yakoun_river.r5",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Apr 30",
+     "kind": "designation",
+     "id": "yakoun_river",
+     "classified": "II",
+     "unit": "yakoun_river",
+     "unit_name": "Yakoun River",
      "when": {
       "dates": [
        {
@@ -13846,38 +13759,27 @@
         "to_month": 4,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "yakoun_river.r6",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 12,
-        "from_day": 1,
-        "to_month": 4,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 12,
+         "from_day": 1,
+         "to_month": 4,
+         "to_day": 30
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Apr 30"
     }
    ]
   },

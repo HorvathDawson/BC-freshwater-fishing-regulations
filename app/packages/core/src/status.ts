@@ -63,7 +63,9 @@ export type ScopeKind = "section" | "mu" | "area";
 export type RuleVia = "reach" | "trib";
 
 /**
- * THE FIFTEEN TYPES, and the six families they group into.
+ * THE FOURTEEN TYPES, and the six families they group into. Licensing is NOT a rule type (it is
+ * `licensing` on the catalogue entry and never votes on open/closed); `angler_closure` is the
+ * one closure to a kind of angler, filed under `access`.
  *
  * This replaced `RuleKind`, whose six coarse values (closure / harvest / gear_restriction /
  * vessel_restriction / licensing / note) said the SHAPE of a rule and never its content.
@@ -78,19 +80,19 @@ export type RuleType =
   | "retention_limit" | "stop_fishing_after_quota"
   | "bait_restriction" | "tackle_restriction" | "method_rule"
   | "vessel_rule" | "angling_from_vessel_prohibited" | "navigation_duty"
-  | "document_required" | "access_permission"
+  | "angler_closure"
   | "handling_rule"
   | "hazard" | "advisory" | "program_membership" | "facility";
 
 /** The reader sees these as sections, worst news first within each. */
 export type RuleFamily =
-  | "retention" | "gear_and_method" | "vessel" | "licensing" | "conduct" | "information";
+  | "retention" | "gear_and_method" | "vessel" | "access" | "conduct" | "information";
 
 export const RULE_TYPES: readonly RuleType[] = [
   "retention_limit", "stop_fishing_after_quota",
   "bait_restriction", "tackle_restriction", "method_rule",
   "vessel_rule", "angling_from_vessel_prohibited", "navigation_duty",
-  "document_required", "access_permission",
+  "angler_closure",
   "handling_rule",
   "hazard", "advisory", "program_membership", "facility",
 ] as const;
@@ -114,8 +116,7 @@ export const FAMILY_OF: Record<RuleType, RuleFamily> = {
   vessel_rule: "vessel",
   angling_from_vessel_prohibited: "vessel",
   navigation_duty: "vessel",
-  document_required: "licensing",
-  access_permission: "licensing",
+  angler_closure: "access",
   handling_rule: "conduct",
   hazard: "information",
   advisory: "information",
@@ -124,7 +125,7 @@ export const FAMILY_OF: Record<RuleType, RuleFamily> = {
 };
 
 export const RULE_FAMILIES: readonly RuleFamily[] =
-  ["retention", "gear_and_method", "vessel", "licensing", "conduct", "information"] as const;
+  ["retention", "gear_and_method", "vessel", "access", "conduct", "information"] as const;
 
 export interface Rule {
   readonly id: string;

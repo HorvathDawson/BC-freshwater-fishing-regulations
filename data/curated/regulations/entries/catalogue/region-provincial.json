@@ -1071,18 +1071,6 @@
      ]
     },
     {
-     "rule_id": "steelhead.r3",
-     "type": "document_required",
-     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
      "rule_id": "steelhead.r4",
      "type": "retention_limit",
      "verbatim": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
@@ -1113,6 +1101,37 @@
       }
      ]
     }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "steelhead_targeting",
+     "satisfied_by": [
+      {
+       "hold": [
+        "steelhead_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "targeting",
+      "species": [
+       "ST"
+      ]
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch)."
+    }
    ]
   },
   {
@@ -1129,25 +1148,36 @@
      "area_kind": "region"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "salmon_stamp.r1",
-     "type": "document_required",
-     "verbatim": "Required to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters.",
-     "species": [
-      "SALMON"
+     "kind": "requirement",
+     "id": "salmon_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "salmon_stamp"
+       ]
+      }
      ],
-     "species_except": [
-      "KO"
-     ],
-     "document": "salmon_stamp",
-     "on_retention": true,
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "SALMON"
+      ]
+     },
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "verbatim": "Required to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters."
     }
    ]
   },
@@ -1159,21 +1189,42 @@
    "source_pages": [
     6
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "kootenay_rainbow_stamp.r1",
-     "type": "document_required",
-     "verbatim": "Required to keep rainbow trout over 50 cm from the main body of Kootenay Lake.",
-     "document": "kootenay_rainbow_stamp",
-     "on_retention": true,
-     "extent_text": "Main body of Kootenay Lake, rainbow trout over 50 cm only",
-     "review_reason": "BOUND — named water. Water-scoped: the main body of Kootenay Lake. Unbound rather than province-wide — a licensing rule bound too widely tells anglers they need an endorsement they do not.",
+     "kind": "requirement",
+     "id": "kootenay_rainbow_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "kootenay_rainbow_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole",
        "item_id": "wbk:328974235"
       }
-     ]
+     ],
+     "verbatim": "Required to keep rainbow trout over 50 cm from the main body of Kootenay Lake.",
+     "review_reason": "'the main body of Kootenay Lake' has no arm cut-points; bound to the whole lake until a curator draws the main body"
     }
    ]
   },
@@ -1185,21 +1236,42 @@
    "source_pages": [
     6
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "shuswap_char_stamp.r1",
-     "type": "document_required",
-     "verbatim": "Required to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake.",
-     "document": "shuswap_char_stamp",
-     "on_retention": true,
-     "extent_text": "Shuswap Lake, char over 60 cm only",
-     "review_reason": "BOUND — named water. Water-scoped: Shuswap Lake, and the size gate is what triggers the stamp.",
+     "kind": "requirement",
+     "id": "shuswap_char_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "shuswap_char_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "LT",
+       "BT"
+      ],
+      "lengths": [
+       {
+        "min_cm": 60
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole",
        "item_id": "wbk:329518145"
       }
-     ]
+     ],
+     "verbatim": "Required to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake."
     }
    ]
   },
@@ -1211,15 +1283,34 @@
    "source_pages": [
     6
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "shuswap_rainbow_stamp.r1",
-     "type": "document_required",
-     "verbatim": "Required to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake.",
-     "document": "shuswap_rainbow_stamp",
-     "on_retention": true,
-     "extent_text": "Shuswap system, rainbow trout over 50 cm only",
-     "review_reason": "BOUND — named water. Water-scoped and names SEVEN waters: Shuswap, Little Shuswap, South Thompson between them, Seymour, Anstey and Salmon Arms, Mara Lake.",
+     "kind": "requirement",
+     "id": "shuswap_rainbow_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "shuswap_rainbow_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole",
@@ -1233,7 +1324,9 @@
        "op": "whole",
        "item_id": "wbk:329518146"
       }
-     ]
+     ],
+     "verbatim": "Required to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake.",
+     "review_reason": "the South Thompson River between Shuswap Lake and Little Shuswap Lake is named and not bound — it needs a split at each lake; bound to the three lake items only (under-bound, not widened)"
     }
    ]
   },
@@ -1252,23 +1345,6 @@
     }
    ],
    "rules": [
-    {
-     "rule_id": "white_sturgeon_licence.r1",
-     "type": "document_required",
-     "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo.",
-     "document": "white_sturgeon_licence",
-     "extent_text": "Fraser watershed, CPR Bridge at Mission to Williams Lake River",
-     "extents": [
-      {
-       "op": "between",
-       "splits": [
-        "fraser_river__the_cpr_bridge_at_mission",
-        "fraser_river__williams_lake_river_into_fraser_river"
-       ],
-       "includes_tributaries": true
-      }
-     ]
-    },
     {
      "rule_id": "white_sturgeon_licence.r2",
      "type": "retention_limit",
@@ -1301,6 +1377,41 @@
       }
      ]
     }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "white_sturgeon_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "white_sturgeon_licence"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "targeting",
+      "species": [
+       "WSG"
+      ]
+     },
+     "extents": [
+      {
+       "op": "between",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission",
+        "fraser_river__williams_lake_river_into_fraser_river"
+       ],
+       "includes_tributaries": true
+      }
+     ],
+     "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo."
+    }
    ]
   },
   {
@@ -1312,81 +1423,6 @@
     7
    ],
    "rules": [
-    {
-     "rule_id": "classified_waters_licence.r1",
-     "type": "document_required",
-     "verbatim": "Anglers are required to hold a basic angling licence and a Classified Waters Licence when fishing on a stream during the period when it is classified.",
-     "when_open": true,
-     "water": "stream",
-     "document": "classified_waters_licence",
-     "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "classified_waters_licence.r2",
-     "type": "document_required",
-     "verbatim": "A Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present.",
-     "document": "steelhead_stamp",
-     "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "classified_waters_licence.r3",
-     "type": "document_required",
-     "verbatim": "B.C. resident | permits angling in all classified waters throughout the licence year",
-     "angler_class": {
-      "residency": "resident"
-     },
-     "document": "classified_waters_licence",
-     "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "classified_waters_licence.r4",
-     "type": "document_required",
-     "verbatim": "each licence may not exceed 8 consecutive days",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "document": "classified_waters_licence",
-     "allocation": "per_day_max_8_consecutive",
-     "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "classified_waters_licence.r5",
-     "type": "document_required",
-     "verbatim": "EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year.",
-     "angler_class": {
-      "residency": "non_resident_alien"
-     },
-     "document": "classified_waters_licence",
-     "allocation": "one_per_licence_year",
-     "extent_text": "Dean River",
-     "review_reason": "BOUND — named water. Water-scoped (Dean River) AND angler-class scoped.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
-    },
     {
      "rule_id": "classified_waters_licence.r6",
      "type": "advisory",
@@ -1405,20 +1441,120 @@
        "item_id": "gnis:27703"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "classified_waters_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "basic_licence",
+        "classified_waters_licence"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "water": "stream",
+     "on": "classified_period",
+     "verbatim": "Anglers are required to hold a basic angling licence and a Classified Waters Licence when fishing on a stream during the period when it is classified."
     },
     {
-     "rule_id": "classified_waters_licence.r7",
-     "type": "document_required",
-     "verbatim": "Anglers are required to hold a basic angling licence and a Classified Waters Licence when fishing on a stream during the period when it is classified.",
-     "when_open": true,
-     "water": "stream",
-     "document": "basic_licence",
-     "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
-     "extents": [
+     "kind": "requirement",
+     "id": "classified_steelhead_stamp",
+     "satisfied_by": [
       {
-       "op": "whole"
+       "hold": [
+        "steelhead_stamp"
+       ]
       }
-     ]
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "on": "steelhead_period",
+     "verbatim": "A Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present."
+    },
+    {
+     "kind": "licence_terms",
+     "id": "cwl_resident",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ]
+     },
+     "sold": "per_licence_year",
+     "covers": "every_unit",
+     "verbatim": "B.C. resident | permits angling in all classified waters throughout the licence year"
+    },
+    {
+     "kind": "licence_terms",
+     "id": "cwl_non_resident",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ]
+     },
+     "sold": "per_day",
+     "covers": "one_unit",
+     "max_consecutive_days": 8,
+     "verbatim": "If you are a NON-GUIDED or GUIDED Non-Resident or Non-Resident Alien, your Classified Waters Licence is sold on a per day basis and is date and water-specific, and each licence may not exceed 8 consecutive days."
+    },
+    {
+     "kind": "licence_terms",
+     "id": "cwl_booking",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
+     },
+     "classified": "II",
+     "units": [
+      "michel_creek",
+      "skookumchuck_creek",
+      "wigwam_river"
+     ],
+     "allocation": "booking",
+     "verbatim": "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.",
+     "review_reason": "Skookumchuck Creek has no catalogue entry, so its unit names no designation yet (a parse run or hand-authoring must add it)"
+    },
+    {
+     "kind": "licence_terms",
+     "id": "dean_nra_one_licence",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident_alien"
+      ]
+     },
+     "units": [
+      "dean_river_class_i_main",
+      "dean_river_class_i_lower",
+      "dean_river_class_ii_upper"
+     ],
+     "max_per_licence_year": 1,
+     "verbatim": "EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year."
     }
    ]
   },
@@ -1436,104 +1572,90 @@
      "area_kind": "region"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "basic_licence.r1",
-     "type": "document_required",
-     "verbatim": "You must have a valid basic licence to sport fish for any species of fish in non-tidal waters (including salmon).",
-     "angler_class": {
-      "age": "16_plus"
-     },
-     "document": "basic_licence",
-     "extents": [
+     "kind": "requirement",
+     "id": "basic_licence",
+     "satisfied_by": [
       {
-       "op": "within",
-       "area_kind": "region"
+       "hold": [
+        "basic_licence"
+       ]
       }
-     ]
-    },
-    {
-     "rule_id": "basic_licence.r2",
-     "type": "document_required",
-     "verbatim": "Basic and supplementary licences and stamps are not valid in National Parks.",
-     "document": "national_park_permit",
-     "extent_text": "a provincial licence is not valid inside a National Park",
-     "review_reason": "NOT 'no licence required': the provincial licence does not WORK there and a National Park Fishing Permit is needed instead. Encoding it as required=False on basic_licence told the reader they need nothing.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "national_parks"
-      }
-     ]
-    },
-    {
-     "rule_id": "basic_licence.r3",
-     "type": "document_required",
-     "verbatim": "you are entitled to your own quota of fish",
-     "angler_class": {
-      "residency": "resident",
-      "age": "under_16"
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
      },
-     "document": "basic_licence",
-     "required": false,
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
-     "rule_id": "basic_licence.r4",
-     "type": "document_required",
-     "verbatim": "you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps",
-     "angler_class": {
-      "age": "under_16",
-      "residency": "non_resident"
+     "doing": {
+      "act": "fishing"
      },
-     "document": "basic_licence",
-     "required": false,
-     "review_reason": "REFUSED, not approximated: the child's catch counts against the ACCOMPANYING angler's quota. Quotas aggregate over water, water-group, region and province; there is no per-angler axis. Passed through as prose a parent would read it as two full quotas.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
      ],
-     "conduct": [
-      "be_accompanied_by_licensed_adult"
-     ]
+     "verbatim": "If you are 16 years of age or older, you must have a valid basic licence to sport fish for any species of fish in non-tidal waters."
     },
     {
-     "rule_id": "basic_licence.r5",
-     "type": "document_required",
-     "verbatim": "If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters.",
-     "angler_class": {
-      "status": "indian_bc_resident"
+     "kind": "requirement",
+     "id": "under_16_non_resident",
+     "satisfied_by": [
+      {
+       "accompanied_by": {
+        "who": {
+         "age": [
+          "16_plus"
+         ]
+        },
+        "holding": "what_this_fishing_requires"
+       },
+       "quota": "counts_to_companion"
+      }
+     ],
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "age": [
+       "under_16"
+      ]
      },
-     "document": "basic_licence",
-     "required": false,
+     "doing": {
+      "act": "fishing"
+     },
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "verbatim": "If you are under 16 and not a resident of B.C., you do not require any licence or stamp to sport fish, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps, and any fish you keep must be counted as part of the catch and possession of your accompanying licence holder.",
+     "review_reason": "the printed alternative — 'If you want to catch and keep your own quota of fish, you must buy a licence and any necessary supplementary licences and stamps' (p.6) — is not in this entry's passage, so the `as` path it implies is not recorded"
     },
     {
-     "rule_id": "basic_licence.r6",
-     "type": "document_required",
-     "verbatim": "Métis: all Métis individuals intending to sport fish in non-tidal waters are required, under the Wildlife Act, to hold appropriate angling licences and stamps.",
-     "angler_class": {
-      "status": "metis"
+     "kind": "exemption",
+     "id": "indian_bc_resident",
+     "who": {
+      "status": [
+       "indian_bc_resident"
+      ]
      },
-     "document": "basic_licence",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
+     "documents": [
+      "basic_licence",
+      "steelhead_stamp",
+      "salmon_stamp",
+      "kootenay_rainbow_stamp",
+      "shuswap_char_stamp",
+      "shuswap_rainbow_stamp",
+      "white_sturgeon_licence",
+      "classified_waters_licence"
+     ],
+     "verbatim": "If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters."
     }
    ]
   },
@@ -1625,29 +1747,45 @@
     },
     {
      "rule_id": "conduct.r6",
-     "type": "access_permission",
+     "type": "handling_rule",
      "verbatim": "Enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission.",
-     "permitted": false,
-     "required": false,
-     "grantor": "landowner",
+     "conduct": [
+      "do_not_enter_land_without_permission"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "conduct.r7",
-     "type": "document_required",
-     "verbatim": "A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so.",
-     "document": "angling_guide_licence",
+     "kind": "requirement",
+     "id": "angling_guide_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "angling_guide_licence"
+       ]
+      },
+      {
+       "hold": [
+        "assistant_angling_guide_licence"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "guiding"
+     },
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "verbatim": "A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so."
     }
    ]
   },
@@ -1689,19 +1827,6 @@
      ]
     },
     {
-     "rule_id": "superior_closures.r2",
-     "type": "document_required",
-     "verbatim": "Where open, anglers require a National Park Fishing Permit.",
-     "when_open": true,
-     "document": "national_park_permit",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "national_parks"
-      }
-     ]
-    },
-    {
      "rule_id": "superior_closures.r3",
      "type": "retention_limit",
      "verbatim": "Fishing is prohibited in Ecological Reserves in B.C.",
@@ -1717,6 +1842,30 @@
        "area_kind": "ecological_reserves"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "national_park_permit",
+     "satisfied_by": [
+      {
+       "hold": [
+        "national_park_permit"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "fishing"
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "national_parks"
+      }
+     ],
+     "authority": "superior",
+     "verbatim": "Where open, anglers require a National Park Fishing Permit."
     }
    ]
   },
@@ -2053,60 +2202,73 @@
      "area_kind": "region"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "licence_administration.r1",
-     "type": "document_required",
-     "verbatim": "When fishing, you must produce your angling licence and photo ID, on request of an officer.",
-     "document": "basic_licence",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
-     "rule_id": "licence_administration.r2",
-     "type": "document_required",
-     "verbatim": "You must carry your paper licence while sport fishing when a conservation surcharge stamp retention record is required.",
-     "document": "basic_licence",
-     "on_retention": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
-     "rule_id": "licence_administration.r3",
-     "type": "document_required",
-     "verbatim": "You are only permitted one annual angling licence per licence year.",
-     "document": "basic_licence",
-     "allocation": "one_per_licence_year",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
-     "rule_id": "licence_administration.r4",
-     "type": "document_required",
-     "verbatim": "You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.",
-     "angler_class": {
-      "residency": "resident",
-      "status": "disabled"
+     "kind": "requirement",
+     "id": "produce_licence",
+     "conduct": [
+      "produce_licence_on_request"
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
      },
-     "document": "basic_licence",
+     "doing": {
+      "act": "fishing"
+     },
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "verbatim": "When fishing, you must produce your angling licence and photo ID, on request of an officer."
+    },
+    {
+     "kind": "requirement",
+     "id": "carry_paper_licence",
+     "conduct": [
+      "carry_paper_licence"
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining_recorded"
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "verbatim": "You must carry your paper licence while sport fishing when a conservation surcharge stamp retention record is required."
+    },
+    {
+     "kind": "licence_terms",
+     "id": "basic_one_per_year",
+     "document": "basic_licence",
+     "max_per_licence_year": 1,
+     "verbatim": "You are only permitted one annual angling licence per licence year."
+    },
+    {
+     "kind": "licence_terms",
+     "id": "basic_disabled_fee",
+     "document": "basic_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ],
+      "status": [
+       "disabled"
+      ]
+     },
+     "fee_cad": 1.14,
+     "verbatim": "You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."
     }
    ]
   }

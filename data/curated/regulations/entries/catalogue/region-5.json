@@ -695,11 +695,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "atnarko_bella_coola_rivers.r14",
-     "type": "document_required",
-     "verbatim": "**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
+     "kind": "designation",
+     "id": "atnarko_bella_coola_rivers",
+     "classified": "II",
+     "unit": "atnarko_bella_coola_rivers",
+     "unit_name": "Atnarko/Bella Coola Rivers",
      "when": {
       "dates": [
        {
@@ -708,11 +712,8 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "downstream_of",
@@ -721,7 +722,22 @@
        ]
       }
      ],
-     "suspended_while": "atnarko_bella_coola_rivers.r13"
+     "steelhead_stamp_during": {
+      "when": {
+       "unparsed": [
+        "from reopening to steelhead fishing; the period is not printed"
+       ]
+      },
+      "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing"
+     },
+     "suspended_while": [
+      {
+       "rule_id": "atnarko_bella_coola_rivers.r13",
+       "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing"
+      }
+     ],
+     "verbatim": "Class II water downstream of Young Creek, Mar 1-May 31",
+     "review_reason": "the classified-water stamp period on reopening is implied by the note, not printed — unknown until an in-season notice states it"
     }
    ]
   },
@@ -2180,33 +2196,6 @@
      ]
     },
     {
-     "rule_id": "burnt_bridge_creek.r3",
-     "type": "document_required",
-     "verbatim": "**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**",
-     "when": {
-      "dates": [
-       {
-        "from_month": 3,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "burnt_bridge_creek__sitkatapa_confluence"
-       ]
-      }
-     ],
-     "suspended_while": "burnt_bridge_creek.r2"
-    },
-    {
      "rule_id": "burnt_bridge_creek.r4",
      "type": "advisory",
      "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
@@ -2218,6 +2207,49 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "burnt_bridge_creek",
+     "classified": "II",
+     "unit": "burnt_bridge_creek",
+     "unit_name": "Burnt Bridge Creek",
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "unparsed": [
+        "from reopening to steelhead fishing; the period is not printed"
+       ]
+      },
+      "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing"
+     },
+     "suspended_while": [
+      {
+       "rule_id": "burnt_bridge_creek.r2",
+       "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing"
+      }
+     ],
+     "verbatim": "Class II water Mar 1-May 31",
+     "review_reason": "the classified-water stamp period on reopening is implied by the note, not printed — unknown until an in-season notice states it"
     }
    ]
   },
@@ -2638,11 +2670,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "chilcotin_river.r7",
-     "type": "document_required",
-     "verbatim": "Class II water Oct 1-May 31",
+     "kind": "designation",
+     "id": "chilcotin_river",
+     "classified": "II",
+     "unit": "chilcotin_river",
+     "unit_name": "Chilcotin River",
      "when": {
       "dates": [
        {
@@ -2651,12 +2687,8 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "downstream_of",
@@ -2664,33 +2696,22 @@
         "chilcotin_river__chilko_river_into_chilcotin_river"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "chilcotin_river.r8",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Oct 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 10,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "chilcotin_river__chilko_river_into_chilcotin_river"
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 10,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
        ]
-      }
-     ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Oct 1-May 31"
+     },
+     "verbatim": "Class II water Oct 1-May 31"
     }
    ]
   },
@@ -3030,11 +3051,15 @@
       }
      ],
      "review_reason": "'on part' is vague; assumed to be the same reach as the adjacent powered-boat restriction (upstream of Henry's Crossing bridge) but the printed text does not confirm this"
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "chilko_river.r7",
-     "type": "document_required",
-     "verbatim": "Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31",
+     "kind": "designation",
+     "id": "chilko_river",
+     "classified": "II",
+     "unit": "chilko_river",
+     "unit_name": "Chilko River",
      "when": {
       "dates": [
        {
@@ -3043,12 +3068,8 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "upstream_of",
@@ -3056,34 +3077,12 @@
         "chilko_river__brittany_creek_into_chilko_river"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "chilko_river.r8",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not required",
-     "when": {
-      "dates": [
-       {
-        "from_month": 6,
-        "from_day": 11,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "required": false,
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "chilko_river__brittany_creek_into_chilko_river"
-       ]
-      }
-     ]
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required"
+     },
+     "verbatim": "Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31"
     }
    ]
   },
@@ -3294,11 +3293,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "chuckwalla_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water**[Includes Tributaries]** Apr 1-May 31",
+     "kind": "designation",
+     "id": "chuckwalla_river",
+     "classified": "II",
+     "unit": "chuckwalla_river",
+     "unit_name": "Chuckwalla River",
      "when": {
       "dates": [
        {
@@ -3307,40 +3310,28 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "chuckwalla_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
+     },
+     "verbatim": "Class II water**[Includes Tributaries]** Apr 1-May 31"
     }
    ]
   },
@@ -4125,11 +4116,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "dean_river.r11",
-     "type": "document_required",
-     "verbatim": "Class I water June 1-Sept 30",
+     "kind": "designation",
+     "id": "dean_river_class_i_main",
+     "classified": "I",
+     "unit": "dean_river_class_i_main",
+     "unit_name": "Dean River Class I - Main Section",
      "when": {
       "dates": [
        {
@@ -4138,12 +4133,8 @@
         "to_month": 9,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "I",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "between",
@@ -4152,39 +4143,29 @@
         "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "dean_river.r12",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory June 1-Sept 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 6,
-        "from_day": 1,
-        "to_month": 9,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "between",
-       "splits": [
-        "dean_river__crag_creek_into_dean_river",
-        "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 6,
+         "from_day": 1,
+         "to_month": 9,
+         "to_day": 30
+        }
        ]
-      }
-     ]
+      },
+      "verbatim": "Steelhead Stamp mandatory June 1-Sept 30"
+     },
+     "verbatim": "Class I water June 1-Sept 30"
     },
     {
-     "rule_id": "dean_river.r13",
-     "type": "document_required",
-     "verbatim": "Class I water June 1-Sept 30",
+     "kind": "designation",
+     "id": "dean_river_class_i_lower",
+     "classified": "I",
+     "unit": "dean_river_class_i_lower",
+     "unit_name": "Dean River Class I, signs 100 m below the canyon to tidal boundary",
      "when": {
       "dates": [
        {
@@ -4193,12 +4174,8 @@
         "to_month": 9,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "I",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "downstream_of",
@@ -4206,38 +4183,29 @@
         "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "dean_river.r14",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory June 1-Sept 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 6,
-        "from_day": 1,
-        "to_month": 9,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 6,
+         "from_day": 1,
+         "to_month": 9,
+         "to_day": 30
+        }
        ]
-      }
-     ]
+      },
+      "verbatim": "Steelhead Stamp mandatory June 1-Sept 30"
+     },
+     "verbatim": "Class I water June 1-Sept 30"
     },
     {
-     "rule_id": "dean_river.r15",
-     "type": "document_required",
-     "verbatim": "Class II water June 16-Oct 31",
+     "kind": "designation",
+     "id": "dean_river_class_ii_upper",
+     "classified": "II",
+     "unit": "dean_river_class_ii_upper",
+     "unit_name": "Dean River Class II, Anahim Lake to Iltasyuko River",
      "when": {
       "dates": [
        {
@@ -4246,12 +4214,8 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "between",
@@ -4260,24 +4224,12 @@
         "dean_river__iltasyuko_river_into_dean_river"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "dean_river.r16",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not required",
-     "document": "steelhead_stamp",
-     "required": false,
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "between",
-       "splits": [
-        "dean_river__anahim_lake",
-        "dean_river__iltasyuko_river_into_dean_river"
-       ]
-      }
-     ]
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required"
+     },
+     "verbatim": "Class II water June 16-Oct 31"
     }
    ]
   },
@@ -6827,11 +6779,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "horsefly_river.r6",
-     "type": "document_required",
-     "verbatim": "Class II water**[Includes Tributaries]** June 1-Oct 31",
+     "kind": "designation",
+     "id": "horsefly_river",
+     "classified": "II",
+     "unit": "horsefly_river",
+     "unit_name": "Horsefly River",
      "when": {
       "dates": [
        {
@@ -6840,41 +6796,18 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "horsefly_river.r7",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not required",
-     "when": {
-      "dates": [
-       {
-        "from_month": 6,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "required": false,
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required"
+     },
+     "verbatim": "Class II water**[Includes Tributaries]** June 1-Oct 31"
     }
    ]
   },
@@ -7511,11 +7444,14 @@
     "gnis:31586"
    ],
    "includes_tributaries": true,
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "nekite_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-May 31",
+     "kind": "designation",
+     "id": "nekite_river",
+     "classified": "II",
+     "unit": "nekite_river",
+     "unit_name": "Nekite River",
      "when": {
       "dates": [
        {
@@ -7524,38 +7460,27 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "nekite_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-May 31"
     }
    ]
   },
@@ -10818,11 +10743,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "west_road_blackwater_river.r6",
-     "type": "document_required",
-     "verbatim": "Mainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required",
+     "kind": "designation",
+     "id": "west_road_river",
+     "classified": "II",
+     "unit": "west_road_river",
+     "unit_name": "West Road (Blackwater) River",
      "when": {
       "dates": [
        {
@@ -10831,17 +10760,18 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "steelhead_stamp",
-     "required": false,
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required"
+     },
+     "verbatim": "Mainstem only: Class II water June 15-Oct 31",
+     "review_reason": "prints 'Class II water' with no (CW) glyph on the page — confirm the classification against page 53"
     }
    ]
   },
@@ -11381,111 +11311,95 @@
    "source_pages": [
     46
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "dean_river_classified.r1",
-     "type": "document_required",
-     "verbatim": "All anglers are required to buy a Classified Waters Licence to fish the classified portions of the Dean River.",
-     "document": "classified_waters_licence",
-     "extent_text": "Dean River",
-     "review_reason": "BOUND — named water. Water-scoped to the Dean River.",
+     "kind": "requirement",
+     "id": "classified_waters_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "classified_waters_licence"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:16075"
       }
-     ]
+     ],
+     "on": "classified_period",
+     "restates": {
+      "entry_id": "zp:classified_waters_licence",
+      "id": "classified_waters_licence"
+     },
+     "verbatim": "All anglers are required to buy a Classified Waters Licence to fish the classified portions of the Dean River."
     },
     {
-     "rule_id": "dean_river_classified.r2",
-     "type": "document_required",
-     "verbatim": "There are no limits on the number of days which a Canadian resident may fish the classified sections of the Dean River.",
-     "angler_class": {
-      "residency": "resident"
-     },
+     "kind": "licence_terms",
+     "id": "dean_canadian_no_day_limit",
      "document": "classified_waters_licence",
-     "extent_text": "Dean River",
-     "review_reason": "BOUND — named water. Water-scoped to the Dean River, and angler-class scoped: Canadian residents have NO day limit, which is the counterpart to the non-resident-alien restriction in r3.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
+     "who": {
+      "residency": [
+       "resident",
+       "non_resident"
+      ]
+     },
+     "units": [
+      "dean_river_class_i_main",
+      "dean_river_class_i_lower",
+      "dean_river_class_ii_upper"
+     ],
+     "unlimited_days": true,
+     "verbatim": "There are no limits on the number of days which a Canadian resident may fish the classified sections of the Dean River."
     },
     {
-     "rule_id": "dean_river_classified.r4",
-     "type": "document_required",
-     "verbatim": "A non-guided Non-Resident Alien wishing to fish the Class I - Main Section of the Dean River, from Crag Creek to signs 500 m upstream the canyon, must enter an annual limited entry draw held each spring.",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
-     },
+     "kind": "licence_terms",
+     "id": "dean_class_i_main_draw",
      "document": "classified_waters_licence",
-     "water_class": "I",
-     "allocation": "limited_entry_draw",
-     "extent_text": "Dean River Class I Main Section, Crag Creek to signs 500 m above the canyon",
-     "review_reason": "BOUND — named water. A rationing mechanism, not a restriction on water: allocation=limited_entry_draw.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
+     "who": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
+     },
+     "classified": "I",
+     "units": [
+      "dean_river_class_i_main"
+     ],
+     "allocation": "draw",
+     "verbatim": "A non-guided Non-Resident Alien wishing to fish the Class I - Main Section of the Dean River, from Crag Creek to signs 500 m upstream the canyon, must enter an annual limited entry draw held each spring."
     },
     {
-     "rule_id": "dean_river_classified.r3",
-     "type": "document_required",
-     "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
-     "angler_class": {
-      "residency": "non_resident_alien"
-     },
+     "kind": "licence_terms",
+     "id": "dean_nra_limits",
      "document": "classified_waters_licence",
-     "allocation": "one_per_licence_year",
-     "extent_text": "Dean River — one Classified Waters Licence per licence year",
-     "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
-    },
-    {
-     "rule_id": "dean_river_classified.r3b",
-     "type": "document_required",
-     "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
-     "angler_class": {
-      "residency": "non_resident_alien"
+     "who": {
+      "residency": [
+       "non_resident_alien"
+      ]
      },
-     "document": "classified_waters_licence",
-     "allocation": "one_classified_section_only",
-     "extent_text": "Dean River — one classified section only",
-     "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
-    },
-    {
-     "rule_id": "dean_river_classified.r3c",
-     "type": "document_required",
-     "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
-     "angler_class": {
-      "residency": "non_resident_alien"
-     },
-     "document": "classified_waters_licence",
-     "allocation": "max_8_consecutive_days_per_year",
-     "extent_text": "Dean River — 8 consecutive days per year, guided or not",
-     "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:16075"
-      }
-     ]
+     "units": [
+      "dean_river_class_i_main",
+      "dean_river_class_i_lower",
+      "dean_river_class_ii_upper"
+     ],
+     "max_consecutive_days": 8,
+     "max_days_per_licence_year": 8,
+     "max_per_licence_year": 1,
+     "max_units_per_licence_year": 1,
+     "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided."
     }
    ]
   },

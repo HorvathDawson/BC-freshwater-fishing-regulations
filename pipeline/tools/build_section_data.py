@@ -990,10 +990,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                                         "origin", "within", "record_retention",
                                         # `while` decides whether a closure shuts the WATER or
                                         # only one way of fishing it — see `narrows` in the page.
-                                        "while", "angler_class", "when_targeting", "permitted",
-                                        # the licence table's own columns
-                                        "on_retention", "when_open", "water_class", "document",
-                                        "required")
+                                        "while", "closed_to", "when_targeting",
+                                        "when_open")
                    if k in cond},
                 "conditions": cond,
                 "uncertain": d["uncertain"], "scope": d["scope"], "via": via,

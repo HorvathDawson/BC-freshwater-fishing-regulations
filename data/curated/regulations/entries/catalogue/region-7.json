@@ -8529,32 +8529,6 @@
           ]
         },
         {
-          "rule_id": "stellako_river.r2",
-          "type": "document_required",
-          "verbatim": "Class II water[Includes Tributaries] when open",
-          "when_open": true,
-          "document": "classified_waters_licence",
-          "water_class": "II",
-          "includes_tributaries": true,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ]
-        },
-        {
-          "rule_id": "stellako_river.r3",
-          "type": "document_required",
-          "verbatim": "Steelhead Stamp not required",
-          "document": "steelhead_stamp",
-          "required": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ]
-        },
-        {
           "rule_id": "stellako_river.r4",
           "type": "retention_limit",
           "verbatim": "Rainbow trout catch and release",
@@ -8617,6 +8591,25 @@
               "op": "whole"
             }
           ]
+        }
+      ],
+      "licensing": [
+        {
+          "kind": "designation",
+          "id": "stellako_river",
+          "classified": "II",
+          "unit": "stellako_river",
+          "unit_name": "Stellako River",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "includes_tributaries": true,
+          "steelhead_stamp_waived": {
+            "verbatim": "Steelhead Stamp not required"
+          },
+          "verbatim": "Class II water[Includes Tributaries] when open"
         }
       ]
     },

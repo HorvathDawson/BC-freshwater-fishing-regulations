@@ -1,4 +1,4 @@
-"""The rule catalogue — 15 types, their conditions, and what makes two rules comparable.
+"""The rule catalogue — 14 types, their conditions, and what makes two rules comparable.
 
 Replaces hand-written `Rule.details` with a TYPE plus named CONDITIONS. The label is generated
 from those (see `label()`), so it cannot drift from the numbers the way the prose did:
@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 
 from enum import Enum
-from typing import List, Optional
+from typing import Annotated, List, Literal, Optional, Union
 
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
@@ -33,8 +33,14 @@ class RuleType(str, Enum):
     vessel_rule = "vessel_rule"
     angling_from_vessel_prohibited = "angling_from_vessel_prohibited"
     navigation_duty = "navigation_duty"
-    document_required = "document_required"
-    access_permission = "access_permission"
+    #: A CLOSURE FOR ONE KIND OF ANGLER — "Angling prohibited for non-guided non-resident aliens
+    #: on Saturdays and Sundays". It was `access_permission` + `permitted: false`, a polarity bit
+    #: on a type that also held permits and reciprocity. It is its own type, not `retention_limit`
+    #: + a who, because the override ladder keys on (type, dimension) and ignores who: filed as a
+    #: retention limit, a section-scoped alien-only closure would share a key with — and could
+    #: displace — a zone quota that binds everyone. `document_required` and `access_permission`
+    #: are GONE (refused on load); licensing lives on `CatalogueEntry.licensing`.
+    angler_closure = "angler_closure"
     handling_rule = "handling_rule"
     hazard = "hazard"
     advisory = "advisory"
@@ -124,12 +130,17 @@ class Document(str, Enum):
     classified_waters_licence = "classified_waters_licence"
     national_park_permit = "national_park_permit"
     angling_guide_licence = "angling_guide_licence"
-
-
-class Residency(str, Enum):
-    resident = "resident"
-    non_resident = "non_resident"
-    non_resident_alien = "non_resident_alien"
+    #: "A person commits an offence if they do not hold a valid angling guide OR ASSISTANT angling
+    #: guide licence" — two documents, either of which satisfies; it was folded into one.
+    assistant_angling_guide_licence = "assistant_angling_guide_licence"
+    #: A third-party permit: "A permit is required for fishing on all waters within the Creston
+    #: Valley Wildlife Management Area". It was an `access_permission` with a free-text grantor.
+    creston_valley_wma_permit = "creston_valley_wma_permit"
+    #: RECIPROCITY: "B.C. and Yukon angling licences are valid on all parts of Morley Lake".
+    yukon_angling_licence = "yukon_angling_licence"
+    #: A landowner's permission, named: "angling access requires permission of the Creston Valley
+    #: Rod & Gun Club". Each grantor is its own member, added by reviewed change.
+    creston_valley_rod_and_gun_club_permission = "creston_valley_rod_and_gun_club_permission"
 
 
 class Obligation(str, Enum):
@@ -157,23 +168,6 @@ def squash(text: str) -> str:
     t = re.sub(r"(?m)^\s*[>|]\s?", " ", t)
     t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)
     return re.sub(r"\s+", " ", t).strip().lower()
-
-
-class AnglerClass(BaseModel):
-    """WHO may fish — four orthogonal axes, every one of them used for real. A guided non-resident
-    alien and a non-guided one buy different licences; a 15-year-old B.C. resident needs none."""
-    model_config = ConfigDict(frozen=True)
-    residency: Optional[Residency] = None
-    guided: Optional[bool] = None
-    age: Optional[str] = Field(default=None, pattern="^(under_16|16_plus)$")
-    status: Optional[str] = Field(default=None, pattern="^(indian_bc_resident|metis|disabled)$")
-    #: Youth/Disabled Accompanied Waters: "An authorized angler can be accompanied by up to two
-    #: companion anglers." A companion may not fish there alone.
-    companions: Optional[int] = None
-
-    def is_empty(self) -> bool:
-        return not any((self.residency, self.guided is not None, self.age, self.status,
-                        self.companions is not None))
 
 
 #: THE GROUPS THE SYNOPSIS ACTUALLY PRINTS, and what each one covers.
@@ -355,13 +349,6 @@ def expand_species(codes: List[str]) -> List[str]:
     return out
 
 
-#: Types whose label is otherwise the bare quote, and which a `required: false` turns into a
-#: prohibition. The other types build their own words and say it themselves ("Netting is
-#: prohibited", "A basic angling licence is not required").
-_PROHIBITABLE = frozenset({RuleType.handling_rule, RuleType.navigation_duty,
-                           RuleType.method_rule, RuleType.tackle_restriction})
-
-
 #: TIER ONE. Every type belongs to exactly one family; the reader sees these as sections.
 _FAMILY = {
     RuleType.retention_limit: "retention",
@@ -372,8 +359,9 @@ _FAMILY = {
     RuleType.vessel_rule: "vessel",
     RuleType.angling_from_vessel_prohibited: "vessel",
     RuleType.navigation_duty: "vessel",
-    RuleType.document_required: "licensing",
-    RuleType.access_permission: "licensing",
+    #: WHO MAY FISH HERE AT ALL. Not "retention": a closure to one kind of angler is not a limit
+    #: on what anyone keeps, and filing it with the quotas is what let it displace them.
+    RuleType.angler_closure: "access",
     RuleType.handling_rule: "conduct",
     RuleType.hazard: "information",
     RuleType.advisory: "information",
@@ -926,8 +914,10 @@ class GearClause(_Terse):
 #: held by a registry rather than a type: a token must appear here, and adding one is a reviewed
 #: change carrying the verbatim that motivated it.
 CONDUCT_ACTS = {
-    "be_accompanied_by_licensed_adult":
-        "Must be accompanied by a person 16 or older who holds the appropriate licences and stamps",
+    #: `be_accompanied_by_licensed_adult` WAS HERE, holding up the under-16 non-resident rule: a
+    #: `required: false` basic licence with the accompaniment parked on it as a duty. Accompaniment
+    #: is a way of SATISFYING a requirement, so it is a `Path` (`accompanied_by`, with the quota
+    #: note) on `zp:basic_licence#under_16_non_resident`, and the token is gone.
     "do_not_waste_catch": "Do not waste the fish you catch",
     "do_not_release_harmfully": "Do not release fish in a harmful manner",
     "do_not_buy_sell_or_barter_catch": "Do not buy, sell or barter your catch",
@@ -945,6 +935,13 @@ CONDUCT_ACTS = {
     "mark_set_line_with_contact_details":
         "Mark your set line with your name, address and telephone number",
     "return_unfit_fish_gently": "Return a fish you cannot keep gently to the water",
+    # Licensing duties — what you must DO with a licence, never whether you need one.
+    "produce_licence_on_request":
+        "Produce your angling licence and photo ID when an officer asks",
+    "carry_paper_licence": "Carry your paper licence",
+    "do_not_enter_land_without_permission":
+        "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, "
+        "without permission",
 }
 
 
@@ -973,6 +970,628 @@ class LengthBand(BaseModel):
     def holds(self, cm: int) -> bool:
         return ((self.min_cm is None or cm >= self.min_cm) and
                 (self.max_cm is None or cm <= self.max_cm))
+
+
+# --------------------------------------------------------------------------------------- #
+# Licensing — a separate list on the entry, not a rule type.
+#
+# `document_required` and `access_permission` were rule types, and a type is a wall the
+# override cannot cross (the invariant at the top of this module). Licensing never competes:
+# the only "overriding" in 169 licensing rules was `required: false`, and that was the defect —
+# nine steelhead-stamp waivers shared a dimension with the provincial "stamp if you fish for
+# steelhead", so a narrower scope struck it and a steelhead angler on the Chilko needed no stamp.
+# Licensing also depends on two inputs no rule takes — WHO the angler is and what they are DOING.
+#
+# So it is six small records on `CatalogueEntry.licensing`, discriminated by `kind`:
+#
+#   designation     a FACT about a water: this reach is Classified, class I/II, in licence unit U,
+#                   during these days; the classified-water steelhead stamp runs / is waived here;
+#                   it sleeps while a named closure binds
+#   not_classified  an asserted ABSENCE ("Part described is NOT a Classified Water")
+#   requirement     an OBLIGATION, stated once: this WHO, DOING this, WHERE/WHEN, must satisfy
+#                   one of these paths (hold documents / be accompanied)
+#   licence_terms   how a document is SOLD — never bound to a section, never an obligation
+#   exemption       a named WHO released from named documents
+#   alternative     a place where another document ALSO satisfies a requirement
+#
+# LICENSING NEVER VOTES ON OPEN/CLOSED. It is consulted only where a water is open for the
+# activity, which is why "Class II water WHEN OPEN" needs no field: a closed water needs no licence
+# by construction. The one licensing-adjacent closure — "angling prohibited for non-guided
+# non-resident aliens on Saturdays" — is a closure, and stays a RULE (`angler_closure`).
+#
+# THE ANGLER IS ALWAYS UNKNOWN. Every axis of `Who` is a set with the complement written out, so a
+# reader can answer "if you are a non-resident …" without assuming a default profile.
+# --------------------------------------------------------------------------------------- #
+
+#: Every axis a `Who` may constrain, and every member of it. An axis left out means ANY member.
+WHO_AXES: dict[str, tuple[str, ...]] = {
+    "residency": ("resident", "non_resident", "non_resident_alien"),
+    "age": ("under_16", "16_plus"),
+    "guidance": ("guided", "non_guided"),
+    "status": ("indian_bc_resident", "metis", "disabled"),
+}
+#: The axes every angler sits on exactly one member of. Naming all of them is "everyone", which
+#: has one spelling: say nothing. `status` is not a partition — most anglers hold none of the
+#: three — so naming all three is a real (if odd) set and is not refused.
+_PARTITION_AXES = ("residency", "age", "guidance")
+
+Residency = Literal["resident", "non_resident", "non_resident_alien"]
+Age = Literal["under_16", "16_plus"]
+Guidance = Literal["guided", "non_guided"]
+Status = Literal["indian_bc_resident", "metis", "disabled"]
+
+
+class Who(_Terse):
+    """WHICH ANGLERS — a set on every axis, the included members listed.
+
+    This replaces `AnglerClass`, whose `residency` held ONE value. "Non-resident anglers" in the
+    synopsis covers non-residents AND non-resident aliens, so `basic_licence.r4` ("not a resident
+    of B.C.") left the under-16 alien out; "Canadian resident" became `resident` (= B.C.) and
+    dropped every other Canadian. `guided: false` was a polarity bit. Here a list says who is IN,
+    and there is nothing to invert.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    residency: List[Residency] = Field(default_factory=list)
+    age: List[Age] = Field(default_factory=list)
+    guidance: List[Guidance] = Field(default_factory=list)
+    status: List[Status] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _one_spelling(self) -> "Who":
+        said = False
+        for axis in WHO_AXES:
+            vals = getattr(self, axis)
+            if len(set(vals)) != len(vals):
+                raise ValueError(f"who.{axis}: {vals} names a member twice")
+            if axis in _PARTITION_AXES and set(vals) == set(WHO_AXES[axis]):
+                raise ValueError(f"who.{axis}: naming every member is everyone — leave the axis "
+                                 f"out instead (one spelling for 'any')")
+            said = said or bool(vals)
+        if not said:
+            raise ValueError("an empty `who` is everyone — leave it out instead")
+        return self
+
+    def members(self, axis: str) -> frozenset:
+        """The members this names on `axis`, or every member when the axis is left out."""
+        return frozenset(getattr(self, axis) or WHO_AXES[axis])
+
+    def overlaps(self, other: "Who") -> bool:
+        """True when at least one angler is in both sets."""
+        return all(self.members(a) & other.members(a) for a in WHO_AXES)
+
+    def key(self) -> str:
+        """A canonical spelling, for a dimension or a comparison."""
+        return ";".join(f"{a}={','.join(sorted(getattr(self, a)))}"
+                        for a in WHO_AXES if getattr(self, a))
+
+    def words(self) -> str:
+        """"non-guided non-resident aliens", "non-residents or non-resident aliens under 16"."""
+        res = {"resident": "B.C. residents", "non_resident": "non-residents",
+               "non_resident_alien": "non-resident aliens"}
+        st_noun = {"indian_bc_resident": "Indians resident in B.C.", "metis": "Métis anglers",
+                   "disabled": "disabled anglers"}
+        st_adj = {"indian_bc_resident": "Indian", "metis": "Métis", "disabled": "disabled"}
+        adj = " or ".join({"guided": "guided", "non_guided": "non-guided"}[g]
+                          for g in self.guidance)
+        if self.residency:
+            noun = " or ".join(res[r] for r in self.residency)
+            if self.status:
+                noun = " or ".join(st_adj[s] for s in self.status) + " " + noun
+        elif self.status:
+            noun = " or ".join(st_noun[s] for s in self.status)
+        else:
+            noun = "anglers"
+        age = " or ".join({"under_16": "under 16", "16_plus": "16 and over"}[a]
+                          for a in self.age)
+        return " ".join(x for x in (adj, noun, age) if x)
+
+
+def residency_said(text: str) -> Optional[frozenset]:
+    """THE RESIDENCY A SENTENCE NAMES, read off its own words — the check the model cannot talk
+    its way past, because the verbatim is copied, not authored.
+
+    The synopsis's idioms, and what each one MEANS:
+      "non-resident alien(s)"          -> non_resident_alien
+      "non-resident(s)" (not "…alien") -> non_resident + non_resident_alien — "non-resident
+                                          anglers" covers both, which is the Kootenay defect
+      "not a resident of B.C."         -> non_resident + non_resident_alien
+      "Canadian resident"              -> resident + non_resident
+      "B.C. resident" / "resident of B.C." -> resident
+    None when the sentence names no residency at all."""
+    t = squash(text)
+    out: set = set()
+    for pat, got in ((r"canadian residents?", {"resident", "non_resident"}),
+                     (r"not a resident of b\.?\s?c", {"non_resident", "non_resident_alien"}),
+                     (r"non-resident aliens?", {"non_resident_alien"}),
+                     (r"non-residents?", {"non_resident", "non_resident_alien"}),
+                     (r"b\.?\s?c\.? residents?|resident of b\.?\s?c", {"resident"})):
+        if re.search(pat, t):
+            out |= got
+            t = re.sub(pat, " ", t)
+    return frozenset(out) or None
+
+
+def guidance_said(text: str) -> Optional[frozenset]:
+    """THE GUIDANCE A SENTENCE NAMES: "non-guided"/"unguided" -> non_guided, "guided" -> guided,
+    both ("whether GUIDED or NON-GUIDED") -> both, which is everyone. None when it names neither."""
+    t = squash(text)
+    out: set = set()
+    if re.search(r"non-?\s?guided|unguided", t):
+        out.add("non_guided")
+        t = re.sub(r"non-?\s?guided|unguided", " ", t)
+    if re.search(r"\bguided\b", t):
+        out.add("guided")
+    return frozenset(out) or None
+
+
+def _check_residency(who: Optional["Who"], verbatim: str, where: str) -> Optional[str]:
+    """The sentence's own residency and guidance words bind the `who`, in BOTH directions: a
+    `who` that names a different set is wrong, and so is one that names NONE when the sentence
+    names one — "angling prohibited for non-guided non-resident aliens" with `closed_to:
+    {guidance: [non_guided]}` validated and closed the water to every non-guided resident."""
+    have = frozenset(who.residency) if who is not None else frozenset()
+    said = residency_said(verbatim)
+    if said is not None and said != have:
+        return (f"{where}: residency {sorted(have) or 'any'} is not what the sentence says "
+                f"({sorted(said)}) — 'non-resident' covers aliens too; 'Canadian resident' covers "
+                f"non-residents")
+    have_g = frozenset(who.guidance) if who is not None else frozenset()
+    said_g = guidance_said(verbatim)
+    if said_g is not None:
+        want = frozenset() if len(said_g) == 2 else said_g      # both named = everyone
+        if have_g != want:
+            return (f"{where}: guidance {sorted(have_g) or 'any'} is not what the sentence says "
+                    f"({sorted(want) or 'guided or not'})")
+    return None
+
+
+#: A licence unit id — what a non-resident's per-day Classified Waters Licence names.
+_SLUG = r"^[a-z0-9]+(_[a-z0-9]+)*$"
+
+
+def slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_")
+
+
+#: THE PROVINCIAL ANGLER DOCUMENTS — every licence or stamp the Wildlife Act sells an angler.
+#: "you are not required to obtain ANY TYPE of fishing licence or stamp" means exactly these, and
+#: a test pins the Indian-resident exemption to this set so a stamp added later is not silently
+#: left off it.
+PROVINCIAL_ANGLER_DOCUMENTS = (
+    "basic_licence", "steelhead_stamp", "salmon_stamp", "kootenay_rainbow_stamp",
+    "shuswap_char_stamp", "shuswap_rainbow_stamp", "white_sturgeon_licence",
+    "classified_waters_licence",
+)
+
+
+class Ref(_Terse):
+    """A licensing record in another entry, by `(entry_id, id)` — ids are unique only within an
+    entry, as rule ids are (AGENTS 8)."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    entry_id: str = Field(..., min_length=1)
+    id: str = Field(..., min_length=1)
+
+
+class Quote(_Terse):
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    verbatim: str = Field(..., min_length=1)
+
+
+class StampPeriod(_Terse):
+    """WHEN the classified-water steelhead stamp runs on this designation, and the words that
+    said so."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    when: When
+    verbatim: str = Field(..., min_length=1)
+
+
+class Suspension(_Terse):
+    """"… not required until reopened to steelhead fishing": a closure rule in THIS entry, by id,
+    while which the designation is dormant. Validated at the entry: the rule must exist and must
+    be a closure — a designation can be suspended by a closure, never by a quota."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    rule_id: str = Field(..., min_length=1)
+    verbatim: str = Field(..., min_length=1)
+
+
+#: "Nov 1-Apr 30", "Jul 24 - Dec 31", "May 1-31" — the ranges a sentence prints.
+_RANGE = re.compile(r"([a-z]+\.?\s*\d{1,2})\s*-\s*([a-z]+\.?\s*\d{1,2}|\d{1,2})\b")
+
+
+def printed_ranges(text: str) -> List["DateRange"]:
+    """Every date range the sentence prints, parsed. Unparseable matches are skipped."""
+    out = []
+    for m in _RANGE.finditer(squash(text)):
+        got = parse_date_range(f"{m.group(1)}-{m.group(2)}")
+        if got is not None:
+            out.append(got)
+    return out
+
+
+def _dates_are_printed(when: Optional[When], verbatim: str, where: str) -> Optional[str]:
+    """Every range in `when.dates` must be printed in the sentence it came from."""
+    if when is None or not when.dates:
+        return None
+    printed = printed_ranges(verbatim)
+    missing = [d.words() for d in when.dates if d not in printed]
+    if missing:
+        return f"{where}: dates {missing} are not printed in {verbatim[:60]!r}"
+    return None
+
+
+def _days(ranges: List["DateRange"]) -> set:
+    got: set = set()
+    for r in ranges:
+        a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
+        got.update(range(a, b + 1) if a <= b else list(range(a, 367)) + list(range(1, b + 1)))
+    return got
+
+
+_CLASS_SAID = re.compile(r"\bclass (ii|i|1|2) waters?\b")
+_WAIVED_SAID = re.compile(r"steelhead stamp not (?:required|mandatory)")
+_DURING_SAID = re.compile(r"steelhead stamp (?:is )?mandatory|until\s+reopened")
+_UNIT_SAID = re.compile(r"([a-z][a-z .']*?) classified licence required for non-resident")
+
+
+class Designation(_Terse):
+    """A FACT ABOUT A WATER: while the date is in `when` and a section is bound, that section is a
+    Classified Water of class `classified`, in licence unit `unit`.
+
+    It obliges nothing by itself. The provincial requirement ("hold a Classified Waters Licence
+    when fishing on a stream during the period when it is classified") fires on it, and so does the
+    classified-water steelhead stamp during `steelhead_stamp_during`.
+
+    `steelhead_stamp_waived` LIFTS ONLY THAT STAMP. The provincial "stamp if you fish for steelhead"
+    is a different requirement with a different trigger, so the waiver has no field that could
+    reach it — which is the Chilko/Dean/Horsefly/Skeena-2 defect, made unwriteable.
+
+    `unit` is what a non-resident's per-day licence NAMES. "Class II water when open, including
+    tributaries - Michel Creek classified licence required for non-resident anglers" made two
+    claims — everyone needs a CWL here (the water is classified), and the non-resident's licence
+    says "Michel Creek" — and was stored as one rule scoped to non-residents, which told B.C.
+    residents they needed nothing on nine Kootenay waters.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["designation"] = "designation"
+    id: str = Field(..., min_length=1)
+    classified: Literal["I", "II"]
+    unit: str = Field(..., pattern=_SLUG)
+    unit_name: str = Field(..., min_length=1)
+    #: The classified period. Absent or empty = all year — which includes "when open".
+    when: Optional[When] = None
+    extents: Optional[List[dict]] = None
+    includes_tributaries: Optional[bool] = None
+    tributaries_only: bool = False
+    tributary_excludes: List[dict] = Field(default_factory=list)
+    #: AT MOST ONE OF THESE TWO. Direction lives in the key; there is no bool.
+    steelhead_stamp_during: Optional[StampPeriod] = None
+    steelhead_stamp_waived: Optional[Quote] = None
+    suspended_while: List[Suspension] = Field(default_factory=list)
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _check(self) -> "Designation":
+        e: List[str] = []
+        during, waived = self.steelhead_stamp_during, self.steelhead_stamp_waived
+        if during and waived:
+            e.append("steelhead_stamp_during and steelhead_stamp_waived are opposite facts — "
+                     "one of them, or neither")
+        # THE STAMP PERIOD SITS INSIDE THE CLASSIFIED PERIOD, on the circular year. The stamp
+        # is a consequence of the water being classified; outside that period there is nothing
+        # for it to be a consequence of.
+        if during and during.when.dates and self.when and self.when.dates:
+            if not _days(during.when.dates) <= _days(self.when.dates):
+                e.append(f"the stamp period ({during.when.words()}) runs outside the classified "
+                         f"period ({self.when.words()})")
+        # IDIOMS SEEDED FROM THE VERBATIM. The quote is copied, not authored, so a field that
+        # disagrees with it is the field that is wrong.
+        m = _CLASS_SAID.search(squash(self.verbatim))
+        if m:
+            said = {"i": "I", "1": "I", "ii": "II", "2": "II"}[m.group(1)]
+            if said != self.classified:
+                e.append(f"verbatim says Class {said}, classified is {self.classified}")
+        if during and not _DURING_SAID.search(squash(during.verbatim)):
+            e.append("steelhead_stamp_during quotes no 'Steelhead Stamp mandatory'")
+        if during and _WAIVED_SAID.search(squash(during.verbatim)) \
+                and "until reopened" not in squash(during.verbatim):
+            e.append("steelhead_stamp_during quotes a waiver — that is steelhead_stamp_waived")
+        if waived and (not _WAIVED_SAID.search(squash(waived.verbatim))
+                       or "until reopened" in squash(waived.verbatim)):
+            e.append("steelhead_stamp_waived must quote 'Steelhead Stamp not required/mandatory' "
+                     "(and a waiver 'until reopened' is a suspension, not a waiver)")
+        quoted = " ".join([self.verbatim] + [x.verbatim for x in (during, waived) if x]
+                          + [s.verbatim for s in self.suspended_while])
+        if "until reopened" in squash(quoted) and not self.suspended_while:
+            e.append("'until reopened' is a suspension — name the closure in suspended_while")
+        for err in (_dates_are_printed(self.when, self.verbatim, "when"),
+                    _dates_are_printed(during.when if during else None,
+                                       during.verbatim if during else "",
+                                       "steelhead_stamp_during.when")):
+            if err:
+                e.append(err)
+        m = _UNIT_SAID.search(squash(self.verbatim))
+        if m and slug(m.group(1).split(" - ")[-1]) != self.unit:
+            e.append(f"verbatim names the {m.group(1).strip()!r} licence; unit is {self.unit!r}")
+        if self.tributaries_only and self.includes_tributaries is False:
+            e.append("tributaries_only with includes_tributaries: false binds nothing")
+        if e:
+            raise ValueError(f"designation {self.id}: " + "; ".join(e))
+        return self
+
+
+class NotClassified(_Terse):
+    """"Part described is NOT a Classified Water" — an asserted ABSENCE. It obliges nothing; the
+    build (a later stage) refuses any designation that binds a section this binds, which is what
+    forces the carve-out the parent's "including tributaries" implies to be written down."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["not_classified"] = "not_classified"
+    id: str = Field(..., min_length=1)
+    extents: Optional[List[dict]] = None
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _said(self) -> "NotClassified":
+        if "not a classified water" not in squash(self.verbatim):
+            raise ValueError(f"not_classified {self.id}: the verbatim does not say "
+                             f"'not a Classified Water'")
+        return self
+
+
+class Doing(_Terse):
+    """WHAT THE ANGLER IS DOING — the trigger. A closed vocabulary:
+
+      fishing             any sport fishing at all
+      targeting           fishing FOR `species` ("if you fish for steelhead … keep or release")
+      retaining           KEEPING `species`, of `lengths` when given ("to keep rainbow trout over
+                          50 cm") — a stamp you need only if you keep the fish
+      retaining_recorded  keeping a fish whose retention must be recorded on the licence; which
+                          fish those are is said by the `record_retention` rules, not here
+      guiding             acting as a guide for fish
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    act: Literal["fishing", "targeting", "retaining", "retaining_recorded", "guiding"]
+    species: List[str] = Field(default_factory=list)
+    species_except: List[str] = Field(default_factory=list)
+    origin: Optional[Origin] = None
+    lengths: Optional[List[LengthBand]] = None
+
+    @model_validator(mode="after")
+    def _check(self) -> "Doing":
+        e: List[str] = []
+        if self.act in ("targeting", "retaining") and not self.species:
+            e.append(f"{self.act} needs species — fishing FOR what, keeping what")
+        if self.species and self.act not in ("targeting", "retaining"):
+            e.append(f"species belongs to targeting or retaining, not {self.act}")
+        unknown = (set(self.species) | set(self.species_except)) - KNOWN_SPECIES
+        if unknown:
+            e.append(f"unknown species code(s): {sorted(unknown)}")
+        # AN EXCEPTION THAT SUBTRACTS NOTHING is a claim the data cannot make good on: "a salmon
+        # … (other than kokanee)" was `species: [SALMON], species_except: [KO]`, and kokanee
+        # is not in SALMON. The sentence is right (it is not a salmon for this purpose); the
+        # except was noise that read as a carve-out.
+        if self.species_except:
+            inside = set(expand_species(list(self.species)))
+            idle = [s for s in self.species_except if s not in inside]
+            if idle:
+                e.append(f"species_except {idle} is not in {self.species} — it subtracts nothing")
+        if self.lengths is not None:
+            if self.act != "retaining":
+                e.append("lengths names WHICH FISH you keep — only with act: retaining")
+            if not self.lengths:
+                e.append("lengths: [] says nothing — leave it out")
+            if any(b.take is not None for b in self.lengths):
+                e.append("a band on a requirement names which fish, never how many — no `take`")
+        if self.origin is not None and not self.species:
+            e.append("origin qualifies a species")
+        if e:
+            raise ValueError("doing: " + "; ".join(e))
+        return self
+
+
+class Accompaniment(_Terse):
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    who: Who
+    #: The companion holds whatever THIS fishing requires of them — resolved by the reader, so
+    #: the record never has to list documents it cannot know (class, stamp period, species).
+    holding: Literal["what_this_fishing_requires"] = "what_this_fishing_requires"
+
+
+class Path(_Terse):
+    """ONE WAY TO SATISFY A REQUIREMENT. Exactly one of `hold` (ALL of these documents),
+    `accompanied_by`, or `as` (satisfy the requirements AS this who instead).
+
+    `quota` is a NOTE, not arithmetic: "any fish you keep must be counted as part of the catch and
+    possession of your accompanying licence holder" is `quota: counts_to_companion`, which a reader
+    renders (an asterisk, a line). The retention model does not aggregate across anglers."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    hold: List[Document] = Field(default_factory=list)
+    accompanied_by: Optional[Accompaniment] = None
+    as_: Optional[Who] = Field(default=None, alias="as")
+    quota: Optional[Literal["own", "counts_to_companion"]] = None
+
+    @model_validator(mode="after")
+    def _one(self) -> "Path":
+        ways = [bool(self.hold), self.accompanied_by is not None, self.as_ is not None]
+        if sum(ways) != 1:
+            raise ValueError("a path is exactly one of hold / accompanied_by / as")
+        if len(set(self.hold)) != len(self.hold):
+            raise ValueError(f"hold names a document twice: {self.hold}")
+        # A PATH THAT CHANGES WHO CARRIES THE FISH MUST SAY WHOSE QUOTA IT IS.
+        if self.hold and self.quota is not None:
+            raise ValueError("quota belongs to a path that changes who carries the fish, "
+                             "not to `hold`")
+        if not self.hold and self.quota is None:
+            raise ValueError("an accompanied_by or as path must say whose quota the catch is "
+                             "(own | counts_to_companion)")
+        return self
+
+
+class Requirement(_Terse):
+    """AN OBLIGATION, stated once: this `who`, `doing` this, `when` and where, must satisfy ANY ONE
+    of `satisfied_by` — or, for a duty, do the `conduct`.
+
+    WHERE is `extents` (like a rule; None inherits the entry, never `whole` by default) and/or
+    `on`: `classified_period` is met wherever a designation is in force on a stream,
+    `steelhead_period` wherever its `steelhead_stamp_during` also holds. Both together means both.
+
+    There is no `required` and no `permitted`. A requirement that does not apply to someone is
+    `who` / `who_except`, an `Exemption`, or a designation fact — never "not required" as a value.
+
+    `restates` marks the table's own words for an obligation stated elsewhere (Shuswap Lake's row
+    repeating the provincial stamp) — kept so the water screen shows what the page printed, and
+    pinned by a corpus test to add nothing to what it restates.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["requirement"] = "requirement"
+    id: str = Field(..., min_length=1)
+    satisfied_by: List[Path] = Field(default_factory=list)
+    conduct: List[str] = Field(default_factory=list)
+    who: Optional[Who] = None
+    who_except: Optional[Who] = None
+    doing: Doing
+    extents: Optional[List[dict]] = None
+    includes_tributaries: Optional[bool] = None
+    water: Optional[WaterKind] = None
+    on: Optional[Literal["classified_period", "steelhead_period"]] = None
+    authority: Optional[Literal["superior"]] = None
+    when: Optional[When] = None
+    restates: Optional[Ref] = None
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _check(self) -> "Requirement":
+        e: List[str] = []
+        if bool(self.satisfied_by) == bool(self.conduct):
+            e.append("exactly one of satisfied_by (what to hold) or conduct (what to do)")
+        for act in self.conduct:
+            if act not in CONDUCT_ACTS:
+                e.append(f"conduct: {act!r} is not a registered act")
+        if self.who_except is not None and self.who is not None \
+                and not self.who.overlaps(self.who_except):
+            e.append("who_except does not overlap who — it subtracts nothing")
+        if self.authority == "superior":
+            prov = [d.value for p in self.satisfied_by for d in p.hold
+                    if d.value in PROVINCIAL_ANGLER_DOCUMENTS]
+            if prov:
+                e.append(f"a superior authority's requirement cannot be met by a provincial "
+                         f"document ({prov})")
+        err = _check_residency(self.who, self.verbatim, "who")
+        if err:
+            e.append(err)
+        if e:
+            raise ValueError(f"requirement {self.id}: " + "; ".join(e))
+        return self
+
+
+class LicenceTerms(_Terse):
+    """HOW A DOCUMENT IS SOLD — rendered under the obligation it goes with, NEVER bound to a
+    section as one. The Dean's non-guided-alien draw was a `document_required` bound to all 76 Dean
+    sections, the Class II upper river included; as terms it attaches only where its unit is."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["licence_terms"] = "licence_terms"
+    id: str = Field(..., min_length=1)
+    document: Document
+    who: Optional[Who] = None
+    classified: Optional[Literal["I", "II"]] = None
+    #: Licence units these terms are about; empty = every unit.
+    units: List[str] = Field(default_factory=list)
+    sold: Optional[Literal["per_licence_year", "per_day"]] = None
+    covers: Optional[Literal["every_unit", "one_unit"]] = None
+    max_consecutive_days: Optional[int] = Field(default=None, gt=0)
+    max_days_per_licence_year: Optional[int] = Field(default=None, gt=0)
+    max_per_licence_year: Optional[int] = Field(default=None, gt=0)
+    max_units_per_licence_year: Optional[int] = Field(default=None, gt=0)
+    #: NO DAY LIMIT, SAID OUTRIGHT — "There are no limits on the number of days which a Canadian
+    #: resident may fish". JSON has no infinity, so the word is the value, as `unlimited` is on a
+    #: retention rule; never alongside a day limit.
+    unlimited_days: bool = False
+    allocation: Optional[Literal["open", "booking", "draw"]] = None
+    needs: List[Literal["angling_guide_number"]] = Field(default_factory=list)
+    fee_cad: Optional[float] = Field(default=None, gt=0)
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _check(self) -> "LicenceTerms":
+        e: List[str] = []
+        terms = (self.sold, self.covers, self.max_consecutive_days,
+                 self.max_days_per_licence_year, self.max_per_licence_year,
+                 self.max_units_per_licence_year, self.allocation, self.fee_cad)
+        if all(t is None for t in terms) and not self.needs and not self.unlimited_days:
+            e.append("terms that set nothing say nothing")
+        if self.unlimited_days and (self.max_consecutive_days or self.max_days_per_licence_year):
+            e.append("unlimited_days and a day limit contradict")
+        if len(set(self.units)) != len(self.units):
+            e.append(f"units named twice: {self.units}")
+        for u in self.units:
+            if not re.match(_SLUG, u):
+                e.append(f"unit {u!r} is not a unit id")
+        err = _check_residency(self.who, self.verbatim, "who")
+        if err:
+            e.append(err)
+        if e:
+            raise ValueError(f"licence_terms {self.id}: " + "; ".join(e))
+        return self
+
+
+class Exemption(_Terse):
+    """A NAMED WHO RELEASED FROM NAMED DOCUMENTS. "you are not required to obtain any type of
+    fishing licence or stamp" released only `basic_licence` when it was a `required: false` rule,
+    and the CWL and stamps went on applying."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["exemption"] = "exemption"
+    id: str = Field(..., min_length=1)
+    who: Who
+    documents: List[Document] = Field(..., min_length=1)
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _check(self) -> "Exemption":
+        if len(set(self.documents)) != len(self.documents):
+            raise ValueError(f"exemption {self.id}: a document is named twice")
+        return self
+
+
+class Alternative(_Terse):
+    """A PLACE WHERE ANOTHER DOCUMENT ALSO SATISFIES A REQUIREMENT — "B.C. and Yukon angling
+    licences are valid on all parts of Morley Lake". It can only ADD a path, never remove one, and
+    it must be place-scoped: a scopeless alternative applies everywhere, which is the Babine
+    failure on a new axis."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    kind: Literal["alternative"] = "alternative"
+    id: str = Field(..., min_length=1)
+    alternative_to: Ref
+    satisfied_by: List[Path] = Field(..., min_length=1)
+    extents: List[dict] = Field(..., min_length=1)
+    verbatim: str = Field(..., min_length=1)
+    review_reason: str = ""
+
+
+LicensingRecord = Annotated[
+    Union[Designation, NotClassified, Requirement, LicenceTerms, Exemption, Alternative],
+    Field(discriminator="kind")]
+
+
+def licensing_verbatims(rec) -> List[str]:
+    """Every quote a record carries — each must be a contiguous run of the entry's passage."""
+    out = [rec.verbatim]
+    if isinstance(rec, Designation):
+        out += [x.verbatim for x in (rec.steelhead_stamp_during, rec.steelhead_stamp_waived) if x]
+        out += [s.verbatim for s in rec.suspended_while]
+    return out
 
 
 class CatalogueRule(BaseModel):
@@ -1034,7 +1653,10 @@ class CatalogueRule(BaseModel):
     # --- who / what / when -------------------------------------------------
     species: List[str] = Field(default_factory=list)
     species_except: List[str] = Field(default_factory=list)
-    angler_class: Optional[AnglerClass] = None
+    #: angler_closure only: WHO the water is closed to. The key carries the direction, as `ban`
+    #: does in gear — there is no `permitted` bit. `angler_class` (one residency, a `guided`
+    #: polarity bit) is gone and refused; see `Who`.
+    closed_to: Optional[Who] = None
     #: "When no date is listed, the regulations apply ALL YEAR. Start and end dates are
     #: INCLUSIVE." So an empty list is a fact, never "unknown".
     #: HOW YOU MAY FISH. Clauses on DIFFERENT slots are unordered and all apply — they constrain
@@ -1164,8 +1786,6 @@ class CatalogueRule(BaseModel):
     #: CATCH, and the tables say it is not: "banned for all angling and for all species". A stream
     #: can carry a salmon bait ban and no other, so the scoping is by TARGET, not by catch.
     when_targeting: List[str] = Field(default_factory=list)
-    #: access_permission only: whether the access is granted.
-    permitted: Optional[bool] = None
 
     # --- vessel ------------------------------------------------------------
     aspect: Optional[VesselAspect] = None
@@ -1173,16 +1793,14 @@ class CatalogueRule(BaseModel):
     max_power_kw: Optional[float] = None
     max_kmh: Optional[float] = None
 
-    # --- licensing ---------------------------------------------------------
-    document: Optional[Document] = None
-    required: bool = True
-    water_class: Optional[str] = Field(default=None, pattern="^(I|II)$")
-    licence_name: Optional[str] = None
+    # --- licensing: NOT HERE ------------------------------------------------
+    #: `document`, `required`, `water_class`, `licence_name`, `allocation`,
+    #: `issuing_jurisdiction`, `on_retention`, `grantor` and `permitted` WERE HERE, for the two
+    #: licensing rule types. They are gone and REFUSED on load (`extra=forbid`), like the old gear
+    #: fields: licensing is `CatalogueEntry.licensing`. `required: false` was the defect that
+    #: mattered — nine steelhead-stamp waivers shared a dimension with the provincial "stamp if
+    #: you fish for steelhead" and, being narrower, would strike it.
     includes_tributaries: Optional[bool] = None
-    allocation: Optional[str] = None
-    issuing_jurisdiction: Optional[str] = None
-    on_retention: bool = False
-    grantor: Optional[str] = None
 
     # --- relations / provenance -------------------------------------------
     #: Walk the tributaries WITHOUT the mainstem. `z5:spring_stream_closure` is the case:
@@ -1264,8 +1882,11 @@ class CatalogueRule(BaseModel):
             return f"{self.period.value}{'/size' if self.lengths and self.take is None else ''}"
         if t is RuleType.vessel_rule:
             return self.aspect.value if self.aspect else "unspecified"
-        if t is RuleType.document_required:
-            return self.document.value if self.document else "unspecified"
+        if t is RuleType.angler_closure:
+            # WHO it closes the water to. Two closures for the same anglers compete (a water's
+            # displaces a zone's); a closure for aliens never competes with one for everyone,
+            # and — being its own type — never with a quota.
+            return "closed_to:" + (self.closed_to.key() if self.closed_to else "unspecified")
         if t is RuleType.method_rule:
             # THE METHODS NAMED, not just the slot: every method rule constrains `method`, so the
             # slot alone would let a water's "no ice fishing" displace the zone's "no set lining".
@@ -1366,8 +1987,17 @@ class CatalogueRule(BaseModel):
                 e.append("speed needs max_kmh, or a review_reason if the synopsis states none")
             if self.level is PropulsionLevel.power_capped and self.max_power_kw is None:
                 e.append("power_capped needs max_power_kw")
-        if t is RuleType.document_required and self.document is None:
-            e.append("document_required needs a document")
+        if t is RuleType.angler_closure:
+            if self.closed_to is None:
+                e.append("angler_closure needs closed_to — a closure to everyone is a "
+                         "retention_limit with take 0, may_target false")
+            if self.species or self.species_except:
+                e.append("angler_closure closes the water to an angler, not to a species")
+            err = _check_residency(self.closed_to, self.verbatim, "closed_to")
+            if err:
+                e.append(err)
+        elif self.closed_to is not None:
+            e.append("closed_to belongs to angler_closure")
         # A GEAR RULE SAYS WHAT IT CONSTRAINS IN `gear` OR `conduct`. The direction lives inside
         # the clause that carries the subject; with neither, the rule states nothing a reader
         # can act on. An exemption is the one other thing such a rule may be — it lifts a clause
@@ -1376,9 +2006,6 @@ class CatalogueRule(BaseModel):
         if t in (RuleType.method_rule, RuleType.tackle_restriction,
                  RuleType.bait_restriction, RuleType.handling_rule) and not said:
             e.append(f"{t.value} needs `gear`, `conduct` or `exempts` — it states nothing else")
-        if (t is RuleType.access_permission and self.permitted is None and not self.grantor
-                and not self.gear and not self.conduct):
-            e.append("access_permission needs permitted or a grantor")
 
         if self.take is not None and self.take < 0:
             e.append("take cannot be negative")
@@ -1417,6 +2044,11 @@ _DOC_WORDS = {
     "classified_waters_licence": "Classified Waters Licence",
     "national_park_permit": "National Park Fishing Permit",
     "angling_guide_licence": "angling guide licence",
+    "assistant_angling_guide_licence": "assistant angling guide licence",
+    "creston_valley_wma_permit": "Creston Valley Wildlife Management Area permit",
+    "yukon_angling_licence": "Yukon angling licence",
+    "creston_valley_rod_and_gun_club_permission":
+        "permission of the Creston Valley Rod & Gun Club",
 }
 
 _HP = {7.5: 10, 15.0: 20}          # the synopsis PRINTS these. 7.5 kW computes to 10.06 hp.
@@ -1613,31 +2245,6 @@ def _dates(r: CatalogueRule) -> str:
     return ", " + " and ".join(d.words() for d in r.when.dates)
 
 
-def _who(r: CatalogueRule) -> str:
-    """WHO the rule applies to. Rendered on every type, not just access_permission.
-
-    Left out, `zp:basic_licence` prints "A basic angling licence is required" and "A basic angling
-    licence is not required" side by side with nothing to tell them apart — and three of the five
-    rules would tell an unqualified reader they need no licence."""
-    ac = r.angler_class
-    if not ac or ac.is_empty():
-        return ""
-    bits = []
-    if ac.age:
-        bits.append("under 16" if ac.age == "under_16" else "16 and over")
-    if ac.guided is not None:
-        bits.append("guided" if ac.guided else "non-guided")
-    if ac.residency:
-        bits.append({"resident": "B.C. residents",
-                     "non_resident": "non-residents",
-                     "non_resident_alien": "non-resident aliens"}[ac.residency.value])
-    if ac.status:
-        bits.append({"indian_bc_resident": "Indians resident in B.C.",
-                     "metis": "Metis anglers",
-                     "disabled": "disabled anglers"}[ac.status])
-    return " — for " + ", ".join(bits)
-
-
 def _scope(r: CatalogueRule, taking: bool = True) -> str:
     """`taking` distinguishes "2 from streams" (a retention limit) from "no fishing in streams"
     (a prohibition). Same field, opposite preposition, and the wrong one reads as nonsense."""
@@ -1756,9 +2363,9 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
     # the clause that carries the subject, which is the whole point of the field. Wired into one
     # type's branch instead, every OTHER type fell through to printing its bare verbatim: a
     # "You must not:" fragment then reads as a permission, which is the inversion this replaced.
-    # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it. "Not required
-    # for under-16 non-residents" is only half the sentence — the waiver holds while accompanied —
-    # and rendered alone it read as an unconditional waiver.
+    # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it — rendered
+    # alone, the rule's own half of the sentence reads as unconditional. (The case that motivated
+    # this, the under-16 non-resident's accompaniment, is now a licensing `Path`.)
     if r.conduct and not r.gear and r.type not in (
             RuleType.tackle_restriction, RuleType.bait_restriction,
             RuleType.method_rule, RuleType.handling_rule):
@@ -1812,7 +2419,7 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
             head = sp                      # a size gate with no count: the region supplies it
         else:
             return r.verbatim              # nothing numeric to generate from
-        out = head + _size(r) + _who(r) + _scope(r) + _dates(r) + _where(r) + _suspended(r, siblings)
+        out = head + _size(r) + _scope(r) + _dates(r) + _where(r) + _suspended(r, siblings)
         if r.record_retention:
             out += " — record your retention on your licence immediately"
         return out
@@ -1842,66 +2449,162 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
     if t is RuleType.angling_from_vessel_prohibited:
         return "No angling from boats" + _scope(r) + _dates(r)
 
-    if t is RuleType.document_required:
-        doc = (r.licence_name + " classified licence") if r.licence_name else \
-            _DOC_WORDS.get(r.document.value, r.document.value.replace("_", " "))
-        # "A angling guide licence". A fixed article is wrong for the one document in
-        # `_DOC_WORDS` that starts with a vowel, and for any classified water whose name does.
-        art = "An" if doc[:1].lower() in "aeiou" else "A"
-        head = (f"{art} {doc} is required" if r.required else f"{art} {doc} is not required")
-        if r.water_class:
-            head = f"Class {r.water_class} water — " + head[0].lower() + head[1:]
-        if r.on_retention:
-            head += ", only if you keep the fish"
-        # A STAMP MAY EXCLUDE A FISH. "Required to keep a salmon of any legal size or species
-        # (OTHER THAN KOKANEE) from non-tidal waters" — this branch never read `species_except`,
-        # so the one fish the stamp does not cover was dropped from the only sentence about it.
-        if r.species_except:
-            head += " (not " + species_words(r.species_except).lower() + ")"
-        if r.issuing_jurisdiction:
-            head += f"; a {r.issuing_jurisdiction} licence is also valid"
-        if r.allocation:
-            head += " (" + r.allocation.replace("_", " ") + ")"
-        # `taking=False`: you do not need a licence FROM a stream, you need one IN one. Its own
-        # docstring says the wrong preposition reads as nonsense, and it did — "A Classified
-        # Waters Licence is required, from streams".
-        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r) + _suspended(r, siblings)
+    if t is RuleType.angler_closure:
+        # `taking=False`: a closure is "in", never "from". The subject is the angler, so the
+        # label leads with WHO — "Angling closed to non-guided non-resident aliens, on Saturdays
+        # and Sundays, Sept 1-Oct 31".
+        who = r.closed_to.words() if r.closed_to else "some anglers"
+        return (f"Angling closed to {who}" + _scope(r, taking=False) + _dates(r) + _where(r)
+                + _suspended(r, siblings))
 
-    if t is RuleType.access_permission:
-        # ONE WHO-BUILDER. This branch had its own, and the two disagreed: it spelled
-        # `non_resident_alien` as "non-resident-aliens" where `_who` spells it "non-resident
-        # aliens", and seven live rules printed the hyphenated form. Worse, it tested
-        # `guided is False` only, so a rule scoped to GUIDED anglers rendered no marker at all
-        # and read as applying to everyone — and a guided non-resident alien and a non-guided
-        # one buy different licences, which is the whole reason the axis exists.
-        subject = (_who(r)[len(" — for "):] if _who(r) else "anglers")
-        if r.grantor:
-            return f"Permission of the {r.grantor} is required" + _dates(r)
-        head = f"Angling prohibited for {subject}" if r.permitted is False \
-            else f"{subject[:1].upper() + subject[1:]} may fish here"
-        return head + _scope(r, taking=False) + _dates(r) + _where(r) + _suspended(r, siblings)
-
-    if r.required is False and t in _PROHIBITABLE:
-        return _quoted_prohibition(r)
-
-    # navigation_duty, handling_rule (required), hazard, advisory, program_membership, facility
+    # navigation_duty, handling_rule, hazard, advisory, program_membership, facility
     return r.verbatim
 
 
-def _quoted_prohibition(r: "CatalogueRule") -> str:
-    """"Do not …" around a quote whose own sentence carried the prohibition.
+# --------------------------------------------------------------------------------------- #
+# Licensing labels — generated from the record's fields, like every other label. The verbatim
+# stays on the record underneath. A per-angler SENTENCE ("as a non-resident on Skeena River 2
+# today you need …") is composed by the reader, where a test can pin the whole string; these are
+# the per-record lines it is composed from.
+# --------------------------------------------------------------------------------------- #
 
-        THE PROHIBITION IS IN THE HEADING, NOT THE BULLET. The synopsis prints these under
-    The synopsis prints these under "It Is Unlawful To…" and each bullet is a fragment —
-    "Waste the fish you catch." Quoting the bullet is FAITHFUL, and every gate passes it: the
-    words are in the passage, the passage is the batch's own text. But these types have
-    nothing to generate a label from, so the quote BECAME the label, and the app told anglers
-    to waste their catch. Eleven rules read that way.
+def _docs(ds) -> str:
+    names = [_DOC_WORDS.get(getattr(d, "value", d), str(getattr(d, "value", d)).replace("_", " "))
+             for d in ds]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
 
-    So the prohibition lives in the DATA — `required: false` — and is rendered here.
-    """
-    body = r.verbatim.strip().rstrip(".")
-    return "Do not " + body[0].lower() + body[1:] + _dates(r) + _where(r)
+
+def _path_words(p: "Path") -> str:
+    if p.hold:
+        return _docs(p.hold)
+    if p.accompanied_by is not None:
+        out = (f"be accompanied by {p.accompanied_by.who.words()} who hold the licences and "
+               f"stamps this fishing requires")
+    else:
+        out = f"hold what {p.as_.words()} must hold"
+    out += {"counts_to_companion": " (your catch counts toward your companion's limit)",
+            "own": " (your own quota)"}[p.quota]
+    return out
+
+
+def _doing_words(d: "Doing") -> str:
+    sp = species_words(expand_species(d.species) if len(d.species) == 1
+                       and d.species[0] in ("TROUT", "CHAR") else d.species,
+                       d.species_except).lower()
+    if d.origin is not None and sp:
+        sp = f"{d.origin.value} {sp}"
+    if d.act == "fishing":
+        return "to fish"
+    if d.act == "targeting":
+        return f"to fish for {sp}"
+    if d.act == "retaining":
+        size = ""
+        if d.lengths:
+            b = d.lengths[0]
+            size = (f" {b.min_cm}–{b.max_cm} cm" if b.min_cm is not None and b.max_cm is not None
+                    else f" over {b.min_cm} cm" if b.min_cm is not None
+                    else f" under {b.max_cm} cm")
+        return f"to keep {sp}{size}"
+    if d.act == "retaining_recorded":
+        return "when keeping a fish whose retention you must record on your licence"
+    return "to guide anglers"
+
+
+def licensing_label(rec, siblings: Optional[dict] = None) -> str:
+    """The line a reader sees for one licensing record. `siblings` is {rule_id: CatalogueRule}
+    for the record's entry, so a suspension can name its closure in the closure's own words."""
+    if isinstance(rec, Designation):
+        head = f"Classified Water, Class {rec.classified}"
+        if rec.when and not rec.when.is_empty():
+            head += ", " + rec.when.words()
+        head += f" — licence unit: {rec.unit_name}"
+        if rec.steelhead_stamp_during is not None:
+            w = rec.steelhead_stamp_during.when
+            head += ("; Steelhead Stamp required whatever you fish for"
+                     + (f", {w.words()}" if not w.is_empty() else ""))
+        elif rec.steelhead_stamp_waived is not None:
+            head += "; the classified-water Steelhead Stamp does not apply here"
+        for s in rec.suspended_while:
+            other = (siblings or {}).get(s.rule_id)
+            said = label(other) if other is not None else f"rule {s.rule_id}"
+            head += f" — dormant while “{said}” is in force"
+        return head
+    if isinstance(rec, NotClassified):
+        return "Not a Classified Water"
+    if isinstance(rec, Requirement):
+        if rec.conduct:
+            acts = "; ".join(CONDUCT_ACTS[a] for a in rec.conduct)
+            # "to fish" adds nothing to a duty you have only while fishing.
+            head = acts if rec.doing.act == "fishing" else acts + " " + _doing_words(rec.doing)
+        elif all(p.hold for p in rec.satisfied_by):
+            head = " or ".join(_path_words(p) for p in rec.satisfied_by)
+            head = head[:1].upper() + head[1:] + " required " + _doing_words(rec.doing)
+        else:
+            # A path that is not a document reads as an instruction: "To fish: be accompanied
+            # by …". Glued behind "required" it read as "Being accompanied … required to fish".
+            doing = _doing_words(rec.doing)
+            head = (doing[:1].upper() + doing[1:] + ": "
+                    + ", or ".join(_path_words(p) for p in rec.satisfied_by))
+        water = rec.water.value if rec.water is not None else None
+        if rec.on is not None:
+            period = {"classified_period": "its classified period",
+                      "steelhead_period": "its Steelhead Stamp period"}[rec.on]
+            head += f" on a classified {water or 'water'} during {period}"
+        elif water:
+            head += f" on {water}s"
+        if rec.when and rec.when.dates:
+            head += ", " + " and ".join(d.words() for d in rec.when.dates)
+        if rec.who is not None:
+            head += f" — for {rec.who.words()}"
+        if rec.who_except is not None:
+            head += f", except {rec.who_except.words()}"
+        if rec.authority == "superior":
+            head += " (federal: provincial licences are not valid here)"
+        return head
+    if isinstance(rec, LicenceTerms):
+        subject = _docs([rec.document])
+        subject = subject[:1].upper() + subject[1:]
+        if rec.classified:
+            subject = f"Class {rec.classified} {subject}"
+        if rec.who is not None:
+            subject += f" for {rec.who.words()}"
+        if rec.units:
+            subject += " (" + ", ".join(u.replace("_", " ") for u in rec.units) + ")"
+        bits = []
+        if rec.sold:
+            bits.append({"per_licence_year": "sold for the licence year",
+                         "per_day": "sold per day"}[rec.sold])
+        if rec.covers:
+            bits.append({"every_unit": "covers every classified water",
+                         "one_unit": "names one water"}[rec.covers])
+        if rec.max_consecutive_days:
+            bits.append(f"at most {rec.max_consecutive_days} consecutive days")
+        if rec.max_days_per_licence_year:
+            bits.append(f"at most {rec.max_days_per_licence_year} days per licence year")
+        if rec.unlimited_days:
+            bits.append("no limit on days")
+        if rec.max_per_licence_year:
+            bits.append(f"at most {rec.max_per_licence_year} per licence year")
+        if rec.max_units_per_licence_year:
+            bits.append(f"at most {rec.max_units_per_licence_year} water per licence year"
+                        if rec.max_units_per_licence_year == 1
+                        else f"at most {rec.max_units_per_licence_year} waters per licence year")
+        if rec.allocation:
+            bits.append({"open": "open sale", "booking": "by first-come-first-serve booking",
+                         "draw": "by annual limited-entry draw"}[rec.allocation])
+        if rec.needs:
+            bits.append("needs your angling guide's number")
+        if rec.fee_cad is not None:
+            bits.append(f"reduced fee ${rec.fee_cad:.2f}")
+        return subject + ": " + "; ".join(bits)
+    if isinstance(rec, Exemption):
+        return (f"{rec.who.words()[:1].upper() + rec.who.words()[1:]} need no "
+                f"{_docs(rec.documents)}")
+    if isinstance(rec, Alternative):
+        return (" or ".join(_path_words(p) for p in rec.satisfied_by)
+                + f" also accepted here, in place of {rec.alternative_to.entry_id}#"
+                  f"{rec.alternative_to.id}")
+    raise TypeError(f"not a licensing record: {type(rec).__name__}")
 
 
 # --------------------------------------------------------------------------------------- #
@@ -1929,7 +2632,11 @@ class CatalogueEntry(BaseModel):
     matched: List[str] = Field(default_factory=list)
     extents: List[dict] = Field(default_factory=list)
     includes_tributaries: Optional[bool] = None
-    rules: List[CatalogueRule]
+    rules: List[CatalogueRule] = Field(default_factory=list)
+    #: WHAT YOU MUST HOLD, AND WHAT THIS WATER IS — see the licensing section above. Not rules:
+    #: licensing never competes and never votes on open/closed, and it depends on who the angler
+    #: is and what they are doing, which no rule takes.
+    licensing: List[LicensingRecord] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _chain_of_custody(self) -> "CatalogueEntry":
@@ -1949,8 +2656,44 @@ class CatalogueEntry(BaseModel):
                                       or r.suspended_while == r.rule_id):
                 e.append(f"{r.rule_id}: suspended_while={r.suspended_while!r} names no other rule "
                          f"in this entry")
-        if not self.rules:
-            e.append("an entry with no rules says nothing")
+        # EVERY QUOTE A LICENSING RECORD CARRIES is chain of custody too — per printed clause, so
+        # a stamp period or a suspension note cannot be paraphrased under a real designation.
+        lic_ids: set = set()
+        units: set = set()
+        by_rule = {r.rule_id: r for r in self.rules}
+        region = self.entry_id.split(":", 1)[0]
+        for x in self.licensing:
+            if x.id in lic_ids:
+                e.append(f"duplicate licensing id {x.id!r}")
+            lic_ids.add(x.id)
+            for q in licensing_verbatims(x):
+                if squash(q) not in haystack:
+                    e.append(f"{x.kind} {x.id}: {q[:50]!r} is not a contiguous substring of "
+                             f"regs_verbatim")
+            if not isinstance(x, Designation):
+                continue
+            # "two separate Class II waters … require separate licences": one entry, two units.
+            if x.unit in units:
+                e.append(f"two designations in one entry share unit {x.unit!r}")
+            units.add(x.unit)
+            for sw in x.suspended_while:
+                c = by_rule.get(sw.rule_id)
+                if c is None:
+                    e.append(f"designation {x.id}: suspended_while names no rule "
+                             f"{sw.rule_id!r} in this entry")
+                elif not (c.type is RuleType.retention_limit and c.take == 0
+                          and c.may_target is False):
+                    e.append(f"designation {x.id}: suspended_while {sw.rule_id!r} is not a "
+                             f"closure — a designation sleeps under a closure, never a quota")
+            # STEELHEAD COUNTRY PRINTS THE STAMP. Outside the Kootenay (Region 4), where Class II
+            # waters print no stamp, a designation that says nothing about it has lost a clause.
+            if region != "r4" and x.steelhead_stamp_during is None \
+                    and x.steelhead_stamp_waived is None and not x.review_reason:
+                e.append(f"designation {x.id}: no steelhead_stamp_during or _waived in "
+                         f"steelhead country — record the printed clause, or say why in "
+                         f"review_reason")
+        if not self.rules and not self.licensing:
+            e.append("an entry with no rules and no licensing says nothing")
         if e:
             raise ValueError(f"{self.entry_id}: " + "; ".join(e))
         return self

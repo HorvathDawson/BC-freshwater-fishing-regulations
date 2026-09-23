@@ -26,7 +26,7 @@ interface Props {
 const FALLBACK_TYPES = [
   "retention_limit", "stop_fishing_after_quota", "bait_restriction", "tackle_restriction",
   "method_rule", "vessel_rule", "angling_from_vessel_prohibited", "navigation_duty",
-  "document_required", "access_permission", "handling_rule", "hazard", "advisory",
+  "angler_closure", "handling_rule", "hazard", "advisory",
   "program_membership", "facility",
 ];
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 
 from pipeline.regs.parsing.catalogue import (
-    CatalogueRule, Document, Method, Obligation, Period, PropulsionLevel,
+    CatalogueRule, Method, Obligation, Period, PropulsionLevel,
     RuleType, VesselAspect, WaterKind, complement, label, parse_date_range,
 )
 
@@ -106,11 +106,22 @@ def test_tackle_facets_are_separate_dimensions():
     assert fly.dimension != hook.dimension
 
 
-def test_two_documents_do_not_collide():
-    """44 entries need a classified licence AND a stamp at once."""
-    a = _r(type=RuleType.document_required, document=Document.classified_waters_licence)
-    b = _r(type=RuleType.document_required, document=Document.steelhead_stamp)
-    assert a.dimension != b.dimension
+def test_an_angler_closure_never_shares_a_key_with_a_quota():
+    """"Angling prohibited for non-guided non-resident aliens on Saturdays" closes the water to
+    ONE KIND of angler. The ladder keys on (type, dimension) and ignores who, so filed as a
+    retention limit it could displace the zone quota that binds everyone."""
+    closure = _r(type=RuleType.angler_closure,
+                 verbatim="Angling prohibited for non-guided non-resident aliens",
+                 closed_to={"residency": ["non_resident_alien"], "guidance": ["non_guided"]})
+    quota = _r(type=RuleType.retention_limit, species=["TROUT_CHAR"], take=2)
+    closed = _r(type=RuleType.retention_limit, species=["ALL_GAME_FISH"], take=0,
+                may_target=False)
+    assert closure.family == "access"
+    for r in (quota, closed):
+        assert (closure.type, closure.dimension) != (r.type, r.dimension)
+    other = _r(type=RuleType.angler_closure, verbatim="Angling prohibited for non-resident aliens",
+               closed_to={"residency": ["non_resident_alien"]})
+    assert closure.dimension != other.dimension, "different anglers are different subjects"
 
 
 def test_vessel_aspects_are_separate_dimensions():
@@ -435,9 +446,8 @@ def test_a_suspended_requirement_says_what_suspends_it():
         "rules": [
             {"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing for steelhead",
              "species": ["ST"], "take": 0, "may_target": False},
-            {"rule_id": "x.r2", "type": "document_required", "verbatim": "Class II water",
-             "document": "classified_waters_licence", "water_class": "II",
-             "suspended_while": "x.r1"}]})
+            {"rule_id": "x.r2", "type": "vessel_rule", "verbatim": "Class II water",
+             "aspect": "towing", "suspended_while": "x.r1"}]})
     sib = {r.rule_id: r for r in e.rules}
     assert label(e.rules[1], sib).endswith("— not while “No fishing for steelhead” is in force")
     with pytest.raises(ValueError, match="names no other rule"):

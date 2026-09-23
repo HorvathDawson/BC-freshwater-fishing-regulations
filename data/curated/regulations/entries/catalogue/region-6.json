@@ -277,11 +277,15 @@
    "rules": [
     {
      "rule_id": "babine_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -297,7 +301,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "between",
@@ -427,11 +430,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "babine_river.r8",
-     "type": "document_required",
-     "verbatim": "Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River's confluence with the Skeena River",
+     "kind": "designation",
+     "id": "babine_river",
+     "classified": "I",
+     "unit": "babine_river",
+     "unit_name": "Babine River",
      "when": {
       "dates": [
        {
@@ -440,11 +447,8 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "steelhead_stamp",
-     "water_class": "I",
      "extents": [
       {
        "op": "downstream_of",
@@ -452,7 +456,22 @@
         "babine_river__nilkitkwa_lake"
        ]
       }
-     ]
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River's confluence with the Skeena River"
+     },
+     "verbatim": "Class 1 water Sept 1-Oct 31",
+     "review_reason": "the printed reach ('from the juvenile fish counting weir … downstream to the Babine River's confluence with the Skeena') follows the stamp clause; whether it also bounds the Class I designation is not certain — a curator must confirm the Class I reach against the page 56 map"
     }
    ]
   },
@@ -1294,11 +1313,15 @@
    "rules": [
     {
      "rule_id": "bulkley_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -1314,7 +1337,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -1395,11 +1417,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "bulkley_river.r6",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Oct 31",
+     "kind": "designation",
+     "id": "bulkley_river",
+     "classified": "II",
+     "unit": "bulkley_river",
+     "unit_name": "Bulkley River",
      "when": {
       "dates": [
        {
@@ -1408,38 +1434,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "bulkley_river.r7",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -2003,11 +2018,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "damdochax_creek.r2",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Oct 31",
+     "kind": "designation",
+     "id": "damdochax_creek",
+     "classified": "II",
+     "unit": "damdochax_creek",
+     "unit_name": "Damdochax Creek",
      "when": {
       "dates": [
        {
@@ -2016,40 +2035,28 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "damdochax_creek.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
+     ],
      "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
+     },
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -2333,31 +2340,24 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "ecstall_river.r2",
-     "type": "document_required",
-     "verbatim": "Class II water all year",
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "kind": "designation",
+     "id": "ecstall_river",
+     "classified": "II",
+     "unit": "ecstall_river",
+     "unit_name": "Ecstall River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "ecstall_river.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not required unless angling for steelhead",
-     "document": "steelhead_stamp",
-     "required": false,
-     "review_reason": "conditional on target species; document_required has no per-target field (when_targeting is restricted to bait/tackle rules)",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     ],
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required unless angling for steelhead"
+     },
+     "verbatim": "Class II water all year"
     }
    ]
   },
@@ -2623,12 +2623,11 @@
     },
     {
      "rule_id": "fulton_river.r3",
-     "type": "access_permission",
+     "type": "advisory",
      "verbatim": "Angling permitted in Fulton River opposite the spawning channels, as signed",
-     "permitted": true,
      "extents": [],
      "extent_text": "opposite the spawning channels, as signed",
-     "review_reason": "reach marked 'as signed' on the water — no corresponding split id in the registry"
+     "review_reason": "an exception to a closure, not a licensing fact: which closure it lifts is not printed ('as signed'), so it is kept as an advisory that binds nowhere (as it did) until a curator names the closure and the reach"
     }
    ]
   },
@@ -2740,40 +2739,34 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "gitnadoix_river.r2",
-     "type": "document_required",
-     "verbatim": "Class I water all year",
-     "document": "classified_waters_licence",
-     "water_class": "I",
+     "kind": "designation",
+     "id": "gitnadoix_river",
+     "classified": "I",
+     "unit": "gitnadoix_river",
+     "unit_name": "Gitnadoix River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "gitnadoix_river.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class I water all year"
     }
    ]
   },
@@ -3414,11 +3407,15 @@
    "rules": [
     {
      "rule_id": "kispiox_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -3434,7 +3431,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -3482,51 +3478,6 @@
      ]
     },
     {
-     "rule_id": "kispiox_river.r5",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "kispiox_river.r6",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "kispiox_river.r7",
      "type": "advisory",
      "verbatim": "See Skeena River/Kispiox River confluence",
@@ -3536,6 +3487,44 @@
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "kispiox_river",
+     "classified": "II",
+     "unit": "kispiox_river",
+     "unit_name": "Kispiox River",
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
+     },
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -3773,11 +3762,15 @@
    "rules": [
     {
      "rule_id": "kitseguecla_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [],
@@ -3786,7 +3779,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -3810,42 +3802,35 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "kitseguecla_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water all year",
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "kitseguecla_river",
+     "classified": "II",
+     "unit": "kitseguecla_river",
+     "unit_name": "Kitseguecla River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "kitseguecla_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "includes_tributaries": true,
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water all year"
     }
    ]
   },
@@ -3868,11 +3853,15 @@
    "rules": [
     {
      "rule_id": "kitsumkalum_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [],
@@ -3880,7 +3869,6 @@
        "Saturday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "between",
@@ -3893,11 +3881,15 @@
     },
     {
      "rule_id": "kitsumkalum_river.r2",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Sundays for the entire river all year",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [],
@@ -3905,42 +3897,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "kitsumkalum_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water all year",
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "kitsumkalum_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Aug 7 - May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 8,
-        "from_day": 7,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
      "extents": [
       {
        "op": "whole"
@@ -3964,6 +3920,35 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "kitsumkalum_river",
+     "classified": "II",
+     "unit": "kitsumkalum_river",
+     "unit_name": "Kitsumkalum River",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "includes_tributaries": true,
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 8,
+         "from_day": 7,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Aug 7 - May 31"
+     },
+     "verbatim": "Class II water all year"
     }
    ]
   },
@@ -3992,11 +3977,15 @@
    "rules": [
     {
      "rule_id": "kitwanga_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [],
@@ -4005,7 +3994,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -4029,40 +4017,34 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "kitwanga_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water all year",
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "kind": "designation",
+     "id": "kitwanga_river",
+     "classified": "II",
+     "unit": "kitwanga_river",
+     "unit_name": "Kitwanga River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "kitwanga_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water all year"
     }
    ]
   },
@@ -4294,40 +4276,34 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "kluatantan_river.r2",
-     "type": "document_required",
-     "verbatim": "Class II water all year",
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "kind": "designation",
+     "id": "kluatantan_river",
+     "classified": "II",
+     "unit": "kluatantan_river",
+     "unit_name": "Kluatantan River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "kluatantan_river.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water all year"
     }
    ]
   },
@@ -4609,11 +4585,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "ksi_x_anmas_river.r2",
-     "type": "document_required",
-     "verbatim": "Class II water Apr 1-Sept 30",
+     "kind": "designation",
+     "id": "ksi_x_anmas_river",
+     "classified": "II",
+     "unit": "ksi_x_anmas_river",
+     "unit_name": "Ksi X'anmas River",
      "when": {
       "dates": [
        {
@@ -4622,38 +4602,27 @@
         "to_month": 9,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "ksi_x_anmas_river.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Apr 1-Sept 30"
     }
    ]
   },
@@ -4681,51 +4650,6 @@
    "includes_tributaries": true,
    "rules": [
     {
-     "rule_id": "kwinageese_river.r1",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "kwinageese_river.r2",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "kwinageese_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
@@ -4742,6 +4666,44 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "kwinageese_river",
+     "classified": "II",
+     "unit": "kwinageese_river",
+     "unit_name": "Kwinageese River",
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
+     },
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -5031,13 +4993,16 @@
    "rules": [
     {
      "rule_id": "lakelse_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "between",
@@ -5121,40 +5086,34 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "lakelse_river.r6",
-     "type": "document_required",
-     "verbatim": "Class I water all year",
-     "document": "classified_waters_licence",
-     "water_class": "I",
+     "kind": "designation",
+     "id": "lakelse_river",
+     "classified": "I",
+     "unit": "lakelse_river",
+     "unit_name": "Lakelse River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "lakelse_river.r7",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-May 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class I water all year"
     }
    ]
   },
@@ -5500,11 +5459,15 @@
    "rules": [
     {
      "rule_id": "morice_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -5520,7 +5483,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -5677,11 +5639,15 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "morice_river.r8",
-     "type": "document_required",
-     "verbatim": "Class II water Sept 1-Oct 31",
+     "kind": "designation",
+     "id": "morice_river",
+     "classified": "II",
+     "unit": "morice_river",
+     "unit_name": "Morice River",
      "when": {
       "dates": [
        {
@@ -5690,38 +5656,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "classified_waters_licence",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "morice_river.r9",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -5923,17 +5878,6 @@
      ]
     },
     {
-     "rule_id": "morley_lake.r11",
-     "type": "access_permission",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Morley Lake",
-     "permitted": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "morley_lake.r12",
      "type": "advisory",
      "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling",
@@ -5942,6 +5886,29 @@
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "alternative",
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Morley Lake"
     }
    ]
   },
@@ -7232,107 +7199,16 @@
    ],
    "rules": [
     {
-     "rule_id": "skeena_river.r1",
-     "type": "document_required",
-     "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 1,
-        "to_month": 9,
-        "to_day": 30
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "between",
-       "splits": [
-        "skeena_river__exchamsiks_river_into_skeena_river",
-        "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "skeena_river.r2",
-     "type": "document_required",
-     "verbatim": "(b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 1,
-        "to_month": 12,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "skeena_river__zymoetz_river_into_skeena_river_u1500m"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "skeena_river.r3",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead.",
-     "document": "steelhead_stamp",
-     "required": false,
-     "extents": [
-      {
-       "op": "between",
-       "splits": [
-        "skeena_river__exchamsiks_river_into_skeena_river",
-        "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-       ]
-      }
-     ],
-     "review_reason": "Steelhead Stamp is required only when targeting steelhead in Skeena River 2; document_required has no when_targeting field to express this condition"
-    },
-    {
-     "rule_id": "skeena_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 1,
-        "to_month": 12,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "skeena_river__zymoetz_river_into_skeena_river_u1500m"
-       ]
-      }
-     ]
-    },
-    {
      "rule_id": "skeena_river.r5",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54)",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -7348,7 +7224,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "between",
@@ -7361,11 +7236,15 @@
     },
     {
      "rule_id": "skeena_river.r6",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "(b) Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -7381,7 +7260,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "between",
@@ -7391,6 +7269,78 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "skeena_river_2",
+     "classified": "II",
+     "unit": "skeena_river_2",
+     "unit_name": "Skeena River 2",
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "between",
+       "splits": [
+        "skeena_river__exchamsiks_river_into_skeena_river",
+        "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
+       ]
+      }
+     ],
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead."
+     },
+     "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30"
+    },
+    {
+     "kind": "designation",
+     "id": "skeena_river_section_4",
+     "classified": "II",
+     "unit": "skeena_river_section_4",
+     "unit_name": "Skeena River Section 4",
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+       ]
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31"
+     },
+     "verbatim": "(b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
+     "review_reason": "Skeena River Section 4 prints only its lower end (1.5 km upstream of Zymoetz River); bound upstream_of that point with no upper end, which runs to the headwaters — a curator must draw the upper bound from the page 54/55 maps"
     }
    ]
   },
@@ -7563,20 +7513,6 @@
      ]
     },
     {
-     "rule_id": "stellako_river.r2",
-     "type": "document_required",
-     "verbatim": "**Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**",
-     "when_open": true,
-     "document": "steelhead_stamp",
-     "required": false,
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "stellako_river.r3",
      "type": "retention_limit",
      "verbatim": "Rainbow trout catch and release",
@@ -7640,6 +7576,24 @@
       }
      ]
     }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "stellako_river",
+     "classified": "II",
+     "unit": "stellako_river",
+     "unit_name": "Stellako River",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "steelhead_stamp_waived": {
+      "verbatim": "Steelhead Stamp not required"
+     },
+     "verbatim": "Class II water[Includes Tributaries] when open"
+    }
    ]
   },
   {
@@ -7662,11 +7616,15 @@
    "rules": [
     {
      "rule_id": "suskwa_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [],
@@ -7675,7 +7633,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -7699,40 +7656,34 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "suskwa_river.r3",
-     "type": "document_required",
-     "verbatim": "Class I water all year",
-     "document": "classified_waters_licence",
-     "water_class": "I",
+     "kind": "designation",
+     "id": "suskwa_river",
+     "classified": "I",
+     "unit": "suskwa_river",
+     "unit_name": "Suskwa River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
-    },
-    {
-     "rule_id": "suskwa_river.r4",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
      },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "verbatim": "Class I water all year"
     }
    ]
   },
@@ -7829,11 +7780,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "sustut_river.r3",
-     "type": "document_required",
-     "verbatim": "**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
+     "kind": "designation",
+     "id": "sustut_river",
+     "classified": "I",
+     "unit": "sustut_river",
+     "unit_name": "Sustut River",
      "when": {
       "dates": [
        {
@@ -7842,16 +7797,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "steelhead_stamp",
-     "water_class": "I",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
+     },
+     "verbatim": "Class I water Sept 1-Oct 31"
     }
    ]
   },
@@ -8453,11 +8419,15 @@
    "rules": [
     {
      "rule_id": "telkwa_river.r1",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -8470,7 +8440,6 @@
       ],
       "weekdays": []
      },
-     "permitted": false,
      "extents": [
       {
        "op": "whole"
@@ -8494,11 +8463,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "telkwa_river.r3",
-     "type": "document_required",
-     "verbatim": "**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
+     "kind": "designation",
+     "id": "telkwa_river",
+     "classified": "II",
+     "unit": "telkwa_river",
+     "unit_name": "Telkwa River",
      "when": {
       "dates": [
        {
@@ -8507,16 +8480,27 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
-     "document": "steelhead_stamp",
-     "water_class": "II",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31"
+     },
+     "verbatim": "Class II water Sept 1-Oct 31"
     }
    ]
   },
@@ -9325,63 +9309,16 @@
      ]
     },
     {
-     "rule_id": "zymoetz_river.r5",
-     "type": "document_required",
-     "verbatim": "Upstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 24,
-        "to_month": 12,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "I",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "zymoetz__limonite_creek_into_zymoetz_river"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "zymoetz_river.r6",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Jul 24 - Dec 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 24,
-        "to_month": 12,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "zymoetz__limonite_creek_into_zymoetz_river"
-       ]
-      }
-     ]
-    },
-    {
      "rule_id": "zymoetz_river.r7",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -9398,61 +9335,9 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "upstream_of",
-       "splits": [
-        "zymoetz__limonite_creek_into_zymoetz_river"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "zymoetz_river.r8",
-     "type": "document_required",
-     "verbatim": "Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 24,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "zymoetz__limonite_creek_into_zymoetz_river"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "zymoetz_river.r9",
-     "type": "document_required",
-     "verbatim": "Steelhead Stamp mandatory Jul 24 - May 31",
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 24,
-        "to_month": 5,
-        "to_day": 31
-       }
-      ],
-      "weekdays": []
-     },
-     "document": "steelhead_stamp",
-     "extents": [
-      {
-       "op": "downstream_of",
        "splits": [
         "zymoetz__limonite_creek_into_zymoetz_river"
        ]
@@ -9461,11 +9346,15 @@
     },
     {
      "rule_id": "zymoetz_river.r10",
-     "type": "access_permission",
+     "type": "angler_closure",
      "verbatim": "Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31",
-     "angler_class": {
-      "residency": "non_resident_alien",
-      "guided": false
+     "closed_to": {
+      "residency": [
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
      },
      "when": {
       "dates": [
@@ -9482,7 +9371,6 @@
        "Sunday"
       ]
      },
-     "permitted": false,
      "extents": [
       {
        "op": "downstream_of",
@@ -9491,6 +9379,86 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "zymoetz_river_a",
+     "classified": "I",
+     "unit": "zymoetz_river_a",
+     "unit_name": "Zymoetz River A",
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "zymoetz__limonite_creek_into_zymoetz_river"
+       ]
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 24,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Jul 24 - Dec 31"
+     },
+     "verbatim": "Upstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31"
+    },
+    {
+     "kind": "designation",
+     "id": "zymoetz_river_b",
+     "classified": "II",
+     "unit": "zymoetz_river_b",
+     "unit_name": "Zymoetz River B",
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "zymoetz__limonite_creek_into_zymoetz_river"
+       ]
+      }
+     ],
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 24,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Jul 24 - May 31"
+     },
+     "verbatim": "Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31"
     }
    ]
   },

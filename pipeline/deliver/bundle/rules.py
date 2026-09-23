@@ -133,18 +133,16 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, sib
     # rather than removed it, and quietly unbound 130 rules on the way.
     if not dumped.get("extents") and entry_extents:
         dumped["extents"] = list(entry_extents)
-    # `False` IS A VALUE, and dropping it lost the only field that separates a permission from
-    # a prohibition. `permitted: false` on "No spear fishing of any kind is permitted in Region
-    # 1, 2 and 4" was stripped, so the client could not tell it from "Spear fishing is
-    # permitted" except by reading the English — the two rendered as a bare contradiction.
-    # Same for `required: false`, which is what makes an exemption an exemption.
+    # `False` IS A VALUE for a flag whose absence would read as something else — and dropping it
+    # once lost the only field that separated a permission from a prohibition. `permitted`,
+    # `required` and `on_retention` were the other three here; they were licensing's polarity
+    # bits and are gone from the model (licensing is `CatalogueEntry.licensing`, refused as a rule
+    # type). `when_open: false` is kept because it has always shipped, and dropping it changes
+    # every rule's `conditions` for no reader's benefit.
     #
     # `v not in (...)` also matched by EQUALITY, so `0` matched `False` and `take: 0` would
     # have gone the same way if take were not already a column of its own.
-    # Absent means false for most flags, so carrying them doubles the column for nothing. For
-    # these four it does NOT: `permitted: false` is the whole content of "no spear fishing is
-    # permitted", and `required: false` is what makes an exemption an exemption.
-    _FALSE_MEANS_SOMETHING = ("permitted", "required", "on_retention", "when_open")
+    _FALSE_MEANS_SOMETHING = ("when_open",)
     _EMPTY = ((), [], {}, "")
     conditions = {k: v for k, v in dumped.items()
                   if k not in _NOT_CONDITIONS

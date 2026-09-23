@@ -97,20 +97,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "abruzzi_creek.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "abruzzi_creek",
+     "classified": "II",
+     "unit": "abruzzi_creek",
+     "unit_name": "Abruzzi Creek",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -290,24 +292,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "alexander_creek_lower.r4",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Michel Creek",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "michel_creek",
+     "classified": "II",
+     "unit": "michel_creek",
+     "unit_name": "Michel Creek",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers"
     }
    ]
   },
@@ -409,23 +409,21 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "alexander_creek_upper.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Michel Creek",
+     "kind": "designation",
+     "id": "michel_creek",
+     "classified": "II",
+     "unit": "michel_creek",
+     "unit_name": "Michel Creek",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "verbatim": "**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**"
     }
    ]
   },
@@ -1078,19 +1076,21 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "bull_river.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "kind": "designation",
+     "id": "bull_river",
+     "classified": "II",
+     "unit": "bull_river",
+     "unit_name": "Bull River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -1237,24 +1237,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "cadorna_creek.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Elk River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**"
     }
    ]
   },
@@ -1754,18 +1752,18 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "coal_creek.r2",
-     "type": "document_required",
-     "verbatim": "**Part described is NOT a Classified Water**",
-     "document": "classified_waters_licence",
-     "required": false,
+     "kind": "not_classified",
+     "id": "not_classified",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "verbatim": "**Part described is NOT a Classified Water**"
     }
    ]
   },
@@ -2418,18 +2416,32 @@
      "extents": [],
      "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)",
      "review_reason": "no registry match — attach an item and bind extents"
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "creston_valley_wma_waters.r3",
-     "type": "access_permission",
-     "verbatim": "Permit required see note on page 34",
-     "permitted": true,
-     "grantor": "Creston Valley Wildlife Management Area",
+     "kind": "requirement",
+     "id": "creston_valley_wma_permit",
+     "satisfied_by": [
+      {
+       "hold": [
+        "creston_valley_wma_permit"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "fishing"
+     },
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "restates": {
+      "entry_id": "z4:creston_valley_permit",
+      "id": "creston_valley_wma_permit"
+     },
+     "verbatim": "Permit required see note on page 34",
      "review_reason": "no registry match — attach an item and bind extents"
     }
    ]
@@ -3303,20 +3315,22 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "elk_river_downstream_of_elko_dam.r6",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -3461,17 +3475,18 @@
       }
      ],
      "review_reason": "lists tributaries carried on their own separate rows and excluded from these tributary-wide defaults — not parsed independently"
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "elk_river_s_tributaries.r6",
-     "type": "document_required",
-     "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "tributaries_only": true,
-     "extent_text": "(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)",
-     "review_reason": "'except Coal Creek downstream of...' is a named-water carve-out from this tributary-wide Class II declaration; catalogue schema has no per-rule exclusion op — Coal Creek carries its own reciprocal 'not a Classified Water' entry"
+     "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
+     "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out"
     }
    ]
   },
@@ -3636,20 +3651,22 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "elk_river_upstream_of_elko_dam.r6",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -4187,24 +4204,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "fording_river_downstream.r3",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Elk River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**"
     }
    ]
   },
@@ -4297,20 +4312,22 @@
       }
      ],
      "review_reason": "row redirects the remainder of this creek to the Elk River's tributaries entry — not parsed independently"
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "forsyth_creek.r3",
-     "type": "document_required",
-     "verbatim": "**Class II water when/where open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "forsyth_creek",
+     "classified": "II",
+     "unit": "forsyth_creek",
+     "unit_name": "Forsyth Creek",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when/where open, including tributaries**"
     }
    ]
   },
@@ -4760,24 +4777,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "hellroaring_creek.r2",
-     "type": "document_required",
-     "verbatim": "**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "St. Mary River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "st_mary_river",
+     "classified": "II",
+     "unit": "st_mary_river",
+     "unit_name": "St. Mary River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**"
     }
    ]
   },
@@ -5256,18 +5271,18 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "joseph_creek.r1",
-     "type": "document_required",
-     "verbatim": "This tributary of St. Mary River is not a Classified Water",
-     "document": "classified_waters_licence",
-     "required": false,
+     "kind": "not_classified",
+     "id": "not_classified",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "verbatim": "This tributary of St. Mary River is not a Classified Water",
+     "review_reason": "the St. Mary River entry this carves out of (\"including tributaries (except Joseph Creek)\") is not in the catalogue"
     }
    ]
   },
@@ -5943,20 +5958,6 @@
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
-     "rule_id": "kootenay_lake_main_body.r5",
-     "type": "document_required",
-     "verbatim": "Conservation Surcharge Stamp required to keep rainbow trout over 50 cm",
-     "document": "kootenay_rainbow_stamp",
-     "on_retention": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
-    },
-    {
      "rule_id": "kootenay_lake_main_body.r6",
      "type": "retention_limit",
      "verbatim": "keep rainbow trout over 50 cm, annual quota = 20",
@@ -5976,6 +5977,46 @@
       }
      ],
      "extent_text": "Main Body of Kootenay Lake",
+     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "kootenay_rainbow_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "kootenay_rainbow_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "restates": {
+      "entry_id": "zp:kootenay_rainbow_stamp",
+      "id": "kootenay_rainbow_stamp"
+     },
+     "verbatim": "Conservation Surcharge Stamp required to keep rainbow trout over 50 cm",
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     }
    ]
@@ -6607,15 +6648,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "kootenay_river_upper.r11",
-     "type": "document_required",
-     "verbatim": "Upstream of White River, including tributaries: Class II water when open",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "kootenay_river",
+     "classified": "II",
+     "unit": "kootenay_river",
+     "unit_name": "Kootenay River",
      "extents": [
       {
        "op": "upstream_of",
@@ -6623,7 +6664,9 @@
         "kootenay_river__white_river_into_kootenay_river"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Upstream of White River, including tributaries: Class II water when open"
     }
    ]
   },
@@ -7624,19 +7667,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "lodgepole_creek_lower.r4",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Wigwam River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "wigwam_river",
+     "classified": "II",
+     "unit": "wigwam_river",
+     "unit_name": "Wigwam River",
      "extents": [
       {
        "op": "downstream_of",
@@ -7644,7 +7683,9 @@
         "lodgepole_creek__falls"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers"
     }
    ]
   },
@@ -7766,19 +7807,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "lodgepole_creek_upper.r4",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Wigwam River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "wigwam_river",
+     "classified": "II",
+     "unit": "wigwam_river",
+     "unit_name": "Wigwam River",
      "extents": [
       {
        "op": "upstream_of",
@@ -7786,7 +7823,9 @@
         "lodgepole_creek__falls"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers"
     }
    ]
   },
@@ -8500,23 +8539,6 @@
    ],
    "rules": [
     {
-     "rule_id": "michel_creek_lower.r1",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "michel_creek__easternmost_hwy_3"
-       ]
-      }
-     ]
-    },
-    {
      "rule_id": "michel_creek_lower.r2",
      "type": "retention_limit",
      "verbatim": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
@@ -8585,6 +8607,25 @@
       }
      ]
     }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "michel_creek",
+     "classified": "II",
+     "unit": "michel_creek",
+     "unit_name": "Michel Creek",
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      }
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries"
+    }
    ]
   },
   {
@@ -8610,23 +8651,6 @@
    ],
    "includes_tributaries": true,
    "rules": [
-    {
-     "rule_id": "michel_creek_upper.r1",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "michel_creek__easternmost_hwy_3"
-       ]
-      }
-     ]
-    },
     {
      "rule_id": "michel_creek_upper.r2",
      "type": "retention_limit",
@@ -8687,6 +8711,25 @@
        ]
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "designation",
+     "id": "michel_creek",
+     "classified": "II",
+     "unit": "michel_creek",
+     "unit_name": "Michel Creek",
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      }
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries"
     }
    ]
   },
@@ -8915,23 +8958,21 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "morrissey_creek.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "Elk River",
+     "kind": "designation",
+     "id": "elk_river",
+     "classified": "II",
+     "unit": "elk_river",
+     "unit_name": "Elk River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "verbatim": "**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**"
     }
    ]
   },
@@ -9508,20 +9549,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "north_white_river.r3",
-     "type": "document_required",
-     "verbatim": "Class II water when open, including tributaries",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "north_white_river",
+     "classified": "II",
+     "unit": "north_white_river",
+     "unit_name": "North White River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including tributaries"
     }
    ]
   },
@@ -9869,24 +9912,22 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "perry_creek.r4",
-     "type": "document_required",
-     "verbatim": "Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers",
-     "angler_class": {
-      "residency": "non_resident"
-     },
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "licence_name": "St. Mary River",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "st_mary_river",
+     "classified": "II",
+     "unit": "st_mary_river",
+     "unit_name": "St. Mary River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers"
     }
    ]
   },
@@ -10250,18 +10291,6 @@
    ],
    "rules": [
     {
-     "rule_id": "rykerts_vic_mawson_lake.r1",
-     "type": "access_permission",
-     "verbatim": "Much of this lake is private property, angling access requires permission of the Creston Valley Rod & Gun Club (see signs at lake)",
-     "permitted": true,
-     "grantor": "Creston Valley Rod & Gun Club",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
-    },
-    {
      "rule_id": "rykerts_vic_mawson_lake.r2",
      "type": "retention_limit",
      "verbatim": "Bass daily quota = unlimited",
@@ -10274,6 +10303,28 @@
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "kind": "requirement",
+     "id": "rod_and_gun_club_permission",
+     "satisfied_by": [
+      {
+       "hold": [
+        "creston_valley_rod_and_gun_club_permission"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "fishing"
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "Much of this lake is private property, angling access requires permission of the Creston Valley Rod & Gun Club (see signs at lake)"
     }
    ]
   },
@@ -12133,20 +12184,22 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "white_river.r5",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "white_river",
+     "classified": "II",
+     "unit": "white_river",
+     "unit_name": "White River",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -12497,15 +12550,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "wigwam_river_downstream_km42.r3",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "wigwam_river",
+     "classified": "II",
+     "unit": "wigwam_river",
+     "unit_name": "Wigwam River",
      "extents": [
       {
        "op": "downstream_of",
@@ -12513,7 +12566,9 @@
         "wigwam_river__wigwam_km42_ram_fsr"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -12602,15 +12657,15 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "licensing": [
     {
-     "rule_id": "wigwam_river_upstream_km42.r4",
-     "type": "document_required",
-     "verbatim": "**Class II water when open, including tributaries**",
-     "when_open": true,
-     "document": "classified_waters_licence",
-     "water_class": "II",
-     "includes_tributaries": true,
+     "kind": "designation",
+     "id": "wigwam_river",
+     "classified": "II",
+     "unit": "wigwam_river",
+     "unit_name": "Wigwam River",
      "extents": [
       {
        "op": "upstream_of",
@@ -12618,7 +12673,9 @@
         "wigwam_river__wigwam_km42_ram_fsr"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true,
+     "verbatim": "**Class II water when open, including tributaries**"
     }
    ]
   },
@@ -13046,19 +13103,32 @@
    "source_pages": [
     33
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "classified_waters_licence.r1",
-     "type": "document_required",
-     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
-     "document": "classified_waters_licence",
-     "includes_tributaries": true,
-     "review_reason": "BIND BY SYMBOL: Region 4 carries 27 'Classified' entries, more than any region. RECOVERED — region-4.json had no licensing rule at all.",
-     "extents": [
+     "kind": "requirement",
+     "id": "classified_waters_licence",
+     "satisfied_by": [
       {
-       "op": "whole"
+       "hold": [
+        "classified_waters_licence"
+       ]
       }
-     ]
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "on": "classified_period",
+     "restates": {
+      "entry_id": "zp:classified_waters_licence",
+      "id": "classified_waters_licence"
+     },
+     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40)."
     }
    ]
   },
@@ -13077,19 +13147,28 @@
      "area_id": "area:wma:creston_valley_wildlife_management_area"
     }
    ],
-   "rules": [
+   "rules": [],
+   "licensing": [
     {
-     "rule_id": "creston_valley_permit.r1",
-     "type": "access_permission",
-     "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
-     "permitted": true,
-     "grantor": "Creston Valley Wildlife Management Area",
+     "kind": "requirement",
+     "id": "creston_valley_wma_permit",
+     "satisfied_by": [
+      {
+       "hold": [
+        "creston_valley_wma_permit"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "fishing"
+     },
      "extents": [
       {
        "op": "within",
        "area_id": "area:wma:creston_valley_wildlife_management_area"
       }
-     ]
+     ],
+     "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake."
     }
    ]
   },
