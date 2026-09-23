@@ -4,8 +4,6 @@ Synthetic registry + rows; no FWA data, no network."""
 import json
 
 from pipeline.common.models import RegistryBoundary, RegistryItem
-from pipeline.regs.parsing import ingest as ingest_mod
-from pipeline.regs.parsing import validate as validate_mod
 from pipeline.regs.parsing.batch_exporter import export
 from pipeline.regs.matching.matcher import match_rows
 from pipeline.atlas.registry import load_registry, write_registry
@@ -63,121 +61,6 @@ def test_matcher_hits_and_misses():
     assert results[1].item_id is None and results[1].status == "unmatched"
 
 
-def test_export_validate_ingest_and_locked(tmp_path):
-    reg = _registry()
-    out_dir = tmp_path / "parse"
-    manifest = export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    assert manifest["pending_count"] == 2                 # matched row + unmatched row (content-only)
-    assert manifest["no_registry_count"] == 1             # the unmatched row is parsed, flagged no_registry
-    assert len(manifest["unmatched"]) == 1                # still reported for visibility
-
-    batch_file = out_dir / "batches" / "batch_000.json"
-    assert batch_file.exists() and (out_dir / "batches" / "batch_000.prompt.txt").exists()
-    items = json.loads(batch_file.read_text())["items"]
-    assert items[0]["bindable_ids"] == ["hunlen_falls"] and items[0]["raw_regs"].startswith("No fishing")
-    assert items[0]["no_registry"] is False
-    # the unmatched row exported as a no-registry item: no boundaries, reason recorded
-    nr = items[1]
-    assert nr["no_registry"] is True and nr["bindable_ids"] == [] and nr["item_id"] is None
-    # The id is derived from the ROW (region + verbatim name + MUs) and carries NO match state:
-    # an unmatched row keeps the same id shape as a matched one, so binding it later never moves it.
-    assert "unmatched" in nr["registry_note"]
-    assert nr["entry_id"] == "r5:nonexistent_creek@5-4" and not nr["entry_id"].startswith("noreg_")
-
-    # agent's candidate response -> self-check passes
-    cand = tmp_path / "resp.json"
-    cand.write_text(json.dumps([_candidate_entry()]))
-    assert validate_mod.run(str(batch_file), str(cand)) == 0
-
-    # ingest -> region-5.json written with the entry
-    batch_items = validate_mod.load_batch_items(batch_file)
-    accepted, report = ingest_mod.ingest([cand.read_text()], batch_items)
-    assert report["accepted"] == [0] and not report["failed"]
-    entries_dir = tmp_path / "entries"
-    written = ingest_mod.write_entry_files(accepted, batch_items, entries_dir)
-    assert written["5"]["entries"] == 1
-    region_file = entries_dir / "region-5.json"
-    assert json.loads(region_file.read_text())["entries"][0]["entry_id"] == "r5:atnarko_river@5-4"
-
-    # lock it, then a re-ingest with a changed entry must NOT overwrite the locked one
-    data = json.loads(region_file.read_text())
-    data["entries"][0]["locked"] = True
-    region_file.write_text(json.dumps(data))
-    changed = _candidate_entry()
-    changed["entry"]["rules"][0]["details"] = "Angling closed"   # a valid but different re-parse
-    accepted2, _ = ingest_mod.ingest([json.dumps([changed])], batch_items)
-    assert accepted2                                             # the changed entry IS valid
-    written2 = ingest_mod.write_entry_files(accepted2, batch_items, entries_dir)
-    assert written2["5"]["kept_locked"] == 1
-    # locked original preserved on disk — the re-parse did NOT overwrite it
-    assert json.loads(region_file.read_text())["entries"][0]["rules"][0]["details"] == "No fishing"
-
-
-def test_no_registry_row_parses_content_only(tmp_path):
-    # An unmatched row is exported as a no_registry item; its regs still split into rules (each flagged
-    # needs_review, no extents), and ingest injects registry_status/note authoritatively.
-    reg = _registry()
-    out_dir = tmp_path / "parse"
-    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    batch_file = out_dir / "batches" / "batch_000.json"
-    batch_items = validate_mod.load_batch_items(batch_file)
-    nr_index = next(i for i, it in batch_items.items() if it["no_registry"])
-
-    cand = {"index": nr_index, "entry": {
-        "entry_id": "IGNORED — ingest injects the real id",
-        "identity": {"name": "Nonexistent Creek", "region": "5", "mus": ["5-4"]},
-        "regs_verbatim": "WILL BE INJECTED",
-        "rules": [{"rule_id": "r1", "restriction_type": "closure", "details": "Closed",
-                   "rule_text": "Closed.", "extents": [], "needs_review": True,
-                   "review_reason": "no registry match — attach an item and bind extents"}],
-    }}
-    accepted, report = ingest_mod.ingest([json.dumps([cand])], batch_items)
-    assert report["accepted"] == [nr_index] and not report["failed"], report
-    entry = accepted[nr_index]
-    assert entry.registry_status == "no_registry" and "unmatched" in entry.registry_note
-    assert entry.entry_id == "r5:nonexistent_creek@5-4" and entry.matched == []
-    assert entry.rules[0].needs_review and entry.rules[0].extents == []
-
-
-def test_ingest_persists_agent_review(tmp_path):
-    # The agent reviewer's verdict/issues must survive on the entry (durable), so review state isn't
-    # lost if the ephemeral parse/review outputs are deleted.
-    reg = _registry()
-    out_dir = tmp_path / "parse"
-    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    batch_file = out_dir / "batches" / "batch_000.json"
-    batch_items = validate_mod.load_batch_items(batch_file)
-    cand = json.dumps([_candidate_entry()])
-
-    reviews = {0: {"verdict": "changes_requested", "model": "haiku", "reviewed_at": "2026-08-21T00:00:00+00:00",
-                   "issues": [{"severity": "high", "problem": "wrong reach", "fix": "use downstream_of"}]}}
-    accepted, _ = ingest_mod.ingest([cand], batch_items, reviews)
-    pr = accepted[0].parse_review
-    assert pr.verdict == "changes_requested" and pr.model == "haiku"
-    assert pr.issues[0].severity == "high" and pr.issues[0].fix == "use downstream_of"
-
-    # load_reviews maps a per-batch review file -> per-index records (pass for rows with no issues)
-    reviews_dir = out_dir / "reviews"
-    reviews_dir.mkdir()
-    (reviews_dir / "batch_000.review.json").write_text(json.dumps(
-        {"verdict": "changes_requested", "model": "haiku", "reviewed_at": "t",
-         "issues": [{"index": 0, "severity": "medium", "problem": "x", "fix": "y"}]}))
-    loaded = ingest_mod.load_reviews(reviews_dir, out_dir / "batches")
-    assert loaded[0]["verdict"] == "changes_requested"
-    assert loaded[1]["verdict"] == "pass" and loaded[1]["issues"] == []   # other batch row, no issues
-
-
-def test_entry_review_stamps_default_empty_and_roundtrip():
-    from pipeline.regs.parsing.entry_models import Entry
-    e = Entry(entry_id="x", identity={"name": "A"}, regs_verbatim="No fishing.",
-              rules=[{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
-                      "rule_text": "No fishing.", "extents": [{"op": "whole"}]}])
-    assert e.reviewed_by == "" and e.reviewed_at == ""            # default empty (fresh parse)
-    e2 = Entry(**{**json.loads(e.model_dump_json()), "locked": True,
-                  "reviewed_by": "curator", "reviewed_at": "2026-08-20T12:00:00+00:00"})
-    assert e2.locked and e2.reviewed_by == "curator" and e2.reviewed_at.startswith("2026")
-
-
 def test_batch_layout_is_stable_regardless_of_existing_entries(tmp_path):
     # The batch layout MUST be a pure function of (rows, registry) — else a re-run that already
     # ingested some rows would renumber the batches and desync them from responses/ (the bug that
@@ -194,18 +77,6 @@ def test_batch_layout_is_stable_regardless_of_existing_entries(tmp_path):
     m_skip = export(_rows(), reg, tmp_path / "c", batch_size=40, overrides={},
                     existing_ids={"r5:atnarko_river@5-4"}, force=False, skip_existing=True)
     assert m_skip["pending_count"] == m_fresh["pending_count"] - 1
-
-
-def test_ingest_rejects_bad_split(tmp_path):
-    reg = _registry()
-    out_dir = tmp_path / "parse"
-    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    batch_file = out_dir / "batches" / "batch_000.json"
-    bad = _candidate_entry()
-    bad["entry"]["rules"][0]["extents"] = [{"op": "upstream_of", "splits": ["not_a_boundary"]}]
-    batch_items = validate_mod.load_batch_items(batch_file)
-    accepted, report = ingest_mod.ingest([json.dumps([bad])], batch_items)
-    assert not accepted and report["failed"] and report["failed"][0]["index"] == 0
 
 
 def test_two_rows_sharing_one_item_with_identical_regs_are_both_exported(tmp_path):
@@ -230,50 +101,3 @@ def test_two_rows_sharing_one_item_with_identical_regs_are_both_exported(tmp_pat
     ids = [it["entry_id"] for it in items]
     assert ids == ["r5:atnarko_river@5-4", "r5:atnarko@5-4"]      # kept apart by the row, not the item
     assert len(set(ids)) == 2
-
-
-def test_identity_is_injected_from_the_batch_item_not_trusted_from_the_model(tmp_path):
-    """WHO an entry is about is export-time knowledge. The model must not get a vote.
-
-    It had one, and used it: 843 of 1,021 entries came back with a name that was not the
-    synopsis's. Most were merely title-cased, but 66 were rewritten — and the rewrite ate the
-    parenthetical that carries the reach, which is the whole basis of entry-level `scope`.
-    """
-    reg = _registry()
-    out_dir = tmp_path / "parse"
-    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    item = json.loads((out_dir / "batches" / "batch_000.json").read_text())["items"][0]
-    assert item["name"] == "Atnarko River"
-
-    cand = _candidate_entry()["entry"]
-    cand["identity"] = {"name": "Marble River", "display_name": "x",   # model rewrites all four
-                        "region": "9", "mus": ["9-9"]}
-    entry, errors, _ = validate_mod.validate_candidate(item, cand)
-    assert entry is not None, errors
-    assert entry.identity.name == "Atnarko River"                      # the synopsis's words win
-    assert entry.identity.display_name == item["display_name"]
-    assert entry.identity.region == "5" and entry.identity.mus == ["5-4"]
-
-
-def test_identity_mus_is_the_rows_mu_not_the_registry_items_union(tmp_path):
-    """`identity.mus` is the MU heading the synopsis ROW sits under, not every MU its water touches.
-
-    `ParseContext.mus` is the union across the matched item(s) and exists to orient the parser;
-    injecting THAT into identity gave 287 entries MUs their row never named.
-    """
-    reg = _registry()
-    import dataclasses
-    it = reg["gnis:1"]
-    reg["gnis:1"] = (it.model_copy(update={"mus": ("5-4", "5-6", "5-12")})
-                     if hasattr(it, "model_copy")
-                     else dataclasses.replace(it, mus=("5-4", "5-6", "5-12")))
-    out_dir = tmp_path / "parse"
-    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    item = json.loads((out_dir / "batches" / "batch_000.json").read_text())["items"][0]
-    assert item["mus"] == ["5-12", "5-4", "5-6"]           # the item's union: parser orientation
-    assert item["row_mus"] == ["5-4"]                       # the row's own heading
-
-    entry, errors, _ = validate_mod.validate_candidate(item, _candidate_entry()["entry"])
-    assert entry is not None, errors
-    assert entry.identity.mus == ["5-4"]
-    assert entry.entry_id.endswith("@5-4")                  # id and identity agree

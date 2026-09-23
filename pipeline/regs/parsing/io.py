@@ -1,7 +1,7 @@
 """Shared IO + parsing helpers for the parse pipeline — the single home for the small utilities that
 were duplicated across export / dispatch / ingest / validate / synth.
 
-STRICT LEAF: this module imports only stdlib + `entry_models`. It must never import
+STRICT LEAF: this module imports only stdlib (and `catalogue`, lazily, to write). It must never import
 prompts/export/ingest/dispatch (that keeps the package's dependency graph acyclic).
 
 Groups:
@@ -20,7 +20,6 @@ import tempfile
 from pathlib import Path
 from typing import Iterable
 
-from pipeline.regs.parsing.entry_models import Entry, EntryFile
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.common.curated import REPO_ROOT
 
@@ -248,24 +247,23 @@ def atomic_write(path: Path, text: str) -> None:
             os.unlink(tmp)
 
 
-def write_catalogue_entryfile(path: Path, region: str, entries: Iterable) -> None:
-    """Atomically write one region file of CATALOGUE entries, through `CatalogueFile`.
+def dump_entry(entry) -> dict:
+    """ONE catalogue entry as it is stored. THE ONE SERIALISER — ingest and every repair tool go
+    through it, so the files cannot drift apart by writer.
 
-    `write_entryfile` coerces through the retired prose `Entry`, which requires `rule_text` and
-    `restriction_type` — so writing a catalogue entry through it fails with four missing fields.
-    The DFO corpus still uses the prose model, so both writers exist until that moves.
-    """
-    from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
-    coerced = [e if isinstance(e, CatalogueEntry) else CatalogueEntry.model_validate(e)
-               for e in entries]
-    cf = CatalogueFile(region=region, entries=sorted(coerced, key=lambda e: e.entry_id))
-    atomic_write(Path(path), cf.model_dump_json(indent=2, exclude_none=True))
+    `by_alias`: `while`/`except` are Python keywords held as `while_`/`except_`; dumped without it
+    a rule is written under a name the JSON schema does not use. `exclude_defaults`: a default
+    re-derives on load, so writing it back only buries what the rule actually says."""
+    return json.loads(entry.model_dump_json(exclude_defaults=True, by_alias=True))
 
 
 def write_entryfile(path: Path, region: str, entries: Iterable) -> None:
-    """Atomically write one region EntryFile through the `EntryFile` model (canonical serialization,
-    sorted by entry_id). `entries` may be `Entry` objects or plain dicts. Routing every write through
-    the model is the guard against silently persisting an off-schema entry."""
-    coerced = [e if isinstance(e, Entry) else Entry(**e) for e in entries]
-    ef = EntryFile(region=region, entries=sorted(coerced, key=lambda e: e.entry_id))
-    atomic_write(Path(path), ef.model_dump_json(indent=2))
+    """Atomically write one region file of catalogue entries, sorted by entry_id, validated as a
+    WHOLE file through `CatalogueFile` — the guard against persisting an off-schema entry.
+    `entries` may be `CatalogueEntry` objects or plain dicts."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
+    coerced = sorted((e if isinstance(e, CatalogueEntry) else CatalogueEntry.model_validate(e)
+                      for e in entries), key=lambda e: e.entry_id)
+    CatalogueFile(region=region, entries=coerced)
+    doc = {"region": region, "entries": [dump_entry(e) for e in coerced]}
+    atomic_write(Path(path), json.dumps(doc, indent=2, ensure_ascii=False) + "\n")

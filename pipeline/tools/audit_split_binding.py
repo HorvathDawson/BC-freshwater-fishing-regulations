@@ -1,7 +1,7 @@
 """Which curated splits can a rule actually BIND to — and which can never be referenced?
 
 A split is only useful if some registry item carries it as a boundary, because that is the menu
-an extent is authored against (`validate_entry_splits`). A split can resolve to a perfectly good
+an extent is authored against (`validate_catalogue.canonicalise_splits`). A split can resolve to a perfectly good
 cut and still be unreachable, and nothing in the build says so: the resolver reports success, the
 sectionizer quietly drops it, and the boundary simply never appears.
 

@@ -284,7 +284,7 @@ def main() -> None:
                     "now and the rest later.")
     ap.add_argument("--flagged", action="store_true",
                     help="REPASS: export ONLY entries the review flagged (parse_review.verdict == "
-                    "'changes_requested'), skipping locked ones; the reviewer's issues are passed to the "
+                    "'changes_requested'); the reviewer's issues are passed to the "
                     "re-parse as hints. Pair with `dispatch --force` on a fresh --out-dir.")
     args = ap.parse_args()
 
@@ -302,7 +302,7 @@ def main() -> None:
         only_ids, review_hints = set(), {}
         for eid, e in io.read_entries_dir(entries_dir).items():
             pr = e.get("parse_review") or {}
-            if pr.get("verdict") == "changes_requested" and not e.get("locked"):
+            if pr.get("verdict") == "changes_requested":
                 only_ids.add(eid)
                 review_hints[eid] = [
                     f"[{i.get('severity','?')}] {i.get('problem','')}"
@@ -338,8 +338,8 @@ def main() -> None:
     if args.flagged:
         print(f"  repass: {len(only_ids)} flagged entr(y/ies) requested; {manifest['pending_count']} exported")
         if manifest["pending_count"] < len(only_ids):
-            print("    ⚠ some flagged entries did not map to a current row (id drift / superseded / "
-                  "locked) — not re-parsed")
+            print("    ⚠ some flagged entries did not map to a current row (id drift / superseded) "
+                  "— not re-parsed")
     print("  (already-parsed batches are skipped at the parse step, not here)")
     print(f"  manifest: {out_dir/'manifest.json'}")
 

@@ -364,8 +364,11 @@ LAWFUL direction: `do_not_waste_catch`, `release_immediately`, `remove_ice_hut_b
 `mark_set_line_with_contact_details`. It is never a piece of gear.
 
 **An exemption carries no gear of its own.** *"EXEMPT from single barbless hooks"* is `exempts` on
-a `tackle_restriction` and nothing else; a sentence you cannot write as a clause (*"unlimited
-number of rods"*) is an exemption from the rule it lifts, plus a `review_reason`.
+a `tackle_restriction` and nothing else.
+
+**No ceiling is `unlimited: true`, never a zero.** *"A person in a boat may angle with an unlimited
+number of rods"* is `{"slot": "lines_per_angler", "unlimited": true, "when": {"angler": "in_boat"}}`.
+`max: 0` means NONE.
 
 ---
 

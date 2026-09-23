@@ -6,7 +6,7 @@ run this module — only hand the user the command to run in their own terminal.
 
 This is the automation layer over the tested export -> (parse) -> ingest flow. It shells out to the
 `claude` CLI in print mode with the batch's self-contained prompt; the CLI agent has Bash access, so it
-can run `pipeline.regs.parsing.validate` and `pipeline.regs.parsing.species` to self-correct BEFORE emitting its
+can run `pipeline.regs.parsing.validate_catalogue` and `pipeline.regs.parsing.species` to self-correct BEFORE emitting its
 JSON (exactly the "the chat can use the python functions" intent). Requires the `claude` CLI installed +
 authenticated (set CLAUDE_BIN or --claude-bin if it isn't on PATH). If you're parsing inside a chat
 already, skip this and paste batches to a subagent by hand — same downstream ingest.
@@ -197,21 +197,30 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
     """Batch ids whose EXISTING response fails ingest validation — a response was written but ≥1 of its
     entries is invalid, unparseable, or missing. A normal resume skips these (the file exists), so they
     must be targeted explicitly to re-parse (e.g. on a stronger model)."""
-    from pipeline.regs.parsing.ingest import _load_all_batch_items, ingest
-    batch_items = _load_all_batch_items(batches_dir)
+    # JUDGED BY THE INGEST THAT WRITES. This called the retired prose ingest, which refuses every
+    # catalogue entry, so every response looked invalid and `--redo-invalid` re-bought them all.
+    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch
+    batch = load_batch([str(p) for p in sorted(batches_dir.glob("batch_*.json"))])
     bad_indices: set[int] = set()
     for b in manifest["batches"]:
         rp = responses_dir / f"batch_{b['id']:03d}.json"
         if not rp.exists():
             continue
         try:
-            _, report = ingest([rp.read_text(encoding="utf-8")], batch_items)
+            data = json.loads(rp.read_text(encoding="utf-8"))
+            rows = data.get("entries", data) if isinstance(data, dict) else data
+            cands = []
+            for row in rows:
+                if isinstance(row, dict) and isinstance(row.get("entry"), dict):
+                    cands.append(dict(row["entry"], _batch_index=row.get("index")))
+                else:
+                    cands.append(row)
+            accepted, _ = ingest(cands, batch)
         except Exception:                                 # noqa: BLE001 — garbage response: redo it
             bad_indices.update(b["indices"])
             continue
-        got = set(report["accepted"]) | {f["index"] for f in report["failed"]}
-        bad_indices.update(f["index"] for f in report["failed"])
-        bad_indices.update(set(b["indices"]) - got)       # entries the response never returned
+        good = {batch[eid].get("index") for eid in accepted if eid in batch}
+        bad_indices.update(set(b["indices"]) - good)      # rejected, or never returned
     return sorted({b["id"] for b in manifest["batches"] if set(b["indices"]) & bad_indices})
 
 
@@ -362,7 +371,7 @@ def main() -> None:
                           concurrency=args.concurrency, force=(args.force or args.rereview),
                           review_model=review_model)
 
-    print(f"Done. Next: python -m pipeline.regs.parsing.ingest {responses_dir}/*.json --dry-run")
+    print(f"Done. Next: python -m pipeline.regs.parsing.ingest_catalogue --batch {responses_dir}/../batches/batch_*.json --response {responses_dir}/batch_*.json --out data/curated/regulations/entries/catalogue --dry-run")
 
 
 if __name__ == "__main__":

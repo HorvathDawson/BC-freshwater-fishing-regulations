@@ -4,7 +4,7 @@ import json
 import re
 
 from pipeline.common.models import RegistryBoundary, RegistryItem
-from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
+from pipeline.regs.parsing.validate_catalogue import canonicalise_splits
 from pipeline.regs.parsing.parse_context import (
     build_parse_context, load_system_prompt, render_user_message,
 )
@@ -93,67 +93,33 @@ def test_combined_entry_is_announced_in_the_prompt():
     assert "Combined entry" in msg and "gnis:3062" in msg
 
 
+# --- a combined entry: each extent's cut-points must be on the water it is scoped to ---------------
+_COMBINED = {"bindable_ids": ["goat_creek", "talchako"],
+             "bindable_by_item": {"gnis:17209": ["goat_creek"], "gnis:11611": ["talchako"]}}
+
+
+def _between(**scope) -> dict:
+    return {"rules": [{"extents": [{"op": "between", "splits": ["goat_creek", "talchako"],
+                                    **scope}]}]}
+
+
 def test_item_id_scoped_extent_must_bind_a_cutpoint_on_that_item():
     """A combined entry's flat menu is a UNION, so the union check accepted a reach scoped to the
     Atnarko but bounded by a confluence that only exists on the Bella Coola."""
-    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
-
-    entry = Entry(**{
-        "entry_id": "gnis:11611#x",
-        "identity": {"name": "ATNARKO/BELLA COOLA RIVERS", "region": "5", "mus": []},
-        "regs_verbatim": "**No Fishing**",
-        "rules": [{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
-                   "rule_text": "**No Fishing**",
-                   "extents": [{"op": "between", "item_id": "gnis:17209",
-                                "splits": ["goat_creek", "talchako"]}]}],
-    })
-    allowed = {"goat_creek", "talchako"}
-    by_item = {"gnis:17209": {"goat_creek"}, "gnis:11611": {"talchako"}}
-
-    assert validate_entry_splits(entry, allowed) == [], "the flat union check cannot catch it"
-    errs = validate_entry_splits(entry, allowed, by_item)
-    assert len(errs) == 1 and "scoped to 'gnis:17209'" in errs[0] and "talchako" in errs[0]
+    errs = canonicalise_splits(_between(item_id="gnis:17209"), _COMBINED)
+    assert len(errs) == 1 and "gnis:17209" in errs[0] and "talchako" in errs[0]
 
 
 def test_item_ids_lets_one_reach_span_two_waters():
     """A reach whose two ends sit on DIFFERENT waters must be scoped to both — scoping it to either
     alone puts the other end out of scope and the reach cannot resolve at all."""
-    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
-
-    def _entry(scope: dict) -> Entry:
-        return Entry(**{
-            "entry_id": "gnis:11611#x",
-            "identity": {"name": "ATNARKO/BELLA COOLA RIVERS", "region": "5", "mus": []},
-            "regs_verbatim": "**No Fishing**",
-            "rules": [{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
-                       "rule_text": "**No Fishing**",
-                       "extents": [{"op": "between", "splits": ["goat_creek", "talchako"], **scope}]}],
-        })
-
-    allowed = {"goat_creek", "talchako"}
-    by_item = {"gnis:17209": {"goat_creek"}, "gnis:11611": {"talchako"}}
-
-    both = _entry({"item_ids": ["gnis:17209", "gnis:11611"]})
-    assert validate_entry_splits(both, allowed, by_item) == []
-
-    one = _entry({"item_ids": ["gnis:17209"]})
-    errs = validate_entry_splits(one, allowed, by_item)
+    assert canonicalise_splits(_between(item_ids=["gnis:17209", "gnis:11611"]), _COMBINED) == []
+    errs = canonicalise_splits(_between(item_ids=["gnis:17209"]), _COMBINED)
     assert len(errs) == 1 and "talchako" in errs[0]
 
 
 def test_unscoped_extent_may_span_both_waters():
-    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
-
-    entry = Entry(**{
-        "entry_id": "gnis:11611#x",
-        "identity": {"name": "ATNARKO/BELLA COOLA RIVERS", "region": "5", "mus": []},
-        "regs_verbatim": "**No Fishing**",
-        "rules": [{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
-                   "rule_text": "**No Fishing**",
-                   "extents": [{"op": "between", "splits": ["goat_creek", "talchako"]}]}],
-    })
-    by_item = {"gnis:17209": {"goat_creek"}, "gnis:11611": {"talchako"}}
-    assert validate_entry_splits(entry, {"goat_creek", "talchako"}, by_item) == []
+    assert canonicalise_splits(_between(), _COMBINED) == []
 
 
 def test_menu_names_the_owning_item_only_for_combined_entries():

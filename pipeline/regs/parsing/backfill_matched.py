@@ -10,14 +10,14 @@ about the Vedder River or the Vedder Canal.
 
 The exporter still has the verbatim rows, so this replays it and copies each batch item's
 `[item_id, *also_item_ids]` onto the matching entry. Cheap, local, no credits, no re-parse — and it
-touches ONLY `matched`, so a locked entry's curated content is untouched (its `matched` is still
-stamped: the id set is a fact about the registry, not a curation decision).
+touches ONLY `matched`, so an entry's curated content is untouched. The id set is a fact about the
+registry, not a curation decision.
 
-The entry's NAME is not touched here — `backfill_identity` owns it. That module writes the verbatim
-synopsis wording, because the "cleaned-up name is better" reasoning this file used to give was wrong:
-the cleanup dropped the parenthetical that carries the reach, collapsing MICHEL CREEK's upstream and
-downstream rows to one indistinguishable label. The readable form lives in `identity.display_name`,
-and a combined entry's several items are surfaced in the review UI from `matched`.
+The entry's NAME is not touched here — ingest takes it from the batch, in the synopsis's verbatim
+wording, because the "cleaned-up name is better" reasoning this file used to give was wrong: the
+cleanup dropped the parenthetical that carries the reach, collapsing MICHEL CREEK's upstream and
+downstream rows to one indistinguishable label. The readable form is `display_name`, and a combined
+entry's several items are surfaced in the review UI from `matched`.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --dry-run
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry data/generated/atlas/full/registry.json

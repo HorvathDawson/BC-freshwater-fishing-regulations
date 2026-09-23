@@ -241,3 +241,15 @@ def test_a_rule_that_states_a_place_it_could_not_bind_is_left_alone():
     assert d["rules"][0].get("extents") is None
     assert d["rules"][1].get("extents") is None
     assert d["rules"][2]["extents"] == [{"op": "whole"}]
+
+
+def test_identity_comes_from_the_batch_not_the_model():
+    """843 of 1,021 entries once came back with a name that was not the synopsis's."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    item = _batch_item()
+    item.update(name="ATNARKO RIVER", display_name="Atnarko River", region="5")
+    cand = _candidate([])
+    cand.update(name="Marble River", display_name="x", region="9")
+    accepted, problems = ingest([cand], {cand["entry_id"]: item})
+    e = accepted[cand["entry_id"]]
+    assert (e.name, e.display_name, e.region) == ("ATNARKO RIVER", "Atnarko River", "5"), problems

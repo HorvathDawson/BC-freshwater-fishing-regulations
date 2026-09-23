@@ -69,17 +69,17 @@ def test_invalid_batch_ids_flags_bad_response(tmp_path):
         {"index": 0, "entry_id": "e0", "raw_regs": "No fishing.", "bindable_ids": [],
          "no_registry": True, "registry_note": "unmatched: x"}]}))
     (batches / "batch_001.json").write_text(json.dumps({"items": [
-        {"index": 1, "entry_id": "e1", "raw_regs": "No fishing.", "bindable_ids": []}]}))
+        {"index": 1, "entry_id": "e1", "raw_regs": "No fishing.", "bindable_ids": ["real_split"]}]}))
+    closed = {"rule_id": "r", "type": "retention_limit", "verbatim": "No fishing.",
+              "species": ["ALL_GAME_FISH"], "take": 0, "may_target": False}
     # batch 0: valid content-only entry
     (responses / "batch_000.json").write_text(json.dumps([{"index": 0, "entry": {
-        "identity": {"name": "A"}, "regs_verbatim": "x", "rules": [
-            {"rule_id": "r", "restriction_type": "closure", "details": "No fishing",
-             "rule_text": "No fishing.", "extents": [], "needs_review": True, "review_reason": "nr"}]}}]))
+        "entry_id": "e0", "name": "A", "regs_verbatim": "x", "rules": [
+            dict(closed, extents=[], review_reason="no registry match — attach an item")]}}]))
     # batch 1: binds a split id that isn't in bindable_ids -> invalid
     (responses / "batch_001.json").write_text(json.dumps([{"index": 1, "entry": {
-        "identity": {"name": "B"}, "regs_verbatim": "x", "rules": [
-            {"rule_id": "r", "restriction_type": "closure", "details": "c", "rule_text": "No fishing.",
-             "extents": [{"op": "upstream_of", "splits": ["nope"]}]}]}}]))
+        "entry_id": "e1", "name": "B", "regs_verbatim": "x", "rules": [
+            dict(closed, extents=[{"op": "upstream_of", "splits": ["nope"]}])]}}]))
     assert d._invalid_batch_ids(manifest, batches, responses) == [1]
 
 

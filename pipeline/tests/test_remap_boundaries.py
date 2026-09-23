@@ -33,26 +33,36 @@ def test_a_ref_missing_from_the_new_registry_is_not_guessed():
     assert "river_x__gone_lake" not in build_remap(old, new)
 
 
-def _entry(eid, splits, *, locked=False):
-    return {
-        "entry_id": eid, "identity": {"name": "X", "region": "3", "mus": []},
-        "regs_verbatim": "**No Fishing**", "locked": locked, "registry_status": "matched",
-        "rules": [{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
-                   "rule_text": "**No Fishing**",
+def _entry(eid, splits, *, entry_splits=None):
+    e = {
+        "entry_id": eid, "name": "X", "region": "3", "regs_verbatim": "**No Fishing**",
+        "rules": [{"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing",
+                   "species": ["ALL_GAME_FISH"], "take": 0, "may_target": False,
                    "extents": [{"op": "upstream_of", "splits": splits}]}],
     }
+    if entry_splits:
+        e["extents"] = [{"op": "upstream_of", "splits": entry_splits}]
+    return e
 
 
 def test_rewrites_the_bound_split_id(tmp_path):
     p = tmp_path / "region-3.json"
     p.write_text(json.dumps({"region": "3", "entries": [
-        _entry("gnis:39492#a", ["mcarthur_island_slough__kamloops_lake"], locked=True)]}), encoding="utf-8")
-    report = apply_remap(tmp_path, {"mcarthur_island_slough__kamloops_lake": "thompson_river__kamloops_lake"})
-
-    assert report["locked_changed"] == ["gnis:39492#a"]
+        _entry("gnis:39492#a", ["mcarthur_island_slough__kamloops_lake"])]}), encoding="utf-8")
+    apply_remap(tmp_path, {"mcarthur_island_slough__kamloops_lake": "thompson_river__kamloops_lake"})
     e = json.loads(p.read_text())["entries"][0]
     assert e["rules"][0]["extents"][0]["splits"] == ["thompson_river__kamloops_lake"]
-    assert e["locked"] is True
+
+
+def test_rewrites_the_entrys_own_reach(tmp_path):
+    """The entry's reach is `extents`; the prose era called it `scope`, and reading `scope` left
+    every entry-level split id dead after a registry rebuild."""
+    p = tmp_path / "region-3.json"
+    p.write_text(json.dumps({"region": "3", "entries": [
+        _entry("gnis:1", ["keep__me"], entry_splits=["old__id"])]}), encoding="utf-8")
+    apply_remap(tmp_path, {"old__id": "new__id"})
+    e = json.loads(p.read_text())["entries"][0]
+    assert e["extents"][0]["splits"] == ["new__id"]
 
 
 def test_unaffected_entry_and_dry_run_write_nothing(tmp_path):

@@ -25,6 +25,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
+from pipeline.regs.parsing.io import dump_entry
 from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
 
@@ -96,6 +97,12 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
         # The passage comes from the batch. Anything the model wrote here is discarded.
         data = json.loads(json.dumps(data))     # deep copy: the split check rewrites in place
         data["regs_verbatim"] = source or data.get("regs_verbatim", "")
+        # SO DOES WHO THE ENTRY IS ABOUT. The model retyped it: 843 of 1,021 entries once came
+        # back with a name that was not the synopsis's, and 66 rewrites ate the parenthetical that
+        # carries the reach. Export-time knowledge; the model gets no vote.
+        for key in ("name", "display_name", "region"):
+            if item.get(key):
+                data[key] = item[key]
         # `item` carries the boundary menu, so this also checks every split id and rewrites an
         # alias to its canonical spelling — the same gate the agent runs on itself.
         entry, errors = check_entry(data, source, item)
@@ -121,7 +128,7 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
             existing = json.loads(path.read_text(encoding="utf-8")).get("entries", [])
         fresh = {e.entry_id for e in entries}
         merged = [x for x in existing if x.get("entry_id") not in fresh]
-        merged += [json.loads(e.model_dump_json(exclude_none=True)) for e in entries]
+        merged += [dump_entry(e) for e in entries]
         merged.sort(key=lambda x: x.get("entry_id", ""))
         # Validate the WHOLE file, not just the new rows — a duplicate entry_id or a broken
         # neighbour is a failure of the file, and writing it would ship the break.

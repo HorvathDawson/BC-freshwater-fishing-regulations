@@ -24,14 +24,12 @@ from pathlib import Path
 from pipeline.regs.parsing import io
 from pipeline.atlas.registry import default_registry_path, load_registry
 
-# every place an Extent can hang off an entry
-_EXTENT_HOLDERS = ("scope",)
-
-
 def _extents(entry: dict):
-    """Every extent dict in an entry — entry scope, tributary excludes, and each rule's."""
-    yield from (entry.get("scope") or [])
-    yield from ((entry.get("tributaries") or {}).get("excludes") or [])
+    """Every extent dict in an entry — the entry's own reach, and each rule's reach and carve-outs.
+
+    The entry's reach is `extents`. This read the prose era's `scope`, which no catalogue entry
+    has, so after a registry rebuild every entry-level reach kept its dead split ids silently."""
+    yield from (entry.get("extents") or [])
     for r in entry.get("rules") or []:
         yield from (r.get("extents") or [])
         yield from (r.get("tributary_excludes") or [])
@@ -55,7 +53,7 @@ def build_remap(old_registry: dict, new_registry: dict) -> dict[str, str]:
 
 
 def apply_remap(entries_dir: Path, remap: dict[str, str], dry_run: bool = False) -> dict:
-    report: dict[str, list] = {"changed": [], "locked_changed": []}
+    report: dict[str, list] = {"changed": []}
     for path in sorted(Path(entries_dir).glob("region-*.json")):
         region = path.stem.split("region-")[1]
         by_id = io.read_entryfile(path)
@@ -74,9 +72,7 @@ def apply_remap(entries_dir: Path, remap: dict[str, str], dry_run: bool = False)
                     ex["splits"] = new_splits
             if hits:
                 file_changed = True
-                report["changed"].append((region, eid, e.get("locked", False), sorted(set(hits))))
-                if e.get("locked"):
-                    report["locked_changed"].append(eid)
+                report["changed"].append((region, eid, sorted(set(hits))))
         if file_changed and not dry_run:
             io.write_entryfile(path, region, by_id.values())     # atomic, via the model
     return report
@@ -86,7 +82,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Re-point entries at renamed auto boundaries.")
     ap.add_argument("--old-registry", required=True, help="registry.json from BEFORE the rebuild")
     ap.add_argument("--registry", help=f"current registry.json (default: {default_registry_path()})")
-    ap.add_argument("--entries-dir", help="EntryFiles dir (default: pipeline/regs/parsing/entries).")
+    ap.add_argument("--entries-dir", help="entries dir (default: data/curated/regulations/entries/catalogue).")
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
     args = ap.parse_args()
 
@@ -98,8 +94,8 @@ def main() -> None:
 
     verb = "[dry-run] would re-point" if args.dry_run else "re-pointed"
     print(f"{verb} {len(report['changed'])} entry(ies)")
-    for region, eid, locked, hits in report["changed"]:
-        print(f"    [{region}] {eid}{'  (LOCKED)' if locked else ''}")
+    for region, eid, hits in report["changed"]:
+        print(f"    [{region}] {eid}")
         for old, new in hits:
             print(f"        {old}  ->  {new}")
 

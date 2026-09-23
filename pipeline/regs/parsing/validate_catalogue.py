@@ -110,11 +110,20 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
     if not allowed:
         return []                    # a batch written before boundaries were exported
     errors: list[str] = []
+    # A COMBINED ENTRY'S MENU IS A UNION over several waters, so the union check alone accepts a
+    # reach scoped to the Atnarko but bounded by a confluence that only exists on the Bella Coola.
+    # An extent that names its water(s) must bind a cut-point ON one of them. A multi-item scope
+    # allows a cut on ANY named item — that is its point: the reach's two ends are on different
+    # waters.
+    by_item = {i: {canon.get(x, x) for x in ids}
+               for i, ids in (item.get("bindable_by_item") or {}).items()}
 
     def visit(extents, where: str) -> None:
         for ex in extents or ():
             if not isinstance(ex, dict):
                 continue
+            ids = [ex["item_id"]] if ex.get("item_id") else list(ex.get("item_ids") or ())
+            scoped = set().union(*(by_item.get(i, set()) for i in ids)) if ids and by_item else None
             fixed = []
             for sid in (ex.get("splits") or ()):
                 if sid in canon:
@@ -125,6 +134,11 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
                     errors.append(f"{where}: split id {sid!r} is not a cut-point on this water "
                                   f"— it was invented or belongs to another item")
                     fixed.append(sid)
+                    continue
+                if scoped is not None and fixed[-1] not in scoped:
+                    errors.append(f"{where}: extent is scoped to {', '.join(ids)!r} but {sid!r} "
+                                  f"is not a cut-point on it — drop the scope, add the item that "
+                                  f"carries {sid!r}, or bind a cut-point on that water")
             if fixed:
                 ex["splits"] = fixed
 

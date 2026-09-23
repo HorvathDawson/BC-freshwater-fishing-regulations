@@ -46,16 +46,6 @@ _need_registry() {
   [ -f "$REGISTRY" ] || { echo "  ✗ registry not found: $REGISTRY — build it: $PY -m pipeline.atlas.build --full --out data/generated/atlas/full"; exit 1; }
   echo "  ✓ registry: $REGISTRY"
 }
-_apply_ingest() {   # dry-run ingest, then confirm-apply. $@ = extra ingest flags
-  $PY -m pipeline.regs.parsing.ingest "$RESP"/*.json --dry-run "$@"
-  read -r -p "  Write EntryFiles from the above? [y/N] " ans
-  if [ "${ans:-N}" = "y" ] || [ "${ans:-N}" = "Y" ]; then
-    $PY -m pipeline.regs.parsing.ingest "$RESP"/*.json "$@" && echo "  ✓ EntryFiles updated"
-  else
-    echo "  skipped apply. Re-run: $PY -m pipeline.regs.parsing.ingest $RESP/*.json $*"
-  fi
-}
-
 # REPAIR TOOLS — deliberately NOT part of the cascade. Each rewrites already-ingested rules, so
 # running one automatically after every parse would quietly paper over a bad parse instead of
 # surfacing it: the parse would look fine and the prompt would never get fixed. The parser is
@@ -139,13 +129,11 @@ regs = io.region_ids()
 by = io.read_entries_dir()
 from collections import Counter
 verd = Counter((e.get("parse_review") or {}).get("verdict", "") for e in by.values())
-locked = sum(1 for e in by.values() if e.get("locked"))
 flagged = sum(1 for e in by.values()
-              if (e.get("parse_review") or {}).get("verdict") == "changes_requested" and not e.get("locked"))
+              if (e.get("parse_review") or {}).get("verdict") == "changes_requested")
 print(f"entries: {len(by)} across regions {regs}")
-print(f"  locked (curated): {locked}")
 print(f"  parse_review verdicts: {dict(verd)}")
-print(f"  flagged & unlocked (repass candidates): {flagged}")
+print(f"  flagged (repass candidates): {flagged}")
 
 # WHERE YOU LEFT OFF. A parse stops on a credit limit and the scrollback is gone by the next
 # session, so the number that actually matters — how many synopsis rows still have no entry — is

@@ -283,7 +283,7 @@ Return ONLY a JSON array — one object per ITEM above, in this exact shape:
 - Bind `extents.splits` only to that item's listed boundary ids. If none fit, record the phrase in
   `unresolved_locators` and give a `review_reason` — never invent an id.
 
-This is a single-shot parse: emit the JSON directly. Your output is validated (Entry schema + split-id
+This is a single-shot parse: emit the JSON directly. Your output is validated (catalogue schema + split-id
 check) after you submit, and any batch that fails is re-run — so get each entry right in one pass.
 """
 

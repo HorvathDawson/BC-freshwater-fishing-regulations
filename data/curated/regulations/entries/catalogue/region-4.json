@@ -5581,10 +5581,13 @@
      ],
      "extent_text": "Main Body of Kootenay Lake",
      "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist",
-     "exempts": [
+     "gear": [
       {
-       "target": "terminal_tackle.r1",
-       "note": "a person in a boat may angle with an unlimited number of rods"
+       "slot": "lines_per_angler",
+       "unlimited": true,
+       "when": {
+        "angler": "in_boat"
+       }
       }
      ]
     },

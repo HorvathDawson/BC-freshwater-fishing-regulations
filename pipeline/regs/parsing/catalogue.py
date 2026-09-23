@@ -716,7 +716,8 @@ class _Terse(BaseModel):
 
     @model_serializer(mode="wrap")
     def _terse(self, handler):
-        return {k: v for k, v in handler(self).items() if v != [] and v != "" and v is not None}
+        return {k: v for k, v in handler(self).items()
+                if v != [] and v != "" and v is not None and v is not False}
 
 
 class GearWhen(_Terse):
@@ -810,6 +811,12 @@ class GearClause(_Terse):
     members: List[str] = Field(default_factory=list)  # a choice of ONE from several kinds
     max: Optional[float] = None
     min: Optional[float] = None
+    #: NO CEILING, SAID OUTRIGHT. "A person in a boat may angle with an unlimited number of rods"
+    #: is a bound, not an absence of one: without it the clause has nothing to state and the
+    #: sentence could only be an exemption, which hides what it grants. It was once written
+    #: `max_lines: 0` — a zero standing for infinity — and converted to "no lines at all". JSON has
+    #: no infinity, so the word is the value, as `unlimited` is on a retention rule.
+    unlimited: bool = False
     when: Optional[GearWhen] = None
     #: HOW THE THING ITSELF MUST BE — see `GearSpec`. A property of the subject this clause
     #: names, not a separate condition on the angler or the water.
@@ -822,7 +829,11 @@ class GearClause(_Terse):
 
     @model_validator(mode="after")
     def _shape(self) -> "GearClause":
-        counted = self.max is not None or self.min is not None
+        counted = self.max is not None or self.min is not None or self.unlimited
+        if self.unlimited and (self.max is not None or self.slot in _MEASURED
+                               or self.slot in _SET_SLOTS or self.slot in _SPEC_SLOTS):
+            raise ValueError(f"{self.slot.value}: `unlimited` lifts the ceiling on a COUNT, and "
+                             f"never alongside a `max`")
         bounds = [b for b in (self.allow, self.only, self.ban) if b is not None]
         if self.slot in _SPEC_SLOTS:
             # NO BOUND AT ALL ON A SPEC SLOT. `light: {max: 1}` read as "at most one light" when
@@ -869,7 +880,7 @@ class GearClause(_Terse):
             # "only one hook, one lure OR one fly is attached" — the basic licence entitlement,
             # on every angler on every water — inverts into unlimited terminal tackle.
             if not counted:
-                raise ValueError(f"{self.slot.value} needs a max or a min")
+                raise ValueError(f"{self.slot.value} needs a max, a min or `unlimited`")
         # AN ESCAPE THAT MATCHES EVERYTHING LIFTS EVERYTHING. `GearWhen()` with every field at its
         # default is a valid object, so "(this does not apply to downrigger weights)" with the one
         # key dropped becomes "there is no weight limit in B.C." — and a dropped key is exactly
@@ -1545,6 +1556,8 @@ def _gear_words(r: CatalogueRule) -> str:
             bits.append(got)
         elif c.must_be:
             bits.append(f"{name} must be {', '.join(c.must_be).replace('_', ' ')}")
+        elif c.unlimited:
+            bits.append(f"unlimited {name}")
         else:
             u = UNIT.get(c.slot.value, "")
             for kind, v in (("at most", c.max), ("at least", c.min)):

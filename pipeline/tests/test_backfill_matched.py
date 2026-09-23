@@ -5,16 +5,14 @@ import json
 from pipeline.regs.parsing.backfill_matched import backfill
 
 
-def _entry(eid, name, *, locked=False, matched=None):
+def _entry(eid, name, *, matched=None):
     return {
-        "entry_id": eid,
-        "identity": {"name": name, "region": "2", "mus": []},
+        "entry_id": eid, "name": name, "region": "2",
         "regs_verbatim": "**No Fishing**",
-        "locked": locked,
         "matched": matched or [],
-        "registry_status": "matched",
-        "rules": [{"rule_id": "r.r1", "restriction_type": "closure", "details": "No fishing",
-                   "rule_text": "**No Fishing**", "extents": [{"op": "whole"}]}],
+        "rules": [{"rule_id": "r.r1", "type": "retention_limit", "verbatim": "No Fishing",
+                   "species": ["ALL_GAME_FISH"], "take": 0, "may_target": False,
+                   "extents": [{"op": "whole"}]}],
     }
 
 
@@ -35,12 +33,12 @@ def test_stamps_every_covered_item_id(tmp_path):
     assert written["matched"] == want
 
 
-def test_locked_entry_gets_matched_but_keeps_its_curation(tmp_path):
-    """`matched` is a fact about the registry, not a curation decision — but nothing else may move.
+def test_only_matched_moves(tmp_path):
+    """`matched` is a fact about the registry, not a curation decision — nothing else may move.
 
-    Both sides are compared AFTER a write, since writing goes through the Entry model and fills in
-    schema defaults; the point here is that a second backfill moves only `matched`."""
-    path = _write(tmp_path, [_entry("gnis:8634", "Chilliwack River", locked=True)])
+    Both sides are compared AFTER a write, since writing goes through the model; the point here is
+    that a second backfill moves only `matched`."""
+    path = _write(tmp_path, [_entry("gnis:8634", "Chilliwack River")])
     backfill(tmp_path, {"gnis:8634": {"matched": ["gnis:8634"], "name": "Chilliwack River"}})
     before = json.loads(path.read_text())["entries"][0]
     backfill(tmp_path, {"gnis:8634": {"matched": ["gnis:8634", "gnis:3062"],
@@ -49,8 +47,7 @@ def test_locked_entry_gets_matched_but_keeps_its_curation(tmp_path):
 
     assert before["matched"] == ["gnis:8634"]
     assert after["matched"] == ["gnis:8634", "gnis:3062"]
-    assert after["locked"] is True
-    assert after["identity"]["name"] == before["identity"]["name"], "the curated name must not move"
+    assert after["name"] == before["name"], "the curated name must not move"
     assert {k: v for k, v in after.items() if k != "matched"} == {
         k: v for k, v in before.items() if k != "matched"}
 

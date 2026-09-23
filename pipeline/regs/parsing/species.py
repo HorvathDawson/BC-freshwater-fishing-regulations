@@ -2,7 +2,7 @@
 
 Source of truth is `bc_species.csv` (the official BC species/code list, verbatim: SPECIES_TYPE,
 COMMON_NAME, SCIENTIFIC_NAME, SPECIES_CODE), loaded at import. A rule with no species applies to ALL
-species; a rule naming species carries the matching official code(s). `entry_models.Rule` validates
+species; a rule naming species carries the matching official code(s). `catalogue.CatalogueRule` validates
 every code against `KNOWN_SPECIES_CODES`, so a code the parser can't justify surfaces as an error
 rather than being stored silently wrong.
 

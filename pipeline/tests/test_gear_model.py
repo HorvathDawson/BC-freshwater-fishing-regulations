@@ -55,7 +55,7 @@ def test_a_counted_slot_takes_no_set_bound():
 def test_members_qualifies_a_bound_and_never_replaces_one():
     """Without this, "only one hook, one lure OR one fly is attached" — the basic licence
     entitlement, binding every angler on every water — inverts into UNLIMITED terminal tackle."""
-    with pytest.raises(ValueError, match="needs a max or a min"):
+    with pytest.raises(ValueError, match="needs a max, a min or `unlimited`"):
         GearClause(slot=Slot.terminal_attachments_per_line,
                    members=["hook", "artificial_lure", "artificial_fly"])
     ok = GearClause(slot=Slot.terminal_attachments_per_line, max=1,
@@ -188,3 +188,23 @@ def test_the_converted_provincial_rules_say_what_the_book_says():
     # "…or parts of fin fish OTHER THAN ROE is prohibited"
     assert by["bait.r1"]["gear"] == [
         {"slot": "bait", "ban": ["fin_fish"], "except": ["roe"]}]
+
+
+def test_unlimited_is_a_bound_said_outright():
+    """Kootenay Lake's "unlimited number of rods" was `max_lines: 0` — a zero standing for infinity —
+    and converted to "no lines at all". `unlimited` says it; it is refused wherever it is not a
+    lifted ceiling on a count."""
+    ok = GearClause(slot=Slot.lines_per_angler, unlimited=True)
+    assert ok.max is None and ok.model_dump(mode="json") == {"slot": "lines_per_angler",
+                                                              "unlimited": True}
+    for bad in (dict(slot=Slot.lines_per_angler, unlimited=True, max=2),
+                dict(slot=Slot.hook_gap_mm, unlimited=True),
+                dict(slot=Slot.bait, unlimited=True, ban=["any_bait"])):
+        with pytest.raises(ValueError):
+            GearClause(**bad)
+    import json
+    from pipeline.common.curated import CURATED
+    d = json.loads((CURATED.regulations.entries.catalogue / "region-4.json").read_text())
+    x = next(r for e in d["entries"] for r in e.get("rules", [])
+             if r["rule_id"] == "kootenay_lake_main_body.r1")
+    assert CatalogueRule.model_validate(x).gear[0].unlimited
