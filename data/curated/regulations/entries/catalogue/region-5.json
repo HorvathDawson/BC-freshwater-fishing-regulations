@@ -778,7 +778,17 @@
      "extent_text": "",
      "unresolved_locators": [],
      "needs_review": false,
-     "review_reason": ""
+     "review_reason": "",
+     "under_cm": 25,
+     "lengths": [
+      {
+       "min_cm": 25
+      },
+      {
+       "max_cm": 25,
+       "take": 0
+      }
+     ]
     },
     {
      "rule_id": "atnarko_bella_coola_rivers.r6",
@@ -799,13 +809,6 @@
      "unlimited": false,
      "period": "daily",
      "within": "atnarko_bella_coola_rivers.r5",
-     "lengths": [
-      {
-       "max_cm": 25,
-       "take": 0
-      }
-     ],
-     "under_cm": 25,
      "band": false,
      "record_retention": false,
      "when_targeting": [],
@@ -824,7 +827,8 @@
      "extent_text": "",
      "unresolved_locators": [],
      "needs_review": false,
-     "review_reason": ""
+     "review_reason": "",
+     "take": 1
     },
     {
      "rule_id": "atnarko_bella_coola_rivers.r7",

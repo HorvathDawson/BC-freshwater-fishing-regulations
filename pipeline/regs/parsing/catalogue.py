@@ -743,21 +743,17 @@ class CatalogueRule(BaseModel):
                 e.append("band needs both over_cm and under_cm")
             if self.over_cm and self.under_cm and self.under_cm >= self.over_cm:
                 e.append(f"under_cm {self.under_cm} >= over_cm {self.over_cm} is an impossible slot")
-            # TWO FIELDS THAT MUST AGREE ARE ONE FIELD AND A CHECK. `lengths` is the answer and
-            # the three old fields are on their way out, but the parser still writes them, so
-            # until a parse run emits `lengths` directly they both exist and this fails the
-            # build the moment they diverge. That is the whole reason the redundancy is safe.
-            # Only where the bounds are possible at all: deriving from a slot already known to
-            # be impossible raises out of LengthBand and buries the line above, which is the one
-            # naming the fields the curator actually wrote.
-            want = (None if (self.over_cm and self.under_cm and self.under_cm >= self.over_cm)
-                    else lengths_from_bounds(self))
-            if self.lengths is not None and want is not None and \
-                    [b.model_dump(exclude_none=True) for b in self.lengths] != \
-                    [b.model_dump(exclude_none=True) for b in want]:
-                e.append(f"lengths {[b.model_dump(exclude_none=True) for b in self.lengths]} "
-                         f"does not match over_cm/under_cm/band "
-                         f"{[b.model_dump(exclude_none=True) for b in want]}")
+            # `lengths` IS THE ANSWER, NOT A COPY OF THE OTHER THREE. It used to be checked
+            # for equality against over_cm/under_cm/band, which quietly made it subordinate to
+            # the fields it exists to replace: it could only ever say what THEY could say.
+            # "Wild cutthroat trout daily quota = 2 (none 40 cm or more)" is the case that
+            # proves it — 40 cm is on the forbidden side, `over_cm: 40` has no way to record
+            # that, and under the equality check the corrected value was rejected as a mismatch.
+            #
+            # So where `lengths` is written it WINS, and where it is absent it is derived
+            # (`_fill_lengths`). The other three are legacy the next parse run removes; until
+            # then a rule whose hand-written `lengths` differs from them is a CORRECTION, and
+            # the difference is the point.
         else:
             for f in ("take", "unlimited", "per_daily", "within", "band"):
                 if getattr(self, f) not in (None, False):

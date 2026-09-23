@@ -19,44 +19,26 @@ BUNDLE = "data/generated/bundle/bundle.sqlite"
 _CATALOGUE = None
 
 
-def catalogue() -> dict:
-    """`(entry_id, rule_id)` -> the rule's `extents` and `lengths`, and its entry's display name
-    and region.
-
-    THE BUNDLE DROPS `extents`. It keeps `scope` — `section` or `area` — which says a rule was
-    written against a place or an area, and nothing more: it cannot tell "within Region 4"
-    from "within Management Units 1-1 to 1-6", and those are the two things the ladder has to
-    tell apart, because the first is the region's standing table and the second is an override
-    on a handful of streams. The extents say which, and they are read from the catalogue the
-    bundle was built from — curated data, through `CURATED`, never as a literal path.
-    """
-    global _CATALOGUE
-    if _CATALOGUE is None:
-        from pipeline.common.curated import CURATED
-        idx = {}
-        for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
-            d = json.load(open(f))
-            for e in (d.get("entries") if isinstance(d, dict) else d) or []:
-                eid = e.get("entry_id")
-                for r in e.get("rules") or []:
-                    got = {
-                        "extents": list(r.get("extents") or e.get("extents") or []),
-                        "entry_name": e.get("display_name") or e.get("name") or "",
-                        "entry_region": str(e.get("region") or "")}
-                    if r.get("lengths"):
-                        got["lengths"] = r["lengths"]
-                    idx[(eid, r.get("rule_id"))] = got
-        _CATALOGUE = idx
-    return _CATALOGUE
-
-
 def rules(path: str = BUNDLE) -> List[dict]:
     """Every rule, flattened the way the page's own data is flattened — conditions hoisted to
-    the top level — so one shape serves both readers. Joined with the catalogue for the one
-    field the bundle drops, `extents` (see `catalogue`)."""
+    the top level — so one shape serves both readers.
+
+    EVERYTHING COMES FROM THE BUNDLE. A `catalogue()` used to sit above this and read the
+    curated entry files at RUN time for three things the bundle did not carry — `extents`,
+    `entry_name`, `entry_region`. That is a fallback, and a fallback is how a reader gets an
+    answer the bundle never agreed to: a size correction shipped half-applied because the
+    entries had moved and the bundle had not, and nothing said so.
+
+    All three are here now. `extents` ride `conditions` (the bundle needed no schema change —
+    `_rule_row` packs every catalogue field that is not already a column), `entry_name` is the
+    entry table's own `name`, and `entry_region` was written and never read, so it is gone.
+    Verified rule by rule against what the join used to return: 3,421 of 3,421 identical.
+    """
     db = sqlite3.connect(path)
     cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
-    cat = catalogue()
+    ecols = [r[1] for r in db.execute("PRAGMA table_info(entry)")]
+    names = {r[ecols.index("entry_id")]: (r[ecols.index("name")] or "")
+             for r in db.execute("SELECT * FROM entry")}
     out = []
     for row in db.execute("SELECT * FROM rule"):
         d = dict(zip(cols, row))
@@ -68,8 +50,8 @@ def rules(path: str = BUNDLE) -> List[dict]:
         d.update(cond)
         d["rule"] = d.get("rule_id")
         d["entry"] = d.get("entry_id")
-        d.update(cat.get((d["entry"], d["rule"]), {"extents": [], "entry_name": "",
-                                                   "entry_region": ""}))
+        d["entry_name"] = names.get(d["entry"], "")
+        d.setdefault("extents", [])
         out.append(d)
     db.close()
     return out

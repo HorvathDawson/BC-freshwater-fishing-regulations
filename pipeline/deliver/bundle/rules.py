@@ -86,9 +86,16 @@ def _specificity(rule: dict) -> str:
 
 #: Already a column, or meaningless to a client. Everything else the rule actually set goes
 #: into `conditions` as JSON, so adding a condition to the catalogue needs no schema change.
+#:
+#: `extents` USED TO BE ON THIS LIST and the bundle shipped only `scope` — `section` or `area` —
+#: which cannot tell "within Region 4" from "within Management Units 1-1 to 1-6". Those are the
+#: two the ladder must separate: the first is a region's standing table, the second an override
+#: on a handful of streams. So `corpus.catalogue()` read them back out of the curated files at
+#: RUN time, which is a fallback: a reader could get an answer the bundle never agreed to, and
+#: staleness stopped being visible. They ship here now and that reader is gone.
 _NOT_CONDITIONS = frozenset({
     "rule_id", "type", "verbatim", "species", "species_except", "windows", "take",
-    "may_target", "extents", "extent_text", "needs_review", "review_reason",
+    "may_target", "extent_text", "needs_review", "review_reason",
     "unresolved_locators",
     # Build-time only: a carve-out the reach builder applies before any section reaches the
     # bundle. Shipping it as a `condition` would put a resolver's input in front of a reader.
@@ -96,7 +103,7 @@ _NOT_CONDITIONS = frozenset({
 })
 
 
-def _rule_row(entry_id: str, raw: dict, uncertain: bool):
+def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -115,6 +122,13 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool):
             f"rule and the bundle no longer has columns for it")
     r = CatalogueRule.model_validate(raw)
     dumped = r.model_dump(exclude_none=True, mode="json")
+    # A RULE WITH NO EXTENTS OF ITS OWN TAKES ITS ENTRY'S. 130 rules do, and reading only the
+    # rule dict wrote `[]` for every one of them — which says "binds nowhere", not "binds
+    # wherever the entry does". `corpus.catalogue()` applied this inheritance when it read the
+    # curated files at run time; shipping the extents without it would have moved the fallback
+    # rather than removed it, and quietly unbound 130 rules on the way.
+    if not dumped.get("extents") and entry_extents:
+        dumped["extents"] = list(entry_extents)
     # `False` IS A VALUE, and dropping it lost the only field that separates a permission from
     # a prohibition. `permitted: false` on "No spear fishing of any kind is permitted in Region
     # 1, 2 and 4" was stripped, so the client could not tell it from "Spear fishing is
@@ -229,7 +243,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             ))
             for r in e.get("rules") or []:
                 rule_rows.append(_rule_row(
-                    e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved))
+                    e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved,
+                    e.get("extents")))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild

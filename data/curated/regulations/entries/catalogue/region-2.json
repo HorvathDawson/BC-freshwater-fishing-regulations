@@ -12781,11 +12781,11 @@
      "period": "daily",
      "lengths": [
       {
-       "max_cm": 40
-      },
-      {
        "min_cm": 40,
        "take": 0
+      },
+      {
+       "max_cm": 40
       }
      ],
      "over_cm": 40,
@@ -15476,7 +15476,7 @@
      "lengths": [
       {
        "min_cm": 40,
-       "take": 0
+       "take": 1
       }
      ],
      "over_cm": 40,
@@ -15496,7 +15496,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "take": 1
     }
    ]
   },
