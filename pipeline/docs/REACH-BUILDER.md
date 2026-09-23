@@ -128,7 +128,7 @@ Every one of these is small, and each is currently undecided. Counts from the li
 | 4 | **Zero sections after the entry-scope clip** — real answer, or curation error? | **3 rules** | The Peace case: the rule describes a reach outside its own row |
 | 5 | **Tributary rules** before the walk exists | **176 bounded + 554 total** | Emit direct sections + an explicit `tributaries_pending` marker, or withhold the rule entirely? |
 | 6 | `no_registry` entries | **95 rules** | No item, so nothing to bind. Needs the text-only path (㊶) |
-| 7 | `matched` entries with no extent | **12 rules** | ⚠️ **Do not default to `whole`.** All 12 are `needs_review`; 11 have `unresolved_locators`. They need curated splits authored |
+| 7 | `matched` entries with no extent | **12 rules** | ⚠️ **Do not default to `whole`.** All 12 carry a review flag (then `needs_review`; the catalogue says it with `review_reason`); 11 have `unresolved_locators`. They need curated splits authored |
 | 8 | Items with **zero sections** | **14 rules** | Graph-build fix; here they just need the reason `no_sections_for_items` |
 
 ---

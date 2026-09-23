@@ -252,7 +252,7 @@ def test_a_suspension_names_a_closure_in_this_entry():
     e = _entry([{**_SUSP, "suspended_while": [{"rule_id": "x.r1", "verbatim": note}]}])
     sib = {r.rule_id: r for r in e.rules}
     assert licensing_label(e.licensing[0], sib).endswith(
-        "dormant while “No fishing for steelhead” is in force")
+        " Not in force while “No fishing for steelhead” applies.")
     with pytest.raises(ValueError, match="not a closure"):
         _entry([{**_SUSP, "suspended_while": [{"rule_id": "x.r2", "verbatim": note}]}])
     with pytest.raises(ValueError, match="names no rule"):
@@ -352,9 +352,9 @@ def test_the_under_16_non_resident_is_both_kinds_of_visitor():
     r = _req(who={"age": ["under_16"], "residency": ["non_resident", "non_resident_alien"]},
              satisfied_by=path, verbatim=v)
     assert licensing_label(r) == (
-        "To fish: be accompanied by anglers 16 and over who hold the licences and stamps this "
-        "fishing requires (your catch counts toward your companion's limit) — for non-residents "
-        "or non-resident aliens under 16")
+        "Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or "
+        "over who holds the licences and stamps this fishing requires (any fish you keep count "
+        "toward your companion's limit).")
 
 
 # --------------------------------------------------------------------------- terms / others
@@ -578,3 +578,169 @@ def test_every_licensing_record_has_a_label(corpus):
         sib = {r.rule_id: r for r in e.rules}
         for x in e.licensing:
             assert licensing_label(x, sib).strip(), (e.entry_id, x.id)
+
+
+# =========================================================================== stage B: the gaps
+
+def test_a_stamp_period_may_not_be_empty():
+    """An empty `When` is ALL YEAR, so an empty stamp period put the stamp on the water every day
+    — while the page printed a window, or printed that it could not say which."""
+    with pytest.raises(ValueError, match="reads as all year"):
+        _desig(steelhead_stamp_during={"when": {}, "verbatim":
+                                       "Steelhead Stamp mandatory Dec 1-Apr 30"})
+    # a period the page does not give is `unparsed`, which is not empty
+    assert _desig(steelhead_stamp_during={
+        "when": {"unparsed": ["from reopening to steelhead fishing"]},
+        "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"})
+
+
+def test_covers_every_unit_is_not_about_some_units():
+    with pytest.raises(ValueError, match="every_unit names units"):
+        LicenceTerms(id="t", document="classified_waters_licence", covers="every_unit",
+                     units=["michel_creek"], verbatim="permits angling in all classified waters")
+    assert LicenceTerms(id="t", document="classified_waters_licence", covers="every_unit",
+                        verbatim="permits angling in all classified waters")
+
+
+def test_an_annual_licence_is_sold_for_the_year():
+    """"one ANNUAL angling licence per licence year" without `sold` counted every basic licence —
+    and a visitor may buy as many one-day licences as they like."""
+    v = "You are only permitted one annual angling licence per licence year."
+    with pytest.raises(ValueError, match="annual licence"):
+        LicenceTerms(id="t", document="basic_licence", max_per_licence_year=1, verbatim=v)
+    t = LicenceTerms(id="t", document="basic_licence", max_per_licence_year=1,
+                     sold="per_licence_year", verbatim=v)
+    assert licensing_label(t) == ("Annual basic angling licence: at most 1 licence per licence "
+                                  "year.")
+    # "an annual limited entry draw" is not an annual licence
+    assert LicenceTerms(id="t", document="classified_waters_licence", allocation="draw",
+                        verbatim="must enter an annual limited entry draw held each spring")
+
+
+_INDIAN = ("If you are an Indian and a resident of B.C., you are not required to obtain any type "
+           "of fishing licence or stamp to sport fish in non-tidal waters.")
+
+
+def test_an_exemption_is_checked_against_its_sentence():
+    """The one record that REMOVES an obligation: a `who` wider than the sentence releases
+    anglers the book never released, and a short document list keeps charging the ones it did."""
+    ok = Exemption(id="e", who={"status": ["indian_bc_resident"]},
+                   documents=list(PROVINCIAL_ANGLER_DOCUMENTS), verbatim=_INDIAN)
+    assert ok
+    with pytest.raises(ValueError, match="who.status"):
+        Exemption(id="e", who={"status": ["metis"]},
+                  documents=list(PROVINCIAL_ANGLER_DOCUMENTS), verbatim=_INDIAN)
+    with pytest.raises(ValueError, match="who.residency"):
+        Exemption(id="e", who={"status": ["indian_bc_resident"],
+                               "residency": ["resident", "non_resident"]},
+                  documents=list(PROVINCIAL_ANGLER_DOCUMENTS), verbatim=_INDIAN)
+    with pytest.raises(ValueError, match="ANY licence or stamp"):
+        Exemption(id="e", who={"status": ["indian_bc_resident"]},
+                  documents=["basic_licence"], verbatim=_INDIAN)
+    with pytest.raises(ValueError, match="who.guidance"):
+        Exemption(id="e", who={"status": ["indian_bc_resident"], "guidance": ["guided"]},
+                  documents=list(PROVINCIAL_ANGLER_DOCUMENTS), verbatim=_INDIAN)
+
+
+def test_an_alternative_is_never_the_whole_province():
+    with pytest.raises(ValueError, match="whole province"):
+        Alternative(id="a", alternative_to={"entry_id": "zp:basic_licence", "id": "basic_licence"},
+                    satisfied_by=[{"hold": ["yukon_angling_licence"]}],
+                    extents=[{"op": "within", "area_kind": "region"}], verbatim="x")
+
+
+def test_an_alternative_on_a_row_that_is_no_water_names_its_place():
+    """On `zp:basic_licence` a `whole` has no water to be the whole OF."""
+    v = "B.C. and Yukon angling licences are valid on all parts of Morley Lake"
+    alt = {"kind": "alternative", "id": "yukon", "verbatim": v,
+           "alternative_to": {"entry_id": "zp:basic_licence", "id": "basic_licence"},
+           "satisfied_by": [{"hold": ["yukon_angling_licence"]}]}
+    base = {"entry_id": "zp:basic_licence", "name": "Basic licence", "regs_verbatim": v}
+    with pytest.raises(ValueError, match="name no place"):
+        CatalogueEntry(**base, licensing=[{**alt, "extents": [{"op": "whole"}]}])
+    assert CatalogueEntry(**base, licensing=[
+        {**alt, "extents": [{"op": "whole", "item_id": "gnis:1"}]}])
+    # a WATER row may say `whole` — it is the whole of that water
+    assert CatalogueEntry(**base | {"entry_id": "r6:morley_lake@6-25", "matched": ["gnis:1"]},
+                          licensing=[{**alt, "extents": [{"op": "whole"}]}])
+
+
+@pytest.mark.parametrize("kind", ["designation", "requirement", "not_classified", "alternative"])
+def test_includes_tributaries_inside_an_extent_is_refused(kind):
+    """The reach builder reads the flag on the RECORD, never on an extent — "the Fraser River
+    Watershed (including tributaries)" written that way bound the mainstem alone."""
+    ex = [{"op": "whole", "includes_tributaries": True}]
+    with pytest.raises(ValueError, match="does not read on an extent"):
+        if kind == "designation":
+            _desig(extents=ex)
+        elif kind == "requirement":
+            _req(extents=ex)
+        elif kind == "not_classified":
+            NotClassified(id="n", extents=ex, verbatim="not a Classified Water")
+        else:
+            Alternative(id="a", alternative_to={"entry_id": "e", "id": "r"},
+                        satisfied_by=[{"hold": ["yukon_angling_licence"]}], extents=ex,
+                        verbatim="x")
+
+
+# --------------------------------------------------------------------------- labels, read back
+
+def _labels(corpus):
+    """Every label as the BUNDLE writes it: with the corpus's unit names and cross-references."""
+    units = {x.unit: x.unit_name for e in corpus.values() for x in e.licensing
+             if isinstance(x, Designation)}
+    refs = {(e.entry_id, x.id): x for e in corpus.values() for x in e.licensing}
+    return {(e.entry_id, x.id): licensing_label(x, {r.rule_id: r for r in e.rules}, units=units,
+                                                refs=refs)
+            for e in corpus.values() for x in e.licensing}
+
+
+def test_the_salmon_stamp_keeps_not_kokanee(corpus):
+    """The book: "a salmon of any legal size or species (other than kokanee)". The group already
+    leaves kokanee out; the label must say so rather than read as every salmon."""
+    got = _labels(corpus)[("zp:salmon_stamp", "salmon_stamp")]
+    assert got == ("Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep "
+                   "salmon (not kokanee).")
+
+
+def test_the_one_per_year_basic_licence_is_the_annual_one(corpus):
+    assert _labels(corpus)[("zp:licence_administration", "basic_one_per_year")] == \
+        "Annual basic angling licence: at most 1 licence per licence year."
+
+
+def test_an_alternative_names_the_licence_it_stands_in_for(corpus):
+    got = _labels(corpus)[("r6:morley_lake@6-25", "yukon_licence")]
+    assert got == ("A Yukon angling licence is also accepted here, in place of a basic angling "
+                   "licence.")
+    assert "zp:" not in got and "#" not in got
+
+
+def test_terms_name_licence_units_as_printed_never_as_slugs(corpus):
+    labels = _labels(corpus)
+    got = labels[("z5:dean_river_classified", "dean_class_i_main_draw")]
+    assert got == ("Class I Classified Waters Licence for non-guided non-resident aliens (Dean "
+                   "River Class I - Main Section): by annual limited-entry draw.")
+    slugs = {x.unit for e in corpus.values() for x in e.licensing if isinstance(x, Designation)}
+    slugs |= {u for e in corpus.values() for x in e.licensing if isinstance(x, LicenceTerms)
+              for u in x.units}
+    leaked = [(k, s) for k, v in labels.items() for s in slugs if "_" in s and s in v]
+    assert not leaked, leaked
+
+
+def test_every_licensing_label_is_a_sentence(corpus):
+    """Starts with a capital, ends with a full stop, and carries no id, slug or enum spelling."""
+    bad = [(k, v) for k, v in _labels(corpus).items()
+           if not v[:1].isupper() or not v.endswith(".")
+           or re.search(r"\b[a-z]+_[a-z_]+\b|[a-z0-9]+:[a-z_]|#", v)]
+    assert not bad, bad[:5]
+
+
+def test_a_designation_label_reads_as_sentences(corpus):
+    labels = _labels(corpus)
+    skeena = "r6:skeena_river_mainstem_only@6-10"
+    assert labels[(skeena, "skeena_river_2")] == (
+        "Class II Classified Water, Jul 1-Sep 30 (licence unit: Skeena River 2). Steelhead Stamp "
+        "not required here unless you fish for steelhead.")
+    assert labels[(skeena, "skeena_river_section_4")] == (
+        "Class II Classified Water, Jul 1-Dec 31 (licence unit: Skeena River Section 4). "
+        "Steelhead Stamp required whatever you fish for, Jul 1-Dec 31.")

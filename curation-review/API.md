@@ -4,30 +4,31 @@ Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. St
 `bash curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
 out of parsing credits.
 
-**Write model:** `pipeline/regs/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator
-decisions are written straight back to them; the old separate `reviewed/` overlay has been merged in
-and retired.
+**Write model:** `data/curated/regulations/entries/catalogue/region-*.json` are the SINGLE SOURCE OF
+TRUTH. Curator edits are written straight back to them through `pipeline.regs.parsing.io.write_entryfile`
+(see `README.md`). There is no confirm/lock: a catalogue entry has no such field.
 
 ---
 
 ## Queue
 
 ### GET /api/regions
-→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"needs_review":35,"unused_splits":5,"unreviewed":168,"confirmed":0} }]`
+→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"needs_review":35,"unused_splits":5,"unreviewed":168,"zone":0} }]`
 
 ### GET /api/entries?region=&status=
-Both query params optional. `status` ∈ `no_registry | needs_review | unused_splits | unreviewed | confirmed`.
+Both query params optional. `status` ∈ `no_registry | needs_review | unused_splits | unreviewed | zone`.
+`no_registry` = a water row whose `matched` is empty; `needs_review` = a rule carries a `review_reason`
+or `unresolved_locators`.
 Rows are pre-sorted (attention first).
 ```json
-{ "entry_id":"gnis:8634", "region":"2", "name":"CHILLIWACK / VEDDER RIVERS", "mus":["2-2"],
-  "status":"unreviewed", "locked":false, "revisit":false, "reference_only":false,
-  "registry_status":"matched", "n_rules":6,
+{ "entry_id":"r2:chilliwack_vedder_rivers@2-2", "region":"2", "name":"CHILLIWACK / VEDDER RIVERS",
+  "mus":["2-2"], "status":"unreviewed", "kind":"water", "n_rules":6,
   "matched_item_id":"gnis:8634", "matched_item_name":"Chilliwack River",
   "also_item_ids":["gnis:3062","wbk:329707189"], "unused_curated_splits":0 }
 ```
 `also_item_ids` — a combined override's OTHER registry items. One synopsis row can regulate several
 waters (Chilliwack + Vedder River + Vedder Canal; the Fraser plus twelve side channels), and the entry
-covers all of them. `reference_only` marks a "See X" pointer row that carries no regulations itself.
+covers all of them.
 
 ---
 
@@ -36,7 +37,8 @@ covers all of them. `reference_only` marks a "See X" pointer row that carries no
 ### GET /api/entries/{entry_id}
 ```json
 {
-  "entry": { ...full Entry — see pipeline/regs/parsing/entry_models.py... },
+  "entry": { ...a CatalogueEntry — see pipeline/regs/parsing/catalogue.py; each rule also carries
+             its generated `label`, which is not stored and is dropped again on save... },
   "region": "2",
   "match": { "item_id":"gnis:8634", "status":"matched|override|skip|ambiguous|no_registry|feature_pin",
              "reason":"", "candidates":[], "also":["gnis:3062","wbk:329707189"] },
@@ -48,41 +50,33 @@ covers all of them. `reference_only` marks a "See X" pointer row that carries no
                              "meta":{"anchor_type":"point","route_measure":11988.68,"blk":"380887781"},
                              "in_graph":true, "in_splits":true, "live":{...} } ] },
   "also_items": [ {"id":"gnis:3062","name":"Vedder River","kind":"stream"} ],
-  "related_entries": [ {"entry_id":"wbk:329707189","region":"2","name":"VEDDER RIVER","locked":false,
+  "related_entries": [ {"entry_id":"r2:vedder_river@2-2","region":"2","name":"VEDDER RIVER",
                         "n_rules":1,"pointer":true,"shared_items":[{"id":"gnis:3062","name":"Vedder River"}]} ],
   "unused_curated_splits": [ {"id":"foo_falls","label":"Foo Falls","anchor_type":"confluence"} ],
-  "source_image": "row_00123.png"   // now read from entry.source.row_image when present
+  "source_image": "row_00123.png"   // matched from the synopsis rows by regs_verbatim
 }
 ```
 `item.boundaries` is the **union over the item AND `also_items`**, each tagged with its owning
 `item_id`, so a combined entry can bind a cut on any water it covers. `related_entries` are other
 synopsis rows over the same water — the synopsis splits one regulation across several rows, and
-reviewing one without the other is how a half-linked entry gets confirmed.
+reviewing one without the other is how a half-linked entry gets signed off.
 
-**Rule shape** (inside `entry.rules[]`):
-`rule_id, restriction_type, details, extents[{op,splits[],item_id?,area_id?}], dates[],
-includes_tributaries, tributaries_only, tributary_excludes[{op,splits[],item_id?}], sections_override?,
-needs_review, review_reason, rule_text, location_text, exception, display_location,
-unresolved_locators[], exempts_from[], species[]`
+**Rule shape** (inside `entry.rules[]`): a `CatalogueRule` — `pipeline/regs/parsing/catalogue.py` is
+the definition, and `pipeline/docs/18-how-regulations-are-stored.md` explains it. The fields the
+editor works with: `rule_id`, `type`, `verbatim`, `species`, `extents[{op,splits[],item_id?,item_ids?,
+area_id?,within_area?}]`, `includes_tributaries`, `tributaries_only`, `tributary_excludes[…]`,
+`exempts[…]`, `when`, `review_reason`, `unresolved_locators[]`, `extent_text`.
 
 - **`Extent.op`** ∈ `whole | upstream_of | downstream_of | between | within`; `splits` are boundary
   **ids** from `item.boundaries`. `Extent.item_id` scopes the extent to ONE covered item — required on
   a combined entry when a rule applies to only one of its waters.
-- **`exempts_from`** — normalized ids of the DEFAULT restrictions this rule lifts. A regional closure
-  applies unless a water is exempted from it, so "is this river open?" cannot be answered from the
-  closure rules alone; the exemption has to be machine-readable. Vocabulary: `spring_closure`,
-  `summer_closure`, `trout_char_release`, `bull_trout_release`, `bait_ban`, `single_barbless_hook`,
-  `kokanee_stream_quota`.
-- **`tributary_excludes`** — per-rule tributary carve-outs, same shape as `entry.tributaries.excludes`.
+- **`tributary_excludes`** — per-rule tributary carve-outs, extents of the same shape.
 
-### PUT /api/entries/{entry_id}   (save an edit, no lock)
-Body: `{ "region":"2", "entry": {...full Entry...} }`
+### PUT /api/entries/{entry_id}   (save an edit)
+Body: `{ "region":"2", "entry": {...the entry as served...} }`
 → `200 {"ok":true,"errors":[]}` · `422 {detail:[...errors...]}` when the entry fails validation
-(Entry schema, plus every split id must exist in the boundaries of the item its extent is scoped to).
-
-### POST /api/entries/{entry_id}/confirm   (confirm = lock + stamp)
-Body: `{ "region":"2", "entry": {...}, "reviewed_by":"dawson" }`
-→ same as PUT, and sets `locked:true`, `reviewed_by`, `reviewed_at` (server timestamp).
+(the `CatalogueEntry` schema — an unknown field is refused, not dropped — plus every split id must
+exist in the boundaries of the item its extent is scoped to), or is not already in that region file.
 
 ### GET /api/entries/{entry_id}/reaches
 What each rule actually selects on the map — the answer to "show me what this rule covers".
@@ -230,7 +224,7 @@ Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`.
 → `{ok, errors}` · 404 if absent.
 
 ### GET /api/splits/{split_id}/refs
-→ `[{entry_id, region, rule_id, details, entry_name}]` — the rules binding this split. The impact
+→ `[{entry_id, region, rule_id, label, entry_name}]` — the rules binding this split. The impact
 preview before a rename.
 
 ### POST /api/splits/{split_id}/rename
@@ -262,5 +256,5 @@ in order, for the progress bar. Poll while `running`.
 - **Highlight unused curated splits** (`unused_curated_splits[]`) — a curated cut no rule used.
 - **Show reach** per rule, with the straddling / ambiguous-cut warnings surfaced.
 - **Related entries** — jump to the other synopsis rows over the same water.
-- **Confirm** (POST /confirm), **Save edit** (PUT), and the **attach-item** flow for `no_registry`.
+- **Save edit** (PUT), and the **attach-item** flow for `no_registry`.
 - Queue filterable by region + status, attention-first (already sorted by the API).

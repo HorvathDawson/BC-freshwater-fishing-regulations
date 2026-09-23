@@ -9,7 +9,7 @@ A PRECONDITION is the answer to two questions:
             area-scoped, and an area-scoped rule CANNOT ENTER A REGION'S BASE by construction —
             that is what stops one river's regulation binding a whole region.
     WHEN    a day. A season is not a note beside a number; it is the number. Selection does not
-            apply it: the rules carry their own `windows`, and whatever settles them decides.
+            apply it: the rules carry their own `when`, and whatever settles them decides.
 
 NOTHING HERE SETTLES ANYTHING. There used to be a `build(rules, kind, here, label) -> Table`
 below, and the pair was the whole arrangement: selection knew the corpus, construction knew

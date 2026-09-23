@@ -24,9 +24,7 @@ in-season) versioned apart from the bundle, bathymetry, and ordered steps with a
 | **[REACH-BUILDER](REACH-BUILDER.md)** | **Structure sketch of the next thing to build** |
 | [RESOLVER-HANDOFF](RESOLVER-HANDOFF.md) | Everything found about `resolve_extent`, for whoever is in it |
 | [12-testing](12-testing.md) | Test strategy, spikes S1–S4, sanity gates |
-| [14-waterbody-split-curation](14-waterbody-split-curation.md) | Curating splits |
 | [15-live-data-flow](15-live-data-flow.md) | Gauges + stocking: bundle vs feed, who computes the percentile |
-| [DESIGN-regs-to-sections](DESIGN-regs-to-sections.md) | Long-form design of regs → sections |
 | **[06-ui-data-contract](06-ui-data-contract.md)** | **What crosses into the client, and what it is never asked to work out** |
 | [05-table-generation](05-table-generation.md) | How a table was built from rules — **the code is removed; this is the reference to rebuild from** |
 
@@ -35,9 +33,7 @@ so existing links still resolve.
 
 ## Working files, not design docs
 
-`waterbody-splits.json` · `waterbody-splits.md` · `waterbody-splits-regs.md` ·
-`curation-review-queue.md` — read by `pipeline/hack/` scripts.
-`SESSION-HANDOFF.md` — referenced by `curation-review/README.md`.
+`curation-review-queue.md` — a curation work list.
 
 ## `archive/`
 
@@ -50,12 +46,18 @@ defects and next steps — all of the code it hands over is gone), `DUPLICATION.
 the `regs-v3` prototype, which is now a design reference rather than a running page) and
 `optimize-web-bundle.md` (a scratch note about the deployed site's JS bundle).
 
+Added 2026-09-23, when the prose parse format was cleaned out: `DESIGN-regs-to-sections.md` (the
+long-form regs → sections design, written against the prose `Entry`), `14-waterbody-split-curation.md`
+and its data `waterbody-splits.json` (the split-curation flow over prose rules; the JSON is kept as the
+provenance of the curated splits), `SESSION-HANDOFF.md`, and `curation-review-BUILD-PLAN.md` (the
+review app's original build plan, around a confirm/lock the catalogue does not have).
+
 ## Where the work is
 
 ```
 splits ─▶ graph+registry ─▶ parse (HUMAN) ─▶ curation review ─▶ bundle ─▶ clients
-  391          19,722            1,392           108 of 1,392      ❌        ❌
- splits     49,639 sections     entries         confirmed        (doc 10)  (doc 10)
+  391          19,722            1,392          (no sign-off       ❌        ❌
+ splits     49,639 sections     entries          state is kept)  (doc 10)  (doc 10)
 ```
 
 ⛔ **Parser runs spend credits and are human-only** — see the root `CLAUDE.md`.

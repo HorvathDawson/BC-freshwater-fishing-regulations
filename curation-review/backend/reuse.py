@@ -2,14 +2,15 @@
 
 - Matching an entry -> registry item is done by `pipeline.regs.matching.matcher` (the exact matcher the
   pipeline uses), so the review tool resolves geometry/boundaries the same way the build does.
-- Validation on save is `pipeline.regs.parsing.catalogue.CatalogueEntry` + a split-id check.
-- "Unused curated splits" reuses `entry_models.unused_splits`, restricted to curated (`ref="split:*"`)
-  boundaries so lake/outlet/headwaters auto-boundaries don't count.
+- Validation on save is `pipeline.regs.parsing.catalogue.CatalogueEntry` + a split-id check, and the
+  write is `pipeline.regs.parsing.io.write_entryfile`, which validates the whole file as written.
+- "Unused curated splits" counts curated (`ref="split:*"`) boundaries no extent binds, so
+  lake/outlet/headwaters auto-boundaries don't count.
 
-Write model: `pipeline/regs/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator decisions
-are written straight back to them (the old separate reviewed/ overlay has been merged in and retired).
-A parser re-run preserves `locked` entries and, with --skip-existing, skips entries already present —
-so curator edits are safe as long as re-parses stay targeted.
+Write model: `data/curated/regulations/entries/catalogue/region-*.json` are the SINGLE SOURCE OF TRUTH.
+Curator decisions are written straight back to them. There is no lock: a catalogue entry has no such
+field. A re-parse (`run_parse.sh repass`) will not overwrite an entry edited here — ingest keeps any
+entry whose file copy differs from the one it last wrote, and reports it.
 """
 
 from __future__ import annotations
@@ -18,7 +19,6 @@ import json
 import math
 import os
 import tempfile
-from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -126,16 +126,11 @@ def invalidate_caches() -> None:
 
 
 def _ident(e: dict) -> dict:
-    """{name, region, mus} for an entry, from EITHER shape.
+    """{name, region, mus} for a catalogue entry.
 
     A catalogue entry is flat — `name` and `region` at the top, and the MUs the synopsis row was
     printed under encoded in `entry_id` after the `@` (that is what makes the id stable when
-    matching moves). The retired prose entry nested all three under `identity`. The DFO corpus is
-    still on the old shape, so both are read here rather than in nine call sites."""
-    ident = e.get("identity")
-    if isinstance(ident, dict) and ident.get("name"):
-        return {"name": ident.get("name", ""), "region": ident.get("region", ""),
-                "mus": list(ident.get("mus", []))}
+    matching moves). The app reads the catalogue region files only."""
     eid = str(e.get("entry_id", ""))
     mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
     return {"name": e.get("name", ""), "region": str(e.get("region", "")), "mus": mus}
@@ -151,20 +146,20 @@ def match_identity(name: str, region: str, mus: list[str]) -> MatchResult:
 
 
 # --------------------------------------------------------------------------- #
-# Entry loading + reviewed overlay
+# Entry loading
 # --------------------------------------------------------------------------- #
 
 _read_entryfile = io.read_entryfile                      # shared helper (io is the single home)
 
 
 def regions() -> list[str]:
-    """Region ids that have a parser EntryFile (e.g. ['1','2',...])."""
+    """Region ids that have a catalogue region file (e.g. ['1','2',...])."""
     return io.region_ids(ENTRIES_DIR)
 
 
 def load_region(region: str) -> dict[str, dict]:
-    """Entries for a region. EntryFiles are the SINGLE SOURCE OF TRUTH — curator edits are written back
-    here (the old reviewed/ overlay was merged in), so no overlay to apply."""
+    """Entries for a region. The region files are the SINGLE SOURCE OF TRUTH — curator edits are written back
+    here."""
     return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json")
 
 
@@ -220,7 +215,9 @@ def entry_source_image(e: dict) -> str | None:
 # --------------------------------------------------------------------------- #
 
 def _rule_needs_review(e: dict) -> bool:
-    return any(r.get("needs_review") or r.get("unresolved_locators") for r in e.get("rules", []))
+    """A rule needs review when it carries a `review_reason` — a reason present IS the flag."""
+    return any(r.get("review_reason") or r.get("unresolved_locators")
+               for r in e.get("rules", []))
 
 
 def _match_and_item(e: dict):
@@ -687,8 +684,7 @@ def _referenced_item_ids(entry_dict: dict) -> set[str]:
                 ids.add(ex["item_id"])
             ids.update(ex.get("item_ids") or ())
 
-    _scan(entry_dict.get("scope"))
-    _scan((entry_dict.get("tributaries") or {}).get("excludes"))
+    _scan(entry_dict.get("extents"))
     for r in entry_dict.get("rules") or []:
         _scan(r.get("extents"))
         _scan(r.get("tributary_excludes"))
@@ -725,7 +721,6 @@ def related_entries(entry_id: str) -> list[dict]:
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
             "name": _ident(e)["name"],
-            "locked": bool(e.get("locked")),
             "n_rules": len(e.get("rules", [])),
             # a pointer row ("See Chilliwack River") is the common case worth calling out
             "pointer": e.get("regs_verbatim", "").strip().lower().startswith("see "),
@@ -753,13 +748,11 @@ def entry_kind(e: dict) -> str:
 
 def entry_status(e: dict, item: dict | None) -> str:
     """One coarse status for the queue ordering/badge."""
-    if e.get("locked"):
-        return "confirmed"
     # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
     # the definition of it. Saying otherwise put 117 correct entries at the top of the queue.
     if entry_kind(e) == "zone":
         return "needs_review" if _rule_needs_review(e) else "zone"
-    if e.get("registry_status") == "no_registry":
+    if not e.get("matched"):                     # a water row the matcher bound to no item
         return "no_registry"
     if _rule_needs_review(e):
         return "needs_review"
@@ -769,7 +762,7 @@ def entry_status(e: dict, item: dict | None) -> str:
 
 
 _STATUS_ORDER = {"no_registry": 0, "needs_review": 1, "unused_splits": 2, "unreviewed": 3,
-                 "zone": 4, "confirmed": 5}
+                 "zone": 4}
 
 
 #: Zone first. A regional rule binds to EVERY stream in its region — one of them is 160,000
@@ -804,10 +797,6 @@ def queue(region: str | None = None, status: str | None = None,
             "mus": _ident(e)["mus"],
             "status": st,
             "kind": entry_kind(e),        # zone (regional/provincial) | water (a table row)
-            "locked": bool(e.get("locked")),
-            "revisit": bool(e.get("revisit")),
-            "reference_only": bool(e.get("reference_only")),   # "See X" pointer row, no regs of its own
-            "registry_status": e.get("registry_status", "matched"),
             "n_rules": len(e.get("rules", [])),
             "matched_item_id": item.id if item else None,
             "matched_item_name": item.name if item else None,
@@ -880,7 +869,7 @@ def search_items(q: str, limit: int = 20) -> list[dict]:
 
 
 # --------------------------------------------------------------------------- #
-# Save (validated) to the reviewed overlay
+# Save (validated) to the catalogue region files
 # --------------------------------------------------------------------------- #
 
 def _rep_point(geom: dict | None) -> list[float] | None:
@@ -966,8 +955,7 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
         carve_rows, blocked = resolve_carve_outs(entry, rule, reg, graph, covered)
         for row in carve_rows:                  # the UI wants counts, not 3,000 ids
             row["n_sections"] = len(row.pop("sections"))
-    n_authored = len(((entry.get("tributaries") or {}).get("excludes") or [])
-                     + (rule.get("tributary_excludes") or []))
+    n_authored = len(rule.get("tributary_excludes") or [])
 
     # Geometry for everything the item layer does NOT already carry, plus the exclusions.
     own: set[str] = set()
@@ -1380,7 +1368,7 @@ def delete_split(split_id: str) -> dict:
 
 
 def split_refs(split_id: str) -> list[dict]:
-    """Every rule whose extents bind this split id (across parser entries + reviewed overlay). This is
+    """Every rule whose extents bind this split id (across the catalogue region files). This is
     the IMPACT PREVIEW for a rename — the exact scope of rules that will be rewritten."""
     out: list[dict] = []
     for region in regions():
@@ -1388,13 +1376,14 @@ def split_refs(split_id: str) -> list[dict]:
             for r in e.get("rules", []):
                 if any(split_id in (ex.get("splits") or []) for ex in r.get("extents", [])):
                     out.append({"entry_id": eid, "region": region, "rule_id": r["rule_id"],
-                                "details": _label(r), "entry_name": e.get("name", "")})
+                                "label": _label(r), "entry_name": e.get("name", "")})
     return out
 
 
 def rename_split(old_id: str, new_id: str) -> dict:
-    """Rename a split id in splits.json AND rewrite every rule extent that binds it (to the reviewed
-    overlay). Union validation means the new id is bindable immediately; a rebuild reconciles the graph."""
+    """Rename a split id in splits.json AND rewrite every rule extent that binds it (in the catalogue
+    region files). Union validation means the new id is bindable immediately; a rebuild reconciles
+    the graph."""
     import re as _re
     new_id = (new_id or "").strip()
     if not _re.fullmatch(r"[a-z0-9_]+", new_id):
@@ -1413,7 +1402,7 @@ def rename_split(old_id: str, new_id: str) -> dict:
         return {"ok": False, "errors": [f"split '{old_id}' not found in splits.json"]}
     _write_splits(data)
 
-    # cascade: rewrite rules that bind old_id -> new_id, save each affected entry to the overlay
+    # cascade: rewrite rules that bind old_id -> new_id, and save each affected entry
     updated: list[dict] = []
     failed: list[dict] = []
     for ref in split_refs(old_id):
@@ -1425,7 +1414,7 @@ def rename_split(old_id: str, new_id: str) -> dict:
             for ex in r.get("extents", []):
                 if old_id in (ex.get("splits") or []):
                     ex["splits"] = [new_id if s == old_id else s for s in ex["splits"]]
-        res = save_entry(region, e, lock=False)
+        res = save_entry(region, e)
         (updated if res["ok"] else failed).append({**ref, **({} if res["ok"] else {"error": res["errors"]})})
     return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": updated, "failed_rules": failed}
 
@@ -1476,16 +1465,23 @@ def _check_splits(entry_dict: dict, allowed: set[str]) -> list[str]:
 _atomic_write = io.atomic_write                          # shared helper (io is the single home)
 
 
-def save_entry(region: str, entry_dict: dict, *, lock: bool = False, reviewed_by: str = "") -> dict:
-    """Validate an edited entry (Entry model + split-id check against its matched item's boundaries) and
-    write it back to the region EntryFile (the single source of truth). Returns {ok, errors}. On lock,
-    stamp reviewed_by/reviewed_at. A future parser re-run preserves locked entries; keep non-locked
-    curator edits safe by only re-parsing with --skip-existing (which skips entries already present)."""
+#: Fields `entry_detail` STAMPS on what it serves, which are not stored: each rule's generated
+#: `label`. The frontend sends the entry back as it received it, so these — and only these — are
+#: removed before validation. Anything else the model does not know is refused.
+_SERVED_ONLY_RULE_FIELDS = ("label",)
+
+
+def save_entry(region: str, entry_dict: dict) -> dict:
+    """Validate an edited entry (the catalogue model + a split-id check against its matched item's
+    boundaries) and write it back to its region file, the single source of truth. Returns
+    {ok, errors}.
+
+    The write is `io.write_entryfile`: every other entry in the file is written back exactly as it
+    was read, and the whole file is validated as written. There is no confirm/lock — a catalogue
+    entry has no such field; a re-parse leaves an entry edited here alone (see the module doc)."""
     data = dict(entry_dict)
-    if lock:
-        data["locked"] = True
-        data["reviewed_by"] = reviewed_by or data.get("reviewed_by", "") or "curator"
-        data["reviewed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    data["rules"] = [{k: v for k, v in r.items() if k not in _SERVED_ONLY_RULE_FIELDS}
+                     for r in (data.get("rules") or [])]
     try:
         entry = _to_entry(data)
     except Exception as ex:  # noqa: BLE001
@@ -1501,7 +1497,13 @@ def save_entry(region: str, entry_dict: dict, *, lock: bool = False, reviewed_by
         return {"ok": False, "errors": errs}
 
     path = ENTRIES_DIR / f"region-{region}.json"
-    existing = io.read_entryfile(path)
-    existing[entry.entry_id] = json.loads(entry.model_dump_json())
-    io.write_catalogue_entryfile(path, region, existing.values())   # atomic, via the model
+    existing: dict[str, object] = dict(io.read_entryfile(path))
+    if entry.entry_id not in existing:
+        return {"ok": False, "errors": [f"{entry.entry_id} is not in {path.name} — the app edits "
+                                        f"entries, it does not create or move them"]}
+    existing[entry.entry_id] = entry
+    try:
+        io.write_entryfile(path, region, existing.values())
+    except Exception as ex:  # noqa: BLE001
+        return {"ok": False, "errors": [f"file: {ex}"]}
     return {"ok": True, "errors": []}

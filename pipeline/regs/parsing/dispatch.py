@@ -26,7 +26,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing import io as _io
 from pipeline.common.curated import REPO_ROOT
 
 
@@ -107,13 +106,17 @@ def _dispatch_reviews(batches_dir: Path, responses_dir: Path, reviews_dir: Path,
             if _is_credit_error(f"{proc.stderr}\n{proc.stdout}"):
                 raise CreditExhausted(f"credit/usage limit hit reviewing batch {bid:03d}")
             return bid, f"CLI failed: {proc.stderr[:200]}"
-        # Normalize + stamp provenance (model, time) so ingest can persist a durable review record.
+        # A reply that is not a verdict is a FAILED review, recorded as one. It used to be
+        # normalised to `{verdict: "", issues: []}`, which every reader took for a clean pass.
         obj = _extract_json_obj(proc.stdout)
-        obj.setdefault("verdict", "")
-        obj.setdefault("issues", [])
+        if obj.get("verdict") not in ("pass", "changes_requested") \
+                or not isinstance(obj.get("issues", []), list):
+            obj = {"error": io.REVIEW_FAILED, "raw": proc.stdout[:4000]}
         obj["model"] = review_model
         obj["reviewed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         out_path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+        if obj.get("error"):
+            return bid, f"✗ REVIEW FAILED (unreadable reply) -> {out_path.name}; rerun with --rereview"
         return bid, f"reviewed -> {out_path.name}"
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
@@ -156,26 +159,9 @@ def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir:
 _extract_json_obj = io.extract_json_obj                  # CLI envelope + fences -> {verdict, issues} (io)
 
 
-def _flagged_batch_ids(manifest: dict, reviews_dir: Path,
-                       severities=("high", "medium")) -> list[int]:
-    """Batch ids the reviewer flagged at one of `severities` — the semantic net's escalation signal
-    (a confident-looking parse the reviewer believes is wrong). Low-severity nits are not escalated."""
-    sev = set(severities)
-    flagged_idx: set[int] = set()
-    for b in manifest["batches"]:
-        rp = reviews_dir / f"batch_{b['id']:03d}.review.json"
-        if not rp.exists():
-            continue
-        obj = _extract_json_obj(rp.read_text(encoding="utf-8"))
-        for iss in obj.get("issues", []):
-            if iss.get("severity") in sev and iss.get("index") is not None:
-                flagged_idx.add(iss["index"])
-    return sorted({b["id"] for b in manifest["batches"] if set(b["indices"]) & flagged_idx})
-
-
 def _covered_batch_ids(manifest: dict, batches_dir: Path, entries_dir: Path) -> set[int]:
-    """Batch ids every one of whose rows is ALREADY present in the checked-in EntryFiles (parsed and
-    ingested on a prior run). These are skipped on a normal run so a resume never re-parses finished
+    """Batch ids every one of whose rows is ALREADY present in the catalogue region files (parsed
+    and ingested on a prior run). These are skipped on a normal run so a resume never re-parses finished
     work — and because the batch layout is stable, skipping here never renumbers anything (unlike the
     old export-time skip that caused the desync)."""
     from pipeline.regs.parsing.batch_exporter import load_existing_entry_ids
@@ -199,7 +185,7 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
     must be targeted explicitly to re-parse (e.g. on a stronger model)."""
     # JUDGED BY THE INGEST THAT WRITES. This called the retired prose ingest, which refuses every
     # catalogue entry, so every response looked invalid and `--redo-invalid` re-bought them all.
-    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch
+    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, response_rows
     batch = load_batch([str(p) for p in sorted(batches_dir.glob("batch_*.json"))])
     bad_indices: set[int] = set()
     for b in manifest["batches"]:
@@ -207,15 +193,7 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
         if not rp.exists():
             continue
         try:
-            data = json.loads(rp.read_text(encoding="utf-8"))
-            rows = data.get("entries", data) if isinstance(data, dict) else data
-            cands = []
-            for row in rows:
-                if isinstance(row, dict) and isinstance(row.get("entry"), dict):
-                    cands.append(dict(row["entry"], _batch_index=row.get("index")))
-                else:
-                    cands.append(row)
-            accepted, _ = ingest(cands, batch)
+            accepted, _ = ingest(response_rows(rp), batch)
         except Exception:                                 # noqa: BLE001 — garbage response: redo it
             bad_indices.update(b["indices"])
             continue
@@ -227,8 +205,9 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
 def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
-    ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (default: pipeline/regs/parsing/entries) "
-                    "— batches fully covered by these are skipped as already ingested")
+    ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
+                    "data/curated/regulations/entries/catalogue) — batches fully covered by these "
+                    "are skipped as already ingested")
     ap.add_argument("--model", default="sonnet", help="CLI model alias (default: sonnet — parsing is "
                     "mechanical; reserve opus for re-dispatching failures)")
     ap.add_argument("--claude-bin", default=os.environ.get("CLAUDE_BIN", "claude"))
@@ -251,9 +230,6 @@ def main() -> None:
     ap.add_argument("--redo-invalid", action="store_true",
                     help="re-parse batches whose existing response fails validation (schema/split-id/"
                     "incomplete) — escalation tier, e.g. with --model opus")
-    ap.add_argument("--redo-flagged", action="store_true",
-                    help="re-parse batches the reviewer flagged high/medium — escalation tier, "
-                    "e.g. with --model opus")
     args = ap.parse_args()
 
     if args.work_dir:
@@ -272,18 +248,13 @@ def main() -> None:
     bids = [b["id"] for b in manifest["batches"] if only is None or b["id"] in only]
     covered: set[int] = set()
 
-    if args.redo_invalid or args.redo_flagged:
+    if args.redo_invalid:
         # Escalation tier: target only the hard cases (+ any still-missing responses), re-parse them
         # on this run's (stronger) model, overwriting their old responses.
         target: set[int] = {b for b in bids if not (responses_dir / f"batch_{b:03d}.json").exists()}
-        if args.redo_invalid:
-            inv = set(_invalid_batch_ids(manifest, batches_dir, responses_dir)) & set(bids)
-            target |= inv
-            print(f"  redo-invalid: {len(inv)} batch(es) with invalid/incomplete responses")
-        if args.redo_flagged:
-            fl = set(_flagged_batch_ids(manifest, reviews_dir)) & set(bids)
-            target |= fl
-            print(f"  redo-flagged: {len(fl)} batch(es) with high/medium review findings")
+        inv = set(_invalid_batch_ids(manifest, batches_dir, responses_dir)) & set(bids)
+        target |= inv
+        print(f"  redo-invalid: {len(inv)} batch(es) with invalid/incomplete responses")
         todo = sorted(target)
         for b in todo:                                    # a re-parse invalidates the old review
             rev = reviews_dir / f"batch_{b:03d}.review.json"
@@ -291,22 +262,22 @@ def main() -> None:
                 rev.unlink()
     else:
         entries_dir = Path(args.entries_dir) if args.entries_dir else \
-            _io.entries_dir()
+            io.entries_dir()
         covered = set() if args.force else _covered_batch_ids(manifest, batches_dir, entries_dir)
         todo = [b for b in bids if b not in covered
                 and (args.force or not (responses_dir / f"batch_{b:03d}.json").exists())]
         n_ingested = len(covered & set(bids))
         n_response = len(bids) - len(todo) - n_ingested
         if n_ingested:
-            print(f"  skipping {n_ingested} batch(es) already ingested into EntryFiles")
+            print(f"  skipping {n_ingested} batch(es) already ingested into the catalogue")
         if n_response:
             print(f"  skipping {n_response} batch(es) with an existing response (use --force)")
 
     run_state_path = work / "run_state.json"
     statuses: dict[int, dict] = {b: {"status": "done"} for b in bids
                                  if (responses_dir / f"batch_{b:03d}.json").exists()}
-    if not (args.redo_invalid or args.redo_flagged):
-        for b in covered & set(bids):                     # already in EntryFiles (may have no response)
+    if not args.redo_invalid:
+        for b in covered & set(bids):                     # already in the catalogue (may have no response)
             statuses.setdefault(b, {"status": "ingested"})
 
     def _parse_one(bid: int):

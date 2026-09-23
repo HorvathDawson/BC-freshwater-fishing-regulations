@@ -95,14 +95,10 @@ def parse_date_window(text: str) -> "DateWindow | None":
     return DateWindow(a[0], a[1], b[0], b[1])
 
 
-def parse_date_windows(dates: list[str]) -> list[DateWindow]:
-    """Parse each string; skip any that don't parse (use `date_parse_errors` to enforce)."""
-    out: list[DateWindow] = []
-    for d in dates:
-        w = parse_date_window(d)
-        if w is not None:
-            out.append(w)
-    return out
+# `parse_date_windows` (plural) was here. Its only callers were the bundle's `rule.windows` and the
+# app's dev fixture, both reading prose-era date strings the catalogue no longer has — which is how
+# every season went missing from the app. Seasons are `CatalogueRule.when` now; the one live user
+# of this module is the DFO feed (`parse_date_window`, singular).
 
 
 def date_parse_errors(dates: list[str]) -> list[str]:

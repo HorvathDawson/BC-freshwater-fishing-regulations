@@ -21,6 +21,10 @@ from pathlib import Path
 from pipeline.atlas.reach.models import Outcome, iter_entries
 
 TABLES = ("rule_section", "rule_unresolved", "rule_extent", "rule_diagnostic")
+#: The licensing records, placed by the same builder. Separate files, because a record is not a
+#: rule — its id is unique within its entry among LICENSING records, not among rules — and a
+#: reader that joined the two on (entry_id, id) would be joining different namespaces.
+LICENSING_TABLES = ("licensing_placement", "licensing_section", "licensing_diagnostic")
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -32,7 +36,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
-    """Write the four tables + report.json. Returns row counts per table."""
+    """Write the rule tables, the licensing tables and report.json. Returns row counts per table."""
     out = Path(out_dir)
 
     # rule_section — the bindings. One row per (rule, section) so it joins cleanly.
@@ -82,11 +86,36 @@ def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
 
     tables = {"rule_section": sections, "rule_unresolved": unresolved,
               "rule_extent": extents, "rule_diagnostic": diagnostics}
+
+    # licensing_placement — EVERY placed record, once, with where it ended up. The table that
+    # says a record exists at all; `licensing_section` only says where the bound ones are.
+    lic = list(result.licensing)
+    tables["licensing_placement"] = [
+        {"entry_id": p.entry_id, "record_id": p.record_id, "kind": p.kind,
+         "placement": p.placement, "reason": p.reason, "detail": p.detail,
+         "tributaries_pending": p.tributaries_pending}
+        for p in lic]
+    # licensing_section — one row per (record, section), `scope` as the rules have it, plus
+    # `trib_pending` for a walk that was not done: a pending binding is never complete.
+    tables["licensing_section"] = sorted((
+        {"entry_id": p.entry_id, "record_id": p.record_id, "kind": p.kind, "section_id": s,
+         "scope": ("trib_pending" if p.tributaries_pending
+                   else "trib" if s in trib else "reach")}
+        for p in lic if p.placement == "sections"
+        for trib in (frozenset(p.via_tributary),)
+        for s in p.sections),
+        key=lambda r: (r["entry_id"], r["record_id"], r["section_id"]))
+    tables["licensing_diagnostic"] = sorted((
+        {"entry_id": d.entry_id, "record_id": d.rule_id, "kind": d.kind,
+         "payload": json.dumps(d.payload, sort_keys=True)}
+        for d in result.licensing_diagnostics),
+        key=lambda r: (r["entry_id"], r["record_id"], r["kind"], r["payload"]))
     for name, rows in tables.items():
         _write_jsonl(out / f"{name}.jsonl", rows)
 
     report = asdict(result.report)
     report["digest"] = digest(result)
+    report["licensing_digest"] = licensing_digest(result)
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {k: len(v) for k, v in tables.items()}
@@ -99,6 +128,19 @@ def digest(result) -> str:
         [b.entry_id, b.rule_id, b.outcome.value, list(b.sections),
          b.reason.value if b.reason else None]
         for b in result.bindings
+    ]
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()[:16]
+
+
+def licensing_digest(result) -> str:
+    """Content hash of the licensing placements — kept apart from `digest`, so adding licensing
+    to a run did not move the rules' digest and a rules diff stays a rules diff."""
+    payload = [
+        [p.entry_id, p.record_id, p.kind, p.placement, list(p.sections), p.reason,
+         p.tributaries_pending]
+        for p in result.licensing
     ]
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()

@@ -6,17 +6,15 @@ const STATUSES: Status[] = [
   "needs_review",
   "unused_splits",
   "unreviewed",
-  "confirmed",
+  "zone",
 ];
 
 interface Props {
   regions: RegionSummary[];
   region: string;
   status: Status | "";
-  curator: string;
   onRegion: (r: string) => void;
   onStatus: (s: Status | "") => void;
-  onSetCurator: () => void;
   onRefresh: () => void;
   slot?: ReactNode;
 }
@@ -25,10 +23,8 @@ export function FilterBar({
   regions,
   region,
   status,
-  curator,
   onRegion,
   onStatus,
-  onSetCurator,
   onRefresh,
   slot,
 }: Props) {
@@ -69,12 +65,6 @@ export function FilterBar({
       </button>
       {slot}
       <div className="spacer" />
-      <div className="curator">
-        curator: <strong>{curator || "—"}</strong>{" "}
-        <button className="btn" style={{ padding: "2px 8px" }} onClick={onSetCurator}>
-          change
-        </button>
-      </div>
     </div>
   );
 }

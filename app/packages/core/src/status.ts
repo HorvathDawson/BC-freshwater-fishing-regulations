@@ -14,7 +14,7 @@
  * A water nobody wrote a rule about is OPEN with provenance "general". It is not a
  * fourth colour and it is not unknown — the regional and provincial rules still apply.
  */
-import { inForce, type PlainDate, type Window } from "./dates";
+import { holdsOn, type PlainDate, type When } from "./dates";
 
 export type Outcome = "closed" | "restricted" | "open" | "unknown";
 
@@ -165,8 +165,8 @@ export interface Rule {
    */
   readonly species?: readonly string[];
   readonly group: SpeciesGroup;
-  /** Empty = all year. */
-  readonly windows: readonly Window[];
+  /** When it binds. `ALL_YEAR` (no dates, no weekdays) = every day. See `When`. */
+  readonly when: When;
   /**
    * What this rule governs, e.g. "bait" or "rainbow-trout-quota". A rule written for one
    * water REPLACES a zone default about the same subject — that is how a lake gets a
@@ -182,11 +182,19 @@ export interface Rule {
   /** Whether you may fish for it at all. See `take`. */
   readonly mayTarget?: boolean;
   /**
-   * The method this rule is about, when it is about one. LOAD-BEARING FOR THE OUTCOME: "only
-   * non-game fish may be speared" is a retention limit of zero on every game fish, and without
-   * this field it is indistinguishable from "No fishing".
+   * The acts this rule binds WHILE doing — `["spear_fishing"]`, `["ice_fishing"]`. LOAD-BEARING
+   * FOR THE OUTCOME: "only non-game fish may be speared" is a retention limit of zero on every
+   * game fish WHILE spear fishing, and without this field it is indistinguishable from "No
+   * fishing". Absent or empty = whatever you are doing. (It was `method`, a field the catalogue
+   * retired; the data layer went on looking for it and every river in B.C. read closed.)
    */
-  readonly method?: string;
+  readonly while?: readonly string[];
+  /**
+   * The rule holds everywhere, at places no dataset can draw — "no fishing within 23 m downstream
+   * of any fishway". It is SHOWN on every water and NEVER decides one's outcome: bound to every
+   * section as the closure it literally is, it painted the whole province CLOSED.
+   */
+  readonly standing?: boolean;
   /**
    * An absolute prohibition: an area closure, a no-access polygon, an in-season notice.
    * Never replaced by a more permissive rule, only ever the answer.
@@ -199,8 +207,8 @@ export interface Rule {
 export interface Status {
   readonly outcome: Outcome;
   readonly provenance: Provenance;
-  /** Present only when outcome is "unknown" — the three reasons need different words. */
-  readonly because?: "unplaceable" | "near-name" | "feed-unreachable";
+  /** Present only when outcome is "unknown" — the reasons need different words. */
+  readonly because?: "unplaceable" | "unreadable-season" | "near-name" | "feed-unreachable";
   /** The rules that produced this answer, most restrictive first. */
   readonly from: readonly Rule[];
 }
@@ -214,6 +222,8 @@ export interface Status {
  * cannot tell a closure from a release rule, and would have to call one of them wrong.
  */
 function severityOf(r: Rule): number {
+  // A rule with no knowable place tells you something about every water and decides none.
+  if (r.standing) return 1;
   if (r.type === "retention_limit") {
     if (r.take === 0) return closesTheWater(r) ? 3 : 2;
     return 2;
@@ -227,7 +237,7 @@ function severityOf(r: Rule): number {
  *
  * IT MATTERED ON EVERY RIVER IN THE PROVINCE. "Only non-game fish (such as carp) may be speared"
  * is take=0 on every game fish — correctly, that is what it says — and it carries
- * `method: "spear_fishing"`. It reaches 1,674 of the bundle's 1,693 rulesets, so a severity that
+ * `while: ["spear_fishing"]`. It reaches 1,674 of the bundle's 1,693 rulesets, so a severity that
  * reads `take === 0 && mayTarget === false` and stops there returns `closed` for essentially
  * every section in British Columbia, every day of the year. You may still angle.
  *
@@ -237,9 +247,22 @@ function severityOf(r: Rule): number {
  */
 function closesTheWater(r: Rule): boolean {
   if (r.mayTarget !== false) return false;
-  if (r.method) return false;
+  // Closed WHILE doing one thing is closed to that thing, not to the water.
+  if ((r.while ?? []).length > 0) return false;
+  // Closed for PART of the day ("21:00 to 05:00") is not a closed day. Six rules, all night
+  // closures on Region 2 rivers; read as a whole-day closure they shut the Harrison at noon.
+  if (r.when.hours) return false;
   const sp = r.species ?? [];
   return sp.length === 0 || sp.includes("ALL_GAME_FISH");
+}
+
+/**
+ * A rule no answer may rest on: one we could not place, or one whose season we could not read.
+ * An unread season is not "all year" — that reading would enforce a closure on days it does not
+ * hold and, worse, lift nothing on days it does.
+ */
+export function isUncertain(r: Rule): boolean {
+  return r.uncertain === true || r.when.unparsed.length > 0;
 }
 
 const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "open" };
@@ -273,8 +296,9 @@ export interface EvaluateInput {
 export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): Status {
   const mine = rules.filter((r) => r.group === group);
   /* A rule we could not place applies to NOTHING — it must not vote on the outcome, or an
-     unplaceable closure reads exactly like a placed one. It only ever raises `unknown`. */
-  const live = mine.filter((r) => !r.uncertain && inForce(r.windows, on));
+     unplaceable closure reads exactly like a placed one. It only ever raises `unknown`. The
+     same holds for a rule whose SEASON could not be read: in force or not, we cannot say. */
+  const live = mine.filter((r) => !isUncertain(r) && holdsOn(r.when, on));
 
   /* 2 — a rule written for this water displaces the zone default it contradicts.
      THE KEY IS (type, dimension), both halves. Type alone collides — a water's daily quota
@@ -297,6 +321,9 @@ export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): 
   const placedClosure = effective.some((r) => severityOf(r) === 3);
   if (mine.some((r) => r.uncertain) && !placedClosure) {
     return { outcome: "unknown", provenance, because: "unplaceable", from: effective };
+  }
+  if (mine.some(isUncertain) && !placedClosure) {
+    return { outcome: "unknown", provenance, because: "unreadable-season", from: effective };
   }
 
   const ordered = [...effective].sort((a, b) => severityOf(b) - severityOf(a));

@@ -12,7 +12,7 @@ no performance problem here — do not add parallelism.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids, make_matcher
 from pipeline.atlas.graph import tributaries as _tribs
@@ -21,6 +21,7 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.atlas.reach.licensing import PLACED_KINDS, LicensingPlacement, place_record
 
 
 @dataclass
@@ -28,6 +29,11 @@ class ReachResult:
     bindings: list[RuleBinding]
     diagnostics: list[Diagnostic]
     report: BuildReport
+    #: Every placed licensing record (`pipeline.atlas.reach.licensing`), resolved through the
+    #: same `build_reach` as the rules. Kept apart from `bindings` so the rules' digest — the
+    #: thing that must not move between identical builds — is exactly what it was.
+    licensing: list[LicensingPlacement] = field(default_factory=list)
+    licensing_diagnostics: list[Diagnostic] = field(default_factory=list)
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
@@ -46,6 +52,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     match = make_matcher(registry, overrides_path)
     bindings: list[RuleBinding] = []
     diagnostics: list[Diagnostic] = []
+    licensing: list[LicensingPlacement] = []
+    lic_diags: list[Diagnostic] = []
     report = BuildReport(build=build, handles=handles)
 
     for e in sorted(iter_entries(entries), key=lambda x: x["entry_id"]):
@@ -70,6 +78,23 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             bindings.append(binding)
             diagnostics.extend(diags)
 
+        # LICENSING, in the entry's own context: same covered items, same clip, same resolver.
+        for rec in e.get("licensing") or []:
+            if rec.get("kind") not in PLACED_KINDS:
+                continue
+            placed, diags = place_record(
+                e, rec, lambda r, e=e, covered=covered, clip=clip: build_reach(
+                    e, r, registry, graph, covered=covered, clip=clip, match=match))
+            licensing.append(placed)
+            lic_diags.extend(diags)
+
+    for p in licensing:
+        key = f"{p.kind}:{p.placement}"
+        report.licensing[key] = report.licensing.get(key, 0) + 1
+        if p.tributaries_pending:
+            report.licensing["tributaries_pending"] = \
+                report.licensing.get("tributaries_pending", 0) + 1
+
     report.tributaries_pending = sum(1 for b in bindings if b.tributaries_pending)
     for b in bindings:
         report.outcomes[b.outcome.value] = report.outcomes.get(b.outcome.value, 0) + 1
@@ -86,7 +111,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
     bindings.sort(key=lambda b: (b.entry_id, b.rule_id))
     diagnostics.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
-    return ReachResult(bindings, diagnostics, report)
+    licensing.sort(key=lambda p: (p.entry_id, p.record_id))
+    lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
+    return ReachResult(bindings, diagnostics, report, licensing, lic_diags)
 
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None, clip=None,

@@ -2,18 +2,19 @@
 # THE single entry point for the parse pipeline. Every workflow is a subcommand here — the Python
 # modules are building blocks it calls (see pipeline/regs/parsing/README.md for the dataflow).
 #
-# ⛔ HUMAN-ONLY (credits): `parse`, `review`, `repass` dispatch batches to the `claude`
+# ⛔ HUMAN-ONLY (credits): `all`, `parse`, `review`, `repass` dispatch batches to the `claude`
 #    CLI and spend the user's credits. Claude/agents must NOT run those — only hand the user the command.
-#    `prune` and `status` are local (no credits) and safe for anyone to run.
-#
+#    `parse-dry` and `status` are local (no credits) and safe for anyone to run.
 #
 #   `all`        parse then review, back to back — the usual full run.
 #   `parse`      parse the water-specific tables into the catalogue format (pipeline/docs/18).
 #   `parse-dry`  export batches only — NO dispatch, no credits. Read the prompt first.
-#   `review`     an agent second pass over what the parse produced (strict checklist).
+#   `review`     an agent second pass over the last parse's batches (strict checklist). Findings
+#                are written to the work dir's reviews/ — never onto the entries.
 #   `repass`     re-parse ONLY the review-flagged entries, with the findings as hints.
+#   `status`     entry counts, review findings, and what to run next.
 #
-#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-dry|review|repass|prune|status>
+#   bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -46,27 +47,7 @@ _need_registry() {
   [ -f "$REGISTRY" ] || { echo "  ✗ registry not found: $REGISTRY — build it: $PY -m pipeline.atlas.build --full --out data/generated/atlas/full"; exit 1; }
   echo "  ✓ registry: $REGISTRY"
 }
-# REPAIR TOOLS — deliberately NOT part of the cascade. Each rewrites already-ingested rules, so
-# running one automatically after every parse would quietly paper over a bad parse instead of
-# surfacing it: the parse would look fine and the prompt would never get fixed. The parser is
-# supposed to emit correct, split, standard-form rules (prompts/PARSE_PROMPT.md +
-# prompts/RULE_STANDARDS.md) and the reviewer is supposed to catch it when it does not. Reach for
-# these only to repair an existing corpus, and read the --dry-run first:
-#
-#   $PY -m pipeline.regs.parsing.backfill_rule_subjects --dry-run   # `details` that lost its subject
-#   $PY -m pipeline.regs.parsing.split_bundled_gear     --dry-run   # one rule carrying several restrictions
-#   $PY -m pipeline.regs.parsing.normalize_details      --dry-run   # off-standard wording / restriction_type
-
 case "$CMD" in
-
-
-
-
-
-  prune)   # drop stale bare-item_id entries superseded by per-row entries (local; no credits)
-    $PY -m pipeline.regs.parsing.prune_superseded "${@:2}"
-    ;;
-
   parse)   # parse the water-specific tables into the catalogue format (pipeline/docs/18)
     echo "== catalogue parse: preflight =="; _need_claude; _need_registry
     echo "  model=$MODEL   format=type+conditions, label generated"
@@ -94,10 +75,6 @@ case "$CMD" in
     "$0" review
     echo
     echo "== both done =="
-    "$0" status
-    echo
-    echo "Re-parse whatever the reviewer flagged (escalates to $ESCALATE_MODEL):"
-    echo "  bash pipeline/regs/parsing/run_parse.sh repass"
     ;;
 
   review)  # an agent second pass over parsed entries, against CATALOGUE_REVIEW_PROMPT.md
@@ -106,15 +83,21 @@ case "$CMD" in
     echo "== review ($REVIEW_MODEL) =="
     "${DISPATCH[@]}" --model "$MODEL" --review --review-model "$REVIEW_MODEL"
     echo
-    echo "Findings are stamped on the entries. Re-parse the flagged ones with:"
+    "$0" status
+    echo
+    echo "Findings are in the work dir's reviews/ (not on the entries). Re-parse the flagged ones with:"
     echo "  bash pipeline/regs/parsing/run_parse.sh repass"
     ;;
 
   repass)  # re-parse ONLY the review-flagged entries, with the reviewer's findings as hints
+    # The export reads the findings from reviews/ BEFORE it replaces the batches (and exits
+    # non-zero, spending nothing, when there are none). The new batches ARE the flagged set, so
+    # `--force` re-parses every one of them. Ingest will not overwrite an entry a curator has
+    # edited since it was ingested: it reports it as KEPT (see ingest_catalogue --replace-edited).
     echo "== repass: preflight =="; _need_claude; _need_registry
     echo "  model=$ESCALATE_MODEL (flagged entries only)"
-    "${EXPORT[@]}" --only-flagged
-    "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-flagged --redo-invalid
+    "${EXPORT[@]}" --flagged
+    "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --force
     echo "== validate + apply =="
     $PY -m pipeline.regs.parsing.ingest_catalogue \
         --batch "$RESP"/../batches/batch_*.json \
@@ -124,16 +107,29 @@ case "$CMD" in
 
   status)  # where you left off: entry counts, review state, and WHAT TO RUN NEXT (no credits)
     $PY - <<'PYEOF'
+from collections import Counter
 from pipeline.regs.parsing import io
 regs = io.region_ids()
 by = io.read_entries_dir()
-from collections import Counter
-verd = Counter((e.get("parse_review") or {}).get("verdict", "") for e in by.values())
-flagged = sum(1 for e in by.values()
-              if (e.get("parse_review") or {}).get("verdict") == "changes_requested")
+work = io.default_work_dir()
 print(f"entries: {len(by)} across regions {regs}")
-print(f"  parse_review verdicts: {dict(verd)}")
-print(f"  flagged (repass candidates): {flagged}")
+
+# REVIEWS LIVE IN THE WORK DIR, per batch; they are never written onto the entries.
+reviews = io.read_reviews(work)
+states = Counter(r["state"] for r in reviews.values())
+print(f"reviews ({work / 'reviews'}): {len(reviews)} batch(es) {dict(states)}")
+if states.get("failed"):
+    print("  ⚠ failed = the reviewer's reply was unreadable; re-review those batches "
+          "(dispatch --review --rereview --only <ids>)")
+if states.get("stale"):
+    print("  ⚠ stale = the batch was re-parsed after its review; the finding is about another parse")
+try:
+    flagged = io.read_review_findings(work)
+    print(f"  flagged entries (high/medium — repass candidates): {len(flagged)}")
+    if flagged:
+        print("     bash pipeline/regs/parsing/run_parse.sh repass    # spends credits")
+except ValueError as exc:
+    print(f"  ✗ cannot join the reviews to entries: {exc}")
 
 # WHERE YOU LEFT OFF. A parse stops on a credit limit and the scrollback is gone by the next
 # session, so the number that actually matters — how many synopsis rows still have no entry — is
@@ -155,7 +151,7 @@ try:
         print(f"  ~{-(-left // 30)} batch(es) at BATCH_SIZE=30.  RESUME (spends credits):")
         print("     bash pipeline/regs/parsing/run_parse.sh all      # parse, then review")
         print("     bash pipeline/regs/parsing/run_parse.sh parse    # parse only, cheaper")
-        print("  Nothing already parsed is re-sent: the export skips every row in EntryFiles.")
+        print("  Nothing already parsed is re-sent: the export skips every row already in the catalogue.")
     else:
         print("  every row has an entry. Next:  run_parse.sh review")
 except Exception as exc:  # noqa: BLE001
@@ -164,14 +160,14 @@ PYEOF
     ;;
 
   ""|-h|--help|help|*)
-    [ -n "$CMD" ] && echo "  ✗ unknown subcommand: $CMD"
-    echo "usage: bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-missing|review|repass|prune|status>"
-    echo "  all                       parse, then review — the usual full run"
-    echo "  parse-missing             parse ONLY missing rows + ingest, NO review (saves credits)"
-    echo "  review [hardest|clean]    (no arg) = every entry with no verdict yet (resumes);"
-    echo "                            hardest  = the unreviewed half, worst-first by rule count"
-    echo "                                       (HARDEST=0.25 for a quarter, HARDEST=200 for a count);"
-    echo "                            clean    = wipe every verdict and review everything again"
+    case "$CMD" in ""|-h|--help|help) ;; *) echo "  ✗ unknown subcommand: $CMD" ;; esac
+    echo "usage: bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>"
+    echo "  all        parse, then review — the usual full run                      (credits)"
+    echo "  parse      parse the rows not yet in the catalogue, then ingest          (credits)"
+    echo "  parse-dry  export the batches only; read a prompt before spending anything"
+    echo "  review     review the last parse's batches; findings go to reviews/     (credits)"
+    echo "  repass     re-parse the review-flagged entries on \$ESCALATE_MODEL       (credits)"
+    echo "  status     entries, review findings, rows remaining, and what to run next"
     exit 1
     ;;
 esac

@@ -4,6 +4,14 @@ Single source for what happens after curation. Replaces and absorbs the old `06`
 `09` (storage & client), `15` (current state), `16` (delivery), `17` (regulation model) and `18`
 (builder), which are in `archive/`.
 
+> **Field names here are from the retired prose parse model** — `details`, `rule_text`,
+> `restriction_type`, `needs_review`, `locked`/confirmed, `exempts_from`, entry `tributaries` and
+> `scope`, `dates`/`windows`. The counts were measured on that corpus and are kept as measured. The
+> current rule and entry are `CatalogueRule`/`CatalogueEntry` (`pipeline/regs/parsing/catalogue.py`,
+> explained in doc 18): `verbatim`, a generated label, `type`, `review_reason`, `exempts`, the
+> entry's `includes_tributaries` and `extents`, and `when`. The shipped schema is
+> `pipeline/deliver/bundle/schema.sql`.
+
 ---
 
 ## 1. Where we are
@@ -42,10 +50,10 @@ Entry ─ rules[] ─ Extent{op, splits[], item_id|item_ids[], area_id}
   `downstream_of`, 144 `between`, 119 `upstream_of`, 2 `within`.
 - Resolution is **by route measure on the cut's own blue line**, never a flow walk. A `between`
   spanning a name change resolves as the intersection of two half-lines.
-- Entry-level `scope` clips every rule in the row (the four Fraser regional rows; the two Adams rows).
+- Entry-level `extents` clip every rule in the row (the four Fraser regional rows; the two Adams rows).
 - `includes_tributaries` — **554 rules across 264 entries**, not the 111 first counted. The field is
-  three-valued: `None` inherits `entry.tributaries.included` (`entry_models.py:206`), and 210 entries
-  set it. 44 rules are tributaries-only, not 4.
+  three-valued: on a rule, `None` inherits the entry's `includes_tributaries`, and 210 entries set
+  it. 44 rules are tributaries-only, not 4.
 
 > **The reach-scoped tributary walk does not exist yet.** An earlier draft of this plan claimed
 > `resolve_extent` "already gets this right". It does not — it never touches tributaries

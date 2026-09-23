@@ -53,6 +53,67 @@ export function inForce(windows: readonly Window[], on: PlainDate): boolean {
   return windows.some((w) => inWindow(w, on));
 }
 
+/** A time of day, off the clock ("21:00") or off the sun ("one hour after sunset"). A solar
+ *  time needs a date and a latitude to become a clock time, which is a screen's to do. */
+export interface Clock {
+  readonly at?: string;
+  readonly solar?: "sunrise" | "sunset";
+  /** Minutes from the solar event. Negative is BEFORE. */
+  readonly offsetMin?: number;
+}
+
+/** A range within the day. It wraps midnight the way a window wraps the year end. */
+export interface Hours {
+  readonly start: Clock;
+  readonly end: Clock;
+}
+
+export type Weekday =
+  | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+export const WEEKDAYS: readonly Weekday[] =
+  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+
+/**
+ * WHEN A RULE BINDS — the catalogue's `When`, said once: the days of the year, the weekdays, the
+ * hours of the day, and any season the parser could NOT read.
+ *
+ * `dates` EMPTY MEANS ALL YEAR, per the synopsis. `unparsed` is the opposite of empty: a season
+ * that exists and could not be read, so a rule carrying one is NOT all year — `evaluate` treats
+ * it as uncertain, and it can only ever raise "unknown".
+ *
+ * This replaced `windows`, which the bundle filled from a field the catalogue no longer has and
+ * so shipped empty on every rule — every seasonal closure in the province read as all year.
+ */
+export interface When {
+  readonly dates: readonly Window[];
+  readonly weekdays: readonly Weekday[];
+  readonly hours?: Hours;
+  readonly unparsed: readonly string[];
+}
+
+/** No season at all: the rule binds every day. */
+export const ALL_YEAR: When = { dates: [], weekdays: [], unparsed: [] };
+
+/** The weekday of a calendar day. Computed in UTC so no zone can move it off its date. */
+export function weekdayOf({ year, month, day }: PlainDate): Weekday {
+  // getUTCDay: 0 = Sunday.
+  const d = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return WEEKDAYS[(d + 6) % 7]!;
+}
+
+/**
+ * Does this rule bind on this DAY?
+ *
+ * Dates and weekdays decide the day. HOURS DO NOT: "No fishing 21:00 to 05:00, Aug 1-Dec 31"
+ * binds on 10 August, for part of it — `closesTheWater` is what stops such a rule painting the
+ * whole day closed. An UNPARSED season decides nothing here; the caller must treat the rule as
+ * uncertain (see `evaluate`), because answering yes or no would both be a guess.
+ */
+export function holdsOn(when: When, on: PlainDate): boolean {
+  if (!inForce(when.dates, on)) return false;
+  return when.weekdays.length === 0 || when.weekdays.includes(weekdayOf(on));
+}
+
 /**
  * Today, as a calendar day in the reader's own zone.
  *

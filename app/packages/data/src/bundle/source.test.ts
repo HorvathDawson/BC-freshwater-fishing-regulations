@@ -278,24 +278,23 @@ describe("the gauge model", () => {
 
   it("evaluates a rule that has a season on it", async () => {
     /*
-     * THE ASSERTION THAT WAS MISSING. `rule.windows` held the curated strings verbatim —
-     * `["Apr 1-Oct 31"]` — while the client reads `{from:{month,day}, to:{month,day}}`, so
-     * every regulation screen threw `Cannot read properties of undefined (reading 'month')`
-     * the moment it evaluated a seasonal rule.
+     * THE ASSERTION THAT WAS MISSING — twice. First `rule.windows` held the curated strings
+     * verbatim and every regulation screen threw on `.month`. Then the catalogue moved seasons
+     * into `when`, the bundler went on reading the retired field, and every rule shipped an
+     * EMPTY window list — which is "all year", so every seasonal closure in the province was in
+     * force every day, and nothing threw at all.
      *
-     * It survived a full suite because the FIXTURE had the same bug: the app tests run
-     * against this bundle, so two agreeing wrongs looked like a passing test. Nothing here
-     * had ever asked a rule whether it was in force. This does, on both sides of a window,
-     * which is the cheapest thing that would have caught it.
+     * Both survived a full suite because the FIXTURE agreed with the bug. This asks a seasonal
+     * rule, out of the bundle, whether it is in force on both sides of its window.
      */
     const seasonal = (await db.all(
-      "SELECT entry_id, rule_id, windows FROM rule WHERE windows != '[]' LIMIT 1"))[0];
+      "SELECT entry_id, rule_id, when_ FROM rule WHERE when_ LIKE '%from_month%' LIMIT 1"))[0];
     expect(seasonal, "the fixture must carry at least one seasonal rule").toBeTruthy();
-    const parsed = JSON.parse(str(seasonal!.windows)) as
-      { from: { month: number; day: number }; to: { month: number; day: number } }[];
-    // The SHAPE, named explicitly: a bare string here is the bug.
-    expect(parsed[0]!.from.month).toBeTypeOf("number");
-    expect(parsed[0]!.to.day).toBeTypeOf("number");
+    const parsed = JSON.parse(str(seasonal!.when_)) as {
+      dates: { from_month: number; from_day: number; to_month: number; to_day: number }[] };
+    // The SHAPE, named explicitly: a bare string, or an empty list, here is the bug.
+    expect(parsed.dates[0]!.from_month).toBeTypeOf("number");
+    expect(parsed.dates[0]!.to_day).toBeTypeOf("number");
 
     // And it has to survive the thing that actually reads it. A section under this rule,
     // asked on a day inside its window and a day outside, must not throw either time.
@@ -305,9 +304,9 @@ describe("the gauge model", () => {
       str(seasonal!.entry_id), str(seasonal!.rule_id)))[0];
     if (!covered) return;                    // this rule binds nowhere in the slice
     const id = Number(covered.sid) as SectionId;
-    const w = parsed[0]!;
-    for (const day of [{ year: 2026, month: w.from.month, day: w.from.day },
-                       { year: 2026, month: w.to.month, day: w.to.day },
+    const w = parsed.dates[0]!;
+    for (const day of [{ year: 2026, month: w.from_month, day: w.from_day },
+                       { year: 2026, month: w.to_month, day: w.to_day },
                        { year: 2026, month: 1, day: 1 }]) {
       const out = await src.statusFor([id], day, "provincial");
       expect(out.get(id), `no answer for ${day.month}/${day.day}`).toBeTruthy();

@@ -187,7 +187,7 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
           <ul className="split-refs">
             {refs.map((r) => (
               <li key={`${r.entry_id}.${r.rule_id}`}>
-                <code>{r.rule_id}</code> <span className="dim">({r.entry_name} · r{r.region})</span> — {r.details}
+                <code>{r.rule_id}</code> <span className="dim">({r.entry_name} · r{r.region})</span> — {r.label}
               </li>
             ))}
           </ul>

@@ -964,6 +964,11 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 continue
             d = dict(zip([c[0] for c in cur.description], src))
             cond = json.loads(d["conditions"] or "{}")
+            # `while` is a bundle column of its own now; put it back where this page reads it.
+            if d.get("while_"):
+                cond["while"] = json.loads(d["while_"])
+            if d.get("standing"):
+                cond["standing"] = True
             _sb, _tier = _set_by(eid, db, eareas, via, name)
             rules.append({
                 "entry": eid, "rule": rid,
@@ -975,7 +980,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 # GENERATED, so this document cannot word a rule differently from the app.
                 "type": d["type"], "family": d["family"], "dimension": d["dimension"],
                 "label": d["label"],
-                "windows": json.loads(d["windows"] or "[]"),
+                "when": json.loads(d["when_"] or "{}"),
                 "species": json.loads(d["species"] or "[]"),
                 # THE FISH A RULE CARVES OUT is part of what it says — "a salmon of any legal
                 # size or species (other than kokanee)", "all game fish other than burbot". It
@@ -1037,10 +1042,14 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 if (eid, d["rule_id"]) in placed:
                     continue
                 cond = json.loads(d["conditions"] or "{}")
+                if d.get("while_"):
+                    cond["while"] = json.loads(d["while_"])
+                if d.get("standing"):
+                    cond["standing"] = True
                 unplaced.append({
                     "entry": eid, "rule": d["rule_id"], "type": d["type"],
                     "family": d["family"], "dimension": d["dimension"], "label": d["label"],
-                    "windows": json.loads(d["windows"] or "[]"),
+                    "when": json.loads(d["when_"] or "{}"),
                     "species": json.loads(d["species"] or "[]"),
                     "take": d["take"], "may_target": d["may_target"],
                     "conditions": cond, "verbatim": d["verbatim"],

@@ -134,8 +134,8 @@ Do not "fix" these in code.
 ### 5a. The 107 `no_extents` rules — 95 are unfixable here
 
 - **95** belong to `no_registry` entries: no item exists, so no extent *can* be authored (issue ㊶).
-- **12** belong to `matched` entries. **All 12 have `needs_review=True`; 11 have
-  `unresolved_locators`.** The parser deliberately refused to guess:
+- **12** belong to `matched` entries. **All 12 carry a review flag (then `needs_review=True`; a
+  `review_reason` in the catalogue); 11 have `unresolved_locators`.** The parser deliberately refused to guess:
 
   > *"no boundary or area for the wetlands; reach left unbound rather than applied to the whole river"*
   > *"neither end has a boundary in the menu; reach left unbound rather than guessed"*

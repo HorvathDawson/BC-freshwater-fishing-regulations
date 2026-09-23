@@ -7,7 +7,6 @@ Run-once and hand-curation tooling, kept for reproducibility but NOT part of the
 | Script | What it does | Output |
 |--------|--------------|--------|
 | `name_variants_compile.py` | Bootstrap the unified name-variations file (feature_display_names + overrides + anglerinfo). | `stream_sections/name_variants.json` |
-| `complex_regs_report.py` | Scan overrides + parsed synopsis for section-language / tributary / multi-rule complexity. | `data/generated/scratch/complex_regulations.md` |
 | `bridge_structural.py` | Structural pass on `bridge_road_km` locators: split `from A to B` into `-a`/`-b` (per-endpoint kind), reclass, note shared anchors. `apply` mutates. | writes `14-locators-to-curate.json` |
 | `osm_bridges.py` | Candidate coords for man-made crossings (highway/road/rail/**power line**/**dam**) via OSM Overpass ∩ MU-clipped FWA river. `report`→`data/generated/scratch/osm_candidates.md`; `apply`→`[osm-candidate]` notes. FWA is used for the river; OSM ONLY for features not in the gpkg (see `../docs/14`). | `data/generated/scratch/osm_candidates.{md,json}` |
 
@@ -20,18 +19,6 @@ confluence | lake | line | area_boundary | lake_io | buffer | not_a_split | uncl
 a `status` (`todo | curated | manual | not_applicable | deferred | auto`), and a free-text `notes`
 that carries research + `[auto-proposal H|M|L] … Candidate coord [lon,lat]` lines.
 Full method & gotchas: **`../docs/17-manual-review-runbook.md`**.
-
-### `waterbody_splits.py` — group splits by reg entry + completeness check
-Pivots the locator rows by their source reg entry (waterbody+MU+reg), links each reg-text boundary
-(`synopsis_parsed.json` rules) to the curated row(s) that resolve it, and flags any boundary with no
-row (`MISSING`). Regenerable view over `14-locators-to-curate.json` (source of truth untouched).
-Full model & workflow: **`../docs/14-waterbody-split-curation.md`**.
-```bash
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits            # write cards + summary
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete # entries not fully resolved
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits regs-md    # synopsis table w/ live locators bolded inline
-```
 
 ### `curation_status.py` — progress + work queue + review
 ```bash

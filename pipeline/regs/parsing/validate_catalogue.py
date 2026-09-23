@@ -225,54 +225,6 @@ def resolve_exempt_ids(data: dict) -> int:
     return n
 
 
-def coerce_shapes(data: dict) -> int:
-    """Rewrite the shapes a model reaches for when the schema spells a field differently.
-
-    These are NOT guesses about meaning. Each one is a value the model already carried, written
-    in a form the schema does not accept, and the rewrite is mechanical and reversible. Anything
-    where the meaning would have to be INFERRED is left to fail — a rejected entry is cheap, and
-    a silently wrong one is not.
-
-    Two shapes, both seen in one 34-entry run. (A third, `windows` written as objects, went with
-    `windows` itself: seasons are `when`, and the old field is refused.)
-
-    `exempts` as a bare string. The schema takes a list of exemptions, each naming what it lifts;
-    the model writes the name on its own — ``"spring closure"``. Same value, no list around it.
-
-    `electric_only: true`, which is not a field at all. It is `aspect: propulsion` with
-    `level: electric_only`, and the model invents it because that is what the book calls the rule.
-
-    NOT coerced, deliberately: a `bait_restriction` with no `gear`, and a propulsion rule with
-    no `level`. "No powered boats" and "No vessels" are both a refusal, and they are different
-    rules — deriving one from the other means reading the sentence, which is the one thing this
-    file exists to avoid. Those entries fail, and the prompt now documents the fields.
-
-    Returns the number of rules changed.
-    """
-    n = 0
-    for rule in data.get("rules") or []:
-        if not isinstance(rule, dict):
-            continue
-
-        ex = rule.get("exempts")
-        if ex is not None and not isinstance(ex, list):
-            if isinstance(ex, str) and ex.strip():
-                rule["exempts"] = [{"default_id": ex.strip(), "note": ""}]
-            elif isinstance(ex, dict):
-                rule["exempts"] = [ex]
-            else:
-                rule["exempts"] = []
-            n += 1
-
-        if "electric_only" in rule:
-            on = bool(rule.pop("electric_only"))
-            if on:
-                rule.setdefault("aspect", "propulsion")
-                rule.setdefault("level", "electric_only")
-            n += 1
-    return n
-
-
 def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
     """A LIFT MUST SIT INSIDE THE RULE IT LIFTS.
 
@@ -302,8 +254,9 @@ def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
         return got
 
     for rid, rule in rules.items():
-        for ex in (rule.get("exempts") or []):
-            target = (ex or {}).get("target")
+        lifts = rule.get("exempts")
+        for ex in (lifts if isinstance(lifts, list) else []):     # another shape: the model refuses it
+            target = ex.get("target") if isinstance(ex, dict) else None
             if not target or target not in rules:
                 continue                       # a default_id, or a target in another entry
             mine, theirs = places(rule), places(rules[target])
@@ -324,9 +277,11 @@ def check_entry(entry_data: dict, source_text: str,
     `item` is that row's batch item. Given one, extents are checked against its boundary menu and
     alias ids are rewritten to canonical — so pass it whenever it is available."""
     errors: list[str] = []
-    # Before anything else: a field written in the wrong SHAPE carries the right value, and
-    # rejecting it costs a re-parse of the whole entry. See `coerce_shapes`.
-    coerce_shapes(entry_data)
+    # NOTHING IS REPAIRED HERE. `coerce_shapes` used to rewrite a bare-string `exempts` into a
+    # list and `electric_only: true` into a propulsion level, and it silently DROPPED
+    # `electric_only: false`. A shape the schema does not take is refused and re-parsed; the
+    # prompt documents both fields.
+    #
     # An exemption that names a zone entry by the BOOK's wording lifts nothing.
     resolve_exempt_ids(entry_data)
     errors += exemptions_stay_inside_what_they_lift(entry_data)
@@ -419,39 +374,20 @@ def check_entry(entry_data: dict, source_text: str,
     return entry, errors
 
 
-def _source_for(item: dict) -> str:
-    for key in ("raw_regs", "regs_verbatim", "text", "source_text"):
-        if item.get(key):
-            return str(item[key])
-    return ""
-
-
 def run(batch_path: str, candidate_path: str) -> int:
-    batch = json.loads(Path(batch_path).read_text(encoding="utf-8"))
-    items = batch.get("items", batch) if isinstance(batch, dict) else batch
-    by_id = {i.get("entry_id") or i.get("id"): i for i in items}
+    """`batch_path` is a batch file (`{items: [...]}`); `candidate_path` is the agent's output in
+    the envelope it submits — `[{"index": N, "entry": {...}}, ...]`.
 
-    candidate = json.loads(Path(candidate_path).read_text(encoding="utf-8"))
-    entries = candidate.get("entries", candidate) if isinstance(candidate, dict) else candidate
-
-    failed = 0
-    for data in entries:
-        eid = data.get("entry_id", "<no entry_id>")
-        source = _source_for(by_id.get(eid, {}))
-        if eid not in by_id:
-            print(f"FAIL {eid}: not in the batch — an entry_id was invented or altered")
-            failed += 1
-            continue
-        _, errors = check_entry(data, source, by_id.get(eid))
-        fatal = [e for e in errors if not e.startswith("ADVISORY")]
-        for e in errors:
-            print(f"{'WARN' if e.startswith('ADVISORY') else 'FAIL'} {eid}: {e}")
-        if fatal:
-            failed += 1
-
+    This IS the ingest gate, called as ingest calls it — the row facts copied from the batch,
+    then `check_entry` — so a candidate that comes back clean here is one ingest accepts."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, response_rows
+    entries = response_rows(candidate_path)
+    accepted, problems = ingest(entries, load_batch([batch_path]))
+    for p in problems:
+        print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
     total = len(entries)
-    print(f"\n{total - failed}/{total} entries valid")
-    return 1 if failed else 0
+    print(f"\n{len(accepted)}/{total} entries valid")
+    return 0 if len(accepted) == total else 1
 
 
 def main() -> None:

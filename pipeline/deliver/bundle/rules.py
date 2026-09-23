@@ -24,34 +24,27 @@ import sqlite3
 from pathlib import Path
 
 
-def _windows(rule: dict) -> list[dict]:
-    """The rule's date strings, as the STRUCTURED windows the client reads.
+def _when(r) -> str | None:
+    """The rule's `when` — dates, hours, weekdays and unparsed seasons — as its own column.
 
-    THIS SHIPPED WRONG ONCE. The curated field holds the dates verbatim — `["Apr 1-Oct 31"]`,
-    exact substrings of the rule text, so the chain of custody back to the synopsis holds —
-    and the first version of this writer put those strings straight into the column. The
-    client reads `{from: {month, day}, to: {month, day}}` and every regulation screen threw
-    `Cannot read properties of undefined (reading 'month')` the moment it evaluated a rule
-    with a season on it.
+    THE SEASON WAS LOST FROM THE APP. This column was `windows`, filled from the rule's raw
+    `windows` or, failing that, `dates` — the prose model's date STRINGS, parsed a second time by
+    `pipeline.regs.parsing.dates`. A catalogue rule has neither: its season is `when`, already
+    structured by the model. So every rule shipped `windows = []`, which the client reads as ALL
+    YEAR, and every seasonal closure in the province (0 of 3,269 rules had a window; 617 did before
+    the `when` migration) read as in force every day. Nothing failed, because `[]` is a valid
+    season.
 
-    `pipeline.regs.parsing.dates` already derives the structure, deterministically and under
-    test, and is the hallucination guard for these strings besides. Parsing them a second
-    time here would be a second answer to "when is this rule in force".
-
-    A string that does not parse is DROPPED rather than guessed at, which makes the rule
-    all-year — the wider, safer reading. `date_parse_errors` is what turns a bad date into a
-    curation failure; that is its job, not this one's.
+    Now the model's own `When` ships whole and in the model's own shape (by alias, as
+    `conditions` carried it), and there is no fallback: a rule's season comes from `when` or it
+    has none. `unparsed` ships too — a season the parser could not read is NOT all year, and the
+    client must treat such a rule as uncertain (core/status.ts), never as always in force.
+    NULL = no `when` = all year, per the synopsis.
     """
-    from pipeline.regs.parsing.dates import parse_date_windows
-
-    # The catalogue calls this `windows`; the retired prose rule called it `dates`. Same
-    # strings, same guarantee — exact substrings of the sentence.
-    raw = rule.get("windows")
-    if raw is None:
-        raw = rule.get("dates")
-    return [{"from": {"month": w.start_month, "day": w.start_day},
-             "to": {"month": w.end_month, "day": w.end_day}}
-            for w in parse_date_windows(list(raw or []))]
+    if r.when is None or r.when.is_empty():
+        return None
+    return json.dumps(r.when.model_dump(mode="json", by_alias=True, exclude_none=True),
+                      separators=(",", ":"), sort_keys=True)
 
 
 def _mus_of(entry_id: str) -> list[str]:
@@ -94,7 +87,9 @@ def _specificity(rule: dict) -> str:
 #: RUN time, which is a fallback: a reader could get an answer the bundle never agreed to, and
 #: staleness stopped being visible. They ship here now and that reader is gone.
 _NOT_CONDITIONS = frozenset({
-    "rule_id", "type", "verbatim", "species", "species_except", "windows", "take",
+    # `when`, `while` and `standing` are columns of their own, so each has one home.
+    "rule_id", "type", "verbatim", "species", "species_except", "when", "while", "standing",
+    "take",
     "may_target", "extent_text", "review_reason",
     "unresolved_locators",
     # Build-time only: a carve-out the reach builder applies before any section reaches the
@@ -151,7 +146,19 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, sib
     return (
         entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r, siblings),
         _specificity(raw),
-        json.dumps(_windows(raw), separators=(",", ":")),
+        _when(r),
+        # WHILE, AS A COLUMN, because the client decides an OUTCOME from it: "only non-game fish
+        # may be speared" is take 0 on every game fish WHILE spear fishing, and read without the
+        # `while` it is "No fishing" on 1,674 of 1,693 rulesets — every river in B.C. The app
+        # looked for it as `conditions.method`, a field that no longer exists, in a column its
+        # query never selected. NULL = the rule binds whatever method you use.
+        json.dumps(list(r.while_), separators=(",", ":")) if r.while_ else None,
+        # STANDING: the rule holds everywhere but its place is unknowable — "no fishing within 23 m
+        # downstream of any fishway" is bound to every section because no dataset of fishways
+        # exists. It must be SHOWN and must never decide a water's colour: take 0 on every game
+        # fish, read as a closure, painted every section in the province CLOSED once the spear
+        # rule stopped doing it. A column, because the client decides an outcome from it.
+        1 if r.standing else 0,
         json.dumps(list(r.species), separators=(",", ":")),
         json.dumps(list(r.species_except), separators=(",", ":")),
         r.take,
@@ -202,7 +209,7 @@ def intern_sets(rows) -> tuple[dict[str, int], list[list[tuple[str, str, str]]]]
 
 def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
           build_dir: Path | None = None) -> None:
-    """Write `entry`, `rule`, `section_ruleset` and `ruleset`."""
+    """Write `entry`, `rule`, `section_ruleset`, `ruleset`, and every licensing table."""
     sections_file = reaches / "rule_section.jsonl"
     if not sections_file.exists():
         for t in ("entry", "rule", "section_ruleset", "ruleset"):
@@ -218,6 +225,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     from pipeline.regs.parsing.catalogue import CatalogueEntry
 
     entry_rows, rule_rows = [], []
+    ces = []
     for path in sorted(entries_dir.rglob("*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         for e in doc.get("entries", []):
@@ -226,6 +234,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             # from the retired nested prose shape (`identity`, `source`) is refused, not read
             # as a fallback.
             ce = CatalogueEntry.model_validate(e)
+            ces.append(ce)
             matched = list(ce.matched)
             entry_rows.append((
                 ce.entry_id,
@@ -264,12 +273,36 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # placeholders, and adding `limits` to the schema made it eleven values for twelve
     # columns — the fault that once shipped a 42 MB bundle with no entries in it.
     db.executemany("INSERT INTO rule (entry_id, rule_id, type, family, dimension, label,"
-                   "                  scope, windows, species, species_except, take,"
+                   "                  scope, when_, while_, standing, species, species_except, take,"
                    "                  may_target, conditions, uncertain, verbatim, extent_text) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
+                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
-    section_set, sets = intern_sets(_jsonl(sections_file))
+    # One pass over the bindings (149 M rows on the full corpus), noting every rule it names.
+    bound_rules: set[tuple[str, str]] = set()
+
+    def _noting(rows):
+        for r in rows:
+            bound_rules.add((r["entry_id"], r["rule_id"]))
+            yield r
+
+    section_set, sets = intern_sets(_noting(_jsonl(sections_file)))
+
+    # THE REACH RUN MUST BE THIS CORPUS'S. A run built before a rule was removed still binds it,
+    # and `ruleset` then names a rule the `rule` table does not have — measured on the bundle
+    # built after the licensing rules left: 144 such rules, 31,354 ruleset rows, in 2,347 of the
+    # 2,375 sets. The reader's JOIN drops such a row without a word, so the check is here: every
+    # rule the run placed exists, and every rule that exists was placed or explained.
+    placed_rules = bound_rules | unresolved
+    have_rules = {(r[0], r[1]) for r in rule_rows}
+    gone, never = sorted(placed_rules - have_rules), sorted(have_rules - placed_rules)
+    if gone or never:
+        raise SystemExit(
+            f"rules: the reach run at {reaches} is not this corpus's — it binds {len(gone):,} "
+            f"rule(s) the corpus no longer has (e.g. {gone[:3]}) and never saw {len(never):,} it "
+            f"does have (e.g. {never[:3]}). Re-run the reach builder:\n"
+            f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+
     # The section is named by its HANDLE here, as everywhere else in the bundle. A rule bound
     # to a section the handle table does not know means the reach run and the atlas are not
     # the same build — which would silently bind rules to the wrong water, so it stops here.
@@ -289,6 +322,19 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     db.executemany("INSERT INTO ruleset VALUES (?,?,?,?)",
                    ((i, e, r, s) for i, rows in enumerate(sets) for e, r, s in rows))
     cov.filled("ruleset", sum(len(s) for s in sets))
+
+    # AND AGAIN AGAINST THE ROWS WRITTEN, not the input they came from: a ruleset row naming a
+    # rule the bundle does not hold is a regulation that exists on the map and nowhere else.
+    orphan = db.execute(
+        "SELECT rs.entry_id, rs.rule_id FROM ruleset rs LEFT JOIN rule r "
+        "ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id "
+        "WHERE r.rule_id IS NULL LIMIT 5").fetchall()
+    if orphan:
+        raise SystemExit(f"ruleset names rules that are not in `rule`: {orphan}")
+
+    # Licensing: the other half of each entry, placed by the same reach run.
+    from pipeline.deliver.bundle import licensing as _licensing
+    _licensing.write(db, reaches, ces, cov, sid)
 
     # COUNTED FROM THE SET, NOT FROM A TUPLE INDEX. This read `r[8]` — which is
     # `json.dumps(species)`, a string that is never empty ("[]" at minimum) and therefore

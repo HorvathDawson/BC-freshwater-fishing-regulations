@@ -137,35 +137,34 @@ counts.entry = insert(
   JSON.stringify(e.source?.pages ?? []),
 ]));
 /**
- * The verbatim date strings, as the structured windows the client reads.
+ * The riffle rules' date strings, as the catalogue's own `When` — the shape the bundler ships in
+ * `rule.when_` (catalogue.When, by alias). The design file is frozen in the prose vocabulary, so
+ * its seasons are still strings; the catalogue's.
  *
- * THE FIXTURE SHIPPED THE RAW STRINGS ONCE, and so did the bundler, and the app threw
- * `Cannot read properties of undefined (reading 'month')` on every regulation screen that
- * evaluated a seasonal rule. The fixture having the SAME bug is why no test caught it: the
- * app suite runs against this file, so an agreeing pair of wrongs looked like a passing
- * suite. `packages/data/src/bundle/source.test.ts` now evaluates a seasonal rule out of the
- * bundle, which is the assertion that was missing.
+ * PARSED BY THE CATALOGUE'S OWN PARSER (`catalogue.parse_date_range`), shelled out to — the one
+ * the model validates `when` with. A JS reimplementation would be a second answer to "when is
+ * this rule in force". It used `pipeline/regs/parsing/dates.py` before, the retired prose
+ * parser, into a `windows` column the real bundle stopped filling; the fixture kept that column
+ * full while the real bundle shipped it empty on every rule, and so hid the lost seasons.
  *
- * PARSED BY THE PIPELINE'S OWN PARSER, shelled out to. A JS reimplementation would be a
- * second answer to "when is this rule in force" — and `pipeline/regs/parsing/dates.py` is
- * not just a parser, it is the hallucination guard for these strings: a date that does not
- * resolve to a real calendar window is a curation error there, and inventing a lenient
- * second reading here would hide exactly the ones it exists to catch.
+ * A string the parser cannot read goes to `unparsed`, exactly as the model keeps it — never
+ * dropped, which would make the rule all year.
  */
 // The repo root, two levels above app/tools — same shape as `here` above.
 const REPO = here("../../");
 const PY = `${REPO}.venv/bin/python`;
-function windowsOf(dates) {
-  if (!dates.length) return [];
+function whenOf(dates) {
+  if (!dates.length) return null;
   const script =
     "import json,sys\n" +
     `sys.path.insert(0, ${JSON.stringify(REPO)})\n` +
-    "from pipeline.regs.parsing.dates import parse_date_windows\n" +
-    "ws = parse_date_windows(json.loads(sys.argv[1]))\n" +
-    "print(json.dumps([{'from': {'month': w.start_month, 'day': w.start_day},\n" +
-    "                   'to': {'month': w.end_month, 'day': w.end_day}} for w in ws]))";
-  return JSON.parse(execFileSync(PY, ["-c", script, JSON.stringify(dates)],
-                                 { encoding: "utf8" }));
+    "from pipeline.regs.parsing.catalogue import parse_date_range\n" +
+    "out = {'dates': [], 'weekdays': [], 'unparsed': []}\n" +
+    "for s in json.loads(sys.argv[1]):\n" +
+    "    r = parse_date_range(s)\n" +
+    "    (out['dates'].append(r.model_dump(mode='json')) if r else out['unparsed'].append(s))\n" +
+    "print(json.dumps(out, sort_keys=True, separators=(',', ':')))";
+  return execFileSync(PY, ["-c", script, JSON.stringify(dates)], { encoding: "utf8" }).trim();
 }
 
 /*
@@ -190,14 +189,17 @@ const CATALOGUE_OF = {
   harvest:            ["retention_limit", "retention", "daily", null, null],
   gear_restriction:   ["tackle_restriction", "gear_and_method", "barbless", null, null],
   vessel_restriction: ["vessel_rule", "vessel", "propulsion", null, null],
-  licensing:          ["document_required", "licensing", "basic_licence", null, null],
+  // Licensing is no rule type any more — it is `licensing` on the entry and reaches the bundle
+  // as its own tables. riffle's one licensing rule is "Youth/Disabled Accompanied Water", which
+  // the catalogue files as `program_membership` (lonzo_creek.r3), so that is what it maps to.
+  licensing:          ["program_membership", "information", "program_membership", null, null],
   note:               ["advisory", "information", "advisory", null, null],
 };
 
 counts.rule = insert(
   "INSERT OR REPLACE INTO rule (entry_id, rule_id, type, family, dimension, label, scope," +
-  "  windows, species, species_except, take, may_target, conditions, uncertain, verbatim," +
-  "  extent_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+  "  when_, while_, species, species_except, take, may_target, conditions, uncertain, verbatim," +
+  "  extent_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
   entries.flatMap(([id, e]) => (e.rules ?? []).map((r) => {
     const [type, family, dimension, take, mayTarget] =
       CATALOGUE_OF[r.restriction_type] ?? CATALOGUE_OF.note;
@@ -210,7 +212,9 @@ counts.rule = insert(
       // Specificity, which drives precedence. Every rule in the real corpus is
       // `section`; `mu` arrives with zone regulations.
       (r.extents ?? []).some((x) => x.area_id) ? "area" : "section",
-      JSON.stringify(windowsOf(r.dates ?? [])),
+      whenOf(r.dates ?? []),
+      // `while` — riffle's prose rules predate it and none is method-scoped.
+      null,
       r.species?.length ? JSON.stringify(r.species) : null,
       null,
       take, mayTarget,

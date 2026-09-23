@@ -314,76 +314,87 @@ def test_an_unbound_locator_forces_review():
                       may_target=False, verbatim="x", unresolved_locators=["the outlet"])
 
 
-def test_every_field_the_prompts_name_exists_on_the_model():
-    """The generalisation of the bug above: grep the prompts and the batch envelope for backticked
-    rule fields and check the model accepts each one."""
+def test_every_name_the_prompts_use_is_current():
+    """The generalisation of the bug above: every backticked name in the parse and review
+    prompts must be something the CURRENT model knows — a field, an alias, or a value.
+
+    A prompt that names a retired field primes the model to write it: listing what "no longer
+    exists" teaches the old shape to a reader who never saw it. So the prompts teach the current
+    shape only, and this pins that nothing else is named."""
+    import enum
     import re
+    import typing
     from pathlib import Path
-    from pipeline.regs.parsing.catalogue import CatalogueRule
-    fields = set(CatalogueRule.model_fields)
-    text = ""
-    for p in Path("pipeline/regs/parsing/prompts").glob("CATALOGUE_*.md"):
-        text += p.read_text(encoding="utf-8")
-    # only check names that look like rule fields and are named as code
-    named = {m for m in re.findall(r"`([a-z][a-z0-9_]{3,})`", text)}
-    known_non_fields = {
-        "regs_verbatim", "entry_id", "rule_id", "extents", "splits", "item_id", "item_ids",
-        "area_id", "area_kind", "feature_types", "within_area", "identity", "matched", "rules",
-        "tributaries", "included", "needs_review", "review_reason", "locked", "reviewed_by",
-        "true", "false", "null", "index", "entry", "whole", "between", "within", "applies",
-        "excepts", "should", "must", "daily", "possession", "annual", "monthly", "stream",
-        "lake", "hatchery", "wild", "angling", "set_lining", "spear_fishing", "ice_fishing",
-        "netting", "crayfish_trapping", "upstream_of", "downstream_of", "includes_tributaries",
-        "tributaries_only", "registry_status", "registry_note", "source_symbols",
-    }
-    suspect = {n for n in named if n not in fields and n not in known_non_fields
-               and not n.isupper()}
-    # anything left must not look like a rule field the model would be asked to emit
-    assert not (suspect & {"unresolved_locators", "details", "restriction_type", "rule_text"}), \
-        f"the prompts name rule fields the model refuses: {sorted(suspect)}"
+
+    import pydantic
+
+    import pipeline.regs.parsing.catalogue as C
+    from pipeline.regs.parsing.entry_models import Extent, Op
+
+    vocab: set[str] = set(C.CONDUCT_ACTS) | {o.value for o in Op} | set(Extent.model_fields)
+
+    def literals(t):
+        if typing.get_origin(t) is typing.Literal:
+            vocab.update(str(a) for a in typing.get_args(t))
+        for a in typing.get_args(t):
+            literals(a)
+
+    for obj in vars(C).values():
+        if isinstance(obj, type) and issubclass(obj, pydantic.BaseModel):
+            for name, f in obj.model_fields.items():
+                vocab.add(name)
+                if f.alias:
+                    vocab.add(f.alias)
+                literals(f.annotation)
+        elif isinstance(obj, type) and issubclass(obj, enum.Enum):
+            vocab.update(str(m.value) for m in obj)
+
+    text = "".join(p.read_text(encoding="utf-8")
+                   for p in Path("pipeline/regs/parsing/prompts").glob("CATALOGUE_*.md"))
+    named = set(re.findall(r"`([a-z][a-z0-9_]{3,})`", text))
+    example_ids = {"okanagan_river__mcintyre_dam"}       # a split id in a worked example
+    assert not (named - vocab - example_ids), sorted(named - vocab - example_ids)
 
 
 # --------------------------------------------------------------------------------------- #
-# SHAPE COERCION — a value written the wrong way is not a wrong value.
-#
-# Four shapes below came out of ONE 34-entry parse run. Two carry their meaning intact
-# and are rewritten; two do not, and must keep failing, because deriving them means reading
-# the sentence.
+# NO SHAPE REPAIR. `coerce_shapes` rewrote two shapes the model reached for — a bare-string
+# `exempts`, and `electric_only: true` — and silently dropped `electric_only: false`. It is
+# gone: a shape the schema does not take is refused, and the entry is re-parsed.
 # --------------------------------------------------------------------------------------- #
 
-def test_a_bare_exemption_name_becomes_a_list():
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "exempts": "spring closure"}]}
-    assert coerce_shapes(d) == 1
-    assert d["rules"][0]["exempts"] == [{"default_id": "spring closure", "note": ""}]
+def _refused(rule: dict) -> str:
+    import pytest
+    from pipeline.regs.parsing.validate_catalogue import check_entry
+    entry = {"entry_id": "e1", "name": "X", "regs_verbatim": rule["verbatim"],
+             "rules": [dict(rule, rule_id="r1")]}
+    got, errors = check_entry(entry, rule["verbatim"])
+    if got is not None:
+        pytest.fail(f"accepted {rule}")
+    return " ".join(errors)
 
 
-def test_electric_only_is_a_propulsion_level_not_a_field():
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "type": "vessel_rule", "electric_only": True}]}
-    assert coerce_shapes(d) == 1
-    r = d["rules"][0]
-    assert "electric_only" not in r
-    assert r["aspect"] == "propulsion" and r["level"] == "electric_only"
+def test_a_bare_exemption_name_is_refused_not_wrapped():
+    assert "exempts" in _refused({"type": "advisory", "verbatim": "Exempt from spring closure",
+                                  "exempts": "spring closure"})
+
+
+def test_electric_only_as_a_field_is_refused_not_translated():
+    for on in (True, False):
+        assert "electric_only" in _refused({"type": "vessel_rule", "electric_only": on,
+                                            "verbatim": "Electric motor only"})
 
 
 def test_a_bait_rule_with_no_gear_is_NOT_guessed():
     """"Bait ban" and "bait may be used" are both `bait_restriction`, and the difference is the
     whole rule. Inferring it from the word "ban" is reading the sentence; the entry fails."""
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "type": "bait_restriction", "verbatim": "bait ban"}]}
-    assert coerce_shapes(d) == 0
-    assert "gear" not in d["rules"][0]
+    assert "gear" in _refused({"type": "bait_restriction", "verbatim": "bait ban"})
 
 
 def test_a_propulsion_rule_with_no_level_is_NOT_guessed():
     """"No powered boats" is `unpowered` and "No vessels" is `none` — both are a refusal, and
-    they are different rules. The model wrote `permitted: false` for both."""
-    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
-    d = {"rules": [{"rule_id": "r1", "type": "vessel_rule", "aspect": "propulsion",
-                    "permitted": False, "verbatim": "No powered boats"}]}
-    assert coerce_shapes(d) == 0
-    assert "level" not in d["rules"][0]
+    they are different rules."""
+    assert "level" in _refused({"type": "vessel_rule", "aspect": "propulsion",
+                                "verbatim": "No powered boats"})
 
 
 def test_all_fin_fish_is_wider_than_the_game_list():

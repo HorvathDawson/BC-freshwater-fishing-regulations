@@ -408,9 +408,9 @@ SCOPE_HELD = {
                       "needs the same `minus` as section E. The MU list is the operative text, "
                       "so prefer it and use the watershed as the cross-check. NOTE its "
                       "'in the aggregate (combined total)' is a RULE-side quota shared across "
-                      "waters, not a geography: `CatalogueRule.combined` + `aggregation_domain` "
-                      "already carry exactly that (the Kootenay West Arm kokanee quota is the "
-                      "worked precedent).",
+                      "waters, not a geography — and an OPEN GAP: `combined` and "
+                      "`aggregation_domain`, which once carried it, are retired, and the "
+                      "catalogue has no field for a quota shared across waters yet.",
 }
 
 #: A tidal-area scope is keyed by the AREAS it names, not by its section letter — three of them

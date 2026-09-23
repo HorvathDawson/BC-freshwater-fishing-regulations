@@ -626,7 +626,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
 
 
-def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
+def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
+          reaches: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
 
     ``data_dir`` is where FETCHED source lives, and it comes from config — not from anything
@@ -669,7 +670,18 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     _gauges(db, build_dir, data_dir, cov)
     # The regulations. The reach builder resolved which water every rule covers; this only
     # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
-    _reaches = _reach_run(build_dir)
+    if reaches is not None:
+        # A NAMED RUN, for building against a reach run that is not (yet) under
+        # GENERATED.reaches — a side build. Held to the same pairing `_reach_run` enforces: a
+        # run resolved against a different atlas binds rules to sections that are not these.
+        from pipeline.common.section_handles import digest_for
+        _rep = json.loads((Path(reaches) / "report.json").read_text())
+        if _rep.get("handles") != digest_for(build_dir):
+            raise SystemExit(f"--reaches {reaches} was resolved against atlas handles "
+                             f"{_rep.get('handles')!r}, not {build_dir}'s")
+        _reaches = Path(reaches)
+    else:
+        _reaches = _reach_run(build_dir)
     if _reaches is None:
         # NOT `cov.skip`. A skipped table prints "not wired" and exits 0, and for the
         # regulations that is a province-wide lie: `statusFor` is written so that a section
@@ -687,7 +699,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
             f"    python -m pipeline.atlas.reach.cli --build {build_dir} --out "
             f"{GENERATED.reaches / build_dir.name}")
     else:
-        print(f"     rules: reading {_reaches.relative_to(REPO_ROOT)}")
+        print(f"     rules: reading {_reaches}")
         _rules.write(db, _reaches, CURATED.regulations.entries.catalogue.parent, cov,
                      build_dir=build_dir)
 

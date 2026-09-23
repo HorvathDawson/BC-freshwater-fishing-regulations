@@ -228,7 +228,7 @@ PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched \
 ```
 
 It replays `batch_exporter` locally — **no credits, no `claude` CLI** — and touches only
-`matched`, so locked entries keep their curated content. It is nonetheless blocked by the
+`matched`, so every entry keeps its curated content. It is nonetheless blocked by the
 agent auto-mode classifier (the `pipeline.regs.parsing.*` path matches the parser-run guard), so
 **a human runs this one.**
 
@@ -261,9 +261,12 @@ Surfaced by a UI review asking whether `note` is a catch-all bin, then measured:
 
 ```
 rules whose TEXT says "exempt"              83
-  carrying a machine-readable exempts_from  59
+  carrying a machine-readable exemption     59
   PROSE ONLY, invisible to the resolver     24
 ```
+
+(Measured on the prose corpus, where the field was `exempts_from`. The catalogue field is
+`exempts`; re-measure with the snippet below before acting on the counts.)
 
 78 of the 83 are typed `note`, which is right — they lift a restriction rather than impose
 one. The problem is the 24 that say so only in words:
@@ -286,13 +289,12 @@ with zero uses**. The code exists; nobody stamped it. So this is not new machine
 use to at least 3.
 
 ```python
-import json, glob, re
-for p in glob.glob("pipeline/regs/parsing/entries/region-*.json"):
-    for e in json.load(open(p))["entries"]:
-        for r in e.get("rules") or []:
-            txt = f"{r.get('details') or ''} {r.get('rule_text') or ''}"
-            if re.search(r"\bexempt", txt, re.I) and not r.get("exempts_from"):
-                print(e["entry_id"], r["rule_id"], (r.get("details") or "")[:60])
+import re
+from pipeline.regs.parsing import io
+for e in io.read_entries_dir().values():
+    for r in e.get("rules") or []:
+        if re.search(r"\bexempt", r.get("verbatim") or "", re.I) and not r.get("exempts"):
+            print(e["entry_id"], r["rule_id"], (r.get("verbatim") or "")[:60])
 ```
 
 ## 2.6 The source-image link is guessed, and often wrong (㉟)
@@ -439,7 +441,7 @@ Carried forward from `RESOLVER-HANDOFF.md` §6. These are **unexamined, not clea
 
 ---
 
-## 6. The 73 locked-entry changes
+## 6. The 73 changes to entries that had been confirmed
 
 Investigated and **benign**: Coldwater River went 1 → 12 sections, all named "Coldwater
 River" on separate blue lines — the river's **side channels**, which the added-streams build
@@ -453,7 +455,7 @@ those rules were confirmed against a 1-section river.
 * **`data/generated/atlas` holds two builds only**: `full` (active) and `full_prev_bak` (rollback — the
   build adopted earlier the same day). `full_named`, `full_v4`, and the build-19 backup were
   deleted 2026-08-29. Each build is ~8.8 GB — budget for that before starting one.
-* **`docs/waterbody-splits.json` is kept deliberately.** Its generator (`hack/build_splits.py`)
+* **`docs/archive/waterbody-splits.json` is kept deliberately.** Its generator (`hack/build_splits.py`)
   was deleted as a v1 leftover, but the rows are the **provenance** for every curated split —
   the `datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache` notes are
   what made it possible to find two double-offset anchors (Ash, Heber). Don't delete it
@@ -463,5 +465,6 @@ those rules were confirmed against a 1-section river.
   (2) never re-anchor a row that carries its own surveyed coordinate. Both were written
   after converting the Lardeau and Nahatlatch anchors *wrongly*.
 * **JSON formatting is per-file and diffs explode if you get it wrong.** `data/curated/waters/splits.json`
-  is `indent=1`; entry files are `indent=2`; both are `ensure_ascii=False` with **no trailing
-  newline**. Writing with the wrong settings produces a 45,000-line diff.
+  is `indent=1`; the catalogue region files are `indent=1` (region-7: `indent=2`), and
+  `io.write_entryfile` keeps each file's own indent. All are `ensure_ascii=False` with a trailing
+  newline (checked 2026-09-23). Writing with the wrong settings produces a 45,000-line diff.

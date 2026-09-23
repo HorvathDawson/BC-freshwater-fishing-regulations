@@ -46,19 +46,6 @@ def test_extract_json_obj():
     assert d._extract_json_obj("not json") == {}
 
 
-def test_flagged_batch_ids_picks_high_medium(tmp_path):
-    manifest = {"batches": [{"id": 0, "indices": [0, 1]}, {"id": 1, "indices": [2, 3]}]}
-    reviews = tmp_path / "reviews"
-    reviews.mkdir()
-    # batch 0: high finding (envelope-wrapped) -> flagged; batch 1: only low (bare json) -> not flagged
-    (reviews / "batch_000.review.json").write_text(json.dumps(
-        {"result": json.dumps({"verdict": "changes_requested",
-                               "issues": [{"index": 1, "severity": "high", "problem": "wrong reach"}]})}))
-    (reviews / "batch_001.review.json").write_text(json.dumps(
-        {"verdict": "pass", "issues": [{"index": 2, "severity": "low", "problem": "nit"}]}))
-    assert d._flagged_batch_ids(manifest, reviews) == [0]
-
-
 def test_invalid_batch_ids_flags_bad_response(tmp_path):
     manifest = {"batches": [{"id": 0, "indices": [0]}, {"id": 1, "indices": [1]}]}
     batches = tmp_path / "batches"

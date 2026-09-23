@@ -14,57 +14,67 @@ Two rules that are not negotiable, both learned the hard way:
 * **Nothing partial is written.** An entry either validates whole or is reported and left out. A
   half-ingested entry is a water with some of its regulations, which is indistinguishable from a
   water with no regulation.
+
+And one guard, because a re-parse replaces an entry wholesale and there is no `locked` any more:
+
+* **A curator's edit is not overwritten.** Every entry ingest writes is recorded in a ledger in the
+  work dir (`ingested.json`: entry_id -> digest of the entry as written). Before replacing an
+  entry already on disk, ingest compares the file's copy with the ledger. If they differ — a
+  curator bound a reach, added a tributary exclude, or anything else since the parse — or the
+  ledger has no record of it, the entry is KEPT and reported, and nothing about it is written.
+  `--replace-edited` overrides that after you have read the report (the curated files are in
+  git, so `git diff` shows what the replace changed).
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
+from pipeline.regs.parsing import io
+from pipeline.regs.parsing.catalogue import CatalogueEntry
 from pipeline.regs.parsing.io import dump_entry
 from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
 
 def load_batch(paths: list[str]) -> dict[str, dict]:
-    """{key: batch item} keyed by BOTH `entry_id` and `index`.
+    """{key: batch item} keyed by BOTH `entry_id` and `#index`.
 
     The agent is told to copy each item's `index` back verbatim, and that is the reliable join:
     `entry_id` is a value the model retypes, so keying on it alone makes a typo look like an
-    invented entry."""
+    invented entry. A batch file is ours — `{batch, rows_digest, items: [...]}` — and nothing
+    else is read."""
     items: dict[str, dict] = {}
     for p in paths:
         data = json.loads(Path(p).read_text(encoding="utf-8"))
-        for it in (data.get("items", data) if isinstance(data, dict) else data):
-            for key in (it.get("entry_id"), it.get("id"), it.get("item_id")):
-                if key:
-                    items.setdefault(str(key), it)
-            if it.get("index") is not None:
-                items[f"#{it['index']}"] = it
+        for it in data["items"]:
+            items.setdefault(str(it["entry_id"]), it)
+            items[f"#{it['index']}"] = it
     return items
 
 
-_RETIRED_FIELDS = ("restriction_type", "details", "rule_text", "exempts_from", "display_location")
+def response_rows(path: str | Path) -> list[dict]:
+    """A response file -> its entries, each carrying `_batch_index` (the join key).
 
-
-def is_stale(rows: list) -> bool:
-    """True if this response was written by the RETIRED prose parser.
-
-    Responses live in a work dir that survives between runs, and dispatch skips a batch that
-    already has one — which is what makes a run resumable. It also means a response from a
-    previous FORMAT era is silently reused: 22 files from the prose parser sat in the work dir and
-    were ingested as if they were catalogue output, and 669 rules failed as "extra inputs are not
-    permitted" with nothing pointing at the real cause. Cheap to detect, so detect it."""
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        for r in ((row.get("entry", row) or {}).get("rules") or []):
-            if isinstance(r, dict) and any(k in r for k in _RETIRED_FIELDS):
-                return True
-    return False
+    ONE SHAPE: the array `dispatch` writes, `[{"index": N, "entry": {...}}, ...]`. Anything else
+    is refused with the file named — a response in another shape was produced by something
+    other than this pipeline, and guessing at it is how a prose-era file was once ingested as
+    catalogue output."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, list):
+        raise ValueError(f"{Path(path).name}: a response is a JSON array of {{index, entry}}")
+    out: list[dict] = []
+    for row in data:
+        if not (isinstance(row, dict) and isinstance(row.get("entry"), dict)
+                and isinstance(row.get("index"), int)):
+            raise ValueError(f"{Path(path).name}: every row must be {{\"index\": int, "
+                             f"\"entry\": {{...}}}} — got {str(row)[:80]!r}")
+        out.append(dict(row["entry"], _batch_index=row["index"]))
+    return out
 
 
 def _passthrough(item: dict) -> dict:
@@ -89,7 +99,7 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
     for data in candidates:
         eid = str(data.get("entry_id") or "<no entry_id>")
         idx = data.pop("_batch_index", None)
-        item = batch.get(eid) or (batch.get(f"#{idx}") if idx is not None else None)
+        item = batch.get(f"#{idx}") if idx is not None else batch.get(eid)
         if item is not None and item.get("entry_id"):
             # IDENTITY COMES FROM THE BATCH, exactly like regs_verbatim. The agent retypes
             # entry_id and 375 of 1099 came back without their `@MU` suffix — close enough to
@@ -121,70 +131,83 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
     return accepted, problems
 
 
-def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False) -> dict[str, int]:
-    """Merge into region files by the entry's own `region`, replacing an entry of the same id."""
+def default_ledger() -> Path:
+    """Where ingest records what it wrote — beside the batches and reviews it was made from."""
+    return io.default_work_dir() / "ingested.json"
+
+
+def digest(entry: dict) -> str:
+    return hashlib.sha256(json.dumps(entry, sort_keys=True, ensure_ascii=False)
+                          .encode("utf-8")).hexdigest()
+
+
+def _read_ledger(path: Path) -> dict[str, str]:
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False, *,
+          ledger: Path, replace_edited: bool = False) -> tuple[dict[str, int], list[str]]:
+    """Merge into region files by the entry's own `region`, replacing an entry of the same id —
+    unless the copy on disk is not the one ingest last wrote (see the module docstring).
+
+    Returns ({file name: entries written}, [entry ids KEPT because they were edited])."""
+    record = _read_ledger(ledger)
     by_region: dict[str, list[CatalogueEntry]] = defaultdict(list)
     for e in accepted.values():
         by_region[e.region or "unknown"].append(e)
 
     written: dict[str, int] = {}
+    kept: list[str] = []
     for region, entries in sorted(by_region.items()):
         path = out_dir / f"region-{region}.json"
-        existing: list[dict] = []
-        if path.exists():
-            existing = json.loads(path.read_text(encoding="utf-8")).get("entries", [])
-        fresh = {e.entry_id for e in entries}
-        merged = [x for x in existing if x.get("entry_id") not in fresh]
-        merged += [dump_entry(e) for e in entries]
-        merged.sort(key=lambda x: x.get("entry_id", ""))
-        # Validate the WHOLE file, not just the new rows — a duplicate entry_id or a broken
-        # neighbour is a failure of the file, and writing it would ship the break.
-        CatalogueFile.model_validate({"region": region, "entries": merged})
-        if not dry_run:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps({"region": region, "entries": merged},
-                                       indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        written[path.name] = len(entries)
-    return written
+        merged: dict[str, object] = dict(io.read_entryfile(path))   # file order, dicts as-is
+        n = 0
+        for e in entries:
+            on_disk = merged.get(e.entry_id)
+            if on_disk is not None and not replace_edited \
+                    and record.get(e.entry_id) != digest(on_disk):
+                kept.append(e.entry_id)
+                continue
+            merged[e.entry_id] = e
+            n += 1
+        # write_entryfile validates the WHOLE file as written — a duplicate entry_id or a
+        # broken neighbour is a failure of the file, and writing it would ship the break.
+        if not dry_run and n:
+            io.write_entryfile(path, region, merged.values())
+            for e in entries:
+                if merged[e.entry_id] is e:
+                    record[e.entry_id] = digest(dump_entry(e))
+        written[path.name] = n
+    if not dry_run and any(written.values()):
+        io.atomic_write(ledger, json.dumps(record, indent=1, sort_keys=True) + "\n")
+    return written, kept
 
 
 def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
-        dry_run: bool = False) -> int:
+        dry_run: bool = False, ledger: Path | None = None, replace_edited: bool = False) -> int:
     batch = load_batch(batch_paths)
     candidates: list[dict] = []
-    stale: list[str] = []
     for p in response_paths:
-        data = json.loads(Path(p).read_text(encoding="utf-8"))
-        rows = data.get("entries", data) if isinstance(data, dict) else data
-        if is_stale(rows):
-            stale.append(Path(p).name)
-            continue
-        for row in rows:
-            # The dispatcher writes the batch ENVELOPE: [{"index": N, "entry": {...}}]. Ingest used
-            # to expect a bare entry, so every row read as "<no entry_id>" and a fully paid parse
-            # ingested nothing. Accept both shapes; carry the index along as the join key.
-            if isinstance(row, dict) and "entry" in row and isinstance(row["entry"], dict):
-                entry = dict(row["entry"])
-                if row.get("index") is not None:
-                    entry.setdefault("_batch_index", row["index"])
-                candidates.append(entry)
-            else:
-                candidates.append(row)
-
-    if stale:
-        print(f"SKIPPED {len(stale)} response file(s) written by the RETIRED prose parser — delete "
-              f"them and re-parse those batches:\n  {', '.join(stale)}\n")
+        candidates += response_rows(p)
     accepted, problems = ingest(candidates, batch)
     for p in problems:
         print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
 
-    written = write(accepted, Path(out_dir), dry_run=dry_run)
+    written, kept = write(accepted, Path(out_dir), dry_run=dry_run,
+                          ledger=ledger or default_ledger(), replace_edited=replace_edited)
     rejected = len(candidates) - len(accepted)
     print(f"\n{len(accepted)}/{len(candidates)} entries accepted"
           + (f", {rejected} rejected" if rejected else ""))
     for name, n in sorted(written.items()):
         print(f"  {'would write' if dry_run else 'wrote'} {n} entries -> {name}")
-    return 1 if rejected else 0
+    if kept:
+        print(f"\nKEPT {len(kept)} entr(y/ies) — the curated copy is not the one ingest last "
+              f"wrote (edited since, or parsed before the ledger), so the re-parse was NOT "
+              f"applied:")
+        for eid in kept:
+            print(f"  {eid}")
+        print("  Compare each with its response; re-run with --replace-edited to overwrite them.")
+    return 1 if (rejected or kept) else 0
 
 
 def main() -> None:
@@ -199,8 +222,14 @@ def main() -> None:
                     help="candidate JSON from the agent; a glob is fine")
     ap.add_argument("--out", default="data/curated/regulations/entries/catalogue")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--ledger", type=Path, default=None,
+                    help="what ingest last wrote, per entry (default: <work dir>/ingested.json)")
+    ap.add_argument("--replace-edited", action="store_true",
+                    help="replace entries even where the curated copy differs from what ingest "
+                    "last wrote — overwrites curator edits; read the KEPT report first")
     a = ap.parse_args()
-    sys.exit(run(a.batch, a.response, a.out, dry_run=a.dry_run))
+    sys.exit(run(a.batch, a.response, a.out, dry_run=a.dry_run, ledger=a.ledger,
+                 replace_edited=a.replace_edited))
 
 
 if __name__ == "__main__":

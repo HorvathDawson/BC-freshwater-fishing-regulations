@@ -3666,7 +3666,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "review_reason": "its tributary walk reaches lower Coal Creek, which Coal Creek's own row prints as 'NOT a Classified Water' (downstream of the old MF&M railway bridge); the carve-out is not drawn — a tributary_excludes on that split would also cut Coal Creek above the bridge, which is classified. A curator must draw it"
     }
    ]
   },

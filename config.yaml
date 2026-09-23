@@ -43,7 +43,6 @@ generated:
 
   regs:
     extraction: "data/generated/regs/extraction"       # synopsis_raw_data.json, row_images/
-    parsing: "data/generated/regs/parsing"             # synopsis_parsed.json, session_state
     parse: "data/generated/regs/parse"                 # LLM work dir: batches/responses/reviews
     dfo_salmon: "data/generated/regs/dfo_salmon"       # scrape: locations/, rules/, untangled/
     entries_backup: "data/generated/regs/entries_backup"

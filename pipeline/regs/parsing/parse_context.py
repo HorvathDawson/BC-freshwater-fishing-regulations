@@ -5,7 +5,7 @@ registry item and the closed set of bindable cut-points on it (`item.boundaries`
 every rule's reach by *selecting* from that set (op + boundary ids) — or, when no boundary fits, record
 the unbindable phrase in `unresolved_locators` and give a `review_reason`. This module turns a
 `RegistryItem` into that menu and renders the per-entry user message; the stable instructions + worked
-examples live in `PARSE_PROMPT.md`.
+examples live in `prompts/CATALOGUE_PARSE_PROMPT.md`.
 
 `within(area)` scopes (Garibaldi/reserve closures) are NOT auto-bound by the parser — they're a curation
 step (DECISION 2026-08-16): an area reg is given a `review_reason` and a curator adds the extent (matched
@@ -13,8 +13,8 @@ area for a blanket closure, or a `within(area)` extent for a system-scoped one),
 `area_id`. So the parse menu carries only the item's own boundaries, never an area list.
 
     ctx = build_parse_context(item, raw_regs, region="5")
-    allowed = ctx.bindable_ids                      # -> validate_entry_splits(entry, allowed)
-    user_msg = render_user_message(ctx)             # embed after the PARSE_PROMPT.md system text
+    allowed = ctx.bindable_ids                      # the closed set `validate_catalogue` checks
+    user_msg = render_user_message(ctx)             # embed after the CATALOGUE_PARSE_PROMPT.md text
 """
 
 from __future__ import annotations
@@ -26,8 +26,6 @@ from pipeline.common.models import RegistryItem
 from pipeline.regs.parsing.rows import symbols_include_tributaries
 from pipeline.regs.parsing.catalogue import species_menu
 
-#: The canonical spelling of every rule statement. Appended to BOTH the parse and review prompts —
-#: they each cite it by name, and a spec the agent cannot see is not a spec.
 #: The catalogue format: a rule is a TYPE plus named CONDITIONS, and the label is generated.
 _CATALOGUE_PROMPT = Path(__file__).resolve().parent / "prompts" / "CATALOGUE_PARSE_PROMPT.md"
 
@@ -45,7 +43,7 @@ class ParseContext:
     #: The MUs of the synopsis ROW itself — the heading this regulation is printed under, and what
     #: `entry_id` is built from. NOT the same as `mus`: the West Road ("Blackwater") River is one
     #: item spanning 5-12, 5-13, 6-1, 7-8 and 7-10, but its region-5 row is printed under 5-13
-    #: alone. `identity.mus` must be this one, or an entry claims MUs its row never named.
+    #: alone. `entry_id` is built from this one, or an entry claims MUs its row never named.
     row_mus: tuple[str, ...] = ()
     item_id: str = ""
     also_item_ids: tuple[str, ...] = ()               # a combined override's OTHER items (see below)
@@ -223,14 +221,15 @@ def render_user_message(ctx: ParseContext) -> str:
     if ctx.also_item_ids:
         lines.append(f"Combined entry — these regs cover {len(ctx.also_item_ids) + 1} registry items: "
                      f"{ctx.item_id}, {', '.join(ctx.also_item_ids)}. The boundary menu below is their "
-                     f"union; bind each rule to whichever cut-point its text names, or scope it to one "
-                     f"water with `item_id` (see 'Combined entries' in the instructions).")
+                     f"union; bind each rule to whichever cut-point its text names, or scope an "
+                     f"extent to one of these waters with its `item_id`.")
     if ctx.region or ctx.mus:
         lines.append(f"Region {ctx.region or '?'} · MUs: {', '.join(ctx.mus) or '?'}")
     if ctx.variants:
         lines.append(f"Also known as: {', '.join(ctx.variants)}")
     if symbols_include_tributaries(ctx.symbols):
-        lines.append("Synopsis symbol **[Includes Tributaries]** → set entry `tributaries.included = true`.")
+        lines.append("Synopsis symbol **[Includes Tributaries]** → set the entry's "
+                     "`includes_tributaries: true`.")
     lines.append("")
 
     if ctx.review_hints:
@@ -247,8 +246,7 @@ def render_user_message(ctx: ParseContext) -> str:
                      "conditions, `species`, `when`, and a `verbatim` that is a substring of the "
                      "regs below. For EVERY rule set `extents: []` and a "
                      "`review_reason` (e.g. \"no registry match — attach an item and bind extents\"). "
-                     "Do NOT invent split ids or op:whole. Leave `registry_status`/`registry_note` "
-                     "unset (ingest fills them).")
+                     "Do NOT invent split ids or op:whole.")
         lines.append("")
     else:
         lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
@@ -261,7 +259,8 @@ def render_user_message(ctx: ParseContext) -> str:
     lines.append(species_menu())
     lines.append("")
 
-    lines.append("### Regulations (regs_verbatim — copy exactly; every rule_text must be a substring)")
+    lines.append("### Regulations (regs_verbatim — copy exactly; every rule's `verbatim` must be a "
+                 "substring)")
     lines.append(ctx.raw_regs.strip())
     return "\n".join(lines)
 
@@ -276,7 +275,8 @@ Return ONLY a JSON array — one object per ITEM above, in this exact shape:
     [ { "index": <the item's index, unchanged>, "entry": { ...Entry... } }, ... ]
 
 - Copy each item's `index` verbatim; it maps your result back to the row. Never renumber.
-- `entry` is the full Entry object (see the schema + examples above), bound to THAT item's boundaries.
+- `entry` is the full catalogue entry (see "Output" in the instructions above), bound to THAT
+  item's boundaries.
 - Return one object for every item. Do not wrap in Markdown fences or add prose.
 - Pick `species` from the menu shown with each item — the GROUP the regulation's own words use
   (`TROUT_CHAR`, `ALL_GAME_FISH`) unless the sentence names one fish. Empty is not "all".
@@ -289,11 +289,11 @@ check) after you submit, and any batch that fails is re-run — so get each entr
 
 
 def render_batch_prompt(contexts: list[ParseContext]) -> str:
-    """A self-contained batch prompt: the stable rules/examples (PARSE_PROMPT.md), each item's
+    """A self-contained batch prompt: the stable rules/examples (CATALOGUE_PARSE_PROMPT.md), each item's
     constrained menu, then the `{index, entry}` output envelope. Single-shot — the agent emits JSON
     directly (no tools); validation happens downstream at ingest."""
     parts = [load_system_prompt(),
-             "\n\n---\n\n# BATCH — parse EACH item below into its own Entry\n"]
+             "\n\n---\n\n# BATCH — parse EACH item below into its own entry\n"]
     for ctx in contexts:
         parts.append(f"\n---\n## ITEM index={ctx.row_index}\n\n{render_user_message(ctx)}\n")
     parts.append(_BATCH_ENVELOPE)

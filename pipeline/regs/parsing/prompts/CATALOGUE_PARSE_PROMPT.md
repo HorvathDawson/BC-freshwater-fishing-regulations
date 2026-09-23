@@ -27,11 +27,9 @@ you must follow it, not your intuition about what the words mean.
    constrains in `gear` (or `conduct`) — never in a flag.** *"Bait ban"* is
    `gear: [{"slot": "bait", "ban": ["any_bait"]}]`; *"roe may be used"* is
    `{"slot": "bait", "allow": ["roe"]}`. The direction is the KEY the clause uses, so it cannot
-   sit in a neighbouring field and be read backwards. See "Gear" below. `allowed`, `barbless`,
-   `hook_count`, `lure`, `bait`, `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and
-   `max_gap_mm` no longer exist and are refused.
+   sit in a neighbouring field and be read backwards. See "Gear" below.
 7. **A `vessel_rule` with `aspect: propulsion` MUST carry `level`.** One ordered scale, strictest
-   first — and `permitted: false` says none of them:
+   first:
 
    | the page says | `level` |
    |---|---|
@@ -69,7 +67,7 @@ ACCESS             who may fish here at all
                              non-resident aliens on weekends
 
 LICENSING is NOT a rule type. What you must hold goes in the entry's `licensing` list —
-see "Licensing — `licensing`" below. `document_required` and `access_permission` are REFUSED.
+see "Licensing — `licensing`" below.
 
 CONDUCT
   handling_rule              what you must do with the fish after catching it
@@ -137,7 +135,6 @@ period         daily (default) | possession | annual (licence year, Apr 1 - Mar 
 per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
 lengths        THE SIZE LIMIT, and the only field for it — see "Sizes" below.
-               `over_cm`, `under_cm` and `band` no longer exist and are refused.
 water          stream | lake            origin  hatchery | wild
 
 REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY
@@ -150,23 +147,20 @@ aspect+level   vessel_rule. aspect is propulsion | speed | towing.
                  unpowered   no motor                   ("No powered boats")
                  electric_only  electric motors only     ("Electric motor only")
                  power_capped  a kW limit, with max_power_kw ("7.5 kW / 10 hp")
-               `permitted: false` is NOT a substitute — "No vessels" and "No powered boats"
-               are both a refusal and they are different rules.
+               "No vessels" and "No powered boats" are both a refusal, and they are
+               different rules: the level is what tells them apart.
 while          the methods during which the rule binds: "dead fin fish may be used WHEN SET
                LINING" is gear on bait with while: ["set_lining"].
 when           WHEN THE RULE BINDS — see "Seasons and times" below. One object holding
-               `dates`, `hours`, `weekdays` and `unparsed`. `windows`, `windows_are`,
-               `from_time` and `to_time` no longer exist and are refused.
+               `dates`, `hours`, `weekdays` and `unparsed`.
 closed_to      angler_closure only: WHO the water is closed to, as a `Who` (below)
-when_open
 extent_text    the reach in the page's own words, when no split can express it
 exempts        what this rule LIFTS
-suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. "Classified
-               Waters Licence not required until reopened to steelhead fishing" is the licence rule
-               with suspended_while = the steelhead closure's rule_id.
+suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. (A licensing
+               designation says the same thing its own way — see "Licensing" below.)
 obligation     must (default) | should — "anglers are encouraged" is should, not law
-review_reason  why a human must look. THERE IS NO `needs_review` (refused): a reason
-               present IS the flag, and one longer than 20 characters is expected.
+review_reason  why a human must look. A reason present IS the flag, so write one that
+               names what is missing — longer than 20 characters is expected.
 ```
 
 ## Extents — WHERE the rule applies
@@ -264,9 +258,9 @@ reads as "open all year".
 
 ### "EXCEPT these dates" — WRITE THE DAYS THE RULE HOLDS
 
-There is NO `excepts` flag any more. `windows_are: "excepts"` stored the days a rule did NOT
-apply, which inverted the field beside it — the same failure that had four size rules permitting
-exactly the fish they protect. Invert it yourself and store the days it DOES hold:
+`dates` is always the days the rule DOES hold. When the page prints the days it does not,
+invert them yourself — a stored exception inverts the field beside it, the same failure that
+once had four size rules permitting exactly the fish they protect:
 
 ```
 "Open June 16-Apr 30 each year"      a CLOSURE; it holds May 1 - June 15
@@ -282,10 +276,10 @@ a list precisely so this always fits.
 
 ## Sizes — `lengths`, and read the sentence, not the preposition
 
-The word "over" means three different things and the corpus used to store all three in one field,
-`over_cm`, leaving the meaning to be reconstructed from whatever sat beside it. Four rules ended
-up permitting exactly the fish they protect. Ask **which fish go back**, then write the range and
-its number — there is nothing left to infer:
+The word "over" means three different things. Stored in one field, the meaning had to be
+reconstructed from whatever sat beside it, and four rules ended up permitting exactly the fish
+they protect. Ask **which fish go back**, then write the range and its number — there is nothing
+left to infer:
 
 ```
 "not more than 1 over 50 cm"   you MAY keep one big one, and the parent governs the rest
@@ -406,7 +400,7 @@ is a contiguous run of `regs_verbatim`.
 designation     "Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30"
                 {"kind": "designation", "id": "<unit>", "classified": "II", "unit": "<slug>",
                  "unit_name": "<the name a non-resident's licence names>",
-                 "when": {"dates": [...]},                       # absent = all year / "when open"
+                 "when": {"dates": [...]},                       # absent = all year
                  "steelhead_stamp_during": {"when": {...}, "verbatim": "Steelhead Stamp mandatory …"}
                    OR "steelhead_stamp_waived": {"verbatim": "Steelhead Stamp not required"},
                  "suspended_while": [{"rule_id": "<closure in this entry>", "verbatim": "… until reopened …"}],
@@ -457,7 +451,8 @@ alternative     a place where another document also satisfies a requirement
 }
 ```
 
-Validate before submitting:
+Validate before submitting — `candidate.json` is your reply exactly as you will submit it, the
+array of `{"index": N, "entry": {...}}`:
 
 ```bash
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.validate_catalogue batch.json candidate.json

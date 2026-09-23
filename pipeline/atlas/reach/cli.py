@@ -61,6 +61,14 @@ def main() -> int:
     for k, v in sorted(r.diagnostics.items()):
         print(f"  {k:<12} {v:,}")
     print(f"  digest       {digest(result)}")
+    if r.licensing:
+        print("  licensing")
+        for k, v in sorted(r.licensing.items()):
+            print(f"    {k:<30} {v:,}")
+        for p in result.licensing:
+            if p.placement == "unresolved":
+                print(f"    UNRESOLVED {p.entry_id}#{p.record_id} ({p.kind}): {p.reason} — "
+                      f"{p.detail[:80]}")
     if r.needs_backfill:
         print(f"\n  {len(r.needs_backfill)} entries resolved only via a live re-match "
               f"(stale `matched`); run pipeline.regs.parsing.backfill_matched")
@@ -70,9 +78,8 @@ def main() -> int:
         print(f"\nwrote {args.out}: " + " · ".join(f"{k} {v:,}" for k, v in counts.items()))
 
     if args.against:
-        locked = {e["entry_id"] for e in entries.values() if e.get("locked")}
         print("\n" + "=" * 72)
-        print(diff_runs(args.against, result, locked).summary())
+        print(diff_runs(args.against, result).summary())
     return 0
 
 

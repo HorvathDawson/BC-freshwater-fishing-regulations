@@ -3,8 +3,9 @@
 Transcribed verbatim from the synopsis licensing pages (6-7). **Source text — do not edit to fit
 the model.** Companion to `definitions.md` and `provincial-regulations.md`.
 
-This chapter settles the `document_required` type, the `angler_class` vocabulary and the
-Classified Waters mechanism. See "What this settles" at the end.
+This chapter is the source for the entry's `licensing` list (`CatalogueEntry.licensing` in
+`pipeline/regs/parsing/catalogue.py`), the `Who` vocabulary and the Classified Waters mechanism. See
+"What this settles" at the end.
 
 ---
 
@@ -161,17 +162,20 @@ The specific times are listed in the Water-Specific Tables for each Region.
 
 ## What this settles
 
-### 1. `angler_class` is confirmed — and it is three axes, not one
+### 1. The angler is a `Who` — a set on each of four axes
 
-The Classified Waters table varies by exactly `residency × guided`, and the age and Indigenous
-rules add two more. The full vocabulary:
+The Classified Waters table varies by exactly `residency × guidance`, and the age and Indigenous
+rules add two more. Each axis lists the members INCLUDED; an axis left out means everyone on it:
 
 ```
 residency:   resident | non_resident | non_resident_alien
-guided:      true | false
+guidance:    guided | non_guided
 age:         under_16 | 16_plus
-status:      indian_bc_resident | metis | (none)
+status:      indian_bc_resident | metis | disabled
 ```
+
+"Non-resident" in the book covers non-residents AND non-resident aliens
+(`residency: [non_resident, non_resident_alien]`).
 
 All four are used for real, not hypothetically: a non-guided non-resident alien and a guided one
 buy different licences; a BC-resident 16-year-old needs one and a 15-year-old does not; an Indian
@@ -187,7 +191,10 @@ Region 4's chapters **do not print it at all** — it was authored into chapters
 it. It is one provincial rule. The same is true of *"all wild steelhead must be released"*, which
 `z1`, `z2`, `z3` and `z6` all restate. **Both move to `region-provincial.json`.**
 
-### 3. `document_required` has a closed document list — 9 values
+### 3. The documents are a closed list
+
+A `requirement` is satisfied by any one of its `satisfied_by` paths, and a path that holds
+documents names them from `Document`:
 
 ```
 basic_licence · steelhead_stamp · salmon_stamp · kootenay_rainbow_stamp
@@ -196,7 +203,8 @@ white_sturgeon_licence · classified_waters_licence · national_park_permit
 ```
 
 Plus the **angling guide licence** and **assistant angling guide licence**, which oblige the guide
-rather than the angler.
+rather than the angler (`doing.act: guiding`), and the named third-party permits and reciprocal
+licences (`creston_valley_wma_permit`, `yukon_angling_licence`, …), each added by reviewed change.
 
 ### 4. Three of the five stamps are water-scoped provincial rules
 
@@ -205,8 +213,8 @@ water extent — not regional ones. The Shuswap rainbow stamp names seven waters
 Shuswap, South Thompson between them, Seymour, Anstey and Salmon Arms, Mara Lake).
 
 **Each is conditional on retention, not on fishing:** *"No stamp is required if you release all…"*
-So the condition is `on_retention: true` — a licensing rule gated on a harvest action, which the
-catalogue does not currently express.
+That is the requirement's trigger: `doing: {act: retaining, species: [RB], lengths: [{min_cm: 50}]}`
+— you need the stamp only if you keep the fish.
 
 ### 5. The White Sturgeon licence has a precise extent, and an exclusivity claim
 
@@ -225,6 +233,6 @@ reach into a National Park, so no provincial rule can either.
 ### 7. Under-16 non-residents share their host's quota
 
 *"Any fish you keep must be counted as part of the catch and possession of your accompanying
-licence holder."* That is an **`aggregation_domain` across people**, which the model has no axis
-for — quotas aggregate over water, water-group, region and province, but not over anglers.
-Recorded as a limitation, not a gap to fill now.
+licence holder."* That is a NOTE on the accompaniment path — `accompanied_by` with
+`quota: counts_to_companion` — which a reader renders (an asterisk, a line). It is not quota
+arithmetic: quotas aggregate over water, water-group, region and province, never over anglers.

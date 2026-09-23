@@ -32,14 +32,14 @@ export interface ValidationError extends Error {
   status: number;
 }
 
-// PUT/confirm write path. Returns {ok, errors} on 200; throws a ValidationError
+// PUT write path. Returns {ok, errors} on 200; throws a ValidationError
 // carrying the returned errors on 422 (FastAPI puts them under `detail`).
 async function writeEntry(
   url: string,
   body: Record<string, unknown>,
 ): Promise<SaveResult> {
   const res = await fetch(url, {
-    method: url.endsWith("/confirm") ? "POST" : "PUT",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -105,13 +105,6 @@ export const api = {
 
   save: (entryId: string, region: string, entry: Entry) =>
     writeEntry(`/api/entries/${encodeURIComponent(entryId)}`, { region, entry }),
-
-  confirm: (entryId: string, region: string, entry: Entry, reviewed_by: string) =>
-    writeEntry(`/api/entries/${encodeURIComponent(entryId)}/confirm`, {
-      region,
-      entry,
-      reviewed_by,
-    }),
 
   // --- splits.json editing (needs a graph rebuild to take effect) ---
   getSplit: (splitId: string) =>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlainDate, Window } from "./dates";
-import { inForce, inWindow } from "./dates";
+import type { PlainDate, When, Window } from "./dates";
+import { ALL_YEAR, holdsOn, inForce, inWindow, weekdayOf } from "./dates";
 import { evaluate, statusWord, FAMILY_OF, type Rule } from "./status";
 
 const on = (month: number, day: number): PlainDate => ({ year: 2026, month, day });
@@ -9,9 +9,11 @@ const w = (a: [number, number], b: [number, number]): Window => ({
   to: { month: b[0], day: b[1] },
 });
 const rule = (p: Partial<Rule> & Pick<Rule, "id" | "type">): Rule => ({
-  scope: "section", via: "reach", group: "provincial", windows: [],
+  scope: "section", via: "reach", group: "provincial", when: ALL_YEAR,
   family: FAMILY_OF[p.type], dimension: p.type, label: "", ...p,
 });
+
+const season = (...dates: Window[]): When => ({ ...ALL_YEAR, dates });
 
 /** A closure is a retention limit of zero you may not fish for — not a kind of rule. */
 const closure = (p: Partial<Rule> & Pick<Rule, "id">): Rule =>
@@ -51,7 +53,7 @@ describe("outcome and provenance are two channels", () => {
 
   it("a rule written for this water is OPEN and specific when nothing is in force", () => {
     const s = evaluate({
-      rules: [rule({ id: "r1", type: "retention_limit", take: 0, mayTarget: false, windows: [w([6, 1], [6, 30])] })],
+      rules: [rule({ id: "r1", type: "retention_limit", take: 0, mayTarget: false, when: season(w([6, 1], [6, 30])) })],
       on: on(8, 30), group: "provincial",
     });
     expect(s.outcome).toBe("open");
@@ -60,7 +62,7 @@ describe("outcome and provenance are two channels", () => {
 });
 
 describe("the date decides", () => {
-  const chilliwack = rule({ id: "cw.r5", type: "retention_limit", take: 0, mayTarget: false, windows: [w([6, 1], [6, 30])] });
+  const chilliwack = rule({ id: "cw.r5", type: "retention_limit", take: 0, mayTarget: false, when: season(w([6, 1], [6, 30])) });
   it("closed inside the window", () => {
     expect(evaluate({ rules: [chilliwack], on: on(6, 15), group: "provincial" }).outcome)
       .toBe("closed");
@@ -74,7 +76,7 @@ describe("the date decides", () => {
 describe("scopes", () => {
   it("a zone rule closes water nobody wrote about", () => {
     const spring = rule({ id: "mu.spring", type: "retention_limit", take: 0, mayTarget: false,
-                          scope: "mu", via: "reach", windows: [w([4, 1], [6, 15])] });
+                          scope: "mu", via: "reach", when: season(w([4, 1], [6, 15])) });
     expect(evaluate({ rules: [spring], on: on(5, 1), group: "provincial" }).outcome)
       .toBe("closed");
   });
@@ -167,13 +169,13 @@ describe("a zero limit is not always a closed river", () => {
   /*
    * MEASURED, NOT HYPOTHETICAL. "Only non-game fish (such as carp) may be speared" is a
    * retention limit of zero on every game fish — correctly, that is what it says — and it
-   * carries `method: "spear_fishing"`. It reaches 1,674 of the bundle's 1,693 rulesets, so a
+   * carries `while: ["spear_fishing"]`. It reaches 1,674 of the bundle's 1,693 rulesets, so a
    * severity that reads `take === 0 && mayTarget === false` and stops there returns "closed"
    * for essentially every section in British Columbia, every day of the year.
    */
   const spear = rule({
     id: "zp:spear_fishing.r1", type: "retention_limit", take: 0, mayTarget: false,
-    method: "spear_fishing", species: ["ALL_GAME_FISH"], scope: "area", via: "reach",
+    while: ["spear_fishing"], species: ["ALL_GAME_FISH"], scope: "area", via: "reach",
   });
 
   it("a closure of one METHOD leaves the water open", () => {
@@ -206,6 +208,77 @@ describe("a zero limit is not always a closed river", () => {
     const shut = rule({ id: "r2.no_fishing", type: "retention_limit", take: 0,
                         mayTarget: false, species: ["ALL_GAME_FISH"] });
     expect(evaluate({ rules: [spear, shut], on: on(9, 10), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+});
+
+describe("when: weekdays, hours and a season nobody could read", () => {
+  it("knows its weekdays", () => {
+    // 2026-09-12 is a Saturday.
+    expect(weekdayOf({ year: 2026, month: 9, day: 12 })).toBe("Saturday");
+    expect(weekdayOf({ year: 2026, month: 9, day: 14 })).toBe("Monday");
+    expect(weekdayOf({ year: 2024, month: 2, day: 29 })).toBe("Thursday");
+  });
+
+  it("a weekend-only rule binds on the weekend, inside its dates, and not otherwise", () => {
+    const weekends: When = { ...ALL_YEAR, dates: [w([9, 1], [10, 31])],
+                             weekdays: ["Saturday", "Sunday"] };
+    expect(holdsOn(weekends, { year: 2026, month: 9, day: 12 })).toBe(true);    // Sat
+    expect(holdsOn(weekends, { year: 2026, month: 9, day: 14 })).toBe(false);   // Mon
+    expect(holdsOn(weekends, { year: 2026, month: 11, day: 7 })).toBe(false);   // Sat, out of dates
+    const shut = closure({ id: "r5.weekend", when: weekends });
+    expect(evaluate({ rules: [shut], on: { year: 2026, month: 9, day: 12 },
+                      group: "provincial" }).outcome).toBe("closed");
+    expect(evaluate({ rules: [shut], on: { year: 2026, month: 9, day: 14 },
+                      group: "provincial" }).outcome).toBe("open");
+  });
+
+  it("a closure for part of the day restricts the day, it does not close it", () => {
+    /* campbell_river.r4: "No Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31".
+       A day-level status that read it as closed shut the river at noon. */
+    const night = closure({ id: "r2.campbell.r4", when: {
+      ...ALL_YEAR, dates: [w([8, 1], [12, 31])],
+      hours: { start: { at: "21:00" }, end: { at: "05:00" } } } });
+    const s = evaluate({ rules: [night], on: on(8, 30), group: "provincial" });
+    expect(s.outcome).toBe("restricted");
+    expect(evaluate({ rules: [night], on: on(7, 30), group: "provincial" }).outcome)
+      .toBe("open");
+  });
+
+  it("an unreadable season is uncertain — never all year, never never", () => {
+    const tbd = closure({ id: "dfo.r1", when: { ...ALL_YEAR, unparsed: ["To be determined"] } });
+    const s = evaluate({ rules: [tbd], on: on(8, 30), group: "provincial" });
+    expect(s.outcome).toBe("unknown");
+    expect(s.because).toBe("unreadable-season");
+    // …and it cannot open a water another placed closure shuts.
+    const shut = closure({ id: "r2.shut" });
+    expect(evaluate({ rules: [tbd, shut], on: on(8, 30), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+});
+
+describe("a `while`-scoped zero is not a closed water", () => {
+  it("take 0 on every game fish WHILE spear fishing leaves the water open to angling", () => {
+    const spear = closure({ id: "zp:spear_fishing.r1", species: ["ALL_GAME_FISH"],
+                            while: ["spear_fishing"], scope: "area" });
+    expect(evaluate({ rules: [spear], on: on(8, 30), group: "provincial" }).outcome)
+      .toBe("restricted");
+    // The same rule with the `while` dropped IS a closure — the field is what decides it.
+    const { while: _gone, ...bare } = spear;
+    expect(evaluate({ rules: [bare as Rule], on: on(8, 30), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+});
+
+describe("a standing rule is shown everywhere and decides nothing", () => {
+  it("'no fishing within 23 m of any fishway' does not close every water", () => {
+    const buffer = closure({ id: "zp:no_fishing_buffers.r1", species: ["ALL_GAME_FISH"],
+                             standing: true, scope: "area" });
+    const s = evaluate({ rules: [buffer], on: on(8, 15), group: "provincial" });
+    expect(s.outcome).toBe("open");
+    expect(s.from.map((r) => r.id)).toEqual(["zp:no_fishing_buffers.r1"]);   // still shown
+    const { standing: _s, ...placed } = buffer;
+    expect(evaluate({ rules: [placed as Rule], on: on(8, 15), group: "provincial" }).outcome)
       .toBe("closed");
   });
 });

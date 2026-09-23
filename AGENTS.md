@@ -40,7 +40,8 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
    *re-anchoring* build showing >2 points of improvement.
 8. **`rule_id` is unique only WITHIN an entry** — 49 collide corpus-wide. Every table keys
    on `(entry_id, rule_id)`. Never on `rule_id` alone.
-9. **`includes_tributaries` is three-valued.** `None` inherits `entry.tributaries.included`.
+9. **`includes_tributaries` is three-valued.** On a rule, `None` inherits the entry's
+   `includes_tributaries`.
    Reading only the rule's own field gives 132; the real number is 554 across 264 entries.
 
 ## Resolution
@@ -59,10 +60,14 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     none are straddlers**, and it attached a 380 m stub hanging off Cowichan Lake to
     "No fishing, Cowichan Lake outlet to Greendale Trestle". Silent widening is a defect
     here (㉗), even in the "safe" direction.
-13. **Never default a rule with no extent to `whole`.** All 12 such matched rules carry
-    `needs_review`; 11 carry `unresolved_locators`. They are real, specific locations
-    ("500 m upstream and downstream of Causeway Road") with no boundary to bind to.
-    Defaulting applies a 500 m closure to an entire lake arm. They need curated splits.
+13. **Never widen a rule that names a place it could not bind.** Ingest gives a rule that
+    says NOTHING about location the whole water (a zone entry: its own area reach) —
+    the prompt's stated default, written out by `validate_catalogue.default_extents`. A rule
+    carrying `extent_text` or `unresolved_locators` is exempt and stays unbound: 130 matched
+    rules (2026-09-23), all with `extent_text`, 33 with `unresolved_locators`, 129 with a
+    `review_reason`. They are real, specific locations ("500 m upstream and downstream of
+    Causeway Road") with no boundary to bind to. Defaulting applies a 500 m closure to an
+    entire lake arm. They need curated splits.
 14. **Every rule ends bound, or unresolved with a typed reason. Never absent, never
     bound-and-empty, never unresolved-and-unexplained.** Enforced in
     `RuleBinding.__post_init__` (⑪ + ㊳).

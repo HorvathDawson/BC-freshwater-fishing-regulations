@@ -74,8 +74,8 @@ def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
                                      "rules": [{"rule_id": "o.r1", "type": "bait_restriction",
                                                 "verbatim": "Bait ban.",
                                                 "gear": [{"slot": "bait", "ban": ["any_bait"]}]}]}]}))
-    written = write(accepted, out)
-    assert written == {"region-3.json": 1}
+    written, kept = write(accepted, out, ledger=tmp_path / "ingested.json")
+    assert written == {"region-3.json": 1} and kept == []
     both = json.loads((out / "region-3.json").read_text())["entries"]
     assert {e["entry_id"] for e in both} == {"r3:other@3-1", "r3:tranquille@3-29"}
 
@@ -83,8 +83,8 @@ def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
 def test_reingesting_replaces_rather_than_duplicates(tmp_path):
     accepted, _ = ingest([_cand()], BATCH)
     out = tmp_path / "cat"; out.mkdir()
-    write(accepted, out)
-    write(accepted, out)
+    write(accepted, out, ledger=tmp_path / "ingested.json")
+    write(accepted, out, ledger=tmp_path / "ingested.json")
     entries = json.loads((out / "region-3.json").read_text())["entries"]
     assert len(entries) == 1
 
@@ -92,8 +92,9 @@ def test_reingesting_replaces_rather_than_duplicates(tmp_path):
 def test_dry_run_writes_nothing(tmp_path):
     accepted, _ = ingest([_cand()], BATCH)
     out = tmp_path / "cat"; out.mkdir()
-    write(accepted, out, dry_run=True)
+    write(accepted, out, dry_run=True, ledger=tmp_path / "ingested.json")
     assert not list(out.glob("*.json"))
+    assert not (tmp_path / "ingested.json").exists()
 
 
 # --- extents: aliases are canonicalised, invented ids are refused ------------------------------
@@ -188,19 +189,19 @@ def test_within_area_survives_alongside_a_bound_reach():
     assert ex["within_area"] == "area:region:8"      # and the limiter kept
 
 
-def test_a_prose_era_response_is_skipped_not_ingested():
-    """The work dir survives between runs and dispatch skips a batch that already has a response —
-    which is what makes a run resumable, and also what let 22 files from the retired prose parser
-    be ingested as catalogue output. 669 rules then failed as "extra inputs are not permitted",
-    with nothing in the output naming the real cause."""
-    from pipeline.regs.parsing.ingest_catalogue import is_stale
-    prose = [{"index": 1, "entry": {"entry_id": "e1", "rules": [
-        {"rule_id": "r1", "restriction_type": "closure", "details": "No fishing"}]}}]
-    catalogue = [{"index": 1, "entry": {"entry_id": "e1", "rules": [
-        {"rule_id": "r1", "type": "retention_limit", "verbatim": "No fishing"}]}}]
-    assert is_stale(prose)
-    assert not is_stale(catalogue)
-    assert not is_stale([])
+def test_a_response_in_any_other_shape_is_refused(tmp_path):
+    """One shape: the `[{index, entry}]` array dispatch writes. A bare entry, an `{entries: …}`
+    wrapper or a row without its index was produced by something other than this pipeline, and
+    reading it anyway is how a prose-era response was once ingested as catalogue output."""
+    from pipeline.regs.parsing.ingest_catalogue import response_rows
+    good = tmp_path / "good.json"
+    good.write_text(json.dumps([{"index": 4, "entry": _cand()}]))
+    assert response_rows(good)[0]["_batch_index"] == 4
+    for bad in ([_cand()], {"entries": [_cand()]}, [{"entry": _cand()}]):
+        p = tmp_path / "bad.json"
+        p.write_text(json.dumps(bad))
+        with pytest.raises(ValueError, match="bad.json"):
+            response_rows(p)
 
 
 def test_entry_id_comes_from_the_batch_not_the_model():
@@ -271,3 +272,90 @@ def test_every_row_fact_is_the_batchs_and_none_is_the_models():
     assert e.symbols == ["Classified", "Stocked"]
     assert e.source_pages == [54] and e.display_name == ""
     assert e.matched == ["gnis:1", "gnis:2"]
+
+
+# --- a re-parse does not overwrite a curator's edit ----------------------------------------------
+#
+# There is no `locked` any more. The guard is a ledger of what ingest last wrote: an entry whose
+# curated copy is not that is KEPT, and only `replace_edited` overwrites it.
+
+def _ingest_once(tmp_path, **cand):
+    out = tmp_path / "cat"
+    out.mkdir(exist_ok=True)
+    accepted, _ = ingest([_cand(**cand)], BATCH)
+    return out, accepted
+
+
+def _on_disk(out):
+    return json.loads((out / "region-3.json").read_text())["entries"]
+
+
+def test_a_reparse_replaces_an_entry_nobody_touched(tmp_path):
+    ledger = tmp_path / "ingested.json"
+    out, first = _ingest_once(tmp_path)
+    write(first, out, ledger=ledger)
+    _, second = _ingest_once(tmp_path, rules=[
+        {"rule_id": "t.r1", "type": "bait_restriction", "verbatim": "Bait ban.",
+         "gear": [{"slot": "bait", "ban": ["any_bait"]}]}])
+    written, kept = write(second, out, ledger=ledger)
+    assert kept == [] and written == {"region-3.json": 1}
+    assert _on_disk(out)[0]["rules"][0]["type"] == "bait_restriction"
+
+
+def test_a_reparse_keeps_an_entry_a_curator_edited(tmp_path):
+    ledger = tmp_path / "ingested.json"
+    out, first = _ingest_once(tmp_path)
+    write(first, out, ledger=ledger)
+    doc = json.loads((out / "region-3.json").read_text())
+    doc["entries"][0]["rules"][0]["extents"] = [{"op": "whole", "within_area": "area:region:3"}]
+    (out / "region-3.json").write_text(json.dumps(doc))              # the curator's edit
+    _, second = _ingest_once(tmp_path)
+    written, kept = write(second, out, ledger=ledger)
+    assert kept == ["r3:tranquille@3-29"] and written == {"region-3.json": 0}
+    assert _on_disk(out)[0]["rules"][0]["extents"][0]["within_area"] == "area:region:3"
+    # …and only an explicit override replaces it
+    _, kept = write(second, out, ledger=ledger, replace_edited=True)
+    assert kept == []
+    assert "within_area" not in _on_disk(out)[0]["rules"][0]["extents"][0]
+
+
+def test_an_entry_the_ledger_never_saw_is_kept(tmp_path):
+    """Parsed before the ledger existed, or written by hand: its provenance is unknown, so a
+    re-parse does not get to assume it may be replaced."""
+    out, first = _ingest_once(tmp_path)
+    write(first, out, ledger=tmp_path / "one.json")
+    _, kept = write(first, out, ledger=tmp_path / "another.json")
+    assert kept == ["r3:tranquille@3-29"]
+
+
+def test_a_licensing_record_survives_the_write(tmp_path):
+    """`exclude_defaults` dropped a licensing record's `kind` — the tag its union is read back
+    by — so every entry with licensing was written in a shape that no longer loaded. The write
+    now validates what it WROTE, and the record reads back whole."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    from pipeline.regs.parsing.io import (dump_entry, entries_dir, read_entries_dir,
+                                          read_entryfile, write_entryfile)
+    # A real one from the corpus, so the test follows the model rather than a copy of it.
+    raw = next(e for e in read_entries_dir(entries_dir()).values()
+               if any(x.get("kind") == "designation" for x in e.get("licensing") or []))
+    e = CatalogueEntry.model_validate(raw)
+    assert all("kind" in x for x in dump_entry(e)["licensing"])
+    path = tmp_path / "region-x.json"
+    write_entryfile(path, e.region, [e])
+    assert CatalogueEntry.model_validate(read_entryfile(path)[e.entry_id]) == e
+
+
+def test_an_untouched_neighbour_is_written_byte_for_byte(tmp_path):
+    """A write replaces the entries it was given and nothing else: a neighbour read from the
+    file is written back exactly, in the file's own indent and order."""
+    from pipeline.regs.parsing.io import read_entryfile, write_entryfile
+    path = tmp_path / "region-7a.json"
+    rules = [{"rule_id": "r1", "type": "bait_restriction", "verbatim": "Bait ban.",
+              "gear": [{"slot": "bait", "ban": ["any_bait"]}]}]
+    doc = {"region": "7a", "entries": [
+        {"entry_id": "z7a:b", "name": "B", "regs_verbatim": "Bait ban.", "rules": rules},
+        {"entry_id": "z7a:a", "name": "A", "regs_verbatim": "Bait ban.", "rules": rules}]}
+    text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+    path.write_text(text)
+    write_entryfile(path, "7a", read_entryfile(path).values())
+    assert path.read_text() == text

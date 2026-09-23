@@ -1,5 +1,5 @@
 {
-  "_about": "Entries whose ONLY content is a pointer at another regulation — 'See Wahleach Lake', 'Tributary of Slocan River; see Slocan River regs'. Extracted from the prose entries/synopsis corpus before it was retired, so the catalogue reparse can mark the same entries the same way instead of rediscovering them.\n\nWHY IT MATTERS: an earlier analysis resolved each single-rule 'See X' stub against the registry and found 24 of them point at THEIR OWN registry item — r2:jones_lake@2-3 is item wbk:329177886, whose registry name is already Wahleach Lake and which already carries the alias WAHLEACH (JONES) L. Those are not rules and not even information; they are an alias the alias table already holds. The rest name a genuinely different water and belong on the entry as a governed_by edge.\n\nkind: water_pointer = names another water · page_pointer = points into synopsis prose not in this corpus (dangling; flag, do not render as a rule) · program_membership = Youth/Disabled Accompanied Water, which is a real type, not a pointer.",
+  "_about": "Entries whose ONLY content is a pointer at another regulation — 'See Wahleach Lake', 'Tributary of Slocan River; see Slocan River regs'. Extracted from the prose entries/synopsis corpus before it was retired, so the catalogue reparse can mark the same entries the same way instead of rediscovering them.\n\nWHY IT MATTERS: an earlier analysis resolved each single-rule 'See X' stub against the registry and found 24 of them point at THEIR OWN registry item — r2:jones_lake@2-3 is item wbk:329177886, whose registry name is already Wahleach Lake and which already carries the alias WAHLEACH (JONES) L. Those are not rules and not even information; they are an alias the alias table already holds. The rest name a genuinely different water and belong on the entry as a governed_by edge.\n\nkind: water_pointer = names another water · page_pointer = points into synopsis prose not in this corpus (dangling; flag, do not render as a rule) · program_membership = Youth/Disabled Accompanied Water, which is a real type, not a pointer.\n\nThe prose `details` paraphrase each entry carried was removed 2026-09-23; `verbatim` is the printed text.",
   "source": "data/curated/regulations/entries/synopsis (retired at commit f7679d4)",
   "count": 75,
   "entries": [
@@ -11,7 +11,6 @@
         "wbk:329101330"
       ],
       "rule_id": "wbk:329101330.r1",
-      "details": "See Cowichan Lake",
       "verbatim": "See Cowichan Lake",
       "kind": "water_pointer",
       "points_at": "Cowichan Lake"
@@ -24,7 +23,6 @@
         "gnis:5480"
       ],
       "rule_id": "bear_river.r1",
-      "details": "See Amor de Cosmos Creek",
       "verbatim": "See Amor de Cosmos Creek",
       "kind": "water_pointer",
       "points_at": "Amor de Cosmos Creek"
@@ -37,7 +35,6 @@
         "gnis:27804"
       ],
       "rule_id": "big_qualicum_river.r1",
-      "details": "See Qualicum River",
       "verbatim": "See Qualicum River",
       "kind": "water_pointer",
       "points_at": "Qualicum River"
@@ -50,7 +47,6 @@
         "gnis:30821"
       ],
       "rule_id": "gnis:30821.r1",
-      "details": "See Marble River entry",
       "verbatim": "See Marble River",
       "kind": "water_pointer",
       "points_at": "Marble River"
@@ -63,7 +59,6 @@
         "wbk:329101413"
       ],
       "rule_id": "mayo_lake.r1",
-      "details": "Youth/Disabled Accompanied Water (see page 4)",
       "verbatim": "Youth/Disabled Accompanied Water (see page 4)",
       "kind": "program_membership",
       "points_at": "page 4)"
@@ -76,7 +71,6 @@
         "wbk:328966275"
       ],
       "rule_id": "panther_lake.r1",
-      "details": "See Healy Lake for regulations",
       "verbatim": "See Healy Lake",
       "kind": "water_pointer",
       "points_at": "Healy Lake"
@@ -89,7 +83,6 @@
         "gnis:27804"
       ],
       "rule_id": "gnis:27804.r3",
-      "details": "Refer to page 6 for updated non-tidal salmon regulations",
       "verbatim": "Refer to page 6 for updated regulations related to non-tidal salmon",
       "kind": "page_pointer",
       "points_at": "page 6 for updated non-tidal salmon regulations"
@@ -102,7 +95,6 @@
         "wbk:328996530"
       ],
       "rule_id": "wbk:328996530.r1",
-      "details": "See Lake Weston",
       "verbatim": "See Lake Weston",
       "kind": "water_pointer",
       "points_at": "Lake Weston"
@@ -115,7 +107,6 @@
         "wbk:329522925"
       ],
       "rule_id": "wbk:329522925.r1",
-      "details": "See Sumallo River",
       "verbatim": "See Sumallo River",
       "kind": "water_pointer",
       "points_at": "Sumallo River"
@@ -128,7 +119,6 @@
         "wbk:329177886"
       ],
       "rule_id": "wbk:329177886.r1",
-      "details": "See Wahleach Lake",
       "verbatim": "See Wahleach Lake",
       "kind": "water_pointer",
       "points_at": "Wahleach Lake"
@@ -141,7 +131,6 @@
         "gnis:7250"
       ],
       "rule_id": "gnis:7250.r1",
-      "details": "See Campbell River",
       "verbatim": "See Campbell River",
       "kind": "water_pointer",
       "points_at": "Campbell River"
@@ -154,7 +143,6 @@
         "gnis:1860"
       ],
       "rule_id": "gnis:1860.r1",
-      "details": "See Lonzo Creek",
       "verbatim": "See Lonzo Creek",
       "kind": "water_pointer",
       "points_at": "Lonzo Creek"
@@ -167,7 +155,6 @@
         "wbk:329197172"
       ],
       "rule_id": "wbk:329197172.r1",
-      "details": "See Lily Lake",
       "verbatim": "See Lily Lake",
       "kind": "water_pointer",
       "points_at": "Lily Lake"
@@ -180,7 +167,6 @@
         "gnis:9630"
       ],
       "rule_id": "south_alouette_river.r1",
-      "details": "See Alouette River",
       "verbatim": "See Alouette River",
       "kind": "water_pointer",
       "points_at": "Alouette River"
@@ -194,7 +180,6 @@
         "gnis:3062"
       ],
       "rule_id": "vedder_river.r1",
-      "details": "See Chilliwack River",
       "verbatim": "See Chilliwack River",
       "kind": "water_pointer",
       "points_at": "Chilliwack River"
@@ -207,7 +192,6 @@
         "gnis:18066"
       ],
       "rule_id": "coldwater_river_tributaries.r1",
-      "details": "See Juliet, July, and Mine Creeks",
       "verbatim": "See Juliet, July, and Mine Creeks",
       "kind": "water_pointer",
       "points_at": null
@@ -220,7 +204,6 @@
         "wbk:329518146"
       ],
       "rule_id": "wbk:329518146.r1",
-      "details": "See Shuswap Lake regulations",
       "verbatim": "See Shuswap Lake",
       "kind": "water_pointer",
       "points_at": "Shuswap Lake regulations"
@@ -233,7 +216,6 @@
         "wbk:329154751"
       ],
       "rule_id": "wbk:329154751.r2",
-      "details": "See page 28 for bull trout daily quota",
       "verbatim": "see page 28 in this section for bull trout daily quota",
       "kind": "page_pointer",
       "points_at": "page 28 for bull trout daily quota"
@@ -246,7 +228,6 @@
         "gnis:22702"
       ],
       "rule_id": "gnis:22702.r2",
-      "details": "Youth/Disabled Accompanied Water year round (see page 4)",
       "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
       "kind": "program_membership",
       "points_at": "page 4)"
@@ -259,7 +240,6 @@
         "wbk:329534365"
       ],
       "rule_id": "wbk:329534365.r1",
-      "details": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
       "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
       "kind": "program_membership",
       "points_at": "page 4)"
@@ -272,7 +252,6 @@
         "wbk:329247797"
       ],
       "rule_id": "alces_lake.r1",
-      "details": "See Moose Lake",
       "verbatim": "See Moose Lake",
       "kind": "water_pointer",
       "points_at": "Moose Lake"
@@ -283,7 +262,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_arrow_lakes.r1",
-      "details": "See Upper Arrow Lake",
       "verbatim": "See Upper Arrow Lake",
       "kind": "water_pointer",
       "points_at": "Upper Arrow Lake"
@@ -294,7 +272,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_arrow_lakes_tributaries.r1",
-      "details": "See Lower and Upper Arrow Lake's tributaries",
       "verbatim": "See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries",
       "kind": "water_pointer",
       "points_at": "Lower and Upper Arrow Lake's tributaries"
@@ -307,7 +284,6 @@
         "gnis:12449"
       ],
       "rule_id": "bighorn_creek.r1",
-      "details": "Tributary of Wigwam River; see Wigwam River regulations",
       "verbatim": "A tributary of Wigwam River; see Wigwam River[Includes Tributaries]",
       "kind": "water_pointer",
       "points_at": "Wigwam River regulations"
@@ -320,7 +296,6 @@
         "wbk:329524002"
       ],
       "rule_id": "cameron_slough.r1",
-      "details": "See Lewis Slough",
       "verbatim": "See Lewis Slough",
       "kind": "water_pointer",
       "points_at": "Lewis Slough"
@@ -336,7 +311,6 @@
         "gnis:8203"
       ],
       "rule_id": "gnis:37414.r12",
-      "details": "See Upper Arrow Lake for the portion downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)",
       "verbatim": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
       "kind": "water_pointer",
       "points_at": "Upper Arrow Lake for the portion downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)"
@@ -349,7 +323,6 @@
         "gnis:19077"
       ],
       "rule_id": "findlay_creek.r4",
-      "details": "See Lavington Creek, a tributary",
       "verbatim": "See Lavington Creek, a tributary",
       "kind": "water_pointer",
       "points_at": null
@@ -362,7 +335,6 @@
         "wbk:329524023"
       ],
       "rule_id": "garbutt_lake.r1",
-      "details": "See Norbury Lake",
       "verbatim": "See Norbury Lake",
       "kind": "water_pointer",
       "points_at": "Norbury Lake"
@@ -375,7 +347,6 @@
         "gnis:2349"
       ],
       "rule_id": "koch_creek.r1",
-      "details": "Tributary of Slocan River; see Slocan River regs",
       "verbatim": "A tributary of Slocan River. See Slocan River [Includes Tributaries]",
       "kind": "water_pointer",
       "points_at": "Slocan River"
@@ -388,7 +359,6 @@
         "wbk:328961702"
       ],
       "rule_id": "koocanusa_reservoir.r5",
-      "details": "See page 75 - Fluctuating Reservoir Levels",
       "verbatim": "See page 75 - Fluctuating Reservoir Levels",
       "kind": "page_pointer",
       "points_at": "page 75 - Fluctuating Reservoir Levels"
@@ -401,7 +371,6 @@
         "gnis:10895"
       ],
       "rule_id": "little_slocan_river.r1",
-      "details": "Tributary of Slocan River; see Slocan River regs",
       "verbatim": "A tributary of Slocan River. See Slocan River[Includes Tributaries]",
       "kind": "water_pointer",
       "points_at": "Slocan River"
@@ -414,7 +383,6 @@
         "wbk:328961767"
       ],
       "rule_id": "mcnaughton_lake.r1",
-      "details": "See Kinbasket Lake regulations",
       "verbatim": "See Kinbasket Lake",
       "kind": "water_pointer",
       "points_at": "Kinbasket Lake regulations"
@@ -427,7 +395,6 @@
         "gnis:23373"
       ],
       "rule_id": "norbury_little_bull_creek.r1",
-      "details": "Youth/Disabled Accompanied Water year round (see page 4)",
       "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
       "kind": "program_membership",
       "points_at": "page 4)"
@@ -440,7 +407,6 @@
         "wbk:329484653"
       ],
       "rule_id": "revelstoke_lake.r1",
-      "details": "See Lake Revelstoke",
       "verbatim": "See Lake Revelstoke",
       "kind": "water_pointer",
       "points_at": "Lake Revelstoke"
@@ -453,7 +419,6 @@
         "wbk:329484653"
       ],
       "rule_id": "revelstoke_lake_tributaries.r1",
-      "details": "See Lake Revelstoke's tributaries",
       "verbatim": "See Lake Revelstoke's tributaries",
       "kind": "water_pointer",
       "points_at": "Lake Revelstoke's tributaries"
@@ -464,7 +429,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_seven_mile_reservoir_747.r1",
-      "details": "See Pend d'Oreille River",
       "verbatim": "See Pend d'Oreille River",
       "kind": "water_pointer",
       "points_at": "Pend d'Oreille River"
@@ -475,7 +439,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_seven_mile_reservoirs_tributaries_745.r1",
-      "details": "See Pend d'Oreille River's tributaries",
       "verbatim": "See Pend d'Oreille River's tributaries",
       "kind": "water_pointer",
       "points_at": "Pend d'Oreille River's tributaries"
@@ -488,7 +451,6 @@
         "wbk:328961689"
       ],
       "rule_id": "upper_arrow_lake_drawdown_area.r3",
-      "details": "Exempt from regional kokanee \"none from streams\" daily quota; combined quota applies (see page 34)",
       "verbatim": "EXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)",
       "kind": "page_pointer",
       "points_at": "page 34)"
@@ -499,7 +461,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_waneta_reservoir_776.r1",
-      "details": "See Pend d'Oreille River for regulations",
       "verbatim": "See Pend d'Oreille River",
       "kind": "water_pointer",
       "points_at": "Pend d'Oreille River"
@@ -510,7 +471,6 @@
       "region": "4",
       "matched": [],
       "rule_id": "noreg_waneta_reservoir_s_tributaries_777.r1",
-      "details": "See Pend d'Oreille River's tributaries for regulations",
       "verbatim": "See Pend d'Oreille River's tributaries",
       "kind": "water_pointer",
       "points_at": "Pend d'Oreille River's tributaries"
@@ -523,7 +483,6 @@
         "gnis:7956"
       ],
       "rule_id": "baker_creek.r3",
-      "details": "Youth/Disabled Accompanied Water (see page 4)",
       "verbatim": "Youth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
       "kind": "program_membership",
       "points_at": "page 4)"
@@ -536,7 +495,6 @@
         "gnis:11611"
       ],
       "rule_id": "bella_coola_river.r1",
-      "details": "See Atnarko/Bella Coola Rivers combined entry for regulations",
       "verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "kind": "water_pointer",
       "points_at": "Atnarko/Bella Coola Rivers combined entry"
@@ -549,7 +507,6 @@
         "gnis:26104"
       ],
       "rule_id": "west_road_blackwater_river.r1",
-      "details": "See West Road River",
       "verbatim": "See West Road River",
       "kind": "water_pointer",
       "points_at": "West Road River"
@@ -562,7 +519,6 @@
         "wbk:329430941"
       ],
       "rule_id": "brown_lake.r1",
-      "details": "See Bishop Lake",
       "verbatim": "See Bishop Lake",
       "kind": "water_pointer",
       "points_at": "Bishop Lake"
@@ -575,7 +531,6 @@
         "gnis:2100"
       ],
       "rule_id": "burnt_bridge_creek.r4",
-      "details": "Downstream of Sitkatapa Creek, see Atnarko/Bella Coola Rivers",
       "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers",
       "kind": "water_pointer",
       "points_at": "Atnarko/Bella Coola Rivers"
@@ -588,7 +543,6 @@
         "gnis:22290"
       ],
       "rule_id": "hunlen_creek.r3",
-      "details": "See Atnarko/Bella Coola Rivers",
       "verbatim": "Downstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "kind": "water_pointer",
       "points_at": "Atnarko/Bella Coola Rivers"
@@ -601,7 +555,6 @@
         "wbk:329026676"
       ],
       "rule_id": "babine_lake.r3",
-      "details": "\"Rainbow Alley\" channel is designated Babine River; see Babine River regs",
       "verbatim": "That section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page\n51); see Babine River regulations below (paragraphs 3 and 4)",
       "kind": "water_pointer",
       "points_at": "Babine River"
@@ -614,7 +567,6 @@
         "gnis:2195"
       ],
       "rule_id": "r6:bulkley_river@6-30+6-8+6-9.r2",
-      "details": "See Suskwa River and Telkwa River",
       "verbatim": "See Suskwa River and Telkwa River",
       "kind": "water_pointer",
       "points_at": "Suskwa River and Telkwa River"
@@ -627,7 +579,6 @@
         "gnis:3137"
       ],
       "rule_id": "r6:copper_river@6-9.r1",
-      "details": "See Zymoetz River",
       "verbatim": "See Zymoetz River",
       "kind": "water_pointer",
       "points_at": "Zymoetz River"
@@ -640,7 +591,6 @@
         "gnis:3696"
       ],
       "rule_id": "r6:diana_creek@6-14.r4",
-      "details": "Also see Prudhomme Lake (south of the Hwy 16 bridge)",
       "verbatim": "Also see Prudhomme Lake (south of the Hwy 16 bridge)",
       "kind": "water_pointer",
       "points_at": "Prudhomme Lake (south of the Hwy 16 bridge)"
@@ -653,7 +603,6 @@
         "gnis:4069"
       ],
       "rule_id": "r6:ishkheenickh_river@6-14.r1",
-      "details": "See Ksi Hlginx River",
       "verbatim": "See Ksi Hlginx River",
       "kind": "water_pointer",
       "points_at": "Ksi Hlginx River"
@@ -666,7 +615,6 @@
         "gnis:2308"
       ],
       "rule_id": "kispiox_river.r5",
-      "details": "See Skeena River/Kispiox River confluence",
       "verbatim": "See Skeena River/Kispiox River confluence",
       "kind": "water_pointer",
       "points_at": "Skeena River/Kispiox River confluence"
@@ -679,7 +627,6 @@
         "gnis:3815"
       ],
       "rule_id": "kwinamass_river.r1",
-      "details": "See Ksi X'anmas River",
       "verbatim": "See Ksi X'anmas River",
       "kind": "water_pointer",
       "points_at": "Ksi X'anmas River"
@@ -692,7 +639,6 @@
         "gnis:37312"
       ],
       "rule_id": "mcqueen_creek.r1",
-      "details": "See Hevenor Creek",
       "verbatim": "See Hevenor Creek",
       "kind": "water_pointer",
       "points_at": "Hevenor Creek"
@@ -705,7 +651,6 @@
         "wsc:915-755598-329884-406409"
       ],
       "rule_id": "oldfield_creek.r2",
-      "details": "See Hays Creek",
       "verbatim": "see Hays Creek",
       "kind": "water_pointer",
       "points_at": "Hays Creek"
@@ -718,7 +663,6 @@
         "gnis:4791"
       ],
       "rule_id": "seaskinnish_creek.r1",
-      "details": "See Ksi Sgasginist Creek",
       "verbatim": "See Ksi Sgasginist Creek",
       "kind": "water_pointer",
       "points_at": "Ksi Sgasginist Creek"
@@ -731,7 +675,6 @@
         "gnis:7836"
       ],
       "rule_id": "stellako_river.r6",
-      "details": "See restrictions for François Lake's outlet area",
       "verbatim": "See restrictions for François Lake's outlet area",
       "kind": "water_pointer",
       "points_at": "restrictions for François Lake's outlet area"
@@ -744,7 +687,6 @@
         "gnis:3828"
       ],
       "rule_id": "tseax_river.r1",
-      "details": "See Ksi Sii Aks River",
       "verbatim": "See Ksi Sii Aks River",
       "kind": "water_pointer",
       "points_at": "Ksi Sii Aks River"
@@ -757,7 +699,6 @@
         "gnis:26104"
       ],
       "rule_id": "west_road_blackwater_river_tributaries.r4",
-      "details": "For regulations on the mainstem, see Region 5",
       "verbatim": "For regulations on the mainstem of the West Road River, see Region 5",
       "kind": "water_pointer",
       "points_at": "Region 5"
@@ -770,7 +711,6 @@
         "gnis:26104"
       ],
       "rule_id": "west_road_blackwater_river.r1",
-      "details": "See West Road River",
       "verbatim": "See West Road River",
       "kind": "water_pointer",
       "points_at": "West Road River"
@@ -783,7 +723,6 @@
         "wbk:329657328"
       ],
       "rule_id": "cameron_lakes.r1",
-      "details": "See North and South Cameron lakes",
       "verbatim": "See North and South Cameron lakes",
       "kind": "water_pointer",
       "points_at": "North and South Cameron lakes"
@@ -796,7 +735,6 @@
         "wbk:328995585"
       ],
       "rule_id": "chinaman_lake.r1",
-      "details": "See Chunamun Lake",
       "verbatim": "See Chunamun Lake",
       "kind": "water_pointer",
       "points_at": "Chunamun Lake"
@@ -809,7 +747,6 @@
         "wbk:328961697"
       ],
       "rule_id": "wbk:328961697.r2",
-      "details": "See Davis River",
       "verbatim": "See Davis River",
       "kind": "water_pointer",
       "points_at": "Davis River"
@@ -822,7 +759,6 @@
         "gnis:7893"
       ],
       "rule_id": "gnis:7893.r1",
-      "details": "See Nation Arm (Williston Lake) for regulations",
       "verbatim": "See Nation Arm (Williston Lake)",
       "kind": "water_pointer",
       "points_at": "Nation Arm (Williston Lake)"
@@ -835,7 +771,6 @@
         "wbk:329225635"
       ],
       "rule_id": "one_island_lake.r1",
-      "details": "See ice hut warning, page 63",
       "verbatim": "See ice hut warning, page 63",
       "kind": "page_pointer",
       "points_at": null
@@ -848,7 +783,6 @@
         "wbk:329537189"
       ],
       "rule_id": "wbk:329537189.r1",
-      "details": "Mercury advisory — see page 75",
       "verbatim": "**NOTE: see mercury warning on **page 75",
       "kind": "page_pointer",
       "points_at": "page 75"
@@ -861,7 +795,6 @@
         "gnis:7836"
       ],
       "rule_id": "gnis:7836.r6",
-      "details": "See Region 6 tables for François Lake outlet area restrictions",
       "verbatim": "See Region 6 tables for restrictions applying to François Lake's outlet area",
       "kind": "water_pointer",
       "points_at": "Region 6 tables for François Lake outlet area restrictions"
@@ -874,7 +807,6 @@
         "gnis:26104"
       ],
       "rule_id": "gnis:26104.r3",
-      "details": "See Region 5 for mainstem regulations",
       "verbatim": "For regulations on the mainstem of the West Road River, see Region 5",
       "kind": "water_pointer",
       "points_at": "Region 5 for mainstem regulations"
@@ -887,7 +819,6 @@
         "wbk:328961697"
       ],
       "rule_id": "wbk:328961697.r3",
-      "details": "See Nation Arm",
       "verbatim": "See Nation Arm",
       "kind": "water_pointer",
       "points_at": "Nation Arm"
@@ -900,7 +831,6 @@
         "wbk:328961697"
       ],
       "rule_id": "williston_lake_zone_b.r2",
-      "details": "Mercury warning; see stream mouth definition",
       "verbatim": "**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80",
       "kind": "water_pointer",
       "points_at": "stream mouth definition"
@@ -913,7 +843,6 @@
         "wbk:329459222"
       ],
       "rule_id": "wbk:329459222.r4",
-      "details": "Motorized vehicle closure, walk-in access only, see sign at trailhead",
       "verbatim": "Motorized vehicle closure. Walk-in access only. See sign at trailhead.",
       "kind": "water_pointer",
       "points_at": "sign at trailhead"
@@ -926,7 +855,6 @@
         "wbk:329518146"
       ],
       "rule_id": "wbk:329518146.r1",
-      "details": "See Shuswap Lake in Region 3",
       "verbatim": "See Shuswap Lake in Region 3",
       "kind": "water_pointer",
       "points_at": "Shuswap Lake in Region 3"
@@ -939,7 +867,6 @@
         "wbk:328985738"
       ],
       "rule_id": "sawmill_lake.r1",
-      "details": "See Burnell Lake",
       "verbatim": "See Burnell Lake",
       "kind": "water_pointer",
       "points_at": "Burnell Lake"
@@ -952,7 +879,6 @@
         "wbk:329520017"
       ],
       "rule_id": "tee_pee_lakes.r1",
-      "details": "See Friday, Saturday, and Sunday Lakes",
       "verbatim": "See Friday, Saturday, and Sunday Lakes",
       "kind": "water_pointer",
       "points_at": null

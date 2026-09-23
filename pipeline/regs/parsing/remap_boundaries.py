@@ -74,7 +74,7 @@ def apply_remap(entries_dir: Path, remap: dict[str, str], dry_run: bool = False)
                 file_changed = True
                 report["changed"].append((region, eid, sorted(set(hits))))
         if file_changed and not dry_run:
-            io.write_entryfile(path, region, by_id.values())     # atomic, via the model
+            io.write_entryfile(path, region, by_id.values())     # atomic; the file is validated
     return report
 
 

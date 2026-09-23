@@ -1570,27 +1570,28 @@ def fetch_r2_file(name, url, dest_path):
 
 # Build-assets bucket (custom domain) that hosts backed-up, expensive-to-
 # regenerate pipeline inputs.  Only referenced when the user explicitly opts in
-# via --add-parsing-data so a rebuild can skip the extraction + LLM parsing steps.
+# via --add-parsing-data so a rebuild can skip the synopsis extraction step.
 BUILD_ASSETS_BASE_URL = "https://build.canifishthis.ca"
 
 
 def fetch_parsing_backup(config):
-    """Restore backed-up extraction + parsing outputs from the build-assets bucket.
+    """Restore the backed-up synopsis extraction from the build-assets bucket.
 
-    Downloads the expensive-to-regenerate pipeline inputs (raw synopsis extraction
-    and LLM-parsed regulations) so the pipeline can be rebuilt without re-running
-    the extraction and parsing stages.  Overwrites any local copies so the restore
-    is deterministic.
+    Downloads the expensive-to-regenerate raw synopsis extraction so the pipeline can be
+    rebuilt without re-running it. Overwrites any local copy so the restore is deterministic.
+
+    The prose parser's `synopsis_parsed.json` and `session_state.json` were restored here too.
+    That parser is retired: parsed entries are curated files
+    (`data/curated/regulations/entries/catalogue`), in git, and need no restore.
     """
+    from pipeline.common.curated import GENERATED
     restores = [
         (
             "extraction/synopsis_raw_data.json",
-            config.extraction_dir / "synopsis_raw_data.json",
+            GENERATED.regs.extraction / "synopsis_raw_data.json",
         ),
-        ("parsing/synopsis_parsed.json", config.parsing_dir / "synopsis_parsed.json"),
-        ("parsing/session_state.json", config.parsing_dir / "session_state.json"),
     ]
-    print(f"\n[Backup] Restoring parsing data from {BUILD_ASSETS_BASE_URL}")
+    print(f"\n[Backup] Restoring extraction data from {BUILD_ASSETS_BASE_URL}")
     for key, dest in restores:
         dest.parent.mkdir(parents=True, exist_ok=True)
         _download_with_progress(
@@ -1829,9 +1830,9 @@ def main():
         "--add-parsing-data",
         action="store_true",
         help=(
-            "Restore backed-up extraction + parsing outputs from the build-assets "
+            "Restore the backed-up synopsis extraction from the build-assets "
             "bucket (build.canifishthis.ca) so the pipeline can be rebuilt without "
-            "re-running extraction/parsing, then exit."
+            "re-running extraction, then exit."
         ),
     )
     args = parser.parse_args()

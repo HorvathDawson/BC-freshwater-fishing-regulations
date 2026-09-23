@@ -6,10 +6,12 @@ Unmatched/ambiguous rows are reported and EXCLUDED (hand-curated later) — neve
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.batch_exporter --batch-size 40
 
-Writes under the working dir (default: <out>/parse/):
-  batches/batch_NNN.json    — {batch, rows_digest, items:[{index,item_id,name,region,raw_regs,bindable_ids}]}
+Writes under the working dir (default: data/generated/regs/parse/):
+  batches/batch_NNN.json    — {batch, rows_digest, items:[{index, entry_id, item_id, name, region,
+                               raw_regs, boundaries, symbols, pages, …}]} (see `_item_payload`)
   batches/batch_NNN.prompt.txt — the self-contained prompt (rules + examples + each item's menu + envelope)
   manifest.json             — batch layout + rows_digest + unmatched report
+  repass.json               — with --flagged: the entries sent back, and the findings sent with them
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -28,8 +31,7 @@ from pipeline.regs.parsing.parse_context import (
 )
 from pipeline.atlas.registry import default_registry_path, load_registry
 from pipeline.regs.parsing.rows import load_synopsis_rows
-from pipeline.regs.parsing import io as _io
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED
 
 
 def _slug(text: str) -> str:
@@ -83,9 +85,10 @@ def _row_pages(row: dict) -> tuple[int, ...]:
 
 
 def _item_payload(index: int, ctx) -> dict:
-    """Batch payload for one synopsis row (one entry). `entry_id`, `registry_status`, and `registry_note`
-    are injected into the Entry at ingest (authoritative — never trusted from the model), same as
-    `raw_regs`."""
+    """Batch payload for one synopsis row (one entry). Ingest copies every fact about the row from
+    here onto the entry — `entry_id`, `raw_regs` (as `regs_verbatim`), `name`, `display_name`,
+    `region`, `symbols`, `pages` (as `source_pages`) and `item_id`/`also_item_ids` (as `matched`)
+    — and never trusts the model's copy of any of them (`ingest_catalogue._passthrough`)."""
     return {
         "index": index,
         "entry_id": ctx.entry_id,
@@ -95,7 +98,7 @@ def _item_payload(index: int, ctx) -> dict:
         "display_name": ctx.display_name,
         "region": ctx.region,
         "mus": list(ctx.mus),                             # the ITEM's MUs — parser orientation
-        "row_mus": list(ctx.row_mus),                     # the ROW's MUs — what identity.mus must be
+        "row_mus": list(ctx.row_mus),                     # the ROW's MUs — the ones entry_id encodes
         "raw_regs": ctx.raw_regs,
         "bindable_ids": sorted(ctx.bindable_ids),
         "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind,aliases) — also the review menu
@@ -120,7 +123,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
 
     The batch layout is a PURE FUNCTION of (rows, registry): it must NOT depend on what has been ingested
     or a re-run would renumber batches and desync resume. `skip_existing` (opt-in) drops entries already
-    in EntryFiles. `only_changed` (for a targeted re-parse that KEEPS existing progress) drops entries
+    in the catalogue region files. `only_changed` (for a targeted re-parse that KEEPS existing progress) drops entries
     whose regs are byte-identical to the already-parsed entry, so only the collisions (new per-row ids) +
     genuinely-new/changed rows are exported."""
     batches_dir = out_dir / "batches"
@@ -165,7 +168,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             # count: PECKHAMS LAKE and NORBURY LAKE are different waters that merely share
             # "No powered boats"; BLACKWATER RIVER's "See West Road River" pointer is printed in
             # BOTH region 5 and region 7. Dropping either lost a real row silently. A row that is
-            # genuinely redundant is marked `reference_only` by the CURATOR, who can see it.
+            # genuinely redundant is for the CURATOR to judge, who can see it.
             eid = _row_entry_id(row, m)
             # EVERY entry keeps the synopsis's own wording. This used to fall back to the
             # registry item's name for single-row entries, which is wrong twice over: for a
@@ -264,28 +267,19 @@ def main() -> None:
                     "granularity if a run dies mid-batch)")
     ap.add_argument("--registry", help="registry.json (default: build output).")
     ap.add_argument("--overrides", help="matcher overrides JSON.")
-    ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (resume skip).")
-    ap.add_argument("--out-dir", help="working dir (default: <out>/parse).")
-    ap.add_argument("--force", action="store_true", help="re-export rows already present in EntryFiles.")
+    ap.add_argument("--entries-dir", help="catalogue region files dir (resume skip).")
+    ap.add_argument("--out-dir", help="working dir (default: data/generated/regs/parse).")
+    ap.add_argument("--force", action="store_true", help="re-export rows already in the catalogue.")
     ap.add_argument("--skip-existing", action="store_true",
-                    help="drop rows already in EntryFiles (CHANGES the batch layout — breaks resume of a "
-                    "run in flight; only for a deliberate fresh export after curation)")
+                    help="drop rows already in the catalogue (CHANGES the batch layout — breaks "
+                    "resume of a run in flight; only for a deliberate fresh export after curation)")
     ap.add_argument("--only-changed", action="store_true",
-                    help="export ONLY entries whose combined regs differ from the already-parsed entry "
-                    "(i.e. multi-row collisions + genuinely new/changed rows). The minimal re-parse set "
-                    "after the per-row grouping fix — pair with `dispatch --force` on a fresh --out-dir.")
-    ap.add_argument("--unreviewed", action="store_true",
-                    help="REVIEW: export only entries with NO parse_review verdict yet. Resume is by "
-                    "ENTRY, not by batch — verdicts live on the entry, so a half-finished review run "
-                    "picks up exactly where it stopped even though the batch layout changed.")
-    ap.add_argument("--hardest", type=float, default=0.0, metavar="FRAC_OR_N",
-                    help="REVIEW: keep only the hardest entries by RULE COUNT — a fraction (0.5 = the "
-                    "worst half) or a count (>1). Combine with --unreviewed to review the hard half "
-                    "now and the rest later.")
+                    help="export ONLY entries whose regs differ from the already-parsed entry. "
+                    "Pair with `dispatch --force` on a fresh --out-dir.")
     ap.add_argument("--flagged", action="store_true",
-                    help="REPASS: export ONLY entries the review flagged (parse_review.verdict == "
-                    "'changes_requested'); the reviewer's issues are passed to the "
-                    "re-parse as hints. Pair with `dispatch --force` on a fresh --out-dir.")
+                    help="REPASS: export ONLY the entries the review pass flagged high/medium, read "
+                    "from the work dir's reviews/, with the findings passed to the re-parse as "
+                    "hints. Pair with `dispatch --force`.")
     args = ap.parse_args()
 
     rows = load_synopsis_rows()
@@ -293,36 +287,24 @@ def main() -> None:
     default_ov = CURATED.regulations.overrides
     overrides = load_overrides(args.overrides or (default_ov if default_ov.exists() else None))
     out_dir = Path(args.out_dir) if args.out_dir else default_work_dir()
-    entries_dir = Path(args.entries_dir) if args.entries_dir else _io.entries_dir()
+    entries_dir = Path(args.entries_dir) if args.entries_dir else io.entries_dir()
     existing_regs = load_existing_entry_regs(entries_dir)
     existing = set(existing_regs)
 
     only_ids = review_hints = None
     if args.flagged:
-        only_ids, review_hints = set(), {}
-        for eid, e in io.read_entries_dir(entries_dir).items():
-            pr = e.get("parse_review") or {}
-            if pr.get("verdict") == "changes_requested":
-                only_ids.add(eid)
-                review_hints[eid] = [
-                    f"[{i.get('severity','?')}] {i.get('problem','')}"
-                    + (f" -> fix: {i.get('fix')}" if i.get("fix") else "")
-                    for i in (pr.get("issues") or [])]
-    elif args.unreviewed or args.hardest:
-        entries = io.read_entries_dir(entries_dir)
-        pool = {eid: e for eid, e in entries.items()
-                if not (args.unreviewed and ((e.get("parse_review") or {}).get("verdict")))}
-        if args.hardest:
-            # Rule count is the proxy for difficulty: a 1-rule lake is a sentence, an 8-rule river
-            # is several reaches, seasons and species. Ties broken by entry_id so the slice is
-            # deterministic and two runs never disagree about where the half is.
-            ranked = sorted(pool, key=lambda i: (-len(entries[i].get("rules") or []), i))
-            n = int(args.hardest) if args.hardest > 1 else round(len(ranked) * args.hardest)
-            pool = {eid: entries[eid] for eid in ranked[:max(0, n)]}
-        only_ids = set(pool)
-        print(f"  selector: {len(only_ids)} entr(y/ies)"
-              + (" unreviewed" if args.unreviewed else "")
-              + (f", hardest {args.hardest}" if args.hardest else ""))
+        # READ BEFORE EXPORTING. `export()` replaces the batches and deletes every review older
+        # than them — the findings this repass exists to act on. They are joined to entry ids
+        # here, while the batches they were written against still exist, and kept in
+        # repass.json, which the export does not touch.
+        review_hints = io.read_review_findings(out_dir)
+        if not review_hints:
+            sys.exit(f"repass: no high/medium review findings in {out_dir / 'reviews'} — nothing "
+                     f"to re-parse (run `run_parse.sh review` first). Nothing was exported.")
+        only_ids = set(review_hints)
+        io.atomic_write(out_dir / "repass.json", json.dumps(
+            {"created_at": datetime.now().isoformat(), "findings": review_hints},
+            ensure_ascii=False, indent=1) + "\n")
 
     manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force,
                       skip_existing=args.skip_existing, only_changed=args.only_changed,
@@ -333,7 +315,7 @@ def main() -> None:
           f"empty-regs skipped: {len(manifest['excluded_empty'])}")
     if manifest["skipped_existing"]:
         why = ("review-flagged only" if args.flagged else
-               "unchanged (already parsed)" if args.only_changed else "already in EntryFiles")
+               "unchanged (already parsed)" if args.only_changed else "already in the catalogue")
         print(f"  dropped {len(manifest['skipped_existing'])} row(s) — {why}")
     if args.flagged:
         print(f"  repass: {len(only_ids)} flagged entr(y/ies) requested; {manifest['pending_count']} exported")

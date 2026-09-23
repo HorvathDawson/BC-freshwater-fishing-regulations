@@ -1,8 +1,14 @@
 """Render an independent-review prompt for a parsed batch — the second-pass reviewer subagent.
 
-Reuses the canonical CATALOGUE_REVIEW_PROMPT.md checklist and gives the reviewer, per row: the item's bindable
-boundaries + regs (from the batch file) and the entry another agent produced (from the response). The
-reviewer reports `{verdict, issues}`; it does not rewrite. Self-contained (batch + response only)."""
+The prompt is CATALOGUE_REVIEW_PROMPT.md (the checklist), then, per row: the item's bindable
+boundaries and printed regs (from the batch file) and the entry the parser produced (from the
+response), then the output envelope. The reviewer reports findings; it does not rewrite.
+Self-contained (batch + response only).
+
+ONE OUTPUT CONTRACT, and it is `_ENVELOPE` below: one object per BATCH, each issue naming its row
+by `index`. `dispatch` stores it as `reviews/batch_NNN.review.json`, and
+`io.read_review_findings` joins each `index` back to the batch item's `entry_id`. The checklist
+itself says nothing about output, so the two cannot disagree again."""
 
 from __future__ import annotations
 
@@ -12,7 +18,6 @@ from pathlib import Path
 from pipeline.regs.parsing.parse_context import render_boundary_menu
 
 _REVIEW_PROMPT = Path(__file__).resolve().parent / "prompts" / "CATALOGUE_REVIEW_PROMPT.md"
-_STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
 
 _ENVELOPE = """\
 ---
@@ -22,35 +27,34 @@ _ENVELOPE = """\
 Return ONLY this JSON object (no prose, no fences):
 
     { "verdict": "pass" | "changes_requested",
-      "issues": [ { "index": <row>, "severity": "high"|"medium"|"low",
-                    "problem": "<what is wrong>", "fix": "<the concrete correction>" } ] }
+      "issues": [ { "index": <the row's index, unchanged>,
+                    "severity": "high" | "medium" | "low",
+                    "problem": "<what is wrong — quote the printed text you compared against>",
+                    "fix": "<the concrete correction>" } ] }
 
-Empty issues + verdict "pass" = every row is correct. Flag `high`/`medium` for anything a stronger
-model should re-parse; `low` for nits. Judge from the material shown — do not call any tools."""
+- `high`: a Fatal check failed. `medium`: a Serious one. Both send the row to a stronger model
+  for a re-parse, with your `problem` and `fix` as its instructions. `low`: a nit, not re-parsed.
+- `changes_requested` if any issue is `high` or `medium`; otherwise `pass`.
+- A clean batch is `{"verdict": "pass", "issues": []}`. Do not invent findings to look thorough.
+- Judge from the material shown — do not call any tools."""
 
 
 def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, dict]) -> str:
     """`batch_items` = the batch file's items; `results_by_index` = index -> produced entry dict."""
     parts = [_REVIEW_PROMPT.read_text(encoding="utf-8"),
-             "\n\n---\n\n",
-             _STANDARDS.read_text(encoding="utf-8"),   # findings 8 and 9 cite it by name
              "\n\n---\n\n# REVIEW THESE ROWS\n"]
     for it in batch_items:
         idx = it["index"]
         entry = results_by_index.get(idx, {})
-        # Prefer the full boundary menu (id — label [kind]); fall back to bare ids for old batch files.
-        boundaries = it.get("boundaries") or [[b, b, ""] for b in it.get("bindable_ids", [])]
         menu = "\n".join(render_boundary_menu(
-            boundaries, list((it.get("bindable_by_item") or {}).items()) or None))
-        trib = entry.get("tributaries") or {}
-        trib_line = (f"included={trib.get('included')} only={trib.get('only')} "
-                     f"excludes={len(trib.get('excludes') or [])}")
+            it["boundaries"], list((it.get("bindable_by_item") or {}).items()) or None))
         parts.append(
-            f"\n## ITEM index={idx} — {it.get('name','')}\n"
+            f"\n## ITEM index={idx} — {it.get('name', '')}\n"
             f"### Bindable boundaries (the ids an extent may bind)\n{menu}\n\n"
-            f"Entry-level tributaries: {trib_line}\n"
-            f"Regs:\n{it.get('raw_regs','')}\n\n"
-            f"Produced entry (check every rule's extents, dates, species, includes_tributaries):\n"
+            f"Printed symbols: {', '.join(it.get('symbols') or []) or '(none)'}\n"
+            f"Regs:\n{it.get('raw_regs', '')}\n\n"
+            f"Produced entry (check every rule's extents, `when`, species, and the entry's "
+            f"`includes_tributaries` and `licensing`):\n"
             f"```json\n{json.dumps(entry, ensure_ascii=False, indent=2)}\n```\n"
         )
     parts.append(_ENVELOPE)
@@ -58,12 +62,11 @@ def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, di
 
 
 def render_from_files(batch_path: str | Path, response_path: str | Path) -> str:
+    """The review prompt for one batch and the response `dispatch` wrote for it."""
+    from pipeline.regs.parsing.ingest_catalogue import response_rows
     batch = json.loads(Path(batch_path).read_text(encoding="utf-8"))
-    resp = json.loads(Path(response_path).read_text(encoding="utf-8"))
-    if isinstance(resp, dict) and "entry" in resp:
-        resp = [resp]
-    by_index = {o["index"]: o.get("entry", {}) for o in resp if isinstance(o, dict) and "index" in o}
-    return render_review_prompt(batch.get("items", []), by_index)
+    by_index = {row.pop("_batch_index"): row for row in response_rows(response_path)}
+    return render_review_prompt(batch["items"], by_index)
 
 
 def main() -> None:

@@ -37,44 +37,44 @@ hatchery)"`.
 **② Bundle** — `data/generated/bundle/bundle.sqlite`. The atlas works out which stretches this
 reaches and stores the sentence once, with a list of sections pointing at it.
 
-**③ Rule** — what `corpus.rules()` hands the table layer: a flat dict. **Sizes and dates are
-fields like any other**, so nothing downstream parses prose.
+**③ Rule** — what `corpus.rules()` hands the table layer: a flat dict, the `CatalogueRule`'s
+conditions hoisted to the top. **Sizes and dates are fields like any other**, so nothing downstream
+parses prose. (Rewritten 2026-09-23 against the catalogue model; the removed layer read the prose
+size and window fields, which are gone.) The examples are `z2:trout_char_quota`:
 
 | field | our `r4` | a sized sibling `r2` | a floor `r8` | a seasonal rule |
 |---|---|---|---|---|
-| `verbatim` | "2 from streams (must be hatchery)" | "1 over 50 cm" | "Hatchery trout/char under 30 cm" | "No Fishing Apr 1 – Oct 31" |
+| `verbatim` | "2 from streams (must be hatchery)" | "1 over 50 cm" | "Hatchery trout/char under 30 cm from streams" | "No Fishing Apr 1 – Oct 31" |
 | `species` | `["TROUT_CHAR"]` | `["TROUT_CHAR"]` | `["TROUT_CHAR"]` | `["ALL_GAME_FISH"]` |
 | `origin` / `water` | `hatchery` / `stream` | — | `hatchery` / `stream` | — |
-| `take` | `2` | `1` | `0` | `0` |
-| `over_cm` / `under_cm` | — | **`50`** / — | — / **`30`** | — |
+| `take` | `2` | `1` | `0` (`may_target: true`) | `0` (`may_target: false`) |
+| `within` | `r1` | `r1` | — | — |
+| `lengths` | — | `[{min_cm: 50}]` | `[{max_cm: 30, take: 0}]` | — |
 | `period` | `daily` | `daily` | `daily` | `daily` |
-| `windows` | `[]` | `[]` | `[]` | `[{from:{4,1}, to:{10,31}}]` |
-| `windows_are` | `applies` | `applies` | `applies` | `applies` |
-| `when_open` | `false` | `false` | `false` | `false` |
+| `when` | — | — | — | `{dates: [{from 4/1, to 10/31}]}` |
 
-**Size is one pair of fields**, and every size statement in the book falls out of it:
+**Size is `lengths`: an ordered list of ranges, first match wins.** `min_cm`/`max_cm` are inclusive,
+either end may be open, and a range without its own `take` uses the rule's. A length no range covers
+is not spoken about by the rule — inside a `within` clause the parent quota governs it:
 
-| `take` | `over_cm` | `under_cm` | means |
-|---|---|---|---|
-| 2 | — | — | keep 2, any size |
-| 1 | 50 | — | of those, only 1 may be **over 50 cm** — a *cap on a size class* |
-| 0 | — | 30 | keep **none under 30 cm** — a *floor* |
-| 0 | 50 | — | none **over** 50 cm — a ceiling |
+| `take` | `lengths` | means |
+|---|---|---|
+| 2 | — | keep 2, any size |
+| 1 (within the quota) | `[{min_cm: 50}]` | of those, only 1 may be **over 50 cm** — a *cap on a size class* |
+| 0 | `[{max_cm: 30, take: 0}]` | keep **none under 30 cm** — a *floor* |
+| 2 | `[{min_cm: 30}, {max_cm: 30, take: 0}]` | "daily quota = 2 (none under 30 cm)" |
+| — | `[{min_cm: 50, take: 0}]` | none **over** 50 cm — a ceiling |
 
 A floor is an allowance of **zero** on a size class — which is why closures, releases and size
 limits travel as one object: all are "keep N of this class", and for a floor N is nought.
 
-**Dates are three fields**, and they are on every rule (617 of 3,422 carry a real window):
+**Dates are `when`**, one object: `dates` (inclusive month-day ranges, which may wrap the year end),
+`hours`, `weekdays`, and `unparsed` (a printed season nobody could read, kept verbatim — never
+dropped, because an absent season reads as "all year"). `dates` is always the days the rule
+HOLDS; the book's "EXCEPT these dates" is stored inverted, so nothing downstream decides polarity.
+`period` (`daily` · `possession` · `annual`) says which clock the number is on.
 
-| field | values | means |
-|---|---|---|
-| `windows` | a list of from/to month-days | the days it speaks about |
-| `windows_are` | `applies` (3,419) · `excepts` (3) | whether those are the days it holds, or the days it does **not** — *"Kokanee catch and release, EXCEPT Apr 1–3 and Jul 1–2, when daily quota = 5"* |
-| `when_open` | `false` (3,386) · `true` (36) | it binds only while the water is open at all — *"artificial fly only upstream of Bugaboo Creek when open"*; carries no dates of its own |
-| `period` | `daily` (3,380) · `possession` (34) · `annual` (8) | which clock the number is on |
-
-`applies.py` turns the three into one value with one reading, so no caller re-decides polarity. A
-rule with no window is not "undated": it is the standing answer, true on every day nothing
+A rule with no `when` is not "undated": it is the standing answer, true on every day nothing
 seasonal speaks.
 
 **④ Allowance** — the same fact as a counter:
@@ -581,15 +581,18 @@ the existing `carves` machinery would print it correctly once curated.
 ## Part 7 — What licence do I need? (research, not a table)
 
 No licence table is being built. This is the parameter set one would need, and what the corpus
-can answer today.
+can answer. Licensing is its own list on each entry, `CatalogueEntry.licensing` — `designation`,
+`not_classified`, `requirement`, `licence_terms`, `exemption`, `alternative` — with the angler
+described by a `Who` (`residency` · `age` · `guidance` · `status`). The per-document counts in this
+table were taken on the prose corpus, before that list existed; the table below it is re-measured.
 
-| document | trigger | in the corpus? |
+| document | trigger | in the corpus? (prose-era count) |
 |---|---|---|
 | **Basic angling licence** (annual / one-day / eight-day) | any sport fishing, 16+ | the requirement yes; **the durations no** |
 | **Classified Waters Licence** | a classified stream in its classified period | **78 rules** |
 | **Class I / II day licence** | non-resident or alien on a classified water | class yes; the per-day purchase no |
 | **Steelhead Conservation Surcharge Stamp** | targeting steelhead *anywhere*, keep or release | **49 rules** |
-| **Non-tidal salmon stamp** | keeping a salmon other than kokanee | 1 rule, `on_retention` |
+| **Non-tidal salmon stamp** | keeping a salmon other than kokanee | 1 rule (a requirement on retaining) |
 | **Kootenay / Shuswap rainbow · Shuswap char stamps** | a rainbow > 50 cm or char > 60 cm on named waters | 6 rules |
 | **White Sturgeon Conservation Licence** | Fraser watershed, Mission → Williams Lake River | 1 rule |
 | **National Park Fishing Permit** | inside a park — *and a B.C. licence is not valid there* | 2 rules |
@@ -608,24 +611,22 @@ is in the window · which licence to buy · the steelhead-stamp window and excep
 membership · the white-sturgeon reach · named-stamp waters · non-resident day allocation *(text
 only, on 66 of 73 rules)*.
 
-| what the corpus holds | measured |
+| what the corpus holds (`licensing`, measured 2026-09-23) | measured |
 |---|---|
-| `document_required` rules | **148** — classified 78 · steelhead stamp 49 · basic licence 10 |
-| `water_class` set | **71 rules — 62 Class II, 9 Class I** |
-| `angler_class` set | **38 of 3,422 rules — 1.1 %** |
-| `issuing_jurisdiction` | **0 rules** |
+| licensing records | **106 on 88 entries** — designation 70 · requirement 23 · licence_terms 9 · not_classified 2 · exemption 1 · alternative 1 |
+| designations | **70 — 62 Class II, 8 Class I** |
+| records scoped to an angler (`who`) | **27** |
 
-> **The water half is nearly done; the angler half is barely started.** Which stamp, which permit,
-> whether classified and when — all in the corpus and bound to sections. Residency, guiding, age
-> and status are not, and `app/packages/core/src/status.ts` reads none of the fields.
+> **The water half is nearly done; the angler half is started.** Which stamp, which permit,
+> whether classified and when — all in the corpus. Residency, guiding, age and status are a `Who`
+> on the records that depend on them; the angler is always unknown, so answers are conditional.
 
 **To curate.** Three CW-marked waters have no catalogue entry (`QUINN CREEK CW 4-22`,
 `SKOOKUMCHUCK CREEK CW 4-20`, `KILBELLA RIVER CW 5-7`). `BIGHORN (Ram) CREEK CW 4-2` is printed
-classified but its only rule is a cross-reference, so its class is unknown. Five waters — West
-Road, Babine, Stellako, Sustut, Telkwa — carry `water_class` on a `steelhead_stamp` rule rather
-than a `classified_waters_licence` one, so a query keyed on `document` misses all five. **Do not
-key on the `Classified` entry symbol**: 21 entries carry it, 71 carry a class or CW rule. The
-Skeena's two Class II sections need separate per-day licences and have no identifier.
+classified but its only rule is a cross-reference, so its class is unknown. **Do not key on the
+`Classified` entry symbol**: it is the printed glyph (68 entries carry it) and only a cross-check
+for a `designation`, never the binding. The Skeena's two Class II sections need separate per-day
+licences.
 
 **Unknowns.** The corpus cannot say what a licence costs, choose between annual / one-day /
 eight-day, apply the Family Fishing Weekend waiver, name the Skeena section licence, or give

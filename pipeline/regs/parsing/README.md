@@ -1,79 +1,93 @@
-# pipeline/regs/parsing — synopsis rows → validated `Entry` records
+# pipeline/regs/parsing — synopsis rows → validated catalogue entries
 
-Turns each BC fishing-synopsis row into an `Entry` (rules bound to a waterbody's boundaries), reviews
-those parses, and keeps the checked-in `entries/region-*.json` as the **single source of truth**
-(curator edits from the review app are written straight back here).
+Turns each row of the BC fishing synopsis's water-specific tables into a `CatalogueEntry`
+(`catalogue.py`): typed rules bound to the water's cut-points, plus the entry's `licensing` list.
+The checked-in region files `data/curated/regulations/entries/catalogue/region-*.json` are the
+**single source of truth**; curator edits are written straight back to them.
+
+The format itself is `pipeline/docs/18-how-regulations-are-stored.md`; how to run the parse is also
+in `prompts/CHAT_INVOCATION.md`.
 
 ## The one entry point
 
 Everything runs through the shell script — the Python modules are building blocks it calls:
 
 ```bash
-bash pipeline/regs/parsing/run_parse.sh <parse|review|repass|prune|status> [rereview]
+bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>
 ```
 
 | subcommand | what it does | credits? |
 |---|---|---|
-| `parse`  | export un-parsed rows → parse (tiered cascade) → escalate → review → ingest | **yes** (claude CLI) |
-| `review` | review EVERY current entry in place (locked + not) → stamp `parse_review` | **yes** (claude CLI) |
-| `repass` | re-parse ONLY the review-flagged entries (MODEL-selectable) with reviewer hints | **yes** (claude CLI) |
-| `prune`  | drop stale bare `item_id` entries superseded by per-row `item_id#reach` entries | no |
-| `status` | entry counts, `parse_review` verdicts, repass-candidate count | no |
+| `all`       | `parse`, then `review` | **yes** |
+| `parse`     | export the rows not yet in the catalogue → parse → ingest | **yes** |
+| `parse-dry` | export the batches only, to read a prompt before spending anything | no |
+| `review`    | an independent agent reviews the last parse's batches; findings → the work dir's `reviews/` | **yes** |
+| `repass`    | re-parse ONLY the entries the review flagged high/medium, with the findings as hints, on `ESCALATE_MODEL` | **yes** |
+| `status`    | entry counts, review states and flagged entries, synopsis rows still unparsed, what to run next | no |
 
-⛔ **HUMAN-ONLY**: `parse` / `review` / `repass` spend the user's credits — Claude/agents must hand over
-the command, never run it. `prune` / `status` are local and safe.
+⛔ **HUMAN-ONLY**: `all` / `parse` / `review` / `repass` spend the user's credits — Claude/agents must
+hand over the command, never run it. `parse-dry` / `status` are local and safe.
 
-Env knobs: `REGISTRY`, `BATCH_SIZE`, `MODEL` (parse), `REVIEW_MODEL`, `ESCALATE_MODEL`, `CONCURRENCY`,
-`CLAUDE_BIN`. Model choice on a repass: `MODEL=opus bash pipeline/regs/parsing/run_parse.sh repass`.
+Env knobs: `REGISTRY`, `BATCH_SIZE`, `MODEL` (parse), `REVIEW_MODEL`, `ESCALATE_MODEL` (repass),
+`CONCURRENCY`, `CLAUDE_BIN`.
 
 ## Dataflow
 
 ```
-synopsis rows ──match──> batches/            (export)      one batch item per ROW; entry_id = item_id,
-   (rows.py)             batch_NNN.json                     or item_id#<reach> for multi-row waterbodies
-                              │
-                     claude CLI (dispatch)
-                              ▼
-                        responses/            parsed {index, entry} JSON per batch
-                              │
-                   review (dispatch --review)
-                              ▼
-                        reviews/              {verdict, issues} per batch
-                              │
-                          ingest
-                              ▼
-                    entries/region-*.json     the SINGLE SOURCE OF TRUTH (validated Entry records,
-                                              parse_review stamped in, locked entries preserved)
+synopsis rows ──match──▶ batches/batch_NNN.json         one item per ROW; entry_id = r{region}:{name}@{MUs}
+   (rows.py)             batches/batch_NNN.prompt.txt   the self-contained prompt
+                                   │
+                          dispatch (claude CLI)
+                                   ▼
+                         responses/batch_NNN.json       [{index, entry}, …]
+                                   │
+                    ingest_catalogue (the gate)  ──────▶ entries/catalogue/region-*.json
+                                   │                     + ingested.json (the ledger, work dir)
+                    dispatch --review (claude CLI)
+                                   ▼
+                         reviews/batch_NNN.review.json  {verdict, issues:[{index, severity, problem, fix}]}
+                                   │                     or {error: review_failed} if unreadable
+                    batch_exporter --flagged
+                                   ▼
+                         repass.json + new batches      the flagged entries only, findings as hints
 ```
 
-`review` reuses this by rebuilding `responses/` from the *current* entries (`synth_responses.py`) so the
-reviewer critiques what's on disk, then `ingest --apply-reviews` writes ONLY `parse_review` back (no
-content change — safe on locked/curated entries). `repass` re-exports just the flagged entries
-(`export --flagged`) with the reviewer's issues as prompt hints and re-parses them.
+All of it except the region files lives in the work dir, `data/generated/regs/parse/`.
+
+**Reviews are never written onto an entry.** A catalogue entry has no field for a verdict. A review
+is a finding about one parse of one batch; `io.read_review_findings` joins each issue's `index` to
+the batch item's `entry_id`. `repass` reads the findings BEFORE its export replaces the batches (an
+export deletes every review older than the batches it writes), and keeps them in `repass.json`.
+
+**A repass does not overwrite a curator's edit.** Ingest records a digest of every entry it writes
+in the work dir's `ingested.json`. It replaces an entry already on disk only if the file's copy is
+still the one it wrote; an entry edited since — or one the ledger never saw — is reported as KEPT
+and left alone. `ingest_catalogue --replace-edited` overrides that once you have read the report.
 
 ## Modules (building blocks — not the user entry point)
 
-- `io.py` — the single home for shared IO: EntryFile read/write (atomic, via the model), batch-item
-  load, LLM-JSON extraction, work-dir paths. **A strict leaf** (imports only stdlib + `entry_models`).
-- `entry_models.py` — the `Entry` / `Rule` / `Extent` / `ParseReview` pydantic model + validators.
-- `dates.py` — verbatim date strings → validated calendar windows.
-- `rows.py` — load synopsis rows; `species.py` — species menu.
+- `catalogue.py` — the model: `CatalogueEntry` / `CatalogueRule` / licensing records, validators,
+  and the generated labels.
+- `io.py` — the single home for shared IO: region-file read/write (`write_entryfile`: atomic, keeps
+  the file's indent and order, and validates what it wrote), batch items, reviews, LLM-JSON
+  extraction, work-dir paths. **A strict leaf** (stdlib, plus `catalogue` lazily to write).
+- `entry_models.py` — the op + split `Extent` that extents are checked against.
+- `rows.py` — load synopsis rows; `species.py` — the species menu.
 - `parse_context.py` — build the parse prompt (identity + bindable-boundary menu + species + regs).
-- `review_exporter.py` — build the review prompt (reuses `parse_context.render_boundary_menu`, so the
-  reviewer sees `id — label [kind]` + the entry's tributary state).
-- `batch_exporter.py` — rows → batches (`--skip-existing` / `--only-changed` / `--flagged` row filters).
-- `synth_responses.py` — rebuild `responses/` from current entries (for `review`).
+- `review_exporter.py` — build the review prompt (the checklist + each row's menu, regs and parsed
+  entry + the one output envelope).
+- `batch_exporter.py` — rows → batches (`--skip-existing` / `--only-changed` / `--flagged`).
 - `dispatch.py` — run parse/review through the `claude` CLI (the credit step).
-- `ingest.py` — validate + write EntryFiles + fill `parse_review` (`--apply-reviews`, `--review-only-locked`).
-- `validate.py` — the same validation gate as a standalone self-check CLI for the parse agent.
-- `prune_superseded.py` — remove bare `item_id` entries once their per-row replacements exist.
+- `validate_catalogue.py` — the checks; also a CLI that runs the ingest gate on a candidate, for
+  the parse agent to run on itself.
+- `ingest_catalogue.py` — the gate: row facts from the batch, validate, write, record the ledger.
+- `backfill_matched.py`, `remap_boundaries.py` — local repairs after a registry change.
 
 ## Safety notes
 
-- Every EntryFile write goes through `io.write_entryfile` — validated through the model, sorted by
-  `entry_id`, and written atomically (temp + `os.replace`). It is byte-identical to the current files,
-  so re-runs don't churn.
-- A `locked` entry's content is never overwritten by a re-parse; `--review-only-locked` refreshes only
-  its `parse_review`.
-- `entries/region-*.json` is the durable progress. The `data/generated/regs/parse/` work dir is transient — deleting
-  it never loses parsed entries.
+- Every region-file write goes through `io.write_entryfile`. The file is validated as written, as
+  a whole, through `CatalogueFile`; an untouched neighbour is written back byte for byte.
+- Nothing partial is written: an entry validates whole or is reported and left out.
+- The region files are the durable progress. The work dir is transient — deleting it never loses
+  a parsed entry, but it does lose the review findings and the ledger, after which a repass keeps
+  every existing entry until `--replace-edited`.

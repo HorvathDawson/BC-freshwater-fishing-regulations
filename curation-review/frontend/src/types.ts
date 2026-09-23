@@ -1,15 +1,9 @@
-// TypeScript mirror of the API.md / pipeline entry_models.py shapes.
+// TypeScript mirror of the API.md shapes — the entry is a `CatalogueEntry`
+// (pipeline/regs/parsing/catalogue.py). Fields still here from the retired prose model are listed
+// under "Not yet ported" in ../../README.md.
 // Kept in one file on purpose (throwaway internal tool).
 
 export type Op = "whole" | "upstream_of" | "downstream_of" | "between" | "within";
-
-export type RestrictionType =
-  | "closure"
-  | "harvest"
-  | "gear_restriction"
-  | "vessel_restriction"
-  | "licensing"
-  | "note";
 
 export type Status =
   | "no_registry"
@@ -18,16 +12,13 @@ export type Status =
   | "unreviewed"
   /** A regional or provincial rule. It names no water BY DEFINITION, so it is a category,
    *  not a problem — it used to show as `no_registry` and sit at the top of the queue. */
-  | "zone"
-  | "confirmed";
+  | "zone";
 
 /** Which part of the book an entry came from. `zone` = a region chapter or the provincial
  *  pages; `water` = a row of a water table. They need different questions asked of them. */
 export type EntryKind = "zone" | "water";
 
-export type RegistryStatus = "matched" | "no_registry";
-
-// ---- Entry model (entry_models.py) ----------------------------------------
+// ---- Entry model (catalogue.py) -------------------------------------------
 
 export interface Extent {
   op: Op;
@@ -60,59 +51,26 @@ export interface Rule {
   windows?: string[];
   /** `excepts` marks a window that says when the rule does NOT apply. */
   windows_are?: string;
-  weekdays?: string[];
-  when_open?: boolean | null;
 
   take?: number | null;
   unlimited?: boolean;
   period?: string;
   /** take=0 alone is ambiguous: false = may not fish for it, true = fish for it and release it. */
   may_target?: boolean | null;
-  over_cm?: number | null;
-  under_cm?: number | null;
-  band?: boolean;
-  combined?: boolean;
   water?: string | null;
   record_retention?: boolean;
-  required?: string | null;
-  on_retention?: boolean;
   obligation?: string;
   standing?: boolean;
-  reason?: string;
   exempts?: unknown;
 
   extents: Extent[];
   tributaries_only?: boolean;
   /** the reach in the page's own words, when no cut-point can express it. */
   extent_text?: string;
-  /** locator phrases nobody could bind; non-empty forces needs_review. */
+  /** locator phrases nobody could bind; non-empty needs a review_reason. */
   unresolved_locators?: string[];
 
-  needs_review: boolean;
   review_reason: string;
-}
-
-/** The controlled vocabulary for Rule.exempts_from — mirrors entry_models.Rule.exempts_from. */
-export const EXEMPTS_FROM_VOCAB = [
-  "spring_closure",
-  "summer_closure",
-  "trout_char_release",
-  "bull_trout_release",
-  "bait_ban",
-  "single_barbless_hook",
-  "kokanee_stream_quota",
-] as const;
-
-export interface Identity {
-  name: string;
-  region: string;
-  mus: string[];
-}
-
-export interface Tributaries {
-  included: boolean;
-  only: boolean;
-  excludes: Extent[];
 }
 
 export interface ReviewIssue {
@@ -141,28 +99,14 @@ export interface Entry {
   /** Flat on a catalogue entry; the retired prose entry nested these under `source`. */
   source_pages?: number[];
   symbols?: string[];
-  identity?: Identity;
   regs_verbatim: string;
-  /** Where the row is PRINTED. Nested because it is all one fact about the book — it was a flat
-   *  `source_symbols` until a page number joined it. */
-  source: { pages: number[]; symbols: string[]; row_image: string };
-  locked: boolean;
-  reviewed_by: string;
-  reviewed_at: string;
-  revisit: boolean;
-  revisit_note: string;
-  /** This row carries no regulations of its own — it points at another entry under a different
-   *  name ("BEAR LAKE: See Cowichan Lake"). The backend has always saved it; the type omitted it,
-   *  so every read of `entry.reference_only` in EntryDetail was a typecheck error. */
-  reference_only: boolean;
-  parse_review: ParseReview;
   matched: string[];
-  registry_status: RegistryStatus;
-  registry_note: string;
-  tributaries: Tributaries;
-  scope: Extent[];
+  // NOT CATALOGUE FIELDS — still read by EntryDetail's display, never present on a served entry
+  // and refused by the backend if sent. See "Not yet ported" in ../../README.md.
+  reference_only?: boolean;
+  parse_review?: ParseReview;
+  registry_note?: string;
   rules: Rule[];
-  audit_log: string[];
 }
 
 // ---- API response shapes --------------------------------------------------
@@ -180,11 +124,6 @@ export interface QueueRow {
   mus: string[];
   status: Status;
   kind?: EntryKind;
-  locked: boolean;
-  revisit?: boolean;
-  /** a "See X" pointer row — carries no regulations of its own */
-  reference_only?: boolean;
-  registry_status: string;
   n_rules: number;
   matched_item_id: string | null;
   matched_item_name: string | null;
@@ -216,7 +155,7 @@ export interface SplitRef {
   entry_id: string;
   region: string;
   rule_id: string;
-  details: string;
+  label: string;
   entry_name: string;
 }
 
@@ -248,7 +187,6 @@ export interface RelatedEntry {
   entry_id: string;
   region: string;
   name: string;
-  locked: boolean;
   n_rules: number;
   /** its regs are just a cross-reference ("See Chilliwack River") */
   pointer: boolean;

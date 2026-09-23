@@ -1,12 +1,12 @@
 """What changed between two reach-builder runs.
 
-The question this exists to answer is not "which items moved" — it is **"which of my
-confirmed entries now mean something different?"** One routine rebuild changed content on
-2,950 registry items; without this, a rebuild is unreviewable and a curator has no way to
-know whether work they signed off on still says what they signed off on.
+The question this exists to answer is not "which items moved" — it is **"which rules now
+mean something different?"** One routine rebuild changed content on 2,950 registry items;
+without this, a rebuild is unreviewable.
 
-Ranked by blast radius, and a change inside a LOCKED entry is always listed first however
-small it is: that is someone's signed-off work changing under them.
+Ranked by blast radius. (A change inside a `locked` entry used to be listed first; catalogue
+entries have no `locked` — a re-parse is guarded by `ingested.json` instead — so that ranking
+read a field no entry carries and is gone.)
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ class RuleChange:
     after: str = ""
     added: tuple[str, ...] = ()
     removed: tuple[str, ...] = ()
-    locked: bool = False
 
     @property
     def blast(self) -> int:
@@ -38,19 +37,13 @@ class DiffReport:
     n_before: int = 0
     n_after: int = 0
 
-    @property
-    def locked_changes(self) -> list[RuleChange]:
-        return [c for c in self.changes if c.locked]
-
     def summary(self) -> str:
         if not self.changes:
             return f"no rule changed ({self.n_after:,} rules)"
-        lock = len(self.locked_changes)
-        head = (f"{len(self.changes):,} of {self.n_after:,} rules changed"
-                f"{f'  —  {lock} inside CONFIRMED entries' if lock else ''}")
+        head = f"{len(self.changes):,} of {self.n_after:,} rules changed"
         lines = [head, ""]
         for c in self.changes[:40]:
-            mark = "🔒 " if c.locked else "   "
+            mark = "   "
             if c.kind == "outcome":
                 lines.append(f"{mark}{c.entry_id}::{c.rule_id}  {c.before} -> {c.after}")
             else:
@@ -65,10 +58,9 @@ class DiffReport:
         return "\n".join(lines)
 
 
-def diff_runs(before_dir, after_result, locked_ids: set[str] | None = None) -> DiffReport:
+def diff_runs(before_dir, after_result) -> DiffReport:
     """Compare a previous run on disk against a fresh in-memory result."""
     before = read_run(before_dir)
-    locked = locked_ids or set()
 
     after: dict[tuple[str, str], dict] = {}
     for b in after_result.bindings:
@@ -81,15 +73,14 @@ def diff_runs(before_dir, after_result, locked_ids: set[str] | None = None) -> D
     for key in sorted(set(before) | set(after)):
         entry_id, rule_id = key
         was, now = before.get(key), after.get(key)
-        is_locked = entry_id in locked
 
         if was is None:
             rep.changes.append(RuleChange(entry_id, rule_id, "outcome", "(absent)",
-                                          now["outcome"], locked=is_locked))
+                                          now["outcome"]))
             continue
         if now is None:
             rep.changes.append(RuleChange(entry_id, rule_id, "outcome", was["outcome"],
-                                          "(absent)", locked=is_locked))
+                                          "(absent)"))
             continue
         if was["outcome"] != now["outcome"]:
             rep.changes.append(RuleChange(
@@ -97,8 +88,7 @@ def diff_runs(before_dir, after_result, locked_ids: set[str] | None = None) -> D
                 f"{was['outcome']}({was['reason'] or ''})".rstrip("()"),
                 f"{now['outcome']}({now['reason'] or ''})".rstrip("()"),
                 added=tuple(sorted(now["sections"] - was["sections"])),
-                removed=tuple(sorted(was["sections"] - now["sections"])),
-                locked=is_locked))
+                removed=tuple(sorted(was["sections"] - now["sections"]))))
             continue
         added = now["sections"] - was["sections"]
         removed = was["sections"] - now["sections"]
@@ -106,9 +96,7 @@ def diff_runs(before_dir, after_result, locked_ids: set[str] | None = None) -> D
             kind = "rebound" if (added and removed) else ("gained" if added else "lost")
             rep.changes.append(RuleChange(entry_id, rule_id, kind,
                                           added=tuple(sorted(added)),
-                                          removed=tuple(sorted(removed)),
-                                          locked=is_locked))
+                                          removed=tuple(sorted(removed))))
 
-    # Locked entries first — signed-off work changing matters more than size.
-    rep.changes.sort(key=lambda c: (not c.locked, -c.blast, c.entry_id, c.rule_id))
+    rep.changes.sort(key=lambda c: (-c.blast, c.entry_id, c.rule_id))
     return rep

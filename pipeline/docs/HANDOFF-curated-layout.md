@@ -136,6 +136,10 @@ anyway** — this file is theirs right now.
 pipeline/regs/parsing/io.py:40                def entries_dir()   ← THE choke point
 ```
 
+(2026-09-23: of the modules named in this section only `backfill_matched`, `batch_exporter` and
+`dispatch` still exist; `ingest.py` is now `ingest_catalogue.py`, and every one of them calls
+`io.entries_dir()`. Kept as the record of the migration.)
+
 Used correctly by `backfill_exemptions`, `backfill_matched`, `backfill_rule_subjects`,
 `backfill_identity`. **These four re-derive it instead** and must be changed too:
 

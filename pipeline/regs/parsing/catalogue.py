@@ -1220,6 +1220,18 @@ def _dates_are_printed(when: Optional[When], verbatim: str, where: str) -> Optio
     return None
 
 
+def _extents_the_resolver_reads(extents: Optional[List[dict]]) -> List[str]:
+    """A licensing record's extent may not carry a flag the reach builder never reads.
+
+    `includes_tributaries` INSIDE an extent is one: `classify.wants_tributaries` reads the flag on
+    the record (inheriting the entry's), never on an extent, so "the Fraser River Watershed
+    (including tributaries)" written that way bound the mainstem alone and said nothing. The flag
+    goes on the record, where the builder walks it."""
+    return [f"extent {i} carries includes_tributaries, which the reach builder does not read on "
+            f"an extent — set it on the record" for i, x in enumerate(extents or [])
+            if isinstance(x, dict) and "includes_tributaries" in x]
+
+
 def _days(ranges: List["DateRange"]) -> set:
     got: set = set()
     for r in ranges:
@@ -1293,6 +1305,13 @@ class Designation(_Terse):
             said = {"i": "I", "1": "I", "ii": "II", "2": "II"}[m.group(1)]
             if said != self.classified:
                 e.append(f"verbatim says Class {said}, classified is {self.classified}")
+        if during and during.when.is_empty():
+            # AN EMPTY PERIOD IS "ALL YEAR" under `When`'s own rule, so an empty stamp period
+            # would put the stamp on the water every day of the year — while the page printed a
+            # window, or printed that it could not say. A period the page does not give is
+            # written in `unparsed` (the Atnarko's "from reopening"), never left empty.
+            e.append("steelhead_stamp_during.when is empty, which reads as all year — give the "
+                     "printed dates, or say in `unparsed` why there are none")
         if during and not _DURING_SAID.search(squash(during.verbatim)):
             e.append("steelhead_stamp_during quotes no 'Steelhead Stamp mandatory'")
         if during and _WAIVED_SAID.search(squash(during.verbatim)) \
@@ -1317,6 +1336,7 @@ class Designation(_Terse):
             e.append(f"verbatim names the {m.group(1).strip()!r} licence; unit is {self.unit!r}")
         if self.tributaries_only and self.includes_tributaries is False:
             e.append("tributaries_only with includes_tributaries: false binds nothing")
+        e += _extents_the_resolver_reads(self.extents)
         if e:
             raise ValueError(f"designation {self.id}: " + "; ".join(e))
         return self
@@ -1339,6 +1359,9 @@ class NotClassified(_Terse):
         if "not a classified water" not in squash(self.verbatim):
             raise ValueError(f"not_classified {self.id}: the verbatim does not say "
                              f"'not a Classified Water'")
+        e = _extents_the_resolver_reads(self.extents)
+        if e:
+            raise ValueError(f"not_classified {self.id}: " + "; ".join(e))
         return self
 
 
@@ -1487,6 +1510,7 @@ class Requirement(_Terse):
         err = _check_residency(self.who, self.verbatim, "who")
         if err:
             e.append(err)
+        e += _extents_the_resolver_reads(self.extents)
         if e:
             raise ValueError(f"requirement {self.id}: " + "; ".join(e))
         return self
@@ -1536,6 +1560,17 @@ class LicenceTerms(_Terse):
         for u in self.units:
             if not re.match(_SLUG, u):
                 e.append(f"unit {u!r} is not a unit id")
+        # "COVERS EVERY UNIT" ABOUT SOME UNITS contradicts itself: the resident's annual licence
+        # covers every classified water, and naming units under it would attach it only where
+        # those units are — the per-day licence's shape under the annual licence's words.
+        if self.covers == "every_unit" and self.units:
+            e.append(f"covers: every_unit names units {self.units} — a licence that covers every "
+                     f"unit is not about some of them")
+        # "ONE ANNUAL LICENCE PER LICENCE YEAR" is about the ANNUAL licence. Without `sold` the
+        # count reads as every basic licence, and a visitor may buy as many one-day licences as
+        # they like.
+        if _ANNUAL_SAID.search(squash(self.verbatim)) and self.sold != "per_licence_year":
+            e.append("the sentence is about an annual licence — sold: per_licence_year")
         err = _check_residency(self.who, self.verbatim, "who")
         if err:
             e.append(err)
@@ -1559,8 +1594,39 @@ class Exemption(_Terse):
 
     @model_validator(mode="after")
     def _check(self) -> "Exemption":
+        e: List[str] = []
         if len(set(self.documents)) != len(self.documents):
-            raise ValueError(f"exemption {self.id}: a document is named twice")
+            e.append("a document is named twice")
+        # CHECKED AGAINST ITS OWN SENTENCE, like every other `who`. An exemption is the one record
+        # that REMOVES an obligation, so a `who` wider than the sentence releases anglers the book
+        # never released. A status that implies a residency ("an Indian AND a resident of B.C." is
+        # `indian_bc_resident`) satisfies the sentence's residency without restating it.
+        t = squash(self.verbatim)
+        said_status = frozenset(s for s, pat in _STATUS_SAID if re.search(pat, t))
+        if said_status != frozenset(self.who.status):
+            e.append(f"who.status {sorted(self.who.status) or 'none'} is not what the sentence "
+                     f"names ({sorted(said_status) or 'none'})")
+        implied = frozenset().union(*(_STATUS_RESIDENCY.get(s, frozenset())
+                                      for s in self.who.status))
+        said = residency_said(self.verbatim)
+        have = frozenset(self.who.residency) or implied
+        if said is not None and said != have:
+            e.append(f"who.residency {sorted(have) or 'any'} is not what the sentence says "
+                     f"({sorted(said)})")
+        if said is None and self.who.residency:
+            e.append(f"who.residency {sorted(self.who.residency)} is named nowhere in the sentence")
+        g = guidance_said(self.verbatim)
+        if (frozenset(self.who.guidance) or None) != (None if g is None or len(g) == 2 else g):
+            e.append(f"who.guidance {sorted(self.who.guidance) or 'any'} is not what the "
+                     f"sentence says")
+        # "ANY TYPE of fishing licence or stamp" is every provincial angler document — a list
+        # that leaves one out keeps charging the angler the book released.
+        if _ANY_DOCUMENT_SAID.search(t) and \
+                {d.value for d in self.documents} != set(PROVINCIAL_ANGLER_DOCUMENTS):
+            e.append("the sentence releases ANY licence or stamp — documents must be every "
+                     "provincial angler document")
+        if e:
+            raise ValueError(f"exemption {self.id}: " + "; ".join(e))
         return self
 
 
@@ -1578,6 +1644,27 @@ class Alternative(_Terse):
     extents: List[dict] = Field(..., min_length=1)
     verbatim: str = Field(..., min_length=1)
     review_reason: str = ""
+
+    @model_validator(mode="after")
+    def _a_place(self) -> "Alternative":
+        # `within` EVERY REGION is a scope in form and everywhere in fact — the scopeless
+        # alternative the non-empty `extents` exists to refuse, spelled so that it passes.
+        e = [f"extent {i} is the whole province — an alternative is accepted somewhere, not "
+             f"everywhere" for i, x in enumerate(self.extents)
+             if x.get("op") == "within" and x.get("area_kind") == "region"
+             and not x.get("area_id")]
+        e += _extents_the_resolver_reads(self.extents)
+        if e:
+            raise ValueError(f"alternative {self.id}: " + "; ".join(e))
+        return self
+
+
+#: Who a sentence names by STATUS, and the residency that status already carries.
+_STATUS_SAID = (("indian_bc_resident", r"\bindians?\b"), ("metis", r"\bm[ée]tis\b"),
+                ("disabled", r"\bdisab"))
+_STATUS_RESIDENCY = {"indian_bc_resident": frozenset({"resident"})}
+_ANY_DOCUMENT_SAID = re.compile(r"any (?:type of )?(?:fishing )?licen[cs]e or stamp")
+_ANNUAL_SAID = re.compile(r"\bannual (?:\w+ )?licen[cs]e")
 
 
 LicensingRecord = Annotated[
@@ -2468,22 +2555,49 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
 # the per-record lines it is composed from.
 # --------------------------------------------------------------------------------------- #
 
-def _docs(ds) -> str:
+def _docs(ds, joiner: str = "and") -> str:
     names = [_DOC_WORDS.get(getattr(d, "value", d), str(getattr(d, "value", d)).replace("_", " "))
              for d in ds]
-    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + f" {joiner} " + names[-1]
+
+
+def _a(doc) -> str:
+    """One document with its article: "a Classified Waters Licence", "an angling guide licence",
+    and none for a permission, which is not a thing you hold one of."""
+    w = _docs([doc])
+    if w.startswith("permission"):
+        return w
+    return ("an " if w[:1].lower() in "aeiou" else "a ") + w
+
+
+def _cap(s: str) -> str:
+    return s[:1].upper() + s[1:]
+
+
+def unit_words(unit: str, units: Optional[dict] = None) -> str:
+    """A licence unit as a reader knows it: the name a designation prints for it. A unit no
+    designation names yet (Skookumchuck Creek, whose water is not in the catalogue) reads as its
+    words, capitalised — never as the slug."""
+    got = (units or {}).get(unit)
+    return got or " ".join(w.capitalize() for w in unit.split("_"))
 
 
 def _path_words(p: "Path") -> str:
+    """One way to satisfy a requirement, as an object of "need": "a basic angling licence and a
+    Classified Waters Licence"."""
     if p.hold:
-        return _docs(p.hold)
+        return " and ".join(_a(d) for d in p.hold)
     if p.accompanied_by is not None:
-        out = (f"be accompanied by {p.accompanied_by.who.words()} who hold the licences and "
-               f"stamps this fishing requires")
+        who = p.accompanied_by.who
+        # "anglers 16 and over who hold" read as a crowd; the book means one companion.
+        companion = ("someone 16 or over" if who == Who(age=["16_plus"])
+                     else f"one of the {who.words()}")
+        out = (f"be accompanied by {companion} who holds the licences and stamps this fishing "
+               f"requires")
     else:
         out = f"hold what {p.as_.words()} must hold"
-    out += {"counts_to_companion": " (your catch counts toward your companion's limit)",
-            "own": " (your own quota)"}[p.quota]
+    out += {"counts_to_companion": " (any fish you keep count toward your companion's limit)",
+            "own": " (you keep your own quota)"}[p.quota]
     return out
 
 
@@ -2491,6 +2605,11 @@ def _doing_words(d: "Doing") -> str:
     sp = species_words(expand_species(d.species) if len(d.species) == 1
                        and d.species[0] in ("TROUT", "CHAR") else d.species,
                        d.species_except).lower()
+    # KOKANEE IS A SALMON TO A BIOLOGIST AND NOT TO THIS GROUP. The book says "(other than
+    # kokanee)" and the group already leaves it out, so the label says what the group means
+    # rather than letting "salmon" read as every salmon.
+    if "SALMON" in d.species and "KO" not in expand_species(list(d.species)):
+        sp += " (not kokanee)"
     if d.origin is not None and sp:
         sp = f"{d.origin.value} {sp}"
     if d.act == "fishing":
@@ -2510,100 +2629,119 @@ def _doing_words(d: "Doing") -> str:
     return "to guide anglers"
 
 
-def licensing_label(rec, siblings: Optional[dict] = None) -> str:
-    """The line a reader sees for one licensing record. `siblings` is {rule_id: CatalogueRule}
-    for the record's entry, so a suspension can name its closure in the closure's own words."""
+def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
+                    refs: Optional[dict] = None) -> str:
+    """The sentence a reader sees for one licensing record — generated, never authored.
+
+    Context a record cannot carry itself, all optional:
+      siblings  {rule_id: CatalogueRule} of the record's entry, so a suspension names its
+                closure in the closure's own words;
+      units     {unit: unit_name} across the corpus, so terms name a licence unit the way the
+                page prints it ("Dean River Class I - Main Section"), never as a slug;
+      refs      {(entry_id, id): record} across the corpus, so an alternative says WHICH
+                licence it stands in for, never an id.
+    """
     if isinstance(rec, Designation):
-        head = f"Classified Water, Class {rec.classified}"
+        head = f"Class {rec.classified} Classified Water"
         if rec.when and not rec.when.is_empty():
-            head += ", " + rec.when.words()
-        head += f" — licence unit: {rec.unit_name}"
+            head += f", {rec.when.words()}"
+        head += f" (licence unit: {rec.unit_name})."
         if rec.steelhead_stamp_during is not None:
             w = rec.steelhead_stamp_during.when
-            head += ("; Steelhead Stamp required whatever you fish for"
-                     + (f", {w.words()}" if not w.is_empty() else ""))
+            head += (" Steelhead Stamp required whatever you fish for"
+                     + (f", {w.words()}" if not w.is_empty() else "") + ".")
         elif rec.steelhead_stamp_waived is not None:
-            head += "; the classified-water Steelhead Stamp does not apply here"
+            head += " Steelhead Stamp not required here unless you fish for steelhead."
         for s in rec.suspended_while:
             other = (siblings or {}).get(s.rule_id)
-            said = label(other) if other is not None else f"rule {s.rule_id}"
-            head += f" — dormant while “{said}” is in force"
+            said = label(other) if other is not None else "its closure"
+            head += f" Not in force while “{said}” applies."
         return head
     if isinstance(rec, NotClassified):
-        return "Not a Classified Water"
+        return "Not a Classified Water."
     if isinstance(rec, Requirement):
-        if rec.conduct:
-            acts = "; ".join(CONDUCT_ACTS[a] for a in rec.conduct)
-            # "to fish" adds nothing to a duty you have only while fishing.
-            head = acts if rec.doing.act == "fishing" else acts + " " + _doing_words(rec.doing)
-        elif all(p.hold for p in rec.satisfied_by):
-            head = " or ".join(_path_words(p) for p in rec.satisfied_by)
-            head = head[:1].upper() + head[1:] + " required " + _doing_words(rec.doing)
-        else:
-            # A path that is not a document reads as an instruction: "To fish: be accompanied
-            # by …". Glued behind "required" it read as "Being accompanied … required to fish".
-            doing = _doing_words(rec.doing)
-            head = (doing[:1].upper() + doing[1:] + ": "
-                    + ", or ".join(_path_words(p) for p in rec.satisfied_by))
+        who = _cap(rec.who.words()) if rec.who is not None else None
+        where = ""
         water = rec.water.value if rec.water is not None else None
         if rec.on is not None:
             period = {"classified_period": "its classified period",
                       "steelhead_period": "its Steelhead Stamp period"}[rec.on]
-            head += f" on a classified {water or 'water'} during {period}"
+            where = f" on a classified {water or 'water'} during {period}"
         elif water:
-            head += f" on {water}s"
+            where = f" on {water}s"
         if rec.when and rec.when.dates:
-            head += ", " + " and ".join(d.words() for d in rec.when.dates)
-        if rec.who is not None:
-            head += f" — for {rec.who.words()}"
+            where += ", " + " and ".join(d.words() for d in rec.when.dates)
+        if rec.conduct:
+            # A duty is an instruction: "Anglers 16 and over: carry your paper licence when …".
+            acts = "; ".join(CONDUCT_ACTS[a] for a in rec.conduct)
+            # "to fish" adds nothing to a duty you have only while fishing.
+            body = acts if rec.doing.act == "fishing" else acts + " " + _doing_words(rec.doing)
+            head = (f"{who}: {body[:1].lower() + body[1:]}" if who else _cap(body)) + where
+        elif all(p.hold for p in rec.satisfied_by):
+            # "Anglers 16 and over need a basic angling licence to fish."
+            head = (f"{who or 'You'} need "
+                    + " or ".join(_path_words(p) for p in rec.satisfied_by)
+                    + " " + _doing_words(rec.doing) + where)
+        else:
+            # A path that is not a document is an instruction: "…: to fish, be accompanied by …".
+            body = (_doing_words(rec.doing) + where + ", "
+                    + ", or ".join(_path_words(p) for p in rec.satisfied_by))
+            head = f"{who}: {body}" if who else _cap(body)
         if rec.who_except is not None:
-            head += f", except {rec.who_except.words()}"
+            head += f" (except {rec.who_except.words()})"
         if rec.authority == "superior":
-            head += " (federal: provincial licences are not valid here)"
-        return head
+            head += "; provincial licences are not valid here"
+        return head + "."
     if isinstance(rec, LicenceTerms):
-        subject = _docs([rec.document])
-        subject = subject[:1].upper() + subject[1:]
+        doc = _docs([rec.document])
         if rec.classified:
-            subject = f"Class {rec.classified} {subject}"
+            doc = f"Class {rec.classified} {doc}"
+        if rec.sold == "per_licence_year":
+            doc = "annual " + doc
+        subject = _cap(doc)
         if rec.who is not None:
             subject += f" for {rec.who.words()}"
         if rec.units:
-            subject += " (" + ", ".join(u.replace("_", " ") for u in rec.units) + ")"
+            # Semicolons, because a printed unit name may carry its own comma ("Dean River
+            # Class I, signs 100 m below the canyon to tidal boundary").
+            subject += " (" + "; ".join(unit_words(u, units) for u in rec.units) + ")"
         bits = []
-        if rec.sold:
-            bits.append({"per_licence_year": "sold for the licence year",
-                         "per_day": "sold per day"}[rec.sold])
+        if rec.sold == "per_day":
+            bits.append("sold by the day")
         if rec.covers:
-            bits.append({"every_unit": "covers every classified water",
-                         "one_unit": "names one water"}[rec.covers])
+            bits.append({"every_unit": "valid on every classified water",
+                         "one_unit": "valid only on the one water it names"}[rec.covers])
         if rec.max_consecutive_days:
-            bits.append(f"at most {rec.max_consecutive_days} consecutive days")
+            bits.append(f"at most {rec.max_consecutive_days} consecutive days per licence")
         if rec.max_days_per_licence_year:
             bits.append(f"at most {rec.max_days_per_licence_year} days per licence year")
         if rec.unlimited_days:
-            bits.append("no limit on days")
+            bits.append("no limit on the number of days")
         if rec.max_per_licence_year:
-            bits.append(f"at most {rec.max_per_licence_year} per licence year")
+            n = rec.max_per_licence_year
+            bits.append(f"at most {n} {'licence' if n == 1 else 'licences'} per licence year")
         if rec.max_units_per_licence_year:
-            bits.append(f"at most {rec.max_units_per_licence_year} water per licence year"
-                        if rec.max_units_per_licence_year == 1
-                        else f"at most {rec.max_units_per_licence_year} waters per licence year")
+            n = rec.max_units_per_licence_year
+            bits.append(f"at most {n} of these waters per licence year" if len(rec.units) > 1
+                        else f"at most {n} {'water' if n == 1 else 'waters'} per licence year")
         if rec.allocation:
-            bits.append({"open": "open sale", "booking": "by first-come-first-serve booking",
+            bits.append({"open": "on open sale", "booking": "by first-come-first-served booking",
                          "draw": "by annual limited-entry draw"}[rec.allocation])
         if rec.needs:
             bits.append("needs your angling guide's number")
         if rec.fee_cad is not None:
             bits.append(f"reduced fee ${rec.fee_cad:.2f}")
-        return subject + ": " + "; ".join(bits)
+        return subject + ": " + "; ".join(bits) + "."
     if isinstance(rec, Exemption):
-        return (f"{rec.who.words()[:1].upper() + rec.who.words()[1:]} need no "
-                f"{_docs(rec.documents)}")
+        return f"{_cap(rec.who.words())} need no {_docs(rec.documents, 'or')}."
     if isinstance(rec, Alternative):
-        return (" or ".join(_path_words(p) for p in rec.satisfied_by)
-                + f" also accepted here, in place of {rec.alternative_to.entry_id}#"
-                  f"{rec.alternative_to.id}")
+        target = (refs or {}).get((rec.alternative_to.entry_id, rec.alternative_to.id))
+        if isinstance(target, Requirement) and target.satisfied_by:
+            instead = " or ".join(_path_words(p) for p in target.satisfied_by)
+        else:
+            instead = "the licence otherwise required"
+        return (_cap(" or ".join(_path_words(p) for p in rec.satisfied_by))
+                + f" is also accepted here, in place of {instead}.")
     raise TypeError(f"not a licensing record: {type(rec).__name__}")
 
 
@@ -2670,6 +2808,17 @@ class CatalogueEntry(BaseModel):
                 if squash(q) not in haystack:
                     e.append(f"{x.kind} {x.id}: {q[:50]!r} is not a contiguous substring of "
                              f"regs_verbatim")
+            # AN ALTERNATIVE ON A ROW THAT IS NO WATER must name its place itself. On a
+            # provincial or zone row (`zp:basic_licence` is the one it would be written on)
+            # `whole` or a bare cut has no water to be the whole OF, so the record would be
+            # accepted nowhere or — once someone "fixes" that — everywhere.
+            if isinstance(x, Alternative) and not self.matched:
+                vague = [i for i, ex in enumerate(x.extents)
+                         if not (ex.get("item_id") or ex.get("item_ids") or ex.get("area_id")
+                                 or ex.get("area_kind") not in (None, "", "region"))]
+                if vague:
+                    e.append(f"alternative {x.id}: extent(s) {vague} name no place, and this "
+                             f"row is not a water — name the item or area it is accepted on")
             if not isinstance(x, Designation):
                 continue
             # "two separate Class II waters … require separate licences": one entry, two units.

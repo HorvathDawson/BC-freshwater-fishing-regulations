@@ -77,12 +77,6 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- DO NOT CONFUSE IT WITH `ruleset.via`, which is how a rule REACHES one section. They are
 -- orthogonal: specificity is a property of the rule, provenance of the (section, rule) pair,
 -- and an earlier draft of this schema had one column trying to be both.
--- `limits` is the quota AS NUMBERS: a JSON list of {take, over_cm, under_cm, water, kind,
--- combined, origin, within}. Empty is NOT "no limit" — it means nobody has structured that
--- rule yet and `details` is still the only place its count exists. It ships so a client can
--- lay quotas out as a table and show which of two rules overrides the other, neither of
--- which is possible against a sentence. See pipeline/regs/parsing/entry_models::Limit, and
--- limit_words for the ONE place those numbers are turned back into English.
 -- THE RULE, AS A TYPE AND ITS CONDITIONS. `kind`/`details` are gone with the prose model.
 --
 -- `type` is one of fifteen and `family` one of six; both ship because the reader is shown
@@ -112,7 +106,21 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    dimension TEXT NOT NULL,   -- precedence key, second half
                    label TEXT NOT NULL,       -- generated; never authored
                    scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
-                   windows TEXT, species TEXT, species_except TEXT,
+                   -- `when` (catalogue.When, by alias): dates, hours, weekdays, and seasons
+                   -- the parser could not read (`unparsed` — the client treats such a rule
+                   -- as uncertain, never as all year). NULL = all year. It replaced
+                   -- `windows`, which was filled from a field the catalogue does not have and
+                   -- shipped empty on every rule — every seasonal closure read as all year.
+                   when_ TEXT,
+                   -- `while` (JSON list of acts): the rule binds only WHILE doing these. It
+                   -- decides an outcome — take 0 on every game fish WHILE spear fishing is not
+                   -- "No fishing" — so it is a column, not buried in `conditions`. NULL = any.
+                   while_ TEXT,
+                   -- `standing` = 1: the rule holds everywhere at places no dataset can draw
+                   -- ("within 23 m downstream of any fishway"). Shown on every water; it never
+                   -- decides a water's outcome and never takes part in the override contest.
+                   standing INTEGER NOT NULL DEFAULT 0,
+                   species TEXT, species_except TEXT,
                    take INTEGER, may_target INTEGER,        -- see above; both may be NULL
                    conditions TEXT,           -- the rest of the rule's set fields, as JSON
                    -- a rule nobody could place must never vote on an outcome; it can only
@@ -158,6 +166,113 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                       via TEXT NOT NULL,          -- reach | trib
                       PRIMARY KEY (set_id, entry_id, rule_id)) WITHOUT ROWID;
+
+-- licensing -----------------------------------------------------------------------
+-- WHAT YOU MUST HOLD, and which waters are Classified. Not rules: licensing never competes and
+-- never votes on open/closed (`evaluate` in core/status.ts never reads these tables). The
+-- per-angler sentence ("as a non-resident on Skeena River 2 today you need …") is composed in
+-- core/, where a test can pin the whole string; these tables ship the records it is composed
+-- from. See pipeline/deliver/bundle/licensing.py.
+--
+-- EVERY RECORD TABLE ends in the same four columns:
+--   label          GENERATED from the structure (catalogue.licensing_label) — never authored
+--   verbatim       the sentence, quoted from the entry's passage
+--   review_reason  what a curator still has to settle about this record, or NULL
+--   record         the whole record as JSON (by alias, terse) — the structured source of truth;
+--                  the scalar columns beside it are there to be queried on, not to be a copy
+-- Records are keyed (entry_id, <id>): an id is unique only within its entry (AGENTS 8).
+--
+-- `placement` says where a PLACED record (designation, not_classified, requirement,
+-- alternative) ended up: `sections` (rows in section_licensing), `province` (everywhere — no
+-- rows), `on_designation` (wherever a designation is in force — no rows), or `unresolved`
+-- (`uncertain` = 1 and `unresolved` says why). For licensing the unsafe direction is
+-- UNDER-requiring, so an unresolved record must render as "check", never as "none needed".
+
+-- The document register, emitted from `catalogue.Document`. `provincial` = sold under the
+-- Wildlife Act to an angler (what "any type of fishing licence or stamp" means).
+CREATE TABLE licence (doc_id TEXT PRIMARY KEY, name TEXT NOT NULL,
+                      provincial INTEGER NOT NULL) WITHOUT ROWID;
+
+-- Class I / II waters. `unit` is the licence unit a non-resident's day licence names; two
+-- designations with one unit are one licence (Alexander and Michel Creek: `michel_creek`).
+CREATE TABLE designation (entry_id TEXT NOT NULL, designation_id TEXT NOT NULL,
+                          classified TEXT NOT NULL,      -- I | II
+                          unit TEXT NOT NULL, unit_name TEXT NOT NULL,
+                          placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
+                          unresolved TEXT,
+                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          record TEXT NOT NULL,
+                          PRIMARY KEY (entry_id, designation_id)) WITHOUT ROWID;
+-- "Part described is NOT a Classified Water" — an asserted absence. The build refuses a section
+-- a designation also binds, unless that pair is acknowledged, and then the designation's
+-- binding there is `contested`.
+CREATE TABLE not_classified (entry_id TEXT NOT NULL, not_classified_id TEXT NOT NULL,
+                             placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
+                             unresolved TEXT,
+                             label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                             record TEXT NOT NULL,
+                             PRIMARY KEY (entry_id, not_classified_id)) WITHOUT ROWID;
+-- An obligation, stated once. `on_designation` (classified_period | steelhead_period) means it
+-- holds wherever a designation is in force; with `placement = sections` it holds only where
+-- BOTH are true. `authority = superior` (a National Park) displaces every provincial one.
+CREATE TABLE requirement (entry_id TEXT NOT NULL, req_id TEXT NOT NULL,
+                          on_designation TEXT, authority TEXT, water TEXT,
+                          placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
+                          unresolved TEXT,
+                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          record TEXT NOT NULL,
+                          PRIMARY KEY (entry_id, req_id)) WITHOUT ROWID;
+-- How a document is sold. NEVER bound to a section: the reader attaches terms to the obligation
+-- they go with, by document, who, unit and class. Bound, the Dean's non-guided-alien draw sat on
+-- the whole river, the Class II upper section included.
+CREATE TABLE licence_terms (entry_id TEXT NOT NULL, terms_id TEXT NOT NULL,
+                            document TEXT NOT NULL, classified TEXT,
+                            units TEXT,                  -- JSON list; [] = every unit
+                            label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                            record TEXT NOT NULL,
+                            PRIMARY KEY (entry_id, terms_id)) WITHOUT ROWID;
+-- Who is released from which documents. Never placed.
+CREATE TABLE exemption (entry_id TEXT NOT NULL, exemption_id TEXT NOT NULL,
+                        documents TEXT NOT NULL,         -- JSON list of licence.doc_id
+                        label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                        record TEXT NOT NULL,
+                        PRIMARY KEY (entry_id, exemption_id)) WITHOUT ROWID;
+-- A place where another document ALSO satisfies a requirement. It only ever adds a path.
+CREATE TABLE alternative (entry_id TEXT NOT NULL, alternative_id TEXT NOT NULL,
+                          alternative_to_entry TEXT NOT NULL, alternative_to_id TEXT NOT NULL,
+                          placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
+                          unresolved TEXT,
+                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          record TEXT NOT NULL,
+                          PRIMARY KEY (entry_id, alternative_id)) WITHOUT ROWID;
+
+-- WHERE THE PLACED ONES ARE, interned exactly like section_ruleset / ruleset and for the same
+-- reason: a designation "including tributaries" is thousands of sections carrying one fact.
+-- `via`: reach | trib | trib_pending (a tributary walk not done — never complete) | contested
+-- (a designation on a section a not_classified record also binds; the reader says "check").
+CREATE TABLE section_licensing (sid INTEGER PRIMARY KEY, set_id INTEGER NOT NULL);
+CREATE TABLE licensing_set (set_id INTEGER NOT NULL,
+                            kind TEXT NOT NULL,     -- designation | not_classified | requirement | alternative
+                            entry_id TEXT NOT NULL, record_id TEXT NOT NULL,
+                            via TEXT NOT NULL,
+                            PRIMARY KEY (set_id, kind, entry_id, record_id)) WITHOUT ROWID;
+-- One kind at a time, by name. Views, so the sets are stored once.
+CREATE VIEW designation_section AS
+  SELECT sl.sid, ls.entry_id, ls.record_id AS designation_id, ls.via
+    FROM section_licensing sl JOIN licensing_set ls ON ls.set_id = sl.set_id
+   WHERE ls.kind = 'designation';
+CREATE VIEW not_classified_section AS
+  SELECT sl.sid, ls.entry_id, ls.record_id AS not_classified_id, ls.via
+    FROM section_licensing sl JOIN licensing_set ls ON ls.set_id = sl.set_id
+   WHERE ls.kind = 'not_classified';
+CREATE VIEW requirement_section AS
+  SELECT sl.sid, ls.entry_id, ls.record_id AS req_id, ls.via
+    FROM section_licensing sl JOIN licensing_set ls ON ls.set_id = sl.set_id
+   WHERE ls.kind = 'requirement';
+CREATE VIEW alternative_section AS
+  SELECT sl.sid, ls.entry_id, ls.record_id AS alternative_id, ls.via
+    FROM section_licensing sl JOIN licensing_set ls ON ls.set_id = sl.set_id
+   WHERE ls.kind = 'alternative';
 
 -- conditions ----------------------------------------------------------------------
 -- trust is the representativeness class, not a hint: `none` means the station drains far

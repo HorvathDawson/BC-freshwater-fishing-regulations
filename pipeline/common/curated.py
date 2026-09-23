@@ -99,7 +99,7 @@ class Entries(BaseModel):
 
     `catalogue` is the format doc 18 describes — a rule is a TYPE plus named CONDITIONS and the
     label is generated. `synopsis` held the prose format it replaces and is gone; the water-specific
-    tables are reparsed into `catalogue` (`run_parse.sh catalogue`).
+    tables are reparsed into `catalogue` (`run_parse.sh parse`).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -209,7 +209,6 @@ class GeneratedRegs(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     extraction: Path
-    parsing: Path
     parse: Path
     dfo_salmon: Path
     entries_backup: Path

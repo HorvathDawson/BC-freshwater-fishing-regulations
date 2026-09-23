@@ -10,9 +10,10 @@
  * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
-import { bandAt, evaluate, regimesOf, type Band, type PlainDate, type Rule,
-         RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
-         type SpeciesGroup, type Status, type Window } from "@app/core";
+import { ALL_YEAR, bandAt, evaluate, isUncertain, isValid, regimesOf, type Band, type Hours,
+         type PlainDate, type Rule, RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
+         type SpeciesGroup, type Status, type Weekday, WEEKDAYS, type When,
+         type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
@@ -21,6 +22,9 @@ import type { BasinMember,
   StationId,
 } from "../index";
 import * as Q from "./queries";
+
+// Licensing is read beside the rules, never through them: it does not vote on open/closed.
+export * from "./licensing";
 import { json, num, str, type Cell, type Db, type Row } from "./db";
 
 /**
@@ -38,6 +42,37 @@ const sid = (v: Cell): SectionId => {
     throw new Error(`section handle is not an integer: ${JSON.stringify(v)}`);
   return n as SectionId;
 };
+
+/**
+ * A rule's `when`, out of the bundle's `when_` column — the catalogue's own `When`, by alias.
+ *
+ * NULL is ALL YEAR, per the synopsis. A malformed day or weekday is a build defect and fails
+ * here, loudly, rather than becoming a window that never matches (a closure that never holds).
+ */
+interface RawClock { at?: string; solar?: "sunrise" | "sunset"; offset_min?: number }
+function whenOf(v: Row[string], where: string): When {
+  if (v == null || v === "") return ALL_YEAR;
+  const raw = json<{
+    dates?: { from_month: number; from_day: number; to_month: number; to_day: number }[];
+    weekdays?: string[]; unparsed?: string[];
+    hours?: { start: RawClock; end: RawClock };
+  }>(v, `${where} when`);
+  const dates: Window[] = (raw.dates ?? []).map((d) => ({
+    from: { month: d.from_month, day: d.from_day }, to: { month: d.to_month, day: d.to_day } }));
+  for (const d of dates)
+    if (!isValid(d.from) || !isValid(d.to))
+      throw new Error(`${where}: not a calendar day in ${JSON.stringify(d)}`);
+  const days = new Set<string>(WEEKDAYS);
+  for (const w of raw.weekdays ?? [])
+    if (!days.has(w)) throw new Error(`${where}: ${JSON.stringify(w)} is not a weekday`);
+  const clock = (c: RawClock) => ({
+    ...(c.at ? { at: c.at } : {}), ...(c.solar ? { solar: c.solar } : {}),
+    ...(c.offset_min ? { offsetMin: c.offset_min } : {}) });
+  const hours: Hours | undefined = raw.hours
+    ? { start: clock(raw.hours.start), end: clock(raw.hours.end) } : undefined;
+  return { dates, weekdays: (raw.weekdays ?? []) as Weekday[], unparsed: raw.unparsed ?? [],
+           ...(hours ? { hours } : {}) };
+}
 
 /** Rule types core knows. Anything else is a build that added one without telling us. */
 const TYPES = new Set<RuleType>(RULE_TYPES);
@@ -65,20 +100,19 @@ function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
     scope: (r.scope == null ? "section" : str(r.scope)) as Rule["scope"],
     via,
     group,
-    windows: json<Window[]>(r.windows, `rule ${str(r.rule_id)} windows`),
+    when: whenOf(r.when_, `rule ${str(r.entry_id)}/${str(r.rule_id)}`),
     /* Both halves of the precedence key. `dimension` is NOT optional: a rule missing one
        would silently never displace anything, which is the failure `subject` had — it was
        populated on 2 rules out of 3,273. */
     dimension: r.dimension == null ? type : str(r.dimension),
     ...(r.take == null ? {} : { take: Number(r.take) }),
     ...(r.may_target == null ? {} : { mayTarget: Number(r.may_target) === 1 }),
-    /* `method` decides whether a zero limit shuts the water or one way of fishing it — see
-       `closesTheWater` in core. It lives in `conditions`, which is why it is dug out here. */
-    ...(() => {
-      const c = r.conditions == null
-        ? {} : json<Record<string, unknown>>(r.conditions, "rule conditions");
-      return typeof c.method === "string" ? { method: c.method } : {};
-    })(),
+    /* `while` decides whether a zero limit shuts the water or one way of fishing it — see
+       `closesTheWater` in core. A column of its own: this used to dig `method` out of
+       `conditions`, a field the catalogue retired, in a column the query never selected — so
+       "only non-game fish may be speared" closed every river in the province. */
+    ...(r.while_ == null ? {} : { while: json<string[]>(r.while_, "rule while") }),
+    ...(Number(r.standing) === 1 ? { standing: true as const } : {}),
     /* The line a person reads, GENERATED from the rule's type and conditions — so the map,
        the sheet and the curation app cannot word the same rule differently. It replaced the
        curator's prose `details`, which drifted from the numbers beside it. */
@@ -236,8 +270,10 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         // Rules named in this entry that nobody could bind to geometry. SHOWN, never
         // applied — a person should be told a rule exists here even when the app cannot
         // say where it reaches.
-        unplaceable: rules.filter((r) => r.uncertain)
-          .map((rule) => ({ rule, detail: "no boundary could be resolved for this rule" })),
+        unplaceable: rules.filter(isUncertain)
+          .map((rule) => ({ rule, detail: rule.uncertain
+            ? "no boundary could be resolved for this rule"
+            : `its season could not be read: ${rule.when.unparsed.join("; ")}` })),
       };
     },
 

@@ -1,5 +1,13 @@
 # 13 — Delivery plan: from artifacts to two apps
 
+> **Field names here are from the retired prose parse model** — `details`, `rule_text`,
+> `restriction_type`, `needs_review`, `locked`/confirmed, `exempts_from`, entry `tributaries` and
+> `scope`, `dates`/`windows`. The counts were measured on that corpus and are kept as measured. The
+> current rule and entry are `CatalogueRule`/`CatalogueEntry` (`pipeline/regs/parsing/catalogue.py`,
+> explained in doc 18): `verbatim`, a generated label, `type`, `review_reason`, `exempts`, the
+> entry's `includes_tributaries` and `extents`, and `when`. The shipped schema is
+> `pipeline/deliver/bundle/schema.sql`.
+
 Supersedes [`10-plan.md`](10-plan.md) §4 (artifacts), §5 (data flow) and §7 (sequencing). Doc 10 stays
 the source for **resolution semantics**, the **43 issues**, and the **content census** — all of which
 hold. What changes here is the delivery architecture, because doc 10 makes three commitments this doc

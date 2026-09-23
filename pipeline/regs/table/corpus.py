@@ -43,11 +43,21 @@ def rules(path: str = BUNDLE) -> List[dict]:
     for row in db.execute("SELECT * FROM rule"):
         d = dict(zip(cols, row))
         cond = json.loads(d.pop("conditions") or "{}")
-        for k in ("species", "species_except", "windows"):
+        for k in ("species", "species_except"):
             if isinstance(d.get(k), str):
                 try: d[k] = json.loads(d[k])
                 except ValueError: d[k] = []
         d.update(cond)
+        # `when` is its own column now (it rode `conditions` before); hoisted under its own
+        # name, in the same shape, so nothing reading `x["when"]` sees a difference.
+        w = d.pop("when_", None)
+        if w:
+            d["when"] = json.loads(w)
+        w = d.pop("while_", None)
+        if w:
+            d["while"] = json.loads(w)
+        if d.pop("standing", 0):
+            d["standing"] = True
         d["rule"] = d.get("rule_id")
         d["entry"] = d.get("entry_id")
         d["entry_name"] = names.get(d["entry"], "")

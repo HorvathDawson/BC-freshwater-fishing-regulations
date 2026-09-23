@@ -1,5 +1,5 @@
-"""Stamp matcher-owned identity — `Entry.matched` and a combined entry's verbatim name — onto
-EntryFiles already on disk.
+"""Stamp matcher-owned identity — a catalogue entry's `matched` — onto the region files already
+on disk.
 
 `matched` is matcher-written metadata ("registry ids — written by the matcher, []` from the parser"),
 now filled at ingest from the batch item. Entries parsed BEFORE that have an empty list, and it can't
@@ -72,15 +72,17 @@ def backfill(entries_dir: Path, ids: dict[str, dict], dry_run: bool = False) -> 
             if len(want["matched"]) > 1:
                 report["combined"].append((region, eid, want["matched"]))
         if changed and not dry_run:
-            io.write_entryfile(path, region, by_id.values())     # atomic, via the model
+            io.write_entryfile(path, region, by_id.values())     # atomic; the file is validated
     return report
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Stamp Entry.matched (registry ids covered) onto EntryFiles.")
+    ap = argparse.ArgumentParser(description="Stamp `matched` (registry ids covered) onto the "
+                                 "catalogue region files.")
     ap.add_argument("--registry", help=f"registry.json (default: {default_registry_path()})")
     ap.add_argument("--overrides", default=str(CURATED.regulations.overrides))
-    ap.add_argument("--entries-dir", help="EntryFiles dir (default: pipeline/regs/parsing/entries).")
+    ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
+                    "data/curated/regulations/entries/catalogue).")
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
     args = ap.parse_args()
 

@@ -68,7 +68,7 @@ def test_an_agent_response_in_the_documented_shape_reaches_disk(tmp_path):
     assert list(accepted) == ["r3:tranquille_lake@3-29"]
 
     out = tmp_path / "catalogue"; out.mkdir()
-    assert write(accepted, out) == {"region-3.json": 1}
+    assert write(accepted, out, ledger=tmp_path / "ingested.json") == ({"region-3.json": 1}, [])
 
     # and it round-trips: what was written revalidates, and every rule renders
     f = CatalogueFile.model_validate(json.loads((out / "region-3.json").read_text()))

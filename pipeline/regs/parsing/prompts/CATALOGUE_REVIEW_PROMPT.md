@@ -1,8 +1,8 @@
-# Reviewing a parsed entry
+# Reviewing parsed entries
 
-You are checking one entry a parser produced against the printed row it came from. **Your job is to
-find what is wrong, not to agree.** An entry that passes review and is wrong is worse than one that
-fails and gets reparsed.
+You are checking each entry a parser produced against the printed row it came from. **Your job is
+to find what is wrong, not to agree.** An entry that passes review and is wrong is worse than one
+that fails and gets reparsed.
 
 The format is in `pipeline/docs/18-how-regulations-are-stored.md`. The types and conditions are in
 `pipeline/regs/parsing/catalogue.py`. Read both before you start.
@@ -40,11 +40,8 @@ The two readings are opposite and the page distinguishes them:
                                 lengths [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
 ```
 
-`over_cm`, `under_cm` and `band` no longer exist — `lengths` is the size field, and a rule
-carrying the old three is refused on load. The same holds for the old gear flags (`allowed`,
-`barbless`, `hook_count`, `lure`, `bait`, `max_lines`, …): gear is `gear` clauses only.
-
-The word "over" appears in all three and maps to a different field in each. **Ask which fish go
+`lengths` is an ordered list of ranges, first match wins; a range without its own `take` uses the
+rule's. The word "over" appears in all three and maps to a different field in each. **Ask which fish go
 back**: they are the ones outside the bound stored. Getting this backwards inverts the rule on the
 exact fish it protects.
 
@@ -90,9 +87,11 @@ once dropped — nothing downstream can tell it was ever there.
 9. **`within` names a rule that does not exist**, or a sub-limit whose `take` exceeds its parent's.
    If it genuinely exceeds — Region 8's *"20 brook trout"* inside a 4-from-streams limit — it is
    **not** a sub-limit; it replaces the parent for its species.
-10. **Wrong type.** Type by what the rule DOES: *"no ice fishing"* is a **method**, *"angling
-    prohibited for non-guided non-resident aliens"* is **access** (it restricts who, not what),
-    *"exempt from X"* is a **field**, not a type.
+10. **Wrong type.** Type by what the rule DOES: *"no ice fishing"* is a `method_rule`, *"angling
+    prohibited for non-guided non-resident aliens"* is an `angler_closure` with `closed_to` (it
+    closes the water to one kind of angler, not to a fish), *"exempt from X"* is `exempts` on the
+    rule, not a type. A licence, stamp or Classified Water designation is not a rule at all: it
+    belongs in the entry's `licensing` list.
 11. **An extent wider than the rule.** A water-specific rule bound region-wide, or a rule that says
     *"in any stream"* with no `feature_types` — that once closed 4,151 lakes and 2,712 wetlands.
 12. **A reach bound to the wrong point, or a limiter dropped.** Three ways this goes wrong:
@@ -108,22 +107,9 @@ once dropped — nothing downstream can tell it was ever there.
     tells an angler a restriction is broader than the law. If no split can express the reach, it
     must survive in `extent_text`.
 14. **`when.dates` merged from two clauses**, or a season stored as its own inverse. *"Open June
-    16-Apr 30"* is a CLOSURE and those are the days it does **not** apply — there is no `excepts`
-    flag any more, so the days it DOES hold (May 1-June 15) must be what is stored. A season that
-    could not be read belongs in `when.unparsed`, never dropped: an unparsed season and an absent
-    one are opposite facts, and the second reads as "open all year".
+    16-Apr 30"* is a CLOSURE and those are the days it does **not** apply, so the days it DOES
+    hold (May 1-June 15) must be what is stored. A season that could not be read belongs in
+    `when.unparsed`, never dropped: an unparsed season and an absent one are opposite facts, and
+    the second reads as "open all year".
 15. **`obligation`**: *"anglers are encouraged"* is `should`, not law. Rendering advice as law is
     the mirror of rendering law as advice, and both have happened.
-
----
-
-## What to output
-
-```json
-{"entry_id": "...", "verdict": "pass" | "fail",
- "issues": [{"rule_id": "...", "check": 6, "what": "...", "fix": "..."}]}
-```
-
-`fail` on any Fatal. Quote the printed text you are comparing against — a finding without the
-source text beside it cannot be acted on. If the entry is clean, say so in one line and stop; do
-not invent findings to look thorough.

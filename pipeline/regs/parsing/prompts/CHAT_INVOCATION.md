@@ -31,7 +31,8 @@ bash pipeline/regs/parsing/run_parse.sh parse-dry
 # the parse itself (HUMAN-ONLY: spends credits)
 bash pipeline/regs/parsing/run_parse.sh parse
 
-# an agent second pass against the strict checklist, then re-parse what it flags
+# an agent second pass against the strict checklist (findings go to the work dir's reviews/,
+# never onto the entries), then re-parse what it flags
 bash pipeline/regs/parsing/run_parse.sh review
 bash pipeline/regs/parsing/run_parse.sh repass
 
@@ -47,6 +48,7 @@ It runs the same gate ingest runs, and should iterate until clean before submitt
 
 ```bash
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.validate_catalogue batch.json candidate.json
+# candidate.json is the reply envelope: [{"index": N, "entry": {...}}, ...]
 ```
 
 Three layers, and the third is the one that matters:
@@ -61,7 +63,7 @@ the model supplied.
 
 ## What it must never do
 
-* write a label — `details` does not exist; the line is derived
+* write a label — the line is generated from the type and its conditions
 * reword `regs_verbatim`, or stitch it across a sentence boundary
 * state a number that is not in that rule's own `verbatim`
 * put several restrictions in one rule (see the parse prompt's check 6)

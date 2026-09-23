@@ -180,4 +180,4 @@ Each of these is a modelling consequence, not a paraphrase.
 | **above/below** = upstream_of / downstream_of | extent vocabulary |
 | **streams** include sloughs, creeks, beaver-dam standing water, **and reservoir drawdown reaches** | a drawdown reach is a **stream**; see the `r4:upper_arrow_lake_drawdown_area` defect |
 | **watershed** includes the named waterbody itself | needed for the Fraser/Thompson watershed areas |
-| **resident / non-resident / non-resident alien** | the closed `angler_class` vocabulary |
+| **resident / non-resident / non-resident alien** | the `residency` axis of `Who` (`catalogue.py`) |

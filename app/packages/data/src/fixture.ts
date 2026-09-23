@@ -7,7 +7,7 @@
  * at its 4th percentile, and a creek the Fraser gauge must refuse to speak for.
  */
 import type { Band, PlainDate, Rule, SpeciesGroup, Status } from "@app/core";
-import { evaluate } from "@app/core";
+import { ALL_YEAR, evaluate } from "@app/core";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
@@ -21,25 +21,25 @@ const JUNE_CLOSURE: Rule = {
   id: "chilliwack_vedder_rivers.r5", type: "retention_limit", family: "retention",
   dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
   scope: "section", via: "reach",
-  group: "provincial", windows: [{ from: { month: 6, day: 1 }, to: { month: 6, day: 30 } }],
+  group: "provincial", when: { ...ALL_YEAR, dates: [{ from: { month: 6, day: 1 }, to: { month: 6, day: 30 } }] },
 };
 const FLY_ONLY: Rule = {
   id: "chilliwack_vedder_rivers.r4a", type: "tackle_restriction", family: "gear_and_method",
   dimension: "lure", label: "Fly fishing only", scope: "section", via: "reach",
   group: "provincial",
-  windows: [{ from: { month: 5, day: 1 }, to: { month: 5, day: 31 } }],
+  when: { ...ALL_YEAR, dates: [{ from: { month: 5, day: 1 }, to: { month: 5, day: 31 } }] },
 };
 const UPSTREAM_CLOSURE: Rule = {
   id: "chilliwack_vedder_rivers.r1", type: "retention_limit", family: "retention",
   dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
-  scope: "section", via: "reach", group: "provincial", windows: [],
+  scope: "section", via: "reach", group: "provincial", when: ALL_YEAR,
 };
 /** Real: the Fraser side-channel closure for which no extent was ever authored. */
 const UNPLACEABLE: Rule = {
   id: "fraser_river_region2.r4", type: "retention_limit", family: "retention",
   dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
   scope: "section", via: "reach", group: "provincial", uncertain: true,
-  windows: [{ from: { month: 5, day: 15 }, to: { month: 7, day: 31 } }],
+  when: { ...ALL_YEAR, dates: [{ from: { month: 5, day: 15 }, to: { month: 7, day: 31 } }] },
 };
 
 interface Reach { section: string; seq: number; lo: string | null; hi: string | null; rules: Rule[] }
@@ -173,7 +173,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         area: [{
           rule: { id: "mu.2-2.bait", type: "bait_restriction", family: "gear_and_method",
                   dimension: "bait:any", label: "Bait ban", scope: "mu", via: "reach",
-                  group: "provincial", windows: [] },
+                  group: "provincial", when: ALL_YEAR },
           scopeLabel: "Everywhere in MU 2-2",
         }],
         verbatim: {

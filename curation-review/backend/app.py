@@ -85,20 +85,11 @@ def item_tributaries(item_id: str):
 class SavePayload(BaseModel):
     region: str
     entry: dict
-    reviewed_by: str = ""
 
 
 @app.put("/api/entries/{entry_id}")
 def save(entry_id: str, body: SavePayload):
-    res = reuse.save_entry(body.region, body.entry, lock=False)
-    if not res["ok"]:
-        raise HTTPException(422, res["errors"])
-    return res
-
-
-@app.post("/api/entries/{entry_id}/confirm")
-def confirm(entry_id: str, body: SavePayload):
-    res = reuse.save_entry(body.region, body.entry, lock=True, reviewed_by=body.reviewed_by)
+    res = reuse.save_entry(body.region, body.entry)
     if not res["ok"]:
         raise HTTPException(422, res["errors"])
     return res

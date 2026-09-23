@@ -60,3 +60,6 @@ scratch_*.json
 
 # Playwright MCP scratch (screenshots, snapshots, console logs from browser sessions)
 .playwright-mcp/
+
+# curation-review frontend build output (vite build) — built locally, never committed
+curation-review/frontend/dist/

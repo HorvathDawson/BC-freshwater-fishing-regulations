@@ -69,7 +69,8 @@ pipeline/curated/                  # everything a human authored; nothing here i
 
 `entries/` is nested rather than split into two top-level dirs because the two sets are the same
 KIND of thing — per-region curated regulation records — and the review app already serves both.
-They stay separate *files* with separate models (`Entry`/`Rule` vs `EntryFile`/`Location`/`Binding`);
+They stay separate *files* with separate models (`CatalogueEntry`/`CatalogueRule` vs the DFO
+`EntryFile`/`Location`/`Binding`);
 only the location is shared. Their one real coupling — DFO importing the provincial `Extent` model
 rather than re-declaring it — is a code dependency and is unaffected.
 

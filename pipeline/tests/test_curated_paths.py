@@ -153,7 +153,7 @@ class TestGeneratedTree:
         # A generated path landing inside curated/ would mean a rebuild can destroy human
         # work — the one failure this whole layout exists to prevent.
         for p in (gen.atlas.builds, gen.reaches, gen.bundle, gen.tiles,
-                  gen.added_streams, gen.scratch, gen.regs.parse, gen.regs.parsing,
+                  gen.added_streams, gen.scratch, gen.regs.parse,
                   gen.regs.extraction, gen.regs.dfo_salmon, gen.regs.entries_backup,
                   gen.gauges.feeds):
             assert gen.base in p.parents or p == gen.base, p

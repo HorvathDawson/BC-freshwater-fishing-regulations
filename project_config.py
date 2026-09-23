@@ -172,7 +172,8 @@ class ProjectConfig:
 
 _RETIRED = {
     "extraction_dir": "GENERATED.regs.extraction",
-    "parsing_dir": "GENERATED.regs.parsing",
+    # No replacement: it held the retired prose parser's synopsis_parsed.json.
+    "parsing_dir": None,
     "synopsis_raw_data_path": 'GENERATED.regs.extraction / "synopsis_raw_data.json"',
     "fwa_output_dir": "GENERATED.build()",
     "fwa_graph_path": 'GENERATED.build() / "graph.pkl"',
@@ -188,6 +189,12 @@ def _retired(self, name):
     Without this, `get_config().builds_dir` would raise a bare AttributeError somewhere far
     from the fix. With it, the error IS the fix.
     """
+    if name in _RETIRED and _RETIRED[name] is None:
+        raise AttributeError(
+            f"ProjectConfig.{name} was retired with nothing in its place: what it held "
+            f"belonged to the retired prose parser. Parsed entries are "
+            f"CURATED.regulations.entries.catalogue (pipeline.common.curated)."
+        )
     if name in _RETIRED:
         raise AttributeError(
             f"ProjectConfig.{name} was retired with the `output:` tree. "

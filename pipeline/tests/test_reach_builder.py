@@ -228,19 +228,18 @@ def test_diff_reports_gained_and_lost_sections(tmp_path):
     assert c.added == ("s3",) and c.removed == ("s1",) and c.kind == "rebound"
 
 
-def test_diff_flags_a_change_inside_a_CONFIRMED_entry_first(tmp_path):
-    """A small change to signed-off work outranks a large change to unreviewed work —
-    the curator's question is 'does what I confirmed still mean what I confirmed?'"""
+def test_diff_ranks_changes_by_blast_radius(tmp_path):
+    """The biggest change is listed first. (It used to put a change inside a `locked` entry first;
+    catalogue entries have no `locked`, so that ranking read a field no entry carries.)"""
     from pipeline.atlas.reach.diff import diff_runs
     from pipeline.atlas.reach.io import write_run
-    before = _result([("locked_e", "r1", ["s1"], None), ("open_e", "r1", ["a"], None)])
-    after = _result([("locked_e", "r1", ["s1", "s2"], None),
-                     ("open_e", "r1", ["a", "b", "c", "d", "e", "f"], None)])
+    before = _result([("small_e", "r1", ["s1"], None), ("big_e", "r1", ["a"], None)])
+    after = _result([("small_e", "r1", ["s1", "s2"], None),
+                     ("big_e", "r1", ["a", "b", "c", "d", "e", "f"], None)])
     write_run(tmp_path / "before", before, [])
-    rep = diff_runs(tmp_path / "before", after, locked_ids={"locked_e"})
-    assert rep.changes[0].entry_id == "locked_e"      # despite a smaller blast radius
-    assert len(rep.locked_changes) == 1
-    assert "CONFIRMED" in rep.summary()
+    rep = diff_runs(tmp_path / "before", after)
+    assert [c.entry_id for c in rep.changes] == ["big_e", "small_e"]
+    assert "CONFIRMED" not in rep.summary()
 
 
 def test_diff_notices_an_outcome_flip_not_just_section_churn(tmp_path):

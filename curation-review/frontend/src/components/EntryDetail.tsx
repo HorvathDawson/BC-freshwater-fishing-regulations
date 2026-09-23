@@ -10,13 +10,10 @@ import { SplitEditor } from "./SplitEditor";
 
 interface Props {
   detail: EntryDetailT;
-  curator: string;
   speciesOptions: SpeciesOption[];
   onSaved: () => void;
   /** jump to another entry (a related row over the same water) */
   onNavigate?: (entryId: string) => void;
-  /** after a successful confirm+lock — parent advances to the next unlocked entry in the region */
-  onConfirmed?: () => void;
   /** bumped after a graph rebuild — forces the map to refetch geometry for the same item */
   reloadKey?: number;
 }
@@ -46,12 +43,12 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
 }
 
 /* The book the synopsis rows were read out of — the same file `extract_synopsis.py` downloads.
-   `source.pages` are its PDF pages, so #page= lands on the right one. */
+   `source_pages` are its PDF pages, so #page= lands on the right one. */
 const SYNOPSIS_PDF =
   "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/" +
   "fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
 
-export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfirmed, onNavigate,
+export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                               reloadKey = 0 }: Props) {
   const { item, unused_curated_splits, match, source_image } = detail;
   const related = detail.related_entries ?? [];
@@ -119,12 +116,12 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   }, [detail.entry]);
 
   const mapItemId = item?.id ?? entry.matched[0] ?? null;
-  const isNoRegistry = entry.registry_status === "no_registry";
+  // A catalogue entry records the items it covers in `matched`; a water row with none is unbound.
+  const isNoRegistry = detail.kind !== "zone" && (entry.matched ?? []).length === 0;
 
-  // Parser skewed most entries to tributaries.included=false; flag when the authoritative synopsis
-  // symbol (source.symbols, injected at ingest) says the reg extends to tributaries but the global
-  // flag is off. Symbol-only — raw text mentions are per-rule, not the entry-level tributary flag.
-  const symbolSaysTributaries = (entry.symbols ?? entry.source?.symbols ?? []).some((s: string) => /incl.*trib/i.test(s));
+  // Flag when the printed synopsis symbol (`symbols`, copied from the row at ingest) says the reg
+  // extends to tributaries but the entry's `includes_tributaries` is off.
+  const symbolSaysTributaries = (entry.symbols ?? []).some((s: string) => /incl.*trib/i.test(s));
   const tribFlagMismatch = symbolSaysTributaries && entry.includes_tributaries === false;
 
   const dirty = useMemo(
@@ -151,9 +148,6 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         rule_id: `${e.entry_id}.r${n}`,
         type: "advisory",
         extents: [],
-        windows: [],
-        tributaries_only: false,
-        needs_review: true,
         review_reason: "manually added — set the type and quote its sentence, then bind",
         verbatim: "",
         unresolved_locators: [],
@@ -164,35 +158,20 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   }
 
   function attach(chosen: ItemSearchResult) {
-    // Spec: set entry.matched = [chosen.id]. Also flip registry_status to
-    // "matched" so extents can be bound (a no_registry entry rejects extents
-    // server-side); reset the flag if the curator clears the attachment.
-    setEntry((e) => ({
-      ...e,
-      matched: [chosen.id],
-      registry_status: "matched",
-    }));
+    // `matched` is the whole record of what the entry covers; nothing else is flipped.
+    setEntry((e) => ({ ...e, matched: [chosen.id] }));
     setToast(`attached ${chosen.name} — reload after save to load its boundaries`);
   }
 
-  async function doSave(lock: boolean) {
+  async function doSave() {
     setErrors([]);
     setToast("");
-    let reviewedBy = curator;
-    if (lock && !reviewedBy) {
-      setErrors(["Set a curator name first (top-right) before confirming."]);
-      return;
-    }
     setSaving(true);
     try {
-      const res = lock
-        ? await api.confirm(entry.entry_id, detail.region, entry, reviewedBy)
-        : await api.save(entry.entry_id, detail.region, entry);
+      const res = await api.save(entry.entry_id, detail.region, entry);
       if (res.ok) {
-        setToast(lock ? "Confirmed & locked ✓" : "Saved ✓");
-        // on confirm, advance to the next unlocked entry (parent); otherwise just refresh in place
-        if (lock && onConfirmed) onConfirmed();
-        else onSaved();
+        setToast("Saved ✓");
+        onSaved();
       } else {
         setErrors(res.errors);
       }
@@ -245,8 +224,6 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
               ↪ reference only
             </span>
           )}
-          {entry.locked && <span className="badge lock">🔒 locked</span>}
-          {entry.revisit && <span className="badge revisit">↻ revisit later</span>}
         </h2>
         <div className="sub">
           <span>region {entry.region || detail.region}</span>
@@ -299,11 +276,6 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
               item: none {match.status ? `(${match.status})` : ""}
             </span>
           )}
-          {entry.reviewed_by && (
-            <span className="dim">
-              reviewed by {entry.reviewed_by} @ {entry.reviewed_at}
-            </span>
-          )}
         </div>
         {related.length > 0 && (
           <div className="dim" style={{ marginTop: 4 }}>
@@ -319,7 +291,6 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                   {r.name}
                 </a>
                 {r.pointer && <span className="badge"> ↪ pointer</span>}
-                {r.locked && <span className="badge lock"> 🔒</span>}
               </span>
             ))}
           </div>
@@ -383,15 +354,15 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
 
       {/* Source synopsis row-crop — always shown so the curator reads the original alongside the
           parse — and now WHICH PAGE it was printed on, so a curator who wants the surrounding
-          context can open the book rather than hunting for the row. `entry.source.pages` is a
+          context can open the book rather than hunting for the row. `entry.source_pages` is a
           list because seven MU 6-1 lakes are printed twice. */}
-      {(source_image || (entry.source_pages ?? entry.source?.pages ?? []).length > 0) && (
+      {(source_image || (entry.source_pages ?? []).length > 0) && (
         <div className="section source-image">
           <div className="dim" style={{ marginBottom: 4 }}>
             {detail.kind === "zone" ? "regional / provincial chapter" : "source row (synopsis)"}
-            {(entry.source_pages ?? entry.source?.pages ?? []).length > 0 && (
-              <> · {(entry.source_pages ?? entry.source?.pages ?? []).length > 1 ? "pages" : "page"}{" "}
-                {(entry.source_pages ?? entry.source?.pages ?? []).map((n: number, i: number) => (
+            {(entry.source_pages ?? []).length > 0 && (
+              <> · {(entry.source_pages ?? []).length > 1 ? "pages" : "page"}{" "}
+                {(entry.source_pages ?? []).map((n: number, i: number) => (
                   <span key={n}>
                     {i > 0 && ", "}
                     <a href={`${SYNOPSIS_PDF}#page=${n}`} target="_blank" rel="noreferrer">{n}</a>
@@ -441,7 +412,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
           <div className="rules-list">
             {entry.rules.map((rule, idx) => (
               <div
-                className={`rule${rule.needs_review ? " needs_review" : ""}`}
+                className={`rule${rule.review_reason ? " needs_review" : ""}`}
                 key={rule.rule_id}
               >
                 <div className="rule-head">
@@ -525,7 +496,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                   </div>
                 )}
 
-                {(rule.needs_review || (rule.unresolved_locators ?? []).length > 0) && (
+                {(rule.review_reason || (rule.unresolved_locators ?? []).length > 0) && (
                   <div className="review-flag">
                     <strong>⚠ needs review</strong>
                     {rule.review_reason && <div>{rule.review_reason}</div>}
@@ -755,63 +726,12 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
 
       {/* Actions */}
       <div className="actions">
-        <label
-          className="revisit"
-          title={
-            "This row carries no regulations of its own \u2014 it points at another entry " +
-            "under a different name (\u201cVEDDER RIVER: See Chilliwack River\u201d), or the " +
-            "same water under an older name. It stays searchable, but the app must not " +
-            "treat it as a second, conflicting set of rules."
-          }
-        >
-          <input
-            type="checkbox"
-            checked={!!entry.reference_only}
-            onChange={(e) =>
-              setEntry((s) => ({ ...s, reference_only: e.target.checked }))
-            }
-          />{" "}
-          reference only
-          <input
-            type="text"
-            className="revisit-note"
-            placeholder="points at which entry? (recorded in registry_note)"
-            value={entry.registry_note ?? ""}
-            disabled={!entry.reference_only}
-            onChange={(e) =>
-              setEntry((s) => ({ ...s, registry_note: e.target.value }))
-            }
-          />
-        </label>
-        <label className="revisit" title="Conditionally accept: confirm now but flag it to revisit later">
-          <input
-            type="checkbox"
-            checked={entry.revisit}
-            onChange={(e) => setEntry((s) => ({ ...s, revisit: e.target.checked }))}
-          />{" "}
-          revisit later
-          <input
-            type="text"
-            className="revisit-note"
-            placeholder="why? (optional comment)"
-            value={entry.revisit_note}
-            disabled={!entry.revisit}
-            onChange={(e) => setEntry((s) => ({ ...s, revisit_note: e.target.value }))}
-          />
-        </label>
         <button
           className="btn"
           disabled={saving || !dirty}
-          onClick={() => doSave(false)}
+          onClick={() => doSave()}
         >
           Save edit
-        </button>
-        <button
-          className="btn primary"
-          disabled={saving}
-          onClick={() => doSave(true)}
-        >
-          {entry.revisit ? "Confirm (revisit later)" : "Confirm & lock"}
         </button>
         {dirty && <span className="dim">unsaved changes</span>}
         {toast && <span className="toast">{toast}</span>}
