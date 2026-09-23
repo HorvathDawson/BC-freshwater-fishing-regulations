@@ -197,6 +197,27 @@
         "lake"
        ]
       }
+     ],
+     "exempts": [
+      {
+       "default_id": "set_lining.r1b",
+       "note": "set lining is permitted in these lakes and nowhere else"
+      }
+     ]
+    },
+    {
+     "rule_id": "set_lining.r1b",
+     "type": "method_rule",
+     "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
+     "method": "set_lining",
+     "permitted": false,
+     "derived_from": "set_lining.r1",
+     "review_reason": "the word 'only' in r1's sentence; the ban is printed nowhere and was stored nowhere, so set lining outside R6/7A lakes was unconstrained. r1 lifts this where the book permits it.",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
@@ -582,7 +603,7 @@
      "verbatim": "when set lining in lakes of Region 6 or in lakes of Zone A of Region 7",
      "water": "lake",
      "method": "set_lining",
-     "bait": "dead_fin_fish",
+     "bait": "fin_fish_head_or_headless_body",
      "allowed": true,
      "extents": [
       {
@@ -607,13 +628,13 @@
       }
      ],
      "extent_text": "lakes of Region 6 and Zone A of Region 7",
-     "review_reason": "Region-scoped. `default_id=finfish_bait_ban` resolved to z7b's Zone B rule, not the provincial ban this actually lifts."
+     "review_reason": "the regional tables abbreviate this to 'dead fin fish' (nilkitkwa_lake.r3, fraser_river_upstream_of_mission.r1, harrison_river.r2); the province prints head-or-headless-body. Confirm which the law means before harmonising them."
     },
     {
      "rule_id": "bait.r3",
      "type": "bait_restriction",
      "verbatim": "(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
-     "bait": "dead_fin_fish",
+     "bait": "fin_fish_head_or_headless_body",
      "allowed": true,
      "when_targeting": [
       "WSG"
@@ -631,7 +652,7 @@
       }
      ],
      "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2",
-     "review_reason": "Region-scoped, and it applies ONLY when fishing for sturgeon — without when_targeting it lifted the province-wide fin fish ban for ALL angling on three major rivers. Three named rivers with bounded reaches; unbound rather than bound to all of Region 2, which is the permissive direction."
+     "review_reason": "the regional tables abbreviate this to 'dead fin fish' (nilkitkwa_lake.r3, fraser_river_upstream_of_mission.r1, harrison_river.r2); the province prints head-or-headless-body. Confirm which the law means before harmonising them."
     },
     {
      "rule_id": "bait.r4",

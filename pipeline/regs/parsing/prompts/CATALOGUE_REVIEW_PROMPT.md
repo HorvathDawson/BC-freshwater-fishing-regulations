@@ -17,9 +17,9 @@ in front of you has one.
 
 ### 1. A number that is not in its own rule's sentence
 
-Every `take`, `over_cm`, `under_cm`, `max_kmh`, `max_power_kw`, `per_daily` must appear in **that
-rule's** `verbatim`, not merely somewhere in the row. A 50 cm sub-limit was once attributed to a
-rule whose sentence never mentioned it.
+Every `take`, every bound inside `lengths` (`min_cm`/`max_cm`), `max_kmh`, `max_power_kw` and
+`per_daily` must appear in **that rule's** `verbatim`, not merely somewhere in the row. A 50 cm
+sub-limit was once attributed to a rule whose sentence never mentioned it.
 
 ### 2. `take: 0` without `may_target`
 
@@ -32,10 +32,16 @@ The two readings are opposite and the page distinguishes them:
 ### 3. Size polarity inverted
 
 ```
-"not more than 1 over 50 cm"   ALLOWS one big fish     take=1, over_cm=50, within=<parent>
-"no trout over 50 cm"          forbids big fish        take=0, may_target=true, over_cm=50
-"1 bull trout over 60 cm"      the kept fish must BE big   take=1, under_cm=60, within=<parent>
+"not more than 1 over 50 cm"  ALLOWS one big fish, parent governs the rest
+                                lengths [{"min_cm": 50}]                     take=1, within=<parent>
+"no trout over 50 cm"         forbids big fish, says nothing about small ones
+                                lengths [{"min_cm": 50, "take": 0}]          take=0, may_target=true
+"1 bull trout over 60 cm"     the kept fish must BE big; a 50 cm one is forbidden
+                                lengths [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
 ```
+
+`over_cm`, `under_cm` and `band` are RETIRED — `lengths` is the size field. A rule still carrying
+the old three is converted on load, but flag it so the next pass emits `lengths` directly.
 
 The word "over" appears in all three and maps to a different field in each. **Ask which fish go
 back**: they are the ones outside the bound stored. Getting this backwards inverts the rule on the
@@ -100,8 +106,11 @@ once dropped — nothing downstream can tell it was ever there.
 13. **A qualifier lost from the label.** *"no vessels **on parts**"* rendered as *"No vessels"*
     tells an angler a restriction is broader than the law. If no split can express the reach, it
     must survive in `extent_text`.
-14. **`windows` merged from two clauses**, or a window that means its own inverse — *"Open June
-    16-Apr 30"* is when the rule does **not** apply, which is `windows_are: excepts`.
+14. **`when.dates` merged from two clauses**, or a season stored as its own inverse. *"Open June
+    16-Apr 30"* is a CLOSURE and those are the days it does **not** apply — there is no `excepts`
+    flag any more, so the days it DOES hold (May 1-June 15) must be what is stored. A season that
+    could not be read belongs in `when.unparsed`, never dropped: an unparsed season and an absent
+    one are opposite facts, and the second reads as "open all year".
 15. **`obligation`**: *"anglers are encouraged"* is `should`, not law. Rendering advice as law is
     the mirror of rendering law as advice, and both have happened.
 

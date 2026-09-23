@@ -563,3 +563,56 @@ def test_a_curated_split_still_relabels_an_auto_one():
     got = g.nodes["1:0"].upper_bound
     assert got.boundary_id == "split:skeena_river__above_babine_river"
     assert "split:gauge__08EB005" in got.aliases
+
+
+# ------------------------------------------------------------------------------------------
+# WHICH CROSSING — a boundary that meets one river several times
+# ------------------------------------------------------------------------------------------
+def _crossing_ids(g, blk):
+    out = set()
+    for n in g.nodes.values():
+        if getattr(n, "blk", None) != blk:
+            continue
+        for b in (n.lower_bound, n.upper_bound):
+            if b is not None:
+                out.add(b.boundary_id)
+                out.update(b.aliases or ())
+    return out
+
+
+def test_a_boundary_crossed_three_times_names_its_first_and_last():
+    """Every crossing is minted as the one id `area:5`, so a rule cannot say WHICH — and Region
+    3's "Hells Gate upstream to the Region 3 boundary" runs on into Region 5 for want of a name.
+    `@down` is the first crossing, `@up` the last: the bottom and top of the straddle."""
+    g, _ = _graph()
+    pts = [SplitPoint("area:5", "X", m, "", "R5", AnchorType.area_boundary)
+           for m in (120.0, 200.0, 250.0)]
+    split_graph_at(g, {}, pts)
+    got = _crossing_ids(g, "X")
+    assert "split:area:5@down" in got and "split:area:5@up" in got
+
+    at = {}
+    for n in g.nodes.values():
+        for b in (getattr(n, "lower_bound", None), getattr(n, "upper_bound", None)):
+            for a in (b.aliases or ()) if b is not None else ():
+                if "@" in a:
+                    at.setdefault(a, set()).add(b.route_measure)
+    assert at["split:area:5@down"] == {120.0}, "the FIRST crossing, nearest the mouth"
+    assert at["split:area:5@up"] == {250.0}, "the LAST crossing"
+    assert 200.0 not in at["split:area:5@down"] | at["split:area:5@up"], "the middle is not an end"
+
+
+def test_one_crossing_gets_no_qualified_name():
+    """`area:5` is already unambiguous there, and @down/@up would be two names for one place."""
+    g, _ = _graph()
+    split_graph_at(g, {}, [SplitPoint("area:5", "X", 120.0, "", "R5", AnchorType.area_boundary)])
+    assert not [i for i in _crossing_ids(g, "X") if "@" in i]
+
+
+def test_the_aliases_add_no_cut():
+    """Minted as SplitPoints they put a second cut where one already was — the zero-length piece
+    that breaks both halves. As aliases the section count is untouched."""
+    g, _ = _graph()
+    pts = [SplitPoint("area:5", "X", m, "", "R5", AnchorType.area_boundary) for m in (120.0, 250.0)]
+    split_graph_at(g, {}, pts)
+    assert {nid for nid, n in g.nodes.items() if n.blk == "X"} == {"X:0", "X:120", "X:250"}

@@ -2275,7 +2275,11 @@ def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
 
     accepted = CatalogueRule(rule_id="x.r1", type=RuleType.retention_limit, verbatim="2 per day",
                              species=["CH"], take=2, windows=["Smarch 40 to Bluneteen 99"])
-    assert accepted.windows, "if the catalogue starts refusing these, this guard can move there"
+    # The catalogue no longer drops an unreadable season on the floor OR refuses the rule: it
+    # keeps the text in `when.unparsed`, the time analogue of `unresolved_locators`. An unparsed
+    # season and an ABSENT one are opposite facts, and the second reads as "open all year".
+    assert accepted.when.unparsed == ["Smarch 40 to Bluneteen 99"]
+    assert not accepted.when.dates, "nonsense must not resolve to a calendar window"
 
     rules = _typed(dates="Smarch 40 to Bluneteen 99", limits_gear="2 per day")
     assert all(r.review_reason for r in rules)
@@ -2289,7 +2293,8 @@ def test_a_repaired_window_is_published_repaired():
     """"Aprl 1 to Jun 15" (2022 Region 6) has one possible reading. Publishing the typo verbatim
     hands the app a season it cannot parse; the repair is recorded, never silent."""
     rules = _typed(dates="Aprl 1 to Jun 15", limits_gear="2 per day")
-    assert rules[0].windows == ["Apr 1 to Jun 15"]
+    assert [d.words() for d in rules[0].when.dates] == ["Apr 1-Jun 15"]
+    assert not rules[0].when.unparsed, "a repaired window parses; it does not go to unparsed"
     assert not rules[0].review_reason
 
 
@@ -2366,7 +2371,7 @@ def test_the_skeena_cascade_resolves_through_the_join():
 
     # the water reopens coho for a window
     coho = [r for r in rules_for(water) if r.species == ["CO"] and r.take == 4]
-    assert coho and coho[0].windows == ["Jul 15 to Aug 23"]
+    assert coho and [d.words() for d in coho[0].when.dates] == ["Jul 15-Aug 23"]
 
     # the band it sits in closes coho outright
     band = next(l for l in ef.locations if l.section == "B(i)" and l.precedence == 1)

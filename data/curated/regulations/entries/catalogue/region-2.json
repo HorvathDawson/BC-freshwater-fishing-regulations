@@ -110,9 +110,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -185,9 +193,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -496,9 +512,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -618,9 +642,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -927,9 +959,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -948,9 +988,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 15-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -970,11 +1018,27 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Dec 31"
-     ],
-     "from_time": "21:00",
-     "to_time": "05:00",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "hours": {
+       "start": {
+        "at": "21:00",
+        "offset_min": 0
+       },
+       "end": {
+        "at": "05:00",
+        "offset_min": 0
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1055,9 +1119,17 @@
      "rule_id": "capilano_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, Aug 1-Oct 31",
-     "windows": [
-      "Aug 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1160,9 +1232,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1426,9 +1506,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1552,9 +1640,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1575,9 +1671,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1594,9 +1698,17 @@
      "rule_id": "chilliwack_vedder_rivers.r4",
      "type": "tackle_restriction",
      "verbatim": "fly fishing only",
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -1611,9 +1723,17 @@
      "rule_id": "chilliwack_vedder_rivers.r5",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1631,9 +1751,17 @@
      "species": [
       "RB"
      ],
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "lengths": [
@@ -1659,9 +1787,17 @@
      "species": [
       "CT"
      ],
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "origin": "hatchery",
@@ -1681,9 +1817,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 1-30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1702,9 +1846,17 @@
      "species": [
       "RB"
      ],
-     "windows": [
-      "July 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 4,
      "lengths": [
       {
@@ -1782,9 +1934,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1896,9 +2056,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1914,9 +2082,17 @@
      "rule_id": "coquihalla_river.r2",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only",
-     "windows": [
-      "Jul 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -1931,9 +2107,17 @@
      "rule_id": "coquihalla_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31",
-     "windows": [
-      "Jul 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1951,9 +2135,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2042,9 +2234,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2072,9 +2272,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "July 1-Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 2,
      "lengths": [
       {
@@ -2836,9 +3044,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2856,8 +3072,20 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "from_time": "one hour after sunset",
-     "to_time": "one hour before sunrise",
+     "when": {
+      "dates": [],
+      "hours": {
+       "start": {
+        "solar": "sunset",
+        "offset_min": 60
+       },
+       "end": {
+        "solar": "sunrise",
+        "offset_min": -60
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "non-tidal portion of the Fraser River in Region 2",
@@ -2870,9 +3098,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 15-July 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel",
@@ -2885,9 +3121,17 @@
      "species": [
       "ST"
      ],
-     "windows": [
-      "Aug 15-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2931,9 +3175,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 15-Apr 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 15,
+        "to_month": 4,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3011,9 +3263,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3075,9 +3335,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3269,8 +3537,20 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "from_time": "one hour after sunset",
-     "to_time": "one hour before sunrise",
+     "when": {
+      "dates": [],
+      "hours": {
+       "start": {
+        "solar": "sunset",
+        "offset_min": 60
+       },
+       "end": {
+        "solar": "sunrise",
+        "offset_min": -60
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3670,9 +3950,17 @@
      "rule_id": "indian_river.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban, Dec 1-Sept 30",
-     "windows": [
-      "Dec 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -3709,9 +3997,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3724,9 +4020,17 @@
      "rule_id": "inland_lake.r2",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook, Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -3863,9 +4167,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3994,9 +4306,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4048,9 +4368,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Feb 28"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 2,
+        "to_day": 28
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4791,9 +5119,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4809,9 +5145,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Jun 16-Jan 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 1,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lengths": [
       {
        "min_cm": 20,
@@ -5741,9 +6085,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5831,9 +6183,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5852,11 +6212,27 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Dec 31"
-     ],
-     "from_time": "21:00 hours",
-     "to_time": "05:00 hours",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "hours": {
+       "start": {
+        "at": "21:00",
+        "offset_min": 0
+       },
+       "end": {
+        "at": "05:00",
+        "offset_min": 0
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6017,9 +6393,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6053,9 +6437,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6349,8 +6741,20 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "from_time": "one hour after sunset",
-     "to_time": "one hour before sunrise",
+     "when": {
+      "dates": [],
+      "hours": {
+       "start": {
+        "solar": "sunset",
+        "offset_min": 60
+       },
+       "end": {
+        "solar": "sunrise",
+        "offset_min": -60
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": false,
@@ -6389,9 +6793,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6462,9 +6874,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6600,9 +7020,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6812,9 +7240,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W",
@@ -6827,9 +7263,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore",
@@ -6893,9 +7337,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6966,9 +7418,17 @@
      "rule_id": "sasamat_lake.r1",
      "type": "vessel_rule",
      "verbatim": "No powered boats, May 1-Sept 30",
-     "windows": [
-      "May 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "aspect": "propulsion",
      "level": "unpowered",
      "extents": [
@@ -6981,9 +7441,17 @@
      "rule_id": "sasamat_lake.r2",
      "type": "vessel_rule",
      "verbatim": "electric motor only - max 7.5 kW, Oct 1-Apr 30",
-     "windows": [
-      "Oct 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "aspect": "propulsion",
      "level": "electric_only",
      "extents": [
@@ -7195,9 +7663,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7216,11 +7692,27 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Dec 31"
-     ],
-     "from_time": "21:00",
-     "to_time": "05:00",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "hours": {
+       "start": {
+        "at": "21:00",
+        "offset_min": 0
+       },
+       "end": {
+        "at": "05:00",
+        "offset_min": 0
+       }
+      },
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7338,9 +7830,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7412,9 +7912,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7430,9 +7938,17 @@
      "rule_id": "silverhope_creek.r2",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31",
-     "windows": [
-      "July 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -7447,9 +7963,17 @@
      "rule_id": "silverhope_creek.r3",
      "type": "bait_restriction",
      "verbatim": "Fly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31",
-     "windows": [
-      "July 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7518,9 +8042,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7774,9 +8306,17 @@
      "rule_id": "stawamus_river.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban, Dec 1-Sept 30",
-     "windows": [
-      "Dec 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7862,9 +8402,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7941,9 +8489,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7994,9 +8550,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [

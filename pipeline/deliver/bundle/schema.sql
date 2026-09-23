@@ -54,8 +54,11 @@ CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 -- an extent or an exclusion in that parenthetical that exists nowhere else.
 -- `pages` is where the row is PRINTED in the synopsis, so a reader who wants to check us can
 -- be told which page to open. A JSON array: seven MU 6-1 lakes are printed on two pages each.
+-- `scope_note` is the curated sentence saying what part of the water the ENTRY covers. It was
+-- the last thing a reader had to open the curated files to get, which is a fallback: an answer
+-- the bundle never agreed to, and staleness that says nothing. It ships here now.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
-                    verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT);
+                    verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT);
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.

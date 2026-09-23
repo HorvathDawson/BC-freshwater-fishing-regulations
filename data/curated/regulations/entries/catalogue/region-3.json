@@ -65,9 +65,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 15-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "north of a line drawn due west from mouth of Momich River",
@@ -80,9 +88,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Oct 15-Jan 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 15,
+        "to_month": 1,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -182,9 +198,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -306,10 +330,23 @@
       "BT",
       "DV"
      ],
-     "windows": [
-      "July 1-30",
-      "Nov 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 30
+       },
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "extents": [
       {
@@ -394,9 +431,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1003,9 +1048,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 31-June 20"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 31,
+        "to_month": 6,
+        "to_day": 20
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1486,9 +1539,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1 - June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1519,9 +1580,17 @@
      "rule_id": "clearwater_river.r4",
      "type": "bait_restriction",
      "verbatim": "from Mahood River to North Thompson River, Sept 1-July 31",
-     "windows": [
-      "Sept 1 - July 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1643,9 +1712,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2146,9 +2223,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2175,9 +2260,17 @@
      "rule_id": "eagan_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook, May 1-Dec 31",
-     "windows": [
-      "May 1 - Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -2563,9 +2656,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2632,9 +2733,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Sept 1-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2653,9 +2762,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Oct 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2675,9 +2792,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Oct 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2715,9 +2840,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 31-June 20"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 31,
+        "to_month": 6,
+        "to_day": 20
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2737,9 +2870,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2759,9 +2900,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2778,9 +2927,17 @@
      "rule_id": "fraser_river.r9",
      "type": "bait_restriction",
      "verbatim": "bait ban and no hooks greater than 15 mm from point to shank, Oct 1-Dec 31",
-     "windows": [
-      "Oct 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -2796,9 +2953,17 @@
      "rule_id": "fraser_river.r10",
      "type": "tackle_restriction",
      "verbatim": "bait ban and no hooks greater than 15 mm from point to shank, Oct 1-Dec 31",
-     "windows": [
-      "Oct 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "max_gap_mm": 15,
      "extents": [
       {
@@ -2817,9 +2982,17 @@
      "species": [
       "ST"
      ],
-     "windows": [
-      "Aug 15-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2839,9 +3012,17 @@
      "species": [
       "ST"
      ],
-     "windows": [
-      "Jan 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2983,9 +3164,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3098,9 +3287,17 @@
      "rule_id": "hamilton_lake.r1",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
-     "windows": [
-      "April 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -3160,9 +3357,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3543,9 +3748,17 @@
      "rule_id": "isobel_lake.r2",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water Apr 1-Sept 30 (see page 4)",
-     "windows": [
-      "Apr 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -3950,9 +4163,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of the mouth of the inlet stream",
@@ -3965,9 +4186,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of the Tunkwa Creek outlet",
@@ -4521,9 +4750,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4582,9 +4819,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within the fishing boundary signs at the western tip of the lake near the mouth of Canim River",
@@ -4597,9 +4842,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extent_text": "within fishing boundary signs at the western tip of the lake",
@@ -4609,9 +4862,17 @@
      "rule_id": "mahood_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extent_text": "within fishing boundary signs at the western tip of the lake",
      "review_reason": "lake has no bindable cut-point for the boundary signs at the western tip"
@@ -4620,9 +4881,17 @@
      "rule_id": "mahood_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extent_text": "within fishing boundary signs at the western tip of the lake",
@@ -4635,9 +4904,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within 200 m of the Mahood River outlet",
@@ -4650,9 +4927,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extent_text": "within 200 m of the mouth of the Mahood River outlet",
@@ -4662,9 +4947,17 @@
      "rule_id": "mahood_lake.r7",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extent_text": "within 200 m of the mouth of the Mahood River outlet",
      "review_reason": "lake has no bindable cut-point for a 200 m buffer around the Mahood River outlet"
@@ -4673,9 +4966,17 @@
      "rule_id": "mahood_lake.r8",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extent_text": "within 200 m of the mouth of the Mahood River outlet",
@@ -4705,9 +5006,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5375,9 +5684,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -5466,9 +5783,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5487,9 +5812,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5508,9 +5841,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Jan 1-Feb 28"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 2,
+        "to_day": 28
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -6538,9 +6879,17 @@
      "rule_id": "rose_lake.r1",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
-     "windows": [
-      "April 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -6832,9 +7181,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6917,9 +7274,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "north of fishing boundary signs located at south end of lake",
@@ -6953,9 +7318,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 15-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6974,9 +7347,17 @@
       "RB",
       "CHAR"
      ],
-     "windows": [
-      "May 15-Mar 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -6994,9 +7375,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 15-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7014,9 +7403,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 15-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7034,9 +7431,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7307,9 +7712,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7513,9 +7926,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7633,9 +8054,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7674,9 +8103,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -7691,9 +8128,17 @@
      "rule_id": "thompson_river_downstream_of_kamloops_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "artificial fly only",
-     "windows": [
-      "May 1-31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "artificial_fly",
      "extents": [
       {
@@ -7731,9 +8176,17 @@
      "rule_id": "thompson_river_downstream_of_kamloops_lake.r7",
      "type": "document_required",
      "verbatim": "Class II water Oct 1-Dec 31",
-     "windows": [
-      "Oct 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -7749,9 +8202,17 @@
      "rule_id": "thompson_river_downstream_of_kamloops_lake.r8",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
-     "windows": [
-      "Oct 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -7961,9 +8422,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7993,9 +8462,17 @@
      "rule_id": "tulip_lake.r1",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30",
-     "windows": [
-      "April 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -8388,9 +8865,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -8738,9 +9223,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -8913,9 +9406,17 @@
       "BT",
       "DV"
      ],
-     "windows": [
-      "Aug 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",
@@ -8933,9 +9434,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Oct 15 - Jan 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 15,
+        "to_month": 1,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [

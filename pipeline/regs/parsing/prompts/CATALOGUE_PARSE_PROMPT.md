@@ -19,9 +19,9 @@ you must follow it, not your intuition about what the words mean.
    quote the run that contains both.
 2. **`regs_verbatim` is the printed passage, unedited.** If you find yourself improving it, stop.
 3. **One restriction per rule.** *"Bait ban and single barbless hook"* is two rules.
-4. **Never invent a number.** Every `take`, `over_cm`, `under_cm`, `max_kmh`, `max_power_kw` must
+4. **Never invent a number.** Every `take`, every bound inside `lengths`, `max_kmh`, `max_power_kw` must
    appear in that rule's own `verbatim`.
-5. **If you cannot bind a location, say so** — set `needs_review` with a reason that names what is
+5. **If you cannot bind a location, say so** — give a `review_reason` that names what is
    missing. An honest flag beats a wrong guess.
 6. **A `bait_restriction` or `tackle_restriction` MUST carry `allowed`.** `true` or `false`, every
    time. *"Bait ban"* is `allowed: false`; *"roe may be used"* is `allowed: true`. Both are the
@@ -130,11 +130,9 @@ may_target     see above. Required whenever take = 0.
 period         daily (default) | possession | annual (licence year, Apr 1 - Mar 31) | monthly
 per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
-over_cm        a CAP on big fish        under_cm  a FLOOR under which fish go back
-band           true only for "none BETWEEN x and y"
-lengths        the same size limit said PLAINLY — see "Size polarity" below. Emit it whenever
-               you emit over_cm/under_cm, and make the two agree: the loader rejects the rule
-               if they do not.
+lengths        THE SIZE LIMIT, and the only field for it — see "Sizes" below.
+               `over_cm`, `under_cm` and `band` are RETIRED. They are still accepted and
+               converted so an older output still loads, but emit `lengths` directly.
 water          stream | lake            origin  hatchery | wild
 
 REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY
@@ -153,13 +151,16 @@ aspect+level   vessel_rule. aspect is propulsion | speed | towing.
                are both a refusal and they are different rules.
 method+permitted  method_rule. Both, always.
 method         angling | set_lining | spear_fishing | crayfish_trapping | ice_fishing | netting
-windows        A LIST OF STRINGS, copied as printed: ["Oct 1-June 30"]. NOT objects —
-               {"start": ..., "end": ...} is rejected. [] means ALL YEAR. Dates INCLUSIVE.
-windows_are    excepts  ONLY when the dates say when the rule does NOT apply
-weekdays · from_time/to_time · angler_class · when_open
+when           WHEN THE RULE BINDS — see "Seasons and times" below. One object holding
+               `dates`, `hours`, `weekdays` and `unparsed`. `windows`, `windows_are`,
+               `from_time`, `to_time` and `weekdays` are RETIRED (accepted and converted).
+angler_class · when_open
 extent_text    the reach in the page's own words, when no split can express it
 exempts        what this rule LIFTS
 obligation     must (default) | should — "anglers are encouraged" is should, not law
+review_reason  why a human must look. THERE IS NO `needs_review`: a reason present IS the
+               flag, and one longer than 20 characters is expected. `aggregation_domain` is
+               also retired — say it in the verbatim.
 ```
 
 ## Extents — WHERE the rule applies
@@ -224,26 +225,72 @@ has **zero** Fraser mainstem sections, which is why a bounded reach could never 
 Combine it freely with an op: `{"op": "upstream_of", "splits": ["x"], "within_area": "area:region:5"}`.
 
 **When nothing fits.** Do not force a binding. Put the page's words in `extent_text`, record the
-phrase in `unresolved_locators`, set `needs_review` with a `review_reason`. A rule bound to the
+phrase in `unresolved_locators`, and give a `review_reason`. A rule bound to the
 wrong point is far worse than one visibly sent to review.
 
-### Size polarity — read the sentence, not the preposition
+## Seasons and times — `when`
+
+One object. Every part is optional; the object itself is omitted when the rule is all year, all
+day, every day.
+
+```json
+"when": {
+  "dates":    [{"from_month": 11, "from_day": 1, "to_month": 4, "to_day": 30}],
+  "hours":    {"start": {"at": "21:00"}, "end": {"solar": "sunrise", "offset_min": -60}},
+  "weekdays": ["Saturday", "Sunday"],
+  "unparsed": []
+}
+```
+
+`dates` — INCLUSIVE at both ends, and a range MAY WRAP the year end ("Nov 1-Apr 30" is one
+winter). No year. An empty or absent `dates` means ALL YEAR, per the book: "When no date is
+listed, the regulations apply ALL YEAR."
+
+`hours` — both ends required; half a window renders as a total closure. Each end is EITHER
+`{"at": "HH:MM"}` on the 24-hour clock OR `{"solar": "sunrise"|"sunset", "offset_min": N}`, where
+**N is NEGATIVE FOR BEFORE**: "one hour before sunrise" is `{"solar": "sunrise", "offset_min": -60}`.
+Do not convert a solar time to a clock time — it depends on the date and the latitude, which is
+the reader's to work out and not yours.
+
+`unparsed` — a printed season you genuinely cannot read, kept verbatim. Use it rather than
+guessing or dropping: an unparsed season and an ABSENT one are opposite facts, and the second
+reads as "open all year".
+
+### "EXCEPT these dates" — WRITE THE DAYS THE RULE HOLDS
+
+There is NO `excepts` flag any more. `windows_are: "excepts"` stored the days a rule did NOT
+apply, which inverted the field beside it — the same failure that had four size rules permitting
+exactly the fish they protect. Invert it yourself and store the days it DOES hold:
 
 ```
-"not more than 1 over 50 cm"   you MAY keep one big one     take=1, over_cm=50, within=<parent>
-"no trout over 50 cm"          you may keep NO big ones     take=0, may_target=true, over_cm=50
-"1 bull trout over 60 cm"      the one you keep must BE big take=1, under_cm=60, within=<parent>
+"Open June 16-Apr 30 each year"      a CLOSURE; it holds May 1 - June 15
+  -> dates: [{"from_month": 5, "from_day": 1, "to_month": 6, "to_day": 15}]
+
+"catch and release EXCEPT February and July"
+  -> dates: [{"from_month": 8, "from_day": 1, "to_month": 1, "to_day": 31},
+             {"from_month": 3, "from_day": 1, "to_month": 6, "to_day": 30}]
 ```
 
-The word "over" appears in all three and maps to a different field in each. Ask **which fish go
-back**: they are the ones outside the bound you store.
+The complement of one wrapping range is another wrapping range; of two, usually two. `dates` is
+a list precisely so this always fits.
 
-### `lengths` — say the same thing so no one has to work it out
+## Sizes — `lengths`, and read the sentence, not the preposition
 
-`over_cm`/`under_cm`/`band` store the NUMBERS and leave the MEANING to be reconstructed from the
-fields around them, which is why the table above exists and why four rules ended up with `band`
-set backwards — permitting exactly the fish they protect. `lengths` writes the range and its
-number, so there is nothing left to infer.
+The word "over" means three different things and the corpus used to store all three in one field,
+`over_cm`, leaving the meaning to be reconstructed from whatever sat beside it. Four rules ended
+up permitting exactly the fish they protect. Ask **which fish go back**, then write the range and
+its number — there is nothing left to infer:
+
+```
+"not more than 1 over 50 cm"   you MAY keep one big one, and the parent governs the rest
+                                 -> [{"min_cm": 50}]                       (a clause: `within`)
+"no trout over 50 cm"          you may keep NO big ones, and this says nothing about small ones
+                                 -> [{"min_cm": 50, "take": 0}]            take=0, may_target=true
+"1 bull trout over 60 cm"      the one you keep must BE big, and a 50 cm one is forbidden
+                                 -> [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
+"Trout daily quota = 2 (none over 50 cm)"   the 2 is bounded above
+                                 -> [{"max_cm": 50}, {"min_cm": 50, "take": 0}]      take=2
+```
 
 An ORDERED list of ranges, FIRST MATCH WINS. `min_cm`/`max_cm` are INCLUSIVE, either may be
 omitted for "open at that end", and a range without its own `take` uses the rule's `take`.

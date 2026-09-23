@@ -207,9 +207,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "Oct 16 - Aug 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 16,
+        "to_month": 8,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "within": "trout_char_quota.r1",
      "lengths": [
@@ -243,9 +251,17 @@
      "species": [
       "RB"
      ],
-     "windows": [
-      "May 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",
@@ -285,9 +301,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Sept 15 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -323,9 +347,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "Aug 15 - Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extent_text": "Liard River watershed",
@@ -421,9 +453,17 @@
      "species": [
       "GR"
      ],
-     "windows": [
-      "May 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -622,9 +662,17 @@
      "species": [
       "WP"
      ],
-     "windows": [
-      "Apr 1 - May 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",

@@ -467,5 +467,53 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
                         aliased.append((sp.split_id, got[0], round(got[1], 1)))
             if applied is not None:
                 applied.append(_replace(sp, picked_up=picked))
+    _name_the_crossings(graph, sp_by_blk, node_by_blk)
     graph.up_adj, graph.down_adj = _rebuild_adj(graph.edges)
     return graph
+
+
+def _name_the_crossings(graph, sp_by_blk, node_by_blk) -> None:
+    """WHICH CROSSING — `area:5@down` and `area:5@up` as ALIASES on the boundaries that are there.
+
+    A region boundary can meet the same river several times and every crossing is minted under the
+    one id `area:5`, so a rule cannot say WHICH. Region 3's "Hells Gate upstream to the Region 3
+    boundary" is authored as `upstream_of` Hells Gate with nothing to stop it, and it runs on into
+    Region 5.
+
+    `@down` is the FIRST crossing and `@up` the LAST, by route measure from the mouth — the bottom
+    and the top of the straddle. Between them the water is in neither region cleanly, and a rule
+    forced to pick should pick `@up`, so the grey stretch stays inside the rule rather than falling
+    out of every rule.
+
+    THESE ARE ALIASES, NOT CUTS. Minting them as SplitPoints instead put a second cut at a measure
+    that already had one, which risks the zero-length piece that breaks both halves, and it let the
+    qualified id shadow the plain one in code that takes the first point for a blk. `aliases` is
+    the field that already exists for exactly this — "other boundary_ids this one ALSO represents".
+
+    A boundary crossed ONCE gets nothing: `area:5` is unambiguous there, and `@down`/`@up` would be
+    two more names for one place.
+    """
+    from dataclasses import replace as _replace
+    for blk, sps in sp_by_blk.items():
+        by_area: dict[str, list[SplitPoint]] = defaultdict(list)
+        for sp in sps:
+            if str(sp.split_id).startswith("area:") and "@" not in str(sp.split_id):
+                by_area[sp.split_id].append(sp)
+        for sid, ps in by_area.items():
+            if len(ps) < 2:
+                continue
+            ps = sorted(ps, key=lambda q: q.route_measure)
+            for end, q in (("down", ps[0]), ("up", ps[-1])):
+                want = f"split:{sid}@{end}"
+                for nid in node_by_blk.get(blk, ()):
+                    n = graph.nodes[nid]
+                    for b in (n.lower_bound, n.upper_bound):
+                        if b is None or abs(b.route_measure - q.route_measure) > 1e-6:
+                            continue
+                        if want in (b.aliases or ()):
+                            continue
+                        merged = _replace(b, aliases=tuple(b.aliases or ()) + (want,))
+                        if n.lower_bound is b:
+                            graph.nodes[nid] = _replace(n, lower_bound=merged)
+                        else:
+                            graph.nodes[nid] = _replace(n, upper_bound=merged)

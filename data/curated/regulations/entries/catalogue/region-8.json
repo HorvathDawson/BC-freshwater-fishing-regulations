@@ -563,9 +563,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "north of a line between Bald and Knob Points",
@@ -1283,9 +1291,17 @@
      "rule_id": "granby_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban Apr 1-Oct 31",
-     "windows": [
-      "Apr 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1317,9 +1333,17 @@
      "rule_id": "granby_river.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban July 1-Oct 31",
-     "windows": [
-      "July 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1413,9 +1437,17 @@
      "rule_id": "hall_road_mission_pond.r2",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
-     "windows": [
-      "May 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -1963,9 +1995,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 25-Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 25,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1978,9 +2018,17 @@
      "rule_id": "kettle_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -2028,9 +2076,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jul 25 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 25,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2597,9 +2653,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet",
@@ -3003,9 +3067,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3212,9 +3284,17 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "July 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "within": "osoyoos_lake.r1",
@@ -3262,9 +3342,17 @@
      "rule_id": "osoyoos_lake.r5",
      "type": "tackle_restriction",
      "verbatim": "Barbless hook July 1-Oct 31",
-     "windows": [
-      "July 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "extents": [
       {
@@ -3730,9 +3818,17 @@
      "rule_id": "shannon_lake_netted_portion.r2",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
-     "windows": [
-      "May 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -3822,9 +3918,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jun 15 - Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3887,9 +3991,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3986,9 +4098,17 @@
      "rule_id": "similkameen_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, Apr 1-Oct 31",
-     "windows": [
-      "Apr 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -4040,9 +4160,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1 - Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4089,9 +4217,17 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "Jul 10 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 10,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lengths": [
       {
        "min_cm": 35,
@@ -4728,9 +4864,17 @@
      "rule_id": "tulameen_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban Apr 1-Oct 31",
-     "windows": [
-      "Apr 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -4932,9 +5076,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4992,9 +5144,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jul 25 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 25,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5022,9 +5182,17 @@
      "rule_id": "west_kettle_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Apr 1-Oct 31",
-     "windows": [
-      "Apr 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -5076,9 +5244,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jul 25 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 25,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -5153,9 +5329,17 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "Sept 1 - Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5171,9 +5355,17 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "Apr 1 - Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 3,
      "extents": [
       {
@@ -5610,9 +5802,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",

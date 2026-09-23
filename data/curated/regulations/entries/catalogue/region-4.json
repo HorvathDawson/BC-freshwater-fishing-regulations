@@ -24,9 +24,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -42,9 +50,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -57,9 +73,17 @@
      "rule_id": "abruzzi_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -181,9 +205,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -199,9 +231,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -214,9 +254,17 @@
      "rule_id": "alexander_creek_lower.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -270,9 +318,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -288,9 +344,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -303,9 +367,17 @@
      "rule_id": "alexander_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -470,9 +542,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -919,9 +999,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -942,9 +1030,17 @@
      "rule_id": "bull_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -988,9 +1084,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -1024,9 +1128,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1042,9 +1154,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -1057,9 +1177,17 @@
      "rule_id": "cadorna_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1137,9 +1265,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1675,9 +1811,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1918,9 +2062,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1954,9 +2106,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -2019,9 +2179,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2264,9 +2432,17 @@
      "species": [
       "BASS"
      ],
-     "windows": [
-      "June 16-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 3,
      "extents": [
       {
@@ -2281,9 +2457,17 @@
      "species": [
       "BASS"
      ],
-     "windows": [
-      "June 16-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "within": "duck_lake.r1",
      "lengths": [
@@ -2304,9 +2488,17 @@
      "species": [
       "BASS"
      ],
-     "windows": [
-      "May 15-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -2532,9 +2724,17 @@
      "rule_id": "dutch_creek.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -2742,9 +2942,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "extents": [
       {
@@ -2759,9 +2967,17 @@
      "species": [
       "CT"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "within": "elk_river_downstream_of_elko_dam.r1",
      "lengths": [
       {
@@ -2782,9 +2998,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "within": "elk_river_downstream_of_elko_dam.r1",
      "lengths": [
       {
@@ -2802,9 +3026,17 @@
      "rule_id": "elk_river_downstream_of_elko_dam.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -2863,9 +3095,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -2882,9 +3122,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -2906,9 +3154,17 @@
      "rule_id": "elk_river_s_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "tributaries_only": true,
      "extents": [
@@ -2983,9 +3239,17 @@
      "rule_id": "elk_river_upstream_of_elko_dam.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -3000,9 +3264,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -3043,9 +3315,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -3170,9 +3450,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -3192,9 +3480,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 2,
      "lengths": [
       {
@@ -3215,9 +3511,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "within": "findlay_creek.r2",
      "extent_text": "other parts (including tributaries, except Lavington Creek)",
@@ -3227,9 +3531,17 @@
      "rule_id": "findlay_creek.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -3314,9 +3626,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -3337,9 +3657,17 @@
      "rule_id": "flathead_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -3372,9 +3700,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -3407,9 +3743,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -3431,9 +3775,17 @@
      "rule_id": "flathead_river_s_tributaries.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "tributaries_only": true,
      "extents": [
@@ -3469,9 +3821,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -3484,9 +3844,17 @@
      "rule_id": "fording_river_downstream.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -3730,9 +4098,17 @@
      "rule_id": "goat_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extent_text": "(EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
      "review_reason": "'except Kitchener Creek' is a named-water carve-out from this tributary-wide bait ban; catalogue schema has no per-rule exclusion op — Kitchener Creek carries its own separate listing"
@@ -4317,9 +4693,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4335,9 +4719,17 @@
      "rule_id": "jordan_river.r2",
      "type": "bait_restriction",
      "verbatim": "Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -4355,9 +4747,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -4691,9 +5091,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "Nov 1 - Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -4726,9 +5134,17 @@
      "rule_id": "koocanusa_reservoir.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Sept 15-June 30",
-     "windows": [
-      "Sep 15 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -4881,10 +5297,13 @@
      "species": [
       "KO"
      ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "take": 5,
      "extents": [
       {
@@ -4901,13 +5320,16 @@
      "species": [
       "KO"
      ],
-     "weekdays": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Monday",
+       "Tuesday",
+       "Wednesday",
+       "Thursday",
+       "Friday"
+      ]
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -5119,9 +5541,17 @@
      "species": [
       "RB"
      ],
-     "windows": [
-      "Jan 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -5172,11 +5602,23 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "Apr 1-Apr 3",
-      "July 1-July 2"
-     ],
-     "windows_are": "excepts",
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 3,
+        "to_month": 3,
+        "to_day": 31
+       },
+       {
+        "from_month": 4,
+        "from_day": 4,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -5194,10 +5636,23 @@
      "species": [
       "KO"
      ],
-     "windows": [
-      "Apr 1-Apr 3",
-      "July 1-July 2"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 3
+       },
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 2
+       }
+      ],
+      "weekdays": []
+     },
      "take": 5,
      "extents": [
       {
@@ -5413,9 +5868,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Nov 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -5472,9 +5935,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "extents": [
       {
@@ -5541,9 +6012,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Jun 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "extents": [
       {
@@ -5978,9 +6457,17 @@
      "rule_id": "lavington_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Jun 15-Oct 31",
-     "windows": [
-      "Jun 15 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -6332,9 +6819,17 @@
      "rule_id": "little_slocan_lake_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -6394,9 +6889,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6415,9 +6918,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -6488,9 +6999,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6509,9 +7028,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -6535,9 +7062,17 @@
      "rule_id": "lodgepole_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -6927,9 +7462,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15- Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -6948,9 +7491,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 2,
      "lengths": [
       {
@@ -6975,9 +7526,17 @@
      "rule_id": "lussier_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban downstream of Mutton Creek, June 15-Mar 31",
-     "windows": [
-      "June 15-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7156,9 +7715,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -7182,9 +7749,17 @@
      "rule_id": "michel_creek_lower.r3",
      "type": "bait_restriction",
      "verbatim": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7237,9 +7812,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -7255,9 +7838,17 @@
      "rule_id": "michel_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7400,9 +7991,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7418,9 +8017,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -7433,9 +8040,17 @@
      "rule_id": "morrissey_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
-     "windows": [
-      "June 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7516,9 +8131,17 @@
      "species": [
       "BB"
      ],
-     "windows": [
-      "Feb 14-Feb 28"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 14,
+        "to_month": 2,
+        "to_day": 28
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -8185,9 +8808,17 @@
      "rule_id": "pend_doreille_river_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "tributaries_only": true,
      "extents": [
@@ -8360,9 +8991,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 15-June 20"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 20
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "south of fishing boundary signs on the lake shore",
@@ -9233,9 +9872,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -9333,9 +9980,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-July 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -9543,9 +10198,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -10118,9 +10781,17 @@
      "species": [
       "BT"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -10136,9 +10807,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "lengths": [
       {
@@ -10162,9 +10841,17 @@
      "rule_id": "white_river.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban on all parts, June 15-Oct 31",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -10256,9 +10943,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -10509,9 +11204,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -10874,9 +11577,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -11393,9 +12104,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Jun 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -11556,9 +12275,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Nov 1 - Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",

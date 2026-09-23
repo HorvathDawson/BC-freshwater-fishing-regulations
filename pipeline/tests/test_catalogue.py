@@ -149,12 +149,18 @@ def test_hp_is_a_lookup_not_a_computation():
     assert label(r) == "Engine power restriction 7.5 kW (10 hp)"
 
 
-def test_excepting_windows_say_except():
-    """`r4:kootenay_lake_upper_west_arm` stores [Apr 1-3, Jul 1-2] on a catch-and-release rule:
-    those are the days it does NOT apply."""
+def test_excepting_windows_are_inverted_rather_than_flagged():
+    """`r4:kootenay_lake_upper_west_arm` printed [Apr 1-3, Jul 1-2] on a catch-and-release rule as
+    the days it does NOT apply — a flag that inverted the field beside it, which is what `band`
+    did to the size fields. `When` stores the days the rule DOES hold, computed once, so there is
+    no flag left for a reader to apply or forget."""
     r = _r(type=RuleType.retention_limit, species=["KO"], take=0, may_target=True,
            windows=["Apr 1-3", "Jul 1-2"], windows_are=WindowsAre.excepts)
-    assert "except Apr 1-3 and Jul 1-2" in label(r)
+    assert "except" not in label(r)
+    assert "Jul 3-Mar 31 and Apr 4-Jun 30" in label(r)
+    # and the excepted days are genuinely outside it
+    got = {(d.from_month, d.from_day, d.to_month, d.to_day) for d in r.when.dates}
+    assert (7, 3, 3, 31) in got and (4, 4, 6, 30) in got
 
 
 def test_species_except_reads_as_the_sentence_does():

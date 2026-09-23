@@ -52,6 +52,9 @@ class Method(str, Enum):
     ice_fishing = "ice_fishing"
     netting = "netting"
     snagging = "snagging"
+    #: `chumming` had no value here, so `method: "other"` plus `reason: "chumming"` carried it —
+    #: the prohibited act's own NAME in a free-text field.
+    chumming = "chumming"
     other = "other"
 
 
@@ -76,6 +79,12 @@ class Bait(str, Enum):
     any = "any"
     fin_fish = "fin_fish"
     dead_fin_fish = "dead_fin_fish"
+    #: THE PROVINCE PERMITS LESS THAN "DEAD FIN FISH". `zp:bait`'s own printed text is "You may use
+    #: THE HEAD of fin fish or THE HEADLESS BODY of fin fish as bait, only: …" — a whole dead
+    #: herring is not permitted and was stored as though it were, on both province-wide
+    #: exceptions. The regional tables abbreviate it to "dead fin fish"; those rules keep
+    #: `dead_fin_fish`, because their own verbatim is what they are evidence of.
+    fin_fish_head_or_headless_body = "fin_fish_head_or_headless_body"
     invertebrate = "invertebrate"
     roe = "roe"
 
@@ -464,6 +473,118 @@ _LAST_DAY = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30,
              7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 
 
+def parse_clock(text: str) -> Optional["Clock"]:
+    """A printed time -> a `Clock`. "21:00" and "21:00 hours" are the same instant spelled two
+    ways and both sat in the corpus; "one hour after sunset" is not a clock time at all."""
+    t = " ".join((text or "").split()).lower().replace(" hours", "")
+    if not t:
+        return None
+    m = re.fullmatch(r"(\d{1,2}):(\d{2})", t)
+    if m:
+        return Clock(at=f"{int(m.group(1)):02d}:{m.group(2)}")
+    m = re.fullmatch(r"(?:(one|an|\d+)\s*(hour|hours|minute|minutes|min)\s*)?"
+                     r"(before|after)?\s*(sunrise|sunset)", t)
+    if not m:
+        return None
+    n, unit, side, ev = m.groups()
+    mins = 0
+    if n:
+        v = 1 if n in ("one", "an") else int(n)
+        mins = v * (60 if unit.startswith("hour") else 1)
+        if side == "before":
+            mins = -mins
+    return Clock(solar=Solar(ev), offset_min=mins)
+
+
+def parse_date_range(text: str) -> Optional["DateRange"]:
+    """One printed window -> a `DateRange`. Returns None where the text does not parse, so a
+    caller fails loudly rather than inventing a season.
+
+    Handles the four spellings the corpus uses: "Nov 1-Apr 30", "Nov 1 - Apr 30" (the same range,
+    and 74 rules split between them), "May 1-31" (same month, end unqualified) and a bare month.
+    """
+    t = " ".join((text or "").split())
+    if not t:
+        return None
+    parts = re.split(r"\s*(?:-|\u2013|\u2014|\bto\b)\s*", t, maxsplit=1)
+    lo = _point(parts[0])
+    if lo is None:
+        return None
+    if len(parts) == 1:
+        if lo[1] is not None:
+            return None                                  # a lone date, not a range
+        return DateRange(from_month=lo[0], from_day=1,
+                         to_month=lo[0], to_day=_LAST_DAY[lo[0]])
+    hi = _point(parts[1])
+    if hi is None:
+        m = re.fullmatch(r"(\d{1,2})", parts[1].strip())  # "May 1-31": the month carries over
+        if not m or lo[1] is None:
+            return None
+        hi = (lo[0], int(m.group(1)))
+    if lo[1] is None or hi[1] is None:
+        return None
+    return DateRange(from_month=lo[0], from_day=lo[1], to_month=hi[0], to_day=hi[1])
+
+
+def _point(text: str):
+    """"Nov 1" -> (11, 1); "February" -> (2, None); anything else -> None."""
+    t = text.strip().rstrip(",")
+    m = re.fullmatch(r"([A-Za-z]+)\.?\s*(\d{1,2})", t)
+    if m:
+        mo = _month(m.group(1))
+        return (mo, int(m.group(2))) if mo else None
+    m = re.fullmatch(r"([A-Za-z]+)\.?", t)
+    if m:
+        mo = _month(m.group(1))
+        return (mo, None) if mo else None
+    return None
+
+
+def _month(name: str) -> Optional[int]:
+    n = name.strip().lower()
+    return _MONTHS.get("sep" if n.startswith("sept") else n[:3])
+
+
+def _day_index(month: int, day: int) -> int:
+    return sum(_LAST_DAY[m] for m in range(1, month)) + day
+
+
+def complement(ranges: List["DateRange"]) -> List["DateRange"]:
+    """THE DAYS THESE RANGES DO NOT COVER, on a circular year.
+
+    This is what retires `windows_are: "excepts"`. "Open June 16-Apr 30 each year" is a CLOSURE
+    whose printed dates are the days it does not apply; its complement, May 1 - June 15, is the
+    closure's own season and needs no flag to read correctly.
+    """
+    covered = set()
+    for r in ranges:
+        a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
+        days = range(a, b + 1) if a <= b else list(range(a, 367)) + list(range(1, b + 1))
+        covered.update(days)
+    total = sum(_LAST_DAY.values())
+    free = [d for d in range(1, total + 1) if d not in covered]
+    if not free:
+        return []
+    runs, start = [], free[0]
+    for prev, cur in zip(free, free[1:]):
+        if cur != prev + 1:
+            runs.append((start, prev)); start = cur
+    runs.append((start, free[-1]))
+    # A run ending on Dec 31 and one starting Jan 1 are ONE run on a circle.
+    if len(runs) > 1 and runs[0][0] == 1 and runs[-1][1] == total:
+        runs = [(runs[-1][0], runs[0][1])] + runs[1:-1]
+    return [DateRange(from_month=_md(a)[0], from_day=_md(a)[1],
+                      to_month=_md(b)[0], to_day=_md(b)[1]) for a, b in runs]
+
+
+def _md(idx: int):
+    for m in range(1, 13):
+        if idx <= _LAST_DAY[m]:
+            return m, idx
+        idx -= _LAST_DAY[m]
+    raise ValueError(idx)
+
+
 class Solar(str, Enum):
     sunrise = "sunrise"
     sunset = "sunset"
@@ -532,6 +653,275 @@ class DateRange(BaseModel):
         return f"{nm[self.from_month]} {self.from_day}-{nm[self.to_month]} {self.to_day}"
 
 
+def _when_from_old(old: dict) -> Optional[dict]:
+    """The five old time fields -> one `when`. Raises where a window does not parse, because a
+    season nobody can read must not publish as though the rule had none."""
+    ranges, unparsed = [], []
+    for w in old.get("windows") or []:
+        got = parse_date_range(w)
+        (ranges if got is not None else unparsed).append(got if got is not None else w)
+    # A FLAG THAT INVERTS ITS NEIGHBOUR IS REPLACED BY THE FACT ITSELF. `windows_are: excepts`
+    # meant the stored dates are when the rule does NOT hold; the complement is the days it does.
+    # `getattr(..., "value", ...)` because this arrives BOTH ways: the curated files hold the
+    # raw string "excepts", and a producer constructing a rule in code passes the enum member —
+    # whose `str()` is "WindowsAre.excepts", which silently matched nothing.
+    kind = old.get("windows_are") or "applies"
+    if ranges and getattr(kind, "value", kind) == "excepts":
+        ranges = complement(ranges)
+    hours = None
+    a, b = old.get("from_time"), old.get("to_time")
+    # HALF A WINDOW IS WORSE THAN NONE. "No fishing 21:00-" with the end dropped renders as a
+    # total closure, so one end without the other is refused rather than quietly discarded.
+    if bool(a) != bool(b):
+        raise ValueError("a time-of-day window needs both ends, or it renders as no window at all")
+    if a and b:
+        ca, cb = parse_clock(a), parse_clock(b)
+        if ca is None or cb is None:
+            raise ValueError(f"times {a!r}..{b!r} do not parse")
+        hours = Hours(start=ca, end=cb)
+    wd = list(old.get("weekdays") or [])
+    if not ranges and hours is None and not wd and not unparsed:
+        return None
+    return When(dates=ranges, hours=hours, weekdays=wd,
+                unparsed=unparsed).model_dump(exclude_none=True)
+
+
+class Hours(BaseModel):
+    """A RANGE WITHIN THE DAY. Either end may be a clock time or a solar one, so "from one hour
+    after sunset to one hour before sunrise" is sayable. It WRAPS midnight the same way a
+    `DateRange` wraps the year end, and needs no flag for that either."""
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    start: Clock
+    end: Clock
+
+    def words(self) -> str:
+        return f"{self.start.words()} to {self.end.words()}"
+
+
+class When(BaseModel):
+    """WHEN A RULE BINDS — the days, the hours and the weekdays, said once.
+
+    This replaces `windows` (210 distinct FREE-TEXT strings, where "Nov 1-Apr 30" and
+    "Nov 1 - Apr 30" were the same range spelled two ways), `windows_are`, `from_time`, `to_time`
+    and `weekdays`.
+
+    THERE IS NO `excepts` FLAG. `windows_are: "excepts"` meant "these are the days the rule does
+    NOT hold" — a flag that inverted the field beside it, which is exactly what `band` did to the
+    size fields. Three rules carried it. The complement of a circular range is another circular
+    range, so the days a rule DOES hold are always writable: Fulton River's "Open June 16-Apr 30
+    each year" is a closure, and it is stored as the closure's own days, May 1 - June 15.
+
+    `dates` EMPTY MEANS ALL YEAR, per the synopsis: "When no date is listed, the regulations apply
+    ALL YEAR. Start and end dates are INCLUSIVE."
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    dates: List[DateRange] = Field(default_factory=list)
+    hours: Optional[Hours] = None
+    weekdays: List[str] = Field(default_factory=list)
+    #: SEASONS THE PARSER COULD NOT READ, kept verbatim. This is the time analogue of
+    #: `unresolved_locators`, and it exists for the same reason: an unparsed season and an ABSENT
+    #: one are opposite facts, and a rule published as though it had no season when its source
+    #: says "To be determined" is open all year to a reader. The DFO feed scrapes rows whose date
+    #: cell is prose, and refusing them would have meant dropping the rule or inventing a window.
+    unparsed: List[str] = Field(default_factory=list)
+
+    def is_empty(self) -> bool:
+        return not (self.dates or self.hours or self.weekdays or self.unparsed)
+
+    def words(self) -> str:
+        bits = [" and ".join(d.words() for d in self.dates)] if self.dates else []
+        if self.hours:
+            bits.append(self.hours.words())
+        if self.weekdays:
+            bits.append(" and ".join(f"{d}s" for d in self.weekdays))
+        if self.unparsed:
+            bits.append(" and ".join(self.unparsed))
+        return ", ".join(b for b in bits if b)
+
+
+class Slot(str, Enum):
+    """WHAT A GEAR CLAUSE CONSTRAINS. One name per MEASURAND, which is the whole point.
+
+    `hook_count` used to be three different quantities under one name — hooks on the line, POINTS
+    on one hook, and attachments of any kind on the line — and a treble is one hook with three
+    points, so the same record permitted it and banned it. The curator now decides once, in the
+    name, instead of leaving it to whichever neighbouring field happens to be present.
+    """
+    # CHOSEN FROM A SET — `allow` lists what is permitted, and `allow: []` IS the ban.
+    bait = "bait"                       # roe, invertebrate, dead_fin_fish, any
+    lure = "lure"                       # the terminal object: artificial_fly, artificial_lure
+    method = "method"                   # how you fish: fly_fishing, set_lining, ice_fishing
+    barb = "barb"                       # barbed | barbless
+    light = "light"                     # a light used to attract fish
+    # COUNTED — `max`/`min` are whole numbers of the thing the name says.
+    hooks_per_line = "hooks_per_line"
+    points_per_hook = "points_per_hook"
+    lines_per_angler = "lines_per_angler"
+    flies_per_line = "flies_per_line"
+    terminal_attachments_per_line = "terminal_attachments_per_line"
+    # MEASURED — `max`/`min` in the unit the name carries. One unit per quantity: `min_gap_cm: 3`
+    # and `max_gap_mm: 15` were the same measurement of the same object in two units.
+    hook_gap_mm = "hook_gap_mm"
+    weight_per_line_kg = "weight_per_line_kg"
+    bait_possession_kg = "bait_possession_kg"
+
+
+#: Which slots take a SET and which take a NUMBER. A slot cannot take both, and `_check` refuses
+#: the mixture — that is what stops a count being written where a whitelist belongs.
+_SET_SLOTS = frozenset({Slot.bait, Slot.lure, Slot.method, Slot.barb, Slot.light})
+
+#: The slots whose bound is a MEASUREMENT rather than a count, and so may be fractional.
+_MEASURED = frozenset({Slot.hook_gap_mm, Slot.weight_per_line_kg, Slot.bait_possession_kg})
+
+
+class AnglerState(str, Enum):
+    alone_in_boat = "alone_in_boat"
+    in_boat = "in_boat"
+    from_shore = "from_shore"
+
+
+class GearWhen(BaseModel):
+    """WHEN A GEAR CLAUSE APPLIES — and a CLOSED vocabulary on purpose.
+
+    `reason` was a free-text field that ended up carrying six different jobs: a carve-out, a
+    gating condition, an obligation, the prohibited act's own name, and once an actual reason.
+    An open `when` would be that field again under a better name. So every condition here is a
+    named term, and anything the book says that does not fit goes in `note` — which REQUIRES a
+    `review_reason` on the rule, so the gap is visible rather than absorbed.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    water: Optional[WaterKind] = None
+    method: Optional[Method] = None          # "…when set lining"
+    targeting: List[str] = Field(default_factory=list)   # species codes
+    angler: Optional[AnglerState] = None
+    gear_in_use: Optional[str] = None        # "…does not apply to downrigger weights"
+    note: str = ""                           # the escape, and it costs a review_reason
+
+    def is_empty(self) -> bool:
+        return not (self.water or self.method or self.targeting or self.angler
+                    or self.gear_in_use or self.note)
+
+
+class GearSpec(BaseModel):
+    """HOW THE THING MUST BE BUILT OR CARRIED, for the clause to hold.
+
+    Three sentences needed this and only this, and without it all three read as unrepresentable:
+
+      "angle with a downrigger, PROVIDED the fishing line is attached to the downrigger by a
+       quick-release mechanism"     -> the proviso constrains the downrigger in the same clause,
+                                       not some second thing
+      "unless the light is SUBMERGED and ATTACHED to the fishing line WITHIN 1 M of the hook"
+                                    -> three properties of the one light
+      "traps with minimally-sized CIRCULAR openings"
+                                    -> the shape is a property; only the size has no number
+
+    A CLOSED vocabulary on purpose. `reason` was open and ended up carrying six different jobs;
+    an open spec would be that field again. What does not fit goes in `note`, which costs a
+    `review_reason`, so the gap stays visible instead of being absorbed.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    attached_to: Optional[str] = None        # fishing_line
+    attachment: Optional[str] = None         # quick_release
+    submerged: Optional[bool] = None
+    within_m_of_hook: Optional[float] = None
+    opening_shape: Optional[str] = None      # circular
+    note: str = ""
+
+    def is_empty(self) -> bool:
+        return not (self.attached_to or self.attachment or self.submerged is not None
+                    or self.within_m_of_hook or self.opening_shape or self.note)
+
+
+class GearClause(BaseModel):
+    """ONE THING CONSTRAINED, AND HOW FAR. Ordered within `gear`; FIRST MATCH WINS.
+
+    THERE IS NO POLARITY FLAG. `allowed`, `permitted` and `required` were three booleans on one
+    axis, `required` was `false` on all 25 of its uses, and on the province's most-cited stream
+    rule `{barbless: true, required: false}` read as "barbless is not required" — barbed hooks
+    legal in every stream in B.C. A clause carries its verdict in the same object as its numbers,
+    so there is no neighbour left to invert.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    slot: Slot
+    #: WHICH members this clause speaks about. Absent = ALL of them, so "bait ban" is a bare
+    #: `{slot: bait, allow: []}` while "fin fish is prohibited" is `of: ["fin_fish"]` with the
+    #: same empty allow — a TOTAL ban and a PARTIAL one, which without `of` are one record.
+    of: List[str] = Field(default_factory=list)
+    allow: Optional[List[str]] = None        # set slots; [] is the ban
+    members: List[str] = Field(default_factory=list)  # a choice of ONE from several kinds
+    max: Optional[float] = None
+    min: Optional[float] = None
+    when: Optional[GearWhen] = None
+    #: HOW THE THING ITSELF MUST BE — see `GearSpec`. A property of the subject this clause
+    #: names, not a separate condition on the angler or the water.
+    requires: Optional[GearSpec] = None
+    #: WHAT LIFTS THIS CLAUSE. "more than 1 kg of weight … (this does not apply to downrigger
+    #: weights)" is one clause with one escape; the carve-out used to sit in `reason`, the same
+    #: free-text field that elsewhere held an obligation and elsewhere the prohibited act's name.
+    unless: List[GearWhen] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _shape(self) -> "GearClause":
+        counted = self.max is not None or self.min is not None
+        if self.slot in _SET_SLOTS:
+            if counted and self.slot is not Slot.light:
+                raise ValueError(f"{self.slot.value} is chosen from a set: use `allow`, not max/min")
+            if self.allow is None:
+                raise ValueError(f"{self.slot.value} needs `allow` (an empty list IS the ban)")
+            if self.allow and self.of and not set(self.allow) <= set(self.of):
+                raise ValueError(f"{self.slot.value}: allow {self.allow} is not within of {self.of}")
+        else:
+            if self.allow is not None:
+                raise ValueError(f"{self.slot.value} is counted or measured: use max/min, not `allow`")
+            if not counted and not self.members:
+                raise ValueError(f"{self.slot.value} needs a max or a min")
+        if self.max is not None and self.min is not None and self.min > self.max:
+            raise ValueError(f"min {self.min} > max {self.max} permits nothing")
+        # A COUNT IS A WHOLE NUMBER. Only the measured slots carry a fraction, and letting a
+        # count be 1.5 would make "one and a half hooks" a storable rule.
+        if self.slot not in _MEASURED:
+            for v in (self.max, self.min):
+                if v is not None and float(v) != int(v):
+                    raise ValueError(f"{self.slot.value} counts things; {v} is not a whole number")
+        return self
+
+
+class Conduct(BaseModel):
+    """WHAT YOU MUST OR MUST NOT DO — an act, not a piece of gear.
+
+    Exactly one of `must` / `must_not` is set, so the DIRECTION IS THE KEY and there is no flag
+    to set backwards. `required: false` was that flag: it sat on "Waste the fish you catch" and
+    on "Fish with nets", both off a printed "You must not" list, and read literally it says those
+    are merely optional. It was `false` on all 25 of its uses and absent on the requirements
+    beside them, so its presence meant nothing and its absence meant nothing.
+
+    "Set lines must be marked with angler's name, address, and telephone number" was stored as
+    `{method: "set_lining", permitted: true, reason: "marked with…"}` — a duty demoted to free
+    text with a permission fabricated to give it somewhere to sit. The same shape put
+    `{method: "ice_fishing", permitted: true}` on a warning about removing huts, so a query for
+    "may I ice fish here" answered yes from a sentence that grants nothing.
+    """
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    must: str = ""                           # mark_gear, remove_ice_hut, release_immediately
+    must_not: str = ""                       # waste_catch, chum, sell_catch, gear_during_closure
+    with_: List[str] = Field(default_factory=list, alias="with")
+    by: str = ""                             # "spring_breakup", "permanent_residence"
+    when: Optional[GearWhen] = None
+    note: str = ""                           # the act in the book's words where no term fits
+
+    @model_validator(mode="after")
+    def _one_direction(self) -> "Conduct":
+        if bool(self.must) == bool(self.must_not):
+            raise ValueError("a conduct rule is a `must` OR a `must_not`, exactly one")
+        return self
+
+
 class LengthBand(BaseModel):
     """ONE RANGE OF FISH LENGTHS, AND HOW MANY OF THEM YOU MAY KEEP.
 
@@ -583,6 +973,15 @@ class CatalogueRule(BaseModel):
         `lengths_from_bounds` with it."""
         if not isinstance(v, dict):
             return v
+        # The five time fields are accepted and folded into `when`.
+        old_when = {k: v.get(k) for k in
+                    ("windows", "windows_are", "weekdays", "from_time", "to_time") if k in v}
+        if old_when:
+            v = {k: x for k, x in v.items() if k not in old_when}
+            if v.get("when") is None:
+                built = _when_from_old(old_when)
+                if built:
+                    v = dict(v, when=built)
         # `needs_review` is accepted and dropped: it only ever meant "review_reason is filled".
         if "needs_review" in v:
             flag, why = v.get("needs_review"), (v.get("review_reason") or "").strip()
@@ -625,11 +1024,35 @@ class CatalogueRule(BaseModel):
     angler_class: Optional[AnglerClass] = None
     #: "When no date is listed, the regulations apply ALL YEAR. Start and end dates are
     #: INCLUSIVE." So an empty list is a fact, never "unknown".
-    windows: List[str] = Field(default_factory=list)
-    windows_are: WindowsAre = WindowsAre.applies
-    weekdays: List[str] = Field(default_factory=list)
-    from_time: Optional[str] = None
-    to_time: Optional[str] = None
+    #: HOW YOU MAY FISH — an ORDERED list of clauses, FIRST MATCH WINS. See `GearClause`. This
+    #: is where `allowed`, `permitted`, `required`, `barbless`, `hook_count`, `lure`, `bait`,
+    #: `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and `max_gap_mm` are going. It is
+    #: NOT yet migrated: the old fields are still the ones in use, and this is the target shape
+    #: with its validation, so the conversion has something to convert INTO.
+    #: See pipeline/docs/07-gear-representation.md.
+    gear: List[GearClause] = Field(default_factory=list)
+    #: A RULE THE BOOK ASSERTS BUT DOES NOT PRINT AS ITS OWN CLAUSE, naming the rule it was read
+    #: out of. "You may ONLY fish with a set line in lakes of Region 6 and Region 7A" makes two
+    #: claims: a permission in those lakes, which is printed, and a ban everywhere else, which is
+    #: the word "only" and is printed nowhere. The corpus stored just the permission, so set
+    #: lining in a Region 5 lake was unconstrained in the data and unlawful in the book.
+    #:
+    #: The second half has to be authored, and a reader auditing against the synopsis would
+    #: otherwise find a rule with no source text. This says which sentence licensed it. Such a
+    #: rule carries its source's `verbatim`, as every other rule split from one sentence does.
+    derived_from: Optional[str] = None
+
+    #: ACTS — what you must and must not DO, kept apart from gear so a duty is never stored as a
+    #: permission. "Set lines must be marked with angler's name, address, and telephone number"
+    #: was `{permitted: true, reason: "marked with…"}`: a duty demoted to free text with a grant
+    #: invented to house it.
+    conduct: List[Conduct] = Field(default_factory=list)
+
+    #: WHEN THIS RULE BINDS, said once — see `When`. This replaces `windows` (210 distinct free
+    #: text strings), `windows_are` (a flag that INVERTED the field beside it, the `band`
+    #: failure), `from_time`, `to_time` and `weekdays`. All five are still accepted from the
+    #: parser and converted; `_adopt_when` below is the whole migration.
+    when: Optional[When] = None
     when_open: bool = False
 
     # --- retention ---------------------------------------------------------
@@ -916,8 +1339,6 @@ class CatalogueRule(BaseModel):
                 e.append(f"{f} must be positive")
         if set(self.species) & set(self.species_except):
             e.append("a species cannot be both included and excepted")
-        if self.from_time and not self.to_time or self.to_time and not self.from_time:
-            e.append("a time-of-day window needs both ends, or it renders as no window at all")
         if self.unresolved_locators and not self.review_reason:
             e.append("unresolved_locators is set with no review_reason — a locator nobody "
                      "could bind is exactly what a human has to look at")
@@ -1061,10 +1482,12 @@ def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
 
 
 def _dates(r: CatalogueRule) -> str:
-    if not r.windows:
+    """The season, in words. There is no "except …" branch any more: `windows_are: excepts` stored
+    the days a rule did NOT hold and `When` stores the days it does, so the phrase is always the
+    same shape and the reader is never asked to invert it."""
+    if not r.when or not r.when.dates:
         return ""
-    joined = " and ".join(r.windows)
-    return f", except {joined}" if r.windows_are is WindowsAre.excepts else f", {joined}"
+    return ", " + " and ".join(d.words() for d in r.when.dates)
 
 
 def _who(r: CatalogueRule) -> str:
@@ -1103,10 +1526,10 @@ def _scope(r: CatalogueRule, taking: bool = True) -> str:
     if r.method:
         bits.append("taken on a set line" if r.method is Method.set_lining
                     else f"taken by {r.method.value.replace('_', ' ')}")
-    if r.weekdays:
-        bits.append("on " + " and ".join(f"{d}s" for d in r.weekdays))
-    if r.from_time and r.to_time:
-        bits.append(f"{r.from_time} to {r.to_time}")
+    if r.when and r.when.weekdays:
+        bits.append("on " + " and ".join(f"{d}s" for d in r.when.weekdays))
+    if r.when and r.when.hours:
+        bits.append(r.when.hours.words())
     if r.when_open:
         bits.append("where open")
     return (", " + ", ".join(bits)) if bits else ""
@@ -1253,7 +1676,10 @@ def label(r: CatalogueRule) -> str:
         return out
 
     if t is RuleType.bait_restriction:
+        # EXHAUSTIVE ON PURPOSE — a subscript, not `.get`. A member missing here is a KeyError at
+        # build time; a default would render the wrong bait and ship it.
         what = {Bait.any: "Bait", Bait.fin_fish: "Fin fish", Bait.dead_fin_fish: "Dead fin fish",
+                Bait.fin_fish_head_or_headless_body: "The head or headless body of fin fish",
                 Bait.invertebrate: "Freshwater invertebrates", Bait.roe: "Roe"}[r.bait or Bait.any]
         head = f"{what} may be used" if r.allowed else (
             "Bait ban" if (r.bait or Bait.any) is Bait.any else f"{what} may not be used as bait")

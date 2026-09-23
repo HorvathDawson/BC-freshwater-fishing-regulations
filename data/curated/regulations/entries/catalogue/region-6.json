@@ -215,9 +215,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 15-Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within a 400 m radius of the mouth of Pinkut Creek",
@@ -262,13 +270,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -333,9 +348,17 @@
      "rule_id": "babine_river.r5",
      "type": "tackle_restriction",
      "verbatim": "from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"",
-     "windows": [
-      "June 16-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -375,9 +398,17 @@
      "rule_id": "babine_river.r8",
      "type": "document_required",
      "verbatim": "Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River's confluence with the Skeena River",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "water_class": "I",
      "extents": [
@@ -857,9 +888,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 15-July 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of outlet",
@@ -958,9 +997,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1027,9 +1074,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1108,13 +1163,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -1155,9 +1217,17 @@
      "rule_id": "bulkley_river.r4",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31",
-     "windows": [
-      "Aug 15-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "between",
@@ -1186,9 +1256,17 @@
      "rule_id": "bulkley_river.r6",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Oct 31",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -1201,9 +1279,17 @@
      "rule_id": "bulkley_river.r7",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -1288,9 +1374,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Sept 15 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -1306,9 +1400,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Nov 1 - Sept 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 3,
      "extents": [
       {
@@ -1323,9 +1425,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Nov 1 - Sept 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 3,
      "period": "possession",
      "extents": [
@@ -1341,9 +1451,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Nov 1 - Sept 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "within": "cheslatta_lake.r2",
      "lengths": [
@@ -1573,9 +1691,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15 - Aug 1"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 1
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1588,10 +1714,23 @@
      "rule_id": "dala_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 1-June 14 and Aug 2-Oct 15",
-     "windows": [
-      "June 1 - June 14",
-      "Aug 2 - Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       },
+       {
+        "from_month": 8,
+        "from_day": 2,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1631,9 +1770,17 @@
      "rule_id": "damdochax_creek.r2",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -1647,9 +1794,17 @@
      "rule_id": "damdochax_creek.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -1752,9 +1907,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1940,9 +2103,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 15 - June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1970,9 +2141,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 15-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "the area at the outlet of François Lake described on map 1",
@@ -2090,10 +2269,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 16 - Apr 30"
-     ],
-     "windows_are": "excepts",
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2216,9 +2402,17 @@
      "rule_id": "gitnadoix_river.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "windows": [
-      "Apr 1 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -2245,9 +2439,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2292,9 +2494,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1 - Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2367,9 +2577,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -2473,9 +2691,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2548,9 +2774,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -2695,9 +2929,17 @@
      "rule_id": "kildala_river.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 1-Oct 15",
-     "windows": [
-      "June 1 - Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "bait": "any",
      "allowed": false,
      "extents": [
@@ -2735,13 +2977,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -2787,9 +3036,17 @@
      "rule_id": "kispiox_river.r5",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -2802,9 +3059,17 @@
      "rule_id": "kispiox_river.r6",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -2895,9 +3160,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 16-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 16,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3035,10 +3308,13 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -3075,9 +3351,17 @@
      "rule_id": "kitseguecla_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -3106,9 +3390,12 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "weekdays": [
-      "Saturday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Saturday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -3128,9 +3415,12 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "weekdays": [
-      "Sunday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -3155,9 +3445,17 @@
      "rule_id": "kitsumkalum_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Aug 7 - May 31",
-     "windows": [
-      "Aug 7 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 7,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -3205,10 +3503,13 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -3244,9 +3545,17 @@
      "rule_id": "kitwanga_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -3278,9 +3587,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 15 - July 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "within 100 m of outlet",
@@ -3380,9 +3697,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3452,9 +3777,17 @@
      "rule_id": "kluatantan_river.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -3486,10 +3819,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1 - June 30",
-      "Aug 20 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       },
+       {
+        "from_month": 8,
+        "from_day": 20,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3517,9 +3863,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Sept 1"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 9,
+        "to_day": 1
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3558,9 +3912,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 1-Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3599,9 +3961,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3647,9 +4017,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 1-Aug 20"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 20
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3665,9 +4043,17 @@
      "rule_id": "ksi_x_anmas_river.r2",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-Sept 30",
-     "windows": [
-      "Apr 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -3680,9 +4066,17 @@
      "rule_id": "ksi_x_anmas_river.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -3715,9 +4109,17 @@
      "rule_id": "kwinageese_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -3730,9 +4132,17 @@
      "rule_id": "kwinageese_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -4035,9 +4445,17 @@
      "rule_id": "lakelse_river.r2",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31",
-     "windows": [
-      "Mar 1 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -4100,9 +4518,17 @@
      "rule_id": "lakelse_river.r7",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-May 31",
-     "windows": [
-      "Sept 1 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -4198,9 +4624,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4358,9 +4792,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4398,13 +4840,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -4438,9 +4887,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4460,9 +4917,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4479,9 +4944,17 @@
      "rule_id": "morice_river.r5",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30",
-     "windows": [
-      "Sept 1 - Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -4509,9 +4982,17 @@
      "rule_id": "morice_river.r7",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from boats, Aug 15-Dec 31 (all parts)",
-     "windows": [
-      "Aug 15 - Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "whole"
@@ -4522,9 +5003,17 @@
      "rule_id": "morice_river.r8",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -4537,9 +5026,17 @@
      "rule_id": "morice_river.r9",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -4788,9 +5285,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Sept 15 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -4806,9 +5311,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Nov 1 - Sept 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 3,
      "extents": [
       {
@@ -4909,9 +5422,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 20 - Aug 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 20,
+        "to_month": 8,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4957,9 +5478,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 8 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 8,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5129,9 +5658,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 15 - June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5361,9 +5898,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 15 - Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5406,9 +5951,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5690,9 +6243,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -5780,9 +6341,17 @@
      "rule_id": "skeena_river.r1",
      "type": "document_required",
      "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
-     "windows": [
-      "July 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -5799,9 +6368,17 @@
      "rule_id": "skeena_river.r2",
      "type": "document_required",
      "verbatim": "(b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -5834,9 +6411,17 @@
      "rule_id": "skeena_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31",
-     "windows": [
-      "July 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -5855,13 +6440,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "July 1-Dec 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -5881,13 +6473,20 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "July 1 - Dec 31"
-     ],
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -6018,9 +6617,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 15-May 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 5,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6124,10 +6731,13 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "weekdays": [
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [],
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -6162,9 +6772,17 @@
      "rule_id": "suskwa_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -6258,9 +6876,17 @@
      "rule_id": "sustut_river.r3",
      "type": "document_required",
      "verbatim": "**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "water_class": "I",
      "extents": [
@@ -6640,9 +7266,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6675,9 +7309,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement",
@@ -6706,10 +7348,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 30",
-      "Aug 20-Sept 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       },
+       {
+        "from_month": 8,
+        "from_day": 20,
+        "to_month": 9,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6742,11 +7397,23 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "February",
-      "July"
-     ],
-     "windows_are": "excepts",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 1,
+        "to_day": 31
+       },
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -6796,9 +7463,17 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "permitted": false,
      "extents": [
       {
@@ -6821,9 +7496,17 @@
      "rule_id": "telkwa_river.r3",
      "type": "document_required",
      "verbatim": "**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
-     "windows": [
-      "Sept 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "water_class": "II",
      "extents": [
@@ -7088,9 +7771,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7188,9 +7879,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7480,9 +8179,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7509,9 +8216,17 @@
      "rule_id": "zymoetz_river.r5",
      "type": "document_required",
      "verbatim": "Upstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31",
-     "windows": [
-      "Jul 24 - Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "I",
      "extents": [
@@ -7527,9 +8242,17 @@
      "rule_id": "zymoetz_river.r6",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Jul 24 - Dec 31",
-     "windows": [
-      "Jul 24 - Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -7548,14 +8271,21 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Jul 24 - Dec 31"
-     ],
-     "weekdays": [
-      "Friday",
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Friday",
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -7570,9 +8300,17 @@
      "rule_id": "zymoetz_river.r8",
      "type": "document_required",
      "verbatim": "Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31",
-     "windows": [
-      "Jul 24 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -7588,9 +8326,17 @@
      "rule_id": "zymoetz_river.r9",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Jul 24 - May 31",
-     "windows": [
-      "Jul 24 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -7609,14 +8355,21 @@
       "residency": "non_resident_alien",
       "guided": false
      },
-     "windows": [
-      "Jul 24 - May 31"
-     ],
-     "weekdays": [
-      "Friday",
-      "Saturday",
-      "Sunday"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 24,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": [
+       "Friday",
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "permitted": false,
      "extents": [
       {
@@ -7675,9 +8428,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -7702,9 +8463,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -7925,9 +8694,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -7953,9 +8730,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -7981,9 +8766,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -8195,9 +8988,17 @@
      "species": [
       "ST"
      ],
-     "windows": [
-      "May 15 - Jun 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 15,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -8334,9 +9135,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Jul 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 1,
      "within": "trout_char_quota.r1",
      "water": "stream",
@@ -8395,9 +9204,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Nov 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",
@@ -8415,9 +9232,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Sept 15 - Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extent_text": "lakes of the Fraser watershed",
@@ -8439,9 +9264,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Sept 15 - Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extent_text": "lakes of the Skeena watershed",

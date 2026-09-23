@@ -273,9 +273,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -378,9 +386,17 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 2,
      "extents": [
       {
@@ -406,9 +422,17 @@
       "CT",
       "RB"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "within": "atnarko_bella_coola_rivers.r5",
      "extents": [
       {
@@ -425,9 +449,17 @@
      "species": [
       "CT"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "within": "atnarko_bella_coola_rivers.r6",
      "lengths": [
       {
@@ -449,9 +481,17 @@
      "species": [
       "RB"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "within": "atnarko_bella_coola_rivers.r6",
      "lengths": [
       {
@@ -473,9 +513,17 @@
      "species": [
       "CHAR"
      ],
-     "windows": [
-      "Sept 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "tributaries_only": true,
@@ -489,9 +537,17 @@
      "rule_id": "atnarko_bella_coola_rivers.r10",
      "type": "bait_restriction",
      "verbatim": "Bait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15",
-     "windows": [
-      "Sept 1-May 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -555,9 +611,17 @@
      "rule_id": "atnarko_bella_coola_rivers.r14",
      "type": "document_required",
      "verbatim": "**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -702,9 +766,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -723,9 +795,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1115,9 +1195,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Oct 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -1299,9 +1387,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1705,9 +1801,17 @@
      "rule_id": "burnt_bridge_creek.r3",
      "type": "document_required",
      "verbatim": "**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**",
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -1752,9 +1856,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1824,9 +1936,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -1967,9 +2087,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1988,9 +2116,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-June 10"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 10
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2028,9 +2164,17 @@
      "rule_id": "chilcotin_river.r4",
      "type": "tackle_restriction",
      "verbatim": "No hooks greater than 15 mm from point to shank, Oct 1-May 31",
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "max_gap_mm": 15,
      "extents": [
       {
@@ -2063,9 +2207,17 @@
      "rule_id": "chilcotin_river.r7",
      "type": "document_required",
      "verbatim": "Class II water Oct 1-May 31",
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -2082,9 +2234,17 @@
      "rule_id": "chilcotin_river.r8",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Oct 1-May 31",
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -2232,9 +2392,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -2285,9 +2453,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 10"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 10
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2340,9 +2516,17 @@
      "rule_id": "chilko_river.r5",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats upstream of bridge at Henry's Crossing, Sept 11-Sept 30",
-     "windows": [
-      "Sept 11-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 11,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "extents": [
       {
        "op": "upstream_of",
@@ -2372,9 +2556,17 @@
      "rule_id": "chilko_river.r7",
      "type": "document_required",
      "verbatim": "Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31",
-     "windows": [
-      "June 11-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 11,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -2391,9 +2583,17 @@
      "rule_id": "chilko_river.r8",
      "type": "document_required",
      "verbatim": "Steelhead Stamp not required",
-     "windows": [
-      "June 11-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 11,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "required": false,
      "includes_tributaries": true,
@@ -2546,9 +2746,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 1-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2580,9 +2788,17 @@
      "rule_id": "chuckwalla_river.r3",
      "type": "document_required",
      "verbatim": "Class II water**[Includes Tributaries]** Apr 1-May 31",
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -2596,9 +2812,17 @@
      "rule_id": "chuckwalla_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -2999,9 +3223,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -3041,9 +3273,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -3083,9 +3323,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1 - May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3136,9 +3384,17 @@
      "rule_id": "dean_river.r8",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31",
-     "windows": [
-      "June 15- Mar 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -3154,9 +3410,17 @@
      "rule_id": "dean_river.r9",
      "type": "tackle_restriction",
      "verbatim": "and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
-     "windows": [
-      "July 15-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -3172,9 +3436,17 @@
      "rule_id": "dean_river.r10",
      "type": "vessel_rule",
      "verbatim": "No powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31",
-     "windows": [
-      "Aug 1-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "aspect": "propulsion",
      "level": "unpowered",
      "extents": [
@@ -3191,9 +3463,17 @@
      "rule_id": "dean_river.r11",
      "type": "document_required",
      "verbatim": "Class I water June 1-Sept 30",
-     "windows": [
-      "June 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "I",
      "includes_tributaries": true,
@@ -3211,9 +3491,17 @@
      "rule_id": "dean_river.r12",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory June 1-Sept 30",
-     "windows": [
-      "June 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -3230,9 +3518,17 @@
      "rule_id": "dean_river.r13",
      "type": "document_required",
      "verbatim": "Class I water June 1-Sept 30",
-     "windows": [
-      "June 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "I",
      "includes_tributaries": true,
@@ -3249,9 +3545,17 @@
      "rule_id": "dean_river.r14",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory June 1-Sept 30",
-     "windows": [
-      "June 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -3267,9 +3571,17 @@
      "rule_id": "dean_river.r15",
      "type": "document_required",
      "verbatim": "Class II water June 16-Oct 31",
-     "windows": [
-      "June 16-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -3672,9 +3984,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -4278,9 +4598,17 @@
      "species": [
       "TROUT"
      ],
-     "windows": [
-      "Oct 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4315,9 +4643,17 @@
      "rule_id": "fraser_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Sept 15-July 15",
-     "windows": [
-      "Sept 15-July 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -4332,9 +4668,17 @@
      "species": [
       "WSG"
      ],
-     "windows": [
-      "Sept 15-July 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4368,9 +4712,17 @@
      "species": [
       "ST"
      ],
-     "windows": [
-      "Jan 1-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4711,9 +5063,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -5138,9 +5498,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5173,9 +5541,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5239,9 +5615,17 @@
      "rule_id": "horsefly_river.r6",
      "type": "document_required",
      "verbatim": "Class II water**[Includes Tributaries]** June 1-Oct 31",
-     "windows": [
-      "June 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -5255,9 +5639,17 @@
      "rule_id": "horsefly_river.r7",
      "type": "document_required",
      "verbatim": "Steelhead Stamp not required",
-     "windows": [
-      "June 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "required": false,
      "includes_tributaries": true,
@@ -5615,9 +6007,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5822,9 +6222,17 @@
      "rule_id": "nekite_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-May 31",
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -5837,9 +6245,17 @@
      "rule_id": "nekite_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
-     "windows": [
-      "Apr 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -6334,9 +6750,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay",
@@ -6352,9 +6776,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "in North Arm, north of a line between Watt and Service Creeks",
@@ -6475,9 +6907,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7432,9 +7872,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7490,9 +7938,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Oct 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -7642,9 +8098,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7733,9 +8197,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8174,9 +8646,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Mar 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8340,9 +8820,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-June 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8412,9 +8900,17 @@
      "rule_id": "west_road_blackwater_river.r6",
      "type": "document_required",
      "verbatim": "Mainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required",
-     "windows": [
-      "June 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "required": false,
      "water_class": "II",
@@ -9210,9 +9706,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 1 - Jun 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
@@ -9383,9 +9887,17 @@
      "species": [
       "LT"
      ],
-     "windows": [
-      "Oct 1 - Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "extents": [
@@ -9403,9 +9915,17 @@
       "BT",
       "DV"
      ],
-     "windows": [
-      "Aug 1 - Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": true,
      "water": "stream",
@@ -9477,9 +9997,17 @@
      "species": [
       "WSG"
      ],
-     "windows": [
-      "Sept 15 - Jul 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "Fraser River downstream of and including Williams Lake River",

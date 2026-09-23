@@ -61,9 +61,17 @@
      "rule_id": "ahnuhati_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -76,9 +84,17 @@
      "rule_id": "ahnuhati_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -190,9 +206,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -359,9 +383,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -416,9 +448,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -680,10 +720,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31",
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       },
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1028,9 +1081,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1050,9 +1111,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -1078,9 +1147,17 @@
      "rule_id": "campbell_river.r6",
      "type": "tackle_restriction",
      "verbatim": "Artificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31",
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "artificial_fly",
      "extents": [
       {
@@ -1199,9 +1276,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1248,9 +1333,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -1270,9 +1363,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -1483,9 +1584,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1633,9 +1742,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1653,9 +1770,17 @@
      "rule_id": "copper_creek.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "includes_tributaries": true,
      "extents": [
@@ -1683,9 +1808,17 @@
      "rule_id": "copper_creek.r4",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -1699,9 +1832,17 @@
      "rule_id": "copper_creek.r5",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "includes_tributaries": true,
      "extents": [
@@ -1734,9 +1875,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1778,9 +1927,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1834,9 +1991,17 @@
      "rule_id": "cowichan_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "windows": [
-      "Nov 15-Apr 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 4,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -1848,9 +2013,17 @@
      "rule_id": "cowichan_lake.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "windows": [
-      "Nov 15-Apr 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 4,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -1901,9 +2074,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 4-July 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 4,
+        "to_month": 7,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1919,9 +2100,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -1938,9 +2127,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 15-Apr 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 15,
+        "to_month": 4,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -1978,9 +2175,17 @@
      "rule_id": "cowichan_river.r5",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15",
-     "windows": [
-      "Sept 1-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -1999,9 +2204,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2285,9 +2498,17 @@
      "rule_id": "datlamen_creek.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -2299,9 +2520,17 @@
      "rule_id": "datlamen_creek.r2",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -2314,9 +2543,17 @@
      "rule_id": "datlamen_creek.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -2352,9 +2589,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -2391,9 +2636,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -2419,9 +2672,17 @@
      "rule_id": "deena_creek.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "includes_tributaries": true,
      "extents": [
@@ -2434,9 +2695,17 @@
      "rule_id": "deena_creek.r4",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -2449,9 +2718,17 @@
      "rule_id": "deena_creek.r5",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -2859,9 +3136,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -2898,9 +3183,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -2994,9 +3287,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3309,10 +3610,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31",
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       },
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3518,9 +3832,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Aug 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -3630,9 +3952,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3648,9 +3978,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -3759,9 +4097,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [],
@@ -4022,9 +4368,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4242,9 +4596,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Sept 14"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -4499,9 +4861,17 @@
      "rule_id": "honna_river.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -4528,9 +4898,17 @@
      "rule_id": "honna_river.r3",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -4543,9 +4921,17 @@
      "rule_id": "honna_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -4722,9 +5108,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Apr 15-July 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "includes channel downstream of Ladore Dam"
@@ -4837,9 +5231,17 @@
      "rule_id": "kakweiken_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -4852,9 +5254,17 @@
      "rule_id": "kakweiken_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -4934,9 +5344,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -4968,9 +5386,17 @@
      "rule_id": "kingcome_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -4983,9 +5409,17 @@
      "rule_id": "kingcome_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -5017,9 +5451,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "from boundary signs in Kokish canyon to Ida Lake",
@@ -5090,10 +5532,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31",
-      "July 1-Sept 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       },
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5278,9 +5733,17 @@
      "rule_id": "little_main_lake.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -5292,9 +5755,17 @@
      "rule_id": "little_main_lake.r2",
      "type": "tackle_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -5339,9 +5810,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -5374,9 +5853,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5414,9 +5901,17 @@
      "rule_id": "little_qualicum_river.r5",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only, Sept 1-Nov 30 (where open)",
-     "windows": [
-      "Sept 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "when_open": true,
      "lure": "fly_fishing",
      "extents": [
@@ -5673,9 +6168,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-July 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
@@ -5800,9 +6303,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -5832,9 +6343,17 @@
      "rule_id": "main_lake.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -5846,9 +6365,17 @@
      "rule_id": "main_lake.r2",
      "type": "tackle_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -5892,9 +6419,17 @@
      "rule_id": "mamin_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -5907,9 +6442,17 @@
      "rule_id": "mamin_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -5924,9 +6467,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Feb 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extent_text": "upstream of fishing boundary signs on third bridge, approximately 10 km upstream of the tidal boundary",
@@ -5936,9 +6487,17 @@
      "rule_id": "mamin_river.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -6444,9 +7003,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6531,9 +7098,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6694,9 +7269,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6744,9 +7327,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6781,9 +7372,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Sept 1-Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6803,9 +7402,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -6868,9 +7475,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6974,9 +7589,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 25-Dec 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 25,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -6996,9 +7619,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 25-Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 25,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7147,9 +7778,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7187,9 +7826,17 @@
      "rule_id": "pallant_creek.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7201,9 +7848,17 @@
      "rule_id": "pallant_creek.r2",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -7216,9 +7871,17 @@
      "rule_id": "pallant_creek.r3",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -7663,9 +8326,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 15-Oct 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7772,9 +8443,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "May 1-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7805,9 +8484,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -7823,9 +8510,17 @@
      "rule_id": "quatse_river.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban, May 1-Nov 30",
-     "windows": [
-      "May 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -7921,9 +8616,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8105,9 +8808,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8351,9 +9062,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8383,9 +9102,17 @@
      "rule_id": "seymour_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Aug 15-Oct 31",
-     "windows": [
-      "Aug 15-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "includes_tributaries": true,
@@ -8489,9 +9216,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Aug 25-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 25,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8508,9 +9243,17 @@
      "rule_id": "somass_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 1-Aug 24",
-     "windows": [
-      "June 1-Aug 24"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 24
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -8553,9 +9296,17 @@
      "rule_id": "sooke_river.r1",
      "type": "tackle_restriction",
      "verbatim": "Fly fishing only downstream of Sooke River Falls, Sept 1-Nov 30",
-     "windows": [
-      "Sept 1-Nov 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 11,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "lure": "fly_fishing",
      "extents": [
       {
@@ -8573,9 +9324,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8736,9 +9495,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8755,9 +9522,17 @@
      "rule_id": "sproat_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, May 1-Oct 31",
-     "windows": [
-      "May 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -8818,9 +9593,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "June 15-Nov 15"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 11,
+        "to_day": 15
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -8840,9 +9623,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jan 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "includes_tributaries": true,
@@ -8875,9 +9666,17 @@
      "rule_id": "stamp_river.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban downstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek), June 1-Aug 24",
-     "windows": [
-      "June 1-Aug 24"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 24
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -9299,9 +10098,17 @@
      "rule_id": "tlell_river.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -9328,9 +10135,17 @@
      "rule_id": "tlell_river.r3",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -9343,9 +10158,17 @@
      "rule_id": "tlell_river.r4",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -9530,9 +10353,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-May 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -9626,10 +10457,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31",
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       },
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -9721,10 +10565,23 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Dec 1-May 31",
-      "July 15-Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       },
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -9757,9 +10614,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -10332,9 +11197,17 @@
      "rule_id": "village_bay_lake.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -10346,9 +11219,17 @@
      "rule_id": "village_bay_lake.r2",
      "type": "tackle_restriction",
      "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "barbless": true,
      "hook_count": 1,
      "extents": [
@@ -10428,9 +11309,17 @@
      "rule_id": "wakeman_river.r1",
      "type": "document_required",
      "verbatim": "Class II water Apr 1-Oct 31",
-     "windows": [
-      "Apr 1-Oct 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -10443,9 +11332,17 @@
      "rule_id": "wakeman_river.r2",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
-     "windows": [
-      "Apr 1-June 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -10564,9 +11461,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -10744,9 +11649,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Oct 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -10763,9 +11676,17 @@
      "rule_id": "yakoun_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban Nov 1-Apr 30",
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "allowed": false,
      "extents": [
       {
@@ -10804,9 +11725,17 @@
      "rule_id": "yakoun_river.r5",
      "type": "document_required",
      "verbatim": "Class II water Sept 1-Apr 30",
-     "windows": [
-      "Sept 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "classified_waters_licence",
      "water_class": "II",
      "extents": [
@@ -10819,9 +11748,17 @@
      "rule_id": "yakoun_river.r6",
      "type": "document_required",
      "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
-     "windows": [
-      "Dec 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "document": "steelhead_stamp",
      "extents": [
       {
@@ -10889,9 +11826,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Nov 1-Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "extents": [
@@ -11002,9 +11947,17 @@
      "rule_id": "hg_bait_ban_streams.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban: applies to all streams in Management Units 6-12 and 6-13, Nov 1-Apr 30.",
-     "windows": [
-      "Nov 1 - Apr 30"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ],
+      "weekdays": []
+     },
      "water": "stream",
      "bait": "any",
      "allowed": false,
@@ -11400,9 +12353,17 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "windows": [
-      "Jul 15 - Aug 31"
-     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "weekdays": []
+     },
      "take": 0,
      "may_target": false,
      "water": "stream",
