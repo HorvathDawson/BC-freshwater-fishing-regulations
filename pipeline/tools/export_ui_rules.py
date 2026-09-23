@@ -629,36 +629,39 @@ LAST_CHECKED = {
 }
 
 
-def _size_examples() -> dict:
-    """BOTH BOUNDS MEAN TWO OPPOSITE THINGS, so the file shows one of each rather than asserting
-    it. 29 rules in the corpus carry an `over_cm` AND an `under_cm`: 15 are holes and 14 are
-    windows, and only `band` separates them.
+def _size_examples(take) -> dict:
+    """BOTH BOUNDS MEAN TWO OPPOSITE THINGS, so every rule that carries both is in this file —
+    all 29 of them, interned into `rules` like any other, with their verbatim sentence.
+
+    15 are HOLES (`band`: keep none between) and 14 are WINDOWS (keep only between). The numbers
+    look identical; only `band` separates them, which is why listing them as ids a consumer can
+    look up beats asserting a count it cannot check. Only ONE of the 29 belongs to a sampled
+    region or water, so without this they would not be in the file at all and a consumer would
+    never see a band record.
 
     Four windows were flagged as holes until 2026-09-22 — "Lake trout = 2 (none under 40 cm or
     over 60 cm)" read as "keep nothing between 40 and 60", which permits exactly the fish the
     rule protects. Gwillim Lake sat beside a correctly curated twin using "and none over" rather
     than "or over", the same numbers, no flag: one sentence, two spellings, opposite curation.
-
-    These examples come from waters outside the sampled set, because none of the sampled ones
-    carries a band.
     """
-    want = {"teslin_lake.r3": "hole", "gwillim_lake.r1": "window",
-            "coquitlam_river.r3": "window"}
-    out = {"_note": "29 rules carry both bounds — 15 holes, 14 windows. `lo` is always the "
-                    "smaller length; what differs is whether the fish you may keep are inside "
-                    "that range or outside it.",
-           "examples": []}
-    for x in rules():
-        k = want.get(x.get("rule"))
-        if not k:
-            continue
-        out["examples"].append({
-            "rule": rid(x), "verbatim": " ".join((x.get("verbatim") or "").split()),
-            "over_cm": x.get("over_cm"), "under_cm": x.get("under_cm"),
-            "band": bool(x.get("band")), "size_rule": _size_rule(x),
-        })
-    out["examples"].sort(key=lambda e: e["size_rule"]["kind"])
-    return out
+    both = [x for x in rules() if x.get("over_cm") and x.get("under_cm")]
+    by_kind = defaultdict(list)
+    for x in both:
+        by_kind[_size_rule(x).get("kind") or "not a size limit"].append(x)
+    return {
+        "_note": "Every rule in the corpus carrying BOTH an over_cm and an under_cm. `lo` is "
+                 "always the smaller length; what differs is whether the fish you may keep are "
+                 "inside that range or outside it. Read `size_rule` on the rule, never the two "
+                 "numbers on their own.",
+        "_readings": SIZE_READINGS,
+        "by_kind": {k: {"count": len(xs), "means": SIZE_READINGS.get(k, ""),
+                        "rule_ids": take(sorted(xs, key=rid))}
+                    for k, xs in sorted(by_kind.items())},
+        "read_one_of_each": {
+            "hole": "r6:teslin_lake@6-25::teslin_lake.r3",
+            "window": "r7:gwillim_lake@7-21::gwillim_lake.r1",
+        },
+    }
 
 
 def main(out_path: str) -> int:
@@ -726,6 +729,10 @@ def main(out_path: str) -> int:
             "rule_ids": take(mine),
         })
 
+    # BEFORE the document, because it interns rules of its own and `_counts` below reads
+    # `len(kept)`: built inside the literal it added 28 rules after the count was taken.
+    sizes = _size_examples(take)
+
     doc = {
         "_what_this_is":
             "Stage ③ of pipeline/docs/05-table-generation.md — the rules as `corpus.rules()` "
@@ -763,7 +770,7 @@ def main(out_path: str) -> int:
                      "vessel rules are the same kind of object and the same ladder settles them.",
             "by_type": RULE_TYPES, "by_family": RULE_FAMILIES,
         },
-        "size_rule_examples": _size_examples(),
+        "size_rule_examples": sizes,
         "field_dictionary": FIELDS,
         "species": species_object(),
         "rules": kept,
