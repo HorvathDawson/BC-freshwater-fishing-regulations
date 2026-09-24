@@ -13,7 +13,9 @@ from __future__ import annotations
 import json, sqlite3
 from typing import List
 
-BUNDLE = "data/generated/bundle/bundle.sqlite"
+from pipeline.common.curated import GENERATED
+
+BUNDLE = str(GENERATED.bundle / "bundle.sqlite")
 
 
 _CATALOGUE = None
@@ -33,12 +35,24 @@ def rules(path: str = BUNDLE) -> List[dict]:
     `_rule_row` packs every catalogue field that is not already a column), `entry_name` is the
     entry table's own `name`, and `entry_region` was written and never read, so it is gone.
     Verified rule by rule against what the join used to return: 3,421 of 3,421 identical.
+
+    `exempts` is a COLUMN now (resolved at build to the entry each lift reaches) and is decoded
+    from it; `entry_extents` is the entry's own `extents`, carried beside the rule's.
     """
     db = sqlite3.connect(path)
     cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
     ecols = [r[1] for r in db.execute("PRAGMA table_info(entry)")]
-    names = {r[ecols.index("entry_id")]: (r[ecols.index("name")] or "")
-             for r in db.execute("SELECT * FROM entry")}
+    names, ext = {}, {}
+    for r in db.execute("SELECT * FROM entry"):
+        names[r[ecols.index("entry_id")]] = r[ecols.index("name")] or ""
+        ext[r[ecols.index("entry_id")]] = json.loads(r[ecols.index("extents")] or "[]")
+    if "exempts" not in cols:
+        # `exempts` is a column of its own, RESOLVED to the entry it lifts, and no longer rides
+        # `conditions`. A bundle from before that reads here as a corpus in which nothing lifts
+        # anything — every spring-closure exemption silently gone — so it is refused.
+        db.close()
+        raise SystemExit(f"corpus.rules: {path} has no `rule.exempts` column — rebuild the "
+                         f"bundle (`python -m pipeline.deliver.bundle`)")
     out = []
     for row in db.execute("SELECT * FROM rule"):
         d = dict(zip(cols, row))
@@ -56,12 +70,26 @@ def rules(path: str = BUNDLE) -> List[dict]:
         w = d.pop("while_", None)
         if w:
             d["while"] = json.loads(w)
+        # `exempts` is its own column: [{default_id | target, entry_id, note?}], each lift
+        # already resolved to the entry it reaches. A condition of the same name would mean the
+        # bundle says it twice.
+        if "exempts" in cond:
+            raise SystemExit(f"corpus.rules: {d['entry_id']}::{d['rule_id']} carries `exempts` "
+                             f"in `conditions` as well as in its column")
+        x = d.pop("exempts", None)
+        if x:
+            d["exempts"] = json.loads(x)
         if d.pop("standing", 0):
             d["standing"] = True
         d["rule"] = d.get("rule_id")
         d["entry"] = d.get("entry_id")
         d["entry_name"] = names.get(d["entry"], "")
         d.setdefault("extents", [])
+        # The entry's extents, for the scope of a rule that has none of its own — the model's
+        # "None inherits the entry" (see `authority.source_of`). Kept apart from `extents`,
+        # which is only ever the rule's own: the bundle stopped copying these onto its rules
+        # because an unplaced rule then claimed its entry's whole water.
+        d["entry_extents"] = ext.get(d["entry"], [])
         out.append(d)
     db.close()
     return out
@@ -76,7 +104,7 @@ def rid(x: dict) -> str:
     unique. Every map keyed on the bare id silently merges them — the Region 1 kokanee quota
     and the Region 9 one become one rule, and four of the five spring closures cease to exist.
     """
-    return f"{x.get('entry') or x.get('entry_id')}::{x.get('rule') or x.get('rule_id')}"
+    return f"{x['entry']}::{x['rule']}"
 
 
 def rule_part(key: str) -> str:
@@ -90,7 +118,7 @@ def rule_part(key: str) -> str:
 #: import, by two modules — each opening the page and JSON-parsing it to get at a 4.2 MB block
 #: inside. The table layer's input was therefore a prototype web page, which could not be deleted,
 #: regenerated or reviewed without the risk of taking the pipeline with it. It is a file now.
-SECTIONS = "data/generated/regs/sections.json"
+SECTIONS = str(GENERATED.base / "regs" / "sections.json")
 _SECTIONS = None
 
 

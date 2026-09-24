@@ -61,10 +61,12 @@ def test_no_carve_outs_blocks_nothing():
     assert detail == [] and blocked == set()
 
 
-def test_entry_level_except_blocks_the_water_and_everything_above_it():
-    """`entry.tributaries.excludes` qualifies EVERY rule in the row, exactly as `entry.scope` does."""
-    entry = {"tributaries": {"excludes": [{"op": "whole", "item_id": "burnt", "splits": []}]}}
-    detail, blocked = resolve_carve_outs(entry, {}, REG, _graph(), ["main"])
+BURNT = {"tributary_excludes": [{"op": "whole", "item_id": "burnt", "splits": []}]}
+
+
+def test_an_except_blocks_the_water_and_everything_above_it():
+    """A rule's `tributary_excludes`: the excepted creek, and all that drains through it."""
+    detail, blocked = resolve_carve_outs({}, BURNT, REG, _graph(), ["main"])
 
     assert blocked == {"burnt:0", "burnt_trib:0"}, "the creek AND what drains into it"
     assert len(detail) == 1
@@ -81,19 +83,23 @@ def test_a_carve_out_does_not_swallow_the_mainstem_continuing_above_it():
     upstream of Sitkatapa" resolves the upper stretch through the extent's own `upstream_of`
     op; nothing needs inferring. If the block walk also followed continuations, a carve-out
     naming one stretch would silently remove the rest of the creek too."""
-    entry = {"tributaries": {"excludes": [{"op": "whole", "item_id": "burnt", "splits": []}]}}
-    _detail, blocked = resolve_carve_outs(entry, {}, REG, _graph(), ["main"])
+    _detail, blocked = resolve_carve_outs({}, BURNT, REG, _graph(), ["main"])
 
     assert "burnt_above:0" not in blocked
 
 
-def test_rule_level_except_is_additive_to_the_entry_level_one():
-    entry = {"tributaries": {"excludes": [{"op": "whole", "item_id": "burnt", "splits": []}]}}
-    rule = {"tributary_excludes": [{"op": "whole", "item_id": "main", "splits": []}]}
-    detail, blocked = resolve_carve_outs(entry, rule, REG, _graph(), ["main"])
+def test_a_carve_out_is_the_rules_own_and_there_is_no_entry_wide_one():
+    """An entry-wide list cut EVERY rule in the row, including one ABOUT the excepted water; the
+    catalogue has none, so an entry key of the retired shape is not read (it cannot load either:
+    `CatalogueEntry` refuses it)."""
+    retired = {"tributaries": {"excludes": [{"op": "whole", "item_id": "burnt", "splits": []}]}}
+    detail, blocked = resolve_carve_outs(retired, {}, REG, _graph(), ["main"])
+    assert detail == [] and blocked == set()
 
-    assert len(detail) == 2, "both sources apply; neither replaces the other"
-    assert "burnt:0" in blocked and "m:0" in blocked
+    two = {"tributary_excludes": BURNT["tributary_excludes"]
+           + [{"op": "whole", "item_id": "main", "splits": []}]}
+    detail, blocked = resolve_carve_outs({}, two, REG, _graph(), ["main"])
+    assert len(detail) == 2 and "burnt:0" in blocked and "m:0" in blocked
 
 
 def test_an_unresolvable_carve_out_is_reported_not_silently_dropped():

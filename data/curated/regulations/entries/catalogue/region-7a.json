@@ -35,8 +35,7 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -76,16 +75,6 @@
      "rule_id": "single_barbless_hook.r1",
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:7a",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -95,7 +84,17 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     }
@@ -124,6 +123,14 @@
      "rule_id": "bait_ban_streams.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban: applies to all streams of Zone A, all year.",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "water": "stream",
      "extents": [
       {
@@ -131,14 +138,6 @@
        "area_id": "area:region:7a",
        "feature_types": [
         "stream"
-       ]
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
        ]
       }
      ]
@@ -168,6 +167,12 @@
      "rule_id": "set_lining.r1",
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
+     ],
      "water": "lake",
      "extents": [
       {
@@ -177,36 +182,38 @@
         "lake"
        ]
       }
-     ],
-     "while": [
-      "set_lining"
-     ],
-     "conduct": [
-      "mark_set_line_with_contact_details"
      ]
     },
     {
      "rule_id": "set_lining.r2",
      "type": "method_rule",
      "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-     "water": "lake",
-     "extent_text": "marked with the angler's name, address and telephone number",
      "gear": [
       {
        "slot": "lines_per_angler",
-       "max": 1
+       "max": 1.0
       },
       {
        "slot": "hooks_per_line",
-       "max": 1
+       "max": 1.0
       },
       {
        "slot": "hook_gap_mm",
-       "min": 30
+       "min": 30.0
       }
      ],
      "while": [
       "set_lining"
+     ],
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
      ]
     },
     {
@@ -219,6 +226,9 @@
      "species_except": [
       "BB"
      ],
+     "while": [
+      "set_lining"
+     ],
      "take": 0,
      "may_target": true,
      "water": "lake",
@@ -230,9 +240,6 @@
         "lake"
        ]
       }
-     ],
-     "while": [
-      "set_lining"
      ]
     }
    ]
@@ -338,8 +345,7 @@
         "to_month": 8,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "within": "trout_char_quota.r1",
@@ -399,8 +405,7 @@
         "to_month": 10,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -427,8 +432,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -645,9 +649,6 @@
      ],
      "take": 0,
      "may_target": false,
-     "authority": "superior",
-     "extent_text": "Upper Fraser and Nechako watersheds",
-     "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply.",
      "extents": [
       {
        "op": "whole",
@@ -659,7 +660,10 @@
        "item_id": "gnis:39325",
        "includes_tributaries": true
       }
-     ]
+     ],
+     "authority": "superior",
+     "extent_text": "Upper Fraser and Nechako watersheds",
+     "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply."
     }
    ]
   },
@@ -686,12 +690,20 @@
      "rule_id": "ice_fishing_huts.r1",
      "type": "method_rule",
      "verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
-     "extent_text": "huts must be removed before spring breakup",
      "while": [
       "ice_fishing"
      ],
      "conduct": [
       "remove_ice_hut_before_breakup"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
      ]
     }
    ]

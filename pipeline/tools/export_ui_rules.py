@@ -1,778 +1,1497 @@
-"""Export stage ③ — the rules, and nothing derived from them.
+"""The UI data export: every regulation record in the bundle, and a guide to reading it.
 
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules OUT.json
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules [--bundle B] [--out OUT]
 
-THE SHAPE, and why it is this one (see `pipeline/docs/06-ui-data-contract.md`):
+WHAT IS IN IT. Everything the bundle holds about regulations, and nothing sampled:
 
-  · RULES ARE INTERNED, keyed by `entry::rule`, and everything else indexes into them. A rule
-    binds a region and every water in it; repeating it per place triples the file and makes two
-    copies of one sentence that can disagree. The bundle interns rule SETS for the same reason.
-  · NOTHING SETTLED IS SHIPPED. No tables. Settling — which counter carves which, what the
-    numbers come to — is the pipeline's job and a layer of its own; this is the input to it.
-  · THE CORRECTNESS EVIDENCE TRAVELS WITH THE RULES. Each region carries its printed-synopsis
-    panel: every line of the book's own table, whether the rules agree with it, and which rule
-    proves each one. "Can we generate the base region tables and check they are correct" is
-    answered inside the file rather than by trusting it.
+  · every entry (the province, the zone chapters, the areas inside them, and the waters);
+  · every rule, keyed `entry_id::rule_id`, with its generated `label`, its `verbatim`, its fields
+    exactly as the bundle ships them, and its provenance;
+  · every licensing record, keyed `entry_id#record_id`, the same way, with its placement;
+  · the document register;
+  · where each of them applies, in the bundle's own interned form: rule sets and licensing sets
+    (each shared by many sections), and for every named water the sets its sections carry;
+  · a `guide` explaining how to read all of it, generated from the model's own registries
+    wherever the model has one, so the explanation cannot drift from the code.
 
-Three things done to the raw records, all reversible and all labelled:
+WHAT IS NOT. Nothing is settled here: no tables, no verdicts, no "reads as". A record is data;
+the guide says how to read it, and the reader applies that. Section handles never leave the
+bundle (AGENTS 5), so membership is exported per set and per named water, never per section.
 
-  · SPECIES CODES ARE EXPANDED to base codes, with `species_written` keeping what the book said,
-    so a consumer answering "is my bull trout in this" does not expand TROUT_CHAR first.
-  · EVERY RULE CARRIES ITS PROVENANCE — the sentence, who wrote it, what it binds to, its rank.
-  · NOTHING ELSE IS COMPUTED. The rules are dumped as the corpus holds them. `reads_as`,
-    `size_rule` and `shared_number` were derived here until 2026-09-22 and are gone: this file
-    is data, and a reading is not data. What they encoded was not thrown away — it is in
-    `field_dictionary` as the conditions a consumer applies, so there is one written answer
-    rather than a computed one that hides how it was reached.
-
-Change `REGIONS` / `WATERS` below to widen it. Nothing here is cached or committed.
+ONE SOURCE. Everything is read from `bundle.sqlite`. A bundle that lacks a column this export
+reads, or that ships a retired field, is refused rather than worked around.
 """
 from __future__ import annotations
 
+import argparse
 import json
+import os
+import sqlite3
 import sys
-from collections import defaultdict
+import typing
+from collections import Counter, defaultdict
+from pathlib import Path
 
-from pipeline.regs.parsing.catalogue import (DEFINITIONAL_SIZE, SPECIES_GROUPS,
-                                             _SPECIES_WORDS, expand_species)
+from pipeline.common.curated import GENERATED
+from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.species import SPECIES
-from pipeline.regs.table import state as ST
-from pipeline.regs.table.authority import source_of
-from pipeline.regs.table.corpus import rid, rules, sections
+from pipeline.regs.table.authority import Authority, Scope, Source, source_of
 
-#: Every chapter the book has. `1hg` is Haida Gwaii, which is administered as Region 1 and
-#: printed as a table of its own — listing it under Region 1 offers one table under two names.
-REGIONS = ["province", "1", "1hg", "2", "3", "4", "5", "6", "7a", "7b", "8"]
-#: Chosen to exercise the cases, not for coverage:
-#:   Cowichan       sits inside Region 1's "MUs 1-1 to 1-6", so the area match is demonstrated
-#:   Fording        the only stretch where a rank-0 rule and six inherited ones speak at once
-#:   Okanagan Lake  narrows the region AND opens what it closed
-#:   Shuswap        the most water rules of any stretch
-#:   Fraser 17      four exemptions, three of the spring closure and one of a bait ban
-#:   Kootenay R 6   exempts a closure by naming a reach the corpus cannot draw
-#:   Okanagan R     a closure and its exemption on the same stretch
-WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
-          ("Atlin Lake", 0), ("Shuswap Lake", 0), ("Fording River", 1), ("Kootenay Lake", 1),
-          ("Fraser River", 17), ("Kootenay River", 6), ("Okanagan River", 0),
-          ("Kootenay River", 8), ("Chilliwack River", 3)]
-CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
-           "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
+BUNDLE = GENERATED.bundle / "bundle.sqlite"
+OUT = GENERATED.base / "regs" / "ui-rules-export.json"
 
-#: THE SHAPES A `lengths` LIST TAKES, in words. Nothing here is inferred: each is read straight
-#: off the ranges and their `take`, and is listed so a consumer can name what it is looking at.
-SIZE_READINGS = {
-    "floor": "you may keep none SMALLER than this",
-    "ceiling": "you may keep none LARGER than this",
-    "window": "you may keep only between these two lengths",
-    "hole": "you may keep none BETWEEN these two lengths",
-    "counts over": "the number counts only the fish larger than this; smaller ones are not "
-                   "limited by this rule",
-    "which fish": "not a limit — it says which fish the rule is about (a stamp needed for the "
-                  "big ones, say)",
-}
+# --------------------------------------------------------------------------------------------
+# What the bundle must carry, and what it must never carry
+# --------------------------------------------------------------------------------------------
+
+#: Columns this export reads beyond the long-standing ones. A bundle without them is refused:
+#: `entry.matched` is every water a synopsis row covers (`item_id` is only the first), and
+#: `rule.unresolved` is why a rule could not be placed, and `rule.exempts` is what a rule lifts,
+#: resolved to the entry each lift reaches — it left `conditions` for a column of its own, so a
+#: bundle without the column is one whose lifts this export would silently drop.
+REQUIRED_COLUMNS = {"entry": ("matched",), "rule": ("unresolved", "exempts")}
+
+#: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
+RETIRED_ANYWHERE = frozenset({
+    "windows", "windows_are", "from_time", "to_time", "when_open",
+    "over_cm", "under_cm", "band", "combined", "aggregation_domain",
+    "required", "permitted", "allowed", "on_retention", "water_class", "licence_name",
+    "issuing_jurisdiction", "grantor", "angler_class",
+    "barbless", "hook_count", "max_lines", "max_flies", "max_weight_kg", "min_gap_cm",
+    "max_gap_mm", "electric_only",
+    "details", "rule_text", "restriction_type", "exempts_from", "subject",
+    "needs_review", "locked", "reviewed_by", "reviewed_at", "registry_status", "registry_note",
+    "parse_review", "revisit", "reference_only", "display_location", "location_text",
+    "document_required", "access_permission",
+})
+#: Names that are current somewhere else in the model (`method` is a gear slot and a clause
+#: condition, `document` a licence-terms field, `kind` the licensing discriminator, `dates` a
+#: field of `when`) and retired only as a key on a RULE.
+RETIRED_ON_RULE = RETIRED_ANYWHERE | frozenset({
+    "method", "document", "allocation", "reason", "kind", "dates", "weekdays", "lure", "bait",
+    "scope_text", "tributaries",
+})
+#: Rule types that were retired into `CatalogueEntry.licensing`.
+RETIRED_TYPES = frozenset({"document_required", "access_permission"})
 
 
-FIELDS = {
-    "_note": "Every rule is a flat dict. 26 fields are on all 3,422 rules in the corpus; the "
-             "rest appear only where they mean something. Nothing parses prose — sizes, dates, "
-             "methods and documents are all fields.",
-    "identity and provenance": {
-        "entry / rule": "the curated entry, and the rule id INSIDE it. A rule id is unique only "
-                        "within its entry — `species_quotas.r1` is nine different rules — so key "
-                        "on `entry::rule`.",
-        "verbatim": "the sentence from the printed book. The one thing a reader can check.",
-        "provenance": "who wrote it and what it binds to, spelled out: `who` ('Region 2'), "
-                      "`binds_to` (region / area / water / inherited), `says` (the verbatim "
-                      "again, for a caller that has only the rule), `rank` (below), and the "
-                      "curated entry's own name and region.",
-        "label": "a short human label written during curation — NOT from the book.",
-    },
-    "what it is about": {
-        "species": "BASE species codes, expanded here. Look them up in `species`.",
-        "species_written": "what the book/curation actually wrote — often a group code. Kept so "
-                           "the grouping can be rebuilt; see `groups`.",
-        "species_except": "species carved out (also expanded), with `species_except_written`.",
-        "origin": "'wild' | 'hatchery' | absent. ABSENT MEANS BOTH, not a third kind.",
-        "water": "'stream' | 'lake' | absent (absent = either)",
-        "family / dimension / type": "how the rule was classified when curated",
-    },
-    "the number": {
-        "take": "how many you may keep. 0 is a closure, OR a release, OR a size floor — which "
-                "one depends on `may_target` and the size fields.",
-        "may_target": "0 where you may not even fish for it (a closure, not a release)",
-        "unlimited": "true where there is no number",
-        "period": "'daily' | 'possession' | 'annual' — which clock the number is on",
-        "_shared_or_each": "THERE IS NO FIELD: count `species`. More than one fish named means "
-                           "the number is SHARED between them — 'Char daily quota = 1' is one "
-                           "char between them, 'Bass: 20' is twenty bass and not twenty of each. "
-                           "One fish has no pool to share and is neither. A `combined` field "
-                           "used to say this; it marked 31 of the 1,188 rules carrying a number, "
-                           "every one of which already named more than one fish, as did 1,157 it "
-                           "never marked — and it was written `false` on the other 3,379, so its "
-                           "absence read as a denial. It has been removed from the corpus. "
-                           "Nothing in the book means 'one each': the four group quotas whose "
-                           "sentence contains 'each' all say 'each day' or 'each year'. Count "
-                           "`species` (expanded), not `species_written`: ['TROUT_CHAR'] is 13 "
-                           "fish, not one.",
-        "within": "the rule id this is a clause of — '1 over 50 cm' inside 'Trout/char: 4'. A "
-                  "clause counts INSIDE its parent, never against it.",
-        "per_daily": "a possession multiple: N times the daily number",
-    },
-    "size": {
-        "lengths": "THE ONLY SIZE FIELD. An ORDERED list of length "
-                   "ranges, each with the number you may keep in it; the FIRST range that "
-                   "contains a fish's length wins. `min_cm`/`max_cm` are inclusive and null is "
-                   "open at that end; a range with no `take` of its own uses the rule's `take`. "
-                   "A length NO range covers is not spoken about by this rule — at the top "
-                   "level nothing else grants it, and inside a `within` clause the parent quota "
-                   "governs it. Present on all 270 rules that carry a size and on no others. "
-                   "Every rule with a range closed at both ends is in this file under "
-                   "`size_rule_examples`.",
-        "_why_lengths_exists":
-            "`over_cm` meant three different things depending on the fields around it: the "
-            "ceiling on a granted fish ('quota 2, none over 50 cm'), the class a number COUNTS "
-            "('only 1 over 40 cm', inside a clause), and the fish denied outright ('no trout "
-            "over 50 cm'). Six branches told them apart and every consumer that re-derived them "
-            "got it wrong differently — and `band`, the one flag that did carry meaning, was "
-            "set backwards on four rules, permitting exactly the fish they protect. `lengths` "
-            "writes the range and its number, so there is nothing left to infer.",
-        "_worked": {
-            "Trout daily quota = 2 (none over 50 cm)":
-                "[{max_cm: 50}, {min_cm: 50, take: 0}] — the 2 applies up to 50, none above",
-            "1 bull trout over 60 cm":
-                "[{min_cm: 60}, {max_cm: 60, take: 0}] — the floor is absolute",
-            "only 1 over 40 cm (a clause)":
-                "[{min_cm: 40}] — smaller fish are the parent quota's business, not this rule's",
-            "20-30 cm only, quota 2":
-                "[{min_cm: 20, max_cm: 30}, {max_cm: 20, take: 0}, {min_cm: 30, take: 0}]",
-            "none between 70 cm and 100 cm":
-                "[{min_cm: 70, max_cm: 100, take: 0}] — the hole, and only the hole",
-            "_endpoints": "A grant is written before the denial beneath it, so a fish of "
-                          "exactly 60 cm is granted rather than denied. The book's 'over 60' "
-                          "and '60 cm or more' differ by one fish and the corpus never stored "
-                          "which was meant; that loss predates this field and is not invented.",
+def _need(db: sqlite3.Connection) -> None:
+    missing = [f"{t}.{c}" for t, cols in REQUIRED_COLUMNS.items()
+               for c in cols if c not in {r[1] for r in db.execute(f"PRAGMA table_info({t})")}]
+    if missing:
+        raise SystemExit(
+            f"export_ui_rules: the bundle has no {', '.join(missing)}. Rebuild it with a "
+            f"`pipeline/deliver/bundle/rules.py` that writes `entry.matched` (every matched "
+            f"item, JSON), `rule.unresolved` (the reach run's 'reason: detail', NULL when "
+            f"bound) and `rule.exempts` (each lift resolved to its entry, JSON).")
+
+
+# --------------------------------------------------------------------------------------------
+# Reading the bundle
+# --------------------------------------------------------------------------------------------
+
+def _j(s, empty=None):
+    return json.loads(s) if s else empty
+
+
+def _rows(db, sql, *args):
+    cur = db.execute(sql, args)
+    cols = [c[0] for c in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+def _entry_kind(entry_id: str, extents: list) -> str:
+    """province (`zp:`), water (`r<n>:`), or — for a zone chapter (`z<n>:`) — `area` when the
+    entry's own extents name a place smaller than a region, `zone` otherwise."""
+    head = entry_id.split(":", 1)[0]
+    if head == "zp":
+        return "province"
+    if head.startswith("r"):
+        return "water"
+    for x in extents:
+        if x.get("op") != "within":
+            continue
+        if (x.get("area_id") and not x["area_id"].startswith("area:region:")) or \
+                x.get("area_kind") not in (None, "", "region"):
+            return "area"
+    return "zone"
+
+
+#: Bundle columns that are the rule's own model fields, under their model (alias) names.
+_RULE_COLUMNS = (("when_", "when"), ("while_", "while"), ("species", "species"),
+                 ("species_except", "species_except"), ("take", "take"),
+                 ("may_target", "may_target"), ("standing", "standing"),
+                 ("exempts", "exempts"), ("extent_text", "extent_text"))
+#: Of those, the ones the bundle stores as JSON text.
+_JSON_COLUMNS = frozenset({"when_", "while_", "species", "species_except", "exempts"})
+
+
+def _rule_record(r: dict, entry_name: str, entry_extents: list) -> dict:
+    """One rule as the bundle ships it: its columns and its `conditions`, both under the model's
+    own field names, empty values left out."""
+    fields = {}
+    for col, name in _RULE_COLUMNS:
+        v = r[col]
+        if col in _JSON_COLUMNS:
+            v = _j(v)
+        if col == "may_target" and v is not None:
+            v = bool(v)
+        if col == "standing":
+            if not v:
+                continue
+            v = True
+        if v is None or v == "" or v == [] or v == {}:
+            continue
+        fields[name] = v
+    for k, v in _j(r["conditions"], {}).items():
+        if k in fields:
+            raise SystemExit(f"{r['entry_id']}::{r['rule_id']}: `{k}` is both a column and a "
+                             f"condition — the bundle says it twice")
+        fields[k] = v
+    s = source_of({"entry": r["entry_id"], "rule": r["rule_id"], "entry_name": entry_name,
+                   "extents": fields.get("extents") or [], "entry_extents": entry_extents,
+                   "authority": fields.get("authority"),
+                   "extent_text": r["extent_text"], "verbatim": r["verbatim"]})
+    return {
+        "id": f"{r['entry_id']}::{r['rule_id']}",
+        "entry_id": r["entry_id"], "rule_id": r["rule_id"],
+        "type": r["type"], "family": r["family"], "dimension": r["dimension"],
+        "label": r["label"], "verbatim": r["verbatim"],
+        "fields": dict(sorted(fields.items())),
+        "provenance": {
+            "entry_name": entry_name,
+            "authority": s.authority.value,
+            "binds_to": s.scope.value,
+            "rank": s.rank,
+            "who": s.words(),
+            "scope": r["scope"],
+            "uncertain": bool(r["uncertain"]),
+            "why": r["unresolved"],
         },
-        "_read": "take=2 and no lengths → keep 2, any size. A range with take 0 is fish that "
-                 "go back; a floor is an allowance of zero on a size class, which is why "
-                 "closures, releases and size limits are one kind of thing.",
-    },
-    "dates": {
-        "when": "{dates, hours, weekdays, unparsed}. `dates` is a list of {from_month, "
-                "from_day, to_month, to_day}, inclusive, wrapping the year end where to < from; "
-                "EMPTY MEANS ALL YEAR. There is no 'except' flag: a rule printed as 'open "
-                "except…' stores the days it DOES hold. `hours` is {start, end}, each "
-                "{at: 'HH:MM'} or {solar: sunrise|sunset, offset_min}, wrapping midnight the "
-                "same way. `unparsed` is a printed season nobody could read, kept verbatim — "
-                "treat it as uncertain, never as absent.",
-        "when_open": "true where it binds only while the water is open at all; carries no dates",
-        "_read": "no window is not 'undated' — it is the standing answer, true on every day "
-                 "nothing seasonal speaks.",
-    },
-    "where": {
-        "scope": "'region' | 'area' | 'water' | 'inherited' — WHAT IT BINDS TO",
-        "authority": "'superior' | 'province' | 'region' — WHO WROTE IT",
-        "extents": "the places it reaches, as area ids / area kinds",
-        "extent_text": "a prose extent nothing can draw on a map. Becomes a caveat, not a "
-                       "counter — EXCEPT inside the area it names, where the place is drawn.\n"
-                       "IT IS ALSO WHAT TELLS TWO RULES APART when nothing else does. Mahood "
-                       "Lake has two closure areas, each with its own catch-and-release, bait "
-                       "ban and barbless-hook rule; the bundle keeps no structured extent for "
-                       "either ('lake has no bindable cut-point'), so the six rules flatten to "
-                       "two identical triples and only this field says which is the western tip "
-                       "and which the Mahood River outlet. Nine such groups exist. Show it.",
-        "includes_tributaries / tributaries_only": "how far up it reaches",
-        "via": "on a water's rule: 'reach' (written for this water) or 'trib' (it reached here "
-               "from a water downstream, by the tributary walk)",
-        "_rank": "DERIVED from (authority, scope), never stored: superior=-1, water=0, "
-                 "inherited=1, area=2, region+region=3, region+province=4. SMALLER SPEAKS "
-                 "FIRST, and scope beats authority — a province-authored rule for one lake "
-                 "(rank 0) speaks there before the region's table (rank 3).",
-    },
-    "gear": {
-        "gear": "an ORDERED list of clauses, each {slot, …}. Within one slot the FIRST "
-                "clause whose `when` matches wins; different slots are independent. A set "
-                "slot (bait, lure, method, barb) takes exactly one of `allow` (permits what it "
-                "names), `only` (a whitelist that closes the slot) or `ban`; `of` narrows which "
-                "members it speaks about and `except` carves members out of a ban. A counted or "
-                "measured slot takes `max`/`min` in the unit its name carries "
-                "(hook_gap_mm, weight_per_line_kg). A spec slot (light, downrigger, …) takes "
-                "`must_be`. `unless` lists what lifts the clause. See "
-                "pipeline/docs/07-gear-representation.md.",
-        "while": "the methods during which the rule binds — 'dead fin fish may be used WHILE "
-                 "set lining'",
-        "conduct": "acts the angler must do or refrain from, as tokens named in the lawful "
-                   "direction ('do_not_waste_catch')",
-        "when_targeting": "species the angler is fishing FOR, not what they may catch — 'bait "
-                          "ban when fishing for salmon'",
-        "closed_to": "angler_closure only: WHO the water is closed to — {residency, age, "
-                     "guidance, status}, each a list of the members included",
-        "max_power_kw / max_kmh": "boat rules",
-        "level / aspect / standing": "how the gear term was classified",
-    },
-    "licensing": {
-        "_note": "NOT a rule. Licensing is its own list on each entry (designation, "
-                 "not_classified, requirement, licence_terms, exemption, alternative); it never "
-                 "votes on open/closed. `document_required` and `access_permission` are gone.",
-        "record_retention": "on a retention rule: record the fish on your licence",
-    },
-    "_two_rules_that_look_identical": {
-        "_note": "No rule in the corpus duplicates another. Every apparent repeat is told apart "
-                 "by a field, and three different fields do it — so a comparison that checks "
-                 "only the obvious ones will report duplicates that are not there.",
-        "extent_text": "9 groups — two places, one sentence, no drawable cut-point",
-        "extents": "5 groups — one sentence over several reaches, e.g. the Fraser's trout "
-                   "closure downstream of Hell's Gate, between it and the Thompson, and above",
-        "max_kmh / aspect": "5 groups — 'speed restriction on parts (8 and 60 km/h)' is TWO "
-                            "rules, one per zone; 'speed restrictions or no vessels' is a speed "
-                            "rule and a propulsion rule",
-        "_and": "the `verbatim` is shared on purpose in all of these: both rules were read from "
-                "the one sentence, and that sentence is the provenance of each.",
-    },
-    "other": {
-        "exempts": "what this rule LIFTS — this is how a closure is reopened",
-        "obligation": "duties, e.g. 'must be released immediately'",
-        "uncertain": "the curator was not sure",
-        "notice": "the DFO fishery notice a rule was published in ('FN0679'); provenance only",
-        "suspended_while": "a rule id in the same entry: this rule is dormant while that one binds "
-                           "('licence not required until reopened to steelhead fishing')",
-    },
+    }
+
+
+#: The licensing tables, their id column, and whether the kind is placed.
+_LIC_TABLES = (("designation", "designation_id", True), ("not_classified", "not_classified_id", True),
+               ("requirement", "req_id", True), ("licence_terms", "terms_id", False),
+               ("exemption", "exemption_id", False), ("alternative", "alternative_id", True))
+NOT_PLACED = "not_placed"
+
+
+def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str) -> dict:
+    rec = _j(r["record"])
+    if rec.get("kind") != kind or rec.get("id") != r[idcol]:
+        raise SystemExit(f"{r['entry_id']}#{r[idcol]}: the `record` JSON is a "
+                         f"{rec.get('kind')} {rec.get('id')!r}, the row a {kind} {r[idcol]!r}")
+    fields = {k: v for k, v in rec.items() if k not in ("kind", "id", "verbatim")}
+    return {
+        "id": f"{r['entry_id']}#{r[idcol]}",
+        "entry_id": r["entry_id"], "record_id": r[idcol], "kind": kind,
+        "label": r["label"], "verbatim": r["verbatim"],
+        "fields": dict(sorted(fields.items())),
+        "placement": r["placement"] if placed else NOT_PLACED,
+        "provenance": {
+            "entry_name": entry_name,
+            "uncertain": bool(r.get("uncertain") or 0),
+            "why": r.get("unresolved"),
+        },
+    }
+
+
+def read(bundle: Path) -> dict:
+    """Everything the export ships, straight from the bundle."""
+    if not Path(bundle).exists():
+        raise SystemExit(f"export_ui_rules: no bundle at {bundle} — build one with "
+                         f"`python -m pipeline.deliver.bundle`")
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    _need(db)
+    meta = dict(db.execute("SELECT k, v FROM meta WHERE k != 'schema'"))
+
+    entries, names = {}, {}
+    for e in _rows(db, "SELECT * FROM entry ORDER BY entry_id"):
+        extents = _j(e["extents"], [])
+        names[e["entry_id"]] = e["name"] or ""
+        entries[e["entry_id"]] = {
+            "kind": _entry_kind(e["entry_id"], extents),
+            "chapter": e["entry_id"].split(":", 1)[0],
+            "name": e["name"], "full_name": e["full_name"],
+            "item_id": e["item_id"], "matched": _j(e["matched"], []),
+            "mus": _j(e["mus"], []), "pages": _j(e["pages"], []),
+            "symbols": _j(e["symbols"], []), "scope_note": e["scope_note"],
+            "extents": extents, "printed": e["verbatim"],
+            "rules": [], "licensing": [],
+        }
+
+    rules = {}
+    for r in _rows(db, "SELECT * FROM rule ORDER BY entry_id, rule_id"):
+        x = _rule_record(r, names.get(r["entry_id"], ""), entries[r["entry_id"]]["extents"])
+        rules[x["id"]] = x
+        entries[r["entry_id"]]["rules"].append(x["id"])
+
+    licensing = {}
+    for kind, idcol, placed in _LIC_TABLES:
+        for r in _rows(db, f"SELECT * FROM {kind} ORDER BY entry_id, {idcol}"):
+            x = _licensing_record(kind, idcol, placed, r, names.get(r["entry_id"], ""))
+            licensing[x["id"]] = x
+            entries[r["entry_id"]]["licensing"].append(x["id"])
+    licensing = dict(sorted(licensing.items()))
+    for e in entries.values():
+        e["licensing"].sort()
+
+    licences = {d: {"name": n, "provincial": bool(p)}
+                for d, n, p in db.execute("SELECT doc_id, name, provincial FROM licence "
+                                          "ORDER BY doc_id")}
+
+    # ---- where: the interned sets, and the named waters that carry them -------------------
+    def sets(members_sql, count_sql, key):
+        out: dict = {}
+        for sid, n in db.execute(count_sql):
+            out[str(sid)] = {"sections": n}
+        for sid, eid, rid, via in db.execute(members_sql):
+            out.setdefault(str(sid), {"sections": 0}).setdefault(via, []).append(key(eid, rid))
+        return dict(sorted(out.items(), key=lambda kv: int(kv[0])))
+
+    rulesets = sets("SELECT set_id, entry_id, rule_id, via FROM ruleset "
+                    "ORDER BY set_id, via, entry_id, rule_id",
+                    "SELECT set_id, COUNT(*) FROM section_ruleset GROUP BY set_id",
+                    lambda e, r: f"{e}::{r}")
+    licensing_sets = sets("SELECT set_id, entry_id, record_id, via FROM licensing_set "
+                          "ORDER BY set_id, via, entry_id, record_id",
+                          "SELECT set_id, COUNT(*) FROM section_licensing GROUP BY set_id",
+                          lambda e, r: f"{e}#{r}")
+
+    by_item = defaultdict(list)
+    for eid, e in entries.items():
+        for it in e["matched"]:
+            by_item[it].append(eid)
+    waters = {}
+    for item_id, name, kind, n in db.execute(
+            "SELECT i.item_id, i.name, i.kind, COUNT(*) FROM item i "
+            "JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
+        waters[item_id] = {"name": name, "kind": kind, "sections": n,
+                           "entries": sorted(by_item.get(item_id, [])),
+                           "rulesets": {}, "licensing_sets": {}}
+    for table, key in (("section_ruleset", "rulesets"), ("section_licensing", "licensing_sets")):
+        for item_id, sid, n in db.execute(
+                f"SELECT i.item_id, t.set_id, COUNT(*) FROM item i "
+                f"JOIN item_section s ON s.ord = i.ord JOIN {table} t ON t.sid = s.sid "
+                f"GROUP BY i.item_id, t.set_id ORDER BY i.item_id, t.set_id"):
+            waters[item_id][key][str(sid)] = n
+
+    sections = {
+        "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
+                            "SELECT sid FROM section_licensing UNION "
+                            "SELECT sid FROM item_section)").fetchone()[0],
+        "with_a_ruleset": db.execute("SELECT COUNT(*) FROM section_ruleset").fetchone()[0],
+        "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
+        "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
+    }
+    db.close()
+    return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
+            "licences": licences, "rulesets": rulesets, "licensing_sets": licensing_sets,
+            "waters": waters, "sections": sections}
+
+
+# --------------------------------------------------------------------------------------------
+# The guide's words. Every table below is checked against the model's own registry (see
+# `problems`), so a type, slot, act, kind or field the model gains is refused until it is
+# explained here, and one the model loses cannot linger.
+# --------------------------------------------------------------------------------------------
+
+TYPE_TEXT = {
+    "retention_limit": "How many of a fish you may keep, on which clock, of which sizes. A "
+                       "quota, a catch-and-release, a size limit and a closure to a species are "
+                       "all this one type; `take`, `may_target` and `lengths` tell them apart.",
+    "stop_fishing_after_quota": "Once your quota of this fish is taken you must stop fishing "
+                                "for it.",
+    "bait_restriction": "What may be on the hook — bait bans and the bait that is allowed "
+                        "anyway. Carries `gear` clauses on the `bait` slot.",
+    "tackle_restriction": "The rig: hooks, points, barbs, lures, flies, lines, weights. Carries "
+                          "`gear` clauses.",
+    "method_rule": "Whether a way of fishing is allowed at all — angling, ice fishing, spear "
+                   "fishing, set lining, crayfish trapping, netting, snagging. Carries `gear` "
+                   "clauses on the `method` slot or a spec slot, or `conduct`.",
+    "vessel_rule": "Boats: whether they are allowed, under what propulsion, at what speed, "
+                   "towing. Read `aspect` first.",
+    "angling_from_vessel_prohibited": "You may fish here, but not from a boat.",
+    "navigation_duty": "What a boat must do for other traffic.",
+    "angler_closure": "The water is closed to ONE KIND of angler (`closed_to`), on the days in "
+                      "`when`. A closure, never a quota; everyone else is unaffected.",
+    "handling_rule": "What you must do with a fish or your gear — release immediately, do not "
+                     "waste it. Carries `conduct` and/or `gear`.",
+    "hazard": "A warning about the place. Governs nothing.",
+    "advisory": "Information the book prints. Governs nothing, and must never be read as a "
+                "limit.",
+    "program_membership": "The water belongs to a named programme. Governs nothing.",
+    "facility": "What is there — a launch, an accessible pier. Governs nothing.",
+}
+
+TYPE_CAN_CLOSE = {
+    "retention_limit": "Yes — `take: 0` with `may_target: false` and no `while`, and not "
+                       "`standing`, means you may not fish for those species at all. On "
+                       "ALL_GAME_FISH that shuts the water for the dates in `when`.",
+    "angler_closure": "For the anglers in `closed_to` only.",
+    "method_rule": "Closes a method (a `ban` on the `method` slot), never the water.",
+}
+
+FAMILY_TEXT = {
+    "retention": "what you may keep",
+    "gear_and_method": "how you may fish",
+    "vessel": "what your boat may do",
+    "access": "who may fish here at all",
+    "conduct": "what you must do",
+    "information": "what the book tells you; governs nothing",
+}
+
+SLOT_TEXT = {
+    "bait": "what is on the hook: any_bait, fin_fish, roe, invertebrate, dead_fin_fish, …",
+    "lure": "the terminal object: artificial_fly, artificial_lure",
+    "method": "how you fish: fly_fishing, ice_fishing, set_lining, spear_fishing, …",
+    "barb": "barbed | barbless — a barbless-hook rule is `only: [barbless]`",
+    "set_lining": "how a set line must be built or marked",
+    "crayfish_trapping": "how a crayfish trap must be built",
+    "downrigger": "how a downrigger must be rigged (e.g. quick-release)",
+    "light": "how a light must be used (e.g. submerged, attached to the line)",
+    "ice_hut": "what an ice hut must be or carry (binds `while: [ice_fishing]`)",
+    "hooks_per_line": "number of hooks on one line",
+    "points_per_hook": "number of points on one hook — a single hook is `max: 1`",
+    "lines_per_angler": "number of lines one angler may fish",
+    "flies_per_line": "number of flies on one line",
+    "terminal_attachments_per_line": "hooks, lures and flies together, on one line",
+    "hook_gap_mm": "hook gap in millimetres",
+    "weight_per_line_kg": "weight on one line, in kilograms",
+    "bait_possession_kg": "bait you may possess, in kilograms",
+    "light_to_hook_mm": "distance from a light to the hook, in millimetres",
+}
+
+CLAUSE_TEXT = {
+    "slot": "what the clause constrains — see `slots`",
+    "of": "which members of the slot it speaks about; absent = all of them",
+    "allow": "these are permitted; says nothing about the rest of the slot",
+    "only": "a whitelist that closes the slot: nothing else is permitted",
+    "ban": "these are prohibited; a total ban names the whole-slot member (any_bait)",
+    "except": "members carved out of a `ban`",
+    "members": "a choice of ONE from several kinds, qualifying a count "
+               "('one hook, one lure or one fly')",
+    "max": "a ceiling, in the unit the slot's name carries",
+    "min": "a floor, in the unit the slot's name carries",
+    "unlimited": "no ceiling on the count, said outright",
+    "when": "the condition under which this clause applies (a `GearWhen`); absent = always",
+    "requires": "how the thing itself must be built or carried (a `GearSpec`)",
+    "must_be": "on a spec slot: the states the thing must be in",
+    "unless": "conditions (each a `GearWhen`) that lift this clause",
+}
+
+GEAR_WHEN_TEXT = {
+    "water": "stream | lake",
+    "method": "while fishing by this method",
+    "targeting": "while fishing FOR these species",
+    "angler": "alone_in_boat | in_boat | from_shore",
+    "gear_in_use": "while this gear is in use",
+    "note": "a condition the closed vocabulary cannot say; the rule then carries a "
+            "review_reason",
+}
+
+GEAR_SPEC_TEXT = {
+    "attached_to": "what it must be attached to (fishing_line)",
+    "attachment": "how it is attached (quick_release)",
+    "within_m_of_hook": "how close to the hook, in metres",
+    "opening_shape": "the shape of a trap opening (circular)",
+    "note": "a property the closed vocabulary cannot say; costs a review_reason",
+}
+
+#: The model's rule fields that a reader of this file meets, in words.
+RULE_FIELD_TEXT = {
+    "obligation": "must | should — law, or advice the book gives. Every rule carries it.",
+    "species": "species codes the rule is about, as the book wrote them (groups included — "
+               "expand with `species.groups`)",
+    "species_except": "species carved out of `species`",
+    "closed_to": "angler_closure only: WHO the water is closed to (a `Who`)",
+    "gear": "ordered list of gear clauses — see `gear`",
+    "derived_from": "the rule id (same entry) whose sentence implies this one",
+    "condition_of": "the rule id (same entry) this rule is the proviso of",
+    "while": "the means of fishing during which the rule binds; absent = any",
+    "conduct": "act tokens: what you must or must not do — see `gear.conduct`",
+    "when": "when the rule binds — see `time`; absent = all year",
+    "take": "how many you may keep",
+    "unlimited": "there is no number",
+    "may_target": "false = you may not fish for it; true = fish for it and release",
+    "period": "daily | possession | annual | monthly — the clock the number runs on. Every rule "
+              "carries it; it matters only where there is a number.",
+    "per_daily": "a possession limit as a multiple of the daily one",
+    "within": "the rule id (same entry) this is a clause of; it counts inside its parent",
+    "lengths": "ordered length ranges, each with its own take — see `sizes`",
+    "record_retention": "keeping this fish must be recorded on your licence",
+    "water": "stream | lake — the rule binds only on that kind of water",
+    "origin": "wild | hatchery; absent = both",
+    "when_targeting": "the species you are fishing FOR (bait and tackle rules)",
+    "aspect": "vessel_rule: propulsion | speed | towing",
+    "level": "vessel_rule propulsion: none | unpowered | electric_only | power_capped",
+    "max_power_kw": "vessel_rule: the motor cap, kW",
+    "max_kmh": "vessel_rule: the speed cap, km/h",
+    "includes_tributaries": "true/false: the rule reaches (or not) the water's tributaries; "
+                            "absent = inherit the entry's",
+    "tributaries_only": "the tributaries, without the named water itself",
+    "extents": "where on the water (or in which areas) the rule applies, as the reach builder "
+               "reads it. A rule with none of its own is not given its entry's: it binds where "
+               "the reach builder placed it, or nowhere (`provenance.uncertain`).",
+    "exempts": "what the rule lifts — see `exempts`",
+    "standing": "true: holds everywhere at places no dataset can draw — see `standing`",
+    "authority": "superior: a federal or park authority, above the provincial ladder",
+    "notice": "the DFO fishery notice the rule was published in",
+    "suspended_while": "a rule id (same entry): this rule is dormant while that one binds",
+    "extent_text": "the book's words for a place nothing could draw",
+}
+
+#: Keys on an exported rule record outside `fields`.
+RECORD_TEXT = {
+    "id": "`entry_id::rule_id` — a rule id is unique only within its entry",
+    "entry_id": "the synopsis row the rule was read from",
+    "rule_id": "the rule's id inside its entry",
+    "type": "one of `rule_types`",
+    "family": "the type's family — see `families`",
+    "dimension": "the second half of the competition key, (type, dimension) — see `ladder`",
+    "label": "generated from the fields by the model's label function; never authored",
+    "verbatim": "the sentence from the printed book, quoted",
+    "fields": "the rule's own fields, as the bundle ships them",
+    "provenance": "who wrote it and what it binds to — see below",
+}
+
+PROVENANCE_TEXT = {
+    "entry_name": "the entry's display name",
+    "authority": "who wrote it: superior | province | region",
+    "binds_to": "what it binds to: region (the region's standing table), area, water",
+    "rank": "the ladder position derived from (authority, binds_to); smaller speaks first",
+    "who": "the two axes in words",
+    "scope": "the bundle's own `scope` column: section | area — whether the rule was written "
+             "for a water or for an area",
+    "uncertain": "the reach builder could not place it; it binds no section",
+    "why": "the reach builder's reason, when uncertain",
+}
+
+LICENSING_RECORD_TEXT = {
+    "id": "`entry_id#record_id`",
+    "entry_id": "the synopsis row the record was read from",
+    "record_id": "its id inside the entry",
+    "kind": "one of `licensing.kinds`",
+    "label": "generated from the fields; never authored",
+    "verbatim": "the sentence from the printed book",
+    "fields": "the record's own fields, as the bundle ships them",
+    "placement": "sections | province | on_designation | unresolved | not_placed",
+    "provenance": "entry_name, and for an unresolved record `uncertain` and `why`",
+}
+
+LICENSING_KIND_TEXT = {
+    "designation": "A FACT about a water: while `when` holds, the bound sections are a "
+                   "Classified Water of class `classified` (I or II), in licence unit `unit`. "
+                   "It obliges nothing itself; requirements fire on it. It may carry the "
+                   "classified-water steelhead stamp period (`steelhead_stamp_during`) or its "
+                   "waiver (`steelhead_stamp_waived`), and sleep while a closure rule binds "
+                   "(`suspended_while`).",
+    "not_classified": "An asserted ABSENCE: this part is NOT a Classified Water. Where a "
+                      "designation also reaches it, the designation's binding there is "
+                      "`contested` and the reader must say 'check'.",
+    "requirement": "An OBLIGATION: anglers in `who` (minus `who_except`), `doing` this, where "
+                   "and when it binds, must satisfy ANY ONE of `satisfied_by`, or do the "
+                   "`conduct`. `on` ties it to a designation's period.",
+    "licence_terms": "How a document is SOLD — per day or per licence year, day limits, "
+                     "draws, fees. Never placed: attach it to the obligation whose document, "
+                     "who, unit and class it names.",
+    "exemption": "Anglers in `who` are released from `documents`. Never placed.",
+    "alternative": "A place where another document ALSO satisfies a requirement "
+                   "(`alternative_to`). It only ever adds a path.",
+}
+
+LICENSING_FIELD_TEXT = {
+    "classified": "I | II",
+    "unit": "the licence unit a non-resident's per-day licence names",
+    "unit_name": "the unit in words",
+    "when": "when the record holds (a `When`); absent = all year",
+    "extents": "where it applies, as the reach builder reads it",
+    "includes_tributaries": "true/false; absent = inherit the entry's",
+    "tributaries_only": "the tributaries without the named water",
+    "tributary_excludes": "waters the tributary walk must not enter",
+    "steelhead_stamp_during": "{when, verbatim}: the classified-water steelhead stamp runs here "
+                              "then, whatever you fish for",
+    "steelhead_stamp_waived": "{verbatim}: that stamp is not required here",
+    "suspended_while": "[{rule_id, verbatim}]: dormant while that closure rule (same entry) "
+                       "binds",
+    "review_reason": "what a curator still has to settle",
+    "satisfied_by": "the ways to satisfy it — ANY ONE path (see `paths`)",
+    "conduct": "act tokens the requirement obliges (see `gear.conduct`)",
+    "who": "which anglers (a `Who`); absent = every angler",
+    "who_except": "anglers taken out of `who`",
+    "doing": "what the angler is doing that triggers it (a `Doing`)",
+    "water": "stream | lake",
+    "on": "classified_period | steelhead_period: holds wherever a designation's period (or its "
+          "stamp period) is in force",
+    "authority": "superior: a federal or park authority; displaces every provincial obligation",
+    "restates": "{entry_id, id}: the provincial record this row's own words repeat",
+    "document": "the document sold (see `licences`)",
+    "units": "the licence units the terms are about; absent = every unit",
+    "sold": "per_licence_year | per_day",
+    "covers": "every_unit | one_unit",
+    "max_consecutive_days": "at most this many days in a row",
+    "max_days_per_licence_year": "at most this many days in a licence year",
+    "max_per_licence_year": "at most this many of the document in a licence year",
+    "max_units_per_licence_year": "at most this many licence units in a licence year",
+    "unlimited_days": "no day limit, said outright",
+    "allocation": "open | booking | draw",
+    "needs": "what a buyer must supply (angling_guide_number)",
+    "fee_cad": "the fee in dollars",
+    "documents": "the documents released",
+    "alternative_to": "{entry_id, id}: the requirement this adds a path to",
+}
+
+DOING_TEXT = {
+    "fishing": "any sport fishing at all",
+    "targeting": "fishing FOR `species`",
+    "retaining": "KEEPING `species` (of `lengths`, when given — the lengths name WHICH fish)",
+    "retaining_recorded": "keeping a fish whose retention must be recorded on the licence "
+                          "(which fish: rules with `record_retention`)",
+    "guiding": "acting as an angling guide",
+}
+
+WHEN_TEXT = {
+    "dates": "[{from_month, from_day, to_month, to_day}] — calendar ranges, no year, both ends "
+             "inclusive; a range whose end is before its start wraps the year end",
+    "hours": "{start, end}, each {at: 'HH:MM'} or {solar: sunrise|sunset, offset_min} "
+             "(negative = before); wraps midnight the same way",
+    "weekdays": "the days of the week it holds on; empty = every day",
+    "unparsed": "a printed season nobody could read, verbatim. The rule is UNCERTAIN in time — "
+                "never read it as all year",
+}
+
+EXEMPTS_TEXT = {
+    "default_id": "names a standing default by its entry slug — the zone closure of that name "
+                  "in the rule's own region (`spring_stream_closure`)",
+    "target": "a rule id, bare, in the entry `entry_id` names",
+    "entry_id": "the entry the lift reaches, resolved when the bundle was built and always "
+                "present: for `default_id`, the zone entry whose rules are lifted (one item per "
+                "zone entry — Region 7's rows reach both 7A and 7B); for `target`, the entry the "
+                "lifted rule is in",
+    "note": "the book's words, often the only statement of WHERE the lift reaches",
+}
+
+LENGTH_TEXT = {
+    "min_cm": "inclusive lower bound; absent = open",
+    "max_cm": "inclusive upper bound; absent = open",
+    "take": "how many of THESE you may keep; absent = the rule's own `take`",
+}
+
+WHO_TEXT = {
+    "residency": "resident (of B.C.) | non_resident (not a B.C. resident, but a Canadian citizen "
+                 "or permanent resident, or living in Canada) | non_resident_alien (neither)",
+    "age": "under_16 | 16_plus",
+    "guidance": "guided | non_guided",
+    "status": "indian_bc_resident | metis | disabled",
+}
+
+PATH_TEXT = {
+    "hold": "hold ALL of these documents",
+    "accompanied_by": "be accompanied by an angler in `who` holding what this fishing requires "
+                      "of them",
+    "as": "satisfy the requirements AS this `Who` instead",
+    "quota": "own | counts_to_companion — a NOTE on an accompaniment path: whose quota the fish "
+             "count against. Render it (an asterisk, a line); it is not arithmetic.",
+}
+
+VIA_TEXT = {
+    "reach": "the record names this water (or area) and binds it directly",
+    "trib": "it reached this section by the tributary walk from a water whose entry includes "
+            "tributaries",
+    "trib_pending": "a tributary walk that was not done — never treat the set as complete",
+    "contested": "a designation on a section a not_classified record also binds — say 'check'",
+}
+
+PLACEMENT_TEXT = {
+    "sections": "bound to sections; find them through `licensing_sets`",
+    "province": "applies everywhere; no section rows",
+    "on_designation": "applies wherever a designation is in force (`on`); no section rows",
+    "unresolved": "could not be placed: `provenance.uncertain` is true and `why` says why. For "
+                  "licensing the unsafe direction is under-requiring, so render 'check', never "
+                  "'none needed'",
+    NOT_PLACED: "licence_terms and exemptions are never bound to a place",
+}
+
+ENTRY_TEXT = {
+    "kind": "province | zone | area | water — see `entries`",
+    "chapter": "the id prefix: zp (province), z<region> (a region's chapter), r<region> "
+               "(a water in that region)",
+    "name": "the display name", "full_name": "the heading as printed",
+    "item_id": "the first water it matched", "matched": "every water it matched",
+    "mus": "the management units the row was printed under",
+    "pages": "the synopsis pages it is printed on", "symbols": "the printed glyphs, 1:1",
+    "scope_note": "the curated sentence on which part of the water the entry covers",
+    "extents": "the entry's own reach", "printed": "the whole printed passage",
+    "rules": "its rule ids", "licensing": "its licensing record ids",
 }
 
 
-#: The groups that name an open set rather than a list. Empty in the catalogue on purpose.
-OPEN_GROUPS = {
-    "ALL_FIN_FISH": "every fish with fins — wider than the provincial game-fish list, and "
-                    "including salmon, which are federal",
-    "NON_GAME_FISH": "every fish that is not on the provincial game-fish list",
-}
+# --------------------------------------------------------------------------------------------
+# The guide, built from the model's registries and the data
+# --------------------------------------------------------------------------------------------
+
+def _enum(e) -> list[str]:
+    return [m.value for m in e]
+
+
+def _fields(model) -> list[str]:
+    return [f.alias or n for n, f in model.model_fields.items()]
+
+
+def _licensing_models() -> dict:
+    return {typing.get_args(m.model_fields["kind"].annotation)[0]: m
+            for m in typing.get_args(typing.get_args(C.LicensingRecord)[0])}
+
+
+def _example(x: dict, *keys: str) -> dict:
+    """A record, cut to what the concept is about. Always a real record, found by id."""
+    got = {"id": x["id"], "label": x["label"], "verbatim": x["verbatim"]}
+    if keys:
+        got["fields"] = {k: x["fields"][k] for k in keys if k in x["fields"]}
+    return got
+
+
+class _Pick:
+    """Examples chosen from the data by a test, never by a remembered id — so every example is
+    current, and one that stops existing is simply replaced by the next match."""
+
+    def __init__(self, recs: dict):
+        self.recs = recs
+
+    def __call__(self, test, *keys, n: int = 2) -> list[dict]:
+        return [_example(x, *keys) for x in self.recs.values() if test(x)][:n]
+
+
+def _slot_kind(s) -> str:
+    if s in C._SET_SLOTS:
+        return "set"
+    if s in C._SPEC_SLOTS:
+        return "spec"
+    if s in C._MEASURED:
+        return "measured"
+    return "counted"
+
+
+def _f(x):
+    return x["fields"]
+
+
+def _gear(x):
+    return _f(x).get("gear") or []
+
+
+def _closed_range(b):
+    return b.get("min_cm") is not None and b.get("max_cm") is not None
+
+
+def guide(d: dict) -> dict:
+    rules, lic = d["rules"], d["licensing"]
+    pick, lpick = _Pick(rules), _Pick(lic)
+    types = Counter(x["type"] for x in rules.values())
+    dims = defaultdict(Counter)
+    used = defaultdict(Counter)
+    for x in rules.values():
+        dims[x["type"]][x["dimension"]] += 1
+        for k in _f(x):
+            used[x["type"]][k] += 1
+
+    # ---- rule types and families -------------------------------------------------------
+    rule_types = {}
+    for t in _enum(C.RuleType):
+        rule_types[t] = {
+            "family": C._FAMILY[C.RuleType(t)],
+            "means": TYPE_TEXT.get(t),
+            "can_close_a_water": TYPE_CAN_CLOSE.get(t, "No."),
+            "rules": types.get(t, 0),
+            "fields_used": dict(used[t].most_common()),
+            "dimensions": dict(dims[t].most_common(8)),
+            "examples": pick(lambda x, t=t: x["type"] == t,
+                             *[k for k, _ in used[t].most_common()
+                               if k not in ("obligation", "period", "extents")][:5]),
+        }
+    families = {f: {"means": FAMILY_TEXT.get(f),
+                    "types": [t for t in _enum(C.RuleType) if C._FAMILY[C.RuleType(t)] == f],
+                    "rules": sum(types.get(t, 0) for t in _enum(C.RuleType)
+                                 if C._FAMILY[C.RuleType(t)] == f)}
+                for f in sorted(set(C._FAMILY.values()))}
+
+    ranks = [{"authority": Authority.superior.value, "binds_to": "any", "rank":
+              Source(Authority.superior, Scope.water).rank}]
+    for a in (Authority.province, Authority.region):
+        for sc in Scope:
+            src = Source(a, sc, "4")
+            ranks.append({"authority": a.value, "binds_to": sc.value, "rank": src.rank,
+                          "in_words": src.words()})
+    ranks.sort(key=lambda r: (r["rank"], r["authority"], r["binds_to"]))
+    ladder = {
+        "competition": "Two rules COMPETE only when they share (type, dimension). A water's "
+                       "daily trout quota competes with its region's daily trout quota; a "
+                       "fly-only rule and a barbless rule have different dimensions and BOTH "
+                       "apply. Rules that do not compete all apply.",
+        "who_speaks": "Among competitors the smaller rank speaks: a rule bound to "
+                      "this water beats one bound to an area, which beats the region's "
+                      "standing table, which beats the province. `binds_to` decides before "
+                      "`authority`: a provincial rule written for one lake speaks there before "
+                      "the region's table. A superior authority (rank -1) is outside the "
+                      "ladder: nothing below it opens what it closed. `provenance.rank` is the "
+                      "rank where the rule is written; on a section it reached by the "
+                      "tributary walk (`via: trib` in its ruleset) it speaks at the "
+                      "`inherited` rung instead.",
+        "closures": "The domain rule, in its owner's words: 'Regional always overrides "
+                    "provincial (except full closure), and this water overrides regional "
+                    "always (except closures unless they are lifted in this water's regs).' A "
+                    "closure is lifted by an `exempts`, never by a competing quota.",
+        "never_compete": "`standing` rules, and the information family (hazard, advisory, "
+                         "program_membership, facility).",
+        "ranks": ranks,
+        "dimension_by_type": {
+            "retention_limit": "the period, plus '/size' when the rule is sizes with no take",
+            "vessel_rule": "the aspect",
+            "angler_closure": "closed_to:<who>",
+            "method_rule": "the methods it names",
+            "tackle_restriction": "the set of slots it constrains",
+            "bait_restriction": "bait:<the bait members it names>[/<targeted species>]",
+            "every other type": "the type itself",
+        },
+        "examples": (
+            pick(lambda x: x["type"] == "retention_limit" and (_f(x).get("take") or 0) > 0
+                 and not _f(x).get("lengths") and x["provenance"]["binds_to"] == "water",
+                 "species", "take", "period", n=1)
+            + pick(lambda x: x["type"] == "retention_limit" and (_f(x).get("take") or 0) > 0
+                   and not _f(x).get("lengths") and x["provenance"]["binds_to"] == "region",
+                   "species", "take", "period", n=1)),
+    }
+
+    # ---- gear ---------------------------------------------------------------------------
+    slot_use = defaultdict(list)
+    members = defaultdict(set)
+    for x in rules.values():
+        for c in _gear(x):
+            slot_use[c["slot"]].append(x["id"])
+            for k in ("allow", "only", "ban", "except", "of", "members", "must_be"):
+                members[c["slot"]].update(c.get(k) or [])
+    slots = {}
+    for s in C.Slot:
+        kind = _slot_kind(s)
+        slots[s.value] = {
+            "kind": kind,
+            "bound": {"set": "exactly one of allow / only / ban (never empty); of, except",
+                      "counted": "max / min (whole numbers) or unlimited; members",
+                      "measured": "max / min in the unit in the slot's name",
+                      "spec": "must_be and/or requires"}[kind],
+            "means": SLOT_TEXT.get(s.value),
+            "rules": len(set(slot_use[s.value])),
+            "members_seen": sorted(members[s.value]),
+            "examples": pick(lambda x, s=s.value: any(c["slot"] == s for c in _gear(x)),
+                             "gear", "while", "when_targeting"),
+        }
+    acts = {}
+    for a, words in C.CONDUCT_ACTS.items():
+        acts[a] = {"means": words,
+                   "rules": sum(a in (_f(x).get("conduct") or []) for x in rules.values()),
+                   "licensing": sum(a in (x["fields"].get("conduct") or [])
+                                    for x in lic.values()),
+                   "examples": (pick(lambda x, a=a: a in (_f(x).get("conduct") or []),
+                                     "conduct", n=1)
+                                + lpick(lambda x, a=a: a in (x["fields"].get("conduct") or []),
+                                        "conduct", n=1))}
+    whiles = sorted({m.value for m in C.Method} | {s.value for s in C._SPEC_SLOTS})
+    same_slot = lambda x: len([c["slot"] for c in _gear(x)]) > len({c["slot"] for c in _gear(x)})
+    gear = {
+        "reading": "`gear` is an ORDERED list of clauses. Clauses on DIFFERENT slots are "
+                   "independent and all apply. Clauses on the SAME slot are ordered and the "
+                   "FIRST whose `when` matches wins; a clause with no `when` is the last word "
+                   "on its slot. Nothing in a clause is a polarity flag: the direction is in "
+                   "the key (allow / only / ban).",
+        "slot_kinds": {
+            "set": "chosen from a set of members",
+            "counted": "a whole number of things",
+            "measured": "a quantity in the unit its name carries",
+            "spec": "how the thing must be built or carried; presence asserts, there is no "
+                    "negation",
+        },
+        "slots": slots,
+        "clause_fields": {k: CLAUSE_TEXT.get(k) for k in _fields(C.GearClause)},
+        "when_fields": {k: GEAR_WHEN_TEXT.get(k) for k in _fields(C.GearWhen)},
+        "requires_fields": {k: GEAR_SPEC_TEXT.get(k) for k in _fields(C.GearSpec)},
+        "while": {
+            "means": "The rule binds only WHILE the angler is doing one of these. A `take: 0` "
+                     "on every game fish `while: [spear_fishing]` says which fish you may "
+                     "spear; it does not close the water. Absent = whatever you are doing.",
+            "tokens": whiles,
+            "examples": pick(lambda x: bool(_f(x).get("while")), "while", "species", "take",
+                             "gear"),
+        },
+        "conduct": {
+            "means": "Acts you must do or must not do, as tokens named in the lawful direction "
+                     "(`do_not_waste_catch`). The wording below is the model's own.",
+            "acts": acts,
+        },
+        "first_match_per_slot": {
+            "means": "Two clauses on one slot: the narrow one first, the general one last.",
+            "examples": pick(same_slot, "gear"),
+        },
+        "examples_by_bound": {
+            b: pick(lambda x, b=b: any(b in c for c in _gear(x)), "gear", n=1)
+            for b in ("allow", "only", "ban", "except", "of", "members", "max", "min",
+                      "unlimited", "when", "unless", "requires", "must_be")},
+    }
+
+    # ---- sizes, time, species, retention ------------------------------------------------
+    L = lambda x: _f(x).get("lengths") or []
+    sizes = {
+        "reading": "`lengths` is an ORDERED list of length ranges. For a fish of a given "
+                   "length the FIRST range that contains it answers; its `take` (or, absent, "
+                   "the rule's `take`) is how many of those you may keep. A length no range "
+                   "covers is not spoken about by this rule: at the top level nothing grants "
+                   "it; inside a `within` clause the parent quota governs it. A grant is "
+                   "written before the denial beneath it, so a shared endpoint is granted.",
+        "range_fields": LENGTH_TEXT,
+        "examples": {
+            "quota with a ceiling": pick(lambda x: _f(x).get("take") and any(
+                b.get("take") == 0 and b.get("min_cm") is not None for b in L(x)),
+                "species", "take", "lengths", n=1),
+            "floor": pick(lambda x: any(b.get("take") == 0 and b.get("max_cm") is not None
+                                        and b.get("min_cm") is None for b in L(x)),
+                          "species", "take", "lengths", n=1),
+            "window (keep only between)": pick(lambda x: any(
+                _closed_range(b) and b.get("take") != 0 for b in L(x)),
+                "species", "take", "lengths", n=1),
+            "hole (keep none between)": pick(lambda x: any(
+                _closed_range(b) and b.get("take") == 0 for b in L(x)),
+                "species", "take", "lengths", n=1),
+            "a clause counting one size class": pick(lambda x: _f(x).get("within") and L(x)
+                                                     and (_f(x).get("take") or 0) > 0,
+                                                     "species", "take", "lengths", "within",
+                                                     n=1),
+        },
+    }
+    W = lambda x: _f(x).get("when") or {}
+    wraps = lambda x: any((r["to_month"], r["to_day"]) < (r["from_month"], r["from_day"])
+                          for r in W(x).get("dates") or [])
+    time = {
+        "reading": "`when` says when a rule binds. Absent means ALL YEAR, as the synopsis "
+                   "says: 'When no date is listed, the regulations apply all year. Start and end "
+                   "dates are inclusive.' There is no 'except' form: a rule printed as 'open "
+                   "except …' stores the days it DOES hold.",
+        "fields": {k: WHEN_TEXT.get(k) for k in _fields(C.When)},
+        "hours_and_weekdays": "Apply them on the angler's own clock and day; they never "
+                              "resolve to a date.",
+        "unparsed": "Uncertain, never all year.",
+        "suspended_while": "On a rule or a designation: dormant while the named closure rule in "
+                           "the same entry binds ('not required until reopened').",
+        "examples": {
+            "dates": pick(lambda x: bool(W(x).get("dates")) and not wraps(x), "when", n=1),
+            "wrapping the year end": pick(wraps, "when", n=1),
+            "hours": pick(lambda x: bool(W(x).get("hours")), "when", n=1),
+            "weekdays": pick(lambda x: bool(W(x).get("weekdays")), "when", n=1),
+            "unparsed": pick(lambda x: bool(W(x).get("unparsed")), "when", n=1),
+            "suspended_while": (pick(lambda x: bool(_f(x).get("suspended_while")),
+                                     "suspended_while", n=1)
+                                + lpick(lambda x: bool(x["fields"].get("suspended_while")),
+                                        "suspended_while", n=1)),
+        },
+        "counts": {"rules_with_when": sum(bool(W(x)) for x in rules.values()),
+                   "rules_all_year": sum(not W(x) for x in rules.values()),
+                   "rules_with_unparsed": sum(bool(W(x).get("unparsed")) for x in rules.values())},
+    }
+    species = {
+        "reading": "`species` holds the codes the book wrote, groups included. Expand a group "
+                   "with `species.groups[code].members` (the expansion is transitive and "
+                   "already flat). `species_except` carves codes out after expansion. The "
+                   "open groups (`ALL_FIN_FISH`, `NON_GAME_FISH`) have no member list on "
+                   "purpose: they mean every fish, or every fish not on the game-fish list — "
+                   "an empty member list is NOT 'no fish'.",
+        "several_fish_one_number": "A number on a rule that names more than one fish is SHARED "
+                                   "between them: 'Trout/char: 5' is five in total.",
+        "examples": {
+            "a group": pick(lambda x: any(c in C.SPECIES_GROUPS for c in
+                                          _f(x).get("species") or []) and
+                            (_f(x).get("take") or 0) > 0 and not L(x),
+                            "species", "take", n=1),
+            "species_except": pick(lambda x: bool(_f(x).get("species_except")),
+                                   "species", "species_except", "take", n=1),
+            "an open group": pick(lambda x: any(c in ("ALL_FIN_FISH", "NON_GAME_FISH")
+                                                for c in _f(x).get("species") or []),
+                                  "species", "take", "may_target", n=1),
+        },
+    }
+    rl = lambda x: x["type"] == "retention_limit"
+    F = lambda x, k: _f(x).get(k)
+    retention = {
+        "fields": {k: RULE_FIELD_TEXT.get(k) for k in ("take", "may_target", "unlimited", "period",
+                                                   "per_daily", "within", "lengths",
+                                                   "record_retention", "origin")},
+        "three_readings_of_take_0": {
+            "closed": "take 0 AND may_target false — you may not fish for it at all",
+            "release": "take 0, may_target true, no `lengths` — fish for it, release every one",
+            "size gate": "a range in `lengths` with take 0 — those sizes go back; not a closure. "
+                         "Where `lengths` is present the ranges are the answer; the top-level take "
+                         "only fills a range with no take of its own. 'No trout over 50 cm' is "
+                         "`take: 0` with one range "
+                         "{min_cm: 50, take: 0}, and says nothing about a trout under 50 cm",
+            "and": "A take 0 carrying `while` closes that way of fishing, not the water; a "
+                   "`standing` one is shown and decides nothing.",
+        },
+        "examples": {
+            "closed": pick(lambda x: rl(x) and F(x, "take") == 0 and F(x, "may_target") is False
+                           and not F(x, "while") and not F(x, "standing"),
+                           "species", "take", "may_target", "when", n=1),
+            "release": pick(lambda x: rl(x) and F(x, "take") == 0 and F(x, "may_target")
+                            and not L(x), "species", "take", "may_target", n=1),
+            "size gate": pick(lambda x: rl(x) and F(x, "take") is None and
+                              any(b.get("take") == 0 for b in L(x)),
+                              "species", "lengths", n=1),
+            "possession": pick(lambda x: rl(x) and F(x, "per_daily"),
+                               "species", "period", "per_daily", n=1),
+            "annual": pick(lambda x: rl(x) and F(x, "period") == "annual",
+                           "species", "take", "period", n=1),
+            "unlimited": pick(lambda x: rl(x) and F(x, "unlimited"), "species", "unlimited",
+                              n=1),
+            "within": pick(lambda x: rl(x) and F(x, "within"), "species", "take", "within",
+                           n=1),
+            "record_retention": pick(lambda x: F(x, "record_retention"),
+                                     "species", "record_retention", n=1),
+        },
+    }
+    vessel = {
+        "fields": {k: RULE_FIELD_TEXT.get(k) for k in ("aspect", "level", "max_power_kw",
+                                                   "max_kmh")},
+        "levels_strictest_first": _enum(C.PropulsionLevel),
+        "aspects": _enum(C.VesselAspect),
+        "reading": "Read `aspect` first. Propulsion `level` is one ordered scale, strictest "
+                   "first; `power_capped` carries `max_power_kw`. A speed rule carries `max_kmh`.",
+        "examples": {a: pick(lambda x, a=a: F(x, "aspect") == a, "aspect", "level",
+                             "max_power_kw", "max_kmh", "when", n=1)
+                     for a in _enum(C.VesselAspect)},
+    }
+    exempts = {
+        "reading": "A rule with `exempts` LIFTS what it names, where and while it binds. A lift "
+                   "whose place cannot be drawn is not applied (the closure stands and the "
+                   "exemption is shown beside it in the book's words), and a rule never lifts "
+                   "itself. Every item is already RESOLVED: `entry_id` is the entry the lift "
+                   "reaches. `default_id` + `entry_id` lifts every rule of that zone entry; "
+                   "`target` + `entry_id` lifts the one rule `entry_id::target`. Match on those "
+                   "exact ids, never on a bare name.",
+        "fields": {k: EXEMPTS_TEXT.get(k) for k in _fields(C.Exempts)},
+        "examples": {
+            "default_id": pick(lambda x: any(e.get("default_id") for e in F(x, "exempts") or []),
+                               "exempts", n=1),
+            "target": pick(lambda x: any(
+                f"{e['entry_id']}::{e['target']}" in rules
+                for e in F(x, "exempts") or [] if e.get("target")), "exempts", n=1),
+            "with the book's note": pick(
+                lambda x: any(e.get("note") for e in F(x, "exempts") or []), "exempts", n=1),
+        },
+        "rules": sum(bool(F(x, "exempts")) for x in rules.values()),
+    }
+    standing = {
+        "reading": "`standing: true` — the rule holds everywhere at places no dataset can draw "
+                   "('within 23 m downstream of any fishway'). It is bound to every section so "
+                   "it is always shown; it never decides a water's outcome and never competes.",
+        "rules": [x["id"] for x in rules.values() if F(x, "standing")],
+        "examples": pick(lambda x: bool(F(x, "standing")), "species", "take", "may_target"),
+    }
+    angler_closure = {
+        "reading": "The water is closed to the anglers in `closed_to` (a `Who`) on the days in "
+                   "`when`. It never competes with a quota. Because the angler is unknown, the "
+                   "answer is conditional: 'if you are a non-guided non-resident alien, you may "
+                   "not angle here on Saturdays'.",
+        "rules": [x["id"] for x in rules.values() if x["type"] == "angler_closure"],
+        "examples": pick(lambda x: x["type"] == "angler_closure", "closed_to", "when"),
+    }
+
+    # ---- licensing ----------------------------------------------------------------------
+    kinds = Counter(x["kind"] for x in lic.values())
+    lmodels = _licensing_models()
+    lkinds = {}
+    for k, m in lmodels.items():
+        lkinds[k] = {"means": LICENSING_KIND_TEXT.get(k),
+                     "placed": next(p for t, _, p in _LIC_TABLES if t == k),
+                     "records": kinds.get(k, 0),
+                     "fields": [f for f in _fields(m) if f not in ("kind", "id", "verbatim")],
+                     "examples": lpick(lambda x, k=k: x["kind"] == k, n=2)}
+    has_path = lambda x, key: any(key in p for p in x["fields"].get("satisfied_by") or [])
+    licensing = {
+        "rules_of_reading": [
+            "Licensing NEVER affects whether a water is open, closed or restricted. It is "
+            "consulted only once the water is open for what the angler is doing, so a closed "
+            "water needs no licence by construction.",
+            "The angler is ALWAYS unknown. Every answer is conditional on who they are ('if "
+            "you are a non-resident …'); there is no default angler.",
+            "A requirement is met by ANY ONE of its paths; a `hold` path needs ALL of its "
+            "documents.",
+            "An `exemption` removes documents for the anglers it names; an `alternative` only "
+            "ever adds a path.",
+            "A designation obliges nothing on its own; requirements with `on` fire where it is "
+            "in force, and the classified-water steelhead stamp runs during "
+            "`steelhead_stamp_during`, unless `steelhead_stamp_waived`.",
+            "An unresolved record renders as 'check', never as 'none needed'.",
+        ],
+        "kinds": lkinds,
+        "who": {
+            "reading": "A set on every axis: the members listed are IN. An axis left out means "
+                       "ANY member. `who` absent means every angler.",
+            "axes": {a: {"members": list(v), "means": WHO_TEXT.get(a)} for a, v in C.WHO_AXES.items()},
+            "examples": lpick(lambda x: bool(x["fields"].get("who")), "who", "who_except"),
+        },
+        "doing": {
+            "acts": {a: DOING_TEXT.get(a) for a in typing.get_args(
+                C.Doing.model_fields["act"].annotation)},
+            "fields": _fields(C.Doing),
+            "examples": [lpick(lambda x, a=a: (x["fields"].get("doing") or {}).get("act") == a,
+                               "doing", "who", n=1)
+                         for a in typing.get_args(C.Doing.model_fields["act"].annotation)],
+        },
+        "paths": {
+            "fields": {k: PATH_TEXT.get(k) for k in _fields(C.Path)},
+            "quota_values": list(typing.get_args(typing.get_args(
+                C.Path.model_fields["quota"].annotation)[0])),
+            "examples": {
+                "hold": lpick(lambda x: has_path(x, "hold"), "satisfied_by", "who", n=1),
+                "accompanied_by": lpick(lambda x: has_path(x, "accompanied_by"),
+                                        "satisfied_by", "who", n=1),
+                "as": lpick(lambda x: has_path(x, "as"), "satisfied_by", "who", n=1),
+            },
+        },
+        "designations": {
+            "stamp_during": lpick(lambda x: bool(x["fields"].get("steelhead_stamp_during")),
+                                  "classified", "when", "steelhead_stamp_during", n=1),
+            "stamp_waived": lpick(lambda x: bool(x["fields"].get("steelhead_stamp_waived")),
+                                  "classified", "steelhead_stamp_waived", n=1),
+            "on_designation": lpick(lambda x: bool(x["fields"].get("on")), "on", "doing",
+                                    "satisfied_by", n=1),
+        },
+        "field_text": {k: LICENSING_FIELD_TEXT.get(k) for k in sorted(
+            {f for m in lmodels.values() for f in _fields(m)} - {"kind", "id", "verbatim"})},
+        "documents": "See `licences`: the register, `provincial` = sold to an angler under the "
+                     "Wildlife Act (what 'any type of fishing licence or stamp' means).",
+    }
+
+    # ---- placement ----------------------------------------------------------------------
+    rvia = Counter(v for s in d["rulesets"].values() for v in s if v != "sections")
+    lvia = Counter(v for s in d["licensing_sets"].values() for v in s if v != "sections")
+    placement = {
+        "reading": "Where a record applies is exported the way the bundle interns it. Many "
+                   "sections carry the same set of records, so each SET is listed once "
+                   "(`rulesets`, `licensing_sets`: its members grouped by `via`, and how many "
+                   "sections carry it), and each named water lists the sets its sections carry "
+                   "and on how many sections (`waters`). Set ids are local to this file and "
+                   "change with every build; never store one. Section handles never leave the "
+                   "bundle.",
+        "via": {k: VIA_TEXT[k] for k in VIA_TEXT},
+        "via_counts": {"rulesets": dict(sorted(rvia.items())),
+                       "licensing_sets": dict(sorted(lvia.items()))},
+        "licensing_placement": PLACEMENT_TEXT,
+        "licensing_placement_counts": dict(sorted(Counter(
+            x["placement"] for x in lic.values()).items())),
+        "uncertain": {
+            "rules": [x["id"] for x in rules.values() if x["provenance"]["uncertain"]],
+            "licensing": [x["id"] for x in lic.values() if x["provenance"]["uncertain"]],
+            "reading": "An uncertain record binds nowhere: it can only ever raise 'unknown', "
+                       "never 'no rules here'. `provenance.why` says why.",
+        },
+        "unplaced_entries": [e for e, v in d["entries"].items() if not v["matched"]
+                             and v["kind"] == "water"],
+    }
+
+    contents = {
+        "how_to_read": "the file's shape, ids and what is not in it",
+        "entries": "what an entry is, and its four kinds",
+        "rule_types": "every rule type: what it means, fields it uses, competition, closing",
+        "families": "the six families the types group into",
+        "ladder": "which rules compete and who speaks",
+        "gear": "slots, bounds, conditions, `while`, `conduct`, first match per slot",
+        "sizes": "`lengths`: ordered ranges, first match wins",
+        "time": "`when`: dates, hours, weekdays, unparsed, suspended_while",
+        "species": "codes, groups, expansion, species_except, open groups",
+        "retention": "take, may_target, period, per_daily, within, and the readings of take 0",
+        "vessel": "aspect, level, power, speed",
+        "exempts": "how a rule lifts another",
+        "standing": "rules everywhere at places nobody can draw",
+        "angler_closure": "closures to one kind of angler",
+        "licensing": "kinds, who, doing, paths, designations, and the rules of reading",
+        "placement": "sets, waters, via, placement, uncertain",
+    }
+    return {
+        "contents": contents,
+        "how_to_read": {
+            "shape": {
+                "rules": "every rule, keyed `entry_id::rule_id`",
+                "licensing": "every licensing record, keyed `entry_id#record_id`",
+                "entries": "every synopsis row; lists its rule and licensing ids",
+                "licences": "the document register",
+                "rulesets / licensing_sets": "the interned sets of records that sections carry",
+                "waters": "every named water (by durable item_id) and the sets on it",
+                "species": "every fish, and the groups the book writes",
+                "field_dictionary": "every field in the file, and what it means",
+                "index": "ids grouped by type and kind",
+            },
+            "every_record": "Each rule and licensing record reads itself: `label` (generated "
+                            "from its fields), `verbatim` (the printed sentence), `fields` "
+                            "(exactly as the bundle ships them), and `provenance`.",
+            "ids": "A rule id or record id is unique only within its entry; always use the "
+                   "full key. item_id is the durable id of a water.",
+            "not_included": "Nothing is settled: no quota tables, no open/closed verdicts, no "
+                            "colours. This guide says how the fields are read; applying it is "
+                            "the reader's job, and the ladder below is the rule for it.",
+        },
+        "entries": {
+            "kinds": {
+                "province": "`zp:` — the provincial regulations; bind everywhere their extents "
+                            "reach",
+                "zone": "`z<region>:` — a region's chapter: its standing tables and notices",
+                "area": "`z<region>:` whose own extents name a place smaller than a region "
+                        "(a management-unit group, a wildlife management area, a park)",
+                "water": "`r<region>:` — one row of a region's water table",
+            },
+            "counts": dict(sorted(Counter(e["kind"] for e in d["entries"].values()).items())),
+            "fields": ENTRY_TEXT,
+        },
+        "rule_types": rule_types,
+        "families": families,
+        "ladder": ladder,
+        "gear": gear,
+        "sizes": sizes,
+        "time": time,
+        "species": species,
+        "retention": retention,
+        "vessel": vessel,
+        "exempts": exempts,
+        "standing": standing,
+        "angler_closure": angler_closure,
+        "licensing": licensing,
+        "placement": placement,
+    }
+
+
+# --------------------------------------------------------------------------------------------
+# Species, the field dictionary, the index
+# --------------------------------------------------------------------------------------------
+
+OPEN_GROUPS = ("ALL_FIN_FISH", "NON_GAME_FISH")
 
 
 def _name(code: str) -> str:
     r = SPECIES.get(code)
-    return _SPECIES_WORDS.get(code) or (r.common_name if r else code)
+    return C._SPECIES_WORDS.get(code) or (r.common_name if r else code)
 
 
-def species_object() -> dict:
-    """ONE OBJECT PER FISH, with everything known about it in one place.
-
-    `DEFINITIONAL_SIZE` (`pipeline/regs/parsing/catalogue.py`) used to sit in a table of its own,
-    which is the wrong shape: it is a fact about a species, not a kind of rule. A steelhead IS a
-    rainbow trout over 50 cm, so the 50 belongs on the steelhead the way its name does.
-    """
+def species_table() -> dict:
+    members = {g: sorted(set(C.expand_species([g])) - set(OPEN_GROUPS)) for g in C.SPECIES_GROUPS}
     in_group = defaultdict(list)
-    for g in SPECIES_GROUPS:
-        for c in set(expand_species([g])) - set(OPEN_GROUPS):
+    for g, ms in members.items():
+        for c in ms:
             in_group[c].append(g)
-    out = {}
-    for code in sorted({c for g in SPECIES_GROUPS for c in set(expand_species([g])) - set(OPEN_GROUPS)}):
+    fish = {}
+    for code in sorted(C.KNOWN_SPECIES - set(C.SPECIES_GROUPS)):
         rec = SPECIES.get(code)
-        d = {"code": code, "name": _name(code),
-             "scientific": rec.scientific if rec else None,
-             "species_type": rec.species_type if rec else None,
+        d = {"name": _name(code), "scientific": rec.scientific if rec else None,
              "groups": sorted(in_group[code])}
-        if code in DEFINITIONAL_SIZE:
-            ds = dict(DEFINITIONAL_SIZE[code])
-            d["definitional_size"] = {
-                "min_cm": ds.get("min_cm"),
-                "says": ds.get("says"),
-                "below_this_it_is": ds.get("below"),
-                "applies_where": ds.get("applies_where"),
-                "source": ds.get("source"),
-                "_use": "A size the book puts in the DEFINITION, not in a quota. So a cap of "
-                        "'1 over 50 cm' on this fish is simply 1, and a regional floor of 30 cm "
-                        "can never bite on it. Apply it on a row already labelled with this "
-                        "species; deciding whether the species BELOW it is really this one "
-                        "needs a per-water fact the corpus does not carry.",
-            }
-        out[code] = d
-    return out
+        if code in C.DEFINITIONAL_SIZE:
+            d["definitional_size"] = dict(C.DEFINITIONAL_SIZE[code])
+        fish[code] = d
+    groups = {g: ({"name": _name(g), "members": members[g]} if g not in OPEN_GROUPS else
+                  {"name": _name(g), "members": [], "open": True})
+              for g in sorted(C.SPECIES_GROUPS)}
+    return {"fish": fish, "groups": groups}
 
 
-#: WHAT KINDS OF RULE ARE IN HERE — all of them. A quota is the loudest but it is one family of
-#: five, and the gear, licensing and conduct rules have to be designed for too.
-RULE_TYPES = {
-    "retention_limit": "how many you may keep, or that you may keep none — quotas, releases, "
-                       "closures and size limits are all this one type",
-    "stop_fishing_after_quota": "you must stop fishing for it once your quota is taken",
-    "method_rule": "whether a method is allowed at all — angling, ice fishing, spear, nets, "
-                   "snagging, traps",
-    "tackle_restriction": "the rig — hooks, lines, flies, weights",
-    "bait_restriction": "what may be on the hook, and bait bans",
-    "angler_closure": "the water is closed to ONE KIND of angler (non-guided non-resident "
-                      "aliens on weekends) — a closure, never a quota",
-    "handling_rule": "what you must DO — release immediately, do not remove from the water",
-    "vessel_rule": "boats — where they may go, under what power, whether at all (384 rules "
-                   "corpus-wide, the third largest type and easy to miss)",
-    "angling_from_vessel_prohibited": "you may be here, but not fish from a boat",
-    "navigation_duty": "what you must do for other traffic",
-    "hazard": "a warning about the place",
-    "facility": "what is there — a boat launch, a wheelchair-accessible pier",
-    "program_membership": "the water is in a named programme (Quality Waters, Family Fishing)",
-    "advisory": "information the book prints that governs nothing — and MUST NOT be allowed to "
-                "govern anything (Region 8's crayfish are currently governed by a turtle "
-                "advisory; see 05-table-generation.md §6.4)",
-    "_counts_corpus_wide": {
-        "retention_limit": 1769, "bait_restriction": 397, "vessel_rule": 384,
-        "tackle_restriction": 355, "method_rule": 136, "advisory": 127, "hazard": 25,
-        "program_membership": 19, "angler_closure": 15, "angling_from_vessel_prohibited": 15,
-        "facility": 13, "handling_rule": 11, "stop_fishing_after_quota": 2, "navigation_duty": 1,
-    },
-}
-
-RULE_FAMILIES = {
-    "retention": "what you may keep",
-    "gear_and_method": "how you may fish",
-    "access": "who may fish here at all — a closure to one kind of angler",
-    "conduct": "what you must do",
-    "vessel": "what your boat may do — 400 rules corpus-wide, a whole half of the book that no "
-              "table currently draws",
-    "information": "what the book tells you, governing nothing",
-    "_counts_corpus_wide": {"retention": 1771, "gear_and_method": 888, "vessel": 400,
-                            "information": 184, "access": 15, "conduct": 11},
-}
-
-
-#: HOW A ZERO READS. `take: 0` is three different regulations and the fields tell them apart.
-#: Getting this wrong is the single most consequential misreading available: a release drawn as
-#: a closure shuts a legal fishery, and a closure drawn as a release sends someone fishing for a
-#: protected fish. (In the app's map code, reading `take === 0` alone called 1,674 of 1,693
-#: rulesets closed.)
-ZERO_READINGS = {
-    "closed": "`take: 0` AND `may_target: 0` — you may not fish for it at all",
-    "release": "`take: 0`, `may_target` not 0 — you may fish for it and must let every one go",
-    "size gate": "a range in `lengths` with `take: 0` — a floor or a ceiling, not a closure. "
-                 "'none under 30 cm' is an allowance of zero on a SIZE CLASS.",
-    "_and": "a `take: 0` carrying a `method` is not a closure of the water either — it closes "
-            "that method.",
-}
-
-EXEMPTIONS = {
-    "_what": "The book writes closures and then writes exceptions to them. An exemption is a "
-             "rule like any other; `exempts` says what it lifts.",
-    "two forms": {
-        "{default_id: 'spring_stream_closure'}": "names a STANDING DEFAULT by id — the regional "
-                                                 "closure entry of that name. 63 rules exempt "
-                                                 "the spring stream closure alone.",
-        "{target: 'bait.r1'}": "names a specific rule, by its bare id inside the same entry",
-    },
-    "note": "free text the book gives, e.g. 'Mainstem open all year'. It is often the only thing "
-            "that says WHERE the exemption reaches.",
-    "_trap_1_place":
-        "A LIFT WHOSE PLACE CANNOT BE DRAWN IS NOT APPLIED. Region 6's 'No fishing for steelhead "
-        "in streams, May 15 – Jun 15' carries an exemption noting 'mainstem Skeena, Nass, Iskut, "
-        "Stikine and Taku'. Applied everywhere, the closure vanished from the Babine — which that "
-        "note does not exempt — and a reader was told a river is open in the middle of a "
-        "steelhead closure. The closure stands and the exemption rides beside it in the book's "
-        "own words. Ignoring an exception fails toward the stricter answer for a quota; for a "
-        "CLOSURE it is the other way round.",
-    "_trap_2_self":
-        "A RULE CANNOT LIFT ITSELF. That same Region 6 rule names its OWN entry as the default it "
-        "exempts, so it lifted itself on every water in the region.",
-    "_trap_3_ids":
-        "A bare rule id is not unique — `species_quotas.r1` is nine different rules — so an "
-        "exemption target must be resolved within its own entry, or against the named default "
-        "entry. `resolves_to` below is that resolution, done here; where it is empty the target "
-        "could not be resolved and the lift must NOT be applied.",
-}
-
-
-def _mus_of(area_id: str) -> set:
-    """The management units an `area:mu_group:…` id covers.
-
-    "management_units_1_1_to_1_6" is a RANGE, and the only place the corpus writes which units
-    an area rule reaches. Parsed rather than looked up because there is no table of it; a name
-    this function cannot read yields nothing, and the caller falls back to saying so.
-    """
-    tail = area_id.split(":")[-1]
-    got = tail.replace("management_units_", "").split("_to_")
-    try:
-        lo_r, lo_n = got[0].split("_")[0], int(got[0].split("_")[1])
-        hi_r, hi_n = (got[1].split("_")[0], int(got[1].split("_")[1])) if len(got) > 1 \
-            else (lo_r, lo_n)
-    except (ValueError, IndexError):
-        return set()
-    if lo_r != hi_r:
-        return set()
-    return {f"{lo_r}-{n}" for n in range(lo_n, hi_n + 1)}
-
-
-
-
-def _rule(x: dict) -> dict:
-    """The record as the table layer gets it, with the species expanded and the provenance
-    spelled out. Nothing is removed."""
-    s = source_of(x)
-    out = dict(x)
-    written = list(x.get("species") or [])
-    out["species_written"] = written
-    # ONE EXPANDER, `catalogue.expand_species` — transitive, and it returns an OPEN group's own
-    # code rather than nothing, so "everything with fins" survives as a claim instead of
-    # vanishing into an empty list. There were two implementations of this and they differed on
-    # exactly that.
-    got = expand_species(written) if written else []
-    out["species"] = sorted(c for c in got if c not in OPEN_GROUPS)
-    # AN OPEN SET IS NOT AN EMPTY ONE. `ALL_FIN_FISH` and `NON_GAME_FISH` mean "everything that is
-    # a fish", which is not a list the province publishes and would go stale the moment it was
-    # written down — so they have no members, and `expand_species` returns the group's own code
-    # rather than nothing. Three rules say it, "any fish willfully or accidentally snagged must
-    # be released immediately" among them, and a consumer reading an empty list as "no species"
-    # drops exactly the rules that reach widest. The claim travels in `species_open`.
-    openset = [g for g in got if g in OPEN_GROUPS]
-    if openset:
-        out["species_open"] = openset
-        out["species_note"] = ("This rule is about " + " and ".join(
-            OPEN_GROUPS[g] for g in openset) + " — an open set the corpus deliberately does not "
-            "list, so `species` is empty. Do not read that as 'no fish'.")
-    ex = list(x.get("species_except") or [])
-    if ex:
-        out["species_except_written"] = ex
-        out["species_except"] = sorted(c for c in expand_species(ex) if c not in OPEN_GROUPS)
-    # NOTHING IS DERIVED ONTO THE RECORD BELOW THIS LINE. `reads_as`, `size_rule` and
-    # `shared_number` were computed here and have been removed: this file is the corpus's data,
-    # and a reading of it is not data. Every one of them is now written out as a condition in
-    # `field_dictionary` — `closures_and_exemptions.how_a_zero_reads` for what a `take: 0` is,
-    # `size._which_reading` for what a bound means, `the number._shared_or_each` for whether a
-    # number is split. A consumer applies those; it does not get an answer it cannot see behind.
-    if x.get("exempts"):
-        out["exempts"] = [dict(e, resolves_to=_targets(x, e)) for e in x["exempts"]]
-    e = entries().get(x.get("entry")) or {}
-    out["provenance"] = {
-        "says": (x.get("verbatim") or "").strip(),
-        "who": s.words(),
-        "authority": s.authority.value,
-        "binds_to": s.scope.value,
-        "rank": s.rank,
-        "region": s.region or None,
-        "place": s.place or None,
-        "rule": f'{x.get("entry")}::{x.get("rule")}',
-        # WHERE IN THE BOOK. The page is checkable by anyone holding the synopsis; the box is
-        # the rule in context, which is how a clause is told from a peer — "1 over 50 cm" under
-        # "Trout/char: 4" is a clause, and the same words on their own would not be.
-        "entry": x.get("entry"),
-        "entry_name": e.get("name") or x.get("entry_name"),
-        "entry_display_name": e.get("display_name"),
-        "synopsis_pages": e.get("synopsis_pages") or [],
-        "printed_box": e.get("printed_box"),
-        "scope_note": e.get("scope_note"),
-        "symbols": e.get("symbols") or [],
+def field_dictionary(d: dict) -> dict:
+    """Exactly the keys the records carry, each explained. Unexplained or unknown keys are
+    reported by `problems`, never silently listed."""
+    rule_keys = sorted({k for x in d["rules"].values() for k in x["fields"]})
+    lic_keys = {k: sorted({f for x in d["licensing"].values() if x["kind"] == k
+                           for f in x["fields"]}) for k in _licensing_models()}
+    shipped = set(rule_keys)
+    model = set(_fields(C.CatalogueRule)) - {"rule_id", "type", "verbatim"}
+    return {
+        "rule": {k: RECORD_TEXT[k] for k in RECORD_TEXT},
+        "rule.fields": {k: RULE_FIELD_TEXT.get(k) for k in rule_keys},
+        "rule.provenance": PROVENANCE_TEXT,
+        "rule.fields.gear[]": {k: CLAUSE_TEXT.get(k) for k in _fields(C.GearClause)},
+        "rule.fields.when": {k: WHEN_TEXT.get(k) for k in _fields(C.When)},
+        "rule.fields.lengths[]": LENGTH_TEXT,
+        "rule.fields.exempts[]": {k: EXEMPTS_TEXT.get(k) for k in _fields(C.Exempts)},
+        "rule.fields.closed_to": {k: WHO_TEXT.get(k) for k in _fields(C.Who)},
+        "model_rule_fields_not_shipped": sorted(model - shipped),
+        "licensing": LICENSING_RECORD_TEXT,
+        "licensing.fields": {k: {f: LICENSING_FIELD_TEXT.get(f) for f in fs}
+                             for k, fs in lic_keys.items()},
+        "licensing.provenance": {k: PROVENANCE_TEXT[k] for k in ("entry_name", "uncertain",
+                                                                   "why")},
+        "entry": ENTRY_TEXT,
     }
-    return out
 
 
-def _mus(rs) -> set:
-    """The management units a water's own rules are filed under — the `@4-19+4-7` on an entry id
-    is the book's own area vocabulary for that water."""
-    return {p for x in rs
-            for p in (x.get("entry", "").split("@")[-1].split("+")
-                      if "@" in x.get("entry", "") else [])}
+def index(d: dict) -> dict:
+    by_type, by_family, by_kind = defaultdict(list), defaultdict(list), defaultdict(list)
+    for x in d["rules"].values():
+        by_type[x["type"]].append(x["id"])
+        by_family[x["family"]].append(x["id"])
+    for x in d["licensing"].values():
+        by_kind[x["kind"]].append(x["id"])
+    return {"rules_by_type": dict(sorted(by_type.items())),
+            "rules_by_family": dict(sorted(by_family.items())),
+            "licensing_by_kind": dict(sorted(by_kind.items()))}
 
 
-#: A RULE THAT BINDS ONLY INSIDE AN AREA IS HOW YOU KNOW YOU ARE IN ONE.
-#:
-#: "Inside a National Park or Ecological Reserve: no fishing" looks like a question about
-#: geometry, and it is not one for a consumer of this file. The atlas has already asked it: the
-#: closure's extent is `within area_kind national_parks`, so it binds to the 10,191 sections that
-#: are in one and to no others. A section carrying the rule IS in a park.
-AREA_MARKERS = {
-    "zp:superior_closures::superior_closures.r1": "a National Park",
-    "zp:superior_closures::superior_closures.r3": "an Ecological Reserve",
-    "zp:national_park_reserves::national_park_reserves.r1":
-        "Pacific Rim, Gwaii Haanas or Gulf Islands National Park Reserve",
-    "zp:superior_closures::superior_closures.r2": "a National Park (a permit is required)",
-    "zp:basic_licence::basic_licence.r2": "a National Park (a B.C. licence is not valid there)",
-}
+def build(bundle: Path = BUNDLE) -> dict:
+    d = read(bundle)
+    counts = {
+        "entries": len(d["entries"]),
+        "rules": len(d["rules"]),
+        "licensing": len(d["licensing"]),
+        "licensing_by_kind": dict(sorted(Counter(x["kind"] for x in d["licensing"].values())
+                                         .items())),
+        "licences": len(d["licences"]),
+        "rulesets": len(d["rulesets"]),
+        "licensing_sets": len(d["licensing_sets"]),
+        "waters": len(d["waters"]),
+        "sections": d["sections"],
+    }
+    doc = {
+        "about": {
+            "what": "Every regulation record in the bundle, with a guide to reading it. "
+                    "Generated by pipeline/tools/export_ui_rules.py; nothing is settled.",
+            "bundle": {k: d["meta"].get(k) for k in ("version", "build", "reach_run",
+                                                      "reach_digest", "section_handles")},
+            "counts": counts,
+            "unresolved_references": [],
+        },
+        "guide": guide(d),
+        "field_dictionary": field_dictionary(d),
+        "species": species_table(),
+        "licences": d["licences"],
+        "entries": d["entries"],
+        "rules": d["rules"],
+        "licensing": d["licensing"],
+        "rulesets": d["rulesets"],
+        "licensing_sets": d["licensing_sets"],
+        "waters": d["waters"],
+        "index": index(d),
+    }
+    doc["about"]["unresolved_references"] = corpus_references(doc)
+    return doc
 
 
-def _areas_for(regions, kind: str, mus: set, bound_ids: set) -> dict:
-    """Which named areas this stretch is inside.
+# --------------------------------------------------------------------------------------------
+# The checks: run on the OUTPUT, so they prove what ships
+# --------------------------------------------------------------------------------------------
 
-    TWO QUESTIONS, AND THE CORPUS ANSWERS BOTH — the first version of this answered neither,
-    because it read the EXTENTS of the water's own rules, which say where that rule reaches and
-    nothing about where the water is.
-
-      · An area written as a management-unit range is matched against this water's own units.
-      · An area written as an area KIND is answered by the rule itself being bound here. The
-        atlas resolved that geometry when it cut the section.
-    """
-    inside = [{"area": AREA_MARKERS[r], "because": f"this stretch carries {r}"}
-              for r in sorted(bound_ids & set(AREA_MARKERS))]
-    for reg in regions:
-        for a_ in ST.areas(reg, kind):
-            ids = {e.get("area_id") for x in a_.rule_dicts
-                   for e in (x.get("extents") or []) if e.get("area_id")}
-            covered = set().union(*[_mus_of(i) for i in ids]) if ids else set()
-            if covered & mus:
-                inside.append({"area": a_.name, "region": reg,
-                               "because": "its management units include "
-                                          + ", ".join(sorted(covered & mus))})
-    return {"inside": inside,
-            "_note": "Empty means no area rule reaches this stretch — NOT that the question is "
-                     "unanswered. An area closure binds to the sections inside it, so its "
-                     "absence from this stretch's rules is itself the answer."}
-
-_ALL = None
+def _keys(o, path=""):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield k, f"{path}.{k}"
+            yield from _keys(v, f"{path}.{k}")
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from _keys(v, f"{path}[{i}]")
 
 
-def _targets(x: dict, e: dict) -> list:
-    """The rule ids an `exempts` entry actually points at.
-
-    Resolved here so a consumer never has to match a bare id — which is not unique — against the
-    corpus itself. An empty list means the target could not be resolved, and a lift that cannot
-    be resolved must not be applied.
-    """
-    global _ALL
-    if _ALL is None:
-        _ALL = list(rules())
+def retired_keys(doc: dict) -> list[str]:
+    """Every place a retired field name appears as a key, or a retired rule type as a type."""
     out = []
-    if e.get("target"):
-        want = e["target"]
-        out += [rid(y) for y in _ALL
-                if y.get("entry") == x.get("entry") and y.get("rule") == want]
-    if e.get("default_id"):
-        # ...AND ONLY IN ITS OWN REGION. Every region writes its own spring closure, so a
-        # `default_id` matched across the corpus resolved the Fraser's exemption to five of
-        # them — four belonging to regions the Fraser is not in. A lift reaches the closure it
-        # is filed under, not every closure that shares a name.
-        did = e["default_id"]
-        mine = source_of(x).region
-        out += [rid(y) for y in _ALL
-                if (y.get("entry") or "").split(":")[-1] == did and rid(y) != rid(x)
-                and (not mine or source_of(y).region == mine)]
+    data = {k: v for k, v in doc.items() if k not in ("rules",)}
+    for k, where in _keys(data):
+        if k in RETIRED_ANYWHERE:
+            out.append(where)
+    for rid, x in doc["rules"].items():
+        if x["type"] in RETIRED_TYPES:
+            out.append(f".rules.{rid}.type={x['type']}")
+        for k in x["fields"]:
+            if k in RETIRED_ON_RULE:
+                out.append(f".rules.{rid}.fields.{k}")
+        for k, where in _keys(x, f".rules.{rid}"):
+            if k in RETIRED_ANYWHERE:
+                out.append(where)
     return sorted(set(out))
 
 
-_ENTRIES = None
+def _registries() -> list[tuple[str, dict, set]]:
+    """(name, the words, the model's own registry) — they must name exactly the same members."""
+    lm = _licensing_models()
+    return [
+        ("TYPE_TEXT", TYPE_TEXT, set(_enum(C.RuleType))),
+        ("FAMILY_TEXT", FAMILY_TEXT, set(C._FAMILY.values())),
+        ("SLOT_TEXT", SLOT_TEXT, set(_enum(C.Slot))),
+        ("CLAUSE_TEXT", CLAUSE_TEXT, set(_fields(C.GearClause))),
+        ("GEAR_WHEN_TEXT", GEAR_WHEN_TEXT, set(_fields(C.GearWhen))),
+        ("GEAR_SPEC_TEXT", GEAR_SPEC_TEXT, set(_fields(C.GearSpec))),
+        ("WHEN_TEXT", WHEN_TEXT, set(_fields(C.When))),
+        ("EXEMPTS_TEXT", EXEMPTS_TEXT, set(_fields(C.Exempts))),
+        ("LENGTH_TEXT", LENGTH_TEXT, set(_fields(C.LengthBand))),
+        ("WHO_TEXT", WHO_TEXT, set(C.WHO_AXES)),
+        ("PATH_TEXT", PATH_TEXT, set(_fields(C.Path))),
+        ("DOING_TEXT", DOING_TEXT, set(typing.get_args(C.Doing.model_fields["act"].annotation))),
+        ("LICENSING_KIND_TEXT", LICENSING_KIND_TEXT, set(lm)),
+    ]
 
 
-def entries() -> dict:
-    """entry_id -> the paperwork around a rule: which synopsis page it was read from, the whole
-    printed box it came out of, the scope note, the symbols.
-
-    ALL OF IT COMES FROM THE BUNDLE. This used to read the curated files at RUN time, which is a
-    fallback — a reader answering with something the bundle never agreed to, and staleness that
-    says nothing. `scope_note` was the last of the six that had no column; it has one now.
-
-    Verified field by field against what the curated read returned: 1,480 of 1,480 identical on
-    five, and on the sixth the bundle is BETTER — `name` is `display_name or name`, so the 32
-    entries with no display_name get their name instead of a null.
-    """
-    global _ENTRIES
-    if _ENTRIES is None:
-        import sqlite3
-        from pipeline.regs.table.corpus import BUNDLE
-        db = sqlite3.connect(BUNDLE)
-        cols = [r[1] for r in db.execute("PRAGMA table_info(entry)")]
-        _ENTRIES = {}
-        for row in db.execute("SELECT * FROM entry"):
-            e = dict(zip(cols, row))
-            _ENTRIES[e["entry_id"]] = {
-                "name": e.get("full_name"),          # the book's own heading, shouted
-                "display_name": e.get("name"),       # the readable form
-                "scope_note": e.get("scope_note") or None,
-                "synopsis_pages": json.loads(e.get("pages") or "[]"),
-                "printed_box": e.get("verbatim") or None,
-                "symbols": json.loads(e.get("symbols") or "[]"),
-            }
-        db.close()
-    return _ENTRIES
-
-
-#: WHAT WAS LAST MEASURED AGAINST THE PRINTED BOOK — recorded, not recomputed.
-#:
-#: `quota_print` read the printed box out of the synopsis PDF and matched every line of it to the
-#: rule that accounts for it. It settled a ledger to do that, and the settling layer has been
-#: removed from this repository until it is rebuilt, so the check cannot run and this export
-#: cannot verify itself today.
-#:
-#: The figure is kept because it is true of these rules and it is the only evidence they are
-#: right — but it is a SNAPSHOT of commit 4c1e74c9, not a live result, and it is labelled as one
-#: in the output. Anything that would let a reader mistake it for a fresh check is worse than
-#: leaving it out.
-LAST_CHECKED = {
-    "_status": "NOT RECOMPUTED — the settling layer this check needs is not in the repository. "
-               "Treat as a historical claim about these rules, not as verification of this file.",
-    "as_of_commit": "4c1e74c9",
-    "method": "Every line of each region's printed quota box, read out of the synopsis PDF and "
-              "matched to the rule that accounts for it (`quota_print.check_region`).",
-    "source": "data/source/fishing_synopsis.pdf · 2025-2027",
-    "result": "384 of 384 printed lines agreed, over 11 chapters × lake and stream.",
-    "history": "382 of 386 before `z1:hg_quota.r3` was corrected from ['DV','BT'] to ['DV'] — "
-               "the book prints '3 Dolly Varden' and names no bull trout. That fix needs a "
-               "bundle rebuild to reach the rules in this file.",
-}
+def unexplained(doc: dict) -> list[str]:
+    """Registry members the guide does not explain, words for members the model no longer has,
+    and shipped keys the dictionary does not explain."""
+    g, out = doc["guide"], []
+    for name, words, registry in _registries():
+        out += [f"{name} does not explain {k}" for k in sorted(registry - set(words))]
+        out += [f"{name} explains {k}, which the model does not have"
+                for k in sorted(set(words) - registry)]
+        out += [f"{name}[{k}] is empty" for k in sorted(words) if not words[k]]
+    model = set(_fields(C.CatalogueRule))
+    out += [f"RULE_FIELD_TEXT explains {k}, which CatalogueRule does not have"
+            for k in sorted(set(RULE_FIELD_TEXT) - model)]
+    lfields = {f for m in _licensing_models().values() for f in _fields(m)}
+    out += [f"LICENSING_FIELD_TEXT explains {k}, which no licensing record has"
+            for k in sorted(set(LICENSING_FIELD_TEXT) - lfields)]
+    for t in _enum(C.RuleType):
+        if not (g["rule_types"].get(t) or {}).get("means"):
+            out.append(f"rule type {t}")
+    for s in C.Slot:
+        if not (g["gear"]["slots"].get(s.value) or {}).get("means"):
+            out.append(f"slot {s.value}")
+    for a in C.CONDUCT_ACTS:
+        if not (g["gear"]["conduct"]["acts"].get(a) or {}).get("means"):
+            out.append(f"conduct {a}")
+    for k in _licensing_models():
+        if not (g["licensing"]["kinds"].get(k) or {}).get("means"):
+            out.append(f"licensing kind {k}")
+    model = set(_fields(C.CatalogueRule))
+    for k, v in doc["field_dictionary"]["rule.fields"].items():
+        if not v:
+            out.append(f"rule field {k} has no text")
+        if k not in model:
+            out.append(f"rule field {k} is not a CatalogueRule field")
+    lmodels = _licensing_models()
+    for kind, fs in doc["field_dictionary"]["licensing.fields"].items():
+        for f, v in fs.items():
+            if not v:
+                out.append(f"{kind} field {f} has no text")
+            if f not in _fields(lmodels[kind]):
+                out.append(f"{kind} field {f} is not a {lmodels[kind].__name__} field")
+    for sub, model_ in (("clause_fields", C.GearClause), ("when_fields", C.GearWhen),
+                        ("requires_fields", C.GearSpec)):
+        if set(g["gear"][sub]) != set(_fields(model_)):
+            out.append(f"gear.{sub} differs from {model_.__name__}")
+    return out
 
 
-def _size_examples(take) -> dict:
-    """A RANGE CLOSED AT BOTH ENDS MEANS ONE OF TWO OPPOSITE THINGS, so every rule carrying one is
-    in this file, interned into `rules` like any other, with its verbatim sentence.
+def dangling(doc: dict) -> list[str]:
+    """Every reference in the file that does not resolve."""
+    R, L, E = doc["rules"], doc["licensing"], doc["entries"]
+    out = []
+    for eid, e in E.items():
+        out += [f"entry {eid} -> rule {r}" for r in e["rules"] if r not in R]
+        out += [f"entry {eid} -> licensing {r}" for r in e["licensing"] if r not in L]
+    for name, table, known in (("ruleset", doc["rulesets"], R),
+                               ("licensing_set", doc["licensing_sets"], L)):
+        for sid, s in table.items():
+            for via, ids in s.items():
+                if via == "sections":
+                    continue
+                out += [f"{name} {sid} -> {i}" for i in ids if i not in known]
+    for item, w in doc["waters"].items():
+        out += [f"water {item} -> ruleset {s}" for s in w["rulesets"] if s not in doc["rulesets"]]
+        out += [f"water {item} -> licensing_set {s}" for s in w["licensing_sets"]
+                if s not in doc["licensing_sets"]]
+        out += [f"water {item} -> entry {e}" for e in w["entries"] if e not in E]
+    def examples(o):
+        if isinstance(o, dict):
+            if {"id", "label", "verbatim"} <= set(o):
+                yield o["id"]
+                return
+            for v in o.values():
+                yield from examples(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from examples(v)
+    out += [f"guide example {i}" for i in examples(doc["guide"]) if i not in R and i not in L]
+    g = doc["guide"]
+    listed = (g["standing"]["rules"] + g["angler_closure"]["rules"]
+              + g["placement"]["uncertain"]["rules"])
+    out += [f"guide lists rule {i}" for i in listed if i not in R]
+    out += [f"guide lists licensing {i}" for i in g["placement"]["uncertain"]["licensing"]
+            if i not in L]
+    out += [f"guide lists entry {i}" for i in g["placement"]["unplaced_entries"] if i not in E]
+    for name, ids, known in [(f"index {k}", v, R) for k, v in
+                             {**doc["index"]["rules_by_type"],
+                              **doc["index"]["rules_by_family"]}.items()] + \
+            [(f"index {k}", v, L) for k, v in doc["index"]["licensing_by_kind"].items()]:
+        out += [f"{name} -> {i}" for i in ids if i not in known]
+    return out
 
-    A HOLE is a closed range with `take: 0` — keep none between. A WINDOW is a closed range you may
-    keep from, with the lengths either side of it denied. Under the old fields the two were the
-    same pair of numbers and one flag, `band`, set backwards on four rules; `lengths` writes the
-    `take` on the range, so which one a rule is can be read off it rather than trusted.
-    """
-    closed = lambda b: b.get("min_cm") is not None and b.get("max_cm") is not None
-    by_kind = defaultdict(list)
-    for x in rules():
-        bands = [b for b in (x.get("lengths") or []) if closed(b)]
-        if not bands:
-            continue
-        hole = any(b.get("take") == 0 for b in bands)
-        by_kind["hole" if hole else "window"].append(x)
-    return {
-        "_note": "Every rule in the corpus whose `lengths` has a range closed at both ends. "
-                 "Grouped by that range's own `take`: 0 is a hole, anything else a window.",
-        "_readings": {k: SIZE_READINGS[k] for k in ("hole", "window")},
-        "by_kind": {k: {"count": len(xs), "means": SIZE_READINGS[k],
-                        "rule_ids": take(sorted(xs, key=rid))}
-                    for k, xs in sorted(by_kind.items())},
-        "read_one_of_each": {
-            "hole": "r6:teslin_lake@6-25::teslin_lake.r3",
-            "window": "r7:gwillim_lake@7-21::gwillim_lake.r1",
-        },
-    }
+
+def corpus_references(doc: dict) -> list[str]:
+    """References the RECORDS make to each other (a clause to its parent, a lift to what it
+    lifts, a record to the one it restates) that do not resolve. These are defects in the
+    corpus, not in the export: the file ships them under `about.unresolved_references`, and a
+    lift whose target does not resolve must not be applied."""
+    R, L, E = doc["rules"], doc["licensing"], doc["entries"]
+    out = []
+    for x in R.values():
+        f, eid = x["fields"], x["entry_id"]
+        for key in ("within", "condition_of", "derived_from", "suspended_while"):
+            if f.get(key) and f"{eid}::{f[key]}" not in R:
+                out.append(f"rule {x['id']} {key} -> {f[key]}")
+        # Resolved lifts: `entry_id` is always there, and is the whole answer.
+        for ex in f.get("exempts") or []:
+            to = ex.get("entry_id")
+            if ex.get("target") and f"{to}::{ex['target']}" not in R:
+                out.append(f"rule {x['id']} exempts.target -> {to}::{ex['target']}")
+            if ex.get("default_id") and (to not in E or to == eid
+                                         or to.split(":", 1)[-1] != ex["default_id"]):
+                out.append(f"rule {x['id']} exempts.default_id -> {to} ({ex['default_id']})")
+    for x in L.values():
+        f, eid = x["fields"], x["entry_id"]
+        for key in ("alternative_to", "restates"):
+            ref = f.get(key)
+            if ref and f"{ref['entry_id']}#{ref['id']}" not in L:
+                out.append(f"licensing {x['id']} {key} -> {ref}")
+        for s in f.get("suspended_while") or []:
+            if f"{eid}::{s['rule_id']}" not in R:
+                out.append(f"licensing {x['id']} suspended_while -> {s['rule_id']}")
+        for p in f.get("satisfied_by") or []:
+            out += [f"licensing {x['id']} hold -> {doc_}" for doc_ in p.get("hold") or []
+                    if doc_ not in doc["licences"]]
+        for doc_ in ([f["document"]] if f.get("document") else []) + (f.get("documents") or []):
+            if doc_ not in doc["licences"]:
+                out.append(f"licensing {x['id']} document -> {doc_}")
+
+    return out
 
 
-def main(out_path: str) -> int:
-    all_rules = list(rules())
-    by_chapter = defaultdict(list)
-    for x in all_rules:
-        by_chapter[(x.get("entry") or "").split(":")[0]].append(x)
+def problems(doc: dict) -> list[str]:
+    return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc))
 
-    kept: dict = {}                       # entry::rule -> the exported record, interned
 
-    def take(xs) -> list:
-        ids = []
-        for x in xs:
-            k = rid(x)
-            if k not in kept:
-                kept[k] = _rule(x)
-            ids.append(k)
-        return sorted(set(ids))
+def dumps(doc: dict) -> str:
+    return json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
 
-    regions = []
-    for reg in REGIONS:
-        areas = []
-        for kind in ("lake", "stream"):
-            for a in ST.areas(reg, kind):
-                got = next((e for e in areas if e["name"] == a.name), None)
-                if got is None:
-                    got = {"name": a.name, "water_kinds": [], "rule_ids": []}
-                    areas.append(got)
-                got["water_kinds"].append(kind)
-                got["rule_ids"] = sorted(set(got["rule_ids"]) | set(take(a.rule_dicts)))
-        regions.append({
-            "region": reg,
-            "name": "British Columbia (province-wide)" if reg == "province"
-                    else f"Region {reg.upper()}",
-            "chapter": CHAPTER[reg],
-            # Region 1 and Haida Gwaii share the `z1` chapter and are different tables;
-            # `state.region_rules` is the one place that knows how to split them.
-            "rule_ids": take(sorted(ST.region_rules(reg), key=rid)),
-            "areas": areas,
-            "checked_against_the_book": LAST_CHECKED,
-        })
 
-    D = sections()
-    waters = []
-    for water, run in WATERS:
-        rs, here, label = ST.rules_for(kind=ST.section_kind(water), water=water, run=run)
-        mine = [x for x in rs if source_of(x).scope.value in ("water", "inherited")]
-        w = D.get(water) or {}
-        runs = w.get("runs") or []
-        seg = runs[run] if run < len(runs) else {}
-        waters.append({
-            "water": water, "run": run, "label": label or None,
-            "stretch_km": [seg.get("from"), seg.get("to")],
-            "water_kind": ST.section_kind(water), "item_id": w.get("item"),
-            "regions": sorted(here),
-            "management_units": sorted(_mus(mine)),
-            "areas": _areas_for(here, ST.section_kind(water), _mus(mine),
-                                {rid(x) for x in rs}),
-            "curated_entry": {k: v for k, v in (w.get("entry") or {}).items()
-                              if k in ("name", "full", "verbatim")},
-            "_rules_note": "This water's OWN rules only — `scope` water or inherited. The rules "
-                           "of its region are under `regions`; a section really gets both, and "
-                           "repeating them here would be the same sentence twice. `via: trib` "
-                           "means the rule reached this water from another one downstream.",
-            "rule_ids": take(mine),
-        })
-
-    # BEFORE the document, because it interns rules of its own and `_counts` below reads
-    # `len(kept)`: built inside the literal it added 28 rules after the count was taken.
-    sizes = _size_examples(take)
-
-    doc = {
-        "_what_this_is":
-            "Stage ③ of pipeline/docs/05-table-generation.md — the rules as `corpus.rules()` "
-            "hands them to the table layer. Interned by `entry::rule`; regions and waters index "
-            "into them.",
-        "_the_stages":
-            "curated entry → bundle → RULE (this file) → allowance → ledger → row → table",
-        "_not_included":
-            "Nothing settled — no tables, no ledgers, no colours. The settling layer has been "
-            "removed from the repository to be rebuilt, so this file is its input and there is "
-            "nothing downstream of it today. See pipeline/docs/06-ui-data-contract.md for what "
-            "the rebuilt layer owes (3.9 KB per rule set and stretch, ~29 MB for the province) "
-            "and pipeline/docs/05-table-generation.md for how the removed one worked.",
-        "_what_cannot_be_answered_from_this_file":
-            "Which rule wins where two speak; what a number comes to once the rules that carve "
-            "it are applied; whether a water is closed today; whether a rule binds at all. Those "
-            "are settling, and nothing here does it. A consumer that adds them up itself is "
-            "writing the layer that was removed — see the ladder in 05-table-generation.md "
-            "Part 1 before assuming a rule means what it says on its own.",
-        "_counts": {
-            "rules in the whole corpus": len(all_rules),
-            "rules in this file": len(kept),
-            "regions": len(regions),
-            "waters": len(waters),
-        },
-        "closures_and_exemptions": {
-            "how_a_zero_reads": ZERO_READINGS,
-            "exemptions": EXEMPTIONS,
-            "_on_every_rule": "There is NO `reads_as` field. `how_a_zero_reads` above is the "
-                              "whole test and a consumer applies it against `take`, "
-                              "`may_target`, `method` and the size bounds — in that order, "
-                              "because a zero can be three different things and reading "
-                              "`take == 0` alone called 1,674 of 1,693 rule sets closed. "
-                              "`exempts[].resolves_to` IS on the rule: it is the rule ids a "
-                              "lift points at, which is lookup, not judgement.",
-        },
-        "rule_types": {
-            "_note": "EVERY kind of rule is here, not just quotas — gear, licensing, conduct and "
-                     "vessel rules are the same kind of object and the same ladder settles them.",
-            "by_type": RULE_TYPES, "by_family": RULE_FAMILIES,
-        },
-        "size_rule_examples": sizes,
-        "field_dictionary": FIELDS,
-        "species": species_object(),
-        "rules": kept,
-        "regions": regions,
-        "waters": waters,
-        "groups": {
-            "_note": "The book writes rules about groups, and a table draws a group as ONE line "
-                     "where every member's answer agrees. Every rule above carries base codes, "
-                     "so this is for rebuilding that grouping, never for expanding a rule.",
-            **{g: {"name": _name(g), "members": sorted(set(expand_species([g])) - set(OPEN_GROUPS))}
-               for g in sorted(SPECIES_GROUPS) if set(expand_species([g])) - set(OPEN_GROUPS)},
-            **{g: {"name": _name(g), "members": [], "open_set": True, "means": why,
-                   "_warning": "Empty ON PURPOSE. A rule about this group has an empty `species` "
-                               "and carries `species_open` instead. Reading the empty list as "
-                               "'no fish' silently narrows the widest rules in the book."}
-               for g, why in OPEN_GROUPS.items()},
-        },
-    }
-    with open(out_path, "w") as fh:
-        json.dump(doc, fh, indent=1, ensure_ascii=False)
-    import os
-    print(f"wrote {out_path} ({os.path.getsize(out_path)/1e6:.2f} MB)")
-    for k, v in doc["_counts"].items():
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--bundle", type=Path, default=BUNDLE)
+    ap.add_argument("--out", type=Path, default=OUT)
+    a = ap.parse_args(argv)
+    doc = build(a.bundle)
+    bad = problems(doc)
+    if bad:
+        print(f"export_ui_rules: REFUSED — {len(bad)} problem(s) in the output:", file=sys.stderr)
+        for p in bad[:40]:
+            print(f"  {p}", file=sys.stderr)
+        return 1
+    for r in doc["about"]["unresolved_references"]:
+        print(f"  corpus reference does not resolve: {r}", file=sys.stderr)
+    text = dumps(doc)
+    a.out.parent.mkdir(parents=True, exist_ok=True)
+    a.out.write_text(text, encoding="utf-8")
+    c = doc["about"]["counts"]
+    print(f"wrote {a.out} ({os.path.getsize(a.out) / 1e6:.2f} MB)")
+    for k, v in c.items():
         print(f"  {k}: {v}")
-    print("  checked against the printed book: NOT RECOMPUTED — the settling layer is not in "
-          "the repository; the file carries the last measured result, labelled as a snapshot")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1
-                          else "data/generated/regs/ui-rules-export.json"))
+    raise SystemExit(main())

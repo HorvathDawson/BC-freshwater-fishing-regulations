@@ -465,3 +465,56 @@ def test_a_suspended_requirement_says_what_suspends_it():
         CatalogueEntry.model_validate({**e.model_dump(mode="json", exclude_defaults=True),
                                        "rules": [e.rules[1].model_dump(mode="json",
                                                                        exclude_defaults=True)]})
+
+
+def test_exempts_names_one_thing_and_names_it_by_id():
+    """`default_id` is a zone default's slug, `target` a rule id (in `entry_id` when another
+    entry's). Prose in `target` ("Columbia Lake's tributaries closure") named nothing a reader could
+    find, and a rule id was filed as a `default_id` (`set_lining.r1b`)."""
+    import pytest
+    from pipeline.regs.parsing.catalogue import Exempts
+
+    assert Exempts(default_id="spring_stream_closure").target is None
+    assert Exempts(target="species_quotas.r5", entry_id="z4:species_quotas").entry_id
+    for bad in ({}, {"default_id": "a", "target": "a.r1"},
+                {"target": "Columbia Lake's tributaries closure"},
+                {"default_id": "set_lining.r1b"},
+                {"default_id": "spring_stream_closure", "entry_id": "z3:x"},
+                {"target": "a.r1", "entryid": "typo"}):
+        with pytest.raises(Exception):
+            Exempts(**bad)
+
+
+def test_an_exemption_must_name_a_registered_default_or_a_rule_that_exists():
+    """Five exemptions resolved to nothing: prose in `target`, a rule id in `default_id`, and a
+    zone rule named bare from another entry. Each shape is refused where it can be seen."""
+    import pytest
+    from pipeline.regs.parsing.catalogue import (
+        EXEMPTABLE_DEFAULTS, CatalogueEntry, CatalogueFile, Exempts)
+
+    assert "spring_stream_closure" in EXEMPTABLE_DEFAULTS
+    with pytest.raises(Exception, match="not a registered zone default"):
+        Exempts(default_id="spring_closure")
+
+    def entry(eid, rules):
+        v = " ".join(r["verbatim"] for r in rules)
+        return {"entry_id": eid, "name": "X", "regs_verbatim": v, "rules": rules}
+
+    lift = {"rule_id": "x.r1", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
+            "verbatim": "Exempt from it."}
+    closed = {"rule_id": "x.r2", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
+              "take": 0, "may_target": False, "verbatim": "No fishing."}
+    ok = entry("r4:x@4-1", [{**lift, "exempts": [{"target": "x.r2"}]}, closed])
+    CatalogueEntry.model_validate(ok)
+    for bad, why in (([{"target": "x.r9"}], "names no other rule"),
+                     ([{"target": "x.r1"}], "names no other rule"),                # itself
+                     ([{"target": "x.r2", "entry_id": "r4:x@4-1"}], "its own entry")):
+        with pytest.raises(Exception, match=why):
+            CatalogueEntry.model_validate(entry("r4:x@4-1", [{**lift, "exempts": bad}, closed]))
+
+    other = entry("r4:y@4-1", [{**closed, "rule_id": "y.r1"}])
+    good = entry("r4:x@4-1", [{**lift, "exempts": [{"target": "y.r1", "entry_id": "r4:y@4-1"}]}])
+    CatalogueFile.model_validate({"region": "4", "entries": [good, other]})
+    wrong = entry("r4:x@4-1", [{**lift, "exempts": [{"target": "y.r7", "entry_id": "r4:y@4-1"}]}])
+    with pytest.raises(Exception, match="name no rule of that entry"):
+        CatalogueFile.model_validate({"region": "4", "entries": [wrong, other]})

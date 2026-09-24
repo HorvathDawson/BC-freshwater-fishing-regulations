@@ -35,7 +35,7 @@ auditable; neither can invent a month.
   3. one separator:  "to" | "through" | "–" | "—"  →  "-"
   4. collapse whitespace · collapse repeated dashes · drop a trailing calendar year
   5. canonical:  "apr 1 - jun 15"
-  6. parse with pipeline.regs.parsing.dates
+  6. parse with pipeline.regs.dfo_salmon.dates
 ```
 
 Anything the table does not cover stays **unparsed and reported** — a new misspelling
@@ -290,7 +290,9 @@ class EntryLocation:
     precedence:   int             # 3 named water · 2 area · 1 section · 0 region
     source_text:  dict            # verbatim waters/specific_area/op/anchor_types
     extents:      list[Extent]         # ← pipeline.regs.parsing.entry_models.Extent
-    tributaries:  Tributaries          # ← pipeline.regs.parsing.entry_models.Tributaries
+    tributaries:  bool | None          # None inherits the water's; → the rule's includes_tributaries
+    tributaries_only: bool
+    tributary_excludes: list[Extent]   # carve-outs → the rule's tributary_excludes
     notes:        list[str]            # un-modelled spatial qualifiers
     spatial_caveat: bool               # notes NARROW the extent → app must show them
     status:       str             # active | dormant
@@ -298,8 +300,10 @@ class EntryLocation:
     locked:       bool; reviewed_by: str; reviewed_at: str
 ```
 
-**`Extent` and `Tributaries` are the provincial models, imported — not re-declared.**
-That is what `build_reach` consumes, so there is one definition of "upstream of split s"
+**`Extent` is the provincial model, imported — not re-declared**, and `to_reach_input` hands
+`build_reach` a catalogue-shaped entry and rules (`includes_tributaries` on the entry; extents,
+`tributaries_only` and `tributary_excludes` on each rule). That is what `build_reach`
+consumes, so there is one definition of "upstream of split s"
 in the repo and the DFO side cannot drift from it.
 
 ### `data/generated/regs/dfo_salmon/link/region-<slug>.json` — BUNDLE, generated
@@ -609,7 +613,7 @@ greppable inside the shared file without a schema change.
 | `match._spelling_suggestions` | fuzzy — replaced by overrides |
 | `Proposal.suggestions` | nothing to suggest; a name matches or it does not |
 | `locations._repair_dates` difflib call | replaced by the month-variants table (§1) |
-| `dfo_salmon.entries.Binding` | replaced by the provincial `Extent` + `Tributaries` |
+| `dfo_salmon.entries.Binding` | the provincial `Extent` + three tributary fields, handed over in the catalogue shape |
 | a DFO overrides file | never created — the shared one already answers it (§3C) |
 
 ### What DFO reuses rather than reimplements
@@ -622,10 +626,10 @@ mostly **no**:
 | name → registry item | `pipeline.regs.matching.matcher` — unchanged, called directly |
 | curator overrides | `pipeline/regs/matching/overrides.json` — the same file |
 | extent ops (`whole`/`upstream_of`/`between`/`within`) | `pipeline.regs.parsing.entry_models.Extent` |
-| tributary scope + carve-outs | `pipeline.regs.parsing.entry_models.Tributaries` |
+| tributary scope + carve-outs | the catalogue fields `includes_tributaries` / `tributaries_only` / `tributary_excludes` |
 | extent → sections, tributary walk | `pipeline.atlas.reach.build.build_reach` |
 | split anchors | `pipeline/atlas/splits.json` — the same file |
-| date windows | `pipeline.regs.parsing.dates` |
+| date windows | `pipeline.regs.dfo_salmon.dates` (the DFO feed's own; the synopsis uses `catalogue.parse_date_range`) |
 | species codes | `pipeline.regs.parsing.species` |
 
 What is genuinely DFO-only, and has to be: fetching and parsing *their* HTML

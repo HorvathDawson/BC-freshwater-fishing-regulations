@@ -8,32 +8,33 @@ without risking the pipeline. The page is gone; the data is a file.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_section_data          # in place
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_section_data --print  # to stdout
+    ... --bundle <side>.sqlite                        # from a side bundle, before it is promoted
 
-The waters are named below rather than discovered — 22 of them, chosen to exercise the cases the
-table layer has to get right. It covers 102 stretches; the bundle holds far more, and finishing
-that generalisation is the open work (see `05-table-generation.md`, Part 8).
+The waters are named below rather than discovered — chosen to exercise the cases the table
+layer has to get right. The bundle holds every water; `pipeline/tools/export_ui_rules.py` exports
+all of them, and this file stays a worked sample with geometry.
 
 WHAT IT READS, and why each one:
 
-    bundle.sqlite      the rules, the interned rulesets, the entries, the places. The shipped
-                       artifact, so the prototype cannot show a rule the app would not.
+    bundle.sqlite      EVERY regulation fact: the rules, the interned rulesets, the entries and
+                       the waters each entry matched (`entry.matched`), the places. The shipped
+                       artifact, so the page cannot show a rule the app would not. A bundle
+                       without `entry.matched`, or one shipping a retired rule field, is refused.
     section_handles    the integer the bundle calls a section -> the node id everything else
                        calls it. Never derived; the file is the owner (see that module).
     graph.pkl          chainage. `down_m`/`up_m` are metres along the blue line, which is what
                        turns a set of sections into a STRETCH with a start and an end.
     geometries.pkl     the line to draw, in BC Albers, reprojected here and nowhere else.
-
-The waters are named below rather than discovered. They are chosen to exercise the cases the
-document is about, and a water that stops exercising its case should be replaced, not kept
-because it is already in the list.
+    lake geometry      a lake's shoreline from the FWA geopackage, and the curated lake PARTS
+                       (`added_lakes.geojson` `part_of`, `sub_lake_areas.json`). Geometry, not
+                       regulation — but still read outside the bundle, which carries no
+                       part-of relation between items yet.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
-import pathlib
 import sqlite3
 import sys
 from collections import defaultdict
@@ -200,36 +201,28 @@ def _lake_outline(item_id: str, to_lonlat, ndigits: int = 4):
 
 
 
-_WIDE = None
-
-
-def _widened() -> set:
+def _widened(db) -> set:
     """Rules the book restricts to PART of a water and the atlas could only give the whole of.
 
-    The signal is exact and structural: the rule resolved to `op: "whole"` — the entire water —
-    while still carrying an `extent_text`, which is the parser's record of a place it was told
-    about and could not express. "Rainbow trout — 20 per licence year over 50 cm" is written for
-    the MAIN BODY of Kootenay Lake, and binds to all 423 km² of it including both West Arms.
+    The signal is structural and in the bundle: the rule is BOUND (`uncertain` = 0), its extents
+    are only `op: "whole"` — the entire water — and it still carries an `extent_text`, the
+    parser's record of a place it was told about and could not express. "Rainbow trout — 20 per
+    licence year over 50 cm" is written for the MAIN BODY of Kootenay Lake, and binds to all
+    423 km² of it including both West Arms.
 
-    Sixty-seven rules in the corpus are in this state. It is the over-application direction —
-    the app claims a rule covers more water than it does — and unlike the unplaced rules, which
-    bind nothing and are obvious, these bind everything and look completely ordinary. So they
-    are marked, and the row says the book names a part.
+    It is the over-application direction — the app claims a rule covers more water than it does
+    — and unlike the unplaced rules, which bind nothing and are obvious, these bind everything
+    and look completely ordinary. So they are marked, and the row says the book names a part.
     """
-    global _WIDE
-    if _WIDE is None:
-        import glob
-        _WIDE = set()
-        for f in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
-            for e in json.loads(pathlib.Path(f).read_text(encoding="utf-8")).get("entries", []):
-                for r in e.get("rules", []):
-                    if not (r.get("extent_text") or "").strip():
-                        continue
-                    ops = {x.get("op") for x in (r.get("extents") or []) if isinstance(x, dict)}
-                    if ops and ops <= {"whole"}:
-                        _WIDE.add((e["entry_id"], r["rule_id"]))
-    return _WIDE
-
+    out = set()
+    for eid, rid, text, cond, uncertain in db.execute(
+            "SELECT entry_id, rule_id, extent_text, conditions, uncertain FROM rule"):
+        if uncertain or not (text or "").strip():
+            continue
+        ops = {x.get("op") for x in json.loads(cond or "{}").get("extents") or []}
+        if ops and ops <= {"whole"}:
+            out.add((eid, rid))
+    return out
 
 
 _PARTS = None
@@ -322,24 +315,16 @@ def _added_lake_ring(child_item_id: str, to_lonlat, ndigits: int = 5):
     return None
 
 
-def _co_items(item_id: str) -> set[str]:
-    """The OTHER registry items a synopsis row covers alongside this one.
-
-    From the curated entries' `matched`, which is the only place that fact lives — the bundle's
-    `entry.item_id` keeps just the first match, by design (see the note in rules.py)."""
-    global _CO
-    if _CO is None:
-        import glob
-        _CO = {}
-        for f in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
-            for e in json.loads(pathlib.Path(f).read_text(encoding="utf-8")).get("entries", []):
-                m = [x for x in (e.get("matched") or []) if x]
-                for a in m:
-                    _CO.setdefault(a, set()).update(x for x in m if x != a)
-    return _CO.get(item_id, set())
-
-
-_CO = None
+def _co_items(db, item_id: str) -> set[str]:
+    """The OTHER registry items a synopsis row covers alongside this one — `entry.matched`, every
+    water the row matched (`entry.item_id` is only the first)."""
+    out: set[str] = set()
+    for (raw,) in db.execute("SELECT matched FROM entry WHERE matched LIKE ?",
+                             (f'%"{item_id}"%',)):
+        m = [x for x in json.loads(raw or "[]") if x]
+        if item_id in m:
+            out.update(x for x in m if x != item_id)
+    return out
 
 
 def _bound_label(end) -> str:
@@ -455,8 +440,8 @@ def _rules_by_id(db: sqlite3.Connection) -> dict[tuple[str, str], dict]:
 
 
 
-def _entry_areas() -> dict[str, list[str]]:
-    """entry_id -> the AREAS its extents declare, straight from the curated entries.
+def _entry_areas(db) -> dict[str, list[str]]:
+    """entry_id -> the AREAS its extents declare, from the bundle's `entry.extents`.
 
     A zone entry says where it applies in its own extents — `area:region:1`,
     `area:mu_group:management_units_6_12_and_6_13` — and the page needs that because the id
@@ -465,21 +450,12 @@ def _entry_areas() -> dict[str, list[str]]:
     Haida Gwaii's own. Told apart by prefix they are indistinguishable, and the Yakoun River
     showed Trout 4 and Trout/char 5 one above the other, both labelled "Region 1".
 
-    FROM THE BUNDLE. This read the curated files at RUN time because the bundle shipped only
-    `rule.extent_text`, which is prose — that stopped being true when `extents` were baked into
-    the rule's `conditions`, and a reader that keeps its own path to the curated data can answer
-    with something the bundle never agreed to.
-
     The ENTRY's own extents are a column of their own, because they are not recoverable from its
     rules: a rule with narrower extents does not say what the entry's were, and taking the union
     across rules widened `zp:bait` from the region to three named regions and lost
     `z5:spring_stream_closure` entirely.
     """
-    import sqlite3
-    from pipeline.regs.table.corpus import BUNDLE
-
     out: dict[str, list[str]] = {}
-    db = sqlite3.connect(BUNDLE)
     for eid, raw in db.execute("SELECT entry_id, extents FROM entry"):
         got: list[str] = []
         for ex in json.loads(raw or "[]"):
@@ -488,7 +464,6 @@ def _entry_areas() -> dict[str, list[str]]:
                 got.append(a)
         if got:
             out[eid] = got
-    db.close()
     return out
 
 
@@ -551,7 +526,7 @@ def _set_by(eid: str, db, eareas: dict[str, list[str]] | None,
 
 def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "stream",
                eareas: dict[str, list[str]] | None = None,
-               want_item: str = ""):
+               want_item: str = "", wide: set | None = None):
     """One water's stretches, rules, cut-points and landmarks.
 
     THE FIRST STAGE OF THE DOCUMENT, computed the way the app computes it: collapse adjacent
@@ -605,8 +580,9 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
     # the Elk River wholesale into the Fording (they share an inherited rule) and the Skeena
     # into the Babine — a 77 km river reported as 214 km, drawn as its receiving water.
     ords = {ord_}
-    kin = {item_id} | _co_items(item_id)
-    for co in _co_items(item_id):
+    co = _co_items(db, item_id)
+    kin = {item_id} | co
+    for co in sorted(co):
         for (o,) in db.execute("SELECT ord FROM item WHERE item_id = ? AND kind = ?",
                                (co, kind)):
             ords.add(o)
@@ -967,12 +943,16 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
             # `while` is a bundle column of its own now; put it back where this page reads it.
             if d.get("while_"):
                 cond["while"] = json.loads(d["while_"])
+            # So is `exempts` — resolved, [{default_id | target, entry_id, note?}]. Left in its
+            # column, every lift silently vanished from this file.
+            if d.get("exempts"):
+                cond["exempts"] = json.loads(d["exempts"])
             if d.get("standing"):
                 cond["standing"] = True
             _sb, _tier = _set_by(eid, db, eareas, via, name)
             rules.append({
                 "entry": eid, "rule": rid,
-                # WHO SET IT AND HOW NARROWLY — from the curated entry, not from the id prefix.
+                # WHO SET IT AND HOW NARROWLY — from the entry, not from the id prefix.
                 **({"setby": _sb} if _sb else {}),
                 **({"tier": _tier} if _tier else {}),
                 # THE CATALOGUE'S OWN WORDS. `kind`/`details` are gone: `type` is one of
@@ -995,14 +975,13 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                                         "origin", "within", "record_retention",
                                         # `while` decides whether a closure shuts the WATER or
                                         # only one way of fishing it — see `narrows` in the page.
-                                        "while", "closed_to", "when_targeting",
-                                        "when_open")
+                                        "while", "closed_to", "when_targeting")
                    if k in cond},
                 "conditions": cond,
                 "uncertain": d["uncertain"], "scope": d["scope"], "via": via,
                 "verbatim": d["verbatim"], "extent_text": d["extent_text"],
                 # The book names a part of this water; this rule covers all of it. See `_widened`.
-                **({"widened": True} if (eid, rid) in _widened() else {}),
+                **({"widened": True} if (eid, rid) in (wide or ()) else {}),
                 "spans": spans,
                 "km": round(sum(b - a for a, b in spans), 1),
             })
@@ -1044,6 +1023,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 cond = json.loads(d["conditions"] or "{}")
                 if d.get("while_"):
                     cond["while"] = json.loads(d["while_"])
+                if d.get("exempts"):
+                    cond["exempts"] = json.loads(d["exempts"])
                 if d.get("standing"):
                     cond["standing"] = True
                 unplaced.append({
@@ -1102,6 +1083,24 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
             "entry": primary, "entries": entries}
 
 
+def _refuse_stale(db) -> None:
+    """The bundle this reads must carry `entry.matched`, `rule.exempts`, and no retired rule
+    field."""
+    from pipeline.tools.export_ui_rules import RETIRED_ON_RULE
+
+    if "matched" not in {r[1] for r in db.execute("PRAGMA table_info(entry)")}:
+        raise SystemExit("build_section_data: the bundle has no `entry.matched` — rebuild it "
+                         "with a rules.py that writes every matched item")
+    if "exempts" not in {r[1] for r in db.execute("PRAGMA table_info(rule)")}:
+        raise SystemExit("build_section_data: the bundle has no `rule.exempts` column — its "
+                         "lifts would be dropped; rebuild it")
+    stale = sorted({k for (c,) in db.execute("SELECT conditions FROM rule")
+                    for k in json.loads(c or "{}") if k in RETIRED_ON_RULE})
+    if stale:
+        raise SystemExit(f"build_section_data: the bundle ships retired rule field(s) {stale} — "
+                         f"rebuild it from the current catalogue")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", type=Path, default=None)
@@ -1118,6 +1117,7 @@ def main() -> int:
 
     log(f"reading {a.bundle}")
     db = sqlite3.connect(a.bundle)
+    _refuse_stale(db)
     handles = read_handles(build)                       # node id per handle, index == handle
     log(f"  handles {len(handles[0]):,}")
 
@@ -1126,7 +1126,8 @@ def main() -> int:
     geoms = read_artifact(str(build / "geometries.pkl"))
     to_lonlat = _albers_to_lonlat()
 
-    eareas = _entry_areas()
+    eareas = _entry_areas(db)
+    wide = _widened(db)
     log(f"  {len(eareas)} entries declare an area")
 
     out: dict[str, object] = {}
@@ -1135,7 +1136,7 @@ def main() -> int:
         kind = entry[2] if len(entry) > 2 else "stream"
         want = entry[3] if len(entry) > 3 else ""
         got = _one_water(db, graph, geoms, handles, to_lonlat, name, kind,
-                         eareas, want)
+                         eareas, want, wide)
         if got is None:
             log(f"  ✗ {name}: no stream item of that name — SKIPPED")
             continue
@@ -1144,6 +1145,9 @@ def main() -> int:
         log(f"  ✓ {name}: {len(got['runs'])} run(s), {len(got['rules'])} rule(s), "
             f"{got['total']} km")
 
+    out["_bundle"] = {k: v for k, v in db.execute(
+        "SELECT k, v FROM meta WHERE k IN ('version', 'reach_run', 'reach_digest', "
+        "'section_handles') ORDER BY k")}
     out["_species"] = _species_names()
     out["_groups"] = _species_groups()
     out["_members"] = _group_members()
@@ -1154,7 +1158,7 @@ def main() -> int:
         return 0
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(blob, encoding="utf-8")
-    log(f"\nwrote {len(blob):,} bytes to {a.out.relative_to(REPO_ROOT)}")
+    log(f"\nwrote {len(blob):,} bytes to {a.out}")
     return 0
 
 

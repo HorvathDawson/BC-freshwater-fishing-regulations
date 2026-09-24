@@ -20,10 +20,9 @@ construction.
 | `bundle/` | `pipeline.deliver.bundle` | `bundle.sqlite` (what ships) |
 | `tiles/` | `pipeline.deliver.tiles` | `atlas.pmtiles` + per-layer geojsonseq |
 | `regs/extraction/` | `pipeline.regs.extraction` | `synopsis_raw_data.json`, `row_images/` |
-| `regs/parsing/` | the LLM parse ingest | `synopsis_parsed.json`, `session_state.json` |
 | `regs/parse/` | `run_parse.sh` | transient work dir: `batches/ responses/ reviews/` |
 | `regs/dfo_salmon/` | `pipeline.regs.dfo_salmon.{locations,parse,untangle}` | the scrape |
-| `regs/entries_backup/` | `pipeline.tools.reparse_candidates` | EntryFile backups |
+| `regs/entries_backup/` | `pipeline.tools.reparse_candidates --apply` | copies of the catalogue region files, taken before it deletes entries to queue them for re-parse |
 | `gauges/` | `pipeline.gauges.generate` / `.feed` | `candidates.json`, `feeds/<station>.json` |
 | `stocking/`, `bathymetry/` | the domain audits | identifier audits awaiting a matcher |
 | `municipal/` | `added_streams` cleaning | cleaned source layers |

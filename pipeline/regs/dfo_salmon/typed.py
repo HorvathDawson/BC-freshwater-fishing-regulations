@@ -160,7 +160,7 @@ _RE_YEAR = re.compile(r"\b(19|20)\d{2}\b")
 
 
 def _first_pass_parses(raw: str) -> bool:
-    from pipeline.regs.parsing.dates import parse_date_window
+    from pipeline.regs.dfo_salmon.dates import parse_date_window
 
     if _RE_OPEN_ENDED.search(raw):
         return True
@@ -210,7 +210,7 @@ def interpret_dates(text: str) -> dict:
     look — it is how a source typo ("Aprl 1 to Jun 15", "Nov 01- to Dec 31") surfaces
     instead of silently becoming a window that is not what the page says.
     """
-    from pipeline.regs.parsing.dates import parse_date_window
+    from pipeline.regs.dfo_salmon.dates import parse_date_window
 
     raw = (text or "").strip()
     out = {"start": None, "end": None, "open_ended": False, "parsed": False,

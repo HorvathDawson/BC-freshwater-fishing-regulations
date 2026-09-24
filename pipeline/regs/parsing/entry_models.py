@@ -1,8 +1,7 @@
-"""The op + split binding a rule or entry uses to select sections: `Op`, `Extent`, `Tributaries`.
+"""The op + split binding a rule or entry uses to select sections: `Op` and `Extent`.
 
-What is left of the prose-parse models. The `Entry`/`Rule`/`Limit`/`EntryFile` shape they belonged
-to was retired with its ingest path; entries are `catalogue.CatalogueEntry` now. These three survive
-because the DFO salmon locations bind with them.
+Entries are `catalogue.CatalogueEntry`; these two are the validated form of one extent, and the
+DFO salmon locations store their bindings with them.
 """
 
 from __future__ import annotations
@@ -149,27 +148,3 @@ class Extent(BaseModel):
             if bad:
                 raise ValueError(f"invalid feature_types {bad}; allowed: {sorted(_FEATURE_TYPES)}")
         return self
-
-
-# ---------------------------------------------------------------------------
-# Rule
-# ---------------------------------------------------------------------------
-
-
-class Tributaries(BaseModel):
-    """Entry-wide tributary scope, grouped. `excludes` are HAND-CURATED carve-outs subtracted from
-    the tributary set (e.g. 'EXCEPT Burnt Bridge upstream of Sitkatapa'); the parser leaves them
-    empty. An exclude extent just references the boundary split(s) — the excepted item is inferred
-    from the split's own scope, so no `item` is needed."""
-
-    model_config = ConfigDict(frozen=True)
-    included: bool = Field(default=False, description="do this entry's rules extend to tributaries?")
-    only: bool = Field(default=False, description="entry governs ONLY tributaries (e.g. \"X LAKE'S TRIBUTARIES\")")
-    excludes: List[Extent] = Field(default_factory=list, description="carve-outs subtracted from the tributary set")
-
-    @model_validator(mode="before")
-    @classmethod
-    def _only_implies_included(cls, data):
-        if isinstance(data, dict) and data.get("only") and not data.get("included"):
-            data = dict(data); data["included"] = True
-        return data

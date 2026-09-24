@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from pipeline.regs.parsing.entry_models import Extent, Op, Tributaries
+from pipeline.regs.parsing.entry_models import Extent, Op
 
 
 def test_extent_arity():
@@ -27,13 +27,3 @@ def test_extent_arity():
             Extent(**bad)
 
 
-def test_tributary_only_implies_included():
-    assert Tributaries(only=True, included=False).included is True
-
-
-def test_excludes_hand_curated_trib_carveout():
-    # a curator subtracts 'Burnt Bridge upstream of Sitkatapa' from the inherited trib set;
-    # the excepted item is inferred from the split's own scope, so no `item` is needed.
-    t = Tributaries(included=True,
-                    excludes=[Extent(op=Op.UPSTREAM_OF, splits=["sitkatapa_creek_confluence"])])
-    assert t.excludes[0].splits == ["sitkatapa_creek_confluence"]

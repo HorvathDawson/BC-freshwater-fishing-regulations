@@ -144,11 +144,25 @@ def source_of(rule: dict) -> Source:
 
     `extents` are the typed statement of scope — `within area:region:N` is region-wide,
     `within area:mu_group:...` / `area:wma:...` / `area:national_parks:...` is an area, and
-    `whole` / `upstream_of` / `between` / `downstream_of` name a water. A rule with no extents
-    at all binds nowhere (AGENTS.md rule 13), and is scoped as `water` here only so that it has
-    a place to be reported from.
+    `whole` / `upstream_of` / `between` / `downstream_of` name a water.
+
+    WHOSE extents: the rule's own when it has any, else its ENTRY's (`entry_extents`, the
+    bundle's `entry.extents`). That is the model's own rule — `CatalogueRule.extents` is "None
+    inherits the entry" — not a fallback. It has to be said here because the bundle stopped
+    copying an entry's extents onto its rules: a rule the reach builder could not place
+    ("the Kootenay Region, except waters listed in the tables") used to ship its entry's
+    `within area:region:4`, and was read as region-wide from THAT. Shipped with none of its own,
+    it was read as "names a water" and scoped `water` — 14 zone rules moved from Region N's
+    standing table to "this water" with no water to name. Whether a rule was PLACED is a
+    different question (`uncertain`), and does not change who wrote it or what it was written
+    for.
+
+    A zone rule with no extents by either route is scoped by the place the book named for it
+    (`extent_text`, a place nothing could draw) — `water`, since it was written for that place.
+    A zone rule whose entry passes no `entry_extents`, or one with no extents by either route
+    and no named place, is refused: its scope is unknown, and guessing one is how the 14 moved.
     """
-    entry = str(rule.get("entry") or rule.get("entry_id") or "")
+    entry = str(rule["entry"])
     prefix = entry.split(":", 1)[0]
     superior = str(rule.get("authority") or "") == "superior"
     if prefix == "zp":
@@ -167,10 +181,24 @@ def source_of(rule: dict) -> Source:
         return Source(auth, Scope.water, region, place, frozenset(),
                       _rid(rule), rule.get("verbatim") or "")
     exts = list(rule.get("extents") or [])
+    if not exts:
+        if "entry_extents" not in rule:
+            raise ValueError(f"source_of {_rid(rule)}: a zone rule with no extents of its own "
+                             f"needs its entry's (`entry_extents`) — its scope is the entry's")
+        exts = list(rule["entry_extents"] or [])
+    if not exts:
+        # No extents by either route, but the book NAMED a place nothing could draw ("Rubble
+        # Creek Landslide Hazard Area"): written for that place, not for the region. A rule
+        # that names no place either has no scope anyone can read, and is refused.
+        if not str(rule.get("extent_text") or "").strip():
+            raise ValueError(f"source_of {_rid(rule)}: neither the rule nor its entry has "
+                             f"extents, and it names no place — what it binds to is unknown")
+        return Source(auth, Scope.water, region, str(rule["extent_text"]), frozenset(),
+                      _rid(rule), rule.get("verbatim") or "")
     areas = [str(e.get("area_id") or "") for e in exts if e.get("op") == "within"]
     kinds = [str(e.get("area_kind") or "") for e in exts if e.get("op") == "within"]
     named = [e for e in exts if e.get("op") != "within"]
-    if named or not exts:
+    if named:
         # A region's table writing about one lake — "Shuswap Lake: annual quota" — is an
         # override on that lake, not a line in the region's standing table. The place is the
         # extent the rule names, since the entry is the region's table and names nothing.
@@ -194,4 +222,4 @@ def source_of(rule: dict) -> Source:
 
 
 def _rid(x: dict) -> str:
-    return f"{x.get('entry') or x.get('entry_id')}::{x.get('rule') or x.get('rule_id')}"
+    return f"{x['entry']}::{x['rule']}"

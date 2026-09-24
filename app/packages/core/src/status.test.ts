@@ -282,3 +282,84 @@ describe("a standing rule is shown everywhere and decides nothing", () => {
       .toBe("closed");
   });
 });
+
+describe("exemptions: a lifted rule does not count", () => {
+  /* The North Thompson case: the region's spring closure binds every stream in Region 3, and the
+     river's own "Exempt from spring closure" lifts it. Applied nowhere, the river read CLOSED on
+     May 1 beside its own exemption. */
+  const spring = closure({ id: "z3:spring_stream_closure.spring_stream_closure.r1", scope: "area",
+                           when: season(w([1, 1], [6, 30])) });
+  const exempt = rule({ id: "r3:north_thompson_river@3-27.north_thompson_river.r1",
+                        type: "retention_limit", species: ["ALL_GAME_FISH"],
+                        exempts: [{ entry: "z3:spring_stream_closure" }] });
+  const quota = rule({ id: "r3:north_thompson_river@3-27.north_thompson_river.r2",
+                       type: "retention_limit", take: 2 });
+
+  it("a named zone default is lifted where the exemption is in force", () => {
+    expect(evaluate({ rules: [spring], on: on(5, 1), group: "provincial" }).outcome)
+      .toBe("closed");
+    const s = evaluate({ rules: [spring, exempt, quota], on: on(5, 1), group: "provincial" });
+    expect(s.outcome).toBe("restricted");
+    expect(s.from.map((r) => r.id)).not.toContain(spring.id);
+  });
+
+  it("a lift and nothing else restricts nobody", () => {
+    expect(evaluate({ rules: [spring, exempt], on: on(5, 1), group: "provincial" }).outcome)
+      .toBe("open");
+  });
+
+  it("a target lifts that one rule of that entry, and no other", () => {
+    const r5 = closure({ id: "z4:species_quotas.species_quotas.r5", scope: "area" });
+    const r1 = closure({ id: "z4:species_quotas.species_quotas.r1", scope: "area" });
+    const lift = rule({ id: "r4:upper_arrow@4-31.upper_arrow.r4", type: "retention_limit",
+                        exempts: [{ entry: "z4:species_quotas", rule: "species_quotas.r5" }] });
+    const s = evaluate({ rules: [r5, r1, lift], on: on(5, 1), group: "provincial" });
+    expect(s.from.map((r) => r.id)).toContain(r1.id);
+    expect(s.from.map((r) => r.id)).not.toContain(r5.id);
+    expect(s.outcome).toBe("closed");
+  });
+
+  it("a lift out of season lifts nothing", () => {
+    const summer = rule({ ...exempt, when: season(w([7, 1], [8, 31])) });
+    expect(evaluate({ rules: [spring, summer, quota], on: on(5, 1), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+
+  it("a lift WHILE doing one thing, or for part of the day, does not lift the whole day", () => {
+    const whileSetLining = rule({ ...exempt, while: ["set_lining"] });
+    const atNight = rule({ ...exempt, when: { ...ALL_YEAR,
+      hours: { start: { at: "21:00" }, end: { at: "05:00" } } } });
+    for (const lift of [whileSetLining, atNight])
+      expect(evaluate({ rules: [spring, lift, quota], on: on(5, 1), group: "provincial" }).outcome)
+        .toBe("closed");
+  });
+
+  it("an uncertain lift lifts nothing", () => {
+    const unsure = rule({ ...exempt, uncertain: true });
+    const s = evaluate({ rules: [spring, unsure, quota], on: on(5, 1), group: "provincial" });
+    expect(s.outcome).toBe("closed");
+  });
+
+  it("a zone default can never lift itself (the z6 steelhead self-lift)", () => {
+    const self = closure({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r1",
+                           scope: "area", exempts: [{ entry: "z6:steelhead_stream_closure" }] });
+    expect(evaluate({ rules: [self], on: on(5, 20), group: "provincial" }).outcome)
+      .toBe("closed");
+    // ...nor a sibling in its own entry: naming its own slug lifts nothing of that entry.
+    const lift = rule({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r0",
+                        type: "retention_limit", exempts: [{ entry: "z6:steelhead_stream_closure" }] });
+    const sibling = closure({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r2",
+                              scope: "area" });
+    expect(evaluate({ rules: [lift, sibling], on: on(5, 20), group: "provincial" }).outcome)
+      .toBe("closed");
+    const byRule = closure({ id: "zp:x.x.r1", exempts: [{ entry: "zp:x", rule: "x.r1" }] });
+    expect(evaluate({ rules: [byRule], on: on(5, 20), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+
+  it("a lift in another species group does not reach this one", () => {
+    const salmonLift = rule({ ...exempt, group: "salmon" });
+    expect(evaluate({ rules: [spring, salmonLift, quota], on: on(5, 1), group: "provincial" })
+      .outcome).toBe("closed");
+  });
+});

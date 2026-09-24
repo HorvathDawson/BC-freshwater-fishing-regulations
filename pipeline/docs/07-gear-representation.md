@@ -269,7 +269,9 @@ Every reviewer named the same three, independently. They are not gear problems a
 does not reach them.
 
 **Deferral between rules** — `zp:bait.r4`, "…in streams as bait UNLESS A BAIT BAN APPLIES".
-Also "when open" (`gordon_river.r3`) and "(see tables for exclusions)" (`z7a:set_lining.r1`). `exempts` expresses a permission
+Also "(see tables for exclusions)" (`z7a:set_lining.r1`). ("When open", `gordon_river.r3`, was on
+this list; it needs nothing — a rule only binds while the water is open at all, so the field that
+held it is gone.) `exempts` expresses a permission
 that WINS; there is no way to write one that YIELDS, and no rule identifiers to point at for a
 whole class like "a bait ban". This is the same gap as the self-lifting Babine closure.
 

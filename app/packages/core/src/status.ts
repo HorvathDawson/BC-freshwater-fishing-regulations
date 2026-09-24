@@ -202,6 +202,22 @@ export interface Rule {
   readonly absolute?: boolean;
   /** We could not place this rule, or could not check the feed that carries it. */
   readonly uncertain?: boolean;
+  /**
+   * WHAT THIS RULE LIFTS where it is in force — "Exempt from spring closure". Each names the
+   * entry it lifts, and one rule of it when `rule` is set; the bundle resolved both from the
+   * catalogue's `default_id` / `target`, so nothing here matches a bare name. See `evaluate`.
+   */
+  readonly exempts?: readonly Lift[];
+}
+
+/**
+ * One thing a rule lifts: every rule of zone entry `entry` (a named zone default), or the one
+ * rule `rule` of `entry`. Rule ids are unique only within an entry (AGENTS rule 8), so the entry
+ * is always named.
+ */
+export interface Lift {
+  readonly entry: string;
+  readonly rule?: string;
 }
 
 export interface Status {
@@ -224,6 +240,10 @@ export interface Status {
 function severityOf(r: Rule): number {
   // A rule with no knowable place tells you something about every water and decides none.
   if (r.standing) return 1;
+  // A LIFT AND NOTHING ELSE restricts nobody. "Exempt from spring closure" is a retention rule
+  // that sets no number — 77 of them — and read as a quota it painted a lifted water RESTRICTED.
+  if (r.type === "retention_limit" && r.take === undefined && r.mayTarget === undefined
+      && (r.exempts ?? []).length > 0) return 1;
   if (r.type === "retention_limit") {
     if (r.take === 0) return closesTheWater(r) ? 3 : 2;
     return 2;
@@ -265,6 +285,28 @@ export function isUncertain(r: Rule): boolean {
   return r.uncertain === true || r.when.unparsed.length > 0;
 }
 
+/**
+ * Does `by` lift `r`? Only a rule in force lifts, and only one that holds whatever you are doing
+ * and all day: a lift WHILE set lining, or for part of the day, still leaves the rule it lifts
+ * standing the rest of the time, and this answer is for the whole day and any method.
+ *
+ * NEVER ITSELF, and a zone default is never lifted by a rule of its own entry.
+ * `z6:steelhead_stream_closure.r1` names its own slug as the default it lifts; honoured, it would
+ * delete itself on every stream in the region.
+ */
+function lifts(by: Rule, r: Rule): boolean {
+  if (by === r || by.id === r.id) return false;
+  for (const l of by.exempts ?? []) {
+    const prefix = `${l.entry}.`;
+    if (l.rule !== undefined) {
+      if (r.id === prefix + l.rule) return true;
+    } else if (r.id.startsWith(prefix) && !by.id.startsWith(prefix)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "open" };
 
 /** Rank for "most restrictive wins". Unknown sits above open because we must not
@@ -287,6 +329,7 @@ export interface EvaluateInput {
 /**
  * The whole combining rule, in one place:
  *
+ *   0. a rule LIFTED by another rule in force here does not count at all (`exempts`)
  *   1. keep only this species group's rules that are in force today
  *   2. a section-scoped rule REPLACES an mu-scoped default about the same subject
  *   3. absolute rules (area closure, no-access, in-season) override everything
@@ -294,7 +337,14 @@ export interface EvaluateInput {
  *   5. anything uncertain, or an unreachable feed, is UNKNOWN — never open
  */
 export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): Status {
-  const mine = rules.filter((r) => r.group === group);
+  const ours = rules.filter((r) => r.group === group);
+  /* 0 — EXEMPTIONS. "Exempt from spring closure" beside the region's spring closure: while the
+     lift is in force, the closure is not a rule of this water — not a vote, not a doubt. Applied
+     nowhere before, so the North Thompson read CLOSED on May 1 beside its own exemption. */
+  const lifters = ours.filter((r) => (r.exempts ?? []).length > 0 && !isUncertain(r)
+    && holdsOn(r.when, on) && (r.while ?? []).length === 0 && !r.when.hours);
+  const mine = lifters.length === 0 ? ours
+    : ours.filter((r) => !lifters.some((by) => lifts(by, r)));
   /* A rule we could not place applies to NOTHING — it must not vote on the outcome, or an
      unplaceable closure reads exactly like a placed one. It only ever raises `unknown`. The
      same holds for a rule whose SEASON could not be read: in force or not, we cannot say. */

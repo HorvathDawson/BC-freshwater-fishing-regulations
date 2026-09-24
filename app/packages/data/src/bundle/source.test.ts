@@ -6,7 +6,7 @@
  * only way that holds is if "the same" is written down somewhere executable.
  */
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
-import { DEV_BUNDLE, hasDevBundle, openBundle } from "./drivers/node";
+import { DEV_BUNDLE, hasDevBundle, openBundle, schemaBundle } from "./drivers/node";
 import { str } from "./db";
 import { makeBundleSource } from "./source";
 import type { Db } from "./db";
@@ -311,5 +311,63 @@ describe("the gauge model", () => {
       const out = await src.statusFor([id], day, "provincial");
       expect(out.get(id), `no answer for ${day.month}/${day.day}`).toBeTruthy();
     }
+  });
+});
+
+describe("rules out of the bundle's own schema", () => {
+  /* The dev fixture predates `exempts` and every type is one core knows, so these build a bundle
+     from `pipeline/deliver/bundle/schema.sql` — the one definition of the format — with rows
+     shaped as `pipeline/deliver/bundle/rules.py` writes them. */
+  const SPRING = ["z3:spring_stream_closure", "spring_stream_closure.r1"] as const;
+  const EXEMPT = ["r3:north_thompson_river@3-27", "north_thompson_river.r1"] as const;
+  const MAY_1 = { year: 2026, month: 5, day: 1 } as const;
+
+  function rules(extra: (db: Parameters<Parameters<typeof schemaBundle>[0]>[0]) => void) {
+    return schemaBundle((db) => {
+      const r = db.prepare(
+        "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, scope, when_, " +
+        "exempts, take, may_target, species, uncertain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)");
+      r.run(...SPRING, "retention_limit", "retention", "daily", "No fishing", "area",
+            JSON.stringify({ dates: [{ from_month: 1, from_day: 1, to_month: 6, to_day: 30 }] }),
+            null, 0, 0, '["ALL_GAME_FISH"]');
+      r.run(...EXEMPT, "retention_limit", "retention", "daily", "Exempt from spring closure",
+            "section", null,
+            JSON.stringify([{ default_id: "spring_stream_closure",
+                              entry_id: "z3:spring_stream_closure" }]),
+            null, null, '["ALL_GAME_FISH"]');
+      const set = db.prepare("INSERT INTO ruleset VALUES (?,?,?,?)");
+      set.run(0, ...SPRING, "reach");                       // a stream with only the closure
+      set.run(1, ...SPRING, "reach");                       // the North Thompson: both
+      set.run(1, ...EXEMPT, "reach");
+      db.prepare("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)").run(10, 0);
+      db.prepare("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)").run(11, 1);
+      extra(db);
+    });
+  }
+
+  it("applies an exemption: the lifted zone default does not count where the lift is", async () => {
+    const s = makeBundleSource(rules(() => {}));
+    const out = await s.statusFor([10 as SectionId, 11 as SectionId], MAY_1, "provincial");
+    expect(out.get(10 as SectionId)!.outcome).toBe("closed");
+    const nt = out.get(11 as SectionId)!;
+    expect(nt.outcome).toBe("open");
+    expect(nt.from.map((r) => r.id)).toEqual([EXEMPT.join(".")]);
+  });
+
+  it("refuses a rule type this client does not know — never reads it as advisory", async () => {
+    const s = makeBundleSource(rules((db) => {
+      db.prepare("UPDATE rule SET type = 'teleport_ban' WHERE rule_id = ?").run(SPRING[1]);
+    }));
+    await expect(s.statusFor([10 as SectionId], MAY_1, "provincial"))
+      .rejects.toThrow(/unknown rule type/);
+  });
+
+  it("refuses an exemption it cannot read", async () => {
+    const s = makeBundleSource(rules((db) => {
+      db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?")
+        .run(JSON.stringify([{ default_id: "spring_stream_closure" }]), EXEMPT[1]);
+    }));
+    await expect(s.statusFor([11 as SectionId], MAY_1, "provincial"))
+      .rejects.toThrow(/must name an entry/);
   });
 });

@@ -47,19 +47,13 @@ PARTIAL_EXTENTS_BIND = True
 def wants_tributaries(rule: dict, entry: dict) -> bool:
     """Does this rule extend to tributaries?
 
-    Three-valued: `None` on the rule INHERITS `entry.tributaries.included`. Reading only
-    the rule's own field undercounts badly — 132 rules set it explicitly, but 554 across
+    Three-valued: `None` on the rule INHERITS `entry.includes_tributaries` (AGENTS 9). Reading
+    only the rule's own field undercounts badly — 132 rules set it explicitly, but 554 across
     264 entries are actually in scope once inheritance is applied.
     """
     own = rule.get("includes_tributaries")
     if own is None:
-        # The catalogue keeps ONE flag, flat on the entry: "only" moved onto the rule, and a
-        # per-rule include/exclude is gone, because two rules on one water disagreeing about
-        # what the water IS was never something the book could say. The prose entry nested
-        # the same fact under `tributaries.included`.
         own = entry.get("includes_tributaries")
-    if own is None:
-        own = (entry.get("tributaries") or {}).get("included")
     return bool(own) or bool(rule.get("tributaries_only"))
 
 
@@ -132,8 +126,7 @@ def classify(
 
         straddling = got.get("unclassified") or []
         if straddling:
-            include = (rule.get("type") or rule.get("restriction_type") or "") \
-                in STRADDLERS_INCLUDED_FOR
+            include = rule.get("type") in STRADDLERS_INCLUDED_FOR
             if include:
                 sections |= set(straddling)
             diags.append(Diagnostic(entry_id, rid, "unclassified", {

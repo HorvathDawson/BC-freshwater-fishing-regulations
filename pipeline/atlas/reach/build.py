@@ -21,7 +21,9 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.atlas.reach.licensing import PLACED_KINDS, LicensingPlacement, place_record
+from pipeline.atlas.reach.licensing import (
+    PLACED_KINDS, LicensingPlacement, own_beats_inherited, place_record,
+)
 
 
 @dataclass
@@ -87,6 +89,12 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                     e, r, registry, graph, covered=covered, clip=clip, match=match))
             licensing.append(placed)
             lic_diags.extend(diags)
+
+    # A water's own designation beats one inherited by another water's tributary walk.
+    licensing, yielded = own_beats_inherited(licensing)
+    lic_diags.extend(yielded)
+    if yielded:
+        report.licensing["designation:trib_yields_to_own"] = len(yielded)
 
     for p in licensing:
         key = f"{p.kind}:{p.placement}"
@@ -171,14 +179,10 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
     """
     blocked: set[str] = set()
     detail: list[dict] = []
-    # BOTH OF THESE ARE PROSE-ERA FIELDS and a catalogue entry has neither, so this is empty
-    # for the current corpus. That is the design, not an oversight: an "EXCEPT the Quinsam
-    # River" is now an EXTENT on the rule that says it, resolved by the same machinery as any
-    # other reach, instead of a second hand-curated subtraction list with its own resolver.
-    # They are still read so the retired shape keeps working if it is ever replayed.
-    carve_outs = list((entry.get("tributaries") or {}).get("excludes") or [])
-    carve_outs += list(rule.get("tributary_excludes") or [])
-    for ex in carve_outs:
+    # ONE PLACE A CARVE-OUT LIVES: the rule's own `tributary_excludes`. There is no entry-wide
+    # list — one would cut every rule in the row, including a rule that is about the very water
+    # another rule must not reach.
+    for ex in rule.get("tributary_excludes") or []:
         got = _resolve.resolve_extent(registry, graph, covered, ex)
         row = {"extent": ex, "resolved": got is not None,
                "sections": [], "above": 0}
@@ -195,18 +199,10 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
 def _expander(graph, registry, covered, rule, entry, *, window=None):
     """A closure that expands one rule's reach to its tributaries.
 
-    Carve-outs come from TWO places and both must apply:
-
-    * ``entry.tributaries.excludes`` — the row-level EXCEPT, e.g. "ATNARKO/BELLA COOLA
-      RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Cr. upstream of Sitkatapa Cr.,
-      Hunlen Cr. upstream of Hunlen Falls, Young Cr. upstream of Hwy 20". It qualifies
-      every rule in the row, exactly as `entry.scope` does.
-    * ``rule.tributary_excludes`` — a carve-out on one rule only.
-
-    Each is resolved to sections and passed as BLOCKED, so it removes the named stream
-    *and everything above it*. Blocking during the walk rather than subtracting afterwards
-    also stops the walk descending through excluded water into catchments that drain only
-    through it.
+    The rule's `tributary_excludes` are resolved to sections and passed as BLOCKED, so each
+    removes the named stream *and everything above it*. Blocking during the walk rather than
+    subtracting afterwards also stops the walk descending through excluded water into
+    catchments that drain only through it.
     """
     _, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
 
@@ -226,11 +222,7 @@ def _scope_sections(e: dict, covered: list[str], registry, graph):
     """
     out: set[str] = set()
     failed = False
-    # The catalogue calls this `extents`; the retired prose entry called it `scope`. Reading
-    # only the old name meant the clip silently did nothing — and this function exists
-    # precisely because not clipping widens "FRASER RIVER (upstream of the CPR Bridge at
-    # Mission)" to the entire river.
-    for sc in e.get("extents") or e.get("scope") or []:
+    for sc in e.get("extents") or []:
         got = _resolve.resolve_extent(registry, graph, covered, sc)
         if got is None:
             failed = True

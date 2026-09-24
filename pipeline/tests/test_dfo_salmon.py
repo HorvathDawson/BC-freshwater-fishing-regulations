@@ -847,13 +847,15 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
     entry, rules = to_reach_input(loc, [{"species": "Pink", "dates": "Jun 16 to Aug 23",
                                          "limits_gear": "2 per day"}], water)
 
-    assert entry["entry_id"] == loc.location_id
-    assert entry["matched"] == ["item:kispiox"]
-    assert entry["tributaries"]["included"] is True
+    assert entry == {"entry_id": loc.location_id, "matched": ["item:kispiox"],
+                     "includes_tributaries": True}
     assert len(rules) == 1
     assert rules[0]["extents"][0]["op"] == "downstream_of"
     assert rules[0]["extents"][0]["splits"] == ["split:kispiox-resort"]
     assert rules[0]["includes_tributaries"] is True
+    # Only what resolution reads: the scraped row's species, dates and gear never reach it.
+    assert set(rules[0]) == {"rule_id", "extents", "includes_tributaries", "tributaries_only",
+                             "tributary_excludes"}
 
 
 def test_to_reach_input_carries_tributary_carve_outs():
@@ -877,8 +879,8 @@ def test_to_reach_input_carries_tributary_carve_outs():
                          name="Bulkley River", item_ids=["item:bulkley"])
     entry, rules = to_reach_input(loc, [{"species": "All", "dates": "Aug 1 to Dec 31",
                                          "limits_gear": "No natural bait allowed"}], water)
-    assert entry["tributaries"]["only"] is True
-    assert len(entry["tributaries"]["excludes"]) == 2
+    # The carve-outs and `only` are the RULE's — the catalogue has no entry-wide list.
+    assert set(entry) == {"entry_id", "matched", "includes_tributaries"}
     assert rules[0]["tributaries_only"] is True
     assert len(rules[0]["tributary_excludes"]) == 2
 
@@ -1443,19 +1445,23 @@ def test_match_report_against_the_real_registry():
     ni, ii = build_name_index(reg), build_id_index(reg)
     ov = load_overrides("__default__")
 
-    props = propose(load("6").locations, reg, ni, ii, ov)
+    # The ENTRY FILE: `propose` walks its waters. This passed `.locations`, a list, and failed on
+    # `ef.waters` before asserting anything.
+    props = propose(load("6"), reg, ni, ii, ov)
     by_water = {p.water: p for p in props}
 
-    # The name is right and merely ambiguous — a curator picks, nothing auto-binds.
-    for w in ("Yakoun River", "Lakelse River", "Bear River"):
-        assert by_water[w].status == "ambiguous", w
-        assert by_water[w].bindable is False
-        assert by_water[w].candidates
+    # The name is right and merely ambiguous — a curator picks, nothing auto-binds. (Yakoun,
+    # Lakelse and Kwinimass were the examples once; the registry's name variants resolve all three
+    # exactly now, so the property is asserted over every proposal rather than over a name list.)
+    bear = by_water["Bear River"]
+    assert bear.status == "ambiguous" and bear.bindable is False and len(bear.candidates) > 1
 
-    # A near-spelling is proposed, never bound.
-    kwin = by_water["Kwinimass River"]
-    assert kwin.status == "fuzzy" and kwin.bindable is False
-    assert kwin.candidates[0]["name"] == "kwinamass river"
+    # Nothing but an exact hit or an override ever binds; a suggestion never does.
+    for p in props:
+        if p.status == "matched":
+            assert p.via in ("exact name", "override"), p.water
+        else:
+            assert p.item_ids == [] and p.bindable is False, p.water
 
 
 def test_worklist_shows_existing_splits_and_the_full_scope(tmp_path):
@@ -1815,8 +1821,7 @@ def test_reach_input_dumps_models_at_the_boundary():
                          name=loc.water, item_ids=["gnis:1"])
     entry, rules = to_reach_input(loc, [{"species": "Coho"}], water)
     assert isinstance(rules[0]["extents"][0], dict)
-    assert isinstance(entry["tributaries"], dict)
-    assert entry["tributaries"]["included"] is True
+    assert entry["includes_tributaries"] is True
     json.dumps(entry); json.dumps(rules)          # must be serialisable
 
 
@@ -2530,8 +2535,7 @@ def test_a_watershed_scope_reaches_its_lakes():
     g = read_artifact(graph_path)
 
     def walk(item_id):
-        entry = {"entry_id": "t", "matched": [],
-                 "tributaries": {"included": True, "only": False, "excludes": []}, "scope": []}
+        entry = {"entry_id": "t", "matched": [], "includes_tributaries": True}
         rule = {"rule_id": "r1", "extents": [{"op": "whole", "item_id": item_id}],
                 "includes_tributaries": True, "tributaries_only": False, "tributary_excludes": []}
         b, _ = build_reach(entry, rule, reg, g)

@@ -3,7 +3,8 @@
 Companion to `05-table-generation.md`, which is about *building* a table. This is about what
 crosses the line into the client.
 
-Every number here is measured against the shipped bundle.
+Numbers in Parts 1, 3 and 6 are measured against the shipped bundle (2026-09-23). The Part 2
+figures were measured with the settling layer before it was removed, and say so.
 
 ---
 
@@ -11,11 +12,11 @@ Every number here is measured against the shipped bundle.
 
 | | |
 |---|---|
-| sections in the province | **1,956,787** |
-| distinct **rule sets** among them | **2,375** |
-| rules in a set | 1 – 131, **88 on average** |
+| sections carrying a rule | **1,956,787** |
+| distinct **rule sets** among them | **2,288** |
+| rules in a set | 1 – 119, **75 on average** |
 
-Nearly two million sections have **two thousand three hundred and seventy-five** different
+Nearly two million sections have **two thousand two hundred and eighty-eight** different
 answers between them. The bundle already interns this: `section_ruleset(sid → set_id)` is the
 whole of the section half, and `ruleset(set_id → entry_id, rule_id, via)` is the whole of the
 rule half.
@@ -61,8 +62,9 @@ the data is what makes "same data, different UI" impossible.
 **So ship the settled ledger — not the raw rules alone, and not a rendered table.**
 
 > **Not yet, though.** The settling layer has been removed from the repository until it is
-> rebuilt, so what ships today is the left half only: the rules, with their provenance. This
-> section is the target, not a description of `ui-rules-export.json` as it stands.
+> rebuilt, so what ships today is the left half only: the records, with their provenance and a
+> guide to reading them (Part 6). This section is the target, not a description of
+> `ui-rules-export.json` as it stands.
 
 The proof that a settled ledger is general enough: **three different renderings already run off
 one**, in this repository, today.
@@ -86,8 +88,8 @@ change to the data.
 
 | | size | what it is |
 |---|---|---|
-| **the rules** | **2.3 MB**, 3,422 records | stage ③ exactly — the flat dicts, with `verbatim`, `species`, sizes, dates, `extents`. The front end needs these anyway, for provenance: the sentence from the book is the one thing a reader can check. |
-| **the settling verdict** | **3.9 KB** per (set, stretch), **~29 MB** for all 7,105 | per counter: does it bind today, what carved it, what it is a clause of, what it comes to. It references rule ids; it does not repeat rules. **Not built today** — this is what the rebuilt layer owes. |
+| **the records** | **2.9 MB** of rules (3,269) + 0.1 MB of licensing (106) | exactly as the bundle ships them, with `label`, `verbatim` and provenance — Part 6. The front end needs these anyway: the sentence from the book is the one thing a reader can check. |
+| **the settling verdict** | **3.9 KB** per (set, stretch), **~29 MB** for all 7,105 (measured before removal) | per counter: does it bind today, what carved it, what it is a clause of, what it comes to. It references rule ids; it does not repeat rules. **Not built today** — this is what the rebuilt layer owes. |
 | **`section → set_id`** | ~3.9 MB packed | 1,956,787 × a 2-byte id |
 | **the colour index** | ~7,105 rows | Part 2.2. **Not built today** — it needs a settled ledger to know a closure from a caveat. |
 
@@ -117,7 +119,8 @@ colour."* It is now.
 Why it is the better signal: outcome makes most of the province one colour, because most of the
 province is the regional default. Provenance highlights exactly the places the book singles out.
 
-**Measured over all 2,375 rule sets** (7,105 (set, stretch) pairs, 162 s to settle):
+**Measured over the 2,375 rule sets of 2026-09-22** (7,105 (set, stretch) pairs, 162 s to
+settle), with the settling layer that has since been removed:
 
 | | (set, stretch) pairs |
 |---|---|
@@ -147,18 +150,20 @@ union of its sections' geography — geometry, management units, regions, MU gro
 is several sections and reporting only the first one's region is how a stretch came to name the
 wrong region.
 
-Measured over the 22 waters that ship: **272 sections → 102 runs, 2.7×.**
+Measured over the 22 waters in `sections.json`: **277 sections → 102 runs, 2.7×.**
 
 | water | sections | runs | |
 |---|---|---|---|
 | Fraser River | 90 | 20 | 4.5× |
-| Skeena River | 35 | 7 | 5.0× |
-| Kootenay River | 32 | 10 | 3.2× |
+| Skeena River | 40 | 9 | 4.4× |
+| Kootenay River | 32 | 9 | 3.6× |
 | Harrison River | 5 | 1 | 5.0× |
 | Stamp River | 5 | 5 | 1.0× — every section differs |
 | *(lakes)* | 1 | 1 | a lake is one run |
 
-`pipeline/tools/build_section_data.py` already does this, and `app/design/regs-v3.html` is the
+`pipeline/tools/build_section_data.py` already does this for 22 sample waters (every
+regulation fact from the bundle; lake geometry still from FWA and the curated lake parts), and
+`app/design/regs-v3.html` is the
 prototype of the navigation it feeds: a map of the river, a ruler along it, the runs as rungs,
 and a two-step flow — **where on the river**, then **what applies there**.
 
@@ -191,7 +196,49 @@ settled counters is not a second implementation of settling.
 2. **The sentence from the book**, on every line. It is the only thing a reader can check.
 3. **The closure's own card** — when it lifts, and who closed it. Never a table of noughts.
 4. **Exemptions beside the closure they lift**, in the book's words, where the place they name
-   cannot be drawn. See `05` Part 3 and the two traps in the export's
-   `closures_and_exemptions`.
+   cannot be drawn. See `05` Part 3 and the export's `guide.exempts`.
 5. **What is NOT written** — a fish with no rule says so. A blank cell reads as "no limit", the
    most permissive failure available.
+
+---
+
+## Part 6 — What ships today: `ui-rules-export.json`
+
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules [--bundle B] [--out OUT]
+
+Written to `data/generated/regs/ui-rules-export.json` (not tracked). Everything is read from
+`bundle.sqlite`, and nothing is sampled or settled.
+
+| key | what | size (indent 1) |
+|---|---|---|
+| `about` | the bundle's build digests, computed counts, and `unresolved_references` — corpus references that do not resolve | — |
+| `guide` | how to read everything below; its `contents` is the table of contents | 0.1 MB |
+| `field_dictionary` | every key the records carry, and what it means | — |
+| `species` | every fish and every group the book writes (open groups have no member list on purpose) | — |
+| `licences` | the document register | — |
+| `entries` | all 1,480 synopsis rows: kind (province / zone / area / water), printed passage, matched waters, their rule and licensing ids | 0.9 MB |
+| `rules` | all 3,269 rules, keyed `entry_id::rule_id` | 2.9 MB |
+| `licensing` | all 106 licensing records, keyed `entry_id#record_id` | 0.1 MB |
+| `rulesets` / `licensing_sets` | the bundle's interned sets: members grouped by `via`, and how many sections carry each | 8.0 MB |
+| `waters` | every named water by `item_id`: its entries and the sets its sections carry, with section counts | 3.3 MB |
+| `index` | ids grouped by type, family and kind | 0.3 MB |
+
+About **16 MB** in all. Membership is per SET and per named WATER, never per section: section
+handles never leave the bundle (AGENTS 5). Set ids are local to one build.
+
+**Every record reads itself.** A rule or licensing record carries its generated `label`, its
+`verbatim`, its `fields` exactly as the bundle ships them (by alias, empty values left out), and
+`provenance` — for a rule: entry, authority, `binds_to`, `rank`, the bundle's `scope`, and
+`uncertain` with the reach builder's reason; for a licensing record: `placement`, and `uncertain`
+with its reason. Nothing derived that hides reasoning is added: no "reads as", no settled table.
+
+**The guide cannot drift from the code.** Its lists of types, families, slots, clause fields,
+conduct acts, `Who` axes, `Doing` acts, path fields and licensing kinds are generated from the
+model's registries, and `problems()` refuses the export when a registry member has no words or
+the words name a member the model no longer has. Every example is a live record found by a test
+over the data, never a remembered id.
+
+**Refused, not worked around.** The export refuses a bundle that lacks `entry.matched` or
+`rule.unresolved`, and refuses to write when any key in the output is a retired field name
+(`RETIRED_ANYWHERE`, and `RETIRED_ON_RULE` for names current elsewhere, such as `method` in a
+gear clause's `when`). `pipeline/tests/test_export_ui_rules.py` pins both with mutations.

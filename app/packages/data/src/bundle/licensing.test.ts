@@ -142,15 +142,23 @@ describe("the licensing reader", () => {
     await expect(broken.forSections([S(90)])).rejects.toThrow(/does not hold/);
   });
 
-  it("reads an unknown via as contested, never as a clean binding", async () => {
+  it("refuses an unknown via — a bundle newer than this client, never a guess", async () => {
     const odd = makeLicensingReader(bundle((db) => {
       sample(db);
       db.prepare("INSERT INTO licensing_set VALUES (9, 'designation', ?, 'skeena_river_2', " +
                  "'teleported')").run(SKEENA);
       db.prepare("INSERT INTO section_licensing VALUES (90, 9)").run();
     }));
-    expect((await odd.forSections([S(90)])).get(S(90))!.designations[0]!.via)
-      .toBe("contested");
+    await expect(odd.forSections([S(90)])).rejects.toThrow(/unknown via/);
+  });
+
+  it("refuses an unknown placement the same way", async () => {
+    const odd = makeLicensingReader(bundle((db) => {
+      sample(db);
+      db.prepare("UPDATE designation SET placement = 'teleported' WHERE designation_id = ?")
+        .run("skeena_river_2");
+    }));
+    await expect(odd.unplaced()).rejects.toThrow(/unknown placement/);
   });
 });
 

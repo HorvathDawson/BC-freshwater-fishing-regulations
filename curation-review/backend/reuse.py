@@ -581,7 +581,9 @@ def _scope_sections(e: dict, covered: list[str]) -> set[str] | None:
     a latent path, which is exactly when it is cheap to close."""
     out: set[str] = set()
     failed: list[dict] = []
-    for sc in e.get("scope") or []:
+    # The entry's `extents` — a catalogue entry has no `scope`, and reading that name left every
+    # regional row unclipped in the review app while the builder clipped it (AGENTS 16).
+    for sc in e.get("extents") or []:
         got = resolve_extent(covered, sc)
         if got is None:
             failed.append(sc)

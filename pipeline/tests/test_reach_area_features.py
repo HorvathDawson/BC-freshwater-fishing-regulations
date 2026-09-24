@@ -143,7 +143,7 @@ def test_the_limit_is_applied_AFTER_the_tributary_walk():
 
     binding, _ = classify(
         "e1",
-        {"rule_id": "r1", "restriction_type": "closure",
+        {"rule_id": "r1", "type": "retention_limit",
          "extents": [{"op": "whole", "item_id": "gnis:1", "within_area": "area:region:5"}]},
         per_extent,
         registry={}, covered_ids=["gnis:1"], scope_clipped=False, entry_has_registry=True,

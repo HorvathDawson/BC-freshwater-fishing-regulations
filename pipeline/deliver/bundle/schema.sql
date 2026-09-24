@@ -58,13 +58,17 @@ CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 -- the last thing a reader had to open the curated files to get, which is a fallback: an answer
 -- the bundle never agreed to, and staleness that says nothing. It ships here now.
 -- `extents` is the ENTRY's OWN reach, and it is not recoverable from its rules: a rule with
--- narrower extents of its own does not say what the entry's were, and a rule with none inherits
--- them at build time. `_entry_areas` needs exactly this — "z1: is the Region 1 quota table the
--- book prints '(excluding Haida Gwaii)' and z1: is also Haida Gwaii's own" is told apart by the
--- entry's area ids, not by the id prefix.
+-- narrower extents of its own does not say what the entry's were, and a rule with none binds
+-- nowhere (AGENTS 13) — its `rule.conditions` carries no extents at all, never the entry's.
+-- `_entry_areas` needs exactly this — "z1: is the Region 1 quota table the book prints
+-- '(excluding Haida Gwaii)' and z1: is also Haida Gwaii's own" is told apart by the entry's
+-- area ids, not by the id prefix.
+-- `matched` is EVERY water the entry matched, as a JSON list (`[]` = none). `item_id` is only the
+-- first, and deriving the rest from the bindings gets 52 entries wrong — the Kootenay River's
+-- co-waters bind through other entries' rules, and a water a row names may carry none of its own.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
-                    extents TEXT);
+                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]');
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.
@@ -121,11 +125,20 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    -- decides a water's outcome and never takes part in the override contest.
                    standing INTEGER NOT NULL DEFAULT 0,
                    species TEXT, species_except TEXT,
+                   -- `exempts` (JSON): what this rule LIFTS, resolved at build time to the
+                   -- entry it lifts — [{"default_id", "entry_id"}] lifts every rule of that
+                   -- zone entry, [{"target", "entry_id"}] one rule. Where this rule is in
+                   -- force on a section, a rule it lifts does not count (core/status.ts).
+                   -- NULL = lifts nothing. Never the rule's own entry by `default_id`.
+                   exempts TEXT,
                    take INTEGER, may_target INTEGER,        -- see above; both may be NULL
                    conditions TEXT,           -- the rest of the rule's set fields, as JSON
                    -- a rule nobody could place must never vote on an outcome; it can only
                    -- ever raise "unknown" (core/status.ts)
                    uncertain INTEGER NOT NULL DEFAULT 0,
+                   -- WHY it could not be placed: the reach builder's "reason: detail", as the
+                   -- licensing tables' `unresolved` column has it. NULL = placed.
+                   unresolved TEXT,
                    verbatim TEXT,             -- the sentence, quoted from regs_verbatim
                    extent_text TEXT,          -- the reach in the page's words, when unbound
                    PRIMARY KEY (entry_id, rule_id)) WITHOUT ROWID;

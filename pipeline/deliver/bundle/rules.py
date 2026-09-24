@@ -95,10 +95,68 @@ _NOT_CONDITIONS = frozenset({
     # Build-time only: a carve-out the reach builder applies before any section reaches the
     # bundle. Shipping it as a `condition` would put a resolver's input in front of a reader.
     "tributary_excludes",
+    # A column of its own, RESOLVED: see `_exempts`.
+    "exempts",
 })
 
 
-def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, siblings=None):
+def _zone_region(entry_id: str) -> str:
+    """`r4:…` / `z4:…` -> "4", `z7a:…` -> "7a", `zp:…` -> "p"."""
+    return entry_id.split(":", 1)[0][1:]
+
+
+def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, set[str]]):
+    """The rule's `exempts`, each RESOLVED to the entry it lifts — the `exempts` column.
+
+    EXEMPTIONS WERE APPLIED NOWHERE. 88 rules carry one, 63 of them "Exempt from spring
+    closure", and the bundle shipped the field buried in `conditions`, which the client never
+    selected — so the North Thompson read CLOSED on May 1 beside its own "Exempt from spring
+    closure", and about 27k sections carried a zone default next to the rule that lifts it.
+
+    Resolved HERE, once, so the client matches exact ids and never a bare name (AGENTS 8):
+
+      `default_id`  a zone default by its slug: every zone entry `z<region>:<slug>` of THIS
+                    rule's region (Region 7's rows reach both 7A and 7B). NEVER the rule's own
+                    entry — `z6:steelhead_stream_closure` names its own slug, and a rule that
+                    lifts itself deletes itself on every water it covers (the self-lift; its
+                    `review_reason` carries it).
+      `target`      one rule by id, in `entry_id` when the exemption says so, else in this entry.
+
+    An exemption that resolves to nothing lifts nothing, which is only allowed when the rule
+    says why in `review_reason`; otherwise the build stops, because a lift that silently fails
+    leaves a closure standing where the book lifted it.
+
+    Shipped as `[{"default_id", "entry_id"} | {"target", "entry_id"}]` (+ the authored `note`
+    when there is one), one item per entry lifted. NULL = the rule lifts nothing."""
+    out: list[dict] = []
+    for x in r.exempts:
+        got: list[dict] = []
+        if x.default_id:
+            region = _zone_region(entry_id)
+            for z in zones.get(x.default_id, ()):
+                zr = _zone_region(z)
+                if z != entry_id and (zr == region or (region and zr[:-1] == region
+                                                       and zr[-1:] in ("a", "b"))):
+                    got.append({"default_id": x.default_id, "entry_id": z})
+        if x.target:
+            in_entry = x.entry_id or entry_id
+            if x.target in rules_of.get(in_entry, ()) and not (
+                    in_entry == entry_id and x.target == r.rule_id):
+                got.append({"target": x.target, "entry_id": in_entry})
+        if x.note:
+            got = [dict(g, note=x.note) for g in got]
+        if not got and not r.review_reason:
+            raise SystemExit(
+                f"{entry_id}/{r.rule_id}: exempts {x.model_dump(exclude_none=True)} lifts no "
+                f"rule in the corpus. Name the rule (`target` + `entry_id`), or say why in "
+                f"`review_reason` — a lift that silently resolves to nothing leaves the "
+                f"closure standing where the book lifted it")
+        out += got
+    return json.dumps(out, separators=(",", ":"), sort_keys=True) if out else None
+
+
+def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=None,
+              rules_of=None, unresolved: str | None = None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -121,28 +179,19 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, sib
     # dump without this puts `while_` in the bundle, where a reader looking for `while` finds
     # nothing and the circumstance a rule binds in silently disappears.
     dumped = r.model_dump(exclude_none=True, mode="json", by_alias=True)
-    # A RULE WITH NO EXTENTS OF ITS OWN TAKES ITS ENTRY'S. 130 rules do, and reading only the
-    # rule dict wrote `[]` for every one of them — which says "binds nowhere", not "binds
-    # wherever the entry does". `corpus.catalogue()` applied this inheritance when it read the
-    # curated files at run time; shipping the extents without it would have moved the fallback
-    # rather than removed it, and quietly unbound 130 rules on the way.
-    if not dumped.get("extents") and entry_extents:
-        dumped["extents"] = list(entry_extents)
-    # `False` IS A VALUE for a flag whose absence would read as something else — and dropping it
-    # once lost the only field that separated a permission from a prohibition. `permitted`,
-    # `required` and `on_retention` were the other three here; they were licensing's polarity
-    # bits and are gone from the model (licensing is `CatalogueEntry.licensing`, refused as a rule
-    # type). `when_open: false` is kept because it has always shipped, and dropping it changes
-    # every rule's `conditions` for no reader's benefit.
+    # THE RULE'S OWN EXTENTS, AND ONLY THOSE. A rule with none used to be given its entry's here,
+    # so 139 rules the reach builder left UNBOUND — "on parts", a place it could not draw —
+    # shipped `extents: [{op: whole}]` beside `uncertain = 1`: the bundle claiming the whole water
+    # for a rule placement had refused to widen (AGENTS 13). Inheritance is placement's job, and
+    # placement has already done it; what a rule binds is in `ruleset`, not here.
     #
-    # `v not in (...)` also matched by EQUALITY, so `0` matched `False` and `take: 0` would
-    # have gone the same way if take were not already a column of its own.
-    _FALSE_MEANS_SOMETHING = ("when_open",)
+    # No flag in the model means something when False, so False is dropped like any default.
+    # (`v is False`, not `v == False`: `0 == False`, and a zero is a value.)
     _EMPTY = ((), [], {}, "")
     conditions = {k: v for k, v in dumped.items()
                   if k not in _NOT_CONDITIONS
                   and not any(v is e or v == e for e in _EMPTY)
-                  and (v is not False or k in _FALSE_MEANS_SOMETHING)}
+                  and v is not False}
     return (
         entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r, siblings),
         _specificity(raw),
@@ -161,10 +210,13 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, entry_extents=None, sib
         1 if r.standing else 0,
         json.dumps(list(r.species), separators=(",", ":")),
         json.dumps(list(r.species_except), separators=(",", ":")),
+        _exempts(entry_id, r, zones or {}, rules_of or {}),
         r.take,
         None if r.may_target is None else int(r.may_target),
         json.dumps(conditions, separators=(",", ":"), sort_keys=True) or None,
         1 if uncertain else 0,
+        # WHY it could not be placed — "reason: detail", as the licensing tables have it.
+        unresolved,
         r.verbatim, r.extent_text or None,
     )
 
@@ -220,62 +272,83 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # only ever raise "unknown" — so the flag has to be on the rule row itself, and it is
     # read from the reach builder's own failure table rather than guessed at from the
     # curation. `rule_unresolved` is the table that must never be silently short.
-    unresolved = {(r["entry_id"], r["rule_id"]) for r in _jsonl(reaches / "rule_unresolved.jsonl")}
+    unresolved = {(r["entry_id"], r["rule_id"]): f"{r['reason']}: {r['detail']}"
+                  for r in _jsonl(reaches / "rule_unresolved.jsonl")}
 
     from pipeline.regs.parsing.catalogue import CatalogueEntry
 
+    from pipeline.regs.parsing.io import _holds_entries
+
     entry_rows, rule_rows = [], []
     ces = []
-    for path in sorted(entries_dir.rglob("*.json")):
-        doc = json.loads(path.read_text(encoding="utf-8"))
-        for e in doc.get("entries", []):
-            # A catalogue entry is FLAT: name/region at the top, the MUs the synopsis row was
-            # printed under encoded in entry_id after the `@`. Read through the model, so a key
-            # from the retired nested prose shape (`identity`, `source`) is refused, not read
-            # as a fallback.
-            ce = CatalogueEntry.model_validate(e)
-            ces.append(ce)
-            matched = list(ce.matched)
-            entry_rows.append((
-                ce.entry_id,
-                # The first match, or nothing. An entry that never matched a water keeps its
-                # rules and its text and carries a null item — the app shows "we have a rule
-                # for a water we cannot place" rather than dropping it (77 of these).
-                matched[0] if matched else None,
-                ce.display_name or ce.name,
-                # What the page printed, kept whole — see the note in schema.sql.
-                ce.name,
-                ce.regs_verbatim,
-                json.dumps(list(ce.symbols), separators=(",", ":")),
-                json.dumps(_mus_of(ce.entry_id), separators=(",", ":")),
-                json.dumps(list(ce.source_pages), separators=(",", ":")),
-                ce.scope_note or None,
-                json.dumps(e.get("extents") or [], separators=(",", ":")),
-            ))
-            # A rule may name another in its entry (`suspended_while`), and its label says what
-            # that rule is in words — so each label is built with its siblings to hand.
-            siblings = {r.rule_id: r for r in ce.rules}
-            for r in e.get("rules") or []:
-                rule_rows.append(_rule_row(
-                    e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved,
-                    e.get("extents"), siblings))
+    docs = []
+    # EVERY ENTRY SOURCE, and nothing else. A source is a directory of region files carrying
+    # `entries` (see `io.entry_sources`); the DFO directory beside the catalogue holds region
+    # files of another shape and is not one. Inside a source, a region file WITHOUT `entries` is
+    # a defect, and stops the build — reading `doc.get("entries", [])` skipped it in silence.
+    for d in sorted({p.parent for p in entries_dir.rglob("region-*.json")}):
+        if not _holds_entries(d):
+            continue
+        for path in sorted(d.glob("region-*.json")):
+            doc = json.loads(path.read_text(encoding="utf-8"))
+            if "entries" not in doc:
+                raise SystemExit(f"{path}: a region file in an entry source has no `entries`")
+            for e in doc["entries"]:
+                # Read through the model, so a key from a retired shape is refused, not read.
+                docs.append((e, CatalogueEntry.model_validate(e)))
+    # What an exemption may name: zone entries by slug, and every entry's rule ids.
+    zones: dict[str, list[str]] = {}
+    rules_of: dict[str, set[str]] = {}
+    for _, ce in docs:
+        rules_of[ce.entry_id] = {r.rule_id for r in ce.rules}
+        if ce.entry_id.startswith("z"):
+            zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
+    for e, ce in docs:
+        ces.append(ce)
+        matched = list(ce.matched)
+        entry_rows.append((
+            ce.entry_id,
+            # The first match, or nothing. An entry that never matched a water keeps its
+            # rules and its text and carries a null item — the app shows "we have a rule
+            # for a water we cannot place" rather than dropping it (77 of these).
+            matched[0] if matched else None,
+            ce.display_name or ce.name,
+            # What the page printed, kept whole — see the note in schema.sql.
+            ce.name,
+            ce.regs_verbatim,
+            json.dumps(list(ce.symbols), separators=(",", ":")),
+            json.dumps(_mus_of(ce.entry_id), separators=(",", ":")),
+            json.dumps(list(ce.source_pages), separators=(",", ":")),
+            ce.scope_note or None,
+            json.dumps(e.get("extents") or [], separators=(",", ":")),
+            # EVERY water matched; `item_id` above is only the first.
+            json.dumps(matched, separators=(",", ":")),
+        ))
+        # A rule may name another in its entry (`suspended_while`), and its label says what
+        # that rule is in words — so each label is built with its siblings to hand.
+        siblings = {r.rule_id: r for r in ce.rules}
+        for r in e.get("rules") or []:
+            k = (e["entry_id"], r.get("rule_id"))
+            rule_rows.append(_rule_row(e["entry_id"], r, k in unresolved, siblings, zones,
+                                       rules_of, unresolved=unresolved.get(k)))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
     # — which then wrote a 42 MB bundle with zero entries in it. Naming the columns makes that
     # failure impossible rather than merely tested.
     db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
-                   "                   mus, pages, scope_note, extents)"
-                   " VALUES (?,?,?,?,?,?,?,?,?,?)",
+                   "                   mus, pages, scope_note, extents, matched)"
+                   " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                    entry_rows)
     cov.filled("entry", len(entry_rows))
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional
     # placeholders, and adding `limits` to the schema made it eleven values for twelve
     # columns — the fault that once shipped a 42 MB bundle with no entries in it.
     db.executemany("INSERT INTO rule (entry_id, rule_id, type, family, dimension, label,"
-                   "                  scope, when_, while_, standing, species, species_except, take,"
-                   "                  may_target, conditions, uncertain, verbatim, extent_text) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
+                   "                  scope, when_, while_, standing, species, species_except,"
+                   "                  exempts, take, may_target, conditions, uncertain, unresolved,"
+                   "                  verbatim, extent_text) "
+                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
     # One pass over the bindings (149 M rows on the full corpus), noting every rule it names.
@@ -293,7 +366,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # built after the licensing rules left: 144 such rules, 31,354 ruleset rows, in 2,347 of the
     # 2,375 sets. The reader's JOIN drops such a row without a word, so the check is here: every
     # rule the run placed exists, and every rule that exists was placed or explained.
-    placed_rules = bound_rules | unresolved
+    placed_rules = bound_rules | set(unresolved)
     have_rules = {(r[0], r[1]) for r in rule_rows}
     gone, never = sorted(placed_rules - have_rules), sorted(have_rules - placed_rules)
     if gone or never:
@@ -343,7 +416,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # nothing downstream was affected and nothing failed — only the line a person reads to
     # decide whether a build is healthy. The INSERT below names its columns for exactly this
     # reason; the summary went positional and drifted the moment a field moved.
-    n_uncertain = len(unresolved & {(r[0], r[1]) for r in rule_rows})
+    n_uncertain = len(set(unresolved) & {(r[0], r[1]) for r in rule_rows})
     print(f"     rules: {len(entry_rows):,} entries · {len(rule_rows):,} rules "
           f"({n_uncertain} uncertain) · {len(section_set):,} sections carry one, "
           f"sharing {len(sets):,} distinct sets")

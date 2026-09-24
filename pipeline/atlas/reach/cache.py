@@ -7,7 +7,7 @@ the divergence would be invisible until a user hit a wrong reach.
 
 **The key must cover everything that can change the answer**, which is more than the entry:
 
-* the entry itself      — its extents, scope, matched items, tributary flags
+* the entry itself      — its extents, matched items, tributary flags
 * the BUILD             — section ids churn ~6% per rebuild, so the same entry resolves
                           differently against a different graph
 * the classifier policy — a change to straddler handling or the reason table changes
@@ -43,28 +43,24 @@ def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) 
 def _resolution_inputs(entry: dict) -> dict:
     """Only the fields resolution actually reads.
 
-    Deliberately NOT the whole entry: `reviewed_at`, `revisit_note` and friends change
-    when a curator saves, and keying on them would evict the cache on every keystroke
-    without any answer having changed.
+    Deliberately NOT the whole entry: its text, labels and review notes change when a
+    curator saves, and keying on them would evict the cache on every keystroke without any
+    answer having changed. The entry's `extents` ARE in it: a cache that cannot see the clip
+    would serve a reach from before it was applied.
     """
     return {
         "entry_id": entry.get("entry_id"),
         "matched": list(entry.get("matched") or ()),
-        # `extents` is the catalogue's name for the entry-level clip, `scope` the prose one.
-        # Both are in the digest: a cache that cannot see the clip would serve a reach from
-        # before it was applied.
-        "scope": entry.get("extents") or entry.get("scope") or [],
-        "tributaries": entry.get("tributaries") or {},
+        "extents": entry.get("extents") or [],
         "includes_tributaries": entry.get("includes_tributaries"),
         "rules": [
             {
                 "rule_id": r.get("rule_id"),
-                "restriction_type": r.get("type") or r.get("restriction_type"),
+                "type": r.get("type"),
                 "extents": r.get("extents") or [],
                 "includes_tributaries": r.get("includes_tributaries"),
                 "tributaries_only": r.get("tributaries_only"),
                 "tributary_excludes": r.get("tributary_excludes") or [],
-                "sections_override": r.get("sections_override"),
                 "unresolved_locators": list(r.get("unresolved_locators") or ()),
             }
             for r in (entry.get("rules") or [])

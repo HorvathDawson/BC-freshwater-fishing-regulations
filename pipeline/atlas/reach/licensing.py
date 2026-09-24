@@ -25,9 +25,9 @@ EVERY PLACED RECORD ENDS IN EXACTLY ONE PLACEMENT, and none of them is "absent":
                   marks the record `uncertain` — for licensing the unsafe direction is
                   UNDER-requiring, so an unplaced requirement must read "check", never "none"
 
-A record with no extents INHERITS ITS ENTRY'S, as a rule does (`bundle.rules._rule_row`). One
-with no extents on an entry with none is unresolved (`no_extents`), never defaulted to `whole`
-(AGENTS 13).
+A record with no extents INHERITS ITS ENTRY'S — here, at placement, which is the one place
+inheritance happens (a bare RULE is given `whole` at ingest instead, AGENTS 13). One with no
+extents on an entry with none is unresolved (`no_extents`), never defaulted to `whole`.
 """
 
 from __future__ import annotations
@@ -116,3 +116,55 @@ def place_record(entry: dict, rec: dict, reach) -> tuple[LicensingPlacement, lis
         eid, rid, kind, "sections", sections=binding.sections,
         via_tributary=binding.via_tributary,
         tributaries_pending=binding.tributaries_pending), diags
+
+
+def own_beats_inherited(placements: list[LicensingPlacement]
+                        ) -> tuple[list[LicensingPlacement], list[Diagnostic]]:
+    """A water's OWN designation beats one that reaches it only by another water's tributary walk.
+
+    It is how rules resolve — a water's own rule beats one arriving from elsewhere — applied to
+    the designations. A section bound to a designation by REACH (the designation names this
+    water) is taken out of every OTHER designation's TRIBUTARY-inherited binding. Without it the
+    Suskwa, Class I with its own designation, also read Class II by the Bulkley's walk; the Elk's
+    unit covered Wigwam, Michel, Forsyth and Abruzzi, each with its own unit licence; and a
+    non-resident on those sections was told to buy two different day licences (design validator
+    6, reported as ambiguous units).
+
+    Only designations, and only the INHERITED half: a designation's own reach is never taken from
+    it, and a section two designations both name by reach stays ambiguous and is reported. A
+    `trib_pending` placement's sections are its direct ones, so they count as its own. Nothing is
+    decided by unit or class: whose water it is decides.
+
+    Every removal is a diagnostic (`trib_yields_to_own`), naming the designations it yielded to.
+    """
+    own: dict[str, set[tuple[str, str]]] = {}
+    for p in placements:
+        if p.kind == "designation" and p.placement == "sections":
+            trib = set(p.via_tributary)
+            for s in p.sections:
+                if s not in trib:
+                    own.setdefault(s, set()).add((p.entry_id, p.record_id))
+
+    out: list[LicensingPlacement] = []
+    diags: list[Diagnostic] = []
+    for p in placements:
+        if p.kind != "designation" or p.placement != "sections" or not p.via_tributary:
+            out.append(p)
+            continue
+        me = (p.entry_id, p.record_id)
+        yielded = {s: own[s] - {me} for s in p.via_tributary if own.get(s, set()) - {me}}
+        if not yielded:
+            out.append(p)
+            continue
+        keep = tuple(s for s in p.sections if s not in yielded)
+        if not keep:
+            raise AssertionError(f"{p.entry_id}#{p.record_id}: every section it binds is another "
+                                 f"designation's own — it would end bound to nothing")
+        to = sorted({f"{e}#{i}" for v in yielded.values() for e, i in v})
+        diags.append(Diagnostic(p.entry_id, p.record_id, "trib_yields_to_own", {
+            "removed": len(yielded), "kept": len(keep), "to": to}))
+        out.append(LicensingPlacement(
+            p.entry_id, p.record_id, p.kind, p.placement, sections=keep,
+            via_tributary=tuple(s for s in p.via_tributary if s not in yielded),
+            tributaries_pending=p.tributaries_pending, reason=p.reason, detail=p.detail))
+    return out, diags

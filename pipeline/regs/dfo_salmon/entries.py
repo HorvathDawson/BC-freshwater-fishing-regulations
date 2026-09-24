@@ -40,7 +40,7 @@ from typing import Dict, List, Optional
 
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
-from pipeline.regs.parsing.entry_models import Extent, Tributaries
+from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.dfo_salmon.locations import Location, normalize
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
@@ -829,33 +829,30 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # The registry item lives on the WATER — one answer serves all of a river's
     # reaches — so a location with no water record binds nothing.
     item_ids = list(water.item_ids) if water else []
-    # `build_reach` consumes plain dicts; the models are what we STORE, so they are
-    # dumped at the boundary rather than kept as dicts in the file.
-    excludes = [e.model_dump(mode="json") for e in loc.binding.tributary_excludes]
+    # THE CATALOGUE SHAPE, the one the builder reads: the entry's tributary flag flat on the
+    # entry, and everything that differs per rule — its extents, `tributaries_only`, its carve-
+    # outs — on the rule. `build_reach` consumes plain dicts; the models are what we STORE, so
+    # they are dumped at the boundary rather than kept as dicts in the file.
     entry = {
         "entry_id": loc.location_id,
         "matched": item_ids,
-        "tributaries": Tributaries(
-            included=bool(loc.binding.tributaries
-                          if loc.binding.tributaries is not None
-                          else (water.tributaries if water else False)),
-            only=bool(loc.binding.tributaries_only),
-            excludes=list(loc.binding.tributary_excludes),
-        ).model_dump(mode="json"),
-        "scope": [],
+        # The location's own flag, else its water's. A rule's `None` inherits this (AGENTS 9).
+        "includes_tributaries": bool(loc.binding.tributaries
+                                     if loc.binding.tributaries is not None
+                                     else (water.tributaries if water else False)),
     }
-    out = []
-    for i, r in enumerate(rules):
-        out.append({
-            "rule_id": f"{loc.location_id}#{i}",
-            "extents": [e.model_dump(mode="json") for e in loc.binding.extents],
-            # Three-valued: None inherits entry.tributaries.included (AGENTS rule 9).
-            "includes_tributaries": loc.binding.tributaries,
-            "tributaries_only": loc.binding.tributaries_only,
-            "tributary_excludes": excludes,
-            "species": r.get("species"), "dates": r.get("dates"),
-            "limits_gear": r.get("limits_gear"),
-        })
+    extents = [e.model_dump(mode="json") for e in loc.binding.extents]
+    excludes = [e.model_dump(mode="json") for e in loc.binding.tributary_excludes]
+    # ONLY WHAT RESOLUTION READS. The scraped row's species, dates and gear say what the rule
+    # IS; none of them moves where it applies, and passing them would hand the resolver fields
+    # it has no business reading.
+    out = [{
+        "rule_id": f"{loc.location_id}#{i}",
+        "extents": list(extents),
+        "includes_tributaries": loc.binding.tributaries,
+        "tributaries_only": loc.binding.tributaries_only,
+        "tributary_excludes": list(excludes),
+    } for i, _ in enumerate(rules)]
     return entry, out
 
 

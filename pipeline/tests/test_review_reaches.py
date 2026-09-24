@@ -246,8 +246,8 @@ def test_a_rows_scope_clips_every_rule_in_it(braided, monkeypatch):
     item = RegistryItem(id="gnis:1", name="Adams River", kind="stream",
                         section_ids=tuple(sorted(braided)))
     monkeypatch.setattr(reuse, "_registry", lambda: {"gnis:1": item})
-    entry = {"entry_id": "gnis:1#below", "identity": {"name": "ADAMS RIVER"}, "matched": ["gnis:1"],
-             "scope": [{"op": "downstream_of", "splits": ["thecut"]}],
+    entry = {"entry_id": "gnis:1#below", "name": "ADAMS RIVER", "matched": ["gnis:1"],
+             "extents": [{"op": "downstream_of", "splits": ["thecut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("1", entry)])
     monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))
@@ -267,8 +267,8 @@ def test_an_unresolvable_scope_clips_nothing_rather_than_everything(braided, mon
     item = RegistryItem(id="gnis:1", name="Adams River", kind="stream",
                         section_ids=tuple(sorted(braided)))
     monkeypatch.setattr(reuse, "_registry", lambda: {"gnis:1": item})
-    entry = {"entry_id": "gnis:1#x", "identity": {"name": "ADAMS RIVER"}, "matched": ["gnis:1"],
-             "scope": [{"op": "downstream_of", "splits": ["nosuchcut"]}],
+    entry = {"entry_id": "gnis:1#x", "name": "ADAMS RIVER", "matched": ["gnis:1"],
+             "extents": [{"op": "downstream_of", "splits": ["nosuchcut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("1", entry)])
     monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))
@@ -288,8 +288,8 @@ def test_a_broken_scope_is_reported_not_swallowed(braided, monkeypatch):
     item = RegistryItem(id="gnis:1", name="Fraser River", kind="stream",
                         section_ids=tuple(sorted(braided)))
     monkeypatch.setattr(reuse, "_registry", lambda: {"gnis:1": item})
-    entry = {"entry_id": "gnis:1#r3", "identity": {"name": "FRASER RIVER"}, "matched": ["gnis:1"],
-             "scope": [{"op": "between", "splits": ["thecut", "nosuchcut"]}],
+    entry = {"entry_id": "gnis:1#r3", "name": "FRASER RIVER", "matched": ["gnis:1"],
+             "extents": [{"op": "between", "splits": ["thecut", "nosuchcut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("3", entry)])
     monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))

@@ -24,16 +24,6 @@
      "rule_id": "single_barbless_hook.r1",
      "type": "tackle_restriction",
      "verbatim": "all streams of Zone B, all year.",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:7b",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -43,7 +33,17 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     }
@@ -69,13 +69,6 @@
      "rule_id": "bait.r1",
      "type": "bait_restriction",
      "verbatim": "all streams of Zone B, all year.",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:7b"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -83,24 +76,31 @@
         "any_bait"
        ]
       }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b"
+      }
      ]
     },
     {
      "rule_id": "bait.r2",
      "type": "bait_restriction",
      "verbatim": "Fin fish may not be used as bait in any waters of Zone B.",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:7b"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "fin_fish"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b"
       }
      ]
     }
@@ -126,18 +126,18 @@
      "rule_id": "set_lining.r1",
      "type": "method_rule",
      "verbatim": "Set lining: not permitted in Zone B.",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:7b"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "set_lining"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b"
       }
      ]
     }
@@ -243,8 +243,7 @@
         "to_month": 8,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "within": "trout_char_quota.r1",
@@ -262,15 +261,15 @@
        "take": 0
       }
      ],
-     "extent_text": "Liard River watershed, or other specified waters",
-     "review_reason": "Bound to the Liard watershed, where the chapter says bull trout may be retained. The operative quota is stated water-specifically by `r7:liard_river_watershed…@7-53` ('daily and possession quotas = 1 (none under 30 cm or over 50 cm), Oct 16-Aug 14'), which outranks this. Kept because it is the REGION's statement that bull trout may be kept nowhere else in Zone B — '(or other specified waters)' is the carve-out and it is not enumerated.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:9891",
        "includes_tributaries": true
       }
-     ]
+     ],
+     "extent_text": "Liard River watershed, or other specified waters",
+     "review_reason": "Bound to the Liard watershed, where the chapter says bull trout may be retained. The operative quota is stated water-specifically by `r7:liard_river_watershed…@7-53` ('daily and possession quotas = 1 (none under 30 cm or over 50 cm), Oct 16-Aug 14'), which outranks this. Kept because it is the REGION's statement that bull trout may be kept nowhere else in Zone B — '(or other specified waters)' is the carve-out and it is not enumerated."
     },
     {
      "rule_id": "trout_char_quota.r6",
@@ -287,8 +286,7 @@
         "to_month": 6,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -337,8 +335,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -358,15 +355,15 @@
      ],
      "take": 0,
      "may_target": true,
-     "extent_text": "Peace River watershed",
-     "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:14619",
        "includes_tributaries": true
       }
-     ]
+     ],
+     "extent_text": "Peace River watershed",
+     "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b."
     },
     {
      "rule_id": "trout_char_quota.r9b",
@@ -383,20 +380,19 @@
         "to_month": 10,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
-     "extent_text": "Liard River watershed",
-     "review_reason": "The LIARD half, with its own window. `r7:liard_river_watershed…@7-53` states it water-specifically and outranks this, but the zone rule is what renders where the water rule does not reach.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:9891",
        "includes_tributaries": true
       }
-     ]
+     ],
+     "extent_text": "Liard River watershed",
+     "review_reason": "The LIARD half, with its own window. `r7:liard_river_watershed…@7-53` states it water-specifically and outranks this, but the zone rule is what renders where the water rule does not reach."
     }
    ]
   },
@@ -489,8 +485,7 @@
         "to_month": 6,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -510,15 +505,15 @@
      ],
      "take": 0,
      "may_target": true,
-     "extent_text": "Williston Lake and its tributaries",
-     "review_reason": "BOUND — watershed: the named water plus its tributary walk. Water-scoped with includes_tributaries.",
      "extents": [
       {
        "op": "whole",
        "item_id": "wbk:328961697",
        "includes_tributaries": true
       }
-     ]
+     ],
+     "extent_text": "Williston Lake and its tributaries",
+     "review_reason": "BOUND — watershed: the named water plus its tributary walk. Water-scoped with includes_tributaries."
     }
    ]
   },
@@ -698,8 +693,7 @@
         "to_month": 5,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -834,14 +828,14 @@
      "rule_id": "peace_river_navigation.r1",
      "type": "hazard",
      "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
-     "extent_text": "Peace River at the Site C site",
-     "review_reason": "BOUND — named water. Water-scoped safety notice. RECOVERED — absent from the corpus.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:14619"
       }
-     ]
+     ],
+     "extent_text": "Peace River at the Site C site",
+     "review_reason": "BOUND — named water. Water-scoped safety notice. RECOVERED — absent from the corpus."
     }
    ]
   },
@@ -916,12 +910,20 @@
      "rule_id": "ice_fishing_huts.r2",
      "type": "method_rule",
      "verbatim": "Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
-     "extent_text": "huts must be removed before spring breakup",
      "while": [
       "ice_fishing"
      ],
      "conduct": [
       "remove_ice_hut_before_breakup"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "lake"
+       ]
+      }
      ]
     }
    ]

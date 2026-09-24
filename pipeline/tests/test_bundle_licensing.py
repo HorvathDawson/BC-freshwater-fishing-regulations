@@ -325,3 +325,59 @@ def test_the_written_ruleset_is_checked_not_just_the_input(tmp_path, monkeypatch
 def test_placed_kinds_are_the_four_about_a_place():
     assert reach_lic.PLACED_KINDS == bundle_lic.PLACED == (
         "designation", "requirement", "not_classified", "alternative")
+
+
+# ------------------------------------------------------ a water's own designation beats a walk's
+
+def _P(eid, rid, sections, trib=(), kind="designation", pending=False):
+    return reach_lic.LicensingPlacement(eid, rid, kind, "sections", sections=tuple(sections),
+                                        via_tributary=tuple(trib), tributaries_pending=pending)
+
+
+def test_a_waters_own_designation_takes_its_sections_out_of_anothers_tributary_walk():
+    """The Bulkley's walk reached the Suskwa, Class I with its own designation, and those sections
+    carried both classes; the Elk's unit sat over Wigwam, Michel, Forsyth and Abruzzi, each with
+    its own unit licence. A water's own designation wins — as a water's own rule does."""
+    bulkley = _P("r6:bulkley", "bulkley", ["b1", "b2", "s1", "s2", "m1"], trib=["s1", "s2", "m1"])
+    suskwa = _P("r6:suskwa", "suskwa", ["s1", "s2", "s3"], trib=["s3"])
+    got, diags = reach_lic.own_beats_inherited([bulkley, suskwa])
+    by = {p.record_id: p for p in got}
+    assert by["bulkley"].sections == ("b1", "b2", "m1")      # Morice-like m1: nobody's own
+    assert by["bulkley"].via_tributary == ("m1",)
+    assert by["suskwa"] == suskwa                             # its own reach is never taken
+    assert [(d.rule_id, d.kind, d.payload["removed"], d.payload["to"]) for d in diags] == [
+        ("bulkley", "trib_yields_to_own", 2, ["r6:suskwa#suskwa"])]
+
+
+def test_only_the_inherited_half_yields_and_only_to_a_designation():
+    # both name the section by reach: stays ambiguous (validator 6 reports it), neither loses it
+    a, b = _P("e:a", "a", ["x"]), _P("e:b", "b", ["x"])
+    assert reach_lic.own_beats_inherited([a, b])[0] == [a, b]
+    # a requirement or not_classified binding by reach takes nothing from a designation
+    walk = _P("e:a", "a", ["r", "t"], trib=["t"])
+    req = _P("e:q", "q", ["t"], kind="requirement")
+    assert reach_lic.own_beats_inherited([walk, req])[0] == [walk, req]
+    # two walks meeting on a section: neither is the water's own, both keep it
+    w1, w2 = _P("e:a", "a", ["r1", "t"], trib=["t"]), _P("e:b", "b", ["r2", "t"], trib=["t"])
+    assert reach_lic.own_beats_inherited([w1, w2])[0] == [w1, w2]
+    # a pending walk's direct sections are its own
+    pend = _P("e:p", "p", ["t"], pending=True)
+    got, _ = reach_lic.own_beats_inherited([walk, pend])
+    assert got[0].sections == ("r",)
+
+
+def test_an_unplaced_rule_ships_its_reason_and_an_entry_ships_every_water_it_matched(
+        tmp_path, monkeypatch):
+    """`rule.unresolved` is the reach builder's "reason: detail" (NULL when placed), as the
+    licensing tables carry theirs; `entry.matched` is every matched water, not just the first."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [], [("r1:x@1-1", "x.r1")])
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT uncertain, unresolved FROM rule").fetchall() == [
+        (1, "no_extents: ")]
+    assert db.execute("SELECT item_id, matched FROM entry").fetchall() == [
+        ("gnis:1", '["gnis:1"]')]
+    (tmp_path / "b").mkdir()
+    db, run, entries, build = _rules_fixture(tmp_path / "b", [("r1:x@1-1", "x.r1", "s:2")], [])
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT uncertain, unresolved FROM rule").fetchall() == [(0, None)]

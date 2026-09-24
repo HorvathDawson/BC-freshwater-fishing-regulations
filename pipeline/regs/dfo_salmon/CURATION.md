@@ -225,7 +225,7 @@ Six singles, two compounds (the same rule, punctuated two ways — a drift insta
 `All`. They map onto `pipeline/regs/parsing/species.py` codes with a fixed 8-row table.
 
 **Dates — 427 of 438 (97.5%) parse** with the existing
-`pipeline.regs.parsing.dates.parse_date_window`, unchanged. The 11 that do not are three
+`pipeline.regs.dfo_salmon.dates.parse_date_window`, unchanged. The 11 that do not are three
 honest classes, not failures:
 
 | value | n | meaning |

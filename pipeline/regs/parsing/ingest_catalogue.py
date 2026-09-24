@@ -24,6 +24,11 @@ And one guard, because a re-parse replaces an entry wholesale and there is no `l
   ledger has no record of it, the entry is KEPT and reported, and nothing about it is written.
   `--replace-edited` overrides that after you have read the report (the curated files are in
   git, so `git diff` shows what the replace changed).
+
+  THE LEDGER IS SEEDED, NOT GROWN FROM NOTHING. With no `ingested.json` every entry is one "the
+  ledger never saw", so the first repass would keep all of them. `--seed-ledger` records every
+  entry as it is on disk NOW — declaring the checked-in corpus the curated truth — and from then
+  on only an edit made after the seed is kept. `run_parse.sh seed-ledger` runs it (no credits).
 """
 
 from __future__ import annotations
@@ -145,6 +150,17 @@ def _read_ledger(path: Path) -> dict[str, str]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def seed_ledger(out_dir: Path, ledger: Path) -> int:
+    """Record every entry in `out_dir` as ingest's own write, exactly as it is on disk now.
+
+    Digested from the file's dicts, as `write` compares them, so an entry left untouched after the
+    seed is replaceable by a repass and one edited after it is KEPT. Replaces any ledger there is:
+    seeding declares the checked-in corpus the truth. Returns the number of entries recorded."""
+    record = {eid: digest(e) for eid, e in io.read_entries_dir(Path(out_dir)).items()}
+    io.atomic_write(ledger, json.dumps(record, indent=1, sort_keys=True) + "\n")
+    return len(record)
+
+
 def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False, *,
           ledger: Path, replace_edited: bool = False) -> tuple[dict[str, int], list[str]]:
     """Merge into region files by the entry's own `region`, replacing an entry of the same id —
@@ -216,9 +232,9 @@ def main() -> None:
     # `--batch batches/batch_*.json` handed argparse 46 paths, it consumed one, and the run died on
     # "unrecognized arguments" AFTER the whole parse had been paid for. `extend` + `nargs="+"`
     # accepts both a glob and a repeated flag.
-    ap.add_argument("--batch", action="extend", nargs="+", required=True,
+    ap.add_argument("--batch", action="extend", nargs="+",
                     help="batch file(s) from the exporter; a glob is fine")
-    ap.add_argument("--response", action="extend", nargs="+", required=True,
+    ap.add_argument("--response", action="extend", nargs="+",
                     help="candidate JSON from the agent; a glob is fine")
     ap.add_argument("--out", default="data/curated/regulations/entries/catalogue")
     ap.add_argument("--dry-run", action="store_true")
@@ -227,7 +243,18 @@ def main() -> None:
     ap.add_argument("--replace-edited", action="store_true",
                     help="replace entries even where the curated copy differs from what ingest "
                     "last wrote — overwrites curator edits; read the KEPT report first")
+    ap.add_argument("--seed-ledger", action="store_true",
+                    help="record every entry now in --out as ingest's own write (see the module "
+                    "docstring), and ingest nothing")
     a = ap.parse_args()
+    if a.seed_ledger:
+        if a.batch or a.response:
+            ap.error("--seed-ledger ingests nothing; it takes no --batch/--response")
+        ledger = a.ledger or default_ledger()
+        print(f"seeded {ledger}: {seed_ledger(Path(a.out), ledger)} entries recorded as ingested")
+        sys.exit(0)
+    if not (a.batch and a.response):
+        ap.error("--batch and --response are required (or --seed-ledger)")
     sys.exit(run(a.batch, a.response, a.out, dry_run=a.dry_run, ledger=a.ledger,
                  replace_edited=a.replace_edited))
 

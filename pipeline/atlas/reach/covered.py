@@ -54,15 +54,10 @@ def make_matcher(registry, overrides_path="__default__"):
 
     def match(entry: dict):
         # A catalogue entry is flat, and the MUs its synopsis ROW was printed under are the
-        # `@` suffix of entry_id — the same fact the prose entry carried as `identity.mus`.
-        ident = entry.get("identity") or {}
+        # `@` suffix of entry_id.
         eid = str(entry.get("entry_id") or "")
-        mus = ident.get("mus")
-        if mus is None:
-            mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
-        return _match(ident.get("name") or entry.get("name") or "",
-                      str(ident.get("region") or entry.get("region") or ""),
-                      tuple(mus))
+        mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
+        return _match(entry.get("name") or "", str(entry.get("region") or ""), tuple(mus))
 
     return match
 

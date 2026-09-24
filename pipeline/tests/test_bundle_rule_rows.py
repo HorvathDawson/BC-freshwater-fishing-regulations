@@ -58,7 +58,7 @@ def test_an_empty_json_collection_is_truthy_and_so_can_never_stand_in_for_a_flag
 def test_the_row_is_the_length_the_insert_expects():
     """The INSERT names its columns because a positional list once wrote a 42 MB bundle with
     zero entries in it. This holds the row to the same count from the other side."""
-    assert len(_fields()) == 18
+    assert len(_fields()) == len(_cols()) == 20
 
 
 def test_species_survive_as_json_not_python_repr():
@@ -124,3 +124,101 @@ def test_standing_is_a_column_because_it_decides_an_outcome():
                   "verbatim": "Within 23 m downstream of the lower entrance to any fishway"})
     assert got["standing"] == 1 and "standing" not in json.loads(got["conditions"] or "{}")
     assert _named(dict(RULE))["standing"] == 0
+
+
+def test_a_rule_ships_its_own_extents_and_never_its_entrys():
+    """139 rules the reach builder left UNBOUND ("on parts", a place it could not draw) shipped
+    `extents: [{op: whole}]` borrowed from their entry, beside `uncertain = 1`: the bundle claiming
+    the whole water for a rule placement refused to widen (AGENTS 13)."""
+    import inspect
+    assert "entry_extents" not in inspect.signature(_rule_row).parameters
+    bare = _named({**RULE, "extent_text": "on parts"})
+    assert "extents" not in json.loads(bare["conditions"] or "{}")
+    own = _named({**RULE, "extents": [{"op": "upstream_of", "splits": ["x"]}]})
+    assert json.loads(own["conditions"])["extents"] == [{"op": "upstream_of", "splits": ["x"]}]
+
+
+def test_when_open_is_gone_and_refused():
+    """"Where open" said nothing: a rule only binds while the water is open at all."""
+    import pytest
+    assert "when_open" not in json.loads(_named(dict(RULE))["conditions"] or "{}")
+    with pytest.raises(Exception):
+        _rule_row("r1:x@1-1", {**RULE, "when_open": True}, uncertain=False)
+
+
+ZONES = {"spring_stream_closure": ["z3:spring_stream_closure", "z4:spring_stream_closure",
+                                   "z7a:spring_stream_closure"],
+         "steelhead_stream_closure": ["z6:steelhead_stream_closure"]}
+RULES_OF = {"z4:species_quotas": {"species_quotas.r5"}, "r1:x@1-1": {"x.r1", "x.r2"}}
+
+
+def _lifts(entry_id, exempts, **kw):
+    raw = {**RULE, "rule_id": "x.r1", "exempts": exempts, **kw}
+    row = dict(zip(_cols(), _rule_row(entry_id, raw, uncertain=False, zones=ZONES,
+                                      rules_of=RULES_OF)))
+    assert "exempts" not in json.loads(row["conditions"] or "{}"), "one home: its own column"
+    return json.loads(row["exempts"]) if row["exempts"] else None
+
+
+def test_exempts_ship_resolved_to_the_entry_they_lift():
+    """EXEMPTIONS WERE APPLIED NOWHERE — shipped inside `conditions`, which no client reads."""
+    # a zone default by slug: the rule's OWN region's zone entry, and only that one
+    assert _lifts("r3:north_thompson@3-27", [{"default_id": "spring_stream_closure"}]) == [
+        {"default_id": "spring_stream_closure", "entry_id": "z3:spring_stream_closure"}]
+    # Region 7's rows reach both of its zones
+    assert _lifts("r7:x@7-1", [{"default_id": "spring_stream_closure"}]) == [
+        {"default_id": "spring_stream_closure", "entry_id": "z7a:spring_stream_closure"}]
+    # a target in another entry, named
+    assert _lifts("r4:upper_arrow@4-31", [{"target": "species_quotas.r5",
+                                           "entry_id": "z4:species_quotas"}]) == [
+        {"entry_id": "z4:species_quotas", "target": "species_quotas.r5"}]
+    # a target in this entry
+    assert _lifts("r1:x@1-1", [{"target": "x.r2"}]) == [{"entry_id": "r1:x@1-1", "target": "x.r2"}]
+
+
+def test_an_exemption_that_names_nothing_stops_the_build_unless_it_says_why():
+    import pytest
+    with pytest.raises(SystemExit, match="lifts no rule"):
+        _lifts("r1:x@1-1", [{"target": "x.r9"}])
+    with pytest.raises(SystemExit, match="lifts no rule"):
+        _lifts("r2:x@2-1", [{"default_id": "spring_stream_closure"}])     # no Region 2 zone
+    # THE SELF-LIFT: z6's steelhead closure names its own slug. It resolves to nothing, and only
+    # its review_reason lets it through — it can never lift itself.
+    assert _lifts("z6:steelhead_stream_closure", [{"default_id": "steelhead_stream_closure"}],
+                  review_reason="self-lift, known") is None
+    with pytest.raises(SystemExit):
+        _lifts("r1:x@1-1", [{"target": "x.r1"}])                          # itself, by id
+
+
+def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
+    """Against the curated corpus: each `exempts` resolves to an entry that exists — the bundle
+    would stop otherwise — and the only ones that resolve to nothing carry a review_reason."""
+    from pipeline.deliver.bundle.rules import _exempts
+    from pipeline.regs.parsing import io
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+
+    ces = [CatalogueEntry.model_validate(e) for e in io.read_entries_dir().values()]
+    zones, rules_of = {}, {}
+    for ce in ces:
+        rules_of[ce.entry_id] = {r.rule_id for r in ce.rules}
+        if ce.entry_id.startswith("z"):
+            zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
+    lifted, silent = 0, []
+    for ce in ces:
+        for r in ce.rules:
+            if not r.exempts:
+                continue
+            got = _exempts(ce.entry_id, r, zones, rules_of)
+            if got:
+                lifted += 1
+                for x in json.loads(got):
+                    assert x["entry_id"] in rules_of
+                    if "default_id" in x:
+                        assert x["entry_id"] != ce.entry_id, "a zone default lifting its own entry"
+                    else:
+                        assert x["target"] in rules_of[x["entry_id"]]
+            else:
+                silent.append((ce.entry_id, r.rule_id))
+    assert lifted >= 80
+    # the z6 steelhead self-lift, and nothing else
+    assert silent == [("z6:steelhead_stream_closure", "steelhead_stream_closure.r1")]

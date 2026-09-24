@@ -11,7 +11,7 @@
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
 import { ALL_YEAR, bandAt, evaluate, isUncertain, isValid, regimesOf, type Band, type Hours,
-         type PlainDate, type Rule, RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
+         type Lift, type PlainDate, type Rule, RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
          type SpeciesGroup, type Status, type Weekday, WEEKDAYS, type When,
          type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
@@ -79,6 +79,22 @@ const TYPES = new Set<RuleType>(RULE_TYPES);
 const FAMILIES = new Set<RuleFamily>(RULE_FAMILIES);
 
 /**
+ * The `exempts` column: what a rule lifts, already resolved by the bundle to the entry (and, for
+ * a `target`, the rule) it lifts. A shape this client does not know fails loudly — a lift read
+ * wrong either leaves a closure standing or lifts one the book never lifted.
+ */
+function liftsOf(v: Row[string], where: string): Lift[] {
+  const raw = json<{ default_id?: string; target?: string; entry_id?: string }[]>(
+    v, `${where} exempts`);
+  return raw.map((x) => {
+    if (!x.entry_id || (x.default_id == null) === (x.target == null))
+      throw new Error(`${where}: an exemption must name an entry and one of default_id/target: `
+                      + JSON.stringify(x));
+    return x.target != null ? { entry: x.entry_id, rule: x.target } : { entry: x.entry_id };
+  });
+}
+
+/**
  * Both facts, from the row that carries both.
  *
  * `scope` is where the rule was WRITTEN (specificity, which drives precedence) and comes
@@ -89,22 +105,32 @@ const FAMILIES = new Set<RuleFamily>(RULE_FAMILIES);
 function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
   const type = str(r.type) as RuleType;
   const family = str(r.family) as RuleFamily;
+  const where = `rule ${str(r.entry_id)}/${str(r.rule_id)}`;
+  /* A TYPE OR FAMILY THIS CLIENT DOES NOT KNOW IS A BUILD/VERSION MISMATCH, and it throws. It used
+     to read as `advisory` — a harmless-looking guess about a rule the client cannot read, which is
+     how a new closure type would have shipped as a note. */
+  if (!TYPES.has(type))
+    throw new Error(`${where}: unknown rule type ${JSON.stringify(type)} — the bundle is newer `
+                    + `than this client`);
+  if (!FAMILIES.has(family))
+    throw new Error(`${where}: unknown rule family ${JSON.stringify(family)} — the bundle is `
+                    + `newer than this client`);
+  if (r.dimension == null)
+    throw new Error(`${where}: no dimension — the precedence key would never match`);
   return {
     // Unique only within an entry (AGENTS rule 8) — 49 rule_ids collide corpus-wide, so
     // the id carried around is always the pair.
     id: `${str(r.entry_id)}.${str(r.rule_id)}`,
-    /* An unknown type falls back to `advisory`, the one type that restricts nobody — a
-       build that ships a type this client does not know must not be read as a closure. */
-    type: TYPES.has(type) ? type : "advisory",
-    family: FAMILIES.has(family) ? family : "information",
+    type,
+    family,
     scope: (r.scope == null ? "section" : str(r.scope)) as Rule["scope"],
     via,
     group,
-    when: whenOf(r.when_, `rule ${str(r.entry_id)}/${str(r.rule_id)}`),
+    when: whenOf(r.when_, where),
     /* Both halves of the precedence key. `dimension` is NOT optional: a rule missing one
        would silently never displace anything, which is the failure `subject` had — it was
        populated on 2 rules out of 3,273. */
-    dimension: r.dimension == null ? type : str(r.dimension),
+    dimension: str(r.dimension),
     ...(r.take == null ? {} : { take: Number(r.take) }),
     ...(r.may_target == null ? {} : { mayTarget: Number(r.may_target) === 1 }),
     /* `while` decides whether a zero limit shuts the water or one way of fishing it — see
@@ -123,6 +149,8 @@ function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
     // A rule nobody could place applies to NOTHING. It may only ever raise "unknown";
     // core enforces that, and this is where the flag crosses over from the build.
     ...(Number(r.uncertain) ? { uncertain: true as const } : {}),
+    // What it lifts — `evaluate` drops a lifted rule wherever the lift is in force.
+    ...(r.exempts == null ? {} : { exempts: liftsOf(r.exempts, where) }),
   };
 }
 

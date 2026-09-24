@@ -32,8 +32,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -58,8 +57,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -73,6 +71,14 @@
      "rule_id": "abruzzi_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -81,27 +87,17 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "abruzzi_creek",
      "classified": "II",
      "unit": "abruzzi_creek",
@@ -112,7 +108,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -152,17 +149,17 @@
      "rule_id": "akolkolex_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -227,8 +224,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -253,8 +249,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -268,6 +263,14 @@
      "rule_id": "alexander_creek_lower.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -276,27 +279,17 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "michel_creek",
      "classified": "II",
      "unit": "michel_creek",
@@ -307,7 +300,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers"
+     "verbatim": "Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers",
+     "kind": "designation"
     }
    ]
   },
@@ -344,8 +338,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -370,8 +363,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -385,6 +377,14 @@
      "rule_id": "alexander_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -393,27 +393,17 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "michel_creek",
      "classified": "II",
      "unit": "michel_creek",
@@ -423,7 +413,8 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**"
+     "verbatim": "**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
+     "kind": "designation"
     }
    ]
   },
@@ -572,8 +563,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -1029,8 +1019,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -1052,6 +1041,14 @@
      "rule_id": "bull_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -1060,27 +1057,17 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "bull_river",
      "classified": "II",
      "unit": "bull_river",
@@ -1090,7 +1077,8 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -1122,8 +1110,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -1172,8 +1159,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -1198,8 +1184,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -1213,6 +1198,14 @@
      "rule_id": "cadorna_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -1221,27 +1214,17 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
@@ -1252,7 +1235,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**"
+     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+     "kind": "designation"
     }
    ]
   },
@@ -1320,8 +1304,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -1478,17 +1461,17 @@
      "rule_id": "cerulean_lake.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -1566,17 +1549,17 @@
      "rule_id": "champion_lakes_no_1_2.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -1598,11 +1581,6 @@
      "rule_id": "champion_lakes_no_1_2.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -1610,17 +1588,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "champion_lakes_no_1_2.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -1630,7 +1608,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -1756,14 +1739,14 @@
    ],
    "licensing": [
     {
-     "kind": "not_classified",
      "id": "not_classified",
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "verbatim": "**Part described is NOT a Classified Water**"
+     "verbatim": "**Part described is NOT a Classified Water**",
+     "kind": "not_classified"
     }
    ]
   },
@@ -1953,8 +1936,7 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -1975,15 +1957,14 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "exempts": [
-      {
-       "default_id": "trout_char_winter_release",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "trout_char_winter_release"
       }
      ]
     },
@@ -1994,15 +1975,14 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -2207,8 +2187,7 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -2254,8 +2233,7 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -2336,8 +2314,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -2420,7 +2397,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "creston_valley_wma_permit",
      "satisfied_by": [
       {
@@ -2442,7 +2418,8 @@
       "id": "creston_valley_wma_permit"
      },
      "verbatim": "Permit required see note on page 34",
-     "review_reason": "no registry match — attach an item and bind extents"
+     "review_reason": "no registry match — attach an item and bind extents",
+     "kind": "requirement"
     }
    ]
   },
@@ -2629,8 +2606,7 @@
         "to_month": 5,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 3,
      "extents": [
@@ -2654,8 +2630,7 @@
         "to_month": 5,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "within": "duck_lake.r1",
@@ -2685,8 +2660,7 @@
         "to_month": 6,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -2787,15 +2761,14 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -2806,15 +2779,14 @@
      "species": [
       "BT"
      ],
-     "exempts": [
-      {
-       "default_id": "trout_char_winter_release",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "trout_char_winter_release"
       }
      ]
     },
@@ -2822,17 +2794,17 @@
      "rule_id": "duncan_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -2929,6 +2901,14 @@
      "rule_id": "dutch_creek.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -2937,20 +2917,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -2976,15 +2947,15 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "exempts": [
-      {
-       "target": "Columbia Lake's tributaries closure",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "columbia_lake_s_tributaries.r1",
+       "entry_id": "r4:columbia_lake_s_tributaries@4-25"
       }
      ]
     }
@@ -3050,17 +3021,17 @@
      "rule_id": "echoes_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -3091,11 +3062,6 @@
      "rule_id": "echoes_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -3103,17 +3069,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "echoes_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -3123,7 +3089,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -3203,8 +3174,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "extents": [
@@ -3228,8 +3198,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "within": "elk_river_downstream_of_elko_dam.r1",
      "lengths": [
@@ -3259,8 +3228,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "within": "elk_river_downstream_of_elko_dam.r1",
      "lengths": [
@@ -3279,6 +3247,14 @@
      "rule_id": "elk_river_downstream_of_elko_dam.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -3287,20 +3263,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -3319,7 +3286,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
@@ -3330,7 +3296,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -3371,8 +3338,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -3398,8 +3364,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -3422,6 +3387,14 @@
      "rule_id": "elk_river_s_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -3430,21 +3403,12 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -3479,14 +3443,14 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
      "unit_name": "Elk River",
      "tributaries_only": true,
      "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
-     "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out"
+     "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out",
+     "kind": "designation"
     }
    ]
   },
@@ -3518,6 +3482,14 @@
      "rule_id": "elk_river_upstream_of_elko_dam.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -3526,20 +3498,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -3558,8 +3521,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -3609,8 +3571,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -3655,7 +3616,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
@@ -3667,7 +3627,8 @@
      ],
      "includes_tributaries": true,
      "verbatim": "**Class II water when open, including tributaries**",
-     "review_reason": "its tributary walk reaches lower Coal Creek, which Coal Creek's own row prints as 'NOT a Classified Water' (downstream of the old MF&M railway bridge); the carve-out is not drawn — a tributary_excludes on that split would also cut Coal Creek above the bridge, which is classified. A curator must draw it"
+     "review_reason": "its tributary walk reaches lower Coal Creek, which Coal Creek's own row prints as 'NOT a Classified Water' (downstream of the old MF&M railway bridge); the carve-out is not drawn — a tributary_excludes on that split would also cut Coal Creek above the bridge, which is classified. A curator must draw it",
+     "kind": "designation"
     }
    ]
   },
@@ -3756,8 +3717,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -3786,8 +3746,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 2,
      "lengths": [
@@ -3817,8 +3776,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "within": "findlay_creek.r2",
@@ -3829,6 +3787,14 @@
      "rule_id": "findlay_creek.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -3837,20 +3803,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -3948,8 +3905,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -3971,6 +3927,14 @@
      "rule_id": "flathead_river.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -3979,20 +3943,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
@@ -4032,8 +3987,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -4075,8 +4029,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -4099,6 +4052,14 @@
      "rule_id": "flathead_river_s_tributaries.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -4107,21 +4068,12 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
@@ -4166,8 +4118,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -4181,6 +4132,14 @@
      "rule_id": "fording_river_downstream.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -4189,27 +4148,17 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
@@ -4220,7 +4169,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**"
+     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+     "kind": "designation"
     }
    ]
   },
@@ -4317,7 +4267,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "forsyth_creek",
      "classified": "II",
      "unit": "forsyth_creek",
@@ -4328,7 +4277,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when/where open, including tributaries**"
+     "verbatim": "**Class II water when/where open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -4467,6 +4417,14 @@
      "rule_id": "goat_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -4475,19 +4433,10 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extent_text": "(EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
-     "review_reason": "'except Kitchener Creek' is a named-water carve-out from this tributary-wide bait ban; catalogue schema has no per-rule exclusion op — Kitchener Creek carries its own separate listing",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ]
+     "review_reason": "'except Kitchener Creek' is a named-water carve-out from this tributary-wide bait ban; catalogue schema has no per-rule exclusion op — Kitchener Creek carries its own separate listing"
     }
    ]
   },
@@ -4532,17 +4481,17 @@
      "rule_id": "gold_creek.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -4782,7 +4731,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "st_mary_river",
      "classified": "II",
      "unit": "st_mary_river",
@@ -4793,7 +4741,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**"
+     "verbatim": "**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
+     "kind": "designation"
     }
    ]
   },
@@ -4926,17 +4875,17 @@
      "rule_id": "idlewild_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -5160,8 +5109,7 @@
         "to_month": 6,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -5178,6 +5126,14 @@
      "rule_id": "jordan_river.r2",
      "type": "bait_restriction",
      "verbatim": "Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -5186,22 +5142,13 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "jordan_river__kirkup_creek_into_jordan_river"
-       ]
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
        ]
       }
      ]
@@ -5221,8 +5168,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -5272,10 +5218,8 @@
      "op": "whole"
     }
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "not_classified",
      "id": "not_classified",
      "extents": [
       {
@@ -5283,7 +5227,8 @@
       }
      ],
      "verbatim": "This tributary of St. Mary River is not a Classified Water",
-     "review_reason": "the St. Mary River entry this carves out of (\"including tributaries (except Joseph Creek)\") is not in the catalogue"
+     "review_reason": "the St. Mary River entry this carves out of (\"including tributaries (except Joseph Creek)\") is not in the catalogue",
+     "kind": "not_classified"
     }
    ]
   },
@@ -5323,17 +5268,17 @@
      "rule_id": "kaslo_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -5527,8 +5472,7 @@
      ],
      "exempts": [
       {
-       "default_id": "spring_stream_closure",
-       "note": ""
+       "default_id": "spring_stream_closure"
       }
      ]
     }
@@ -5598,8 +5542,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -5616,7 +5559,6 @@
      "species": [
       "BT"
      ],
-     "when_open": true,
      "lengths": [
       {
        "max_cm": 75,
@@ -5633,6 +5575,14 @@
      "rule_id": "koocanusa_reservoir.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Sept 15-June 30",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -5641,20 +5591,11 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     },
@@ -5810,7 +5751,6 @@
       "KO"
      ],
      "when": {
-      "dates": [],
       "weekdays": [
        "Saturday",
        "Sunday"
@@ -5833,7 +5773,6 @@
       "KO"
      ],
      "when": {
-      "dates": [],
       "weekdays": [
        "Monday",
        "Tuesday",
@@ -5892,13 +5831,6 @@
      "rule_id": "kootenay_lake_main_body.r1",
      "type": "tackle_restriction",
      "verbatim": "A person in a boat may angle with an unlimited number of rods.",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist",
      "gear": [
       {
        "slot": "lines_per_angler",
@@ -5907,7 +5839,14 @@
         "angler": "in_boat"
        }
       }
-     ]
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "extent_text": "Main Body of Kootenay Lake",
+     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
     },
     {
      "rule_id": "kootenay_lake_main_body.r2",
@@ -5983,7 +5922,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "kootenay_rainbow_stamp",
      "satisfied_by": [
       {
@@ -6018,7 +5956,8 @@
       "id": "kootenay_rainbow_stamp"
      },
      "verbatim": "Conservation Surcharge Stamp required to keep rainbow trout over 50 cm",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist",
+     "kind": "requirement"
     }
    ]
   },
@@ -6104,8 +6043,7 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -6171,8 +6109,7 @@
         "to_month": 6,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -6205,8 +6142,7 @@
         "to_month": 7,
         "to_day": 2
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 5,
      "extents": [
@@ -6280,8 +6216,7 @@
      ],
      "exempts": [
       {
-       "default_id": "spring_stream_closure",
-       "note": ""
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -6311,8 +6246,7 @@
      ],
      "exempts": [
       {
-       "default_id": "trout_char_winter_release",
-       "note": ""
+       "default_id": "trout_char_winter_release"
       }
      ]
     },
@@ -6418,17 +6352,17 @@
      "rule_id": "kootenay_river_upper.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban all year",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -6447,8 +6381,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -6494,8 +6427,7 @@
      ],
      "exempts": [
       {
-       "default_id": "spring_stream_closure",
-       "note": ""
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -6514,8 +6446,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "extents": [
@@ -6591,8 +6522,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "extents": [
@@ -6653,7 +6583,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "kootenay_river",
      "classified": "II",
      "unit": "kootenay_river",
@@ -6667,7 +6596,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Upstream of White River, including tributaries: Class II water when open"
+     "verbatim": "Upstream of White River, including tributaries: Class II water when open",
+     "kind": "designation"
     }
    ]
   },
@@ -6793,17 +6723,17 @@
      "rule_id": "larchwood_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -6845,11 +6775,6 @@
      "rule_id": "larchwood_lake.r4",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -6857,17 +6782,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "larchwood_lake.r5",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -6877,7 +6802,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -6931,15 +6861,14 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -6950,15 +6879,14 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "exempts": [
-      {
-       "default_id": "trout_char_winter_release",
-       "note": ""
-      }
-     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "trout_char_winter_release"
       }
      ]
     },
@@ -7083,6 +7011,14 @@
      "rule_id": "lavington_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban Jun 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -7091,20 +7027,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
@@ -7371,17 +7298,17 @@
      "rule_id": "little_mitten_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -7412,11 +7339,6 @@
      "rule_id": "little_mitten_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -7424,17 +7346,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "little_mitten_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -7444,7 +7366,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -7481,12 +7408,7 @@
        "op": "whole"
       }
      ],
-     "exempts": [
-      {
-       "target": "Slocan River's tributaries closure",
-       "note": ""
-      }
-     ]
+     "review_reason": "lifts Slocan River's (including tributaries) closure, but the catalogue has no Slocan River entry, so the rule it lifts cannot be named — set `exempts` (target + entry_id) once that water is parsed"
     },
     {
      "rule_id": "little_slocan_lake_tributaries.r2",
@@ -7500,17 +7422,20 @@
        "op": "whole"
       }
      ],
-     "exempts": [
-      {
-       "target": "Slocan River's tributaries trout/char catch and release",
-       "note": ""
-      }
-     ]
+     "review_reason": "lifts Slocan River's (including tributaries) trout/char catch and release, but the catalogue has no Slocan River entry, so the rule it lifts cannot be named — set `exempts` (target + entry_id) once that water is parsed"
     },
     {
      "rule_id": "little_slocan_lake_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -7519,20 +7444,11 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
@@ -7605,8 +7521,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -7634,8 +7549,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -7652,14 +7566,6 @@
      "rule_id": "lodgepole_creek_lower.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "lodgepole_creek__falls"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -7667,12 +7573,19 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "lodgepole_creek__falls"
+       ]
+      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "wigwam_river",
      "classified": "II",
      "unit": "wigwam_river",
@@ -7686,7 +7599,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers"
+     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers",
+     "kind": "designation"
     }
    ]
   },
@@ -7726,8 +7640,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -7755,8 +7668,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -7781,6 +7693,14 @@
      "rule_id": "lodgepole_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -7789,8 +7709,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
@@ -7799,20 +7718,11 @@
         "lodgepole_creek__falls"
        ]
       }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "wigwam_river",
      "classified": "II",
      "unit": "wigwam_river",
@@ -7826,7 +7736,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers"
+     "verbatim": "Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers",
+     "kind": "designation"
     }
    ]
   },
@@ -7889,17 +7800,17 @@
      "rule_id": "loon_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -7930,11 +7841,6 @@
      "rule_id": "loon_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -7942,17 +7848,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "loon_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -7962,7 +7868,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -8075,17 +7986,17 @@
      "rule_id": "lower_elk_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -8107,11 +8018,6 @@
      "rule_id": "lower_elk_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -8119,17 +8025,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "lower_elk_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -8139,7 +8045,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -8270,8 +8181,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -8299,8 +8209,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 2,
      "lengths": [
@@ -8326,6 +8235,14 @@
      "rule_id": "lussier_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban downstream of Mutton Creek, June 15-Mar 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -8334,22 +8251,13 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "lussier_river__mutton_creek_into_lussier_river"
-       ]
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
        ]
       }
      ]
@@ -8408,17 +8316,17 @@
      "rule_id": "mcclain_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -8449,11 +8357,6 @@
      "rule_id": "mcclain_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -8461,17 +8364,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "mcclain_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -8481,7 +8384,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -8509,12 +8417,12 @@
      "rule_id": "mcnaughton_lake.r1",
      "type": "advisory",
      "verbatim": "See Kinbasket Lake",
-     "review_reason": "row is a redirect to the Kinbasket Lake entry — not parsed independently",
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "row is a redirect to the Kinbasket Lake entry — not parsed independently"
     }
    ]
   },
@@ -8554,8 +8462,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -8580,6 +8487,14 @@
      "rule_id": "michel_creek_lower.r3",
      "type": "bait_restriction",
      "verbatim": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -8588,8 +8503,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
@@ -8598,20 +8512,11 @@
         "michel_creek__easternmost_hwy_3"
        ]
       }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "michel_creek",
      "classified": "II",
      "unit": "michel_creek",
@@ -8625,7 +8530,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries"
+     "verbatim": "Class II water when open, including tributaries",
+     "kind": "designation"
     }
    ]
   },
@@ -8667,8 +8573,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -8685,6 +8590,14 @@
      "rule_id": "michel_creek_upper.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -8693,8 +8606,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
@@ -8703,20 +8615,11 @@
         "michel_creek__easternmost_hwy_3"
        ]
       }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "michel_creek",
      "classified": "II",
      "unit": "michel_creek",
@@ -8730,7 +8633,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries"
+     "verbatim": "Class II water when open, including tributaries",
+     "kind": "designation"
     }
    ]
   },
@@ -8894,8 +8798,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -8920,8 +8823,7 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -8935,6 +8837,14 @@
      "rule_id": "morrissey_creek.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban, June 15-Aug 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -8943,27 +8853,17 @@
         "to_month": 8,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "elk_river",
      "classified": "II",
      "unit": "elk_river",
@@ -8973,7 +8873,8 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**"
+     "verbatim": "**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**",
+     "kind": "designation"
     }
    ]
   },
@@ -9048,8 +8949,7 @@
         "to_month": 2,
         "to_day": 28
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -9314,17 +9214,17 @@
      "rule_id": "nine_bay_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing;**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -9355,11 +9255,6 @@
      "rule_id": "nine_bay_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -9367,17 +9262,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "nine_bay_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -9387,7 +9282,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -9537,11 +9437,6 @@
      "rule_id": "north_white_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -9549,12 +9444,16 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "north_white_river",
      "classified": "II",
      "unit": "north_white_river",
@@ -9565,7 +9464,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when open, including tributaries"
+     "verbatim": "Class II water when open, including tributaries",
+     "kind": "designation"
     }
    ]
   },
@@ -9670,8 +9570,7 @@
      ],
      "exempts": [
       {
-       "default_id": "single_barbless_hook",
-       "note": ""
+       "default_id": "single_barbless_hook"
       }
      ]
     },
@@ -9689,8 +9588,7 @@
      ],
      "exempts": [
       {
-       "default_id": "spring_stream_closure",
-       "note": ""
+       "default_id": "spring_stream_closure"
       }
      ]
     },
@@ -9815,6 +9713,14 @@
      "rule_id": "pend_doreille_river_tributaries.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -9823,21 +9729,12 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
@@ -9870,17 +9767,17 @@
      "rule_id": "perry_creek.r1",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "ban": [
         "any_bait"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -9917,7 +9814,6 @@
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "st_mary_river",
      "classified": "II",
      "unit": "st_mary_river",
@@ -9928,7 +9824,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers"
+     "verbatim": "Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers",
+     "kind": "designation"
     }
    ]
   },
@@ -10037,8 +9934,7 @@
         "to_month": 6,
         "to_day": 20
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -10308,7 +10204,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "rod_and_gun_club_permission",
      "satisfied_by": [
       {
@@ -10325,7 +10220,8 @@
        "op": "whole"
       }
      ],
-     "verbatim": "Much of this lake is private property, angling access requires permission of the Creston Valley Rod & Gun Club (see signs at lake)"
+     "verbatim": "Much of this lake is private property, angling access requires permission of the Creston Valley Rod & Gun Club (see signs at lake)",
+     "kind": "requirement"
     }
    ]
   },
@@ -10755,17 +10651,17 @@
      "rule_id": "sowerby_grundy_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -10796,11 +10692,6 @@
      "rule_id": "sowerby_grundy_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -10808,17 +10699,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "sowerby_grundy_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -10828,7 +10719,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -11049,8 +10945,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -11084,17 +10979,17 @@
      "rule_id": "summer_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -11116,11 +11011,6 @@
      "rule_id": "summer_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -11128,17 +11018,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "summer_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -11148,7 +11038,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -11191,8 +11086,7 @@
         "to_month": 7,
         "to_day": 15
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -11439,8 +11333,7 @@
         "to_month": 5,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -11589,11 +11482,6 @@
      "rule_id": "upper_arrow_lake_drawdown_area.r3",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -11603,7 +11491,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -11621,8 +11514,8 @@
      ],
      "exempts": [
       {
-       "note": "",
-       "target": "species_quotas.r5"
+       "target": "species_quotas.r5",
+       "entry_id": "z4:species_quotas"
       }
      ]
     },
@@ -11640,8 +11533,7 @@
      ],
      "exempts": [
       {
-       "default_id": "trout_char_winter_release",
-       "note": ""
+       "default_id": "trout_char_winter_release"
       }
      ]
     },
@@ -11659,8 +11551,7 @@
      ],
      "exempts": [
       {
-       "default_id": "spring_stream_closure",
-       "note": ""
+       "default_id": "spring_stream_closure"
       }
      ]
     }
@@ -11719,17 +11610,17 @@
      "rule_id": "upper_elk_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -11751,11 +11642,6 @@
      "rule_id": "upper_elk_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -11763,17 +11649,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "upper_elk_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -11783,7 +11669,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -12109,8 +12000,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,
@@ -12135,8 +12025,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 1,
      "lengths": [
@@ -12161,6 +12050,14 @@
      "rule_id": "white_river.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban on all parts, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -12169,27 +12066,17 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
       }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "white_river",
      "classified": "II",
      "unit": "white_river",
@@ -12200,7 +12087,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -12226,15 +12114,15 @@
      "rule_id": "whiteswan_lake.r1",
      "type": "tackle_restriction",
      "verbatim": "Single hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -12291,8 +12179,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -12310,7 +12197,6 @@
      "species": [
       "RB"
      ],
-     "when_open": true,
      "take": 5,
      "extents": [
       {
@@ -12329,7 +12215,6 @@
      "species_except": [
       "RB"
      ],
-     "when_open": true,
      "take": 0,
      "may_target": true,
      "extents": [
@@ -12366,17 +12251,17 @@
      "rule_id": "whitetail_lake.r1",
      "type": "method_rule",
      "verbatim": "No Ice Fishing",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -12421,11 +12306,6 @@
      "rule_id": "whitetail_lake.r4",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -12433,17 +12313,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "whitetail_lake.r5",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -12453,7 +12333,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -12535,14 +12420,6 @@
      "rule_id": "wigwam_river_downstream_km42.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "wigwam_river__wigwam_km42_ram_fsr"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -12550,12 +12427,19 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "wigwam_river",
      "classified": "II",
      "unit": "wigwam_river",
@@ -12569,7 +12453,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -12606,8 +12491,7 @@
         "to_month": 10,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -12642,14 +12526,6 @@
      "rule_id": "wigwam_river_upstream_km42.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "upstream_of",
-       "splits": [
-        "wigwam_river__wigwam_km42_ram_fsr"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -12657,12 +12533,19 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     }
    ],
    "licensing": [
     {
-     "kind": "designation",
      "id": "wigwam_river",
      "classified": "II",
      "unit": "wigwam_river",
@@ -12676,7 +12559,8 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**"
+     "verbatim": "**Class II water when open, including tributaries**",
+     "kind": "designation"
     }
    ]
   },
@@ -12700,17 +12584,17 @@
      "rule_id": "wilbur_lake.r1",
      "type": "method_rule",
      "verbatim": "**No Ice Fishing**",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "ice_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     },
@@ -12741,11 +12625,6 @@
      "rule_id": "wilbur_lake.r3",
      "type": "bait_restriction",
      "verbatim": "bait ban",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -12753,17 +12632,17 @@
         "any_bait"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
      ]
     },
     {
      "rule_id": "wilbur_lake.r4",
      "type": "tackle_restriction",
      "verbatim": "single barbless hook",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -12773,7 +12652,12 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
@@ -13041,8 +12925,7 @@
         "to_month": 11,
         "to_day": 30
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -13104,10 +12987,8 @@
    "source_pages": [
     33
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "classified_waters_licence",
      "satisfied_by": [
       {
@@ -13129,7 +13010,8 @@
       "entry_id": "zp:classified_waters_licence",
       "id": "classified_waters_licence"
      },
-     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40)."
+     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
+     "kind": "requirement"
     }
    ]
   },
@@ -13148,10 +13030,8 @@
      "area_id": "area:wma:creston_valley_wildlife_management_area"
     }
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "creston_valley_wma_permit",
      "satisfied_by": [
       {
@@ -13169,7 +13049,8 @@
        "area_id": "area:wma:creston_valley_wildlife_management_area"
       }
      ],
-     "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake."
+     "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+     "kind": "requirement"
     }
    ]
   },
@@ -13230,14 +13111,14 @@
        "min_cm": 50
       }
      ],
-     "extent_text": "main body of Kootenay Lake",
-     "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules.",
      "extents": [
       {
        "op": "whole",
        "item_id": "wbk:328974235"
       }
-     ]
+     ],
+     "extent_text": "main body of Kootenay Lake",
+     "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules."
     }
    ]
   },
@@ -13282,13 +13163,13 @@
      "rule_id": "kootenay_lake_boundaries.r2",
      "type": "advisory",
      "verbatim": "IMPORTANT Kootenay Lake recovery may require in-season regulation changes.",
-     "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true.",
      "extents": [
       {
        "op": "whole",
        "item_id": "wbk:328974235"
       }
-     ]
+     ],
+     "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true."
     }
    ]
   },
@@ -13348,16 +13229,6 @@
      "rule_id": "single_barbless_hook.r1",
      "type": "tackle_restriction",
      "verbatim": "Single barbless hook: must be used in all streams of Region 4, all year.",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:4",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -13367,7 +13238,17 @@
       },
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     }
@@ -13603,8 +13484,7 @@
         "to_month": 6,
         "to_day": 14
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": false,
@@ -13774,8 +13654,7 @@
         "to_month": 3,
         "to_day": 31
        }
-      ],
-      "weekdays": []
+      ]
      },
      "take": 0,
      "may_target": true,

@@ -1,6 +1,6 @@
-"""Date-window parsing (pipeline/regs/parsing/dates.py)."""
+"""The DFO feed's date-window parsing (pipeline/regs/dfo_salmon/dates.py)."""
 
-from pipeline.regs.parsing.dates import DateWindow, date_parse_errors, parse_date_window
+from pipeline.regs.dfo_salmon.dates import DateWindow, parse_date_window
 
 
 def test_parse_range_variants():
@@ -25,5 +25,3 @@ def test_invalid_dates_are_flagged():
     assert parse_date_window("Jun 31") is None            # June has 30 days
     assert parse_date_window("Febtober 3") is None
     assert parse_date_window("sometime in spring") is None
-    errs = date_parse_errors(["Apr 1 - Jun 30", "Jun 31"])
-    assert len(errs) == 1 and "Jun 31" in errs[0]

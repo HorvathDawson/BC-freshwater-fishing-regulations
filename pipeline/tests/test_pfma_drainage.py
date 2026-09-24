@@ -171,8 +171,7 @@ def test_the_prefix_agrees_with_the_tributary_walk():
         pytest.skip("no built atlas on this machine")
     reg, g = _registry(), read_artifact(graph_path)
 
-    entry = {"entry_id": "t", "matched": [],
-             "tributaries": {"included": True, "only": False, "excludes": []}, "scope": []}
+    entry = {"entry_id": "t", "matched": [], "includes_tributaries": True}
     rule = {"rule_id": "r1", "extents": [{"op": "whole", "item_id": "gnis:2936"}],
             "includes_tributaries": True, "tributaries_only": False, "tributary_excludes": []}
     walked, _ = build_reach(entry, rule, reg, g)

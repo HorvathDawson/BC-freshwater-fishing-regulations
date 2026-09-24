@@ -11,8 +11,9 @@ pytestmark = pytest.mark.slow
 from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser
 
 # --- CONFIGURATION ---
-_PROJECT_ROOT = str(get_config().project_root)
-PDF_PATH = os.path.join(_PROJECT_ROOT, "data", "fishing_synopsis.pdf")
+# The configured path, not a literal: this read `data/fishing_synopsis.pdf` after the PDF moved to
+# `data/source/`, and every test here silently had nothing to open.
+PDF_PATH = str(get_config().synopsis_pdf_path)
 
 
 # --- HELPER ---
@@ -30,9 +31,10 @@ def raw_regs_contain(row, text):
 
 
 @pytest.fixture(scope="module")
-def parser():
-    """Fixture to provide a class instance."""
-    return FishingSynopsisParser()
+def parser(tmp_path_factory):
+    """Fixture to provide a class instance. Its row images go to a temp dir: the parser's default
+    is `output/`, a retired directory, and a test run recreated it in the repo root."""
+    return FishingSynopsisParser(output_dir=str(tmp_path_factory.mktemp("extraction")))
 
 
 @pytest.fixture(scope="module")
@@ -368,9 +370,9 @@ def test_no_false_positives_on_non_table_pages(parser, pdf, page_num):
 # ==========================================
 
 
-def test_region_name_normalization():
+def test_region_name_normalization(tmp_path):
     """Test that region names are normalized to consistent format."""
-    parser = FishingSynopsisParser()
+    parser = FishingSynopsisParser(output_dir=str(tmp_path))
 
     # Test various input formats
     test_cases = [

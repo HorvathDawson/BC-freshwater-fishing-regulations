@@ -359,3 +359,23 @@ def test_an_untouched_neighbour_is_written_byte_for_byte(tmp_path):
     path.write_text(text)
     write_entryfile(path, "7a", read_entryfile(path).values())
     assert path.read_text() == text
+
+
+def test_a_seeded_ledger_lets_a_repass_replace_an_unedited_entry_and_keeps_an_edited_one(tmp_path):
+    """With no ledger every entry is one it "never saw", so the first repass kept all 1,480.
+    Seeding records the checked-in corpus as ingest's own write; an edit made AFTER is still kept."""
+    from pipeline.regs.parsing.ingest_catalogue import seed_ledger
+
+    ledger = tmp_path / "ingested.json"
+    out, first = _ingest_once(tmp_path)
+    write(first, out, ledger=tmp_path / "elsewhere.json")          # on disk, unknown to `ledger`
+    assert write(first, out, ledger=ledger)[1] == ["r3:tranquille@3-29"], "unseeded: kept"
+
+    assert seed_ledger(out, ledger) == 1
+    written, kept = write(first, out, ledger=ledger)
+    assert kept == [] and written == {"region-3.json": 1}, "seeded: an untouched entry is replaced"
+
+    doc = json.loads((out / "region-3.json").read_text())
+    doc["entries"][0]["rules"][0]["review_reason"] = "a curator's note, after the seed"
+    (out / "region-3.json").write_text(json.dumps(doc))
+    assert write(first, out, ledger=ledger)[1] == ["r3:tranquille@3-29"], "edited after: kept"

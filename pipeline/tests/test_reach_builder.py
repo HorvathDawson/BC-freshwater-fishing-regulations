@@ -25,8 +25,8 @@ class _B:
         self.aliases = tuple(aliases)
 
 
-def _rule(rid="r1", *, kind="closure", extents=None, locators=None):
-    return {"rule_id": rid, "restriction_type": kind,
+def _rule(rid="r1", *, kind="retention_limit", extents=None, locators=None):
+    return {"rule_id": rid, "type": kind,
             "extents": extents if extents is not None else [{"op": "whole", "splits": []}],
             "unresolved_locators": locators or []}
 
@@ -68,7 +68,7 @@ def test_an_unclassified_piece_is_NEVER_auto_included():
     Auto-including them for closures attached a 380 m stub hanging off Cowichan Lake to
     "No fishing, Cowichan Lake outlet to Greendale Trestle". The builder reports; the
     curator decides."""
-    for kind in ("closure", "harvest", "gear_restriction", "vessel_restriction"):
+    for kind in ("retention_limit", "bait_restriction", "tackle_restriction", "vessel_rule"):
         b, diags = classify("e", _rule(kind=kind), [_reach(["s1"], unclassified=["s9"])],
                             registry=REG, covered_ids=["i1"], scope_clipped=False,
                             entry_has_registry=True)
@@ -257,8 +257,8 @@ def test_diff_notices_an_outcome_flip_not_just_section_churn(tmp_path):
 # --------------------------------------------------------------------------- #
 
 def _entry(**over):
-    e = {"entry_id": "e1", "matched": ["i1"], "scope": [], "tributaries": {},
-         "rules": [{"rule_id": "r1", "restriction_type": "closure",
+    e = {"entry_id": "e1", "matched": ["i1"],
+         "rules": [{"rule_id": "r1", "type": "retention_limit",
                     "extents": [{"op": "whole", "splits": []}]}]}
     e.update(over)
     return e
@@ -267,7 +267,7 @@ def _entry(**over):
 def test_cache_key_changes_when_the_extent_changes():
     from pipeline.atlas.reach.cache import entry_key
     a = _entry()
-    b = _entry(rules=[{"rule_id": "r1", "restriction_type": "closure",
+    b = _entry(rules=[{"rule_id": "r1", "type": "retention_limit",
                        "extents": [{"op": "upstream_of", "splits": ["x"]}]}])
     assert entry_key(a, "full") != entry_key(b, "full")
 
@@ -288,15 +288,16 @@ def test_cache_key_changes_with_matched_and_tributary_flags():
     from pipeline.atlas.reach.cache import entry_key
     base = entry_key(_entry(), "full")
     assert entry_key(_entry(matched=["i2"]), "full") != base
-    assert entry_key(_entry(tributaries={"included": True}), "full") != base
+    assert entry_key(_entry(includes_tributaries=True), "full") != base
+    assert entry_key(_entry(extents=[{"op": "upstream_of", "splits": ["x"]}]), "full") != base
 
 
 def test_cache_key_IGNORES_curation_metadata():
-    """`reviewed_at` changes on every save; keying on it would evict constantly for
+    """A review note or the printed text changes on a curator's save; keying on it would evict for
     answers that did not move."""
     from pipeline.atlas.reach.cache import entry_key
-    assert entry_key(_entry(reviewed_at="x", revisit_note="n", locked=True), "full") \
-        == entry_key(_entry(reviewed_at="y", revisit_note="m", locked=False), "full")
+    assert entry_key(_entry(review_reason="x", regs_verbatim="a"), "full") \
+        == entry_key(_entry(review_reason="y", regs_verbatim="b"), "full")
 
 
 def test_cache_serves_a_hit_and_recomputes_after_invalidate():

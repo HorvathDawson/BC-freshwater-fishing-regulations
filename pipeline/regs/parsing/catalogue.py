@@ -370,23 +370,49 @@ _FAMILY = {
 }
 
 
+#: THE ZONE DEFAULTS A WATER MAY LIFT BY NAME (`Exempts.default_id`), each the slug of a zone
+#: entry (`z<region>:<slug>`). A closed list, like `CONDUCT_ACTS`: a default_id outside it named
+#: nothing a reader could find — `set_lining.r1b` (a rule id) sat here — and adding one is a
+#: reviewed change. The bundle resolves each to the zone entry of the lifting rule's own region.
+EXEMPTABLE_DEFAULTS = frozenset({
+    "spring_stream_closure", "summer_stream_closure", "steelhead_stream_closure",
+    "trout_char_winter_release", "bait_ban_streams", "single_barbless_hook",
+})
+
+
 class Exempts(BaseModel):
     """What this rule LIFTS. A field, not a type — an exemption takes the type of whatever it
     lifts, which is why `bait_restriction` carries `allowed: true` for the Fraser sturgeon rules.
 
-    `default_id` names a rule from the closed vocabulary and resolves PER SECTION against whichever
-    zone rule of that id is in force there — 959,116 of 959,143 sections carrying a spring closure
-    carry exactly one, so the resolution is effectively unique. `target` is filled only when the
-    exemption names another WATER's rule ("EXEMPT from Slocan River's closure")."""
-    model_config = ConfigDict(frozen=True)
-    default_id: Optional[str] = None
-    target: Optional[str] = None
+    ONE OF TWO, never both:
+
+      `default_id`  a ZONE DEFAULT by its slug — `spring_stream_closure` is `z3:spring_stream_closure`
+                    on a Region 3 water. It lifts that zone entry's rules in the rule's own region,
+                    never the rule's own entry (a rule that lifts itself deletes itself).
+      `target`      ONE RULE by `rule_id`: in this entry, or in `entry_id` when the lifted rule is
+                    another entry's ("EXEMPT from Columbia Lake's tributaries closure"). A rule id
+                    is unique only within its entry (AGENTS 8), so the entry is named, not guessed.
+
+    The bundle resolves each to exact ids and refuses one that names nothing
+    (`pipeline.deliver.bundle.rules._exempts`)."""
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    default_id: Optional[str] = Field(default=None, pattern=r"^[a-z0-9_]+$")
+    target: Optional[str] = Field(default=None, pattern=r"^[a-z0-9_]+\.r\d+[a-z]?$")
+    entry_id: Optional[str] = None
     note: str = ""
 
     @model_validator(mode="after")
     def _one_of(self) -> "Exempts":
-        if not self.default_id and not self.target:
-            raise ValueError("exempts needs a default_id or a target")
+        if bool(self.default_id) == bool(self.target):
+            raise ValueError("exempts needs exactly one of `default_id` (a zone default) or "
+                             "`target` (a rule id)")
+        if self.entry_id and not self.target:
+            raise ValueError("exempts: `entry_id` names the entry a `target` is in — it means "
+                             "nothing beside a `default_id`")
+        if self.default_id and self.default_id not in EXEMPTABLE_DEFAULTS:
+            raise ValueError(f"exempts: default_id {self.default_id!r} is not a registered zone "
+                             f"default ({sorted(EXEMPTABLE_DEFAULTS)}) — a rule of this or "
+                             f"another entry is a `target`")
         return self
 
 
@@ -591,7 +617,19 @@ class Hours(BaseModel):
         return f"{self.start.words()} to {self.end.words()}"
 
 
-class When(BaseModel):
+class _Terse(BaseModel):
+    """DUMPS ONLY WHAT WAS SAID. Every list on a gear clause defaults empty and an empty `allow`,
+    `only` or `ban` is refused, so an empty list here never carries meaning — yet each one shipped
+    as `except: [], members: [], must_be: [], of: []` on every clause in the bundle, four keys of
+    noise a reader has to prove are noise."""
+
+    @model_serializer(mode="wrap")
+    def _terse(self, handler):
+        return {k: v for k, v in handler(self).items()
+                if v != [] and v != "" and v is not None and v is not False}
+
+
+class When(_Terse):
     """WHEN A RULE BINDS — the days, the hours and the weekdays, said once.
 
     This replaces `windows` (210 distinct FREE-TEXT strings, where "Nov 1-Apr 30" and
@@ -606,6 +644,9 @@ class When(BaseModel):
 
     `dates` EMPTY MEANS ALL YEAR, per the synopsis: "When no date is listed, the regulations apply
     ALL YEAR. Start and end dates are INCLUSIVE."
+
+    TERSE (`_Terse`): an empty list here is a default and says nothing, so it is never dumped —
+    every designation shipped `"unparsed":[],"weekdays":[]` beside its dates.
     """
     model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
@@ -694,18 +735,6 @@ class AnglerState(str, Enum):
     alone_in_boat = "alone_in_boat"
     in_boat = "in_boat"
     from_shore = "from_shore"
-
-
-class _Terse(BaseModel):
-    """DUMPS ONLY WHAT WAS SAID. Every list on a gear clause defaults empty and an empty `allow`,
-    `only` or `ban` is refused, so an empty list here never carries meaning — yet each one shipped
-    as `except: [], members: [], must_be: [], of: []` on every clause in the bundle, four keys of
-    noise a reader has to prove are noise."""
-
-    @model_serializer(mode="wrap")
-    def _terse(self, handler):
-        return {k: v for k, v in handler(self).items()
-                if v != [] and v != "" and v is not None and v is not False}
 
 
 class GearWhen(_Terse):
@@ -1744,8 +1773,6 @@ class CatalogueRule(BaseModel):
     #: does in gear — there is no `permitted` bit. `angler_class` (one residency, a `guided`
     #: polarity bit) is gone and refused; see `Who`.
     closed_to: Optional[Who] = None
-    #: "When no date is listed, the regulations apply ALL YEAR. Start and end dates are
-    #: INCLUSIVE." So an empty list is a fact, never "unknown".
     #: HOW YOU MAY FISH. Clauses on DIFFERENT slots are unordered and all apply — they constrain
     #: different things and never compete. Clauses on the SAME slot are ORDERED and FIRST MATCH
     #: WINS, which is the one place an exception can live inside the rule it modifies.
@@ -1803,7 +1830,9 @@ class CatalogueRule(BaseModel):
     #: failure), `from_time`, `to_time` and `weekdays`. All five are now REFUSED (`extra=forbid`):
     #: a rule still spelling its season the old way is sent back, not converted.
     when: Optional[When] = None
-    when_open: bool = False
+    #: `when_open` WAS HERE: "Artificial fly only, where open". It said nothing — a restriction or a
+    #: licence only matters while the water is open for fishing at all, so every rule holds "while
+    #: open" by construction. It is REFUSED on load (`extra=forbid`); the words stay in `verbatim`.
 
     # --- retention ---------------------------------------------------------
     take: Optional[int] = None
@@ -1899,7 +1928,7 @@ class CatalogueRule(BaseModel):
     #: throughout" — and without this the narrower rule silently widens to the whole water.
     extents: Optional[List[dict]] = None
     #: WATER THIS RULE REACHES BY THE TRIBUTARY WALK AND MUST NOT. Subtracted from this rule's
-    #: tributary set only — the entry-wide `Tributaries.excludes` carves every rule in the row,
+    #: tributary set only. There is no entry-wide carve-out: one would cut every rule in the row,
     #: which is wrong where one rule is ABOUT the water another must not touch.
     #:
     #: The Atnarko is the case. "No Fishing from Tenas Lake to the Atnarko Park campsite" runs up
@@ -1910,9 +1939,8 @@ class CatalogueRule(BaseModel):
     #:
     #: Each entry is an extent, resolved by the same machinery as any other and passed to the walk
     #: as BLOCKED, so it removes the named water *and everything above it* and the walk cannot
-    #: descend through it either. `pipeline/atlas/reach/build.py::resolve_carve_outs` has read this
-    #: field since the catalogue landed; it was only ever declared on the retired prose model, so
-    #: nothing could set it. Curator-filled — the parser never writes one.
+    #: descend through it either (`pipeline/atlas/reach/build.py::resolve_carve_outs`).
+    #: Curator-filled — the parser never writes one.
     tributary_excludes: List[dict] = Field(default_factory=list)
     exempts: List[Exempts] = Field(default_factory=list)
     standing: bool = False
@@ -1932,7 +1960,7 @@ class CatalogueRule(BaseModel):
     suspended_while: Optional[str] = None
     extent_text: str = ""
     #: Locator phrases that could not be bound to a cut-point — "the outlet", "signs 500 m below
-    #: the falls". Non-empty forces `needs_review`; curation maps each to a split id.
+    #: the falls". Non-empty means the rule needs review; curation maps each to a split id.
     #:
     #: The prompt, the batch envelope and the no-registry instructions all told the model to use
     #: this, and it existed only on the RETIRED prose Rule — so a model that followed the
@@ -1942,11 +1970,8 @@ class CatalogueRule(BaseModel):
     unresolved_locators: List[str] = Field(default_factory=list)
     #: `needs_review` WAS HERE and was exactly `bool(review_reason)`: not one rule in the corpus
     #: carried the flag without a reason, and every producer that set it passed one in the same
-    #: call. A flag whose only job is to say that the field beside it is filled in.
-    #:
-    #: It is still ACCEPTED and dropped, like the old size fields, because the parser writes it.
-    #: A reason with no flag is now simply a rule needing review, which is what it always meant —
-    #: and that resolves the 7 rules that had one and were not flagged.
+    #: call. A flag whose only job is to say that the field beside it is filled in. It is REFUSED
+    #: on load (`extra=forbid`): a non-empty `review_reason` is what "needs review" means.
     review_reason: str = ""
 
     # ------------------------------------------------------------------ #
@@ -2347,8 +2372,6 @@ def _scope(r: CatalogueRule, taking: bool = True) -> str:
         bits.append("on " + " and ".join(f"{d}s" for d in r.when.weekdays))
     if r.when and r.when.hours:
         bits.append(r.when.hours.words())
-    if r.when_open:
-        bits.append("where open")
     return (", " + ", ".join(bits)) if bits else ""
 
 
@@ -2790,6 +2813,16 @@ class CatalogueEntry(BaseModel):
                 e.append(f"{r.rule_id}: verbatim is not a contiguous substring of regs_verbatim")
         ids = {r.rule_id for r in self.rules}
         for r in self.rules:
+            # A TARGET NAMES A RULE THAT EXISTS. One in this entry is checked here; one in another
+            # entry (`entry_id`) by the file, and across files by the bundle build.
+            for x in r.exempts:
+                if x.entry_id == self.entry_id:
+                    e.append(f"{r.rule_id}: exempts names its own entry in entry_id — leave it "
+                             f"out; a target with no entry_id is this entry's")
+                elif x.target and not x.entry_id and (x.target not in ids
+                                                      or x.target == r.rule_id):
+                    e.append(f"{r.rule_id}: exempts target {x.target!r} names no other rule in "
+                             f"this entry")
             if r.suspended_while and (r.suspended_while not in ids
                                       or r.suspended_while == r.rule_id):
                 e.append(f"{r.rule_id}: suspended_while={r.suspended_while!r} names no other rule "
@@ -2859,4 +2892,16 @@ class CatalogueFile(BaseModel):
         dupes = {i for i in ids if ids.count(i) > 1}
         if dupes:
             raise ValueError(f"duplicate entry_id(s): {sorted(dupes)}")
+        return self
+
+    @model_validator(mode="after")
+    def _exempts_name_real_rules(self) -> "CatalogueFile":
+        """A target in ANOTHER entry of this file must be one of its rules. (A target in another
+        file cannot be seen here; the bundle build refuses it, and a test runs over the corpus.)"""
+        rules = {x.entry_id: {r.rule_id for r in x.rules} for x in self.entries}
+        bad = [f"{x.entry_id}/{r.rule_id} -> {t.entry_id}#{t.target}"
+               for x in self.entries for r in x.rules for t in r.exempts
+               if t.entry_id in rules and t.target not in rules[t.entry_id]]
+        if bad:
+            raise ValueError(f"exempts target(s) name no rule of that entry: {bad}")
         return self

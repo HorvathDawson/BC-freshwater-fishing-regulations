@@ -20,16 +20,10 @@
      "rule_id": "terminal_tackle.r1",
      "type": "tackle_restriction",
      "verbatim": "angle with one fishing line",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "lines_per_angler",
-       "max": 2,
+       "max": 2.0,
        "when": {
         "water": "lake",
         "angler": "alone_in_boat"
@@ -37,7 +31,13 @@
       },
       {
        "slot": "lines_per_angler",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -45,16 +45,16 @@
      "rule_id": "terminal_tackle.r3",
      "type": "tackle_restriction",
      "verbatim": "Angle with a fishing line to which more than one artificial fly is attached (i.",
+     "gear": [
+      {
+       "slot": "flies_per_line",
+       "max": 1.0
+      }
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "flies_per_line",
-       "max": 1
       }
      ]
     },
@@ -62,12 +62,6 @@
      "rule_id": "terminal_tackle.r4",
      "type": "tackle_restriction",
      "verbatim": "Angle with a fishing line to which more than 1 kg of weight is attached (this does not apply to downrigger weights).",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "weight_per_line_kg",
@@ -78,18 +72,18 @@
         }
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "terminal_tackle.r5",
      "type": "tackle_restriction",
      "verbatim": "Use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "light",
@@ -100,7 +94,13 @@
       },
       {
        "slot": "light_to_hook_mm",
-       "max": 1000
+       "max": 1000.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -108,21 +108,21 @@
      "rule_id": "terminal_tackle.r6",
      "type": "tackle_restriction",
      "verbatim": "to which only one hook, one artificial lure OR one artificial fly is attached",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "terminal_attachments_per_line",
-       "max": 1,
        "members": [
         "hook",
         "artificial_lure",
         "artificial_fly"
-       ]
+       ],
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     }
@@ -147,13 +147,6 @@
      "rule_id": "barbless_single_hook_streams.r1",
      "type": "tackle_restriction",
      "verbatim": "use barbed hooks",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "barb",
@@ -161,23 +154,30 @@
         "barbless"
        ]
       }
-     ]
-    },
-    {
-     "rule_id": "barbless_single_hook_streams.r3",
-     "type": "tackle_restriction",
-     "verbatim": "a hook with more than one point in any river, stream, creek or slough in B.C.",
+     ],
      "water": "stream",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
+     ]
+    },
+    {
+     "rule_id": "barbless_single_hook_streams.r3",
+     "type": "tackle_restriction",
+     "verbatim": "a hook with more than one point in any river, stream, creek or slough in B.C.",
      "gear": [
       {
        "slot": "points_per_hook",
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -224,6 +224,14 @@
      "rule_id": "set_lining.r1",
      "type": "method_rule",
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "set_lining"
+       ]
+      }
+     ],
      "water": "lake",
      "extents": [
       {
@@ -243,16 +251,8 @@
      ],
      "exempts": [
       {
-       "default_id": "set_lining.r1b",
+       "target": "set_lining.r1b",
        "note": "set lining is permitted in these lakes and nowhere else"
-      }
-     ],
-     "gear": [
-      {
-       "slot": "method",
-       "allow": [
-        "set_lining"
-       ]
       }
      ]
     },
@@ -260,14 +260,6 @@
      "rule_id": "set_lining.r1b",
      "type": "method_rule",
      "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
-     "derived_from": "set_lining.r1",
-     "review_reason": "the word 'only' in r1's sentence; the ban is printed nowhere and was stored nowhere, so set lining outside R6/7A lakes was unconstrained. r1 lifts this where the book permits it.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
@@ -275,12 +267,37 @@
         "set_lining"
        ]
       }
-     ]
+     ],
+     "derived_from": "set_lining.r1",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "review_reason": "the word 'only' in r1's sentence; the ban is printed nowhere and was stored nowhere, so set lining outside R6/7A lakes was unconstrained. r1 lifts this where the book permits it."
     },
     {
      "rule_id": "set_lining.r2",
      "type": "method_rule",
      "verbatim": "You are allowed to use only one line with one hook (no smaller than 3 cm from point to shank).",
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1.0
+      },
+      {
+       "slot": "hooks_per_line",
+       "max": 1.0
+      },
+      {
+       "slot": "hook_gap_mm",
+       "min": 30.0
+      }
+     ],
+     "while": [
+      "set_lining"
+     ],
      "extents": [
       {
        "op": "within",
@@ -296,23 +313,6 @@
         "lake"
        ]
       }
-     ],
-     "gear": [
-      {
-       "slot": "lines_per_angler",
-       "max": 1
-      },
-      {
-       "slot": "hooks_per_line",
-       "max": 1
-      },
-      {
-       "slot": "hook_gap_mm",
-       "min": 30
-      }
-     ],
-     "while": [
-      "set_lining"
      ]
     },
     {
@@ -324,6 +324,9 @@
      ],
      "species_except": [
       "BB"
+     ],
+     "while": [
+      "set_lining"
      ],
      "take": 0,
      "may_target": true,
@@ -342,15 +345,18 @@
         "lake"
        ]
       }
-     ],
-     "while": [
-      "set_lining"
      ]
     },
     {
      "rule_id": "set_lining.r4",
      "type": "method_rule",
      "verbatim": "Set lines must be marked with angler's name, address, and telephone number.",
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
+     ],
      "extents": [
       {
        "op": "within",
@@ -366,12 +372,6 @@
         "lake"
        ]
       }
-     ],
-     "while": [
-      "set_lining"
-     ],
-     "conduct": [
-      "mark_set_line_with_contact_details"
      ]
     }
    ]
@@ -398,6 +398,9 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "while": [
+      "spear_fishing"
+     ],
      "take": 0,
      "may_target": false,
      "extents": [
@@ -405,9 +408,6 @@
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "while": [
-      "spear_fishing"
      ]
     },
     {
@@ -416,6 +416,9 @@
      "verbatim": "except burbot, which may also be speared in Regions 3, 5, 6, 7 and 8",
      "species": [
       "BB"
+     ],
+     "while": [
+      "spear_fishing"
      ],
      "extents": [
       {
@@ -450,15 +453,20 @@
       }
      ],
      "extent_text": "Regions 3, 5, 6, 7 and 8",
-     "review_reason": "Region-scoped: bind to area:region:{3,5,6,7a,7b,8}. Bound province-wide it permits burbot spearing in Regions 1, 2 and 4, where ALL spear fishing is prohibited.",
-     "while": [
-      "spear_fishing"
-     ]
+     "review_reason": "Region-scoped: bind to area:region:{3,5,6,7a,7b,8}. Bound province-wide it permits burbot spearing in Regions 1, 2 and 4, where ALL spear fishing is prohibited."
     },
     {
      "rule_id": "spear_fishing.r3",
      "type": "method_rule",
      "verbatim": "No spear fishing of any kind is permitted in Region 1, 2, and 4.",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "spear_fishing"
+       ]
+      }
+     ],
      "extents": [
       {
        "op": "within",
@@ -474,15 +482,7 @@
       }
      ],
      "extent_text": "Regions 1, 2 and 4",
-     "review_reason": "Region-scoped: bind to area:region:{1,2,4}. Bound province-wide it prohibits spear fishing everywhere, contradicting r1's permission.",
-     "gear": [
-      {
-       "slot": "method",
-       "ban": [
-        "spear_fishing"
-       ]
-      }
-     ]
+     "review_reason": "Region-scoped: bind to area:region:{1,2,4}. Bound province-wide it prohibits spear fishing everywhere, contradicting r1's permission."
     },
     {
      "rule_id": "spear_fishing.r4",
@@ -491,18 +491,18 @@
      "species": [
       "SA"
      ],
+     "while": [
+      "spear_fishing"
+     ],
      "take": 0,
      "may_target": false,
-     "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
      ],
-     "while": [
-      "spear_fishing"
-     ]
+     "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print."
     }
    ]
   },
@@ -525,18 +525,18 @@
      "rule_id": "crayfish_trapping.r1",
      "type": "method_rule",
      "verbatim": "trap crayfish with any number or size of traps for personal consumption.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "allow": [
         "crayfish_trapping"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -550,18 +550,18 @@
      "species_except": [
       "CRA"
      ],
+     "while": [
+      "crayfish_trapping"
+     ],
      "take": 0,
      "may_target": true,
-     "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
      ],
-     "while": [
-      "crayfish_trapping"
-     ]
+     "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not."
     },
     {
      "rule_id": "crayfish_trapping.r3",
@@ -596,12 +596,6 @@
      "rule_id": "prohibited_methods.r1",
      "type": "method_rule",
      "verbatim": "Fish with nets, including dip nets, minnow nets, gill nets or cast nets.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
@@ -609,24 +603,30 @@
         "netting"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "prohibited_methods.r2",
      "type": "method_rule",
      "verbatim": "Snag (foul hook) fish.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "snagging"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -637,6 +637,9 @@
      "species": [
       "ALL_FIN_FISH"
      ],
+     "while": [
+      "snagging"
+     ],
      "take": 0,
      "may_target": true,
      "extents": [
@@ -644,27 +647,24 @@
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "while": [
-      "snagging"
      ]
     },
     {
      "rule_id": "prohibited_methods.r4",
      "type": "method_rule",
      "verbatim": "Chumming — attempting to attract fish by depositing any substance in the water, is prohibited.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "ban": [
         "chumming"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -700,12 +700,6 @@
      "rule_id": "bait.r1",
      "type": "bait_restriction",
      "verbatim": "The use of fin fish (dead or alive) or parts of fin fish other than roe is prohibited throughout the province",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -716,12 +710,29 @@
         "roe"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "bait.r2",
      "type": "bait_restriction",
      "verbatim": "when set lining in lakes of Region 6 or in lakes of Zone A of Region 7",
+     "gear": [
+      {
+       "slot": "bait",
+       "allow": [
+        "dead_fin_fish"
+       ]
+      }
+     ],
+     "while": [
+      "set_lining"
+     ],
      "water": "lake",
      "extents": [
       {
@@ -745,7 +756,12 @@
        "note": "the province-wide fin fish ban"
       }
      ],
-     "extent_text": "lakes of Region 6 and Zone A of Region 7",
+     "extent_text": "lakes of Region 6 and Zone A of Region 7"
+    },
+    {
+     "rule_id": "bait.r3",
+     "type": "bait_restriction",
+     "verbatim": "(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
      "gear": [
       {
        "slot": "bait",
@@ -754,14 +770,6 @@
        ]
       }
      ],
-     "while": [
-      "set_lining"
-     ]
-    },
-    {
-     "rule_id": "bait.r3",
-     "type": "bait_restriction",
-     "verbatim": "(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
      "when_targeting": [
       "WSG"
      ],
@@ -777,33 +785,25 @@
        "note": "the province-wide fin fish ban"
       }
      ],
-     "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2",
-     "gear": [
-      {
-       "slot": "bait",
-       "allow": [
-        "dead_fin_fish"
-       ]
-      }
-     ]
+     "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2"
     },
     {
      "rule_id": "bait.r4",
      "type": "bait_restriction",
      "verbatim": "crayfish) in streams as bait unless a bait ban applies.",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
        "allow": [
         "invertebrate"
        ]
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     },
@@ -811,13 +811,6 @@
      "rule_id": "bait.r5",
      "type": "bait_restriction",
      "verbatim": "No person shall use as bait or possess for that purpose any freshwater invertebrate at a lake.",
-     "water": "lake",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "bait",
@@ -825,25 +818,32 @@
         "invertebrate"
        ]
       }
+     ],
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "bait.r6",
      "type": "bait_restriction",
      "verbatim": "Roe — you must not have more than 1 kg of roe (fish eggs) in your possession for use as bait unless the roe was obtained from a commercial source that lawfully obtained that roe, or you have in your possession the freshly dressed fish from which the roe in excess of 1 kg was taken.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "bait_possession_kg",
        "of": [
         "roe"
        ],
-       "max": 1
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ],
      "review_reason": "the two escapes — roe from a lawful commercial source, or the freshly dressed fish it came from in your possession — are provenance tests with no field. The cap stands stricter than the law until they have one."
@@ -930,27 +930,27 @@
      ],
      "take": 0,
      "may_target": false,
-     "authority": "superior",
-     "review_reason": "species were ALL_GAME_FISH because the eleven named taxa had no codes; PROTECTED_SPECIES now names them. Region 2 adds green sturgeon, so this list is a floor, not the whole set.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ]
-    },
-    {
-     "rule_id": "protected_species.r3",
-     "type": "handling_rule",
-     "verbatim": "If you accidentally catch one, you must release it right away where you captured it.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
      ],
+     "authority": "superior",
+     "review_reason": "species were ALL_GAME_FISH because the eleven named taxa had no codes; PROTECTED_SPECIES now names them. Region 2 adds green sturgeon, so this list is a floor, not the whole set."
+    },
+    {
+     "rule_id": "protected_species.r3",
+     "type": "handling_rule",
+     "verbatim": "If you accidentally catch one, you must release it right away where you captured it.",
      "conduct": [
       "release_immediately"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     }
    ]
@@ -979,15 +979,15 @@
      ],
      "take": 0,
      "may_target": false,
-     "standing": true,
-     "extent_text": "within 23 m downstream of any fishway, canal, obstacle or leap",
-     "review_reason": "STANDING: no dataset of fishways, canals, obstacles or leaps exists, so this cannot be bound to a reach. Show on every water; keep out of the override contest.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "standing": true,
+     "extent_text": "within 23 m downstream of any fishway, canal, obstacle or leap",
+     "review_reason": "STANDING: no dataset of fishways, canals, obstacles or leaps exists, so this cannot be bound to a reach. Show on every water; keep out of the override contest."
     },
     {
      "rule_id": "no_fishing_buffers.r2",
@@ -998,15 +998,15 @@
      ],
      "take": 0,
      "may_target": false,
-     "standing": true,
-     "extent_text": "within 100 m of any government fish counting, passing or rearing facility",
-     "review_reason": "STANDING: no dataset of government fish facilities exists.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "standing": true,
+     "extent_text": "within 100 m of any government fish counting, passing or rearing facility",
+     "review_reason": "STANDING: no dataset of government fish facilities exists."
     },
     {
      "rule_id": "no_fishing_buffers.r3",
@@ -1104,7 +1104,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "steelhead_targeting",
      "satisfied_by": [
       {
@@ -1130,7 +1129,8 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch)."
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
+     "kind": "requirement"
     }
    ]
   },
@@ -1148,10 +1148,8 @@
      "area_kind": "region"
     }
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "salmon_stamp",
      "satisfied_by": [
       {
@@ -1177,7 +1175,8 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "Required to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters."
+     "verbatim": "Required to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters.",
+     "kind": "requirement"
     }
    ]
   },
@@ -1189,10 +1188,8 @@
    "source_pages": [
     6
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "kootenay_rainbow_stamp",
      "satisfied_by": [
       {
@@ -1224,7 +1221,8 @@
       }
      ],
      "verbatim": "Required to keep rainbow trout over 50 cm from the main body of Kootenay Lake.",
-     "review_reason": "'the main body of Kootenay Lake' has no arm cut-points; bound to the whole lake until a curator draws the main body"
+     "review_reason": "'the main body of Kootenay Lake' has no arm cut-points; bound to the whole lake until a curator draws the main body",
+     "kind": "requirement"
     }
    ]
   },
@@ -1236,10 +1234,8 @@
    "source_pages": [
     6
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "shuswap_char_stamp",
      "satisfied_by": [
       {
@@ -1271,7 +1267,8 @@
        "item_id": "wbk:329518145"
       }
      ],
-     "verbatim": "Required to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake."
+     "verbatim": "Required to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake.",
+     "kind": "requirement"
     }
    ]
   },
@@ -1283,10 +1280,8 @@
    "source_pages": [
     6
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "shuswap_rainbow_stamp",
      "satisfied_by": [
       {
@@ -1326,7 +1321,8 @@
       }
      ],
      "verbatim": "Required to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake.",
-     "review_reason": "the South Thompson River between Shuswap Lake and Little Shuswap Lake is named and not bound — it needs a split at each lake; bound to the three lake items only (under-bound, not widened)"
+     "review_reason": "the South Thompson River between Shuswap Lake and Little Shuswap Lake is named and not bound — it needs a split at each lake; bound to the three lake items only (under-bound, not widened)",
+     "kind": "requirement"
     }
    ]
   },
@@ -1369,18 +1365,17 @@
      "rule_id": "white_sturgeon_licence.r3",
      "type": "advisory",
      "verbatim": "This is the only white sturgeon fishery in the province's non-tidal waters.",
-     "review_reason": "A COMPLETENESS CLAIM, not a rule about a water: 'this is the only white sturgeon fishery in the province's non-tidal waters' asserts that every other sturgeon water in B.C. is closed. Nothing in the catalogue states things about the rest of the corpus, so it shows province-wide as an advisory and is the one sentence that would let a reader notice a missing closure.",
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ]
+     ],
+     "review_reason": "A COMPLETENESS CLAIM, not a rule about a water: 'this is the only white sturgeon fishery in the province's non-tidal waters' asserts that every other sturgeon water in B.C. is closed. Nothing in the catalogue states things about the rest of the corpus, so it shows province-wide as an advisory and is the one sentence that would let a reader notice a missing closure."
     }
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "white_sturgeon_licence",
      "satisfied_by": [
       {
@@ -1408,10 +1403,15 @@
         "fraser_river__the_cpr_bridge_at_mission",
         "fraser_river__williams_lake_river_into_fraser_river"
        ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:27764"
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo."
+     "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo.",
+     "kind": "requirement"
     }
    ]
   },
@@ -1446,7 +1446,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "classified_waters_licence",
      "satisfied_by": [
       {
@@ -1466,10 +1465,10 @@
      },
      "water": "stream",
      "on": "classified_period",
-     "verbatim": "Anglers are required to hold a basic angling licence and a Classified Waters Licence when fishing on a stream during the period when it is classified."
+     "verbatim": "Anglers are required to hold a basic angling licence and a Classified Waters Licence when fishing on a stream during the period when it is classified.",
+     "kind": "requirement"
     },
     {
-     "kind": "requirement",
      "id": "classified_steelhead_stamp",
      "satisfied_by": [
       {
@@ -1487,10 +1486,10 @@
       "act": "fishing"
      },
      "on": "steelhead_period",
-     "verbatim": "A Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present."
+     "verbatim": "A Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present.",
+     "kind": "requirement"
     },
     {
-     "kind": "licence_terms",
      "id": "cwl_resident",
      "document": "classified_waters_licence",
      "who": {
@@ -1500,10 +1499,10 @@
      },
      "sold": "per_licence_year",
      "covers": "every_unit",
-     "verbatim": "B.C. resident | permits angling in all classified waters throughout the licence year"
+     "verbatim": "B.C. resident | permits angling in all classified waters throughout the licence year",
+     "kind": "licence_terms"
     },
     {
-     "kind": "licence_terms",
      "id": "cwl_non_resident",
      "document": "classified_waters_licence",
      "who": {
@@ -1515,10 +1514,10 @@
      "sold": "per_day",
      "covers": "one_unit",
      "max_consecutive_days": 8,
-     "verbatim": "If you are a NON-GUIDED or GUIDED Non-Resident or Non-Resident Alien, your Classified Waters Licence is sold on a per day basis and is date and water-specific, and each licence may not exceed 8 consecutive days."
+     "verbatim": "If you are a NON-GUIDED or GUIDED Non-Resident or Non-Resident Alien, your Classified Waters Licence is sold on a per day basis and is date and water-specific, and each licence may not exceed 8 consecutive days.",
+     "kind": "licence_terms"
     },
     {
-     "kind": "licence_terms",
      "id": "cwl_booking",
      "document": "classified_waters_licence",
      "who": {
@@ -1538,10 +1537,10 @@
      ],
      "allocation": "booking",
      "verbatim": "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.",
-     "review_reason": "Skookumchuck Creek has no catalogue entry, so its unit names no designation yet (a parse run or hand-authoring must add it)"
+     "review_reason": "Skookumchuck Creek has no catalogue entry, so its unit names no designation yet (a parse run or hand-authoring must add it)",
+     "kind": "licence_terms"
     },
     {
-     "kind": "licence_terms",
      "id": "dean_nra_one_licence",
      "document": "classified_waters_licence",
      "who": {
@@ -1555,7 +1554,8 @@
       "dean_river_class_ii_upper"
      ],
      "max_per_licence_year": 1,
-     "verbatim": "EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year."
+     "verbatim": "EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year.",
+     "kind": "licence_terms"
     }
    ]
   },
@@ -1573,10 +1573,8 @@
      "area_kind": "region"
     }
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "basic_licence",
      "satisfied_by": [
       {
@@ -1599,10 +1597,10 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "If you are 16 years of age or older, you must have a valid basic licence to sport fish for any species of fish in non-tidal waters."
+     "verbatim": "If you are 16 years of age or older, you must have a valid basic licence to sport fish for any species of fish in non-tidal waters.",
+     "kind": "requirement"
     },
     {
-     "kind": "requirement",
      "id": "under_16_non_resident",
      "satisfied_by": [
       {
@@ -1611,8 +1609,7 @@
          "age": [
           "16_plus"
          ]
-        },
-        "holding": "what_this_fishing_requires"
+        }
        },
        "quota": "counts_to_companion"
       }
@@ -1636,10 +1633,10 @@
       }
      ],
      "verbatim": "If you are under 16 and not a resident of B.C., you do not require any licence or stamp to sport fish, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps, and any fish you keep must be counted as part of the catch and possession of your accompanying licence holder.",
-     "review_reason": "the printed alternative — 'If you want to catch and keep your own quota of fish, you must buy a licence and any necessary supplementary licences and stamps' (p.6) — is not in this entry's passage, so the `as` path it implies is not recorded"
+     "review_reason": "the printed alternative — 'If you want to catch and keep your own quota of fish, you must buy a licence and any necessary supplementary licences and stamps' (p.6) — is not in this entry's passage, so the `as` path it implies is not recorded",
+     "kind": "requirement"
     },
     {
-     "kind": "exemption",
      "id": "indian_bc_resident",
      "who": {
       "status": [
@@ -1656,7 +1653,8 @@
       "white_sturgeon_licence",
       "classified_waters_licence"
      ],
-     "verbatim": "If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters."
+     "verbatim": "If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters.",
+     "kind": "exemption"
     }
    ]
   },
@@ -1680,70 +1678,70 @@
      "rule_id": "conduct.r1",
      "type": "handling_rule",
      "verbatim": "Waste the fish you catch.",
+     "conduct": [
+      "do_not_waste_catch"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_waste_catch"
      ]
     },
     {
      "rule_id": "conduct.r2",
      "type": "handling_rule",
      "verbatim": "Release fish in a harmful manner if you are not going to keep your catch.",
+     "conduct": [
+      "do_not_release_harmfully"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_release_harmfully"
      ]
     },
     {
      "rule_id": "conduct.r3",
      "type": "handling_rule",
      "verbatim": "Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing.",
+     "conduct": [
+      "do_not_buy_sell_or_barter_catch"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_buy_sell_or_barter_catch"
      ]
     },
     {
      "rule_id": "conduct.r4",
      "type": "handling_rule",
      "verbatim": "Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C.",
+     "conduct": [
+      "do_not_possess_or_move_live_fish"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_possess_or_move_live_fish"
      ]
     },
     {
      "rule_id": "conduct.r5",
      "type": "handling_rule",
      "verbatim": "Leave the head, tail, and all fins on your catch until you get them to your permanent (ordinary) residence.",
+     "conduct": [
+      "leave_head_tail_and_fins_until_residence"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "leave_head_tail_and_fins_until_residence"
      ]
     },
     {
@@ -1763,7 +1761,6 @@
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "angling_guide_licence",
      "satisfied_by": [
       {
@@ -1786,7 +1783,8 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so."
+     "verbatim": "A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so.",
+     "kind": "requirement"
     }
    ]
   },
@@ -1819,13 +1817,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "authority": "superior",
      "extents": [
       {
        "op": "within",
        "area_kind": "national_parks"
       }
-     ]
+     ],
+     "authority": "superior"
     },
     {
      "rule_id": "superior_closures.r3",
@@ -1836,18 +1834,17 @@
      ],
      "take": 0,
      "may_target": false,
-     "authority": "superior",
      "extents": [
       {
        "op": "within",
        "area_kind": "ecological_reserves"
       }
-     ]
+     ],
+     "authority": "superior"
     }
    ],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "national_park_permit",
      "satisfied_by": [
       {
@@ -1866,7 +1863,8 @@
       }
      ],
      "authority": "superior",
-     "verbatim": "Where open, anglers require a National Park Fishing Permit."
+     "verbatim": "Where open, anglers require a National Park Fishing Permit.",
+     "kind": "requirement"
     }
    ]
   },
@@ -1889,12 +1887,6 @@
      "rule_id": "allowable_methods.r1",
      "type": "tackle_restriction",
      "verbatim": "angle with a downrigger, provided the fishing line is attached to the downrigger by a quick-release mechanism",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "downrigger",
@@ -1902,71 +1894,77 @@
         "quick_release_to_line"
        ]
       }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "allowable_methods.r2",
      "type": "method_rule",
      "verbatim": "ice fish with one line and one lure, artificial fly or other terminal attractor",
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1.0
+      },
+      {
+       "slot": "terminal_attachments_per_line",
+       "members": [
+        "artificial_lure",
+        "artificial_fly",
+        "terminal_attractor"
+       ],
+       "max": 1.0
+      }
+     ],
+     "while": [
+      "ice_fishing"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "gear": [
-      {
-       "slot": "lines_per_angler",
-       "max": 1
-      },
-      {
-       "slot": "terminal_attachments_per_line",
-       "max": 1,
-       "members": [
-        "artificial_lure",
-        "artificial_fly",
-        "terminal_attractor"
-       ]
-      }
-     ],
-     "while": [
-      "ice_fishing"
      ]
     },
     {
      "rule_id": "allowable_methods.r3",
      "type": "method_rule",
      "verbatim": "It is your legal responsibility to warn other people of the existence of your ice hole and remove your ice hut before ice breakup.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "while": [
       "ice_fishing"
      ],
      "conduct": [
       "remove_ice_hut_before_breakup",
       "warn_others_of_ice_hole"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
      ]
     },
     {
      "rule_id": "allowable_methods.r4",
      "type": "method_rule",
      "verbatim": "fish with a spear or an arrow propelled by a spring, an elastic band, compressed air, a bow, or by hand.",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "region"
-      }
-     ],
      "gear": [
       {
        "slot": "method",
        "allow": [
         "spear_fishing"
        ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
       }
      ]
     }
@@ -1991,42 +1989,42 @@
      "rule_id": "further_prohibitions.r1",
      "type": "method_rule",
      "verbatim": "place any fishing gear in any water during a No Fishing period",
+     "conduct": [
+      "no_gear_in_water_during_closure"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "no_gear_in_water_during_closure"
      ]
     },
     {
      "rule_id": "further_prohibitions.r2",
      "type": "handling_rule",
      "verbatim": "damage or interfere with a trap set for furbearers",
+     "conduct": [
+      "do_not_interfere_with_furbearer_trap"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_interfere_with_furbearer_trap"
      ]
     },
     {
      "rule_id": "further_prohibitions.r3",
      "type": "handling_rule",
      "verbatim": "If your fish is not suitable for eating or if possession is illegal because of quotas, size limits or closed seasons, return the fish quickly and gently to the water.",
+     "conduct": [
+      "return_unfit_fish_gently"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "return_unfit_fish_gently"
      ]
     }
    ]
@@ -2124,9 +2122,6 @@
      ],
      "take": 0,
      "may_target": false,
-     "authority": "superior",
-     "extent_text": "Pacific Rim, Gwaii Haanas and Gulf Islands National Park Reserves",
-     "review_reason": "An UNCONDITIONAL closure on three named reserves. zp:superior_closures says 'prohibited unless opened' — this says closed, full stop, and the two are different.",
      "extents": [
       {
        "op": "within",
@@ -2140,7 +2135,10 @@
        "op": "within",
        "area_id": "area:national_parks:southern_gulf_islands_national_park_reserve_of_canada"
       }
-     ]
+     ],
+     "authority": "superior",
+     "extent_text": "Pacific Rim, Gwaii Haanas and Gulf Islands National Park Reserves",
+     "review_reason": "An UNCONDITIONAL closure on three named reserves. zp:superior_closures says 'prohibited unless opened' — this says closed, full stop, and the two are different."
     }
    ]
   },
@@ -2163,28 +2161,28 @@
      "rule_id": "preparing_catch.r1",
      "type": "handling_rule",
      "verbatim": "Do not can, bottle or fillet fish caught by sport fishing in non-tidal waters except at your permanent residence.",
+     "conduct": [
+      "do_not_can_bottle_or_fillet_away_from_residence"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_can_bottle_or_fillet_away_from_residence"
      ]
     },
     {
      "rule_id": "preparing_catch.r2",
      "type": "handling_rule",
      "verbatim": "Do not freeze fish together in an unrecognizable block.",
+     "conduct": [
+      "do_not_freeze_in_unrecognizable_block"
+     ],
      "extents": [
       {
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "conduct": [
-      "do_not_freeze_in_unrecognizable_block"
      ]
     }
    ]
@@ -2203,10 +2201,8 @@
      "area_kind": "region"
     }
    ],
-   "rules": [],
    "licensing": [
     {
-     "kind": "requirement",
      "id": "produce_licence",
      "conduct": [
       "produce_licence_on_request"
@@ -2225,10 +2221,10 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "When fishing, you must produce your angling licence and photo ID, on request of an officer."
+     "verbatim": "When fishing, you must produce your angling licence and photo ID, on request of an officer.",
+     "kind": "requirement"
     },
     {
-     "kind": "requirement",
      "id": "carry_paper_licence",
      "conduct": [
       "carry_paper_licence"
@@ -2247,18 +2243,18 @@
        "area_kind": "region"
       }
      ],
-     "verbatim": "You must carry your paper licence while sport fishing when a conservation surcharge stamp retention record is required."
+     "verbatim": "You must carry your paper licence while sport fishing when a conservation surcharge stamp retention record is required.",
+     "kind": "requirement"
     },
     {
-     "kind": "licence_terms",
      "id": "basic_one_per_year",
      "document": "basic_licence",
      "sold": "per_licence_year",
      "max_per_licence_year": 1,
-     "verbatim": "You are only permitted one annual angling licence per licence year."
+     "verbatim": "You are only permitted one annual angling licence per licence year.",
+     "kind": "licence_terms"
     },
     {
-     "kind": "licence_terms",
      "id": "basic_disabled_fee",
      "document": "basic_licence",
      "who": {
@@ -2270,7 +2266,8 @@
       ]
      },
      "fee_cad": 1.14,
-     "verbatim": "You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."
+     "verbatim": "You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.",
+     "kind": "licence_terms"
     }
    ]
   }

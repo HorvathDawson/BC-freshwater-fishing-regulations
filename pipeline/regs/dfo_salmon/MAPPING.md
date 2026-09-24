@@ -83,7 +83,8 @@ reach_scope  =  op(anchors…)            ← where along the water
 ```
 
 That is exactly `Extent(op, splits, item_id/item_ids, area_id)` plus
-`Tributaries(included, only, excludes)`. No extension required.
+the catalogue's `includes_tributaries` / `tributaries_only` / `tributary_excludes`. No extension
+required.
 
 ### Tributary scope is per-reach in DFO
 
@@ -95,7 +96,7 @@ This is already handled: `includes_tributaries` is three-valued on a rule and in
 from the entry when `None` (AGENTS rule 9 — reading only the rule's own field
 undercounts 132 vs the real 554). So:
 
-* `entry.tributaries.included` ← leave `None`/False for DFO entries;
+* `entry.includes_tributaries` ← the location's flag, else its water's (`to_reach_input`);
 * **the reach's tributary scope becomes the rule's `includes_tributaries`.**
 
 ---

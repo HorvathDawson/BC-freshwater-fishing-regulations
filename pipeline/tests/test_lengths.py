@@ -4,10 +4,19 @@ The old `over_cm`/`under_cm`/`band` trio is gone from the model and refused on l
 pin is the corpus: each trap the migration had to get past, on the rule it was found on, read
 the way a consumer reads it — first matching range wins.
 """
+import os
+
 import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueRule, LengthBand
-from pipeline.regs.table.corpus import rules
+from pipeline.regs.table import corpus
+
+#: `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
+_BUNDLE = str(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)
+
+
+def rules():
+    return corpus.rules(_BUNDLE)
 
 
 def keep(bands, cm, take=None):

@@ -12,9 +12,14 @@
 #   `review`     an agent second pass over the last parse's batches (strict checklist). Findings
 #                are written to the work dir's reviews/ — never onto the entries.
 #   `repass`     re-parse ONLY the review-flagged entries, with the findings as hints.
+#                `repass --replace-edited` also overwrites entries edited since ingest (read KEPT first).
+#   `ingest`     re-apply the work dir's responses — NO dispatch, no credits. `ingest --replace-edited`
+#                is how to act on a KEPT report without paying for the parse again.
+#   `seed-ledger` record every checked-in entry as ingest's own write (`ingested.json`), so a repass
+#                can replace an entry nobody has edited since. No credits.
 #   `status`     entry counts, review findings, and what to run next.
 #
-#   bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>
+#   bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|ingest|seed-ledger|status>
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -32,6 +37,19 @@ CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 EXPORT=($PY -m pipeline.regs.parsing.batch_exporter --registry "$REGISTRY" --batch-size "$BATCH_SIZE")
 DISPATCH=($PY -m pipeline.regs.parsing.dispatch --concurrency "$CONCURRENCY" --claude-bin "$CLAUDE_BIN")
 RESP="$($PY -c 'from pipeline.regs.parsing.io import default_work_dir; print(default_work_dir()/"responses")')"
+
+# `--replace-edited` is passed EXPLICITLY, by name, to `repass` and `ingest` only — never set by an
+# environment variable, because it overwrites curator edits and must be typed to happen.
+REPLACE=()
+case "${2:-}" in
+  "") ;;
+  --replace-edited) REPLACE=(--replace-edited) ;;
+  *) echo "  ✗ unknown option: $2 (only --replace-edited, on repass or ingest)"; exit 1 ;;
+esac
+if [ ${#REPLACE[@]} -gt 0 ] && [ "${1:-}" != repass ] && [ "${1:-}" != ingest ]; then
+  echo "  ✗ --replace-edited applies to repass and ingest only"; exit 1
+fi
+INGEST=($PY -m pipeline.regs.parsing.ingest_catalogue --out data/curated/regulations/entries/catalogue)
 
 # NO DEFAULT. `parse` spends credits and its first act is an export that DELETES the work dir's
 # responses, so a bare `run_parse.sh` — typed to see the usage text — silently destroys the raw
@@ -55,10 +73,7 @@ case "$CMD" in
     "${EXPORT[@]}" --skip-existing
     echo "== parse ($MODEL) ==";  "${DISPATCH[@]}" --model "$MODEL"
     echo "== validate + apply (nothing partial is written) =="
-    $PY -m pipeline.regs.parsing.ingest_catalogue \
-        --batch "$RESP"/../batches/batch_*.json \
-        --response "$RESP"/batch_*.json \
-        --out data/curated/regulations/entries/catalogue
+    "${INGEST[@]}" --batch "$RESP"/../batches/batch_*.json --response "$RESP"/batch_*.json
     ;;
 
   parse-dry)  # export batches only — NO dispatch, no credits. Read the prompt first.
@@ -98,11 +113,19 @@ case "$CMD" in
     echo "  model=$ESCALATE_MODEL (flagged entries only)"
     "${EXPORT[@]}" --flagged
     "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --force
-    echo "== validate + apply =="
-    $PY -m pipeline.regs.parsing.ingest_catalogue \
-        --batch "$RESP"/../batches/batch_*.json \
-        --response "$RESP"/batch_*.json \
-        --out data/curated/regulations/entries/catalogue
+    echo "== validate + apply ${REPLACE[*]:-} =="
+    "${INGEST[@]}" --batch "$RESP"/../batches/batch_*.json --response "$RESP"/batch_*.json \
+        ${REPLACE[@]+"${REPLACE[@]}"}
+    ;;
+
+  ingest)  # re-apply the responses already in the work dir — no dispatch, NO credits
+    echo "== validate + apply ${REPLACE[*]:-} (no dispatch) =="
+    "${INGEST[@]}" --batch "$RESP"/../batches/batch_*.json --response "$RESP"/batch_*.json \
+        ${REPLACE[@]+"${REPLACE[@]}"}
+    ;;
+
+  seed-ledger)  # the checked-in entries are the curated truth: record each as ingest's own write
+    "${INGEST[@]}" --seed-ledger
     ;;
 
   status)  # where you left off: entry counts, review state, and WHAT TO RUN NEXT (no credits)
@@ -161,12 +184,15 @@ PYEOF
 
   ""|-h|--help|help|*)
     case "$CMD" in ""|-h|--help|help) ;; *) echo "  ✗ unknown subcommand: $CMD" ;; esac
-    echo "usage: bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>"
+    echo "usage: bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|ingest|seed-ledger|status>"
     echo "  all        parse, then review — the usual full run                      (credits)"
     echo "  parse      parse the rows not yet in the catalogue, then ingest          (credits)"
     echo "  parse-dry  export the batches only; read a prompt before spending anything"
     echo "  review     review the last parse's batches; findings go to reviews/     (credits)"
     echo "  repass     re-parse the review-flagged entries on \$ESCALATE_MODEL       (credits)"
+    echo "             repass --replace-edited also overwrites entries edited since ingest"
+    echo "  ingest     re-apply the work dir's responses; no dispatch    [--replace-edited]"
+    echo "  seed-ledger  record the checked-in entries as ingested, so repass can replace them"
     echo "  status     entries, review findings, rows remaining, and what to run next"
     exit 1
     ;;

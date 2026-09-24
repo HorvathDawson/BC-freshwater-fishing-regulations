@@ -205,12 +205,12 @@ function base(r: Row): Base {
 }
 function placed(r: Row, where: string): Omit<PlacedBase, keyof Base> {
   const placement = str(r.placement) as Placement;
-  // A placement this client does not know is a build that added one without telling us. It
-  // must not silently read as bound; it reads as uncertain.
-  const known = PLACEMENTS.has(placement);
-  if (!known) console.warn(`${where}: unknown placement ${JSON.stringify(placement)}`);
-  return { placement: known ? placement : "unresolved",
-           uncertain: !known || Number(r.uncertain) === 1,
+  // A placement this client does not know is a build that added one without telling us — a
+  // build/version mismatch. It fails here; read as anything, it would be a guess.
+  if (!PLACEMENTS.has(placement))
+    throw new Error(`${where}: unknown placement ${JSON.stringify(placement)} — the bundle is `
+                    + `newer than this client`);
+  return { placement, uncertain: Number(r.uncertain) === 1,
            unresolved: nullable(r.unresolved) };
 }
 const recordOf = (r: Row, where: string): Rec => json<Rec>(r.record, `${where} record`);
@@ -311,8 +311,13 @@ export function makeLicensingReader(db: Db): LicensingReader {
           const kind = str(r.kind);
           const via = str(r.via) as LicensingVia;
           const k = key(str(r.entry_id), str(r.record_id));
-          // An unknown `via` reads as contested — "check" — never as a clean binding.
-          const how: LicensingVia = VIAS.has(via) ? via : "contested";
+          // An unknown `via` is a build/version mismatch, like an unknown placement: it fails.
+          // Read as anything — even "contested" — it would be this client guessing.
+          if (!VIAS.has(via))
+            throw new Error(`licensing_set: unknown via ${JSON.stringify(via)} on ${kind} `
+                            + `${str(r.entry_id)}#${str(r.record_id)} — the bundle is newer than `
+                            + `this client`);
+          const how: LicensingVia = via;
           const slot = out.get(sid) ?? { designations: [], notClassified: [], requirements: [],
                                          alternatives: [] };
           const miss = () => { throw new Error(

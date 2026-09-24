@@ -1,15 +1,14 @@
-"""Date-window parsing for parsed rules — turn the verbatim `Rule.dates` strings into validated
-structured windows.
+"""The DFO feed's date windows — one `Dates` cell ("Apr 1 to Jun 30") to a `DateWindow`.
 
-The parser stores dates VERBATIM (exact substrings of rule_text, so the chain-of-custody holds);
-this module derives the structured form deterministically from those strings. Because the structure is
-COMPUTED, not authored by the model, it can't be hallucinated — and if a verbatim string doesn't parse
-to a real calendar window (e.g. "Jun 31", a garbled month), `date_parse_errors` reports it and
-`Rule` validation fails. That's the guard against "a hallucinated date that reads plausibly."
+The DFO pages print a season as free text in a table cell; `typed.interpret_dates` runs this on
+every one, and a cell that does not parse goes to review rather than becoming a window the page
+never printed.
 
 Handled: "Apr 1 - Jun 30", "Jan 1 to Dec 31", "Sept 1 – Oct 15", "April 1 through June 30", a lone
-"Apr 1" (single day). Separators: -, –, —, "to", "through". Month names: full, 3-letter, and "Sept".
-Cross-year windows ("Nov 1 - Mar 31") are stored as-is; the consumer handles wrap-around.
+"Apr 1" (single day), the same-month shorthand "May 1-31". Separators: -, –, —, "to", "through".
+Month names: full, 3-letter, and "Sept". A window whose end precedes its start ("Nov 1 - Mar 31")
+crosses the new year. The synopsis catalogue has its own, stricter reader
+(`catalogue.parse_date_range`), which refuses a lone day: a synopsis season is always a range.
 """
 
 from __future__ import annotations
@@ -93,16 +92,3 @@ def parse_date_window(text: str) -> "DateWindow | None":
     if b is None:
         return None
     return DateWindow(a[0], a[1], b[0], b[1])
-
-
-# `parse_date_windows` (plural) was here. Its only callers were the bundle's `rule.windows` and the
-# app's dev fixture, both reading prose-era date strings the catalogue no longer has — which is how
-# every season went missing from the app. Seasons are `CatalogueRule.when` now; the one live user
-# of this module is the DFO feed (`parse_date_window`, singular).
-
-
-def date_parse_errors(dates: list[str]) -> list[str]:
-    """Error strings for any date that doesn't resolve to a real calendar window — the hallucination
-    guard used by Rule validation. Empty = all dates parse cleanly."""
-    return [f"date '{d}' does not parse to a valid calendar window (bad month/day or format)"
-            for d in dates if parse_date_window(d) is None]

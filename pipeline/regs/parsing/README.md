@@ -13,7 +13,7 @@ in `prompts/CHAT_INVOCATION.md`.
 Everything runs through the shell script — the Python modules are building blocks it calls:
 
 ```bash
-bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|status>
+bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|ingest|seed-ledger|status>
 ```
 
 | subcommand | what it does | credits? |
@@ -22,11 +22,13 @@ bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-dry|review|repass|statu
 | `parse`     | export the rows not yet in the catalogue → parse → ingest | **yes** |
 | `parse-dry` | export the batches only, to read a prompt before spending anything | no |
 | `review`    | an independent agent reviews the last parse's batches; findings → the work dir's `reviews/` | **yes** |
-| `repass`    | re-parse ONLY the entries the review flagged high/medium, with the findings as hints, on `ESCALATE_MODEL` | **yes** |
+| `repass`    | re-parse ONLY the entries the review flagged high/medium, with the findings as hints, on `ESCALATE_MODEL`. `repass --replace-edited` also overwrites entries edited since ingest | **yes** |
+| `ingest`    | re-apply the work dir's responses, no dispatch. `ingest --replace-edited` is how to act on a KEPT report without paying for the parse again | no |
+| `seed-ledger` | record every checked-in entry as ingest's own write (`ingested.json`) — see below | no |
 | `status`    | entry counts, review states and flagged entries, synopsis rows still unparsed, what to run next | no |
 
 ⛔ **HUMAN-ONLY**: `all` / `parse` / `review` / `repass` spend the user's credits — Claude/agents must
-hand over the command, never run it. `parse-dry` / `status` are local and safe.
+hand over the command, never run it. `parse-dry` / `ingest` / `seed-ledger` / `status` are local.
 
 Env knobs: `REGISTRY`, `BATCH_SIZE`, `MODEL` (parse), `REVIEW_MODEL`, `ESCALATE_MODEL` (repass),
 `CONCURRENCY`, `CLAUDE_BIN`.
@@ -62,7 +64,14 @@ export deletes every review older than the batches it writes), and keeps them in
 **A repass does not overwrite a curator's edit.** Ingest records a digest of every entry it writes
 in the work dir's `ingested.json`. It replaces an entry already on disk only if the file's copy is
 still the one it wrote; an entry edited since — or one the ledger never saw — is reported as KEPT
-and left alone. `ingest_catalogue --replace-edited` overrides that once you have read the report.
+and left alone. `run_parse.sh ingest --replace-edited` overrides that once you have read the report
+(`repass --replace-edited` does it in the same run).
+
+**The ledger is seeded, not grown from nothing.** Without `ingested.json` every entry is one the
+ledger never saw, so a repass would keep all of them. `run_parse.sh seed-ledger`
+(`ingest_catalogue --seed-ledger`) records every checked-in entry as it is on disk now — the
+checked-in corpus IS the curated truth — so a repass replaces an entry nobody has touched since and
+keeps one edited after the seed. It was seeded on 2026-09-23 (1,480 entries).
 
 ## Modules (building blocks — not the user entry point)
 
@@ -89,5 +98,5 @@ and left alone. `ingest_catalogue --replace-edited` overrides that once you have
   a whole, through `CatalogueFile`; an untouched neighbour is written back byte for byte.
 - Nothing partial is written: an entry validates whole or is reported and left out.
 - The region files are the durable progress. The work dir is transient — deleting it never loses
-  a parsed entry, but it does lose the review findings and the ledger, after which a repass keeps
-  every existing entry until `--replace-edited`.
+  a parsed entry, but it does lose the review findings and the ledger. Re-seed it
+  (`run_parse.sh seed-ledger`) before the next repass, or that repass keeps every existing entry.
