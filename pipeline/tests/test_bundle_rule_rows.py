@@ -58,7 +58,7 @@ def test_an_empty_json_collection_is_truthy_and_so_can_never_stand_in_for_a_flag
 def test_the_row_is_the_length_the_insert_expects():
     """The INSERT names its columns because a positional list once wrote a 42 MB bundle with
     zero entries in it. This holds the row to the same count from the other side."""
-    assert len(_fields()) == len(_cols()) == 20
+    assert len(_fields()) == len(_cols()) == 22
 
 
 def test_species_survive_as_json_not_python_repr():
@@ -303,21 +303,6 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
         ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")]
     assert lifted >= 80
-    # the z6 steelhead self-lift, and nothing else
-    assert silent == [("z6:steelhead_stream_closure", "steelhead_stream_closure.r1")]
-
-
-def test_widened_is_exactly_the_shape_the_model_refuses():
-    """`build_section_data._widened` marked rules the book restricts to a part and the atlas bound
-    whole. The model now refuses that shape (`whole` + `extent_text`), so on a current bundle it is
-    empty; a `whole` qualified by an item is a place of its own and was never widened."""
-    import sqlite3
-    from pipeline.tools.build_section_data import _widened
-    db = sqlite3.connect(":memory:")
-    db.execute("CREATE TABLE rule (entry_id, rule_id, extent_text, conditions, uncertain)")
-    db.executemany("INSERT INTO rule VALUES (?,?,?,?,?)", [
-        ("e", "bare", "Salmon Arm Bay", json.dumps({"extents": [{"op": "whole"}]}), 0),
-        ("e", "qual", "lakes of the Fraser watershed",
-         json.dumps({"extents": [{"op": "whole", "item_id": "gnis:39325"}]}), 0),
-        ("e", "unbound", "on parts", "{}", 1)])
-    assert _widened(db) == {("e", "bare")}
+    # nothing lifts itself: the z6 steelhead exemption is its own rule, placed on the five
+    # mainstems (steelhead_stream_closure.r2), so no lift is dropped
+    assert silent == []

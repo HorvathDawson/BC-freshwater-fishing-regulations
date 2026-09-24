@@ -99,7 +99,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
     writer read — one pass over the corpus, so the two halves can never read different files."""
     from pipeline.regs.parsing.catalogue import (
         PROVINCIAL_ANGLER_DOCUMENTS, _DOC_WORDS, Alternative, Designation, Document, Exemption,
-        LicenceTerms, NotClassified, Requirement, licensing_label,
+        LicenceTerms, NotClassified, Requirement, compose_licensing, licensing_parts,
     )
 
     placements_file = reaches / "licensing_placement.jsonl"
@@ -207,9 +207,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
                                              "licence_terms", "exemption", "alternative")}
     for (eid, rid), (ce, x) in sorted(records.items()):
         sib = {r.rule_id: r for r in ce.rules}
-        lab = licensing_label(x, sib, units=units, refs=refs)
+        # THE PARTS, and the one preview composed from them (`catalogue.compose_licensing`).
+        parts = licensing_parts(x, sib, units=units, refs=refs)
         placement, uncertain, unres = place((eid, rid))
-        common = (lab, x.verbatim, x.review_reason or None, _dump(x))
+        # in the model's order (`LICENSING_PARTS`), which `_j` would sort away
+        common = (compose_licensing(parts),
+                  json.dumps(parts, separators=(",", ":"), ensure_ascii=False), x.verbatim, x.review_reason or None,
+                  _dump(x))
         if isinstance(x, Designation):
             rows["designation"].append((
                 eid, rid, x.classified, x.unit, x.unit_name,
@@ -232,28 +236,28 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         else:                                                           # pragma: no cover
             raise SystemExit(f"licensing: {eid}#{rid} is an unknown kind {x.kind!r}")
 
-    tail = "label, verbatim, review_reason, record"
+    tail = "label, parts, verbatim, review_reason, record"
     db.executemany(
         "INSERT INTO designation (entry_id, designation_id, classified, unit, unit_name, "
-        f"placement, uncertain, unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        f"placement, uncertain, unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         rows["designation"])
     db.executemany(
         "INSERT INTO not_classified (entry_id, not_classified_id, placement, uncertain, "
-        f"unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?)", rows["not_classified"])
+        f"unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?,?)", rows["not_classified"])
     db.executemany(
         "INSERT INTO requirement (entry_id, req_id, on_designation, authority, water, "
-        f"placement, uncertain, unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        f"placement, uncertain, unresolved, {tail}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         rows["requirement"])
     db.executemany(
         "INSERT INTO licence_terms (entry_id, terms_id, document, classified, units, "
-        f"{tail}) VALUES (?,?,?,?,?,?,?,?,?)", rows["licence_terms"])
+        f"{tail}) VALUES (?,?,?,?,?,?,?,?,?,?)", rows["licence_terms"])
     db.executemany(
         f"INSERT INTO exemption (entry_id, exemption_id, documents, {tail}) "
-        "VALUES (?,?,?,?,?,?,?)", rows["exemption"])
+        "VALUES (?,?,?,?,?,?,?,?)", rows["exemption"])
     db.executemany(
         "INSERT INTO alternative (entry_id, alternative_id, alternative_to_entry, "
         f"alternative_to_id, placement, uncertain, unresolved, {tail}) "
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?)", rows["alternative"])
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", rows["alternative"])
     for t, rs in rows.items():
         cov.filled(t, len(rs))
 

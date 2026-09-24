@@ -301,7 +301,6 @@ EDITS = {
     "rule:tackle_restriction": _edit_gear("tackle_restriction"),
     "rule:method_rule": _edit_while,
     "rule:vessel_rule": _edit_vessel,
-    "rule:angling_from_vessel_prohibited": _edit_review("angling_from_vessel_prohibited"),
     "rule:navigation_duty": _edit_review("navigation_duty"),
     "rule:angler_closure": _edit_angler_closure,
     "rule:handling_rule": _edit_conduct,

@@ -151,3 +151,93 @@ def test_the_limit_is_applied_AFTER_the_tributary_walk():
 
     assert set(binding.sections) == {"main", "in"}, "the out-of-area tributary must be dropped"
     assert "out" not in binding.sections
+
+
+# --------------------------------------------------------------------------- #
+# WALK BEFORE AREA — the named water is walked whole, then the area is applied.
+#
+# "No fishing in the Fraser River watershed in Region 6" and "lake trout from the Fraser
+# watershed" (Region 6's table) bound NOTHING: `whole` Fraser ∩ Region 6 is empty — no Fraser
+# mainstem runs through Region 6 — so the walk had no seed. The user's ruling: walk the whole
+# named water, then clip what it found to the area.
+# --------------------------------------------------------------------------- #
+
+def test_the_seed_is_the_whole_named_water_not_its_part_in_the_area():
+    from pipeline.atlas.reach.extent import resolve_extent
+    reg = {"gnis:1": _Reg(["m1", "m2"]), "area:region:6": _Reg(["t1", "t2"])}
+    got = resolve_extent(reg, _EmptyGraph(), [],
+                         {"op": "whole", "item_id": "gnis:1", "within_area": "area:region:6"})
+    assert got["sections"] == []                       # no mainstem inside the area…
+    assert got["seed"] == ["m1", "m2"]                 # …but the walk starts from all of it
+    assert got["within_area"] == ["t1", "t2"]
+
+
+def test_a_within_extent_has_no_seed():
+    """An area extent is already the area; nothing about it changes."""
+    from pipeline.atlas.reach.extent import resolve_extent
+    reg = {"area:basin:100-": _Reg(["a", "b"]), "area:region:6": _Reg(["b", "c"])}
+    got = resolve_extent(reg, _EmptyGraph(), [], {"op": "within", "area_id": "area:basin:100-",
+                                                  "within_area": "area:region:6"})
+    assert got["sections"] == ["b"] and "seed" not in got
+
+
+def _walk_from(seen):
+    """A walk that records what it was seeded with and returns every tributary of the Fraser."""
+    def expand(direct, only=False):
+        seen.append(set(direct))
+        return {"m1", "m2", "t1", "t2", "x1"} - (set() if not only else {"m1", "m2"})
+    return expand
+
+
+def _fraser_in_region_6():
+    return [{"sections": [], "seed": ["m1", "m2"], "unclassified": [], "ambiguous_cut": [],
+             "window": None, "within_area": ["t1", "t2"]}]
+
+
+def test_a_watershed_in_an_area_binds_its_tributaries_inside_the_area():
+    from pipeline.atlas.reach.classify import classify
+    seen: list = []
+    b, _ = classify("z6:iskut_fraser_closure", {"rule_id": "r2", "extents": [{"op": "whole"}]},
+                    _fraser_in_region_6(), registry={}, covered_ids=[], scope_clipped=False,
+                    entry_has_registry=False, tributaries=True,
+                    expand_tributaries=_walk_from(seen))
+    assert seen == [{"m1", "m2"}]                       # walked from the whole Fraser
+    assert b.outcome.value == "bound" and b.sections == ("t1", "t2")   # then clipped to R6
+
+
+def test_mutation_clipping_the_seed_first_binds_nothing():
+    """The old order, pinned as the failure it was: seeded from the (empty) part inside the
+    area, the same rule is unresolved. If WALK_BEFORE_AREA is turned off this is what returns."""
+    import pipeline.atlas.reach.classify as C
+    seen: list = []
+    old = C.WALK_BEFORE_AREA
+    C.WALK_BEFORE_AREA = False
+    try:
+        b, _ = C.classify("z6:iskut_fraser_closure", {"rule_id": "r2", "extents": [{"op": "whole"}]},
+                          _fraser_in_region_6(), registry={}, covered_ids=[],
+                          scope_clipped=False, entry_has_registry=False, tributaries=True,
+                          expand_tributaries=_walk_from(seen))
+    finally:
+        C.WALK_BEFORE_AREA = old
+    assert b.outcome.value == "unresolved" and seen == []
+
+
+def test_a_rule_that_does_not_walk_is_still_only_the_part_inside_the_area():
+    """No widening for the common case: without a walk, `seed` is never read."""
+    from pipeline.atlas.reach.classify import classify
+    per = [{"sections": ["m2"], "seed": ["m1", "m2"], "unclassified": [], "ambiguous_cut": [],
+            "window": None, "within_area": ["m2", "t1"]}]
+    b, _ = classify("z7a:sara_sturgeon", {"rule_id": "r1", "extents": [{"op": "whole"}]}, per,
+                    registry={}, covered_ids=[], scope_clipped=False, entry_has_registry=False)
+    assert b.sections == ("m2",)
+
+
+def test_an_area_scoped_entry_clips_after_the_walk_and_a_reach_scoped_one_before():
+    """A zone chapter's scope (its region) is the same kind of limit as `within_area` and joins
+    it; a row's scope ("upstream of the CPR Bridge") still decides where its walk starts."""
+    from pipeline.atlas.reach.build import _clip
+    got = {"sections": [], "seed": ["m1", "m2"], "unclassified": [], "within_area": ["t1", "t2"]}
+    area = _clip(got, {"t2", "m9"}, area_scope=True)
+    assert area["seed"] == ["m1", "m2"] and area["within_area"] == ["t2"]
+    reach = _clip(got, {"m2"}, area_scope=False)
+    assert reach["seed"] == ["m2"] and reach["within_area"] == ["t1", "t2"]

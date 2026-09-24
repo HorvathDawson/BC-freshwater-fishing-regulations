@@ -665,7 +665,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
 
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
-          reaches: Path | None = None) -> Path:
+          reaches: Path | None = None, entries: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
 
     ``data_dir`` is where FETCHED source lives, and it comes from config — not from anything
@@ -738,8 +738,12 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             f"{GENERATED.reaches / build_dir.name}")
     else:
         print(f"     rules: reading {_reaches}")
-        _rules.write(db, _reaches, CURATED.regulations.entries.catalogue.parent, cov,
-                     build_dir=build_dir)
+        # `entries` names a side copy of the entry sources, for a side build against a reach run
+        # made from that copy (`reach.cli --entries`); the two must be the same corpus, and
+        # `rules.write` refuses a run that binds rules the entries do not have.
+        _rules.write(db, _reaches,
+                     Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
+                     cov, build_dir=build_dir)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.

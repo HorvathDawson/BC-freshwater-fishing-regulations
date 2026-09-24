@@ -434,3 +434,31 @@ def test_kootenay_river_waterbody_name_cleaning(parser, pdf):
     assert raw_regs_contain(
         kootenay, "White River"
     ), f"Expected 'White River' in raw regulations for Kootenay River"
+
+
+@pytest.mark.parametrize("pdf_page, printed", [
+    (16, 14),    # faux-bold footer: the raw text reads "1144" — dedupe or it is 1144
+    (17, 15),
+    (42, 40),    # last page before the centre gloss: printed = PDF - 2
+    (48, 42),    # the Region 5 chapter page, first after the gloss and its map
+    (49, 43),    # after it: printed = PDF - 6
+    (77, 71),
+])
+def test_printed_page_is_read_off_the_footer(pdf, pdf_page, printed):
+    from pipeline.regs.extraction.extract_synopsis import printed_page_number
+    assert printed_page_number(pdf.pages[pdf_page - 1]) == printed
+
+
+def test_a_row_carries_the_printed_page_and_keeps_the_pdf_index(parser, pdf):
+    """`page` is what the book prints (its own cross-references say "see page 24"); the PDF
+    index stays as `pdf_page`, which keys the row image."""
+    result = parser.extract_rows(pdf.pages[48])
+    assert result.rows
+    assert {(r.page, r.pdf_page) for r in result.rows} == {(43, 49)}
+    assert all(r.image.startswith("page_049_") for r in result.rows)
+    assert result.metadata.page_number == 49
+
+
+def test_unnumbered_pages_have_no_printed_number(pdf):
+    from pipeline.regs.extraction.extract_synopsis import printed_page_number
+    assert printed_page_number(pdf.pages[44]) is None      # the centre gloss (PDF 45)

@@ -126,6 +126,16 @@ class Extent(BaseModel):
         "with only a single-valued field it cannot be said at all. The two fields are unioned, so "
         "`outside_area` keeps working and needs no migration.",
     )
+    outside_items: List[str] = Field(
+        default_factory=list,
+        description="SUBTRACT WATERS — registry item ids (`wbk:…`, `gnis:…`) — from whatever this "
+        "extent selects, after any walk, like `outside_area`. A `within(area)` takes every water "
+        "the polygon touches (the atlas flags a lake that reaches into an area, because a lake is "
+        "never cut), so an area row can land on a lake that is almost wholly outside it: the "
+        "Creston Valley WMA's 'bass daily quota = unlimited' bound all of Kootenay Lake (1% inside "
+        "the WMA), the Chilkoot Trail's 'No Fishing' all of Bennett Lake (0.5% inside). This is "
+        "how such a lake is taken back out; it is also the 'except X Lake' a `within` could not say.",
+    )
 
     @model_validator(mode="after")
     def _check_arity(self) -> "Extent":
@@ -142,6 +152,12 @@ class Extent(BaseModel):
             raise ValueError(f"op whole takes no split ids, got {n}")
         if self.outside_area and self.outside_area in self.outside_areas:
             raise ValueError(f"{self.outside_area!r} is in both outside_area and outside_areas")
+        if len(set(self.outside_items)) != len(self.outside_items):
+            raise ValueError(f"outside_items has duplicates: {self.outside_items}")
+        if any(str(x).startswith("area:") for x in self.outside_items):
+            raise ValueError("outside_items names waters; an area is subtracted by outside_area(s)")
+        if set(self.outside_items) & set(self.scope_ids):
+            raise ValueError("an extent cannot subtract the water it is scoped to")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:

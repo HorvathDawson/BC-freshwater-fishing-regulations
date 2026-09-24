@@ -270,6 +270,45 @@ def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
     return out
 
 
+#: A COUNT THE BOOK SPELLS AS A WORD. "Lake trout possession quota = 2 (only one over 50 cm)" is
+#: printed on Okanagan Lake and five Nation-area lakes, and the digits-only check refused the
+#: "only one" half, so six sub-limits were dropped and parked in `review_reason`.
+#:
+#: COUNTS ONLY — `take` and `per_daily`. A size, a speed or a power is printed in digits
+#: everywhere in the book, and a word matching one would be a coincidence, not a statement.
+#:
+#: "a" / "an" ARE NOT ACCEPTED as one. They occur in nearly every sentence ("a boat", "an
+#: electric motor"), so accepting them would let a take of 1 pass on almost any verbatim and the
+#: check would stop checking anything for the commonest sub-limit. Nor is "single" — in this book
+#: it is a hook ("single barbless hook"), never a quota. "none" is 0, which is not checked.
+_COUNT_WORDS = {
+    1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight",
+    9: "nine", 10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen",
+    15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty",
+}
+COUNT_FIELDS = frozenset({"take", "per_daily"})
+#: A POSSESSION MULTIPLIER in words: "no more than TWICE the daily quota" (`zp:quota_defaults`) is
+#: `per_daily: 2`. Only "twice" — "once" in this book means "after" ("once you have caught…").
+_MULTIPLIER_WORDS = {2: "twice"}
+
+
+def count_in_words(value, verbatim: str, field: str = "take") -> bool:
+    """Does `verbatim` spell the count `value` as a whole word ("one", "Two"; "twice" for a
+    `per_daily`)? Whole words only, so "one" is not found in "none" or "someone", and "ten" not
+    in "often"."""
+    if isinstance(value, float):
+        if not value.is_integer():
+            return False
+        value = int(value)
+    if not isinstance(value, int):
+        return False
+    words = [_COUNT_WORDS.get(value)]
+    if field == "per_daily":
+        words.append(_MULTIPLIER_WORDS.get(value))
+    return any(w and re.search(rf"(?<![A-Za-z]){w}(?![A-Za-z])", verbatim, re.IGNORECASE)
+               for w in words)
+
+
 def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
     """THE GATE AFTER THE MODEL: what `CatalogueEntry` cannot see from one field, run on a
     validated entry. Returns `(path, message)` pairs, `path` in the entry's own JSON keys
@@ -307,6 +346,8 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
                 continue
             printed = f"{value:g}" if isinstance(value, float) else str(value)
             if field in spell and any(f"{x:g}" in rule.verbatim for x in spell[field]):
+                continue
+            if field in COUNT_FIELDS and count_in_words(value, rule.verbatim, field):
                 continue
             if printed not in rule.verbatim:
                 out.append((["rules", i] + _field_path(field),

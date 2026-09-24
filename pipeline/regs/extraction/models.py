@@ -17,7 +17,11 @@ from attrs import define, asdict
 
 @define(frozen=True, cache_hash=True)
 class WaterbodyRow:
-    """Represents a single waterbody row extracted from the PDF."""
+    """Represents a single waterbody row extracted from the PDF.
+
+    `page` is the page number PRINTED in the synopsis (its footer); `pdf_page` is the page's index
+    in the PDF file, which keys `image`. They differ by 2 up to printed p. 40 and by 6 after the
+    centre gloss — see `extract_synopsis.printed_page_number`."""
 
     water: str
     mu: List[str]
@@ -26,6 +30,7 @@ class WaterbodyRow:
     page: int
     image: str
     region: Optional[str] = None
+    pdf_page: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

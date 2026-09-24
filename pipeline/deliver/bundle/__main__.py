@@ -20,13 +20,16 @@ ap.add_argument("--out", type=Path,
 ap.add_argument("--reaches", type=Path, default=None,
                 help="a reach run directory to read instead of the newest one under "
                      "generated.reaches that names this atlas (it must name it too)")
+ap.add_argument("--entries", type=Path, default=None,
+                help="a directory of entry sources to read instead of the curated ones — for a "
+                     "side build against a reach run made with `reach.cli --entries`")
 a = ap.parse_args()
 if a.build is None:
     a.build = GENERATED.require_build()
 print(f"bundling {a.build} -> {a.out}")
 # No data_dir: it comes from config. Passing `ROOT / "data"` here is what made the
 # fetched-source move invisible — build() had the right default and this overrode it.
-build(a.build, a.out, reaches=a.reaches)
+build(a.build, a.out, reaches=a.reaches, entries=a.entries)
 
 # THE PAIR THAT SHIPS, checked here because this is where it changes. A bundle built to a
 # side path is a normal thing to do — but the app opens the canonical one, and building a

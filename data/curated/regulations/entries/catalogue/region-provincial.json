@@ -180,7 +180,10 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_kind": "region",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -198,7 +201,10 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_kind": "region",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -210,7 +216,10 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_kind": "region",
+       "feature_types": [
+        "lake"
+       ]
       }
      ]
     }
@@ -839,7 +848,10 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_kind": "region",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -859,7 +871,10 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_kind": "region",
+       "feature_types": [
+        "lake"
+       ]
       }
      ]
     },
@@ -892,7 +907,7 @@
    "display_name": "Everywhere in B.C.",
    "regs_verbatim": "Possession quota: no more than twice the daily quota unless otherwise specified. Quotas are not cumulative: you cannot possess a quota from each region that you fish. There is no general minimum size limit for trout/char in B.C. waters, EXCEPT where specifically indicated in the Regional Daily Catch Quotas or for waters listed in the Regional Water-Specific Tables. Possession quota — no more than twice the daily quota unless otherwise specified.",
    "source_pages": [
-    8
+    9
    ],
    "extents": [
     {
@@ -921,7 +936,6 @@
      "rule_id": "quota_defaults.r2",
      "type": "advisory",
      "verbatim": "Quotas are not cumulative: you cannot possess a quota from each region that you fish.",
-     "period": "possession",
      "extents": [
       {
        "op": "within",
@@ -1063,7 +1077,7 @@
    "display_name": "Everywhere in B.C.",
    "regs_verbatim": "The annual province-wide quota for hatchery steelhead is 10. All wild steelhead must be released. Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch). You must immediately record your retention of hatchery steelhead on your basic angling licence. When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
    "source_pages": [
-    6
+    7
    ],
    "extents": [
     {
@@ -1268,7 +1282,7 @@
    "display_name": "Shuswap Lake",
    "regs_verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake. Required to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake.",
    "source_pages": [
-    6
+    7
    ],
    "licensing": [
     {
@@ -1368,7 +1382,7 @@
    "display_name": "Fraser watershed, Mission to Williams Lake River",
    "regs_verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo. This is a catch-and-release only fishery. This is the only white sturgeon fishery in the province's non-tidal waters.",
    "source_pages": [
-    6
+    7
    ],
    "extents": [
     {
@@ -1393,7 +1407,12 @@
        "splits": [
         "fraser_river__the_cpr_bridge_at_mission",
         "fraser_river__williams_lake_river_into_fraser_river"
-       ]
+       ],
+       "item_id": "gnis:39325"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:27764"
       }
      ]
     },
@@ -1697,7 +1716,7 @@
    "entry_id": "zp:conduct",
    "name": "Handling, transport and access",
    "display_name": "Everywhere in B.C.",
-   "regs_verbatim": "It is unlawful to waste the fish you catch. It is unlawful to release fish in a harmful manner if you are not going to keep your catch. It is unlawful to buy, sell or barter any fish caught by sport fishing. It is unlawful to have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C. Leave the head, tail, and all fins on your catch until you get them to your permanent residence. It is unlawful to enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission. A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a guide for fish. Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing. Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B. Leave the head, tail, and all fins on your catch until you get them to your permanent (ordinary) residence. A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so.",
+   "regs_verbatim": "It is unlawful to waste the fish you catch. It is unlawful to release fish in a harmful manner if you are not going to keep your catch. It is unlawful to buy, sell or barter any fish caught by sport fishing. It is unlawful to have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C. Do not keep angled fish alive in a \"livewell\" or other device, or on stringers, and never use live fish as bait or release your aquarium fish to the wild. \"High-grading\" is illegal. Leave the head, tail, and all fins on your catch until you get them to your permanent residence. It is unlawful to enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission. A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a guide for fish. Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing. Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B. Leave the head, tail, and all fins on your catch until you get them to your permanent (ordinary) residence. A person commits an offence if they do not hold a valid angling guide or assistant angling guide licence and act as a \"guide for fish\" or offer to do so.",
    "source_pages": [
     8,
     10
@@ -1785,6 +1804,67 @@
      "verbatim": "Enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission.",
      "conduct": [
       "do_not_enter_land_without_permission"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "conduct.r7",
+     "type": "handling_rule",
+     "verbatim": "Do not keep angled fish alive in a \"livewell\" or other device, or on stringers",
+     "conduct": [
+      "do_not_keep_catch_alive"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "conduct.r8",
+     "type": "bait_restriction",
+     "verbatim": "never use live fish as bait",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "live_fin_fish"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "conduct.r9",
+     "type": "handling_rule",
+     "verbatim": "release your aquarium fish to the wild",
+     "conduct": [
+      "do_not_release_aquarium_fish"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "conduct.r10",
+     "type": "handling_rule",
+     "verbatim": "\"High-grading\" is illegal.",
+     "conduct": [
+      "do_not_high_grade"
      ],
      "extents": [
       {
@@ -2090,7 +2170,7 @@
    "display_name": "Everywhere in B.C.",
    "regs_verbatim": "Measure your fish from the tip of the nose to the fork of the tail (fork length). never have in your possession while at or near any lake or stream, more fish than the allowable quota for that lake or stream",
    "source_pages": [
-    8
+    9
    ],
    "extents": [
     {
@@ -2114,7 +2194,6 @@
      "rule_id": "measuring_and_possession.r2",
      "type": "advisory",
      "verbatim": "never have in your possession while at or near any lake or stream, more fish than the allowable quota for that lake or stream",
-     "period": "possession",
      "extents": [
       {
        "op": "within",
@@ -2159,6 +2238,7 @@
    "display_name": "National Park Reserves",
    "regs_verbatim": "The seven National Parks within British Columbia are: Kootenay, Yoho, Glacier, Mount Revelstoke, Pacific Rim, Gwaii Haanas and Gulf Islands. All fresh waters within Pacific Rim National Park Reserve, Gwaii Haanas National Park Reserve and Gulf Islands National Park Reserve are closed to fishing.",
    "source_pages": [
+    9,
     10
    ],
    "extents": [

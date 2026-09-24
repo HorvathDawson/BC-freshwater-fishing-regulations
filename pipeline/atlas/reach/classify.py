@@ -61,6 +61,13 @@ AREA_CARVE_OUTS_UNBIND = True
 #: `within` area's members, so the seven zone rules that carry it on a watershed ignored it.
 FEATURE_TYPES_AFTER_WALK = True
 
+#: A WATERSHED LIMITED TO AN AREA IS WALKED FIRST AND CLIPPED AFTER. "Any stream in the Fraser
+#: River watershed in Region 6" names a watershed and an area; the area is applied to what the
+#: walk from the WHOLE named water finds (`extent.resolve_extent` hands over `seed`). Clipping the
+#: seed first left nothing to walk from where the named river never enters the area — Region 6
+#: holds no Fraser mainstem — so the rule bound nothing. The user's ruling (2026-09-24).
+WALK_BEFORE_AREA = True
+
 #: Water outside British Columbia is subtracted from every binding (`reach.outside`). The book
 #: does not govern it; 181 sections past the border carried a rule set with no provincial rule.
 OUTSIDE_BC_SUBTRACTED = True
@@ -152,12 +159,18 @@ def classify(
 
     # --- collect what resolved -------------------------------------------------
     sections: set[str] = set()
+    #: WHAT THE TRIBUTARY WALK STARTS FROM: each extent's `seed` when it has one (a named water
+    #: limited by `within_area` — the walk runs from the whole water and the area is applied to
+    #: what it finds, `WALK_BEFORE_AREA`), else its sections.
+    seeds: set[str] = set()
     resolved_any = False
     for i, got in enumerate(per_extent):
         if got is None:
             continue
         resolved_any = True
         sections |= set(got.get("sections") or ())
+        seeds |= set(got.get("seed") if (WALK_BEFORE_AREA and "seed" in got)
+                     else (got.get("sections") or ()))
 
         straddling = got.get("unclassified") or []
         if straddling:
@@ -183,7 +196,9 @@ def classify(
             return unresolved(Reason.unknown, "some extents unresolved and partial binding is off")
 
     # --- resolved, but selects nothing ----------------------------------------
-    if not sections:
+    # A walk whose seed lies wholly outside its area still selects something: its tributaries
+    # inside the area ("the Fraser River watershed in Region 6"). The area decides after the walk.
+    if not sections and not (tributaries and seeds and expand_tributaries is not None):
         if scope_clipped:
             # The Peace case: the rule describes a reach OUTSIDE the row it sits in.
             # The resolver is right; the curation is inconsistent. A real signal.
@@ -204,7 +219,7 @@ def classify(
                                tributaries_pending=True), diags
 
         direct = set(sections)
-        sections = set(expand_tributaries(direct, only=tributaries_only))
+        sections = set(expand_tributaries(seeds, only=tributaries_only))
         # THE INTERSECTION IS APPLIED HERE, after the walk, because the walk is what leaves the
         # area. "Any stream in the Fraser River Watershed OF REGION 5" is a watershed limited to an
         # administrative polygon, and filtering the seed instead would do nothing at all — the seed

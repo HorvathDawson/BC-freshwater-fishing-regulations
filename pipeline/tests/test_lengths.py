@@ -9,7 +9,7 @@ import os
 import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueRule, LengthBand
-from pipeline.regs.table import corpus
+from pipeline.deliver.bundle import read as corpus
 
 #: `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
 _BUNDLE = str(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)

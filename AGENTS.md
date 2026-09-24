@@ -62,17 +62,23 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     here (㉗), even in the "safe" direction.
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
-    `table.authority.source_of`) hands a rule its entry's `extents`; the entry's only clip.
+    `pipeline/deliver/bundle/read.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
     So every rule says where it is, or `CatalogueEntry` refuses it: `extents`, or its place in
     words — `extent_text` / `unresolved_locators` — and then it stays UNBOUND. Ingest writes
     the whole water (a zone entry: its area) onto a rule that says nothing about location
-    (`validate_catalogue.default_extents`), so the file states it. 142 rules have no extents
-    (2026-09-23), all with `extent_text`, 34 with `unresolved_locators`, 140 with a
-    `review_reason`: real, specific places ("500 m upstream and downstream of Causeway Road")
-    with no boundary to bind to. Defaulting applies a 500 m closure to an entire lake arm.
+    (`validate_catalogue.default_extents`), so the file states it. Defaulting applies a 500 m
+    closure to an entire lake arm. A place that is a PART of the rule's own water which nothing
+    draws ("500 m upstream and downstream of Causeway Road", "on parts") is `undrawn_part` beside
+    `[{op: whole}]`: placed on the water as a note, never colouring it (130 rules, 2026-09-24).
+    A part that is a place ON the water does not walk the row's tributaries
+    (`includes_tributaries: false`); only a complement ("other parts") keeps them. What is left with no
+    extents (14 rules) names a place that is not a part of the row's water, or a carve-out.
     An AREA rule (every extent `within`) with `unresolved_locators` is a carve-out no cut
-    expresses ("Bass: 20, excluding Mill Lake") and stays unbound too
-    (`classify.AREA_CARVE_OUTS_UNBIND`, 3 rules). They need curated splits.
+    expresses ("No powered boats … except Gold, Upper Campbell and Buttle lakes") and stays
+    unbound too (`classify.AREA_CARVE_OUTS_UNBIND`, 4 rules); `Extent.outside_items` can now subtract
+    the excepted lakes. A `within(area)` also holds every LAKE the polygon merely touches (lakes are
+    never cut): check the lakes an area rule lands on and take a mostly-outside one back out with
+    `outside_items` (Kootenay Lake from the Creston Valley WMA, Bennett Lake from the Chilkoot Trail).
     **Licensing records differ:** one with no `extents` takes its entry's at placement
     (`reach.licensing.place_record`). What a designation's `tributary_excludes` removes goes to
     the excluded water's own designation when it has exactly one (`carve_outs_to_owner`);

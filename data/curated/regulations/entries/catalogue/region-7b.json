@@ -8,7 +8,7 @@
    "region": "7b",
    "regs_verbatim": "Single barbless hook: must be used in all streams of Zone B, all year.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -56,7 +56,7 @@
    "region": "7b",
    "regs_verbatim": "Bait ban: applies to all streams of Zone B, all year. Fin fish may not be used as bait in any waters of Zone B.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -81,7 +81,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7b"
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -113,7 +116,7 @@
    "region": "7b",
    "regs_verbatim": "Set lining: is not permitted in Zone B. year. Fin fish may not be used as bait in any waters of Zone B. Set lining: not permitted in Zone B.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -150,7 +153,7 @@
    "region": "7b",
    "regs_verbatim": "Zone B Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 2 lake trout, 1 bull trout. NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length. And you must release: Rainbow trout of any size from streams, May 1-June 15, Lake trout under 30 cm, Lake trout of any size, Sept 15-Oct 31, Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -208,7 +211,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7b"
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -295,7 +301,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7b"
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -406,7 +415,7 @@
    "region": "7b",
    "regs_verbatim": "Arctic grayling: 2 (none under 30 cm and only 1 over 45 cm). And you must release: any size, May 1-June 15, all from Williston Lake and its tributaries.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -543,7 +552,7 @@
    "region": "7b",
    "regs_verbatim": "Burbot: 5. Goldeye: 10. Inconnu: 1. Kokanee: 10 (none from streams, except Peace River). Northern pike: 3 (only 1 over 90 cm). Walleye: 3 (only 1 over 70 cm). And you must release: all from streams, Apr 1-May 15. Whitefish: 15 (all species combined). Yellow perch: 5.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -625,14 +634,12 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7b"
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ],
-     "extent_text": "except the Peace River",
-     "unresolved_locators": [
-      "the Peace River"
-     ],
-     "review_reason": "A carve-out with NO replacement rule to win the contest — this is the case that genuinely needs a subtraction, unlike the nested-area ones."
+     ]
     },
     {
      "rule_id": "species_quotas.r6",
@@ -729,7 +736,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7b"
+       "area_id": "area:region:7b",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -772,7 +782,7 @@
    "region": "7b",
    "regs_verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -854,7 +864,7 @@
    "region": "7b",
    "regs_verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
    "source_pages": [
-    62
+    64
    ],
    "rules": [
     {
@@ -879,12 +889,15 @@
    "region": "7b",
    "regs_verbatim": "THIN ICE AND OPEN WATER Due to aeration projects, dangerous thin ice and open water may exist on Inga and Sundance lakes. It is prohibited to enter within the fenced area surrounding the aerator.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
      "op": "whole",
-     "item_id": "wbk:329657335"
+     "item_ids": [
+      "wbk:329657335",
+      "wbk:329473810"
+     ]
     }
    ],
    "rules": [
@@ -893,14 +906,32 @@
      "type": "hazard",
      "verbatim": "Due to aeration projects, dangerous thin ice and open water may exist on Inga and Sundance lakes.",
      "obligation": "should",
-     "extent_text": "Inga and Sundance lakes"
+     "extent_text": "Inga and Sundance lakes",
+     "extents": [
+      {
+       "op": "whole",
+       "item_ids": [
+        "wbk:329657335",
+        "wbk:329473810"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "thin_ice.r2",
      "type": "hazard",
      "verbatim": "It is prohibited to enter within the fenced area surrounding the aerator.",
      "extent_text": "the fenced area surrounding the aerator",
-     "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — as access_permission it rendered 'Angling prohibited', which would tell a reader the lake is closed to fishing when it is not. Typed hazard until an access type exists that can say 'do not enter' without implying a fishing ban. Sundance Lake is not in the registry index."
+     "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — typed hazard until an access type can say 'do not enter' without implying a fishing ban. Placed on the two lakes (Sundance is `wbk:329473810`, the polygon r7:sundance_lake@7-32 matched); the fenced area itself has no polygon.",
+     "extents": [
+      {
+       "op": "whole",
+       "item_ids": [
+        "wbk:329657335",
+        "wbk:329473810"
+       ]
+      }
+     ]
     }
    ]
   },
@@ -912,7 +943,7 @@
    "scope_note": "SPLIT: one sentence carried a 'should' and an offence. Rendering both as law is the mirror of rendering law as advice.",
    "regs_verbatim": "ICE FISHING HUTS Ice fishing huts should have the owner's contact information displayed in a prominent location when left unoccupied. Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act. Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -968,7 +999,7 @@
    "region": "7b",
    "regs_verbatim": "NOTE: Bull trout and Dolly Varden are two distinct species. Since only bull trout are found in the Peace Region, we have removed references to Dolly Varden here.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {
@@ -997,7 +1028,7 @@
    "region": "7b",
    "regs_verbatim": "NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace River and its tributaries using acoustic and radio telemetry. BC Hydro telemetry in the Site C Reservoir, Peace River and tributaries.",
    "source_pages": [
-    62
+    64
    ],
    "extents": [
     {

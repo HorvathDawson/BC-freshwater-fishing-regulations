@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.regs.table import corpus
-from pipeline.regs.table.authority import Authority, Scope, source_of
+from pipeline.deliver.bundle import read as corpus
+from pipeline.deliver.bundle.read import Authority, Scope, source_of
 
 REGION_5 = [{"op": "within", "area_id": "area:region:5"}]
 
@@ -30,7 +30,7 @@ def _rule(**kw):
 def test_own_region_extents_are_region_scope():
     s = source_of(_rule(extents=REGION_5))
     assert (s.authority, s.scope, s.region) == (Authority.region, Scope.region, "5")
-    assert s.is_base
+    assert s.rank == 3
 
 
 def test_own_area_extents_are_area_scope():
@@ -99,14 +99,19 @@ def test_the_corpus_carries_no_entry_extents(rules):
     assert rules and not any("entry_extents" in x for x in rules)
 
 
-def test_unplaced_zone_rules_that_state_their_region_are_region_scoped(rules):
-    """The region tables with a carve-out nothing can draw ("excluding Mill Lake") state their
-    region themselves, so they stay in that region's table without inheriting it."""
-    got = [x for x in rules if x["entry"].startswith("z") and x.get("uncertain")
+def test_zone_rules_that_state_their_region_are_region_scoped_placed_or_not(rules):
+    """A region table's rule states its region itself, so it stays in that region's table
+    without inheriting it — whether or not the reach builder placed it. (The carve-out rules
+    that used to be the unplaced examples, "Bass: 20 (excluding Mill Lake)", are placed since
+    the ruling that the excepted water's own row overrides; `uncertain` is set here to keep the
+    unplaced case tested — `source_of` must not read placement.)"""
+    got = [x for x in rules if x["entry"].startswith("z")
            and x["extents"] and all(e.get("op") == "within" and str(e.get("area_id") or "")
                                     .startswith("area:region:") for e in x["extents"])]
-    assert got, "no unplaced zone rule states a region — nothing here was tested"
-    assert [corpus.rid(x) for x in got if source_of(x).scope is not Scope.region] == []
+    assert got, "no zone rule states a region — nothing here was tested"
+    for x in got:
+        for y in (x, {**x, "uncertain": True}):
+            assert source_of(y).scope is Scope.region, corpus.rid(y)
 
 
 def test_corpus_carries_the_lifts(rules):

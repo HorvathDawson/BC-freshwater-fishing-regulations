@@ -13,7 +13,7 @@ import {
 } from "../../model";
 
 const RETENTION_TYPES = ["retention_limit", "stop_fishing_after_quota"];
-const VESSEL_TYPES = ["vessel_rule", "angling_from_vessel_prohibited"];
+const VESSEL_TYPES = ["vessel_rule"];
 const RETENTION_KEYS: (keyof Rule)[] = ["take", "unlimited", "may_target", "per_daily", "within",
   "lengths", "record_retention"];
 const VESSEL_KEYS: (keyof Rule)[] = ["aspect", "level", "max_power_kw", "max_kmh"];
@@ -202,7 +202,7 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
       </Group>
 
       <Group title="where" path={path} open
-        keys={["extents", "includes_tributaries", "tributaries_only", "tributary_excludes", "extent_text", "unresolved_locators"]}>
+        keys={["extents", "includes_tributaries", "tributaries_only", "tributary_excludes", "extent_text", "undrawn_part", "unresolved_locators"]}>
         <F path={`${path}.extents`} hint="the rule's own reach — never inherited from the entry">
           <ExtentEditor extents={r.extents ?? []} boundaries={boundaries} itemNames={itemNames}
             path={`${path}.extents`} onChange={(x) => set({ extents: x.length ? x : undefined })} />
@@ -222,6 +222,9 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
         </F>
         <F path={`${path}.extent_text`} hint="the place in the page's words, when no cut-point expresses it">
           <Text value={r.extent_text} label="extent_text" onChange={(x) => set({ extent_text: x })} />
+        </F>
+        <F path={`${path}.undrawn_part`} hint="holds only in this part of what the extents draw, and nothing draws the part — shown as a note, never coloured (replaces extent_text)">
+          <Text value={r.undrawn_part} label="undrawn_part" onChange={(x) => set({ undrawn_part: x })} />
         </F>
         <F path={`${path}.unresolved_locators`} deep hint="phrases nobody could bind — needs a review_reason">
           <Tags values={r.unresolved_locators} label="unresolved_locators"

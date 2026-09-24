@@ -14,19 +14,20 @@ pages inserted after that make the offset larger (Region 5 printed 42 is PDF 48)
 (`z<region>:…`, 90), or a provincial item (`zp:…`, 27). Total 1,510, in 11 files under
 `data/curated/regulations/entries/catalogue/`. An entry carries the printed passage
 (`regs_verbatim`), the registry items it covers (`matched`), and two lists:
-`rules` (3,348 in total) and `licensing` (110 in total). Every rule's `verbatim` must be a
+`rules` (3,359 in total) and `licensing` (110 in total). Every rule's `verbatim` must be a
 contiguous substring of the passage. That substring check is enforced on load.
 
-**Rule.** One printed regulation, typed. There are **14 types in 6 families**:
+**Rule.** One printed regulation, typed. There are **13 types in 6 families** (`angling_from_vessel_prohibited` is retired and refused on
+load: "no angling from boats" is a `method_rule` banning `angling` `when: {angler: in_boat}`):
 
 | family | types | rules |
 |---|---|---|
-| retention (what you may keep) | retention_limit, stop_fishing_after_quota | 1,801 |
-| gear_and_method (how you may fish) | bait_restriction, tackle_restriction, method_rule | 930 |
-| vessel | vessel_rule, angling_from_vessel_prohibited, navigation_duty | 405 |
-| information (governs nothing) | advisory, hazard, program_membership, facility | 186 |
+| retention (what you may keep) | retention_limit, stop_fishing_after_quota | 1,810 |
+| gear_and_method (how you may fish) | bait_restriction, tackle_restriction, method_rule | 945 |
+| vessel | vessel_rule, navigation_duty | 390 |
+| information (governs nothing) | advisory, hazard, program_membership, facility | 185 |
 | access | angler_closure (closed to one kind of angler, e.g. non-guided aliens on weekends) | 15 |
-| conduct | handling_rule | 11 |
+| conduct | handling_rule | 14 |
 
 **What competes.** Two rules compete only when they share `(type, dimension)`. The
 dimension is computed from the rule's fields. For retention it is the period
@@ -137,8 +138,8 @@ files, +11,171/−5,909.
 
 **Model size now.** `catalogue.py` holds 27 pydantic classes and 12 enums (29 classes at
 83a5dbd3, 39 now). It has 21 `@model_validator`s containing about 88 separate refusal
-checks, plus 444 lines of ingest checks in `validate_catalogue.py`. There are 14 rule types,
-6 families, 6 licensing kinds, 16 gear slots, 17 registered conduct acts and 6 exemptable
+checks, plus 444 lines of ingest checks in `validate_catalogue.py`. There are 13 rule types,
+6 families, 6 licensing kinds, 16 gear slots, 20 registered conduct acts and 6 exemptable
 zone defaults.
 
 **How much is prose.** 1,676 of the 3,072 lines in `catalogue.py` are code. The rest is 721
@@ -303,12 +304,15 @@ unbound ones.
   | other (redirect rows, word-number sub-limits, window-vs-band notes, …) | 67 |
 
   Nearly all of these are *placement* problems, not wrong readings.
-- **Unbound water rules: 234.** `no_extents` 149 (the place is printed but not drawable).
-  `no_sections_for_items` 75 plus `no_registry` 6: the 33 entries with an empty `matched`
-  hold 81 rules. `unknown` 2 (Brunette r1, Pitt r1). `area_scope` 1 (Wood River: `within`
-  with no area). `empty_after_scope` 1 (Peace r6).
-- **Rules with `extent_text` but no extents:** 155. A further 67 have both.
-  `unresolved_locators` is set on 41.
+- **Unbound rules: 71** (reach run 2026-09-24, merge round). `no_sections_for_items` 50: rows
+  with an empty `matched` (the Region-5 copies of MU 6-1 lakes are deliberate duplicates).
+  `no_extents` 14: the place is not a part of the row's water (tributary carve-outs such as
+  "except Quinsam River", "includes Upper Duncan River", two advisories). `locators_unresolved`
+  4: area rules whose printed exception no extent can subtract (Strathcona, Bowron ×3).
+  `unknown` 1 (Brunette r1), `area_scope` 1 (Wood River), `empty_after_scope` 1 (Peace r6).
+- **Undrawn parts:** 130 rules hold in a part of their water nothing draws; they sit on the
+  whole water as `undrawn_part` (a note, never a colour). 14 rules have `extent_text` and no
+  extents; 115 have both. `unresolved_locators` is set on 39.
 - **Entries the migrations touched.** The ingest ledger was re-seeded on 2026-09-23 at
   4965df95, recording 1,510 entries. **94 entries have been edited since** (71 water, 23
   zone), all by 9ba92c01. Relative to the 09-10 parse, 74 water entries have added, removed

@@ -8,7 +8,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout over 50 cm catch and release",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329682397"
@@ -48,7 +48,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily quota = 3: EITHER none over 60 cm, OR only 1 over 60 cm and the other 2 must be 60 cm or less; Arctic grayling daily\nquota = 3 (only 1 over 35 cm); northern pike daily quota = 5 (only 1 over 70 cm); whitefish daily quota = 5\nOnly one daily quota may be retained from Atlin Lake regardless of which side of the border the fish were taken",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:328961732"
@@ -194,7 +194,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** east of a line from Gullwing Creek to the south shore of Babine Lake\n**No Fishing** within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nThat section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page\n51); see Babine River regulations below (paragraphs 3 and 4)",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329026676"
@@ -214,8 +214,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extent_text": "east of a line from Gullwing Creek to the south shore of Babine Lake",
-     "review_reason": "line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole",
+     "undrawn_part": "east of a line from Gullwing Creek to the south shore of Babine Lake"
     },
     {
      "rule_id": "babine_lake.r2",
@@ -236,8 +241,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "within a 400 m radius of the mouth of Pinkut Creek",
-     "review_reason": "radius closure has no cut-point — item has no bindable boundaries besides op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): radius closure has no cut-point — item has no bindable boundaries besides op:whole",
+     "undrawn_part": "within a 400 m radius of the mouth of Pinkut Creek"
     },
     {
      "rule_id": "babine_lake.r3",
@@ -258,7 +268,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Incl. Tribs",
@@ -417,8 +427,19 @@
     },
     {
      "rule_id": "babine_river.r7",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena River",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "downstream_of",
@@ -478,7 +499,10 @@
    "region": "6",
    "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
    "source_pages": [
-    56
+    50
+   ],
+   "matched": [
+    "wbk:329126729"
    ],
    "rules": [
     {
@@ -497,8 +521,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "basalt_lake.r2",
@@ -513,8 +536,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "basalt_lake.r3",
@@ -532,8 +554,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "basalt_lake.r4",
@@ -555,8 +576,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -567,7 +587,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Incl. Tribs"
@@ -601,7 +621,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:11623"
@@ -639,7 +659,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm); Arctic grayling daily and possession\nquotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm); northern pike daily and possession quotas = 4 (only 1 over 100 cm, none\nbetween 70 cm and 100 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of Bennett Lake, but\nonly one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling**",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:328961756"
@@ -920,7 +940,7 @@
    "region": "6",
    "regs_verbatim": "Trout catch and release; bait ban",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Incl. Tribs"
@@ -977,7 +997,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329529450"
@@ -1007,8 +1027,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "within 100 m of outlet",
-     "review_reason": "radius-from-outlet closure has no cut-point — item has no bindable boundaries besides op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): radius-from-outlet closure has no cut-point — item has no bindable boundaries besides op:whole",
+     "undrawn_part": "within 100 m of outlet"
     },
     {
      "rule_id": "buckinghorse_lake.r2",
@@ -1100,7 +1125,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 1-Apr 30; rainbow trout daily quota = 1 (none over 50 cm; bait ban",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:10123"
@@ -1186,7 +1211,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 1- Apr 30; rainbow trout daily quota = 2 (none over 50 cm); bait ban, single barbless hook",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329201816"
@@ -1294,7 +1319,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Incl. Tribs",
@@ -1375,8 +1400,19 @@
     },
     {
      "rule_id": "bulkley_river.r4",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -1399,8 +1435,19 @@
     },
     {
      "rule_id": "bulkley_river.r5",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "in Moricetown Canyon or within 100 m downstream, all year",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "between",
@@ -1459,7 +1506,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban, single barbless hook; engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329148423"
@@ -1532,7 +1579,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout catch and release, Sept 15-Oct 31\nLake trout daily and possession quotas = 3 (only 1 over 50 cm), Nov 1-Sept 14",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329075502"
@@ -1656,7 +1703,7 @@
    "region": "6",
    "regs_verbatim": "Trout catch and release; bait ban",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:13033"
@@ -1709,7 +1756,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing (please contact Parks Canada for details, see **page 9** in the Provincial Regulations)**",
    "source_pages": [
-    56
+    50
    ],
    "rules": [
     {
@@ -1723,10 +1770,13 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "within",
+       "area_id": "area:chilkoot_trail:chilkoot_trail_national_historic_site",
+       "outside_items": [
+        "wbk:328961756"
+       ]
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -1737,7 +1787,7 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329126718"
@@ -1811,7 +1861,7 @@
    "region": "6",
    "regs_verbatim": "See Zymoetz River",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:3137"
@@ -1841,7 +1891,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** between fishing boundary signs upstream of and downstream of Cranberry River Canyon\nNote: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River\nBait ban",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:4674"
@@ -1861,9 +1911,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "between fishing boundary signs upstream of and downstream of Cranberry River Canyon",
-     "review_reason": "no split id for 'Cranberry River Canyon' in the water's boundary menu"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no split id for 'Cranberry River Canyon' in the water's boundary menu",
+     "undrawn_part": "between fishing boundary signs upstream of and downstream of Cranberry River Canyon"
     },
     {
      "rule_id": "cranberry_river.r2",
@@ -1892,7 +1946,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** June 15-Aug 1\nBait ban, June 1-June 14 and Aug 2-Oct 15",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Incl. Tribs"
@@ -1975,7 +2029,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**Class II water Sept 1-Oct 31**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Classified"
@@ -2055,7 +2109,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:3983"
@@ -2090,7 +2144,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout over 50 cm catch and release",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329682395"
@@ -2131,7 +2185,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Oct 31; bait ban\nUnnamed stream between Diana and Prudhomme lakes\nAlso see Prudhomme Lake (south of the Hwy 16 bridge)",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "gnis:3696"
@@ -2194,7 +2248,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout catch and release",
    "source_pages": [
-    56
+    50
    ],
    "matched": [
     "wbk:329026695"
@@ -2229,7 +2283,7 @@
    "region": "6",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    56
+    50
    ],
    "symbols": [
     "Stocked"
@@ -2259,7 +2313,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**\nUnnamed stream on Gribbell Island across Ursula Channel from Goat Harbour",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wsc:915-679587-924307"
@@ -2294,7 +2348,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**Class II water all year; Steelhead Stamp not required unless angling for steelhead**",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Classified",
@@ -2355,7 +2409,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 15-June 30",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "gnis:17338"
@@ -2400,7 +2454,7 @@
    "region": "6",
    "regs_verbatim": "For the area at the outlet of François Lake described on map 1, (see below): **No Fishing** Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wbk:329148307"
@@ -2425,11 +2479,16 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r2",
@@ -2439,11 +2498,16 @@
       "CHAR"
      ],
      "take": 2,
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r3",
@@ -2459,11 +2523,16 @@
        "min_cm": 50
       }
      ],
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r4",
@@ -2474,11 +2543,16 @@
      ],
      "take": 0,
      "may_target": true,
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r5",
@@ -2492,11 +2566,16 @@
        ]
       }
      ],
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r6",
@@ -2514,11 +2593,16 @@
        "max": 1.0
       }
      ],
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r7",
@@ -2532,11 +2616,16 @@
        ]
       }
      ],
-     "extent_text": "the area at the outlet of François Lake described on map 1",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "the area at the outlet of François Lake described on map 1"
      ],
-     "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     }
    ]
   },
@@ -2547,7 +2636,7 @@
    "region": "6",
    "regs_verbatim": "Open June 16-Apr 30 each year\nBait ban\nAngling permitted in Fulton River opposite the spawning channels, as signed",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2621,7 +2710,10 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
    "source_pages": [
-    57
+    51
+   ],
+   "matched": [
+    "wbk:329613028"
    ],
    "rules": [
     {
@@ -2636,8 +2728,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "gatcho_lake.r2",
@@ -2655,8 +2746,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "gatcho_lake.r3",
@@ -2678,8 +2768,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -2690,7 +2779,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**Class I water all year; Steelhead Stamp mandatory Apr 1-May 31**",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Classified",
@@ -2761,7 +2850,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wsc:400-431358-585806-708951-288577"
@@ -2819,7 +2908,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2886,7 +2975,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert\nIncludes \"Oldfield\" Creek",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2923,7 +3012,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wbk:329026689"
@@ -2948,9 +3037,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "northwest of a line between fishing boundary signs on opposite shores of the outlet bay",
-     "review_reason": "sub-area of the lake bounded by signage, not a polygon or cut-point in the registry"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): sub-area of the lake bounded by signage, not a polygon or cut-point in the registry",
+     "undrawn_part": "northwest of a line between fishing boundary signs on opposite shores of the outlet bay"
     }
    ]
   },
@@ -2961,7 +3054,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3012,7 +3105,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wbk:329148379"
@@ -3047,7 +3140,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Jan 1-June 15; bait ban",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3113,7 +3206,7 @@
    "region": "6",
    "regs_verbatim": "See Ksi Hlginx River",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "gnis:4069"
@@ -3144,7 +3237,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "gnis:10765"
@@ -3209,7 +3302,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wbk:329542439"
@@ -3244,7 +3337,7 @@
    "region": "6",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "wbk:329064473"
@@ -3276,7 +3369,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3315,7 +3408,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban, June 1-Oct 15",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3367,7 +3460,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**\nBait ban\nNo angling from boats, no powered boats\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nSee Skeena River/Kispiox River confluence",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Classified",
@@ -3435,8 +3528,19 @@
     },
     {
      "rule_id": "kispiox_river.r3",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from boats",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -3513,7 +3617,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    57
+    51
    ],
    "matched": [
     "gnis:3674"
@@ -3551,7 +3655,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
    "source_pages": [
-    57
+    51
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3724,7 +3828,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified"
@@ -3818,7 +3922,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year**[Includes Tributaries]** ; Steelhead Stamp mandatory Aug 7 - May 31**\nBait ban",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -3934,7 +4038,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -4029,7 +4133,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329529467"
@@ -4059,8 +4163,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "within 100 m of outlet",
-     "review_reason": "Radius-based closure (100 m of the outlet) cannot be bound as a reach on a lake with no cut-points; recorded as extent_text instead of a split-bound extent."
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Radius-based closure (100 m of the outlet) cannot be bound as a reach on a lake with no cut-points; recorded as extent_text instead of a split-bound extent.",
+     "undrawn_part": "within 100 m of outlet"
     },
     {
      "rule_id": "klahowya_lake.r2",
@@ -4152,7 +4261,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Oct 31\nBait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:3696"
@@ -4215,7 +4324,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -4286,7 +4395,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Dec 1-June 30 and Aug 20-Sept 15",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:20356"
@@ -4337,7 +4446,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** June 15-Sept 1; bait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:4069"
@@ -4395,7 +4504,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** July 1-Sept 15; bait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:4791"
@@ -4453,7 +4562,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream of Nass Road Bridge, Aug 1-Dec 31; bait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:3828"
@@ -4514,7 +4623,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -4600,7 +4709,7 @@
    "region": "6",
    "regs_verbatim": "**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nBait ban",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -4681,7 +4790,7 @@
    "region": "6",
    "regs_verbatim": "See Ksi X'anmas River",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -4717,7 +4826,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:4089"
@@ -4755,7 +4864,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily quota = 3: EITHER none over 60 cm, OR only 1 over 60 cm and the other 2 must be 60 cm or less; arctic grayling daily\nquota = 3 (only 1 over 35 cm); northern pike daily quota = 5 (only 1 over 70 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences\nare valid on all parts of Laidlaw Lake, but only one daily quota may be retained regardless of which side of the border the fish were\nangled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:328961727"
@@ -4901,7 +5010,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout over 50 cm catch and release",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329310750"
@@ -4942,7 +5051,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -5090,7 +5199,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:3723"
@@ -5125,7 +5234,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329242402"
@@ -5160,7 +5269,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Oct 31; bait ban",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "gnis:36404"
@@ -5223,7 +5332,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout catch and release",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329064459"
@@ -5258,7 +5367,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout over 50 cm catch and release",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329682393",
@@ -5300,7 +5409,7 @@
    "region": "6",
    "regs_verbatim": "See Hevenor Creek",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Incl. Tribs"
@@ -5335,7 +5444,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**No fishing **from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Incl. Tribs"
@@ -5405,7 +5514,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\n**No Fishing** Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\n**No Fishing** from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    58
+    52
    ],
    "symbols": [
     "Classified",
@@ -5582,8 +5691,19 @@
     },
     {
      "rule_id": "morice_river.r7",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from boats, Aug 15-Dec 31 (all parts)",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -5647,7 +5767,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm); Arctic grayling daily and possession\nquotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm); northern pike daily and possession quotas = 4 (only 1 over 100 cm, none\nbetween 70 cm and 100 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of Morley Lake, but\nonly one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling**",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:328961747"
@@ -5879,7 +5999,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout catch and release, Sept 15-Oct 31\nLake trout daily and possession quotas = 3 (only 1 over 50 cm), Nov 1-Sept 14",
    "source_pages": [
-    58
+    52
    ],
    "matched": [
     "wbk:329075503"
@@ -5967,7 +6087,10 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2\nBait ban, single barbless hook",
    "source_pages": [
-    58
+    52
+   ],
+   "matched": [
+    "wbk:329126698"
    ],
    "rules": [
     {
@@ -5982,8 +6105,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "naglico_lake.r2",
@@ -6001,8 +6123,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "naglico_lake.r3",
@@ -6024,8 +6145,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -6036,7 +6156,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** July 20-Aug 15",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:16492"
@@ -6081,7 +6201,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban\n**No Fishing** from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6152,7 +6272,7 @@
    "region": "6",
    "regs_verbatim": "Single barbless hook; no powered boats",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329626889"
@@ -6206,7 +6326,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:21084"
@@ -6241,7 +6361,7 @@
    "region": "6",
    "regs_verbatim": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329026685"
@@ -6326,7 +6446,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 15-June 30",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:21180"
@@ -6371,7 +6491,7 @@
    "region": "6",
    "regs_verbatim": "**No Ice Fishing**\nRainbow trout catch and release; bait ban, single barbless hook",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329026691"
@@ -6464,7 +6584,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing;** see Hays Creek",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wsc:915-755598-329884-406409"
@@ -6510,7 +6630,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout over 50 cm catch and release",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329591352"
@@ -6550,7 +6670,10 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
    "source_pages": [
-    59
+    53
+   ],
+   "matched": [
+    "wbk:329126727"
    ],
    "rules": [
     {
@@ -6565,8 +6688,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "pettry_lake.r2",
@@ -6584,8 +6706,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     },
     {
      "rule_id": "pettry_lake.r3",
@@ -6607,8 +6728,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -6619,7 +6739,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** downstream of the fish fence, Aug 15-Sept 15; bait ban",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:23229"
@@ -6685,7 +6805,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329679837"
@@ -6788,7 +6908,7 @@
    "region": "6",
    "regs_verbatim": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of the\nRancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:11267"
@@ -6865,7 +6985,7 @@
    "region": "6",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Stocked"
@@ -6900,7 +7020,7 @@
    "region": "6",
    "regs_verbatim": "See Ksi Sgasginist Creek",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:4791"
@@ -6931,7 +7051,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban; open all year, no minimum size for trout",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wsc:400-426207-245962"
@@ -6964,7 +7084,7 @@
    "region": "6",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329229736"
@@ -6996,7 +7116,7 @@
    "region": "6",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329064478"
@@ -7028,7 +7148,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** within 50 m of the outlet, May 1-June 30",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329385453"
@@ -7053,12 +7173,16 @@
      },
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "within 50 m of the outlet",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "within 50 m of the outlet"
      ],
-     "review_reason": "no cut-point available for 'within 50 m of the outlet' — item has no bindable boundaries beyond op:whole"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point available for 'within 50 m of the outlet' — item has no bindable boundaries beyond op:whole",
+     "undrawn_part": "within 50 m of the outlet"
     }
    ]
   },
@@ -7069,7 +7193,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7110,7 +7234,7 @@
    "region": "6",
    "regs_verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:2936"
@@ -7125,8 +7249,19 @@
    "rules": [
     {
      "rule_id": "skeena_river_kispiox_river_confluence.r1",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "whole",
@@ -7145,7 +7280,7 @@
    "region": "6",
    "regs_verbatim": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Classified"
@@ -7306,7 +7441,7 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
    "source_pages": [
-    59
+    53
    ],
    "rules": [
     {
@@ -7375,7 +7510,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "gnis:2404"
@@ -7427,7 +7562,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Classified"
@@ -7558,7 +7693,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** on Saturdays and Sundays, all year\nBait ban\n**Class I water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs",
@@ -7648,7 +7783,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329542437"
@@ -7683,7 +7818,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs",
@@ -7782,7 +7917,7 @@
    "region": "6",
    "regs_verbatim": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of\nthe Swift River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling.**",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7864,7 +7999,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm)\nArctic grayling daily and possession quotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm)\nNorthern pike daily and possession quotas = 4 (only 1 over 100 cm, none between 70 cm and 100 cm)\nWhitefish daily quota = 5\n**B.C. and Yukon angling licences are valid on all parts of Tagish Lake, but only one daily quota may be retained regardless of\nwhich side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction\nwhere angling**",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:328961735"
@@ -8118,7 +8253,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\n**No Fishing** Dec 1-June 30",
    "source_pages": [
-    59
+    53
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8187,7 +8322,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
    "source_pages": [
-    59
+    53
    ],
    "matched": [
     "wbk:329148317"
@@ -8217,8 +8352,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement",
-     "review_reason": "no split id on this lake expresses the boundary line; bound to whole water pending a curated cut-point"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no split id on this lake expresses the boundary line; bound to whole water pending a curated cut-point",
+     "undrawn_part": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement"
     }
    ]
   },
@@ -8229,7 +8369,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
    "source_pages": [
-    60
+    54
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8279,7 +8419,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout catch and release EXCEPT during months of February and July (when regional quotas apply)\nSingle barbless hook",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "wbk:329148309"
@@ -8352,7 +8492,7 @@
    "region": "6",
    "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31\nBait ban\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
    "source_pages": [
-    60
+    54
    ],
    "symbols": [
     "Incl. Tribs",
@@ -8461,7 +8601,7 @@
    "region": "6",
    "regs_verbatim": "Lake trout daily and possession quotas = 1 (none between 60 cm and 90 cm)\nArctic grayling daily and possession quotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm);\nNorthern pike daily and possession quotas = 4 (only 1 over 100 cm, none between 70 cm and 100 cm)\nWhitefish daily quota = 5\n**B.C. and Yukon angling licences are valid on all parts of Teslin Lake, but only one daily quota may be retained regardless of\nwhich side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction\nwhere angling**",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "wbk:328961703"
@@ -8695,7 +8835,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
    "source_pages": [
-    60
+    54
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8762,7 +8902,7 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "wbk:329126712"
@@ -8836,7 +8976,7 @@
    "region": "6",
    "regs_verbatim": "**No Fishing** Nov 1-May 31",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "gnis:3608"
@@ -8881,7 +9021,7 @@
    "region": "6",
    "regs_verbatim": "See Ksi Sii Aks River",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "gnis:3828"
@@ -8912,7 +9052,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "gnis:30327"
@@ -8964,7 +9104,7 @@
    "region": "6",
    "regs_verbatim": "**No Ice Fishing;** rainbow trout catch and release\nBait ban, single barbless hook\nLocated approximately 6.25 km south/southeast of Yellow Moose Lake and approximately 6.25 km west/southwest of Chedakuz Arm",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "wbk:329318485"
@@ -9052,7 +9192,7 @@
    "region": "6",
    "regs_verbatim": "Rainbow trout daily quota = 1 (none over 50 cm)",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "wbk:329613022"
@@ -9095,7 +9235,7 @@
    "region": "6",
    "regs_verbatim": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
    "source_pages": [
-    60
+    54
    ],
    "matched": [
     "gnis:26104"
@@ -9166,7 +9306,7 @@
    "region": "6",
    "regs_verbatim": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
    "source_pages": [
-    60
+    54
    ],
    "symbols": [
     "Incl. Tribs",
@@ -9424,7 +9564,7 @@
    "region": "6",
    "regs_verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations. not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -9453,7 +9593,7 @@
    "region": "6",
    "regs_verbatim": "No fishing: in any stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30; and in the Fraser River watershed in Region 6, Apr 1-June 30.",
    "source_pages": [
-    52
+    49
    ],
    "rules": [
     {
@@ -9485,7 +9625,8 @@
        ],
        "feature_types": [
         "stream"
-       ]
+       ],
+       "item_id": "gnis:10765"
       }
      ],
      "extent_text": "Iskut watershed above Forest Kerr Canyon"
@@ -9554,6 +9695,9 @@
       }
      ]
     }
+   ],
+   "source_pages": [
+    49
    ]
   },
   {
@@ -9563,7 +9707,7 @@
    "region": "6",
    "regs_verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -9663,7 +9807,7 @@
    "region": "6",
    "regs_verbatim": "Single barbless hook: must be used in all streams of Region 6, all year.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -9711,7 +9855,7 @@
    "region": "6",
    "regs_verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
    "source_pages": [
-    52
+    49
    ],
    "rules": [
     {
@@ -9773,7 +9917,7 @@
    "region": "6",
    "regs_verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
    "source_pages": [
-    52
+    49
    ],
    "rules": [
     {
@@ -9805,7 +9949,9 @@
        ],
        "feature_types": [
         "stream"
-       ]
+       ],
+       "item_id": "gnis:2936",
+       "within_area": "area:region:6"
       }
      ],
      "extent_text": "streams of the Skeena watershed above Cedarvale, excluding the mainstem"
@@ -9839,7 +9985,8 @@
        ],
        "feature_types": [
         "stream"
-       ]
+       ],
+       "item_id": "gnis:3206"
       }
      ],
      "extent_text": "streams of the Nass watershed above Kitsault Bridge, mainstem exempt"
@@ -9869,6 +10016,10 @@
        "op": "upstream_of",
        "splits": [
         "skeena_river__cedarvale"
+       ],
+       "item_id": "gnis:2936",
+       "feature_types": [
+        "stream"
        ]
       }
      ],
@@ -9883,7 +10034,7 @@
    "region": "6",
    "regs_verbatim": "Skeena Quality Waters Strategy. For more information visit www.env.gov.bc.ca/skeena/qws/ Skeena Quality Waters Strategy · Skeena Fisheries Management · High reward ($100) tagging programs (any species anywhere in the Skeena Region; sockeye, chinook, pink, chum and coho are not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -9912,7 +10063,7 @@
    "region": "6",
    "regs_verbatim": "Arctic grayling: 3. Burbot: 5. Inconnu: 1. Kokanee: 10 (none from streams). Northern pike: 5. Whitefish: 15 (all species combined). White sturgeon: CLOSED TO ALL FISHING.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -9994,7 +10145,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10053,7 +10207,7 @@
    "region": "6",
    "regs_verbatim": "No fishing: in all rivers and streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers, not currently closed under the existing winter/spring closure regulation.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -10068,7 +10222,7 @@
     {
      "rule_id": "steelhead_stream_closure.r1",
      "type": "retention_limit",
-     "verbatim": "No fishing: in all rivers and streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers, not currently closed under the existing winter/spring closure regulation.",
+     "verbatim": "No fishing: in all rivers and streams for steelhead, May 15 – June 15.",
      "species": [
       "ST"
      ],
@@ -10093,14 +10247,37 @@
         "stream"
        ]
       }
+     ]
+    },
+    {
+     "rule_id": "steelhead_stream_closure.r2",
+     "type": "retention_limit",
+     "verbatim": "Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers, not currently closed under the existing winter/spring closure regulation.",
+     "species": [
+      "ST"
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "whole",
+       "item_ids": [
+        "gnis:2936",
+        "gnis:3206",
+        "gnis:10765",
+        "gnis:15430",
+        "gnis:8231"
+       ],
+       "feature_types": [
+        "stream"
+       ]
+      }
      ],
      "exempts": [
       {
-       "default_id": "steelhead_stream_closure",
-       "note": "mainstem Skeena, Nass, Iskut, Stikine and Taku, where not already closed"
+       "target": "steelhead_stream_closure.r1",
+       "note": "the mainstems of the Skeena, Nass, Iskut, Stikine and Taku"
       }
-     ],
-     "review_reason": "INVERSE EXEMPTION: the rule names its own exempt waters AND qualifies them by the evaluated state of other rules ('not currently closed under existing winter/spring closure'). Nothing here evaluates."
+     ]
     }
    ]
   },
@@ -10111,7 +10288,7 @@
    "region": "6",
    "regs_verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -10131,18 +10308,6 @@
        "area_id": "area:region:6"
       }
      ]
-    },
-    {
-     "rule_id": "tagging_program.r2",
-     "type": "advisory",
-     "verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:6"
-      }
-     ]
     }
    ]
   },
@@ -10153,7 +10318,7 @@
    "region": "6",
    "regs_verbatim": "Region 6 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm (quota includes hatchery steelhead), 3 Dolly Varden/bull trout and/or lake trout combined, 1 trout from streams July 1-Oct 31. And you must release: all Dolly Varden/bull trout from streams all year, Trout under 30 cm from any stream, Trout of any size from streams, Nov 1-June 30, Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30, all wild steelhead.",
    "source_pages": [
-    52
+    49
    ],
    "extents": [
     {
@@ -10239,7 +10404,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10257,7 +10425,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10280,7 +10451,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10307,7 +10481,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10336,9 +10513,14 @@
        "op": "whole",
        "item_id": "gnis:39325",
        "within_area": "area:region:6"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:2936",
+       "within_area": "area:region:6"
       }
      ],
-     "extent_text": "Fraser watershed in Region 6"
+     "extent_text": "Fraser and Skeena watersheds in Region 6"
     },
     {
      "rule_id": "trout_char_quota.r10",

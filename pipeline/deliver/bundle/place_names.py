@@ -86,9 +86,14 @@ class PlaceNamer:
     `.kind`, `.aliases`), as `pipeline.atlas.registry.load_registry` returns it; `split_labels`
     maps a curated split id to its label (`splits.json`)."""
 
-    def __init__(self, registry, split_labels: dict[str, str] | None = None):
+    def __init__(self, registry, split_labels: dict[str, str] | None = None,
+                 area_names: dict[str, str] | None = None):
         self.registry = registry
         self.split_labels = dict(split_labels or {})
+        #: {area id: its printed name} from the atlas's `area_catalog.gpkg` (`area_names`). A
+        #: registry area's `name` is its own id, so without these no area could be named and
+        #: "No Fishing within Garibaldi Park" read "No fishing".
+        self.area_names = dict(area_names or {})
         self.by_id: dict[str, list[tuple[str, object]]] = {}
         self.by_alias: dict[str, list[tuple[str, object]]] = {}
         for iid, it in registry.items():
@@ -139,7 +144,14 @@ class PlaceNamer:
         it = self.registry.get(key)
         name = getattr(it, "name", "") if it is not None else ""
         if not name or name == key:
-            return None
+            name = self.area_names.get(key, "")
+            if not name:
+                return None
+            # a catalogue id in brackets is not part of the name ("… Research Forest
+            # [1166294466]"), and " — " separates a label's parts, as in `_item`
+            name = re.sub(r"\s*\[\d+\]$", "", name).replace(" — ", ", ")
+            if key.startswith("area:watershed:"):
+                name = f"{name} watershed"
         return _title(name)
 
     def extent(self, x: dict, matched: tuple[str, ...]) -> str | None | bool:
@@ -191,10 +203,12 @@ class PlaceNamer:
             place = f"{on}, {where}" if on else where
         else:
             return None
-        if place and x.get("within_area"):
+        if x.get("within_area"):
+            # THE WATER'S OWN WHOLE, WITHIN AN AREA, IS A PLACE: "No Fishing within Garibaldi
+            # Park" drew nothing to name before the area, and its label read "No fishing".
             area = self._area(str(x["within_area"]))
             if area:
-                place = f"{place}, within {area}"
+                place = f"{place}, within {area}" if place else f"within {area}"
         return place
 
     def __call__(self, extents, matched=()) -> str | None:
@@ -215,6 +229,21 @@ class PlaceNamer:
         """`place_of` for one entry's rules."""
         m = tuple(matched or ())
         return lambda extents: self(extents, m)
+
+
+def area_names(build_dir) -> dict[str, str]:
+    """{area id: name} from a build's `area_catalog.gpkg` — the names the atlas gave its areas.
+    Read as plain SQLite (no geometry). A build without the catalogue names no area."""
+    import sqlite3
+    from pathlib import Path
+    p = Path(build_dir) / "area_catalog.gpkg"
+    if not p.exists():
+        return {}
+    con = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+    try:
+        return {a: n for a, n in con.execute("select area_id, name from areas") if a and n}
+    finally:
+        con.close()
 
 
 def split_labels(splits_json: dict) -> dict[str, str]:

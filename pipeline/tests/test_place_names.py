@@ -112,3 +112,28 @@ def test_two_offsets_from_one_place_say_the_place_once():
 def test_a_lone_acronym_is_not_title_cased():
     n = PlaceNamer(SHORT)
     assert n([{"op": "downstream_of", "splits": ["cpr"]}], ("gnis:2",)) == "downstream of CPR"
+
+
+def test_an_area_whose_registry_name_is_its_id_is_named_from_the_atlas_catalogue():
+    """A registry area's `name` is its own id, so "No Fishing within Garibaldi Park" (Pitt River
+    r1, `whole` + `within_area`) read "No fishing" until the atlas's area names were handed in."""
+    reg = {"gnis:7551": RegistryItem(id="gnis:7551", name="Pitt River", kind="stream", section_ids=("p",)),
+           "area:park:garibaldi_park": RegistryItem(id="area:park:garibaldi_park",
+                                                    name="area:park:garibaldi_park", kind="area",
+                                                    section_ids=("p",)),
+           "area:watershed:liard_river": RegistryItem(id="area:watershed:liard_river",
+                                                      name="area:watershed:liard_river",
+                                                      kind="area", section_ids=("l",)),
+           "area:permit_land_access:ubc_forest_1": RegistryItem(
+               id="area:permit_land_access:ubc_forest_1", name="area:permit_land_access:ubc_forest_1",
+               kind="area", section_ids=("u",))}
+    pitt = [{"op": "whole", "within_area": "area:park:garibaldi_park"}]
+    assert PlaceNamer(reg)(pitt, ("gnis:7551",)) is None
+    n = PlaceNamer(reg, area_names={"area:park:garibaldi_park": "GARIBALDI PARK",
+                                    "area:watershed:liard_river": "Liard River",
+                                    "area:permit_land_access:ubc_forest_1": "UBC Forest [1166294466]"})
+    assert n(pitt, ("gnis:7551",)) == "within Garibaldi Park"
+    assert n([{"op": "within", "area_id": "area:watershed:liard_river"}]) == \
+        "within Liard River watershed"
+    assert n([{"op": "within", "area_id": "area:permit_land_access:ubc_forest_1"}]) == \
+        "within UBC Forest"

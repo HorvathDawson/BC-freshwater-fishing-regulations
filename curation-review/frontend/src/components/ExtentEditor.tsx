@@ -170,7 +170,7 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
                 </F>
               </span>
             )}
-            <details className="extent-limits" open={!!(ex.within_area || ex.outside_area || (ex.outside_areas ?? []).length)}>
+            <details className="extent-limits" open={!!(ex.within_area || ex.outside_area || (ex.outside_areas ?? []).length || (ex.outside_items ?? []).length)}>
               <summary className="dim">limit to / subtract an area</summary>
               <F path={`${at}.within_area`}>
                 <Text value={ex.within_area} placeholder="area id" label="within_area"
@@ -182,6 +182,9 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
               </F>
               <F path={`${at}.outside_areas`} deep>
                 <Tags values={ex.outside_areas} onChange={(x) => update(i, { outside_areas: x })} label="outside_areas" />
+              </F>
+              <F path={`${at}.outside_items`} deep>
+                <Tags values={ex.outside_items} onChange={(x) => update(i, { outside_items: x })} label="outside_items" />
               </F>
             </details>
             {needSplits && (

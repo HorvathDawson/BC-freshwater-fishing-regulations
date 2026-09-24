@@ -208,3 +208,27 @@ def test_an_area_named_twice_in_a_subtraction_is_refused():
     with pytest.raises(ValueError, match="both outside_area and outside_areas"):
         Extent(op="within", area_id="area:region:6",
                outside_areas=["area:basin:400-"], outside_area="area:basin:400-")
+
+
+def test_outside_items_takes_a_straddling_water_back_out_of_an_area():
+    """**An area row must not land on a lake that only reaches into the area.**
+
+    A lake is never cut, so the atlas flags one that merely touches a polygon as inside it — and
+    the Creston Valley WMA's "bass daily quota = unlimited" bound all of Kootenay Lake, 1% of which
+    lies in the WMA. `outside_items` subtracts a water by registry id, at the same point as
+    `outside_area`; a water it names that the registry does not have is a failure, never a silent
+    no-op that leaves the lake covered."""
+    reg = {**REG, "wbk:lake": _Item(["b:0"])}
+    got = resolve_extent(reg, _graph(), [], {"op": "within", "area_id": "area:region:1",
+                                             "outside_items": ["wbk:lake"]})
+    assert set(got["sections"]) == {"a:0", "c:0"}
+    assert resolve_extent(reg, _graph(), [], {"op": "within", "area_id": "area:region:1",
+                                              "outside_items": ["wbk:typo"]}) is None
+    e = Extent(op="within", area_id="area:region:1", outside_items=["wbk:lake"])
+    assert Extent.model_validate(e.model_dump(mode="json", exclude_defaults=True)).outside_items \
+        == ["wbk:lake"]
+    import pytest
+    with pytest.raises(ValueError):
+        Extent(op="within", area_id="area:region:1", outside_items=["area:mu_group:hg"])
+    with pytest.raises(ValueError):
+        Extent(op="whole", item_id="wbk:lake", outside_items=["wbk:lake"])

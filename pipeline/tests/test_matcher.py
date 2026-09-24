@@ -247,3 +247,40 @@ def test_overrides_without_a_qualifier_are_untouched():
                      [{"criteria": {"name_verbatim": "BIG LAKE", "mus": ["5-2"]},
                        "waterbody_keys": [9]}])
     assert res[0].item_id == "wbk:9" and res[0].status == "override"
+
+
+# --------------------------------------------------------------------------------------------
+# One MU printed in two regional chapters. MU 6-1 lakes appear in both Region 5 and Region 6, and
+# a curator can override both copies: Region 6 binds the lake, Region 5 is the duplicate to ignore.
+# Both overrides share the MU, so both score MU overlap; before the region broke the tie, the one
+# FIRST IN THE FILE won both rows — Basalt/Gatcho/Naglico/Pettry lost their Region-6 binding to the
+# Region-5 placeholder, while Chipmunk/Toms (file order reversed) bound the duplicate instead.
+
+def _twice_printed(order):
+    reg = {"wbk:7": _it("wbk:7", "Basalt Lake", mus=("6-1",), kind="lake", ref_ids=("wbk:7",))}
+    r5 = {"criteria": {"name_verbatim": "BASALT LAKE", "region": "REGION 5 - Cariboo", "mus": ["6-1"]},
+          "not_found": True, "note": "duplicate"}
+    r6 = {"criteria": {"name_verbatim": "BASALT LAKE", "region": "REGION 6 - Skeena", "mus": ["6-1"]},
+          "waterbody_keys": ["7"]}
+    ovs = [r5, r6] if order == "r5_first" else [r6, r5]
+    rows = [{"water": "BASALT LAKE", "region": "REGION 5 - Cariboo", "mu": "6-1"},
+            {"water": "BASALT LAKE", "region": "REGION 6 - Skeena", "mu": "6-1"}]
+    return match_rows(rows, reg, ovs)
+
+
+def test_cross_listed_mu_own_region_override_wins_in_either_file_order():
+    for order in ("r5_first", "r6_first"):
+        r5_row, r6_row = _twice_printed(order)
+        assert r6_row.item_id == "wbk:7" and r6_row.status == "override", order
+        assert r5_row.item_id is None and r5_row.via == "override_not_found", order
+
+
+def test_cross_listed_mu_lone_override_still_serves_both_chapters():
+    # With only ONE override for the name, MU overlap alone still applies it to the other
+    # chapter's row — the case that has always worked, and must keep working.
+    reg = {"wbk:7": _it("wbk:7", "Toms Lake", mus=("6-1",), kind="lake", ref_ids=("wbk:7",))}
+    ovs = [{"criteria": {"name_verbatim": "TOMS LAKE", "region": "REGION 6 - Skeena", "mus": ["6-1"]},
+            "waterbody_keys": ["7"]}]
+    rows = [{"water": "TOMS LAKE", "region": "REGION 5 - Cariboo", "mu": "6-1"},
+            {"water": "TOMS LAKE", "region": "REGION 6 - Skeena", "mu": "6-1"}]
+    assert [r.item_id for r in match_rows(rows, reg, ovs)] == ["wbk:7", "wbk:7"]

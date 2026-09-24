@@ -185,12 +185,22 @@ def build_override_index(overrides: list[dict]) -> dict[str, list[dict]]:
 
 
 def _pick_override(entries: list[dict], rn: str, row_mus: set[str], water: str = "") -> dict | None:
-    """The override entry best matching this row. qualifier > MU overlap > region match > catch-all.
+    """The override entry best matching this row.
+    qualifier > MU overlap in the row's own region > MU overlap > region match > catch-all.
 
-    An override only applies when it POSITIVELY matches the row: a `qualifier` hit (4), MU overlap (3),
-    region match (2), or an intentional catch-all with no region/MU scope (1). A scoped override whose
-    region AND MUs both conflict with the row (0) is a DIFFERENT water — never apply it (that bound
-    Region-1 'White River' to the Region-4 'White River (see also …)' override before this guard).
+    An override only applies when it POSITIVELY matches the row: a `qualifier` hit (5), MU overlap
+    with the region agreeing too (4), MU overlap alone (3), region match (2), or an intentional
+    catch-all with no region/MU scope (1). A scoped override whose region AND MUs both conflict with
+    the row (0) is a DIFFERENT water — never apply it (that bound Region-1 'White River' to the
+    Region-4 'White River (see also …)' override before this guard).
+
+    MU OVERLAP ALONE IS STILL A MATCH, because the book prints some waters in two regional chapters
+    under the same MU: MU 6-1 lakes appear in both Region 5 and Region 6, and one override (either
+    region's) serves both rows — CHIPMUNK and TOMS LAKE work that way. But when BOTH chapters have an
+    override for the name, the one scoped to the row's own region is the more specific answer. It
+    used to tie at 3 and the first in the file won, so the Region-5 "duplicate — ignore this copy"
+    placeholders for BASALT, GATCHO, NAGLICO and PETTRY LAKE also swallowed the Region-6 rows they
+    said were the covered ones, and neither copy bound.
 
     `criteria.qualifier` IS THE TIEBREAKER OF LAST RESORT, and exists because region and MU are not
     always enough. Region 5 prints two lakes named BIG LAKE and two named BLUE LAKE, and in each pair
@@ -220,9 +230,9 @@ def _pick_override(entries: list[dict], rn: str, row_mus: set[str], water: str =
         ereg = re.search(r"\d+", str(c.get("region", "")))
         ereg = ereg.group(0) if ereg else ""
         if want:
-            score = 4
+            score = 5
         elif emus and emus & row_mus:
-            score = 3
+            score = 4 if (ereg and ereg == rn) else 3
         elif ereg and ereg == rn:
             score = 2
         elif not emus and not ereg:

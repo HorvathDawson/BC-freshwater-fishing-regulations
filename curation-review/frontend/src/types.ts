@@ -39,6 +39,8 @@ export interface Extent {
   within_area?: string | null;
   outside_area?: string | null;
   outside_areas?: string[];
+  /** registry item ids (waters) subtracted — e.g. a lake that only reaches into the area */
+  outside_items?: string[];
   [key: string]: unknown;
 }
 
@@ -167,6 +169,8 @@ export interface Rule {
   notice?: string | null;
   suspended_while?: string | null;
   extent_text?: string;
+  /** holds only in this part of what `extents` draw; nothing draws the part (a note, never coloured) */
+  undrawn_part?: string;
   unresolved_locators?: string[];
   review_reason?: string;
 }

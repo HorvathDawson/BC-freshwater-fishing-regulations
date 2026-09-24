@@ -31,7 +31,10 @@ class RuleType(str, Enum):
     tackle_restriction = "tackle_restriction"
     method_rule = "method_rule"
     vessel_rule = "vessel_rule"
-    angling_from_vessel_prohibited = "angling_from_vessel_prohibited"
+    #: `angling_from_vessel_prohibited` WAS HERE: "No angling from boats" is HOW you may fish, not
+    #: what your boat may do — a `method_rule` banning `angling` `when: {angler: in_boat}` (or
+    #: `in_powered_boat`). As a vessel type it could not meet the province's angling allow on the
+    #: ladder at all. Refused on load, like `document_required`.
     navigation_duty = "navigation_duty"
     #: A CLOSURE FOR ONE KIND OF ANGLER — "Angling prohibited for non-guided non-resident aliens
     #: on Saturdays and Sundays". It was `access_permission` + `permitted: false`, a polarity bit
@@ -360,7 +363,6 @@ _FAMILY = {
     RuleType.tackle_restriction: "gear_and_method",
     RuleType.method_rule: "gear_and_method",
     RuleType.vessel_rule: "vessel",
-    RuleType.angling_from_vessel_prohibited: "vessel",
     RuleType.navigation_duty: "vessel",
     #: WHO MAY FISH HERE AT ALL. Not "retention": a closure to one kind of angler is not a limit
     #: on what anyone keeps, and filing it with the quotas is what let it displace them.
@@ -371,6 +373,10 @@ _FAMILY = {
     RuleType.program_membership: "information",
     RuleType.facility: "information",
 }
+
+#: THE TYPES THAT COUNT FISH, and so the only ones a `period` (the clock the count runs on) means
+#: anything on. "Stop fishing after your DAILY quota" is the other.
+_COUNTED_TYPES = (RuleType.retention_limit, RuleType.stop_fishing_after_quota)
 
 
 #: THE ZONE DEFAULTS A WATER MAY LIFT BY NAME (`Exempts.default_id`), each the slug of a zone
@@ -757,7 +763,14 @@ WHILE_TOKENS = WHILE_MEANS | WHILE_DEVICES
 class AnglerState(str, Enum):
     alone_in_boat = "alone_in_boat"
     in_boat = "in_boat"
+    #: "No angling from POWERED boats": a canoe is still allowed, so this is not `in_boat`.
+    in_powered_boat = "in_powered_boat"
     from_shore = "from_shore"
+
+
+#: An angler's state in words, after a gear clause: "no angling (from a boat)".
+_ANGLER_WORDS = {"alone_in_boat": "alone in a boat", "in_boat": "from a boat",
+                 "in_powered_boat": "from a powered boat", "from_shore": "from shore"}
 
 
 class GearWhen(_Terse):
@@ -781,6 +794,17 @@ class GearWhen(_Terse):
     def is_empty(self) -> bool:
         return not (self.water or self.method or self.targeting or self.angler
                     or self.gear_in_use or self.note)
+
+    def key(self) -> str:
+        """The condition as a stable key, for a rule's `dimension`: "angler=in_boat"."""
+        bits = [f"{k}={getattr(v, 'value', v)}" for k, v in
+                (("water", self.water), ("method", self.method), ("angler", self.angler),
+                 ("gear_in_use", self.gear_in_use)) if v]
+        if self.targeting:
+            bits.append("targeting=" + "+".join(sorted(self.targeting)))
+        if self.note:
+            bits.append("note")
+        return "&".join(bits)
 
 
 class GearSpec(_Terse):
@@ -974,6 +998,10 @@ CONDUCT_ACTS = {
     "do_not_release_harmfully": "Do not release fish in a harmful manner",
     "do_not_buy_sell_or_barter_catch": "Do not buy, sell or barter your catch",
     "do_not_possess_or_move_live_fish": "Do not possess or move live fish or invertebrates",
+    # Printed p. 8, "It Is Unlawful To…", the continuation of the live-fish bullet.
+    "do_not_keep_catch_alive": "Do not hold your catch alive (livewell, other device or stringer)",
+    "do_not_release_aquarium_fish": "Do not release your aquarium fish to the wild",
+    "do_not_high_grade": "Do not high-grade",
     "do_not_can_bottle_or_fillet_away_from_residence":
         "Do not can, bottle or fillet your catch away from your residence",
     "do_not_freeze_in_unrecognizable_block": "Do not freeze fish in an unrecognizable block",
@@ -1926,7 +1954,12 @@ class CatalogueRule(BaseModel):
     take: Optional[int] = None
     unlimited: bool = False
     may_target: Optional[bool] = None
-    period: Period = Period.daily
+    #: THE CLOCK A NUMBER RUNS ON — only on the two types that count fish (`_COUNTED_TYPES`).
+    #: It defaulted to `daily` on EVERY rule, so 1,549 bait bans, boat rules and advisories
+    #: shipped `period: "daily"`: a field that does not apply, stated as if it did. Absent on a
+    #: counting type is the book's default, daily — read it through `clock`, never `period`. On
+    #: any other type it is refused.
+    period: Optional[Period] = None
     per_daily: Optional[int] = None
     within: Optional[str] = None
     #: WHICH FISH, BY LENGTH, AND HOW MANY — an ORDERED list, FIRST MATCH WINS.
@@ -1993,10 +2026,8 @@ class CatalogueRule(BaseModel):
 
     # --- vessel ------------------------------------------------------------
     aspect: Optional[VesselAspect] = None
-    #: On `vessel_rule(aspect=propulsion)`: the boats allowed ON the water. On
-    #: `angling_from_vessel_prohibited`: the boats you may still ANGLE FROM, on the same scale —
-    #: absent = none ("No angling from boats"), `unpowered` = "No angling from POWERED boats". Seven
-    #: rules said "powered" and shipped as the unqualified ban, forbidding a canoe the book allows.
+    #: On `vessel_rule(aspect=propulsion)`: the boats allowed ON the water. Nowhere else: "No
+    #: angling from powered boats" is a method rule on `angler: in_powered_boat`.
     level: Optional[PropulsionLevel] = None
     max_power_kw: Optional[float] = None
     max_kmh: Optional[float] = None
@@ -2017,7 +2048,7 @@ class CatalogueRule(BaseModel):
     tributaries_only: bool = False
     #: WHERE THIS RULE APPLIES, stated on the rule itself. NOTHING IS INHERITED: a rule with no
     #: extents is not given its entry's by any reader — not the reach builder, not the bundle, not
-    #: provenance (`table.authority.source_of`). A row routinely binds its rules to different
+    #: provenance (`deliver.bundle.read.source_of`). A row routinely binds its rules to different
     #: reaches — "no fishing above the falls, bait ban throughout" — and an implied default is how
     #: the narrower rule silently widens to the whole water.
     #:
@@ -2077,7 +2108,32 @@ class CatalogueRule(BaseModel):
     #: on load (`extra=forbid`): a non-empty `review_reason` is what "needs review" means.
     review_reason: str = ""
 
+    #: THIS RULE HOLDS ONLY IN A PART OF WHAT ITS EXTENTS DRAW, AND THE PART IS NOT DRAWN — the
+    #: book's words for the part. "No fishing in Salmon Arm Bay, west of the line between
+    #: Engineer's Point and Sunnybrae Point": the atlas has no polygon for the bay, so the rule
+    #: binds Shuswap Lake (its `extents`) and says here that it holds only in the bay.
+    #:
+    #: WHY A FIELD AND NOT `extent_text`. `extent_text` beside the bare whole water is REFUSED
+    #: (see `_check`): that was the parser's shape for every part-lake rule and the reach builder,
+    #: reading only the extent, closed all of Shuswap Lake. Unbinding them instead dropped the
+    #: closures from every screen, and on a closure silence reads as permission. This field is
+    #: the sanctioned third way: the rule is SHOWN on the water it is in, and a reader is told in
+    #: the key itself that it must NOT colour that water by it — render it as a note, "in <part>".
+    #: It is the place phrase for such a rule, so it replaces `extent_text` rather than sitting
+    #: beside it, and it needs extents to be a part OF (a part of nothing is a place nothing can
+    #: draw — that rule keeps `extent_text` and stays unbound, AGENTS 13).
+    #:
+    #: When the part is drawn (a cut-point, a sub-lake polygon), the extents become the part and
+    #: this field goes: then the rule colours what it binds.
+    undrawn_part: str = ""
+
     # ------------------------------------------------------------------ #
+    @property
+    def clock(self) -> Period:
+        """The clock a counting rule's number runs on: its `period`, or the book's default,
+        daily. Only meaningful on `_COUNTED_TYPES`; every other type refuses a `period`."""
+        return self.period or Period.daily
+
     @property
     def family(self) -> str:
         """The first tier. Types group into families, and the grouping is not decoration — it is
@@ -2094,7 +2150,7 @@ class CatalogueRule(BaseModel):
         barbless), so their dimension is the FACET each constrains, not the type."""
         t = self.type
         if t is RuleType.retention_limit:
-            return f"{self.period.value}{'/size' if self.lengths and self.take is None else ''}"
+            return f"{self.clock.value}{'/size' if self.lengths and self.take is None else ''}"
         if t is RuleType.vessel_rule:
             return self.aspect.value if self.aspect else "unspecified"
         if t is RuleType.angler_closure:
@@ -2105,7 +2161,14 @@ class CatalogueRule(BaseModel):
         if t is RuleType.method_rule:
             # THE METHODS NAMED, not just the slot: every method rule constrains `method`, so the
             # slot alone would let a water's "no ice fishing" displace the zone's "no set lining".
-            said = sorted({f"{c.slot.value}:{m}" if c.slot is Slot.method else c.slot.value
+            # AND THE CLAUSE'S CONDITION: a water's "no angling from boats" is `ban: [angling]`
+            # when in a boat, and keyed "method:angling" it would DISPLACE the province's
+            # unconditional angling allow — shore angling would read as not allowed there. A
+            # conditional clause is its own key ("method:angling@angler=in_boat").
+            def at(c):
+                return "@" + c.when.key() if c.when is not None and not c.when.is_empty() else ""
+            said = sorted({(f"{c.slot.value}:{m}" if c.slot is Slot.method else c.slot.value)
+                           + at(c)
                            for c in self.gear
                            for m in ((c.allow or []) + (c.only or []) + (c.ban or []) or [""])})
             return ",".join(said) or ("conduct" if self.conduct else "unspecified")
@@ -2152,9 +2215,9 @@ class CatalogueRule(BaseModel):
                 e.append("unlimited and take are mutually exclusive")
             # take=0 does NOT mean closed. may_target is the bit that separates "do not fish for
             # this" from "fish for it, release it", and 15 kokanee rules depend on it.
-            if self.take == 0 and self.may_target and self.period is not Period.daily:
+            if self.take == 0 and self.may_target and self.clock is not Period.daily:
                 e.append("a release rule is a daily-period rule")
-            if self.per_daily is not None and self.period is not Period.possession:
+            if self.per_daily is not None and self.clock is not Period.possession:
                 e.append("per_daily is a possession multiplier")
             # `lengths` IS THE ONLY SIZE FIELD. over_cm/under_cm/band WERE HERE and are refused
             # on load (`extra=forbid`): checked for equality against them, `lengths` could only
@@ -2195,15 +2258,14 @@ class CatalogueRule(BaseModel):
                 e.append("speed needs max_kmh, or a review_reason if the synopsis states none")
             if self.level is PropulsionLevel.power_capped and self.max_power_kw is None:
                 e.append("power_capped needs max_power_kw")
-        if t is RuleType.angling_from_vessel_prohibited:
-            if self.level not in (None, PropulsionLevel.unpowered):
-                e.append("angling_from_vessel_prohibited takes `level: unpowered` (\"from powered "
-                         "boats\") or none (from any boat)")
-            if self.level is None and re.search(r"\bpowered\b", self.verbatim, re.I):
-                e.append("the sentence says POWERED boats — set `level: unpowered`, or the ban "
-                         "reaches a canoe the book allows")
-        elif t is not RuleType.vessel_rule and self.level is not None:
-            e.append("level belongs to vessel_rule and angling_from_vessel_prohibited")
+        if t is not RuleType.vessel_rule and self.level is not None:
+            e.append("level belongs to vessel_rule — a boat you may not ANGLE from is a method "
+                     "rule's `when: {angler: in_boat | in_powered_boat}`")
+        # "No angling from POWERED boats" banned as `in_boat` forbids a canoe the book allows.
+        if any(c.when is not None and c.when.angler is AnglerState.in_boat for c in self.gear) \
+                and re.search(r"\bpowered\s+boats?\b", self.verbatim, re.I):
+            e.append("the sentence says POWERED boats — the clause's angler is in_powered_boat, "
+                     "or the ban reaches a canoe the book allows")
         if t is not RuleType.vessel_rule and (self.aspect is not None or self.max_power_kw
                                               is not None or self.max_kmh is not None):
             e.append("aspect, max_power_kw and max_kmh belong to vessel_rule")
@@ -2249,13 +2311,32 @@ class CatalogueRule(BaseModel):
         # area or a kind is a place of its own; its text only describes it.
         if bare_whole(self.extents) and self.extent_text.strip():
             e.append(f"extents are the whole water but extent_text names a place "
-                     f"({self.extent_text[:60]!r}) — a part nothing can draw keeps its words and "
-                     f"no extents (it stays unbound), or bind it to the part")
+                     f"({self.extent_text[:60]!r}) — a part nothing can draw is written as "
+                     f"`undrawn_part` beside the whole water (shown as a note, never coloured), "
+                     f"or keeps its words with no extents (unbound), or is bound to the part")
+        # `undrawn_part` IS A PART OF WHAT THE EXTENTS DRAW, and it is the rule's place phrase.
+        if self.undrawn_part.strip():
+            if not self.extents:
+                e.append("undrawn_part needs extents — it is a part OF what they draw; a place "
+                         "with nothing to be a part of keeps `extent_text` and stays unbound")
+            if self.extent_text.strip():
+                e.append("undrawn_part and extent_text are both the rule's place phrase — keep "
+                         "one: undrawn_part when the rule binds more than it holds in")
+            if self.standing:
+                e.append("a standing rule holds at places no dataset draws, everywhere — it is "
+                         "never also limited to one undrawn part")
+        elif self.undrawn_part:
+            e.append("undrawn_part is blank")
         # A PLACE IS NOT A LIST ITEM. The book numbers its lists; a place phrase that starts with
         # a marker was cut out of one, and every label built from it would print the marker.
-        if LIST_MARKER.match(self.extent_text or ""):
-            e.append(f"extent_text starts with a list marker ({self.extent_text[:20]!r}) — it "
-                     f"names a place, not a list item")
+        for f in ("extent_text", "undrawn_part"):
+            if LIST_MARKER.match(getattr(self, f) or ""):
+                e.append(f"{f} starts with a list marker ({getattr(self, f)[:20]!r}) — it "
+                         f"names a place, not a list item")
+        # THE CLOCK BELONGS TO A NUMBER OF FISH. On a bait ban or an advisory it says nothing.
+        if self.period is not None and t not in _COUNTED_TYPES:
+            e.append(f"period belongs to {' and '.join(x.value for x in _COUNTED_TYPES)}, "
+                     f"not {t.value} — a clock with no number on it says nothing")
         e += _extents_the_resolver_reads(self.extents)
         # FEATURE TYPES ARE APPLIED TO THE RULE'S WHOLE REACH, after any tributary walk
         # (`reach.classify`), so they must be said on every extent or on none — a union of
@@ -2468,30 +2549,39 @@ def _gear_words(r: CatalogueRule) -> str:
             w = [x for x in (getattr(c.when.water, "value", None),
                              getattr(c.when.angler, "value", None)) if x]
             if w:
-                bits[-1] += " (" + ", ".join(x.replace("_", " ") for x in w) + ")"
+                bits[-1] += " (" + ", ".join(_ANGLER_WORDS.get(x, x.replace("_", " "))
+                                             for x in w) + ")"
     for act in r.conduct:
         bits.append(CONDUCT_ACTS.get(act, act.replace("_", " ")))
     out = "; ".join(bits)
-    out = out[:1].upper() + out[1:]
-    if r.when_targeting and out:
-        out += f" when fishing for {species_words(r.when_targeting).lower()}"
-    if r.while_ and out:
-        out += " — while " + " or ".join(w.replace("_", " ") for w in r.while_)
-    return out
+    # WHAT IS CONSTRAINED, only: who is fishing for what (`when_targeting`) and while doing what
+    # (`while`) are conditions, and `label_parts` says them as such.
+    return out[:1].upper() + out[1:]
 
 
-def _dates(r: CatalogueRule) -> str:
-    """The season, in words. There is no "except …" branch any more: `windows_are: excepts` stored
-    the days a rule did NOT hold and `When` stores the days it does, so the phrase is always the
-    same shape and the reader is never asked to invert it."""
-    if not r.when or not r.when.dates:
+def _when_words(r: CatalogueRule) -> str:
+    """WHEN, in words: the dates, the weekdays, the hours, and any season nobody could read (in
+    the book's words — an unread season is never shown as all year by being left out). There is no
+    "except …" branch: `When` stores the days a rule DOES hold, so the reader never inverts it."""
+    w = r.when
+    if w is None or w.is_empty():
         return ""
-    return ", " + " and ".join(d.words() for d in r.when.dates)
+    bits = []
+    if w.dates:
+        bits.append(" and ".join(d.words() for d in w.dates))
+    if w.weekdays:
+        bits.append("on " + " and ".join(f"{d}s" for d in w.weekdays))
+    if w.hours:
+        bits.append(w.hours.words())
+    if w.unparsed:
+        bits.append("as printed: " + "; ".join(w.unparsed))
+    return ", ".join(bits)
 
 
-def _scope(r: CatalogueRule, taking: bool = True) -> str:
-    """`taking` distinguishes "2 from streams" (a retention limit) from "no fishing in streams"
-    (a prohibition). Same field, opposite preposition, and the wrong one reads as nonsense."""
+def _scope(r: CatalogueRule, taking: bool = True) -> list:
+    """Which fish, by kind of water, origin and means of taking. `taking` distinguishes "2 from
+    streams" (a retention limit) from "no fishing in streams" (a prohibition). Same field, opposite
+    preposition, and the wrong one reads as nonsense."""
     bits = []
     if r.water:
         bits.append(f"{'from' if taking else 'in'} {r.water.value}s")
@@ -2500,11 +2590,7 @@ def _scope(r: CatalogueRule, taking: bool = True) -> str:
     for m in r.while_:
         bits.append("taken on a set line" if m == Method.set_lining.value
                     else f"taken by {m.replace('_', ' ')}")
-    if r.when and r.when.weekdays:
-        bits.append("on " + " and ".join(f"{d}s" for d in r.when.weekdays))
-    if r.when and r.when.hours:
-        bits.append(r.when.hours.words())
-    return (", " + ", ".join(bits)) if bits else ""
+    return bits
 
 
 def _size(r: CatalogueRule) -> str:
@@ -2579,7 +2665,7 @@ def _size(r: CatalogueRule) -> str:
 
 
 def _where(r: CatalogueRule, place_of=None) -> str:
-    """The place, appended. §5: generation is lossless ONLY where the extent survives alongside.
+    """WHERE, in words. §5: generation is lossless ONLY where the extent survives alongside.
     226 labels read exactly "No fishing" — everything distinguishing one from another was in the
     reach, and a split or an area never reached the label.
 
@@ -2590,112 +2676,178 @@ def _where(r: CatalogueRule, place_of=None) -> str:
     The other way round, 46 labels traded the book's phrase for a curator's cut-point name: offsets
     the book does not print ("log boom (90 m upstream)" for "approximately 100 m"), a watershed
     read as its river ("Fraser watershed" -> "Fraser River"), and a reach dropped ("…, and Quinn
-    Creek")."""
+    Creek"). An undrawn part is NOT a `where`: it is its own part (`in_part`), so the line can
+    never read as holding on the whole water."""
     text = strip_list_marker(r.extent_text)
-    # "No Fishing tributaries": the reach is the tributaries, not the water the row names.
-    only = " — tributaries only" if r.tributaries_only else ""
     if not text and place_of is not None and r.extents:
-        got = place_of(r.extents)
-        if got:
-            return f" — {got}" + only
-    return (f" — {text}" if text else "") + only
+        text = place_of(r.extents) or ""
+    # "No Fishing tributaries": the reach is the tributaries, not the water the row names.
+    if r.tributaries_only:
+        text = f"{text}, tributaries only" if text else "tributaries only"
+    return text
 
 
 def _suspended(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> str:
-    """"— not while <the rule it sleeps under>", read off that rule's own label. Without the
-    entry's other rules to hand it names the rule by id, which is ugly and still true."""
+    """"not while <the rule it sleeps under>", read off that rule's own line. Without the entry's
+    other rules to hand it names the rule by id, which is ugly and still true."""
     if not r.suspended_while:
         return ""
     other = (siblings or {}).get(r.suspended_while)
     said = label(other, place_of=place_of) if other is not None else f"rule {r.suspended_while}"
-    return f" — not while “{said}” is in force"
+    return f"not while “{said}” is in force"
 
 
-def label(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> str:
-    """The line a reader sees. Verbatim is always available underneath.
+#: THE BOOK'S EMPHASIS, which the extraction keeps as markdown. It never reaches a part, and the
+#: composed preview's fallback strips it too: 20 labels read "**WARNING! Dangerous thin ice…**".
+_EMPHASIS = re.compile(r"\*\*|__")
+
+
+def _lifts(r: CatalogueRule) -> str:
+    """"lifts <what>": what an `exempts` names, from the fields — a zone default by its slug, a
+    rule by its entry's slug (or, in the same entry, by its id). One printed sentence can lift two
+    defaults and is then two rules (Kootenay River's "EXEMPT from Apr 1-June 14 closure AND from
+    Nov 1-Mar 31 trout/char catch and release"); this part is what tells them apart."""
+    said = []
+    for x in r.exempts:
+        name = x.default_id or ((x.entry_id or "").split(":", 1)[-1].split("@", 1)[0]
+                                if x.entry_id else "") or (x.target or "").split(".", 1)[0]
+        if x.target and not x.default_id and not x.entry_id:
+            name += f" ({x.target.split('.', 1)[1]})"
+        if name:
+            said.append(name.replace("_", " "))
+    if not said:
+        return ""
+    # A LIFT IS NEVER WIDER THAN ITS LIFTER: a rule that names fish lifts only for them —
+    # "except burbot, which may also be speared" lifts the spear closure for burbot, not for all.
+    every = list(r.species) == ["ALL_GAME_FISH"] and not r.species_except
+    fish = (f" for {species_words(r.species, r.species_except).lower()}"
+            if r.species and not every else "")
+    return f"lifts {', '.join(dict.fromkeys(said))}{fish}"
+
+
+#: THE PARTS A RULE'S LINE IS MADE OF, and the order a reader composes them in (`compose`). Each
+#: is generated from structured fields only; a part with nothing to say is ABSENT; no part is ever
+#: the verbatim, which is shown underneath as the book's own text.
+#:
+#:   what        the rule itself: its verdict and subject — "No fishing for bull trout in streams",
+#:               "Rainbow trout — 2 per day", "Bait ban", "Speed restriction (10 km/h)". ABSENT
+#:               when the rule has no structured content (an advisory, a hazard, a bare exemption):
+#:               the reader then shows the verbatim, labelled as the book's text.
+#:   size        the length bound — "none under 30 cm", "over 50 cm" (a class released or counted)
+#:   conditions  which fish or which fishing — "wild only", "from streams", "when fishing for
+#:               salmon", "while set lining", "in possession" (a clause's clock)
+#:   when        dates, weekdays, hours, an unread season — "Sep 1-Dec 31, on Saturdays"
+#:   where       the place in the book's words, or named from what the extents draw
+#:   in_part     the undrawn part it holds in (`undrawn_part`): a note, never a colour
+#:   lifts       what it exempts from
+#:   duty        what you must do with it — "record your retention on your licence immediately"
+#:   suspended   "not while “<the rule it sleeps under>” is in force"
+#:   notice      the DFO fishery notice it was published in
+#:
+#: A BOOK'S REASON IS NOT A PART. "(located in an Ecological Reserve)" is prose in the verbatim;
+#: the model has no field for a reason — `reason` was retired because it held a citation here, an
+#: explanation there and a hidden condition elsewhere — and a part is generated from fields only.
+#: A reason therefore reaches a reader through the verbatim shown underneath, never paraphrased.
+LABEL_PARTS = ("what", "size", "conditions", "when", "where", "in_part", "lifts", "duty",
+               "suspended", "notice")
+
+
+def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> dict:
+    """The line a reader sees, as PARTS — see `LABEL_PARTS`. `compose` joins them.
 
     `siblings` is {rule_id: CatalogueRule} for the rule's entry, so a rule that points at another
-    (`suspended_while`) can say what it points at in words.
+    (`suspended_while`, `within`) can say what it points at in words.
 
     `place_of(extents) -> str | None` names WHERE a bound rule applies, in the book's words, from
     its structured extents — a split's curated label, a lake's name, an area's name. It is handed
     in because the names live in the atlas, which this module never reads; without it only
     `extent_text` can name a place (see `_where`)."""
-    # GEAR AND CONDUCT ARE READ FIRST, FOR EVERY TYPE. A converted rule has no `method`,
-    # `permitted`, `allowed`, `required`, `barbless` or `max_lines` — the direction now lives in
-    # the clause that carries the subject, which is the whole point of the field. Wired into one
-    # type's branch instead, every OTHER type fell through to printing its bare verbatim: a
-    # "You must not:" fragment then reads as a permission, which is the inversion this replaced.
-    # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it — rendered
-    # alone, the rule's own half of the sentence reads as unconditional. (The case that motivated
-    # this, the under-16 non-resident's accompaniment, is now a licensing `Path`.)
-    if r.conduct and not r.gear and r.type not in (
-            RuleType.tackle_restriction, RuleType.bait_restriction,
-            RuleType.method_rule, RuleType.handling_rule):
-        acts = "; ".join(CONDUCT_ACTS.get(a, a.replace("_", " ")) for a in r.conduct)
-        return (label(r.model_copy(update={"conduct": []}), siblings, place_of)
-                + " — " + acts[:1].lower() + acts[1:])
-    if r.gear or r.conduct:
-        said = _gear_words(r)
-        if said:
-            # `_gear_words` has already said the `while` ("— while set lining"); `_scope` must not
-            # say it again as "taken on a set line".
-            bare = r.model_copy(update={"while_": []})
-            return (said + _scope(bare) + _dates(bare) + _where(bare, place_of)
-                    + _suspended(bare, siblings, place_of))
+    p: dict = {"when": _when_words(r), "where": _where(r, place_of),
+               "in_part": strip_list_marker(r.undrawn_part),
+               "lifts": _lifts(r), "suspended": _suspended(r, siblings, place_of),
+               "notice": f"fishery notice {r.notice}" if r.notice else ""}
+    cond: list = []
+    duty: list = []
     t = r.type
     sp = species_words(r.species, r.species_except)
-
-    if t is RuleType.retention_limit:
+    # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it. Rendered alone,
+    # the rule's own half of the sentence reads as unconditional.
+    gear_type = t in (RuleType.tackle_restriction, RuleType.bait_restriction,
+                      RuleType.method_rule, RuleType.handling_rule)
+    if r.conduct and not r.gear and not gear_type:
+        duty += [CONDUCT_ACTS.get(a, a.replace("_", " ")) for a in r.conduct]
+        r = r.model_copy(update={"conduct": []})
+    # GEAR AND CONDUCT ARE READ FIRST, FOR EVERY TYPE. The direction lives in the clause that
+    # carries the subject; wired into one type's branch instead, every OTHER type fell through to
+    # its bare verbatim, and a "You must not:" fragment then read as a permission.
+    said = _gear_words(r) if (r.gear or r.conduct) else ""
+    if said:
+        p["what"] = said
+        if r.when_targeting:
+            cond.append(f"when fishing for {species_words(r.when_targeting).lower()}")
+        if r.while_:
+            cond.append("while " + " or ".join(w.replace("_", " ") for w in r.while_))
+        # the `while` is said above; the scope must not say it again as "taken on a set line"
+        cond += _scope(r.model_copy(update={"while_": []}))
+    elif t is RuleType.retention_limit:
         # BRANCH ON may_target FIRST. take=0 alone is ambiguous, and reading it as "release all"
         # turns all 605 "No fishing" rules into a catch-and-release PERMISSION.
         if r.take == 0 and r.may_target is False:
             if sp == "All game fish" and r.species_except:
                 head = f"No fishing except for {species_words(r.species_except).lower()}"
-            elif sp == "All game fish":
+            elif sp == "All game fish" and not r.while_:
                 head = "No fishing"
+            elif r.while_:
+                # WITH A `while` THE WAY OF FISHING LEADS AND THE SPECIES IS THE RULE: "only
+                # non-game fish may be speared" is take 0 on every game fish while spear fishing.
+                # "No fishing by spear fishing" dropped the species and read as a total spear ban.
+                fish = "game fish" if sp in ("", "All game fish") else sp.lower()
+                head = f"No {' or '.join(m.replace('_', ' ') for m in r.while_)} for {fish}"
             else:
                 head = f"No fishing for {sp.lower()}"
-            if r.water:                       # "in streams" reads as part of the phrase, not an aside
+            if r.water:                     # "in streams" reads as part of the phrase
                 head += f" in {r.water.value}s"
-            for m in r.while_:                # "No fishing by spear fishing", not ", by spear fishing"
-                head += f" by {m.replace('_', ' ')}"
-            rest = _scope(r.model_copy(update={"water": None, "while_": []}), taking=False)
-            return head + rest + _dates(r) + _where(r, place_of) + _suspended(r, siblings, place_of)
-        if r.take == 0:
-            # Both arms of a conditional here produced the SAME string — it read the size fields
-            # and did nothing with them. `_size` appends the bound afterwards either way.
-            head = f"{sp} — release all"
-        elif r.unlimited:
-            head = f"{sp} — no limit"
-        elif r.take is not None:
-            noun = {Period.daily: "per day", Period.possession: "in possession",
-                    Period.annual: "per licence year", Period.monthly: "per month"}[r.period]
-            if r.within and r.lengths:
-                head = sp                                # the size phrase carries the count
-            else:
-                head = f"{sp} — {r.take} {noun}"
-                if len(expand_species(list(r.species or []))) > 1:
-                    head += ", all species combined"
-        elif r.per_daily is not None:
-            head = f"{sp or 'All game fish'} — possession quota is {r.per_daily} daily quota" \
-                   + ("s" if r.per_daily != 1 else "")
-        elif r.lengths:
-            head = sp                      # a size gate with no count: the region supplies it
+            if r.while_ and sp == "All game fish" and r.species_except:
+                # "No fishing except for X" keeps its verb; the way of fishing follows it
+                head += " by " + " or ".join(m.replace("_", " ") for m in r.while_)
+            p["what"] = head
+            cond += _scope(r.model_copy(update={"water": None, "while_": []}), taking=False)
         else:
-            return r.verbatim              # nothing numeric to generate from
-        out = (head + _size(r) + _scope(r) + _dates(r) + _where(r, place_of)
-               + _suspended(r, siblings, place_of))
-        if r.record_retention:
-            out += " — record your retention on your licence immediately"
-        return out
-
-    if t in (RuleType.bait_restriction, RuleType.tackle_restriction, RuleType.method_rule):
-        # Everything these types say is in `gear`/`conduct`, rendered above. What reaches here
-        # is an exemption with no clause of its own, and the sentence IS the rule.
-        return r.verbatim
-
-    if t is RuleType.vessel_rule:
+            head = None
+            if r.take == 0:
+                head = f"{sp} — release all"
+            elif r.unlimited:
+                head = f"{sp} — no limit"
+            elif r.take is not None:
+                # A CLAUSE COUNTS ON ITS PARENT'S CLOCK. Bennett Lake prints "Lake trout daily and
+                # possession quotas = 2 (only 1 over 90 cm …)", a clause under each quota; named
+                # without the clock the two clauses read identically.
+                parent = (siblings or {}).get(r.within) if r.within else None
+                clock = parent.clock if parent is not None else r.clock
+                noun = {Period.daily: "per day", Period.possession: "in possession",
+                        Period.annual: "per licence year", Period.monthly: "per month"}[clock]
+                if r.within and r.lengths:
+                    head = sp                       # the size phrase carries the count
+                    if clock is not Period.daily:
+                        cond.append(noun)
+                else:
+                    head = f"{sp} — {r.take} {noun}"
+                    if len(expand_species(list(r.species or []))) > 1:
+                        head += ", all species combined"
+            elif r.per_daily is not None:
+                head = (f"{sp or 'All game fish'} — possession quota is {r.per_daily} daily "
+                        f"quota" + ("s" if r.per_daily != 1 else ""))
+            elif r.lengths:
+                head = sp                  # a size gate with no count: the region supplies it
+            if head:
+                p["what"] = head
+                p["size"] = _size(r).strip()
+                if p["size"].startswith("(") and p["size"].endswith(")"):
+                    p["size"] = p["size"][1:-1]
+            cond += _scope(r)
+            if r.record_retention:
+                duty.append("record your retention on your licence immediately")
+    elif t is RuleType.vessel_rule:
         if r.aspect is VesselAspect.speed:
             head = f"Speed restriction ({r.max_kmh:g} km/h)" if r.max_kmh else "Speed restriction"
         elif r.aspect is VesselAspect.towing:
@@ -2710,22 +2862,63 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> s
                     PropulsionLevel.power_capped:
                         f"Engine power restriction {kw:g} kW ({_HP.get(kw, '')} hp)" if kw
                         else "Engine power restriction"}[r.level]
-        return head + _dates(r) + _where(r, place_of) + _suspended(r, siblings, place_of)
-
-    if t is RuleType.angling_from_vessel_prohibited:
-        boats = "powered boats" if r.level is PropulsionLevel.unpowered else "boats"
-        return f"No angling from {boats}" + _scope(r) + _dates(r) + _where(r, place_of)
-
-    if t is RuleType.angler_closure:
-        # `taking=False`: a closure is "in", never "from". The subject is the angler, so the
-        # label leads with WHO — "Angling closed to non-guided non-resident aliens, on Saturdays
-        # and Sundays, Sept 1-Oct 31".
+        p["what"] = head
+    elif t is RuleType.angler_closure:
+        # The subject is the angler, so the line leads with WHO — "Angling closed to non-guided
+        # non-resident aliens". `taking=False`: a closure is "in", never "from".
         who = r.closed_to.words() if r.closed_to else "some anglers"
-        return (f"Angling closed to {who}" + _scope(r, taking=False) + _dates(r)
-                + _where(r, place_of) + _suspended(r, siblings, place_of))
+        p["what"] = f"Angling closed to {who}"
+        cond += _scope(r, taking=False)
+    # Everything else — navigation_duty, handling_rule without gear, hazard, advisory,
+    # program_membership, facility, and a bare exemption — has no `what`: its sentence IS the
+    # rule, and the reader shows the verbatim.
+    p["conditions"] = ", ".join(cond)
+    p["duty"] = "; ".join(d[:1].lower() + d[1:] for d in duty)
+    out = {}
+    for k in LABEL_PARTS:
+        v = re.sub(r"\s+", " ", _EMPHASIS.sub("", p.get(k) or "")).strip()
+        if v:
+            out[k] = v
+    return out
 
-    # navigation_duty, handling_rule, hazard, advisory, program_membership, facility
-    return r.verbatim
+
+def compose(parts: dict, verbatim: str = "") -> str:
+    """ONE line from the parts — the ONE composer, so a preview cannot drift from what a reader
+    composes by the guide. Order: what (size), conditions, when — where — in part: … — lifts —
+    duty — not while … (notice). With no `what`, the line is the book's own sentence (emphasis
+    and list marker stripped) and what it lifts — the preview only; no part ever carries it."""
+    head = parts.get("what")
+    if head and parts.get("size"):
+        s = parts["size"]
+        # A size CLASS attaches ("release all over 50 cm"); a BOUND is parenthesised
+        # ("(none under 30 cm)") — a bare "under 25 cm" after a species reads as a description.
+        head += f" {s}" if s.startswith(("over ", "under ")) else f" ({s})"
+    if not head:
+        # THE BOOK'S SENTENCE IS THE RULE, and it already says its own when and where: appending
+        # them would print the place twice. Only what tells two such rules apart is added.
+        out = strip_list_marker(re.sub(r"\s+", " ", _EMPHASIS.sub("", verbatim or "")).strip())
+        return out + (" — " + parts["lifts"] if parts.get("lifts") else "")
+    out = head
+    for k in ("conditions", "when"):
+        if parts.get(k):
+            out += ", " + parts[k]
+    if parts.get("where"):
+        out += " — " + parts["where"]
+    if parts.get("in_part"):
+        out += " — in part: " + parts["in_part"]
+    for k in ("lifts", "duty", "suspended"):
+        if parts.get(k):
+            out += " — " + parts[k]
+    if parts.get("notice"):
+        out += f" ({parts['notice']})"
+    return out
+
+
+def label(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> str:
+    """The composed line — `compose(label_parts(...))`. A convenience preview for tools and the
+    review app; a reader composes its own from the parts."""
+    return compose(label_parts(r, siblings, place_of), r.verbatim)
+
 
 
 # --------------------------------------------------------------------------------------- #
@@ -2809,9 +3002,36 @@ def _doing_words(d: "Doing") -> str:
     return "to guide anglers"
 
 
-def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
-                    refs: Optional[dict] = None) -> str:
-    """The sentence a reader sees for one licensing record — generated, never authored.
+#: THE PARTS OF A LICENSING RECORD'S LINE, as for a rule (`LABEL_PARTS`): each generated from the
+#: record's fields, absent when it has nothing to say, never the verbatim. `compose_licensing`
+#: joins them; the kind decides which appear.
+#:
+#:   who         the anglers it is about — "Anglers 16 and over", "Non-residents"
+#:   what        the fact itself: "Class II Classified Water", "Not a Classified Water", the
+#:               document sold ("Annual Classified Waters Licence for non-residents"), what an
+#:               alternative accepts ("A Yukon angling licence is also accepted here")
+#:   need        what must be held — "a basic angling licence or …"; "no basic angling licence"
+#:               on an exemption
+#:   must        a duty — "carry your paper licence", "produce your licence on request"
+#:   way         a way to satisfy it that is not a document — "be accompanied by someone 16 or
+#:               over who holds …"
+#:   doing       the activity that triggers it — "to fish", "to keep steelhead"
+#:   where       "on a classified stream during its classified period", "on streams"
+#:   when        the dates, days and hours it holds
+#:   unit        the licence unit(s), as the page names them
+#:   stamp       the classified-water Steelhead Stamp: its period here, or its waiver
+#:   terms       how a document is sold — "sold by the day; at most 8 days per licence year"
+#:   instead     what an alternative stands in for — "in place of a basic angling licence"
+#:   except      anglers taken out of `who`
+#:   suspended   "not in force while “<closure>” applies"
+#:   note        "provincial licences are not valid here" (a superior authority)
+LICENSING_PARTS = ("who", "what", "need", "must", "way", "doing", "where", "when", "unit", "stamp",
+                   "terms", "instead", "except", "suspended", "note")
+
+
+def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
+                    refs: Optional[dict] = None) -> dict:
+    """One licensing record's line, as PARTS — see `LICENSING_PARTS`; `compose_licensing` joins.
 
     Context a record cannot carry itself, all optional:
       siblings  {rule_id: CatalogueRule} of the record's entry, so a suspension names its
@@ -2821,70 +3041,64 @@ def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dic
       refs      {(entry_id, id): record} across the corpus, so an alternative says WHICH
                 licence it stands in for, never an id.
     """
+    p: dict = {}
     if isinstance(rec, Designation):
-        head = f"Class {rec.classified} Classified Water"
+        p["what"] = f"Class {rec.classified} Classified Water"
         if rec.when and not rec.when.is_empty():
-            head += f", {rec.when.words()}"
-        head += f" (licence unit: {rec.unit_name})."
+            p["when"] = rec.when.words()
+        p["unit"] = rec.unit_name
         if rec.steelhead_stamp_during is not None:
             w = rec.steelhead_stamp_during.when
-            head += (" Steelhead Stamp required whatever you fish for"
-                     + (f", {w.words()}" if not w.is_empty() else "") + ".")
+            p["stamp"] = ("Steelhead Stamp required whatever you fish for"
+                          + (f", {w.words()}" if not w.is_empty() else ""))
         elif rec.steelhead_stamp_waived is not None:
-            head += " Steelhead Stamp not required here unless you fish for steelhead."
+            p["stamp"] = "Steelhead Stamp not required here unless you fish for steelhead"
+        said = []
         for s in rec.suspended_while:
             other = (siblings or {}).get(s.rule_id)
-            said = label(other) if other is not None else "its closure"
-            head += f" Not in force while “{said}” applies."
-        return head
-    if isinstance(rec, NotClassified):
-        return "Not a Classified Water."
-    if isinstance(rec, Requirement):
-        who = _cap(rec.who.words()) if rec.who is not None else None
-        where = ""
+            said.append(label(other) if other is not None else "its closure")
+        if said:
+            p["suspended"] = "; ".join(f"not in force while “{x}” applies" for x in said)
+    elif isinstance(rec, NotClassified):
+        p["what"] = "Not a Classified Water"
+    elif isinstance(rec, Requirement):
+        if rec.who is not None:
+            p["who"] = _cap(rec.who.words())
         water = rec.water.value if rec.water is not None else None
         if rec.on is not None:
             period = {"classified_period": "its classified period",
                       "steelhead_period": "its Steelhead Stamp period"}[rec.on]
-            where = f" on a classified {water or 'water'} during {period}"
+            p["where"] = f"on a classified {water or 'water'} during {period}"
         elif water:
-            where = f" on {water}s"
-        if rec.when and rec.when.dates:
-            where += ", " + " and ".join(d.words() for d in rec.when.dates)
+            p["where"] = f"on {water}s"
+        if rec.when and not rec.when.is_empty():
+            p["when"] = rec.when.words()
+        # "to fish" adds nothing to a duty you have only while fishing.
+        if not (rec.conduct and rec.doing.act == "fishing"):
+            p["doing"] = _doing_words(rec.doing)
         if rec.conduct:
             # A duty is an instruction: "Anglers 16 and over: carry your paper licence when …".
-            acts = "; ".join(CONDUCT_ACTS[a] for a in rec.conduct)
-            # "to fish" adds nothing to a duty you have only while fishing.
-            body = acts if rec.doing.act == "fishing" else acts + " " + _doing_words(rec.doing)
-            head = (f"{who}: {body[:1].lower() + body[1:]}" if who else _cap(body)) + where
-        elif all(p.hold for p in rec.satisfied_by):
-            # "Anglers 16 and over need a basic angling licence to fish."
-            head = (f"{who or 'You'} need "
-                    + " or ".join(_path_words(p) for p in rec.satisfied_by)
-                    + " " + _doing_words(rec.doing) + where)
+            p["must"] = "; ".join(CONDUCT_ACTS[a] for a in rec.conduct)
+        elif all(q.hold for q in rec.satisfied_by):
+            p["need"] = " or ".join(_path_words(q) for q in rec.satisfied_by)
         else:
             # A path that is not a document is an instruction: "…: to fish, be accompanied by …".
-            body = (_doing_words(rec.doing) + where + ", "
-                    + ", or ".join(_path_words(p) for p in rec.satisfied_by))
-            head = f"{who}: {body}" if who else _cap(body)
+            p["way"] = ", or ".join(_path_words(q) for q in rec.satisfied_by)
         if rec.who_except is not None:
-            head += f" (except {rec.who_except.words()})"
+            p["except"] = f"except {rec.who_except.words()}"
         if rec.authority == "superior":
-            head += "; provincial licences are not valid here"
-        return head + "."
-    if isinstance(rec, LicenceTerms):
+            p["note"] = "provincial licences are not valid here"
+    elif isinstance(rec, LicenceTerms):
         doc = _docs([rec.document])
         if rec.classified:
             doc = f"Class {rec.classified} {doc}"
         if rec.sold == "per_licence_year":
             doc = "annual " + doc
-        subject = _cap(doc)
-        if rec.who is not None:
-            subject += f" for {rec.who.words()}"
+        p["what"] = _cap(doc) + (f" for {rec.who.words()}" if rec.who is not None else "")
         if rec.units:
             # Semicolons, because a printed unit name may carry its own comma ("Dean River
             # Class I, signs 100 m below the canyon to tidal boundary").
-            subject += " (" + "; ".join(unit_words(u, units) for u in rec.units) + ")"
+            p["unit"] = "; ".join(unit_words(u, units) for u in rec.units)
         bits = []
         if rec.sold == "per_day":
             bits.append("sold by the day")
@@ -2911,18 +3125,63 @@ def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dic
             bits.append("needs your angling guide's number")
         if rec.fee_cad is not None:
             bits.append(f"reduced fee ${rec.fee_cad:.2f}")
-        return subject + ": " + "; ".join(bits) + "."
-    if isinstance(rec, Exemption):
-        return f"{_cap(rec.who.words())} need no {_docs(rec.documents, 'or')}."
-    if isinstance(rec, Alternative):
+        p["terms"] = "; ".join(bits)
+    elif isinstance(rec, Exemption):
+        p["who"] = _cap(rec.who.words())
+        p["need"] = f"no {_docs(rec.documents, 'or')}"
+    elif isinstance(rec, Alternative):
         target = (refs or {}).get((rec.alternative_to.entry_id, rec.alternative_to.id))
         if isinstance(target, Requirement) and target.satisfied_by:
-            instead = " or ".join(_path_words(p) for p in target.satisfied_by)
+            instead = " or ".join(_path_words(q) for q in target.satisfied_by)
         else:
             instead = "the licence otherwise required"
-        return (_cap(" or ".join(_path_words(p) for p in rec.satisfied_by))
-                + f" is also accepted here, in place of {instead}.")
-    raise TypeError(f"not a licensing record: {type(rec).__name__}")
+        p["what"] = (_cap(" or ".join(_path_words(q) for q in rec.satisfied_by))
+                     + " is also accepted here")
+        p["instead"] = f"in place of {instead}"
+    else:
+        raise TypeError(f"not a licensing record: {type(rec).__name__}")
+    return {k: re.sub(r"\s+", " ", _EMPHASIS.sub("", p[k])).strip()
+            for k in LICENSING_PARTS if (p.get(k) or "").strip()}
+
+
+def compose_licensing(parts: dict) -> str:
+    """ONE sentence from a licensing record's parts — the one composer (see `compose`)."""
+    g = parts.get
+    tail = (f" {g('where')}" if g("where") else "") + (f", {g('when')}" if g("when") else "")
+    if g("need") is not None:
+        out = f"{g('who') or 'You'} need {g('need')}" + (f" {g('doing')}" if g("doing") else "")
+        out += tail
+    elif g("must") is not None or g("way") is not None:
+        body = (g("must") + (f" {g('doing')}" if g("doing") else "") + tail if g("must")
+                else (g("doing") or "") + tail + ", " + g("way"))
+        out = f"{g('who')}: {body[:1].lower() + body[1:]}" if g("who") else _cap(body)
+    else:
+        out = g("what") or ""
+        if g("when"):
+            out += f", {g('when')}"
+        if g("unit"):
+            out += (f" ({g('unit')})" if g("terms") is not None
+                    else f" (licence unit: {g('unit')})")
+        if g("terms") is not None:
+            out += f": {g('terms')}"
+        if g("instead"):
+            out += f", {g('instead')}"
+        if g("stamp"):
+            out += f". {g('stamp')}"
+        if g("suspended"):
+            out += ". " + ". ".join(_cap(x) for x in g("suspended").split("; "))
+    if g("except"):
+        out += f" ({g('except')})"
+    if g("note"):
+        out += f"; {g('note')}"
+    return out + "."
+
+
+def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
+                    refs: Optional[dict] = None) -> str:
+    """The composed sentence — `compose_licensing(licensing_parts(...))`; a preview only."""
+    return compose_licensing(licensing_parts(rec, siblings, units=units, refs=refs))
+
 
 
 # --------------------------------------------------------------------------------------- #

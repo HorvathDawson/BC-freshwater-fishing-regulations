@@ -34,8 +34,9 @@ Whitefish: 15 (all species combined)
 
 ## Possession Quotas
 
-2 daily quotas for most species. **Lake trout: 1 daily quota. Bull trout (Dolly Varden): 1 daily
-quota.**
+Possession quotas = 2 daily quotas for most species. See tables for exceptions.
+**Lake trout: possession quota = 1 daily quota. Bull trout (Dolly Varden): possession quota = 1
+daily quota.**
 
 ## Notices
 

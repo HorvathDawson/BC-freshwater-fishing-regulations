@@ -113,10 +113,16 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- in the label generator, and the same misreading is available to anything that only sees a
 -- quota of zero.
 CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
-                   type TEXT NOT NULL,        -- one of 15 (catalogue.RuleType)
+                   type TEXT NOT NULL,        -- one of 14 (catalogue.RuleType)
                    family TEXT NOT NULL,      -- one of 6  (retention, gear_and_method, ...)
                    dimension TEXT NOT NULL,   -- precedence key, second half
-                   label TEXT NOT NULL,       -- generated; never authored
+                   -- `parts` (JSON object): the rule's line as PARTS, each generated from the
+                   -- rule's fields — what, size, conditions, when, where, in_part, lifts, duty,
+                   -- suspended, notice (catalogue.LABEL_PARTS). A part with nothing to say is
+                   -- absent; no part is the verbatim. A reader composes its own line from them.
+                   -- `label` is catalogue.compose(parts): one preview, from the one composer.
+                   label TEXT NOT NULL,
+                   parts TEXT NOT NULL,
                    scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
                    -- `when` (catalogue.When, by alias): dates, hours, weekdays, and seasons
                    -- the parser could not read (`unparsed` — the client treats such a rule
@@ -150,6 +156,12 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    unresolved TEXT,
                    verbatim TEXT,             -- the sentence, quoted from regs_verbatim
                    extent_text TEXT,          -- the reach in the page's words, when unbound
+                   -- `undrawn_part`: the rule holds only in THIS part (the book's words) of the
+                   -- sections it binds, and nothing draws the part. The rule is SHOWN on those
+                   -- sections as a note ("in <part>") and never decides their colour or
+                   -- outcome — like `standing`, a column because the client decides from it.
+                   -- NULL = the rule holds on every section it binds.
+                   undrawn_part TEXT,
                    PRIMARY KEY (entry_id, rule_id)) WITHOUT ROWID;
 
 -- SAY IT ONCE AND POINT AT IT. The rules covering a section, as a SET the section names.
@@ -230,7 +242,7 @@ CREATE TABLE designation (entry_id TEXT NOT NULL, designation_id TEXT NOT NULL,
                           unit TEXT NOT NULL, unit_name TEXT NOT NULL,
                           placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
                           unresolved TEXT,
-                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                           record TEXT NOT NULL,
                           PRIMARY KEY (entry_id, designation_id)) WITHOUT ROWID;
 -- "Part described is NOT a Classified Water" — an asserted absence. The build refuses a section
@@ -239,7 +251,7 @@ CREATE TABLE designation (entry_id TEXT NOT NULL, designation_id TEXT NOT NULL,
 CREATE TABLE not_classified (entry_id TEXT NOT NULL, not_classified_id TEXT NOT NULL,
                              placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
                              unresolved TEXT,
-                             label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                             label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                              record TEXT NOT NULL,
                              PRIMARY KEY (entry_id, not_classified_id)) WITHOUT ROWID;
 -- An obligation, stated once. `on_designation` (classified_period | steelhead_period) means it
@@ -249,7 +261,7 @@ CREATE TABLE requirement (entry_id TEXT NOT NULL, req_id TEXT NOT NULL,
                           on_designation TEXT, authority TEXT, water TEXT,
                           placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
                           unresolved TEXT,
-                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                           record TEXT NOT NULL,
                           PRIMARY KEY (entry_id, req_id)) WITHOUT ROWID;
 -- How a document is sold. NEVER bound to a section: the reader attaches terms to the obligation
@@ -258,13 +270,13 @@ CREATE TABLE requirement (entry_id TEXT NOT NULL, req_id TEXT NOT NULL,
 CREATE TABLE licence_terms (entry_id TEXT NOT NULL, terms_id TEXT NOT NULL,
                             document TEXT NOT NULL, classified TEXT,
                             units TEXT,                  -- JSON list; [] = every unit
-                            label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                            label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                             record TEXT NOT NULL,
                             PRIMARY KEY (entry_id, terms_id)) WITHOUT ROWID;
 -- Who is released from which documents. Never placed.
 CREATE TABLE exemption (entry_id TEXT NOT NULL, exemption_id TEXT NOT NULL,
                         documents TEXT NOT NULL,         -- JSON list of licence.doc_id
-                        label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                        label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                         record TEXT NOT NULL,
                         PRIMARY KEY (entry_id, exemption_id)) WITHOUT ROWID;
 -- A place where another document ALSO satisfies a requirement. It only ever adds a path.
@@ -272,7 +284,7 @@ CREATE TABLE alternative (entry_id TEXT NOT NULL, alternative_id TEXT NOT NULL,
                           alternative_to_entry TEXT NOT NULL, alternative_to_id TEXT NOT NULL,
                           placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,
                           unresolved TEXT,
-                          label TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
+                          label TEXT NOT NULL, parts TEXT NOT NULL, verbatim TEXT NOT NULL, review_reason TEXT,
                           record TEXT NOT NULL,
                           PRIMARY KEY (entry_id, alternative_id)) WITHOUT ROWID;
 

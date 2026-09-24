@@ -91,7 +91,7 @@ _NOT_CONDITIONS = frozenset({
     # `when`, `while` and `standing` are columns of their own, so each has one home.
     "rule_id", "type", "verbatim", "species", "species_except", "when", "while", "standing",
     "take",
-    "may_target", "extent_text", "review_reason",
+    "may_target", "extent_text", "review_reason", "undrawn_part",
     "unresolved_locators",
     # Build-time only: a carve-out the reach builder applies before any section reaches the
     # bundle. Shipping it as a `condition` would put a resolver's input in front of a reader.
@@ -248,7 +248,8 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
     the same reason the gauge trust wording does: a rule worded two ways is two rules to a
     reader.
     """
-    from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
+    from pipeline.regs.parsing.catalogue import (_COUNTED_TYPES, CatalogueRule, Obligation,
+                                                 compose, label_parts)
 
     if "type" not in raw:
         # The prose model is gone. Writing NULLs here would give the bundle rule rows that
@@ -275,11 +276,23 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
                   if k not in _NOT_CONDITIONS
                   and not any(v is e or v == e for e in _EMPTY)
                   and v is not False}
+    # THE CLOCK, ON THE RULES THAT COUNT AND ONLY THOSE. The model leaves `period` unset where the
+    # book's default (daily) holds; a counting rule ships its clock outright so no reader has to
+    # know the default, and no other rule ships one (1,549 bait bans and boat rules said "daily").
+    if r.type in _COUNTED_TYPES:
+        conditions["period"] = r.clock.value
+    # LAW IS THE DEFAULT: `obligation` ships only where the book gives ADVICE ("should"). It sat
+    # on all 3,348 rules as "must", a key a reader had to learn to ignore.
+    if conditions.get("obligation") == Obligation.must.value:
+        del conditions["obligation"]
+    parts = label_parts(r, siblings, place_of)
     return (
         entry_id, r.rule_id, r.type.value, r.family, r.dimension,
-        # THE PLACE IS NAMED FROM THE EXTENTS, in the book's words (`place_names`), so two rules
-        # of one entry on different reaches never share a label.
-        rule_label(r, siblings, place_of),
+        # THE LINE, AS PARTS, and the one preview composed from them (`catalogue.compose`). The
+        # place is named from the extents, in the book's words (`place_names`), so two rules of
+        # one entry on different reaches never share a line.
+        compose(parts, r.verbatim),
+        json.dumps(parts, separators=(",", ":"), ensure_ascii=False),
         _specificity(raw),
         _when(r),
         # WHILE, AS A COLUMN, because the client decides an OUTCOME from it: "only non-game fish
@@ -303,7 +316,7 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
         1 if uncertain else 0,
         # WHY it could not be placed — "reason: detail", as the licensing tables have it.
         unresolved,
-        r.verbatim, r.extent_text or None,
+        r.verbatim, r.extent_text or None, r.undrawn_part or None,
     )
 
 
@@ -371,10 +384,10 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # the names a label gives a rule's place, and the sections B.C. does not govern.
     from pipeline.atlas.registry import load_registry
     from pipeline.common.curated import CURATED
-    from pipeline.deliver.bundle.place_names import PlaceNamer, split_labels
+    from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
     registry = load_registry(str(Path(build_dir) / "registry.json"))
     namer = PlaceNamer(registry, split_labels(json.loads(
-        CURATED.waters.splits.read_text(encoding="utf-8"))))
+        CURATED.waters.splits.read_text(encoding="utf-8"))), area_names(build_dir))
 
     entry_rows, rule_rows = [], []
     ces = []
@@ -443,11 +456,11 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional
     # placeholders, and adding `limits` to the schema made it eleven values for twelve
     # columns — the fault that once shipped a 42 MB bundle with no entries in it.
-    db.executemany("INSERT INTO rule (entry_id, rule_id, type, family, dimension, label,"
+    db.executemany("INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, parts,"
                    "                  scope, when_, while_, standing, species, species_except,"
                    "                  exempts, take, may_target, conditions, uncertain, unresolved,"
-                   "                  verbatim, extent_text) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
+                   "                  verbatim, extent_text, undrawn_part) "
+                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
     # One pass over the bindings (149 M rows on the full corpus), noting every rule it names.

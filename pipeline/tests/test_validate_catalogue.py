@@ -300,3 +300,66 @@ def test_no_catalogue_rule_names_a_split_parent():
     entries = [e for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
                for e in json.loads(p.read_text())["entries"]]
     assert refs_to_parents(entries, split_parents()) == []
+
+
+# --------------------------------------------------------------------------- #
+# Counts written as words
+# --------------------------------------------------------------------------- #
+
+_NATION = "Lake trout possession quota = 2 (only one over 50 cm); no set lines"
+
+
+def _sub_limit(verbatim, take=1, **kw):
+    """The Nation-lakes shape: a possession quota and its "only one over 50 cm" sub-limit."""
+    return [
+        {"rule_id": "t.r1", "type": "retention_limit", "species": ["LT"], "take": 2,
+         "period": "possession", "verbatim": "Lake trout possession quota = 2"},
+        {"rule_id": "t.r2", "type": "retention_limit", "species": ["LT"], "take": take,
+         "period": "possession", "within": "t.r1", "lengths": [{"min_cm": 50}],
+         "verbatim": verbatim, **kw},
+    ]
+
+
+def test_a_count_spelled_as_a_word_is_its_own_number():
+    """"only one over 50 cm" — six sub-limits were dropped because the gate read digits only."""
+    _, errors = check_entry(_entry(_sub_limit("only one over 50 cm"), regs=_NATION), _NATION)
+    assert errors == []
+
+
+@pytest.mark.parametrize("take,verbatim", [
+    (2, "only one over 50 cm"),        # the word says 1, the field says 2
+    (1, "none over 50 cm"),            # "one" inside "none" is not a one
+    (1, "a fish over 50 cm"),          # "a" is not accepted as one
+    (1, "single fish over 50 cm"),     # nor is "single"
+])
+def test_a_word_count_must_be_the_same_number_and_a_whole_word(take, verbatim):
+    regs = f"Lake trout possession quota = 2 ({verbatim}); no set lines"
+    _, errors = check_entry(_entry(_sub_limit(verbatim, take=take), regs=regs), regs)
+    assert any("t.r2: take=" in e and "does not appear" in e for e in errors), errors
+
+
+def test_a_size_is_never_accepted_as_a_word():
+    """Words are for COUNTS. A length the sentence spells only as "fifty" is not a printed size."""
+    regs = "Lake trout possession quota = 2 (only one over fifty); no set lines"
+    rules = _sub_limit("only one over fifty")
+    _, errors = check_entry(_entry(rules, regs=regs), regs)
+    assert any("lengths[0].min_cm=50" in e for e in errors), errors
+
+
+def test_count_in_words_reads_whole_words_case_blind():
+    from pipeline.regs.parsing.validate_catalogue import count_in_words
+    assert count_in_words(1, "Only One over 50 cm")
+    assert count_in_words(20, "twenty per day")
+    assert count_in_words(2.0, "two daily quotas")
+    assert not count_in_words(1, "someone")
+    assert not count_in_words(10, "often")
+    assert not count_in_words(21, "twenty-one")          # outside the table: digits only
+    assert not count_in_words(1.5, "one and a half")
+
+
+def test_twice_is_a_possession_multiplier_and_nothing_else():
+    """"no more than twice the daily quota" is `per_daily: 2`; "twice" is not a take of 2."""
+    from pipeline.regs.parsing.validate_catalogue import count_in_words
+    assert count_in_words(2, "no more than twice the daily quota", "per_daily")
+    assert not count_in_words(2, "no more than twice the daily quota", "take")
+    assert not count_in_words(1, "once you have caught your quota", "per_daily")

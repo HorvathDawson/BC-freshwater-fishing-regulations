@@ -45,7 +45,7 @@ def test_a_bait_rule_may_be_scoped_to_what_you_are_FISHING_FOR():
     """A stream can carry a salmon bait ban and no other. That is not a species the ban protects —
     it is the fishery the ban applies to, which is why it is a separate field."""
     r = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}], when_targeting=["SA"])
-    assert label(r) == "Bait ban when fishing for salmon"
+    assert label(r) == "Bait ban, when fishing for salmon"
     general = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}])
     assert r.dimension != general.dimension    # they coexist; neither displaces the other
 
@@ -551,25 +551,58 @@ def test_the_corpus_has_no_rule_that_says_nothing_about_where():
 
 
 def test_angling_from_powered_boats_says_powered():
-    """"No angling from powered boats" shipped as the unqualified `angling_from_vessel_prohibited`
-    on seven rules — forbidding a canoe the book allows. `level` is the boats you may still angle
-    from, on the propulsion scale; the sentence's own word is checked."""
+    """"No angling from powered boats" shipped as the unqualified boat ban on seven rules —
+    forbidding a canoe the book allows. It is a method ban on angling `when: {angler:
+    in_powered_boat}`; the sentence's own word is checked against an `in_boat` clause."""
     import pytest
     from pipeline.regs.parsing.catalogue import CatalogueRule, label
-    base = {"rule_id": "x.r1", "type": "angling_from_vessel_prohibited",
-            "extents": [{"op": "whole"}]}
-    powered = {**base, "verbatim": "No angling from powered boats upstream of dyke gates"}
+
+    def ban(angler, verbatim):
+        return {"rule_id": "x.r1", "type": "method_rule", "verbatim": verbatim,
+                "extents": [{"op": "whole"}],
+                "gear": [{"slot": "method", "ban": ["angling"], "when": {"angler": angler}}]}
+    powered = "No angling from powered boats upstream of dyke gates"
     with pytest.raises(ValueError, match="POWERED"):
-        CatalogueRule.model_validate(powered)
-    r = CatalogueRule.model_validate({**powered, "level": "unpowered"})
-    assert label(r) == "No angling from powered boats"
-    assert label(CatalogueRule.model_validate({**base, "verbatim": "No angling from boats"})) \
-        == "No angling from boats"
-    with pytest.raises(ValueError, match="level: unpowered"):
-        CatalogueRule.model_validate({**powered, "level": "electric_only"})
+        CatalogueRule.model_validate(ban("in_boat", powered))
+    r = CatalogueRule.model_validate(ban("in_powered_boat", powered))
+    assert label(r) == "No angling (from a powered boat)"
+    assert label(CatalogueRule.model_validate(ban("in_boat", "No angling from boats"))) \
+        == "No angling (from a boat)"
+    with pytest.raises(ValueError, match="level belongs to vessel_rule"):
+        CatalogueRule.model_validate({**ban("in_powered_boat", powered), "level": "unpowered"})
     with pytest.raises(ValueError, match="level belongs to"):
         CatalogueRule.model_validate({"rule_id": "x.r1", "type": "advisory", "verbatim": "x",
                                       "level": "unpowered"})
+
+
+def test_the_boat_type_is_retired_and_refused():
+    import pytest
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    with pytest.raises(ValueError):
+        CatalogueRule.model_validate({"rule_id": "x.r1", "type": "angling_from_vessel_prohibited",
+                                      "verbatim": "No angling from boats",
+                                      "extents": [{"op": "whole"}]})
+
+
+def test_a_conditional_ban_never_displaces_an_unconditional_allow():
+    """The province allows angling (`zp:terminal_tackle.r7`, method allow angling). A water's "no
+    angling from boats" keyed "method:angling" would share its (type, dimension) and DISPLACE it —
+    shore angling would read as not allowed. The clause's condition is part of the key."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    allow = CatalogueRule.model_validate({
+        "rule_id": "p.r1", "type": "method_rule", "verbatim": "angle", "extents": [{"op": "whole"}],
+        "gear": [{"slot": "method", "allow": ["angling"]}]})
+    boats = CatalogueRule.model_validate({
+        "rule_id": "w.r1", "type": "method_rule", "verbatim": "No angling from boats",
+        "extents": [{"op": "whole"}],
+        "gear": [{"slot": "method", "ban": ["angling"], "when": {"angler": "in_boat"}}]})
+    plain = CatalogueRule.model_validate({
+        "rule_id": "w.r2", "type": "method_rule", "verbatim": "No angling",
+        "extents": [{"op": "whole"}], "gear": [{"slot": "method", "ban": ["angling"]}]})
+    assert (allow.type, allow.dimension) != (boats.type, boats.dimension)
+    assert boats.dimension == "method:angling@angler=in_boat"
+    # an unconditional ban still competes with the unconditional allow, as before
+    assert allow.dimension == plain.dimension == "method:angling"
 
 
 # --------------------------------------------------------------------------- where a rule is

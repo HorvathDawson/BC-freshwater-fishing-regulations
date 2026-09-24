@@ -36,7 +36,7 @@ from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.species import SPECIES
-from pipeline.regs.table.authority import Authority, Scope, Source, source_of
+from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
 OUT = GENERATED.base / "regs" / "ui-rules-export.json"
@@ -50,7 +50,10 @@ OUT = GENERATED.base / "regs" / "ui-rules-export.json"
 #: `rule.unresolved` is why a rule could not be placed, and `rule.exempts` is what a rule lifts,
 #: resolved to the entry each lift reaches — it left `conditions` for a column of its own, so a
 #: bundle without the column is one whose lifts this export would silently drop.
-REQUIRED_COLUMNS = {"entry": ("matched",), "rule": ("unresolved", "exempts"),
+REQUIRED_COLUMNS = {"entry": ("matched",),
+                    "rule": ("unresolved", "exempts", "undrawn_part", "parts"),
+                    **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
+                                              "licence_terms", "exemption", "alternative")},
                     "item": ("part_of",), "outside_bc": ("sid",)}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
@@ -74,7 +77,8 @@ RETIRED_ON_RULE = RETIRED_ANYWHERE | frozenset({
     "scope_text", "tributaries",
 })
 #: Rule types that were retired into `CatalogueEntry.licensing`.
-RETIRED_TYPES = frozenset({"document_required", "access_permission"})
+RETIRED_TYPES = frozenset({"document_required", "access_permission",
+                           "angling_from_vessel_prohibited"})
 
 
 def _need(db: sqlite3.Connection) -> None:
@@ -124,7 +128,8 @@ def _entry_kind(entry_id: str, extents: list) -> str:
 _RULE_COLUMNS = (("when_", "when"), ("while_", "while"), ("species", "species"),
                  ("species_except", "species_except"), ("take", "take"),
                  ("may_target", "may_target"), ("standing", "standing"),
-                 ("exempts", "exempts"), ("extent_text", "extent_text"))
+                 ("exempts", "exempts"), ("extent_text", "extent_text"),
+                 ("undrawn_part", "undrawn_part"))
 #: Of those, the ones the bundle stores as JSON text.
 _JSON_COLUMNS = frozenset({"when_", "while_", "species", "species_except", "exempts"})
 
@@ -154,12 +159,14 @@ def _rule_record(r: dict, entry_name: str) -> dict:
     s = source_of({"entry": r["entry_id"], "rule": r["rule_id"], "entry_name": entry_name,
                    "extents": fields.get("extents") or [],
                    "authority": fields.get("authority"),
-                   "extent_text": r["extent_text"], "verbatim": r["verbatim"]})
+                   "extent_text": r["extent_text"], "undrawn_part": r["undrawn_part"],
+                   "verbatim": r["verbatim"]})
     return {
         "id": f"{r['entry_id']}::{r['rule_id']}",
         "entry_id": r["entry_id"], "rule_id": r["rule_id"],
         "type": r["type"], "family": r["family"], "dimension": r["dimension"],
-        "label": r["label"], "verbatim": r["verbatim"],
+        "label": r["label"], "parts": _j(r["parts"], {}), "verbatim": r["verbatim"],
+        "binds": _binds(r),
         "fields": dict(sorted(fields.items())),
         "provenance": {
             "entry_name": entry_name,
@@ -172,6 +179,27 @@ def _rule_record(r: dict, entry_name: str) -> dict:
             "why": r["unresolved"],
         },
     }
+
+
+#: WHERE A RULE ACTUALLY HOLDS, said once, on the record — so no reader has to cross-read
+#: `fields.extents` against `provenance.uncertain` to learn that a rule it sees as `whole` binds
+#: nothing (92 rules shipped that way: their row's water is not in the atlas).
+BINDS_TEXT = {
+    "sections": "placed: it holds on every section that carries it (find them in `rulesets`)",
+    "sections_in_part": "placed on the sections of the water it is in, but it holds only in the "
+                        "part `fields.undrawn_part` names, which nothing draws. SHOW it on those "
+                        "sections as a note ('in <part>'); NEVER colour or decide the water by it",
+    "nowhere": "not placed: the reach builder could not bind it (`provenance.why`). Its "
+               "`fields.extents` are what the rule states, not where it holds — a `whole` on an "
+               "entry with no `matched` water names a water the atlas does not have. It can only "
+               "ever raise 'unknown', never 'no rules here'",
+}
+
+
+def _binds(r: dict) -> str:
+    if r["uncertain"]:
+        return "nowhere"
+    return "sections_in_part" if r["undrawn_part"] else "sections"
 
 
 #: The licensing tables, their id column, and whether the kind is placed.
@@ -190,7 +218,7 @@ def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: 
     return {
         "id": f"{r['entry_id']}#{r[idcol]}",
         "entry_id": r["entry_id"], "record_id": r[idcol], "kind": kind,
-        "label": r["label"], "verbatim": r["verbatim"],
+        "label": r["label"], "parts": _j(r["parts"], {}), "verbatim": r["verbatim"],
         "fields": dict(sorted(fields.items())),
         "placement": r["placement"] if placed else NOT_PLACED,
         "provenance": {
@@ -335,8 +363,6 @@ TYPE_TEXT = {
                    "clauses on the `method` slot or a spec slot, or `conduct`.",
     "vessel_rule": "Boats: whether they are allowed, under what propulsion, at what speed, "
                    "towing. Read `aspect` first.",
-    "angling_from_vessel_prohibited": "You may fish here, but not from a boat — or, with "
-                                      "`level: unpowered`, not from a POWERED boat.",
     "navigation_duty": "What a boat must do for other traffic.",
     "angler_closure": "The water is closed to ONE KIND of angler (`closed_to`), on the days in "
                       "`when`. A closure, never a quota; everyone else is unaffected.",
@@ -434,7 +460,8 @@ GEAR_WHEN_TEXT = {
     "water": "stream | lake",
     "method": "while fishing by this method",
     "targeting": "while fishing FOR these species",
-    "angler": "alone_in_boat | in_boat | from_shore",
+    "angler": "alone_in_boat | in_boat | in_powered_boat | from_shore — 'No angling from "
+              "boats' is a method ban on angling `when: {angler: in_boat}`",
     "gear_in_use": "while this gear is in use",
     "note": "a condition the closed vocabulary cannot say; the rule then carries a "
             "review_reason",
@@ -450,7 +477,8 @@ GEAR_SPEC_TEXT = {
 
 #: The model's rule fields that a reader of this file meets, in words.
 RULE_FIELD_TEXT = {
-    "obligation": "must | should — law, or advice the book gives. Every rule carries it.",
+    "obligation": "should: the book gives this as ADVICE, not law. Absent = must (law) — "
+                  "the default, so it is not repeated on every rule.",
     "species": "species codes the rule is about, as the book wrote them (groups included — "
                "expand with `species.groups`)",
     "species_except": "species carved out of `species`",
@@ -464,8 +492,9 @@ RULE_FIELD_TEXT = {
     "take": "how many you may keep",
     "unlimited": "there is no number",
     "may_target": "false = you may not fish for it; true = fish for it and release",
-    "period": "daily | possession | annual | monthly — the clock the number runs on. Every rule "
-              "carries it; it matters only where there is a number.",
+    "period": "daily | possession | annual | monthly — the clock the number runs on. Carried "
+              "by every retention_limit and stop_fishing_after_quota, and by nothing else: no "
+              "other type counts fish.",
     "per_daily": "a possession limit as a multiple of the daily one",
     "within": "the rule id (same entry) this is a clause of; it counts inside its parent",
     "lengths": "ordered length ranges, each with its own take — see `sizes`",
@@ -481,14 +510,59 @@ RULE_FIELD_TEXT = {
                             "absent = inherit the entry's",
     "tributaries_only": "the tributaries, without the named water itself",
     "extents": "where on the water (or in which areas) the rule applies, as the reach builder "
-               "reads it. A rule with none of its own is not given its entry's: it binds where "
-               "the reach builder placed it, or nowhere (`provenance.uncertain`).",
+               "reads it. A rule with none of its own is not given its entry's. What the rule "
+               "STATES, not where it holds: read `binds` for that.",
     "exempts": "what the rule lifts — see `exempts`",
     "standing": "true: holds everywhere at places no dataset can draw — see `standing`",
     "authority": "superior: a federal or park authority, above the provincial ladder",
     "notice": "the DFO fishery notice the rule was published in",
     "suspended_while": "a rule id (same entry): this rule is dormant while that one binds",
     "extent_text": "the book's words for a place nothing could draw",
+    "undrawn_part": "the book's words for the PART of the bound water this rule holds in, which "
+                    "nothing draws. The rule is placed on the whole water it is in; show it there "
+                    "as a note ('in <part>') and never colour the water by it — see `binds`",
+}
+
+#: THE PARTS OF A LINE, in words. Checked against `catalogue.LABEL_PARTS` and
+#: `catalogue.LICENSING_PARTS` (see `_registries`), so a part the model gains is refused until it is
+#: explained here.
+PART_TEXT = {
+    "what": "the rule itself — its verdict and subject: 'No fishing for bull trout in streams', "
+            "'Rainbow trout — 2 per day', 'Bait ban', 'Speed restriction (10 km/h)'. ABSENT when "
+            "the rule has no structured content (an advisory, a hazard, a bare exemption): show "
+            "the verbatim instead, marked as the book's text",
+    "size": "the length bound: 'none under 30 cm' (a bound — write it in parentheses) or 'over "
+            "50 cm' (a size class — attach it: 'release all over 50 cm')",
+    "conditions": "which fish or which fishing: 'wild only', 'from streams', 'when fishing for "
+                  "salmon', 'while set lining', 'in possession'",
+    "when": "dates, weekdays, hours, and any season nobody could read ('as printed: …' — "
+            "uncertain, never all year)",
+    "where": "the place in the book's words, or named from what the extents draw",
+    "in_part": "the undrawn part the rule holds in (`fields.undrawn_part`): a note, never a "
+               "colour — see `binds`",
+    "lifts": "what the rule exempts from",
+    "duty": "what you must do: 'record your retention on your licence immediately'",
+    "suspended": "'not while “<the rule it sleeps under>” is in force'",
+    "notice": "the DFO fishery notice it was published in",
+}
+LICENSING_PART_TEXT = {
+    "who": "the anglers it is about",
+    "what": "the fact: a designation's class, 'Not a Classified Water', the document sold, "
+            "what an alternative accepts",
+    "need": "what must be held (any one of the ways joined by 'or'); on an exemption, "
+            "'no <documents>'",
+    "must": "a duty to do",
+    "way": "a way to satisfy it that is not a document ('be accompanied by …')",
+    "doing": "the activity that triggers it ('to fish', 'to keep steelhead')",
+    "where": "on which water, or during which designation's period",
+    "when": "the dates, days and hours it holds",
+    "unit": "the licence unit(s), as the page names them",
+    "stamp": "the classified-water Steelhead Stamp here: its period, or its waiver",
+    "terms": "how a document is sold",
+    "instead": "what an alternative stands in for",
+    "except": "anglers taken out of `who`",
+    "suspended": "not in force while the named closure applies",
+    "note": "a superior authority's note ('provincial licences are not valid here')",
 }
 
 #: Keys on an exported rule record outside `fields`.
@@ -499,8 +573,11 @@ RECORD_TEXT = {
     "type": "one of `rule_types`",
     "family": "the type's family — see `families`",
     "dimension": "the second half of the competition key, (type, dimension) — see `ladder`",
-    "label": "generated from the fields by the model's label function; never authored",
+    "label": "a PREVIEW: `parts` composed by the model's one composer (catalogue.compose). "
+             "Never authored. A reader composes its own line from `parts` — see `labels`",
+    "parts": "the rule's line as parts, each generated from its fields — see `labels`",
     "verbatim": "the sentence from the printed book, quoted",
+    "binds": "where the rule holds: " + " | ".join(BINDS_TEXT) + " — see `placement.binds`",
     "fields": "the rule's own fields, as the bundle ships them",
     "provenance": "who wrote it and what it binds to — see below",
 }
@@ -522,7 +599,8 @@ LICENSING_RECORD_TEXT = {
     "entry_id": "the synopsis row the record was read from",
     "record_id": "its id inside the entry",
     "kind": "one of `licensing.kinds`",
-    "label": "generated from the fields; never authored",
+    "label": "a PREVIEW: `parts` composed by catalogue.compose_licensing; never authored",
+    "parts": "the record's line as parts, each generated from its fields — see `labels`",
     "verbatim": "the sentence from the printed book",
     "fields": "the record's own fields, as the bundle ships them",
     "placement": "sections | province | on_designation | unresolved | not_placed",
@@ -703,7 +781,7 @@ def _licensing_models() -> dict:
 
 def _example(x: dict, *keys: str) -> dict:
     """A record, cut to what the concept is about. Always a real record, found by id."""
-    got = {"id": x["id"], "label": x["label"], "verbatim": x["verbatim"]}
+    got = {"id": x["id"], "label": x["label"], "parts": x["parts"], "verbatim": x["verbatim"]}
     if keys:
         got["fields"] = {k: x["fields"][k] for k in keys if k in x["fields"]}
     return got
@@ -806,7 +884,9 @@ def guide(d: dict) -> dict:
             "retention_limit": "the period, plus '/size' when the rule is sizes with no take",
             "vessel_rule": "the aspect",
             "angler_closure": "closed_to:<who>",
-            "method_rule": "the methods it names",
+            "method_rule": "the methods it names, each with its clause's condition: 'no angling "
+                           "from boats' is method:angling@angler=in_boat, so it never displaces "
+                           "the province's unconditional angling allow (method:angling)",
             "tackle_restriction": "the set of slots it constrains",
             "bait_restriction": "bait:<the bait members it names>[/<targeted species>]",
             "every other type": "the type itself",
@@ -1199,6 +1279,14 @@ def guide(d: dict) -> dict:
         "licensing_placement": PLACEMENT_TEXT,
         "licensing_placement_counts": dict(sorted(Counter(
             x["placement"] for x in lic.values()).items())),
+        "binds": {
+            "reading": "Every rule says where it holds in `binds`.",
+            "values": BINDS_TEXT,
+            "counts": dict(sorted(Counter(x["binds"] for x in rules.values()).items())),
+            "in_part": [x["id"] for x in rules.values() if x["binds"] == "sections_in_part"],
+            "examples": pick(lambda x: x["binds"] == "sections_in_part", "undrawn_part",
+                             "extents", n=2),
+        },
         "uncertain": {
             "rules": [x["id"] for x in rules.values() if x["provenance"]["uncertain"]],
             "licensing": [x["id"] for x in lic.values() if x["provenance"]["uncertain"]],
@@ -1209,9 +1297,47 @@ def guide(d: dict) -> dict:
                              and v["kind"] == "water"],
     }
 
+    labels = {
+        "reading": "A record's line is shipped as PARTS, each generated from its fields and "
+                   "never authored. Compose them in the UI; `verbatim` — the book's sentence, "
+                   "exact — is the provenance to show underneath, always. A part with nothing to "
+                   "say is ABSENT, never a placeholder, and no part is ever the verbatim. With no "
+                   "`what`, the rule's sentence IS the rule: show the verbatim as the book's text "
+                   "and the other parts as context. `label` is one preview composed the "
+                   "suggested way (catalogue.compose); a UI may compose differently from `parts`.",
+        "book_reasons": "A reason the book gives ('located in an Ecological Reserve', 'for the "
+                        "conservation of chinook') is NOT a part: the model has no field for "
+                        "a reason, and a part is generated from fields only. It reaches a reader "
+                        "through the verbatim shown underneath, never paraphrased.",
+        "rule_parts": {k: PART_TEXT[k] for k in C.LABEL_PARTS},
+        "rule_order": {
+            "order": list(C.LABEL_PARTS),
+            "suggested": "what (size), conditions, when — where — in part: in_part — lifts — "
+                         "duty — suspended (notice)",
+        },
+        "licensing_parts": {k: LICENSING_PART_TEXT[k] for k in C.LICENSING_PARTS},
+        "licensing_order": {
+            "need": "{who or 'You'} need {need} {doing} {where}, {when} ({except}); {note}.",
+            "must": "{who}: {must} {doing} {where}, {when}",
+            "way": "{who}: {doing} {where}, {when}, {way}",
+            "otherwise": "{what}, {when} (licence unit: {unit}) | ({unit}): {terms}, {instead}. "
+                         "{stamp}. {suspended}.",
+        },
+        "counts": {
+            "rules_by_part": dict(sorted(Counter(k for x in rules.values()
+                                                 for k in x["parts"]).items())),
+            "rules_without_what": sum("what" not in x["parts"] for x in rules.values()),
+        },
+        "examples": {
+            "with a place": pick(lambda x: "where" in x["parts"] and "when" in x["parts"], n=1),
+            "in part": pick(lambda x: "in_part" in x["parts"], n=1),
+            "no what": pick(lambda x: "what" not in x["parts"], n=1),
+        },
+    }
     contents = {
         "how_to_read": "the file's shape, ids and what is not in it",
         "entries": "what an entry is, and its four kinds",
+        "labels": "a record's line as parts; how to compose them; verbatim underneath",
         "rule_types": "every rule type: what it means, fields it uses, competition, closing",
         "families": "the six families the types group into",
         "ladder": "which rules compete and who speaks",
@@ -1225,7 +1351,8 @@ def guide(d: dict) -> dict:
         "standing": "rules everywhere at places nobody can draw",
         "angler_closure": "closures to one kind of angler",
         "licensing": "kinds, who, doing, paths, designations, and the rules of reading",
-        "placement": "sets, waters and their parts, outside B.C., via, placement, uncertain",
+        "placement": "sets, waters and their parts, outside B.C., via, placement, binds (and "
+                     "undrawn parts), uncertain",
     }
     return {
         "contents": contents,
@@ -1245,7 +1372,9 @@ def guide(d: dict) -> dict:
             },
             "every_record": "Each rule and licensing record reads itself: `label` (generated "
                             "from its fields), `verbatim` (the printed sentence), `fields` "
-                            "(exactly as the bundle ships them), and `provenance`.",
+                            "(exactly as the bundle ships them), and `provenance`. A rule also "
+                            "says where it holds (`binds`): on its sections, only in an undrawn "
+                            "part of them (a note — never colour a water by it), or nowhere.",
             "ids": "A rule id or record id is unique only within its entry; always use the "
                    "full key. item_id is the durable id of a water.",
             "not_included": "Nothing is settled: no quota tables, no open/closed verdicts, no "
@@ -1264,6 +1393,7 @@ def guide(d: dict) -> dict:
             "counts": dict(sorted(Counter(e["kind"] for e in d["entries"].values()).items())),
             "fields": ENTRY_TEXT,
         },
+        "labels": labels,
         "rule_types": rule_types,
         "families": families,
         "ladder": ladder,
@@ -1441,6 +1571,8 @@ def _registries() -> list[tuple[str, dict, set]]:
         ("PATH_TEXT", PATH_TEXT, set(_fields(C.Path))),
         ("DOING_TEXT", DOING_TEXT, set(typing.get_args(C.Doing.model_fields["act"].annotation))),
         ("LICENSING_KIND_TEXT", LICENSING_KIND_TEXT, set(lm)),
+        ("PART_TEXT", PART_TEXT, set(C.LABEL_PARTS)),
+        ("LICENSING_PART_TEXT", LICENSING_PART_TEXT, set(C.LICENSING_PARTS)),
     ]
 
 
@@ -1527,7 +1659,7 @@ def dangling(doc: dict) -> list[str]:
     out += [f"guide example {i}" for i in examples(doc["guide"]) if i not in R and i not in L]
     g = doc["guide"]
     listed = (g["standing"]["rules"] + g["angler_closure"]["rules"]
-              + g["placement"]["uncertain"]["rules"])
+              + g["placement"]["uncertain"]["rules"] + g["placement"]["binds"]["in_part"])
     out += [f"guide lists rule {i}" for i in listed if i not in R]
     out += [f"guide lists licensing {i}" for i in g["placement"]["uncertain"]["licensing"]
             if i not in L]

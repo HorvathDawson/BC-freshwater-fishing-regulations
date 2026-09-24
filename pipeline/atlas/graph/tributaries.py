@@ -60,16 +60,66 @@ def _through_blks(graph: StreamGraph, node_id: str) -> frozenset[str]:
 
     For a stream the edge KIND already says this (`continuation`), so this returns nothing
     and the kind check does the work.
+
+    A LAKE THAT DRAINS STRAIGHT INTO ANOTHER LAKE has no stream outlet of its own — a lake node
+    carries no blk — so the outlet's blue line is found by following the flow down through
+    every lake it enters until a stream carries it on. Reading only the first node below
+    returned NOTHING for such a lake, and a lake with no through-line has every inflow for a
+    tributary: Kinbasket drains through Mica Dam straight into Lake Revelstoke, so "Kinbasket
+    Lake's tributaries" took the Columbia above it — the very water its row prints "does not
+    include" — and Upper Arrow (draining into Lower Arrow) took the Columbia up through both
+    dams. The same holds for the parts of a lake cut in two: Kootenay Lake's main body drains
+    into its own West Arm, and its walk climbed the Kootenay River to the border and beyond.
     """
     n = graph.nodes.get(node_id)
     if n is None or n.kind != NodeKind.lake:
         return frozenset()
-    out = set()
-    for ei in graph.down_adj.get(node_id, []):
-        d = graph.nodes.get(graph.edges[ei].to_node)
-        if d is not None and d.blk:
-            out.add(d.blk)
+    out: set[str] = set()
+    seen = {node_id}
+    stack = [node_id]
+    while stack:
+        cur = stack.pop()
+        for ei in sorted(graph.down_adj.get(cur, [])):
+            to = graph.edges[ei].to_node
+            d = graph.nodes.get(to)
+            if d is None:
+                continue
+            if d.kind == NodeKind.lake:
+                if to not in seen:
+                    seen.add(to)
+                    stack.append(to)
+            elif d.blk:
+                out.add(d.blk)
     return frozenset(out)
+
+
+def _lake_on_line(graph: StreamGraph, lake_id: str, blks: frozenset[str]) -> bool:
+    """Is the upstream LAKE `lake_id` on the flow line `blks` — the river running through it?
+
+    Asked of a lake that drains straight into a boundary lake. A lake node carries no blk, so
+    the edge alone cannot say whether it is the river arriving (Upper Arrow into Lower Arrow,
+    Kinbasket into Lake Revelstoke — reservoirs in a chain, one dam apart) or a tributary lake
+    whose outlet happens to touch. The river's own inflow answers it: the lake is on the line
+    when a stream on one of `blks` flows into it, directly or through further lakes above.
+    """
+    if not blks:
+        return False
+    seen = {lake_id}
+    stack = [lake_id]
+    while stack:
+        cur = stack.pop()
+        for ei in sorted(graph.up_adj.get(cur, [])):
+            src = graph.edges[ei].from_node
+            s = graph.nodes.get(src)
+            if s is None:
+                continue
+            if s.kind == NodeKind.lake:
+                if src not in seen:
+                    seen.add(src)
+                    stack.append(src)
+            elif s.blk in blks:
+                return True
+    return False
 
 
 def tributaries_of_reach(
@@ -123,7 +173,9 @@ def tributaries_of_reach(
             #
             #   STREAM boundary — the `continuation` / `lake_out` edge above it.
             #   LAKE boundary   — the inflow on the same blue line as the lake's OUTflow,
-            #                     i.e. the river running through the lake.
+            #                     i.e. the river running through the lake — arriving as a
+            #                     stream on that line, or as the next LAKE up it (a chain
+            #                     of reservoirs, `_lake_on_line`).
             #
             # Applied ONLY at the boundary: the same edge kind inside a tributary is that
             # tributary's own continuation and must be followed.
@@ -131,6 +183,9 @@ def tributaries_of_reach(
                 if is_lake:
                     sn = graph.nodes.get(src)
                     if sn is not None and sn.blk and sn.blk in through:
+                        continue
+                    if (sn is not None and sn.kind == NodeKind.lake
+                            and _lake_on_line(graph, src, through)):
                         continue
                 elif e.kind in MAINSTEM_EDGE_KINDS:
                     continue

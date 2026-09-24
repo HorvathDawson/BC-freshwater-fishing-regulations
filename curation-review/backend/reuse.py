@@ -73,9 +73,9 @@ def _place_namer():
     """The bundle's own place-namer over the registry this app serves — so a label names a rule's
     place (a cut-point's curated label, an area's name) exactly as the bundle's label does."""
     from pipeline.common.curated import CURATED
-    from pipeline.deliver.bundle.place_names import PlaceNamer, split_labels
+    from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
     return PlaceNamer(_registry(), split_labels(json.loads(
-        CURATED.waters.splits.read_text(encoding="utf-8"))))
+        CURATED.waters.splits.read_text(encoding="utf-8"))), area_names(Path(REGISTRY_PATH).parent))
 
 
 @lru_cache(maxsize=1)

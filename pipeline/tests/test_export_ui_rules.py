@@ -110,7 +110,11 @@ def test_a_zone_rule_is_scoped_by_what_it_states_itself(doc):
             named += 1
             assert x["fields"].get("extent_text"), x["id"]
             assert x["provenance"]["binds_to"] == "water", x["id"]
-    assert own and named, "nothing here was tested"
+    # Every zone rule has extents since the 2026-09-24 merge (the last unplaced ones — Rubble
+    # Creek, thin ice, the carve-out tables — are placed), so `named` may be 0 here; the words
+    # branch is pinned on `source_of` itself (test_authority_scope::
+    # test_no_extents_but_a_named_place_is_that_place).
+    assert own, "nothing here was tested"
 
 @pytest.mark.parametrize("table,idcol", [(t, c) for t, c, _ in X._LIC_TABLES])
 def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db, table, idcol):
@@ -208,6 +212,126 @@ def test_no_rule_binds_the_whole_water_beside_a_part_in_words(doc):
     bad = [i for i, x in doc["rules"].items()
            if x["fields"].get("extents") == [{"op": "whole"}] and x["fields"].get("extent_text")]
     assert bad == []
+
+
+def test_every_rule_says_where_it_holds_and_the_bundle_agrees(doc, db):
+    """`binds` is read off the bundle's own columns: `nowhere` exactly when the reach could not
+    place it, `sections_in_part` exactly when it holds only in an undrawn part."""
+    got = {f"{e}::{r}": (u, p) for e, r, u, p in
+           db.execute("SELECT entry_id, rule_id, uncertain, undrawn_part FROM rule")}
+    for i, x in doc["rules"].items():
+        u, p = got[i]
+        want = "nowhere" if u else ("sections_in_part" if p else "sections")
+        assert x["binds"] == want, i
+        assert (x["binds"] == "nowhere") == x["provenance"]["uncertain"], i
+        assert x["fields"].get("undrawn_part") == (p or None), i
+    g = doc["guide"]["placement"]["binds"]
+    assert set(g["values"]) == set(X.BINDS_TEXT)
+    assert sorted(g["in_part"]) == sorted(i for i, x in doc["rules"].items()
+                                          if x["binds"] == "sections_in_part")
+
+
+def test_the_binds_check_catches_an_export_that_ignores_the_part(db, monkeypatch):
+    """Mutation: an export that reads only `uncertain` would ship an undrawn part as a rule that
+    holds on the whole water."""
+    monkeypatch.setattr(X, "_binds", lambda r: "nowhere" if r["uncertain"] else "sections")
+    d = X.build(BUNDLE)
+    if not any(d["rules"][i]["fields"].get("undrawn_part") for i in d["rules"]):
+        pytest.skip("this bundle has no rule with an undrawn part")
+    with pytest.raises(AssertionError):
+        test_every_rule_says_where_it_holds_and_the_bundle_agrees(d, db)
+
+
+#: The part-of-a-lake rules the user asked to hold on the lake with a note, for now: Shuswap's
+#: maps A/B/C and Salmon Arm Bay, and Nation Arm's two, held on Williston's Nation Arm part.
+HELD_IN_PART = [("r3:shuswap_lake_", f"shuswap_lake.r{n}") for n in range(1, 6)] + [
+    ("r7:nation_arm_williston_lake@", "nation_arm.r1"),
+    ("r7:nation_arm_williston_lake@", "nation_arm.r2")]
+
+
+def test_the_part_lake_rules_are_held_on_their_water_as_notes(doc):
+    got = {(pre, rid): x for x in doc["rules"].values() for pre, rid in HELD_IN_PART
+           if x["entry_id"].startswith(pre) and x["rule_id"] == rid}
+    assert set(got) == set(HELD_IN_PART)
+    assert {k: x["binds"] for k, x in got.items()} == dict.fromkeys(HELD_IN_PART,
+                                                                    "sections_in_part")
+    assert all(" — in part: " in x["label"] for x in got.values())
+
+
+def test_no_default_ships_on_a_rule_it_does_not_apply_to(doc):
+    """`period` belongs to the counting types, and every one of them states it; `obligation`
+    ships only as advice. 1,549 bait bans and boat rules said "daily", and 3,348 rules "must"."""
+    counted = {"retention_limit", "stop_fishing_after_quota"}
+    assert [i for i, x in doc["rules"].items()
+            if ("period" in x["fields"]) != (x["type"] in counted)] == []
+    assert [i for i, x in doc["rules"].items()
+            if x["fields"].get("obligation", "should") != "should"] == []
+
+
+# ---------------------------------------------------------------------------------------
+# Labels are PARTS: generated from fields, never the verbatim, composed by the reader
+# ---------------------------------------------------------------------------------------
+def _squash(t: str) -> str:
+    import re
+    return re.sub(r"[^a-z0-9]+", " ", (t or "").lower()).strip()
+
+
+def test_every_record_ships_its_parts_in_the_model_s_order(doc, db):
+    for i, x in doc["rules"].items():
+        assert list(x["parts"]) == [k for k in C.LABEL_PARTS if k in x["parts"]], i
+        assert all(isinstance(v, str) and v.strip() for v in x["parts"].values()), i
+    for i, x in doc["licensing"].items():
+        assert list(x["parts"]) == [k for k in C.LICENSING_PARTS if k in x["parts"]], i
+    got = {f"{e}::{r}": json.loads(p) for e, r, p in
+           db.execute("SELECT entry_id, rule_id, parts FROM rule")}
+    assert {i: x["parts"] for i, x in doc["rules"].items()} == got
+
+
+def test_the_preview_is_the_one_composer_s(doc):
+    """`label` is catalogue.compose(parts): there is no second composer to drift from it."""
+    for i, x in doc["rules"].items():
+        assert x["label"] == C.compose(x["parts"], x["verbatim"]), i
+    for i, x in doc["licensing"].items():
+        assert x["label"] == C.compose_licensing(x["parts"]), i
+
+
+def test_no_part_is_the_verbatim(doc):
+    """A part is generated from fields. A long sentence found whole inside a part was copied, not
+    generated (a short one — "Bait ban" — may coincide with what its fields say)."""
+    bad = [(i, k) for i, x in {**doc["rules"], **doc["licensing"]}.items()
+           for k, v in x["parts"].items()
+           if len(_squash(x["verbatim"])) > 40 and _squash(x["verbatim"]) in _squash(v)]
+    assert bad == []
+
+
+def test_no_part_starts_with_a_list_marker(doc):
+    import re
+    marker = re.compile(r"^\s*(\d{1,2}[.)]|\([a-z0-9ivx]{1,3}\)|[•–-]\s)")
+    bad = [(i, k) for i, x in {**doc["rules"], **doc["licensing"]}.items()
+           for k, v in x["parts"].items() if marker.match(v)]
+    assert bad == []
+
+
+def test_a_place_stated_in_words_is_in_where_not_only_in_the_verbatim(doc):
+    """The standing buffers print "3. Within 23 m downstream …" and Pitt River "No Fishing within
+    Garibaldi Park": each carries its place in `where`."""
+    want = {"zp:no_fishing_buffers::no_fishing_buffers.r1": "within 23 m",
+            "zp:no_fishing_buffers::no_fishing_buffers.r2": "within 100 m"}
+    for i, words in want.items():
+        assert words in doc["rules"][i]["parts"].get("where", ""), i
+    pitt = [x for x in doc["rules"].values()
+            if x["entry_id"].startswith("r2:pitt_river@") and x["rule_id"] == "pitt_river.r1"]
+    assert pitt and "Garibaldi Park" in pitt[0]["parts"].get("where", "")
+
+
+def test_the_parts_are_explained_by_the_guide(doc):
+    g = doc["guide"]["labels"]
+    assert set(g["rule_parts"]) == set(C.LABEL_PARTS)
+    assert set(g["licensing_parts"]) == set(C.LICENSING_PARTS)
+
+
+def test_no_label_carries_the_book_s_markdown(doc):
+    assert [i for i, x in doc["rules"].items() if "**" in x["label"]] == []
 
 
 def test_no_label_starts_with_a_list_marker(doc):

@@ -8,7 +8,7 @@
    "region": "7a",
    "regs_verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See tables for exceptions). No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -59,7 +59,7 @@
    "region": "7a",
    "regs_verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -107,7 +107,7 @@
    "region": "7a",
    "regs_verbatim": "Bait ban: applies to all streams of Zone A, all year.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -151,7 +151,7 @@
    "region": "7a",
    "regs_verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -251,7 +251,7 @@
    "region": "7a",
    "regs_verbatim": "Zone A Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm 2 from streams 3 lake trout 1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length. And you must release: Bull trout (Dolly Varden): from streams, all year; from lakes, Aug 15-Oct 15 Lake trout: of any size, Sept 15-Oct 31; under 30 cm all year Arctic grayling: catch and release only Burbot: 5 Kokanee: 10 (none from streams) White Sturgeon: CLOSED TO ALL FISHING Whitefish: 15 (all species combined)",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -309,7 +309,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7a"
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -367,7 +370,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7a"
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
       }
      ]
     },
@@ -385,7 +391,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7a"
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -413,7 +422,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7a"
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
       }
      ]
     },
@@ -474,7 +486,7 @@
    "region": "7a",
    "regs_verbatim": "Arctic grayling: catch and release only. Burbot: 5. Kokanee: 10 (none from streams). White Sturgeon: CLOSED TO ALL FISHING. Whitefish: 15 (all species combined).",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -542,7 +554,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:7a"
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -584,9 +599,9 @@
    "name": "Possession quota exceptions",
    "display_name": "Zone A",
    "region": "7a",
-   "regs_verbatim": "Possession quotas = 2 daily quotas for most species. Lake trout: possession quota = 1 daily quota. Bull trout (Dolly Varden): possession quota = 1 daily quota. Char - Lake trout and Bull trout (Dolly Varden): 5 over 60 cm ``` Lake trout: 1 daily quota. Bull trout (Dolly Varden): 1 daily quota.",
+   "regs_verbatim": "Possession quotas = 2 daily quotas for most species. See tables for exceptions. Lake trout: possession quota = 1 daily quota. Bull trout (Dolly Varden): possession quota = 1 daily quota.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -596,9 +611,25 @@
    ],
    "rules": [
     {
+     "rule_id": "possession_exceptions.r0",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas for most species.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
      "rule_id": "possession_exceptions.r1",
      "type": "retention_limit",
-     "verbatim": "Lake trout: 1 daily quota.",
+     "verbatim": "Lake trout: possession quota = 1 daily quota.",
      "species": [
       "LT"
      ],
@@ -614,7 +645,7 @@
     {
      "rule_id": "possession_exceptions.r2",
      "type": "retention_limit",
-     "verbatim": "Bull trout (Dolly Varden): 1 daily quota.",
+     "verbatim": "Bull trout (Dolly Varden): possession quota = 1 daily quota.",
      "species": [
       "BT",
       "DV"
@@ -637,7 +668,7 @@
    "region": "7a",
    "regs_verbatim": "White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
    "source_pages": [
-    54
+    58
    ],
    "rules": [
     {
@@ -674,7 +705,7 @@
    "region": "7a",
    "regs_verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -715,7 +746,7 @@
    "region": "7a",
    "regs_verbatim": "NOTICE TO ANGLERS The Ministry and it's partners are conducting several tagging studies on a variety of species throughout the Omineca region. Some tags offer cash rewards for reporting. If you catch a fish with a coloured \"spaghetti\" tag, whether you retain it or release it, please report the tag number, tag colour, date, time and location prior to releasing the fish. To report your catch of a tagged fish please contact the Fish and Wildlife Regional Office in Prince George at (250) 614-7400.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {
@@ -746,7 +777,7 @@
    "scope_note": "RECOVERED — the tables list only stocked lakes that ALSO carry water-specific rules, so the 'Stocked' symbol under-counts by design.",
    "regs_verbatim": "54 lakes in the Omineca region are currently stocked with Rainbow trout, Eastern Brook trout, and/or Kokanee. The water-specific regulations tables identify only stocked lakes with waterbody specific regulations.",
    "source_pages": [
-    54
+    58
    ],
    "extents": [
     {

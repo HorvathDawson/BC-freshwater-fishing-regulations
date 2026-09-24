@@ -35,16 +35,20 @@ verbatim:  "Lake trout daily quota = 2 (only 1 over 90 cm...)"
 `verbatim` is the synopsis sentence and it is **always kept**. The generated label is a summary;
 the words the law used are one tap away.
 
-There are **14 types**. That is the whole list:
+There are **13 types**. That is the whole list:
 
 ```
 WHAT YOU MAY KEEP     retention_limit · stop_fishing_after_quota
 HOW YOU MAY FISH      bait_restriction · tackle_restriction · method_rule
-BOATS                 vessel_rule · angling_from_vessel_prohibited · navigation_duty
+BOATS                 vessel_rule · navigation_duty
 WHO MAY FISH          angler_closure
 AFTER YOU CATCH IT    handling_rule
 INFORMATION           hazard · advisory · program_membership · facility
 ```
+
+"NO ANGLING FROM BOATS" IS NOT A BOAT RULE. `angling_from_vessel_prohibited` was a type and is now
+refused: it says how you may fish, so it is a `method_rule` banning `angling` `when: {angler: in_boat}`
+(`in_powered_boat` for "powered boats"), which meets the province's angling methods on the ladder.
 
 PAPERWORK IS NOT A RULE TYPE. `document_required` and `access_permission` were, and are now
 refused: licensing never competes (which is the one thing a type exists to arbitrate), never
@@ -54,7 +58,7 @@ exemptions and alternatives.
 
 ---
 
-## Why only 14? Because a type is a wall
+## Why only 13? Because a type is a wall
 
 Two rules can only override each other **if they are the same type**. That is the whole reason the
 list is short.

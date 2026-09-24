@@ -8,7 +8,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -44,7 +44,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329216635"
@@ -78,7 +78,7 @@
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release; exempt from spring closure",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:17159"
@@ -132,7 +132,7 @@
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:17171"
@@ -170,7 +170,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -205,7 +205,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:708021450"
@@ -237,7 +237,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:328985532",
@@ -291,7 +291,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\n**WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -415,7 +415,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -488,7 +488,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329519997"
@@ -549,7 +549,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:328985759"
@@ -601,7 +601,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:13822"
@@ -649,7 +649,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329216611"
@@ -679,11 +679,16 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "north of a line between Bald and Knob Points",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
      "unresolved_locators": [
       "north of a line between Bald and Knob Points"
      ],
-     "review_reason": "boundary is a named-point line (Bald Point to Knob Point); this item allows only op:whole and has no matching split for that line"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): boundary is a named-point line (Bald Point to Knob Point); this item allows only op:whole and has no matching split for that line",
+     "undrawn_part": "north of a line between Bald and Knob Points"
     },
     {
      "rule_id": "christina_lake.r2",
@@ -736,7 +741,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459153"
@@ -769,7 +774,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -804,7 +809,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329216612"
@@ -837,7 +842,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:328985757"
@@ -869,7 +874,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -905,7 +910,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban\nMotorized vehicle closure. Walk-in access only. See sign at trailhead.",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -988,7 +993,7 @@
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:10695"
@@ -1026,7 +1031,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459126"
@@ -1060,7 +1065,7 @@
    "region": "8",
    "regs_verbatim": "Exempt from spring closure",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:17340"
@@ -1098,7 +1103,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1171,7 +1176,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459820"
@@ -1219,7 +1224,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1254,7 +1259,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459318"
@@ -1302,7 +1307,7 @@
    "region": "8",
    "regs_verbatim": "Trout/char daily quota = 2\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1361,7 +1366,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing**\nElectric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459155"
@@ -1418,7 +1423,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329520066"
@@ -1450,7 +1455,7 @@
    "region": "8",
    "regs_verbatim": "Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1\nDownstream of Burrell Creek: bait ban July 1-Oct 31; rainbow trout catch and release",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:18775"
@@ -1588,7 +1593,7 @@
    "region": "8",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:18775"
@@ -1628,7 +1633,7 @@
    "region": "8",
    "regs_verbatim": "Trout daily quota = 1; Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1686,7 +1691,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329520063"
@@ -1719,7 +1724,7 @@
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459137"
@@ -1752,7 +1757,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1788,7 +1793,7 @@
    "region": "8",
    "regs_verbatim": "No towing",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1823,7 +1828,7 @@
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1859,7 +1864,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1; bait ban, single barbless hook; electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -1966,7 +1971,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "wbk:329459158"
@@ -1998,7 +2003,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    75
+    69
    ],
    "symbols": [
     "Stocked"
@@ -2033,7 +2038,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
    "source_pages": [
-    75
+    69
    ],
    "matched": [
     "gnis:17440"
@@ -2072,7 +2077,7 @@
    "region": "8",
    "regs_verbatim": "Brook trout daily quota = 20\nEngine power restriction - 7.5 kW (10 hp) and speed restriction (8 km/h)",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2134,7 +2139,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2169,7 +2174,7 @@
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5, Yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459117"
@@ -2213,8 +2218,13 @@
      "type": "vessel_rule",
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
-     "extent_text": "various locations (as buoyed and signed)",
-     "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone",
+     "undrawn_part": "various locations"
     },
     {
      "rule_id": "kalamalka_lake.r4",
@@ -2222,8 +2232,13 @@
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "propulsion",
      "level": "none",
-     "extent_text": "various locations (as buoyed and signed)",
-     "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone",
+     "undrawn_part": "various locations"
     }
    ]
   },
@@ -2234,7 +2249,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2270,7 +2285,7 @@
    "region": "8",
    "regs_verbatim": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:11984"
@@ -2376,7 +2391,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:11984"
@@ -2458,7 +2473,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2594,7 +2609,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2667,7 +2682,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2716,7 +2731,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2842,7 +2857,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -2877,7 +2892,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459266"
@@ -2911,7 +2926,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459189"
@@ -2981,7 +2996,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -3095,7 +3110,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -3130,7 +3145,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329663955"
@@ -3160,8 +3175,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet",
-     "review_reason": "this lake has no bindable cut-points in the registry, so 'south of a line ... approximately 800 m north of Shuswap River inlet' cannot be bound to a reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): this lake has no bindable cut-points in the registry, so 'south of a line ... approximately 800 m north of Shuswap River inlet' cannot be bound to a reach",
+     "undrawn_part": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet"
     },
     {
      "rule_id": "mabel_lake.r2",
@@ -3217,7 +3237,7 @@
    "region": "8",
    "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329518146"
@@ -3244,8 +3264,13 @@
      "verbatim": "No powered boats south of the CPR bridge",
      "aspect": "propulsion",
      "level": "unpowered",
-     "extent_text": "south of the CPR bridge",
-     "review_reason": "this lake has no bindable cut-points in the registry, so 'south of the CPR bridge' cannot be bound to a reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): this lake has no bindable cut-points in the registry, so 'south of the CPR bridge' cannot be bound to a reach",
+     "undrawn_part": "south of the CPR bridge"
     }
    ]
   },
@@ -3256,7 +3281,7 @@
    "region": "8",
    "regs_verbatim": "Trout daily quota = 2\n**WARNING! Dangerous thin ice due to aeration!**",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -3303,7 +3328,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:328985739"
@@ -3336,7 +3361,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:27258"
@@ -3374,7 +3399,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459325"
@@ -3445,7 +3470,7 @@
    "scope_note": "This lake is part of McCulloch Reservoir.",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:328985739"
@@ -3478,7 +3503,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:29608"
@@ -3516,7 +3541,7 @@
    "region": "8",
    "regs_verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm), bass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459116"
@@ -3539,8 +3564,27 @@
       {
        "op": "whole"
       }
+     ]
+    },
+    {
+     "rule_id": "okanagan_lake.r6",
+     "type": "retention_limit",
+     "verbatim": "only one over 50 cm",
+     "species": [
+      "RB"
      ],
-     "review_reason": "the sub-cap 'only one over 50 cm' spells the count as a word, not a digit; digit-literal validation cannot accept a spelled number, so only the base quota of 2 is captured structurally — see verbatim for the full restriction"
+     "take": 1,
+     "within": "okanagan_lake.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     },
     {
      "rule_id": "okanagan_lake.r2",
@@ -3575,8 +3619,13 @@
      "type": "vessel_rule",
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
-     "extent_text": "various locations (as buoyed and signed)",
-     "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone",
+     "undrawn_part": "various locations"
     },
     {
      "rule_id": "okanagan_lake.r5",
@@ -3584,8 +3633,13 @@
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "propulsion",
      "level": "none",
-     "extent_text": "various locations (as buoyed and signed)",
-     "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone",
+     "undrawn_part": "various locations"
     }
    ]
   },
@@ -3596,7 +3650,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:32069"
@@ -3724,7 +3778,7 @@
    "region": "8",
    "regs_verbatim": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:328948249",
@@ -3802,7 +3856,7 @@
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:328961724"
@@ -3920,11 +3974,16 @@
      "type": "vessel_rule",
      "verbatim": "Speed restriction on parts",
      "aspect": "speed",
-     "extent_text": "on parts",
      "unresolved_locators": [
       "on parts"
      ],
-     "review_reason": "UNBOUND, never widened: the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn."
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "osoyoos_lake.r7",
@@ -3932,11 +3991,16 @@
      "verbatim": "no vessels (see definition on page 4) in 5 signed swimming areas",
      "aspect": "propulsion",
      "level": "none",
-     "extent_text": "in 5 signed swimming areas",
      "unresolved_locators": [
       "5 signed swimming areas"
      ],
-     "review_reason": "UNBOUND, never widened: the 5 signed swimming areas are not polygons in the atlas; Osoyoos Lake has no sub-polygons. Needs them drawn."
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the 5 signed swimming areas are not polygons in the atlas; Osoyoos Lake has no sub-polygons. Needs them drawn.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "undrawn_part": "in 5 signed swimming areas"
     }
    ]
   },
@@ -3947,7 +4011,7 @@
    "region": "8",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329519999"
@@ -3980,7 +4044,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from Hardy Falls to Okanagan Lake",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:5012"
@@ -4018,7 +4082,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329459127"
@@ -4052,7 +4116,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:22758"
@@ -4090,7 +4154,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329520185"
@@ -4122,7 +4186,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -4157,7 +4221,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "symbols": [
     "Stocked"
@@ -4192,7 +4256,7 @@
    "region": "8",
    "regs_verbatim": "No powered boats south of the CPR Bridge",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329518151"
@@ -4209,11 +4273,16 @@
      "verbatim": "No powered boats south of the CPR Bridge",
      "aspect": "propulsion",
      "level": "unpowered",
-     "extent_text": "south of the CPR Bridge",
      "unresolved_locators": [
       "south of the CPR Bridge"
      ],
-     "review_reason": "UNBOUND, never widened: Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part."
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "undrawn_part": "south of the CPR Bridge"
     }
    ]
   },
@@ -4224,7 +4293,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "gnis:20585"
@@ -4259,7 +4328,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    76
+    70
    ],
    "matched": [
     "wbk:329520046"
@@ -4291,7 +4360,7 @@
    "region": "8",
    "regs_verbatim": "See Burnell Lake",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -4324,7 +4393,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -4375,7 +4444,7 @@
    "region": "8",
    "regs_verbatim": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -4432,7 +4501,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:25455"
@@ -4470,7 +4539,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from Mara Lake upstream to Mara Bridge\n**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: **No fishing** Sept 1-Oct 31; bait ban",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:25478"
@@ -4629,7 +4698,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -4664,7 +4733,7 @@
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban, Apr 1-Oct 31; exempt from spring closure",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Incl. Tribs"
@@ -4750,7 +4819,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** Sept 1-Oct 15",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:27124"
@@ -4795,7 +4864,7 @@
    "region": "8",
    "regs_verbatim": "Kokanee daily quota = 5 (none over 35 cm from July 10-Oct 31)\nBass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459118"
@@ -4882,11 +4951,16 @@
      "type": "vessel_rule",
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
-     "extent_text": "various locations (as buoyed and signed)",
      "unresolved_locators": [
       "various locations (as buoyed and signed)"
      ],
-     "review_reason": "UNBOUND, never widened: the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn."
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "undrawn_part": "various locations (as buoyed and signed)"
     }
    ]
   },
@@ -4897,7 +4971,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459172"
@@ -4967,7 +5041,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -5040,7 +5114,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329520336"
@@ -5072,7 +5146,7 @@
    "region": "8",
    "regs_verbatim": "Bull trout/Dolly Varden daily quota = 1 (none under 50 cm); single barbless hook",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329663956"
@@ -5138,7 +5212,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -5173,7 +5247,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -5210,7 +5284,7 @@
    "region": "8",
    "regs_verbatim": "See Friday, Saturday, and Sunday Lakes",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -5243,7 +5317,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459141"
@@ -5275,7 +5349,7 @@
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329520505"
@@ -5307,7 +5381,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:27648"
@@ -5345,7 +5419,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:28474"
@@ -5404,7 +5478,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459300"
@@ -5464,7 +5538,7 @@
    "region": "8",
    "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459143"
@@ -5524,7 +5598,7 @@
    "region": "8",
    "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban Apr 1-Oct 31\nExempt from spring closure",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:29844"
@@ -5606,7 +5680,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -5655,7 +5729,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329521064",
@@ -5708,7 +5782,7 @@
    "region": "8",
    "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459123"
@@ -5768,7 +5842,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:1806"
@@ -5837,7 +5911,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:6358"
@@ -5943,7 +6017,7 @@
    "region": "8",
    "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "gnis:6358"
@@ -6024,7 +6098,7 @@
    "region": "8",
    "regs_verbatim": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
    "source_pages": [
-    77
+    71
    ],
    "matched": [
     "wbk:329459119"
@@ -6122,8 +6196,13 @@
      "verbatim": "Speed restriction (10 km/h) on parts",
      "aspect": "speed",
      "max_kmh": 10.0,
-     "extent_text": "on parts",
-     "review_reason": "Speed restriction applies only to 'parts' of the lake per the synopsis; no cut-point is available to bind the specific reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Speed restriction applies only to 'parts' of the lake per the synopsis; no cut-point is available to bind the specific reach",
+     "undrawn_part": "on parts"
     }
    ]
   },
@@ -6134,7 +6213,7 @@
    "region": "8",
    "regs_verbatim": "Yellow perch daily quota = 20\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration**",
    "source_pages": [
-    77
+    71
    ],
    "symbols": [
     "Stocked"
@@ -6209,26 +6288,6 @@
      "type": "hazard",
      "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
      "obligation": "should",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8"
-      }
-     ]
-    },
-    {
-     "rule_id": "crayfish_traps_turtles.r2",
-     "type": "method_rule",
-     "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
-     "obligation": "should",
-     "gear": [
-      {
-       "slot": "method",
-       "allow": [
-        "crayfish_trapping"
-       ]
-      }
-     ],
      "extents": [
       {
        "op": "within",
@@ -6322,6 +6381,9 @@
       }
      ]
     }
+   ],
+   "source_pages": [
+    68
    ]
   },
   {
@@ -6478,7 +6540,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8"
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -6676,7 +6741,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8"
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -6698,7 +6766,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8"
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -6714,7 +6785,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8"
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -6732,7 +6806,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8"
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     }

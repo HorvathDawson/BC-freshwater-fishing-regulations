@@ -345,6 +345,15 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             _fail("outside_area_not_in_registry", drop_id)
             return None
         drop_sections |= set(reg[key].section_ids)
+    # `outside_items` SUBTRACTS WATERS by registry id, at the same point. A `within(area)` holds
+    # every lake the polygon merely reaches into (lakes are never cut), so an area row needs a way
+    # to take such a lake back out — and a water it names but does not have is a failure, never a
+    # silent no-op that leaves the lake covered.
+    for item_id in (ex.get("outside_items") or []):
+        if item_id not in reg:
+            _fail("outside_item_not_in_registry", str(item_id))
+            return None
+        drop_sections |= set(reg[item_id].section_ids)
 
     def _limited(sec: set[str]) -> set[str]:
         out = sec if limit_sections is None else (sec & limit_sections)
@@ -355,6 +364,14 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
              "window": None, "waters": _waters(g, _limited(sec))}
         if limit_sections is not None:
             d["within_area"] = sorted(limit_sections)
+            if op != "within":
+                # THE WALK'S SEED IS THE WHOLE NAMED WATER, NOT ITS PART INSIDE THE AREA. "The
+                # Fraser River watershed in Region 6" walks the Fraser and keeps what lands in
+                # Region 6; clipping first left an EMPTY seed, because no Fraser mainstem runs
+                # through Region 6, and three Region 6 closures bound nothing. `sections` stays
+                # limited — a rule that does not walk is the part inside the area, as before —
+                # and `classify` walks from `seed`, then applies `within_area` to what it found.
+                d["seed"] = sorted((sec - drop_sections) if drop_sections else sec)
         # THE KINDS THE RULE'S REACH IS LIMITED TO, carried forward like `within_area` and for
         # the same reason: "lakes of the Fraser watershed" is a filter on what the tributary walk
         # finds, so `classify` applies it after the walk. (On `within` the area's members were

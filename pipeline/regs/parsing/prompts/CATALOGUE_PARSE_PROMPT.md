@@ -59,7 +59,6 @@ GEAR AND METHOD    how you may fish
 
 VESSEL             boats
   vessel_rule                        propulsion (an ordered scale) · speed · towing
-  angling_from_vessel_prohibited     you may boat here but not fish from the boat
   navigation_duty                    an obligation toward other vessels
 
 ACCESS             who may fish here at all
@@ -92,8 +91,8 @@ These were each filed two ways in the old corpus. The right column is the rule:
 |---|---|---|
 | *"No ice fishing"* | `method_rule`, `gear: [{"slot": "method", "ban": ["ice_fishing"]}]` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
 | *"No powered boats"* | `vessel_rule(aspect=propulsion)` | restricts the boat, not the tackle |
-| *"No angling from boats"* | `angling_from_vessel_prohibited` | restricts ANGLING, not boating — a water can allow motoring and forbid fishing from the boat |
-| *"No angling from powered boats"* | `angling_from_vessel_prohibited`, `level: "unpowered"` | `level` is the boats you may still angle from, on the propulsion scale; without it the ban reaches a canoe |
+| *"No angling from boats"* | `method_rule`, `gear: [{"slot": "method", "ban": ["angling"], "when": {"angler": "in_boat"}}]` | it restricts HOW you may fish, not the boat — a water can allow motoring and forbid fishing from the boat. The `when` keeps shore angling allowed |
+| *"No angling from powered boats"* | the same, `"angler": "in_powered_boat"` | without it the ban reaches a canoe the book allows. (The old boat-angling rule type is retired and refused.) |
 | *"Class I/II water"* | **not a rule** — a `designation` in `licensing` | a fact about the water; the provincial requirement fires on it |
 | *"Youth/disabled accompanied water"* | `program_membership` | an ACCESS provision — who may be brought along, not what licence is held |
 | *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `angler_closure`, `closed_to: {"residency": ["non_resident_alien"], "guidance": ["non_guided"]}` | it closes the water to **one kind of angler**. Filed as `retention_limit` it shares a key with — and can displace — a quota that binds everyone. |
@@ -132,7 +131,8 @@ species        REQUIRED on retention_limit. Use a group (TROUT, CHAR, TROUT_CHAR
 take           int | null. null = a size limit whose COUNT comes from the region. NOT zero.
 unlimited      separate from take
 may_target     see above. Required whenever take = 0.
-period         daily (default) | possession | annual (licence year, Apr 1 - Mar 31) | monthly
+period         daily (default) | possession | annual (licence year, Apr 1 - Mar 31) | monthly.
+               ONLY on retention_limit and stop_fishing_after_quota — refused on any other type.
 per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
 lengths        THE SIZE LIMIT, and the only field for it — see "Sizes" below.
@@ -156,6 +156,8 @@ when           WHEN THE RULE BINDS — see "Seasons and times" below. One object
                `dates`, `hours`, `weekdays` and `unparsed`.
 closed_to      angler_closure only: WHO the water is closed to, as a `Who` (below)
 extent_text    the reach in the page's own words, when no split can express it
+undrawn_part   the page's words for the PART of the water the rule holds in, when the menu
+               cannot draw it — beside `extents` that bind the water it is in (see below)
 exempts        what this rule LIFTS
 suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. (A licensing
                designation says the same thing its own way — see "Licensing" below.)
@@ -229,12 +231,16 @@ Combine it freely with an op: `{"op": "upstream_of", "splits": ["x"], "within_ar
 phrase in `unresolved_locators`, and give a `review_reason`. A rule bound to the
 wrong point is far worse than one visibly sent to review.
 
-**A PART of the water is never `whole`.** When a rule names a part of the water — an arm, a bay,
-"west of the signs", "on parts", "mainstem only" of a row that includes tributaries — and the menu
-has no cut-point for it, write the part in `extent_text`, give a `review_reason`, and write NO
-`extents` at all. `{"op": "whole"}` beside an `extent_text` is REFUSED: `whole` says the whole
-water, and the builder would bind the whole lake for a rule about one bay. ("Mainstem only" has a
-field: `includes_tributaries: false` on the rule.)
+**A PART of the water is never `whole` alone.** When a rule names a part of the water — an arm, a
+bay, "west of the signs", "on parts", "in 5 signed swimming areas" — and the menu has no cut-point
+or part for it, bind the water it is in (`{"op": "whole"}`, or `whole` with the `item_id` of the
+one lake it is in) and write the page's words for the part in `undrawn_part`, with a
+`review_reason` naming what would draw it. The rule is then shown on that water as a note and
+never colours it. `{"op": "whole"}` beside an `extent_text` is REFUSED: `whole` alone says the
+whole water, and the builder would close the whole lake for a rule about one bay. Where the place
+is not inside the row's water at all, or nothing says which water it is in, keep the words in
+`extent_text` with NO `extents` (the rule stays unbound). ("Mainstem only" has a field:
+`includes_tributaries: false` on the rule.)
 
 ## Seasons and times — `when`
 

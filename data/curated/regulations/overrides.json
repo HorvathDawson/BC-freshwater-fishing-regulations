@@ -2266,9 +2266,12 @@
     "4-8"
    ]
   },
-  "note": "GNIS name: Pend-D'Oreille River. Hyphenation differs in gazetteer.",
+  "note": "GNIS name: Pend-D'Oreille River. Hyphenation differs in gazetteer. The row includes 'the reservoirs behind Waneta Dam and Seven Mile Dam': Waneta Reservoir is registry lake wbk:329262640; the Seven Mile reservoir polygons are unnamed and the river line runs through them. [reservoir added T4 2026-09-24]",
   "gnis_ids": [
    "4927"
+  ],
+  "waterbody_keys": [
+   "329262640"
   ]
  },
  {
@@ -3414,11 +3417,14 @@
     "6-8"
    ]
   },
-  "note": "Confluence of Skeena River and Kispiox River in Region 6 MU 6-8. No FWA polygon or stream feature at the exact confluence point. Coordinates from BC Albers projection.",
+  "note": "Confluence of Skeena River and Kispiox River in Region 6 MU 6-8: the entry binds the Skeena (gnis:2936), as its matched has since the first parse; the ungazetted point below is the confluence location. [T4 2026-09-24: gnis added to agree with the entry]",
   "ungazetted_waterbody_id": "UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6",
   "ungazetted_location": [
    -127.69132,
    55.3426
+  ],
+  "gnis_ids": [
+   "2936"
   ]
  },
  {
@@ -4585,8 +4591,10 @@
     "4-8"
    ]
   },
-  "note": "Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
-  "not_found": true
+  "note": "Waneta Reservoir is a registry lake now (wbk:329262640, MU 4-8), on the Pend d'Oreille (gnis:4927 carries boundary lake:329262640). The row is a pointer — 'See Pend d'Oreille River' — and the Pend d'Oreille row itself says it includes this reservoir, so that override carries the lake too. [was not_found: 'polygons are in unnamed manmade lakes'; stale, T4 2026-09-24]",
+  "waterbody_keys": [
+   "329262640"
+  ]
  },
  {
   "type": "override",
@@ -4610,7 +4618,7 @@
     "6-1"
    ]
   },
-  "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329126712); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -4634,7 +4642,7 @@
     "6-1"
    ]
   },
-  "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 18842)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329126729); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -4646,7 +4654,7 @@
     "6-1"
    ]
   },
-  "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 13318)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329613028); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -4658,7 +4666,7 @@
     "6-1"
    ]
   },
-  "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 16467)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329126698); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -4670,7 +4678,7 @@
     "6-1"
    ]
   },
-  "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 20981)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329126727); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -4742,7 +4750,7 @@
     "6-1"
    ]
   },
-  "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+  "note": "Duplicate: the book prints this MU 6-1 lake in both Region 5 and Region 6. The Region 6 row binds it (wbk:329126718); this copy is ignored so its rules are not listed twice on the same water. The registry item EXISTS — not_found here means 'do not bind this row'. [was skip:ignored; note corrected T4 2026-09-24]",
   "not_found": true
  },
  {
@@ -5865,9 +5873,11 @@
     "3-26"
    ]
   },
-  "note": "Matched via base name: SHUSWAP LAKE",
+  "note": "Shuswap Lake (gnis 25475 -> wbk:329518145); the row includes Little Shuswap Lake (gnis 10893 -> wbk:329534136) and Mara Lake (gnis 5135 -> wbk:329518146), as the entry's matched has since 9ba92c01. [T4 2026-09-24: override made to agree with the entry]",
   "gnis_ids": [
-   "25475"
+   "25475",
+   "10893",
+   "5135"
   ]
  },
  {
@@ -7109,6 +7119,118 @@
   "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed. The netted-off row is told apart by its `qualifier`.",
   "waterbody_keys": [
    "-23"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "ALOUETTE RIVER",
+   "region": "REGION 2 - Lower Mainland",
+   "mus": [
+    "2-8"
+   ]
+  },
+  "note": "Two registry items carry the name in MU 2-8: the river (gnis:9630, wsc 100-025956-057184 — the item SOUTH ALOUETTE RIVER already resolves to) and a river-polygon 'lake' wbk:329292631 that the river runs through. The row is the river. [T4 2026-09-24]",
+  "gnis_ids": [
+   "9630"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "STILL CREEK",
+   "region": "REGION 2 - Lower Mainland",
+   "mus": [
+    "2-8"
+   ]
+  },
+  "note": "Burnaby's Still Creek, the added stream wsc 100-019698-999999 (blk -2000000335, flows into Burnaby Lake). The other name hit, gnis:15431 'Willow Creek', is a one-section tributary of it (wsc 100-019698-999999-614700) that carries 'Still Creek' as a variant because added_streams maps the gazetted Still Creek (GNIS 15431) onto blk -2000000392 — an atlas defect, reported, not fixed here. The row includes tributaries, so Willow Creek is covered through the walk. [T4 2026-09-24]",
+  "fwa_watershed_codes": [
+   "100-019698-999999"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "BASALT LAKE",
+   "region": "REGION 6 - Skeena",
+   "mus": [
+    "6-1"
+   ]
+  },
+  "note": "The Region 6 row for this MU 6-1 lake (wbk:329126729, GNIS 18842). The book prints it in Region 5 too; that copy is the ignored duplicate (see the Region 5 override). [T4 2026-09-24]",
+  "waterbody_keys": [
+   "329126729"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "GATCHO LAKE",
+   "region": "REGION 6 - Skeena",
+   "mus": [
+    "6-1"
+   ]
+  },
+  "note": "The Region 6 row for this MU 6-1 lake (wbk:329613028, GNIS 13318). The book prints it in Region 5 too; that copy is the ignored duplicate (see the Region 5 override). [T4 2026-09-24]",
+  "waterbody_keys": [
+   "329613028"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "NAGLICO LAKE",
+   "region": "REGION 6 - Skeena",
+   "mus": [
+    "6-1"
+   ]
+  },
+  "note": "The Region 6 row for this MU 6-1 lake (wbk:329126698, GNIS 16467). The book prints it in Region 5 too; that copy is the ignored duplicate (see the Region 5 override). [T4 2026-09-24]",
+  "waterbody_keys": [
+   "329126698"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "PETTRY LAKE",
+   "region": "REGION 6 - Skeena",
+   "mus": [
+    "6-1"
+   ]
+  },
+  "note": "The Region 6 row for this MU 6-1 lake (wbk:329126727, GNIS 20981). The book prints it in Region 5 too; that copy is the ignored duplicate (see the Region 5 override). [T4 2026-09-24]",
+  "waterbody_keys": [
+   "329126727"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
+   "region": "REGION 4 - Kootenay",
+   "mus": [
+    "4-24"
+   ]
+  },
+  "note": "Whiteswan Lake's outlet stream (wsc 300-625474-814939-312002, registry item 'Whiteswan Lake outlet stream'), which carries the falls cut whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls the row's EXCEPT clause names. The inlet streams are unnamed and have no registry item; they are NOT placed. [merge 2026-09-24]",
+  "fwa_watershed_codes": [
+   "300-625474-814939-312002"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
+   "region": "REGION 4 - Kootenay",
+   "mus": [
+    "4-26"
+   ]
+  },
+  "note": "Whitetail Creek (gnis:27659, MU 4-26) is the one named stream at Whitetail Lake (wbk:329093904): its only lake boundary is that lake, at one end of its single section, so the whole creek is an inlet or outlet stream. Unnamed inlets/outlets have no registry item and are NOT placed. [T4 2026-09-24]",
+  "gnis_ids": [
+   "27659"
   ]
  }
 ]

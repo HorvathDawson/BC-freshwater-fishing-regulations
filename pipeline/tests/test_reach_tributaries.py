@@ -363,6 +363,88 @@ def test_a_reach_spanning_the_lake_keeps_the_river_above_out(lake):
 
 
 # --------------------------------------------------------------------------- #
+# A chain of reservoirs — lakes draining straight into lakes, one dam apart
+# --------------------------------------------------------------------------- #
+
+@pytest.fixture
+def chain():
+    """Kinbasket -> Revelstoke -> Upper Arrow -> Lower Arrow, in miniature: three lakes on one
+    river R, each draining STRAIGHT into the next (no stream between — a dam), plus a
+    tributary lake T that also drains straight in, fed by its own creek.
+
+        river_up (R) <- river_up_trib
+             | lake_in
+          lake:top  <- side_top (S1)
+             | lake_out                      (a dam: lake to lake)
+          lake:mid  <- side_mid (S2)
+             | lake_out
+          lake:low  <- side_low (S3)
+             | lake_out  ^  lake_out
+          river_dn (R)   trib_lake <- trib_in (T)
+    """
+    L = NodeKind.lake
+    nodes = [_n("lake:top", order=8, blk="", kind=L), _n("lake:mid", order=8, blk="", kind=L),
+             _n("lake:low", order=8, blk="", kind=L), _n("trib_lake", order=3, blk="", kind=L),
+             _n("river_up", order=7, blk="R"), _n("river_up_trib", order=3, blk="U"),
+             _n("river_dn", order=8, blk="R"),
+             _n("side_top", order=3, blk="S1"), _n("side_mid", order=3, blk="S2"),
+             _n("side_low", order=3, blk="S3"), _n("trib_in", order=3, blk="T")]
+    edges = [("river_up_trib", "river_up", "confluence"),
+             ("river_up", "lake:top", "lake_in"),
+             ("side_top", "lake:top", "lake_in"),
+             ("lake:top", "lake:mid", "lake_out"),
+             ("side_mid", "lake:mid", "lake_in"),
+             ("lake:mid", "lake:low", "lake_out"),
+             ("side_low", "lake:low", "lake_in"),
+             ("trib_in", "trib_lake", "lake_in"),
+             ("trib_lake", "lake:low", "lake_out"),
+             ("lake:low", "river_dn", "lake_out")]
+    return _g(nodes, edges)
+
+
+def test_the_walk_stops_at_the_next_lake_up_the_chain(chain):
+    """LOWER ARROW'S TRIBUTARIES held every section of Upper Arrow's, Lake Revelstoke's and
+    Kinbasket's (50,722): the lake above arrives by a lake-to-lake edge, a lake carries no blk,
+    so the through-river test never matched and the whole chain was walked as a tributary."""
+    got = tributaries_of_reach(chain, {"lake:low"})
+    assert got == {"side_low", "trib_lake", "trib_in"}
+    assert "lake:mid" not in got and "side_mid" not in got
+    assert not {"lake:top", "side_top", "river_up", "river_up_trib"} & got
+
+
+def test_a_lake_draining_into_a_lake_still_has_a_through_river(chain):
+    """KINBASKET drains through Mica Dam straight into Lake Revelstoke, so it has no stream
+    outlet of its own; its through-line is found down the chain (R, below lake:low). Without
+    it, the river arriving at the top of the chain is a 'tributary' — the Columbia above
+    Kinbasket, which Kinbasket's row prints it does NOT include."""
+    got = tributaries_of_reach(chain, {"lake:top"})
+    assert got == {"side_top"}
+    got = tributaries_of_reach(chain, {"lake:mid"})
+    assert got == {"side_mid"}, "the lake above is the river arriving, not a tributary"
+
+
+def test_a_tributary_lake_draining_straight_in_is_still_a_tributary(chain):
+    """The lake-to-lake rule is decided by the river's LINE, never by the edge: trib_lake is
+    fed on T, not R, so it is water joining lake:low and stays in, with its creek."""
+    assert {"trib_lake", "trib_in"} <= tributaries_of_reach(chain, {"lake:low"})
+
+
+def test_a_stream_reach_bounded_by_a_lake_does_not_climb_into_it(chain):
+    """A `between` / `upstream_of` reach ends at its upper cut. Standing on the stream below a
+    dam, the lake above is the river continuing (`lake_out` is a mainstem edge) — the walk
+    stops there, so a reach cut at a dam collects only what joins the reach itself."""
+    assert tributaries_of_reach(chain, {"river_dn"}) == frozenset()
+    assert tributaries_of_reach(chain, {"river_up"}) == {"river_up_trib"}
+
+
+def test_the_whole_chain_as_one_reach_takes_every_side_tributary(chain):
+    """A row that names every lake in the chain is about all of them: each lake's own side
+    water is in, the river above the top lake is not."""
+    got = tributaries_of_reach(chain, {"lake:top", "lake:mid", "lake:low"})
+    assert got == {"side_top", "side_mid", "side_low", "trib_lake", "trib_in"}
+
+
+# --------------------------------------------------------------------------- #
 # Real-data regressions
 # --------------------------------------------------------------------------- #
 
@@ -512,3 +594,19 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
 
         unreachable = got - allowed - _mouths_at_lower_bound(g, frozenset(reach))
         assert not unreachable, f"{sid}: returned unreachable {sorted(unreachable)[:3]}"
+
+
+@pytest.mark.slow
+def test_the_reservoir_chain_walks_stop_at_the_next_dam(real):
+    """Lower Arrow's tributaries contained every section of Upper Arrow's, Lake Revelstoke's
+    and Kinbasket's; Kinbasket's took the Columbia above it, which its row excludes in print."""
+    g, reg = real
+    lower, upper = "lake:328961720", "lake:328961689"
+    revelstoke, kinbasket = "lake:329484653", "lake:328961767"
+    columbia = set(reg["gnis:37414"].section_ids)
+    low = tributaries_of_reach(g, {lower})
+    assert not {upper, revelstoke, kinbasket} & low
+    assert not tributaries_of_reach(g, {upper}) & tributaries_of_reach(g, {revelstoke})
+    kin = tributaries_of_reach(g, {kinbasket})
+    assert not kin & columbia, "Columbia River upstream of Kinbasket Reservoir"
+    assert kin, "and it keeps its own tributaries"

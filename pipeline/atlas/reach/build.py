@@ -224,7 +224,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                 clipped = clipped or len(got["sections"]) < before
             if clip is not None:
                 before = len(got.get("sections") or ())
-                got = _clip(got, clip)
+                got = _clip(got, clip, area_scope=_area_scope(entry))
                 clipped = clipped or len(got["sections"]) < before
         per.append(got)
 
@@ -367,15 +367,33 @@ def split_parent_refs(entries, registry, graph) -> list[str]:
     return refs_to_parents(entries, split_parents(registry))
 
 
-def _clip(got: dict, clip: set[str]) -> dict:
+def _area_scope(entry: dict) -> bool:
+    """Is the entry's scope an AREA — every scope extent a `within` (a zone chapter's region)?"""
+    ex = entry.get("extents") or []
+    return bool(ex) and all(isinstance(x, dict) and x.get("op") == "within" for x in ex)
+
+
+def _clip(got: dict, clip: set[str], area_scope: bool = False) -> dict:
     """Cut a resolved reach down to the entry's scope.
 
     An empty result is kept as an empty reach rather than turned into None: "this rule
     selects nothing inside this row's stretch" is a real answer, and `classify` turns it
     into `empty_after_scope` rather than confusing it with an unresolvable extent.
+
+    A walk `seed` (an extent limited by `within_area`, `classify.WALK_BEFORE_AREA`) is cut to a
+    REACH scope — a row about part of a river walks from that part — but not to an AREA scope: a
+    zone chapter's region is the same kind of limit as `within_area`, so it joins it and is
+    applied after the walk. Clipping the seed to Region 6 is what emptied "lake trout from the
+    Fraser watershed" in the Region 6 table.
     """
-    return {
+    out = {
         **got,
         "sections": [s for s in got.get("sections") or () if s in clip],
         "unclassified": [s for s in got.get("unclassified") or () if s in clip],
     }
+    if "seed" in got:
+        if area_scope:
+            out["within_area"] = [s for s in got.get("within_area") or () if s in clip]
+        else:
+            out["seed"] = [s for s in got["seed"] if s in clip]
+    return out

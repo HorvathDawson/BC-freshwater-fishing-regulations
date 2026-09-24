@@ -54,6 +54,33 @@ def _normalize_unicode(text: str) -> str:
     return text
 
 
+#: The running footer every numbered page carries: "40 2025-2027 BC Freshwater Fishing Regulations
+#: Synopsis" on a left page, "... Synopsis 41" on a right one. Read off the page's own footer rather
+#: than from an offset table, because the offset is not constant: the four-page centre gloss after
+#: printed p. 40 is unnumbered and the map on PDF p. 47 is printed 41, so printed = PDF - 2 up to PDF
+#: 42 and PDF - 6 from PDF 47.
+_FOOTER_PAGE = re.compile(
+    r"(?:^|\s)(\d{1,3})\s+\d{4}-\d{4} BC Freshwater Fishing Regulations Synopsis"
+    r"|\d{4}-\d{4} BC Freshwater Fishing Regulations Synopsis\s+(\d{1,3})(?:\s|$)")
+
+
+def printed_page_number(page) -> Optional[int]:
+    """The page number PRINTED on this page, from its running footer; None when it has none.
+
+    THIS IS THE NUMBER A ROW'S `page` CARRIES. It is the book's own address — its cross-references
+    say "see page 24" and mean the printed 24 — and it is what a reader holding the synopsis turns
+    to. The PDF's page index is a different number (printed 42 is PDF p. 48), and storing that as
+    `page` gave every water entry a page the book does not print on it. The index is kept beside it
+    as `pdf_page`, and it still keys the row images.
+
+    `dedupe_chars()` first: the footer is set in a faux-bold that draws each glyph twice, so the
+    raw text reads "1144" on printed p. 14 — indistinguishable from a real "11" without it."""
+    h = page.height
+    foot = page.within_bbox((0, h * 0.95, page.width, h)).dedupe_chars().extract_text() or ""
+    got = {int(g) for m in _FOOTER_PAGE.finditer(foot) for g in m.groups() if g}
+    return got.pop() if len(got) == 1 else None
+
+
 class FishingSynopsisParser:
     def __init__(self, output_dir: str = "output", debug_dir: str = "debug", audit_dir: str = "debug") -> None:
         # Use extraction subfolder for all output
@@ -978,6 +1005,8 @@ class FishingSynopsisParser:
         region_header = self._extract_region_header(page)
 
         metadata = PageMetadata(page_number=page_num, region=region_header)
+        # The number printed on the page, from the RAW page: cleaning may drop the footer's ink.
+        printed = printed_page_number(raw_page)
 
         tables = page.find_tables(
             table_settings={
@@ -1147,9 +1176,10 @@ class FishingSynopsisParser:
                         mu=mus,
                         raw_regs=regs_raw.strip(),
                         symbols=all_syms,
-                        page=page_num,
+                        page=self._printed_or_refuse(printed, page_num),
                         image=image_key,
                         region=region_header,
+                        pdf_page=page_num,
                     )
                 )
 
@@ -1159,6 +1189,15 @@ class FishingSynopsisParser:
                 f"Page {page_num}: {len(structured_data)} rows ({region_header or 'Unknown'})"
             )
         return result
+
+    @staticmethod
+    def _printed_or_refuse(printed: Optional[int], page_num: int) -> int:
+        """A row's page is the PRINTED number, and a table page without one is refused rather
+        than given its PDF index: that fallback is exactly the wrong number this replaced."""
+        if printed is None:
+            raise ValueError(f"PDF page {page_num} holds regulation rows but no printed page "
+                             f"number could be read from its footer")
+        return printed
 
     def process_waterbody_column(self, text):
         """
@@ -1528,7 +1567,10 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Load config for default paths
     config = get_config()
     default_pdf = str(config.synopsis_pdf_path)
-    default_output = str(config.synopsis_raw_data_path)
+    # `synopsis_raw_data_path` was retired with the `output:` tree and raises on access, so this
+    # entry point could not start at all. The generated path comes from GENERATED (AGENTS 41).
+    from pipeline.common.curated import GENERATED
+    default_output = str(GENERATED.regs.extraction / "synopsis_raw_data.json")
 
     parser = argparse.ArgumentParser(
         description="Extract fishing regulations from BC synopsis PDF",

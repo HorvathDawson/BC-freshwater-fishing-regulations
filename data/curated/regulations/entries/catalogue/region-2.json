@@ -8,7 +8,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Stocked"
@@ -43,7 +43,7 @@
    "region": "2",
    "regs_verbatim": "Bull trout (char) catch and release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329291807"
@@ -75,8 +75,13 @@
      "verbatim": "No vessels in swimming areas, as buoyed and signed",
      "aspect": "propulsion",
      "level": "none",
-     "extent_text": "in swimming areas, as buoyed and signed",
-     "review_reason": "no cut-point for the buoyed/signed swimming area — extent falls back to whole lake"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point for the buoyed/signed swimming area — extent falls back to whole lake",
+     "undrawn_part": "in swimming areas, as buoyed and signed"
     },
     {
      "rule_id": "alouette_lake.r3",
@@ -84,8 +89,13 @@
      "verbatim": "speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extent_text": "at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake",
-     "review_reason": "no cut-point for the south-end dividing line — extent falls back to whole lake"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point for the south-end dividing line — extent falls back to whole lake",
+     "undrawn_part": "at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake"
     }
    ]
   },
@@ -95,10 +105,13 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
+   ],
+   "matched": [
+    "gnis:9630"
    ],
    "includes_tributaries": true,
    "rules": [
@@ -111,9 +124,15 @@
      ],
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link fence) of the Alouette River Management Society",
-     "review_reason": "no registry match — attach an item and bind extents"
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "alouette_river__alouette_boundary_signs"
+       ]
+      }
+     ],
+     "extent_text": "upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link fence) of the Alouette River Management Society"
     },
     {
      "rule_id": "alouette_river.r2",
@@ -134,9 +153,22 @@
      },
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "upstream of 216th Street (including North Alouette River)",
-     "review_reason": "no registry match — attach an item and bind extents"
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "alouette_river__216_street_bridge"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:39404",
+       "splits": [
+        "alouette_river__216th_street"
+       ]
+      }
+     ],
+     "extent_text": "upstream of 216th Street (including North Alouette River)"
     },
     {
      "rule_id": "alouette_river.r3",
@@ -149,8 +181,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -161,7 +192,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Stocked"
@@ -196,7 +227,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **Dec 1-Mar 31\nTrout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)\nKokanee catch and release, bait ban, single barbless hook; speed restriction (12 km/h)",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Stocked"
@@ -371,7 +402,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -410,7 +441,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:10482"
@@ -445,7 +476,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:17155"
@@ -483,7 +514,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329178038"
@@ -515,7 +546,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -559,7 +590,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:13047"
@@ -604,7 +635,7 @@
    "region": "2",
    "regs_verbatim": "Bull trout (char) catch and release",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329303444"
@@ -639,7 +670,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -681,7 +712,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream\n**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30\nArtificial fly only upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)\nBait ban",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -791,7 +822,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -830,7 +861,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Stocked"
@@ -865,7 +896,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek; steelhead catch and release",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:10070"
@@ -920,7 +951,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:10070"
@@ -957,7 +988,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook; No powered boats",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329291868"
@@ -1011,7 +1042,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329291868"
@@ -1048,7 +1079,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **upstream of 12th Avenue\n**No Fishing **downstream of 12th Avenue Apr 1-June 30\n**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\n**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -1180,7 +1211,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329197919"
@@ -1222,7 +1253,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence\nBait ban, Aug 1-Oct 31; steelhead catch and release",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -1307,7 +1338,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329197276"
@@ -1349,7 +1380,7 @@
    "region": "2",
    "regs_verbatim": "See Sumallo River",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329522925"
@@ -1379,7 +1410,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30\n**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:12936"
@@ -1424,8 +1455,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extent_text": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
-     "review_reason": "UNBOUND, never widened: Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json."
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "undrawn_part": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)"
     }
    ]
   },
@@ -1436,7 +1472,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:12999"
@@ -1474,7 +1510,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:-4"
@@ -1509,7 +1545,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** (including Brohm Creek)",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -1548,7 +1584,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329177885"
@@ -1613,7 +1649,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329177885"
@@ -1649,7 +1685,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -1722,7 +1758,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "wbk:329083341"
@@ -1788,7 +1824,7 @@
    "scope_note": "does not include Sumas River",
    "regs_verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2083,7 +2119,7 @@
    "region": "2",
    "regs_verbatim": "Speed restriction (8 km/h)",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:13750"
@@ -2115,7 +2151,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2164,7 +2200,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    24
+    22
    ],
    "matched": [
     "gnis:37419"
@@ -2199,7 +2235,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2; single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -2258,7 +2294,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
    "source_pages": [
-    24
+    22
    ],
    "symbols": [
     "Incl. Tribs"
@@ -2460,7 +2496,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:19986"
@@ -2505,8 +2541,13 @@
      "verbatim": "No powered boats on parts",
      "aspect": "propulsion",
      "level": "unpowered",
-     "extent_text": "on parts of the river",
-     "review_reason": "'on parts' does not name a bindable reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a bindable reach",
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "coquitlam_river.r3",
@@ -2561,7 +2602,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:19995"
@@ -2599,7 +2640,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:8664"
@@ -2634,7 +2675,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook; No powered boats",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197094"
@@ -2688,7 +2729,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm; no vessels on parts; speed restriction (5 km/h) at north end, as buoyed and signed\nKokanee catch and release",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329083342"
@@ -2750,8 +2791,13 @@
      "verbatim": "no vessels on parts",
      "aspect": "propulsion",
      "level": "none",
-     "extent_text": "on parts of the lake",
-     "review_reason": "'on parts' does not name a bindable reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a bindable reach",
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "cultus_lake.r4",
@@ -2759,8 +2805,13 @@
      "verbatim": "speed restriction (5 km/h) at north end, as buoyed and signed",
      "aspect": "speed",
      "max_kmh": 5.0,
-     "extent_text": "at the north end, as buoyed and signed",
-     "review_reason": "'north end, as buoyed and signed' has no bindable cut-point"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'north end, as buoyed and signed' has no bindable cut-point",
+     "undrawn_part": "at north end, as buoyed and signed"
     },
     {
      "rule_id": "cultus_lake.r5",
@@ -2786,7 +2837,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329291860"
@@ -2818,7 +2869,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2; single barbless hook; no powered boats",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -2889,7 +2940,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -2924,7 +2975,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout over 40 cm); single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197061"
@@ -3003,7 +3054,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3042,7 +3093,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:10716"
@@ -3080,7 +3131,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3119,7 +3170,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197226"
@@ -3161,7 +3212,7 @@
    "region": "2",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); official name: Lake Errock",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329177898"
@@ -3194,7 +3245,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3233,7 +3284,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char catch and release; bait ban, single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329291861"
@@ -3308,7 +3359,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329083356"
@@ -3340,7 +3391,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -3375,7 +3426,7 @@
    "region": "2",
    "regs_verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:39325",
@@ -3391,11 +3442,6 @@
     "gnis:13499",
     "gnis:25152",
     "gnis:8341"
-   ],
-   "extents": [
-    {
-     "op": "whole"
-    }
    ],
    "rules": [
     {
@@ -3467,8 +3513,17 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "non-tidal portion of the Fraser River in Region 2",
-     "review_reason": "'Region 2' is not a bindable area for this item (only area:5, area:7A, area:3 boundaries are listed), and 'non-tidal' has no cut-point on this water"
+     "extents": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:39325",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission"
+       ],
+       "within_area": "area:region:2"
+      }
+     ],
+     "extent_text": "non-tidal portion of the Fraser River in Region 2"
     },
     {
      "rule_id": "fraser_river_upstream_of_mission.r4",
@@ -3489,8 +3544,21 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel",
-     "review_reason": "named side channels are not in the bindable boundary menu for this combined entry; cannot bind to a specific item or split"
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:11481"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355992187"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355991777"
+      }
+     ],
+     "extent_text": "Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel"
     },
     {
      "rule_id": "fraser_river_upstream_of_mission.r5",
@@ -3537,7 +3605,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Oct 15-Apr 15",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:12564"
@@ -3582,7 +3650,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook; Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197086"
@@ -3636,7 +3704,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-Mar 31",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -3685,7 +3753,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -3720,7 +3788,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **Dec 1-Mar 31\nKokanee, trout and char catch and release; bait ban, single barbless hook; speed restriction on parts (10 km/h) and no towing on parts",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329303448"
@@ -3818,16 +3886,26 @@
      "verbatim": "speed restriction on parts (10 km/h)",
      "aspect": "speed",
      "max_kmh": 10.0,
-     "extent_text": "on parts",
-     "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "green_lake.r6",
      "type": "vessel_rule",
      "verbatim": "no towing on parts",
      "aspect": "towing",
-     "extent_text": "on parts",
-     "review_reason": "'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
+     "undrawn_part": "on parts"
     }
    ]
   },
@@ -3838,7 +3916,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -3875,7 +3953,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm; speed restriction (10 km/h) at south end, as buoyed and signed",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329177884"
@@ -3937,8 +4015,13 @@
      "verbatim": "speed restriction (10 km/h) at south end, as buoyed and signed",
      "aspect": "speed",
      "max_kmh": 10.0,
-     "extent_text": "at south end, as buoyed and signed",
-     "review_reason": "'south end' has no bindable boundary for this lake (only op:whole)"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'south end' has no bindable boundary for this lake (only op:whole)",
+     "undrawn_part": "at south end, as buoyed and signed"
     }
    ]
   },
@@ -3949,7 +4032,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:15333"
@@ -4013,8 +4096,13 @@
      "type": "vessel_rule",
      "verbatim": "Speed restriction or no powered boats in small bays along the river as signed",
      "aspect": "speed",
-     "extent_text": "in small bays along the river as signed",
-     "review_reason": "no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location",
+     "undrawn_part": "in small bays along the river as signed"
     }
    ]
   },
@@ -4025,7 +4113,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197059"
@@ -4057,7 +4145,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -4096,7 +4184,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** for Sturgeon in Hatzic Lake; speed restriction on parts (8 and 50 km/h)",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -4135,8 +4223,14 @@
      "verbatim": "speed restriction on parts (8 and 50 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extent_text": "on parts",
-     "review_reason": "'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones"
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones",
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "hatzic_lake_and_slough.r3",
@@ -4144,8 +4238,14 @@
      "verbatim": "speed restriction on parts (8 and 50 km/h)",
      "aspect": "speed",
      "max_kmh": 50.0,
-     "extent_text": "on parts",
-     "review_reason": "'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones"
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones",
+     "undrawn_part": "on parts"
     }
    ]
   },
@@ -4156,7 +4256,7 @@
    "region": "2",
    "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -4192,7 +4292,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:24496"
@@ -4224,7 +4324,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout over 40 cm); single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197066"
@@ -4303,7 +4403,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Stocked"
@@ -4338,7 +4438,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:22345"
@@ -4373,7 +4473,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -4415,7 +4515,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban, Dec 1-Sept 30",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:9837"
@@ -4463,7 +4563,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-Mar 31[Includes Tributaries]; single barbless hook, Apr 1-Oct 31\nNo cutthroat trout 40 cm or more; engine power restriction - 7.5 kW (10 hp)",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs"
@@ -4578,7 +4678,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout over 40 cm); single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197113"
@@ -4657,7 +4757,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Dec 1-Mar 31; trout/char catch and release, bait ban, single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "symbols": [
     "Incl. Tribs",
@@ -4762,7 +4862,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329292590"
@@ -4804,7 +4904,7 @@
    "region": "2",
    "regs_verbatim": "See Wahleach Lake",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329177886"
@@ -4835,7 +4935,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30\n**No Fishing** from Cliff Park Falls to 112th Avenue",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "gnis:11318"
@@ -4899,7 +4999,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Dec 1-Feb 28\nKokanee daily quota = 4",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329154753"
@@ -4958,7 +5058,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6; single barbless hook\nRainbow trout/hatchery steelhead quota = 6 in the aggregate",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197063"
@@ -5067,7 +5167,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW ; wheelchair accessible",
    "source_pages": [
-    25
+    23
    ],
    "matched": [
     "wbk:329197112"
@@ -5109,7 +5209,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329197167"
@@ -5141,7 +5241,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2; single barbless hook",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Stocked"
@@ -5200,7 +5300,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329532488"
@@ -5232,7 +5332,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329522909"
@@ -5264,7 +5364,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329303443"
@@ -5329,7 +5429,7 @@
    "region": "2",
    "regs_verbatim": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and\nLittle Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of\nland on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake's\nlower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake's entry below)",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -5365,7 +5465,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char catch and release, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329197172"
@@ -5452,7 +5552,7 @@
    "region": "2",
    "regs_verbatim": "See Campbell River",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:7250"
@@ -5482,7 +5582,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char catch and release; single barbless hook",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329303445"
@@ -5539,7 +5639,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:5132"
@@ -5574,7 +5674,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -5613,7 +5713,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** downstream of the lower falls",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:2500"
@@ -5651,7 +5751,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout = 6\nRainbow trout/hatchery steelhead quota = 6 in the aggregate\nSingle barbless hook",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329197058"
@@ -5762,7 +5862,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Feb 1-June 15\nTrout/char 20-30 cm in lenth Jun 16-Jan 31\nYouth/Disabled Accompanied Water year round (see page 4)",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs",
@@ -5859,7 +5959,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Stocked"
@@ -5894,7 +5994,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329532512"
@@ -5926,7 +6026,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:19230"
@@ -5985,7 +6085,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329292212"
@@ -6020,7 +6120,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:12746"
@@ -6058,7 +6158,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:-2"
@@ -6093,7 +6193,7 @@
    "region": "2",
    "regs_verbatim": "See Lonzo Creek",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:1860"
@@ -6123,7 +6223,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:14243"
@@ -6158,7 +6258,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6197,7 +6297,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6236,7 +6336,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6275,7 +6375,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:28114"
@@ -6307,7 +6407,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Stocked"
@@ -6342,7 +6442,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2; bass daily quota = 4; single barbless hook; wheelchair accessible: paved path to dock with rails",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Stocked"
@@ -6425,7 +6525,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:-5"
@@ -6460,7 +6560,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329197100"
@@ -6487,7 +6587,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char catch and release; bait ban, single barbless hook",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329291887"
@@ -6557,7 +6657,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "gnis:14936"
@@ -6589,7 +6689,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char catch and release; hatchery trout/char daily quota = 2 (none under 30 cm); electric motor only - max 7.5 kW\nSingle barbless hook, bait ban",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329177943"
@@ -6701,7 +6801,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    26
+    24
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6740,7 +6840,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**; unnamed pothole lakes all located east of the power line and approximately 2 km east of Hicks Lake, 3 km south of Deer Lake\nand 1 km southeast of Moss Lake",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329178304",
@@ -6784,7 +6884,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout over 40 cm); single barbless hook",
    "source_pages": [
-    26
+    24
    ],
    "matched": [
     "wbk:329197073"
@@ -6863,7 +6963,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **upstream of 272nd Street (Jackman Road)\n**No Fishing **downstream of 272nd Street (Jackman Road), Apr 1-June 30",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6933,7 +7033,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -6972,7 +7072,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 208th Street (Berry Road); **No Fishing** downstream of 208th Street, Apr 1-June 30\n**No Fishing** downstream of 208th Street, from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates, no towing on parts, speed restriction (16 km/h)",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7071,9 +7171,19 @@
     },
     {
      "rule_id": "nicomekl_river.r4",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from powered boats upstream of dyke gates",
-     "level": "unpowered",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_powered_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "upstream_of",
@@ -7088,8 +7198,14 @@
      "type": "vessel_rule",
      "verbatim": "no towing on parts",
      "aspect": "towing",
-     "extent_text": "on parts",
-     "review_reason": "'on parts' does not name a specific reach among the bindable boundaries for this item"
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a specific reach among the bindable boundaries for this item",
+     "undrawn_part": "on parts"
     },
     {
      "rule_id": "nicomekl_river.r6",
@@ -7113,7 +7229,7 @@
    "region": "2",
    "regs_verbatim": "Speed restriction on parts (8 km/h)",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "gnis:21105"
@@ -7130,8 +7246,13 @@
      "verbatim": "Speed restriction on parts (8 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extent_text": "on parts",
-     "review_reason": "'on parts' does not name a specific reach among the bindable boundaries for this item"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a specific reach among the bindable boundaries for this item",
+     "undrawn_part": "on parts"
     }
    ]
   },
@@ -7142,7 +7263,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -7177,7 +7298,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of railway bridge",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7219,7 +7340,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "gnis:23402"
@@ -7264,7 +7385,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 216th Street (Fifth Ave), May 1-June 30\nNo powered boats",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7328,7 +7449,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329197106"
@@ -7360,7 +7481,7 @@
    "region": "2",
    "regs_verbatim": "See Lily Lake",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329197172"
@@ -7391,7 +7512,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "gnis:37601"
@@ -7426,7 +7547,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7465,7 +7586,7 @@
    "region": "2",
    "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm\nWild trout/char catch and release, single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329291806"
@@ -7531,8 +7652,13 @@
      "take": 0,
      "may_target": true,
      "origin": "wild",
-     "extent_text": "north of fishing boundary signs (east and west shores) near the head of the lake",
-     "review_reason": "'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole",
+     "undrawn_part": "north of fishing boundary signs (east and west shores) near the head of the lake"
     },
     {
      "rule_id": "pitt_lake.r4",
@@ -7550,8 +7676,13 @@
        "max": 1.0
       }
      ],
-     "extent_text": "north of fishing boundary signs (east and west shores) near the head of the lake",
-     "review_reason": "'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'north of fishing boundary signs near the head of the lake' has no bindable split; this item allows only op:whole",
+     "undrawn_part": "north of fishing boundary signs (east and west shores) near the head of the lake"
     }
    ]
   },
@@ -7562,7 +7693,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\n**No Fishing** in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7589,7 +7720,7 @@
      "extents": [
       {
        "op": "whole",
-       "within_area": "pitt_river__garibaldi_pitt"
+       "within_area": "area:park:garibaldi_park"
       }
      ]
     },
@@ -7599,8 +7730,14 @@
      "verbatim": "speed restriction at Grant Narrows (10 km/h)",
      "aspect": "speed",
      "max_kmh": 10.0,
-     "extent_text": "at Grant Narrows",
-     "review_reason": "'Grant Narrows' has no matching split in the bindable boundaries menu for this item"
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'Grant Narrows' has no matching split in the bindable boundaries menu for this item",
+     "undrawn_part": "at Grant Narrows"
     },
     {
      "rule_id": "pitt_river.r3",
@@ -7664,7 +7801,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-Mar 31; no powered boats in One Mile Bay",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7710,8 +7847,14 @@
      "verbatim": "no powered boats in One Mile Bay",
      "aspect": "propulsion",
      "level": "unpowered",
-     "extent_text": "in One Mile Bay",
-     "review_reason": "'One Mile Bay' has no bindable split; this item allows only op:whole"
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'One Mile Bay' has no bindable split; this item allows only op:whole",
+     "undrawn_part": "in One Mile Bay"
     }
    ]
   },
@@ -7722,7 +7865,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329197098"
@@ -7764,7 +7907,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing **May 1-June 30",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "gnis:28701"
@@ -7809,7 +7952,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2\nwheelchair accessible: excellent path system; see gate attendant for access",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -7856,7 +7999,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -7895,7 +8038,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -7930,7 +8073,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-June 30\nNative char catch and release (bull trout and Dolly Varden), trout daily quota = 1 (none under 40 cm), brook trout daily quota = 5\nBait ban; single barbless hook",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:328961736"
@@ -8068,7 +8211,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from Ruby Lake to fishing boundary signs approximately 100 m downstream",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8110,7 +8253,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** in the outlet bay within 100 m of the head of Ruby Creek\nWild cutthroat trout daily quota = 2 (none 40 cm or more); single barbless hook",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329197064"
@@ -8130,8 +8273,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extent_text": "in the outlet bay within 100 m of the head of Ruby Creek",
-     "review_reason": "'outlet bay within 100 m of the head of Ruby Creek' has no bindable split; this item allows only op:whole"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'outlet bay within 100 m of the head of Ruby Creek' has no bindable split; this item allows only op:whole",
+     "undrawn_part": "in the outlet bay within 100 m of the head of Ruby Creek"
     },
     {
      "rule_id": "ruby_lake.r2",
@@ -8188,7 +8336,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a\nboundary sign located at 49o 41.50'N and 123o 58.45'W, Nov 1-Dec 31\n**No Fishing** in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary\nsign on the opposite shore, Nov 1-Dec 31\nKokanee catch and release",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329197062"
@@ -8218,8 +8366,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W",
-     "review_reason": "boundary is described by a compass line between named signs/coordinates; this item allows only op:whole and has no matching split"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): boundary is described by a compass line between named signs/coordinates; this item allows only op:whole and has no matching split",
+     "undrawn_part": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W"
     },
     {
      "rule_id": "sakinaw_lake.r2",
@@ -8240,8 +8393,13 @@
      },
      "take": 0,
      "may_target": false,
-     "extent_text": "in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore",
-     "review_reason": "boundary is described by a compass line between named signs/coordinates in 'Bear Bay'; this item allows only op:whole and has no matching split"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): boundary is described by a compass line between named signs/coordinates in 'Bear Bay'; this item allows only op:whole and has no matching split",
+     "undrawn_part": "in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore"
     },
     {
      "rule_id": "sakinaw_lake.r3",
@@ -8267,7 +8425,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 232nd Street (Livingstone Road)\n**No Fishing **downstream of 232nd Street (Livingstone Road) Apr 1-June 30",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8337,7 +8495,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook; Youth/Disabled Accompanied Water year round (see page 4)",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -8392,7 +8550,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats, May 1-Sept 30; electric motor only - max 7.5 kW, Oct 1-Apr 30",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -8459,7 +8617,7 @@
    "region": "2",
    "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329291830"
@@ -8545,7 +8703,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Stocked"
@@ -8580,7 +8738,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8619,7 +8777,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8658,7 +8816,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of 168th Street at Bothwell Park\n**No Fishing** downstream of 168th Street at Bothwell Park, Apr 1-June 30\n**No Fishing** downstream of 168th Street at Bothwell Park from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8757,9 +8915,19 @@
     },
     {
      "rule_id": "serpentine_river.r4",
-     "type": "angling_from_vessel_prohibited",
+     "type": "method_rule",
      "verbatim": "No angling from powered boats upstream of dyke gates",
-     "level": "unpowered",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "angling"
+       ],
+       "when": {
+        "angler": "in_powered_boat"
+       }
+      }
+     ],
      "extents": [
       {
        "op": "upstream_of",
@@ -8778,7 +8946,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** downstream of Seymour Lake",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8820,7 +8988,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -8859,7 +9027,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Dec 1-Apr 30; kokanee, trout and char catch and release, bait ban, single barbless hook",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "wbk:329154761"
@@ -8960,7 +9128,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\n**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9114,7 +9282,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-June 30\nKokanee, trout and char catch and release; bait ban",
    "source_pages": [
-    27
+    25
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9197,7 +9365,7 @@
    "region": "2",
    "regs_verbatim": "See Alouette River",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "gnis:9630"
@@ -9227,7 +9395,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban; Squamish River tributary located upstream of Ashlu Creek",
    "source_pages": [
-    27
+    25
    ],
    "matched": [
     "blk:360219234",
@@ -9266,7 +9434,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9308,7 +9476,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:25671"
@@ -9371,7 +9539,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9410,7 +9578,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\n**No Fishing** in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:14589"
@@ -9430,9 +9598,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
-     "review_reason": "no boundary in the menu for the Ruskin spawning channel's inlet-near-dam or boat-ramp-crossing points — reach left unbound rather than applied to the whole river"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no boundary in the menu for the Ruskin spawning channel's inlet-near-dam or boat-ramp-crossing points — reach left unbound rather than applied to the whole river",
+     "undrawn_part": "Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing"
     },
     {
      "rule_id": "stave_river.r2",
@@ -9443,9 +9615,13 @@
      ],
      "take": 0,
      "may_target": false,
-     "extents": [],
-     "extent_text": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries",
-     "review_reason": "no boundary in the menu for the Northrop Spawning Channel's intake or its confluence with the Stave River main — reach left unbound rather than applied to the whole river"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no boundary in the menu for the Northrop Spawning Channel's intake or its confluence with the Stave River main — reach left unbound rather than applied to the whole river",
+     "undrawn_part": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway"
     }
    ]
   },
@@ -9456,7 +9632,7 @@
    "region": "2",
    "regs_verbatim": "Bait ban, Dec 1-Sept 30",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:39479"
@@ -9503,10 +9679,13 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
+   ],
+   "matched": [
+    "wsc:100-019698-999999"
    ],
    "includes_tributaries": true,
    "rules": [
@@ -9523,8 +9702,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
    ]
   },
@@ -9535,7 +9713,7 @@
    "region": "2",
    "regs_verbatim": "Speed restriction on parts (8 km/h)",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:16210"
@@ -9552,9 +9730,13 @@
      "verbatim": "Speed restriction on parts (8 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extents": [],
-     "extent_text": "on parts (8 km/h)",
-     "review_reason": "the speed restriction covers only part of Strawberry Slough per the synopsis (\"on parts\") but no boundary is available to bind the reach — left unbound rather than applied to the whole water"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the speed restriction covers only part of Strawberry Slough per the synopsis (\"on parts\") but no boundary is available to bind the reach — left unbound rather than applied to the whole water",
+     "undrawn_part": "on parts (8 km/h)"
     }
    ]
   },
@@ -9565,7 +9747,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** Nov 1-June 30\nBait ban",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9632,7 +9814,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9671,7 +9853,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** May 1-June 30",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:23851"
@@ -9716,7 +9898,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River\n**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:2773"
@@ -9782,7 +9964,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:328970801"
@@ -9814,7 +9996,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Stocked"
@@ -9849,7 +10031,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs"
@@ -9888,7 +10070,7 @@
    "region": "2",
    "regs_verbatim": "See Chilliwack River",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329707189",
@@ -9919,7 +10101,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:22467"
@@ -9954,7 +10136,7 @@
    "region": "2",
    "regs_verbatim": "Trout daily quota = 4 (one over 40 cm)",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Stocked"
@@ -10012,7 +10194,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing**",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329177886"
@@ -10048,7 +10230,7 @@
    "region": "2",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329197080"
@@ -10080,7 +10262,7 @@
    "region": "2",
    "regs_verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Incl. Tribs",
@@ -10140,7 +10322,7 @@
    "region": "2",
    "regs_verbatim": "Speed restriction (12 km/h)",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329197065"
@@ -10172,7 +10354,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    28
+    26
    ],
    "symbols": [
     "Stocked"
@@ -10207,7 +10389,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:2966"
@@ -10239,7 +10421,7 @@
    "region": "2",
    "regs_verbatim": "Speed restriction (5 km/h)",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "gnis:27696"
@@ -10271,7 +10453,7 @@
    "region": "2",
    "regs_verbatim": "Wild trout/char daily quota = 2 (no wild trout over 40 cm); single barbless hook",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329197074"
@@ -10349,7 +10531,7 @@
    "region": "2",
    "regs_verbatim": "No powered boats",
    "source_pages": [
-    28
+    26
    ],
    "matched": [
     "wbk:329178029"
@@ -10375,13 +10557,60 @@
    ]
   },
   {
+   "entry_id": "z2:malcolm_knapp_research_forest",
+   "name": "UBC Malcolm Knapp Research Forest",
+   "display_name": "Lakes in the UBC Malcolm Knapp Research Forest",
+   "region": "2",
+   "regs_verbatim": "No Fishing: in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
+   "source_pages": [
+    21
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:permit_land_access:ubc_malcolm_knapp_research_forest_1166294466",
+     "feature_types": [
+      "lake"
+     ],
+     "outside_items": [
+      "wbk:329291952"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "malcolm_knapp_research_forest.r1",
+     "type": "retention_limit",
+     "verbatim": "No Fishing: in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:permit_land_access:ubc_malcolm_knapp_research_forest_1166294466",
+       "feature_types": [
+        "lake"
+       ],
+       "outside_items": [
+        "wbk:329291952"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z2:protected_species",
    "name": "Protected species in Region 2",
    "display_name": "Region 2",
    "region": "2",
    "regs_verbatim": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace, Salish sucker, Green sturgeon, Cultus Lake sculpin. Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
    "source_pages": [
-    22
+    21
    ],
    "extents": [
     {
@@ -10420,7 +10649,7 @@
    "region": "2",
    "regs_verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
    "source_pages": [
-    22
+    21
    ],
    "rules": [
     {
@@ -10428,7 +10657,13 @@
      "type": "hazard",
      "verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
      "extent_text": "Rubble Creek Landslide Hazard Area",
-     "review_reason": "Water-scoped to a named hazard area; unbound until matched. Recovered from the chapter — absent from the corpus."
+     "review_reason": "Placed on Rubble Creek: the Landslide Hazard Area has no polygon in the atlas. A notice, so it decides nothing about the water.",
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:27547"
+      }
+     ]
     }
    ]
   },
@@ -10439,7 +10674,7 @@
    "region": "2",
    "regs_verbatim": "Single barbless hook: must be used in all streams of Region 2, all year.",
    "source_pages": [
-    22
+    21
    ],
    "extents": [
     {
@@ -10487,7 +10722,7 @@
    "region": "2",
    "regs_verbatim": "Bass: 20 (excluding Mill Lake - see page 24 for quota). Crappie: 20. Crayfish: 25. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined). White Sturgeon: CATCH AND RELEASE ONLY.",
    "source_pages": [
-    22
+    21
    ],
    "extents": [
     {
@@ -10510,11 +10745,7 @@
        "area_id": "area:region:2"
       }
      ],
-     "extent_text": "excluding Mill Lake",
-     "unresolved_locators": [
-      "Mill Lake"
-     ],
-     "review_reason": "Region 2's bass quota EXCLUDING Mill Lake: no cut removes one lake from a region, so the rule states Region 2 and stays unbound until one does"
+     "extent_text": "excluding Mill Lake"
     },
     {
      "rule_id": "species_quotas.r2",
@@ -10574,7 +10805,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10618,7 +10852,7 @@
    "region": "2",
    "regs_verbatim": "Stave River Steelhead Marking. Maxillary (jaw) clipping is being used to assess hatchery release strategies. Refer to page 76 for instructions on what to do if you catch a maxillary clipped fish.",
    "source_pages": [
-    22
+    21
    ],
    "rules": [
     {
@@ -10643,7 +10877,7 @@
    "region": "2",
    "regs_verbatim": "Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed), 2 from streams (must be hatchery), 1 char (bull trout, Dolly Varden, or lake trout), none under 60 cm. And you must release: Wild trout/char from streams, All wild steelhead, Hatchery trout/char under 30 cm from streams. NOTE: There is no general minimum size limit for trout in lakes.",
    "source_pages": [
-    22
+    21
    ],
    "extents": [
     {
@@ -10724,7 +10958,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10782,7 +11019,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10823,7 +11063,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     },
@@ -10835,7 +11078,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "lake"
+       ]
       }
      ]
     }
