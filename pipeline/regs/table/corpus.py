@@ -37,15 +37,15 @@ def rules(path: str = BUNDLE) -> List[dict]:
     Verified rule by rule against what the join used to return: 3,421 of 3,421 identical.
 
     `exempts` is a COLUMN now (resolved at build to the entry each lift reaches) and is decoded
-    from it; `entry_extents` is the entry's own `extents`, carried beside the rule's.
+    from it. A rule's `extents` are its own; nothing carries the entry's beside them (a rule
+    states its reach — see `CatalogueRule.extents`).
     """
     db = sqlite3.connect(path)
     cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
     ecols = [r[1] for r in db.execute("PRAGMA table_info(entry)")]
-    names, ext = {}, {}
+    names = {}
     for r in db.execute("SELECT * FROM entry"):
         names[r[ecols.index("entry_id")]] = r[ecols.index("name")] or ""
-        ext[r[ecols.index("entry_id")]] = json.loads(r[ecols.index("extents")] or "[]")
     if "exempts" not in cols:
         # `exempts` is a column of its own, RESOLVED to the entry it lifts, and no longer rides
         # `conditions`. A bundle from before that reads here as a corpus in which nothing lifts
@@ -85,11 +85,6 @@ def rules(path: str = BUNDLE) -> List[dict]:
         d["entry"] = d.get("entry_id")
         d["entry_name"] = names.get(d["entry"], "")
         d.setdefault("extents", [])
-        # The entry's extents, for the scope of a rule that has none of its own — the model's
-        # "None inherits the entry" (see `authority.source_of`). Kept apart from `extents`,
-        # which is only ever the rule's own: the bundle stopped copying these onto its rules
-        # because an unplaced rule then claimed its entry's whole water.
-        d["entry_extents"] = ext.get(d["entry"], [])
         out.append(d)
     db.close()
     return out

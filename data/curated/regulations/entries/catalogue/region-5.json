@@ -644,6 +644,7 @@
      "rule_id": "atnarko_bella_coola_rivers.r11",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats on mainstems of Atnarko River and Bella Coola River",
+     "level": "unpowered",
      "extents": [
       {
        "op": "whole",
@@ -2658,6 +2659,7 @@
      "rule_id": "chilcotin_river.r6",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats",
+     "level": "unpowered",
      "extents": [
       {
        "op": "whole"
@@ -3017,6 +3019,7 @@
        }
       ]
      },
+     "level": "unpowered",
      "extents": [
       {
        "op": "upstream_of",
@@ -6745,6 +6748,7 @@
      "rule_id": "horsefly_river.r5",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats from Woodjam Bridge to Quesnel Lake",
+     "level": "unpowered",
      "extents": [
       {
        "op": "between",
@@ -6823,6 +6827,230 @@
    ]
   },
   {
+   "entry_id": "r5:hunlen_creek_upstream_of_hunlen_falls@5-11",
+   "name": "HUNLEN CREEK (upstream of Hunlen Falls)",
+   "display_name": "Hunlen Creek",
+   "region": "5",
+   "regs_verbatim": "**No Fishing** Apr 1-June 30\nBait ban\nDownstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "matched": [
+    "gnis:22290"
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "hunlen_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Apr 1-June 30",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "hunlen_creek.r2",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "hunlen_creek.r3",
+     "type": "advisory",
+     "verbatim": "Downstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:hush_lake@5-15",
+   "name": "HUSH LAKE",
+   "display_name": "Hush Lake",
+   "region": "5",
+   "regs_verbatim": "No powered boats",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
+   "matched": [
+    "wbk:329097899"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "hush_lake.r1",
+     "type": "vessel_rule",
+     "verbatim": "No powered boats",
+     "aspect": "propulsion",
+     "level": "unpowered",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:iltasyuko_river@5-10",
+   "name": "ILTASYUKO RIVER",
+   "display_name": "Iltasyuko River",
+   "region": "5",
+   "regs_verbatim": "**No Fishing** Apr 1-June 15\nBait ban",
+   "source_pages": [
+    51
+   ],
+   "matched": [
+    "gnis:5467"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "iltasyuko_river.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Apr 1-June 15",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "iltasyuko_river.r2",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:irish_lake@5-1",
+   "name": "IRISH LAKE",
+   "display_name": "Irish Lake",
+   "region": "5",
+   "regs_verbatim": "Electric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
+   "matched": [
+    "wbk:329060825"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "irish_lake.r1",
+     "type": "vessel_rule",
+     "verbatim": "Electric motor only - max 7.5 kW",
+     "aspect": "propulsion",
+     "level": "electric_only",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "irish_lake.r2",
+     "type": "hazard",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r5:jack_of_clubs_lake@5-2",
    "name": "JACK OF CLUBS LAKE",
    "display_name": "Jack of Clubs Lake",
@@ -6844,6 +7072,77 @@
      "rule_id": "jack_of_clubs_lake.r1",
      "type": "advisory",
      "verbatim": "WARNING: lake trout over 45 cm may contain elevated mercury levels. Limit your consumption.",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:jackson_lake@5-2",
+   "name": "JACKSON LAKE",
+   "display_name": "Jackson Lake",
+   "region": "5",
+   "regs_verbatim": "Artificial fly only, bait ban; electric motor only - max 7.5 kW",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
+   "matched": [
+    "wbk:329480831"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "jackson_lake.r1",
+     "type": "tackle_restriction",
+     "verbatim": "Artificial fly only",
+     "gear": [
+      {
+       "slot": "lure",
+       "only": [
+        "artificial_fly"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "jackson_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "jackson_lake.r3",
+     "type": "vessel_rule",
+     "verbatim": "electric motor only - max 7.5 kW",
+     "aspect": "propulsion",
+     "level": "electric_only",
      "extents": [
       {
        "op": "whole"
@@ -6922,6 +7221,154 @@
    ]
   },
   {
+   "entry_id": "r5:junker_lake@5-11",
+   "name": "JUNKER LAKE",
+   "display_name": "Junker Lake",
+   "region": "5",
+   "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
+   "matched": [
+    "wbk:329021785"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "junker_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "junker_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "junker_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:katherine_lake@5-15",
+   "name": "KATHERINE LAKE",
+   "display_name": "Katherine Lake",
+   "region": "5",
+   "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
+   "matched": [
+    "wbk:329098146"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "katherine_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "katherine_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "katherine_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r5:keno_lake@5-2",
    "name": "KENO LAKE",
    "display_name": "Keno Lake",
@@ -6950,6 +7397,321 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:kestrel_lake@5-2",
+   "name": "\"KESTREL\" LAKE",
+   "display_name": "Kestrel Lake",
+   "region": "5",
+   "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Stocked"
+   ],
+   "matched": [
+    "wbk:329586239"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "kestrel_lake.r1",
+     "type": "method_rule",
+     "verbatim": "**No Ice Fishing;**",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "kestrel_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "trout daily quota = 1 (none under 50 cm)",
+     "species": [
+      "TROUT"
+     ],
+     "take": 1,
+     "lengths": [
+      {
+       "min_cm": 50
+      },
+      {
+       "max_cm": 50,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "kestrel_lake.r3",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "kestrel_lake.r4",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:kidney_lake@5-11",
+   "name": "KIDNEY LAKE",
+   "display_name": "Kidney Lake",
+   "region": "5",
+   "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    51
+   ],
+   "matched": [
+    "wbk:329021789"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "kidney_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "kidney_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "kidney_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:kilbella_river@5-7",
+   "name": "KILBELLA RIVER",
+   "display_name": "Kilbella River",
+   "region": "5",
+   "regs_verbatim": "**No Fishing** June 1-Aug 31\n**Class II water**[Includes Tributaries]**, Apr 1-May 31; Steelhead Stamp mandatory Apr 1-May 31**",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Classified"
+   ],
+   "matched": [
+    "gnis:2271"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "kilbella_river.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** June 1-Aug 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 1,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "kilbella_river",
+     "classified": "II",
+     "unit": "kilbella_river",
+     "unit_name": "Kilbella River",
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "includes_tributaries": true,
+     "steelhead_stamp_during": {
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
+     },
+     "verbatim": "Class II water**[Includes Tributaries]**, Apr 1-May 31",
+     "kind": "designation"
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:klinaklini_river@5-6",
+   "name": "KLINAKLINI RIVER",
+   "display_name": "Klinaklini River",
+   "region": "5",
+   "regs_verbatim": "**No Fishing** Apr 1-June 30",
+   "source_pages": [
+    51
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "matched": [
+    "gnis:3273"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "klinaklini_river.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Apr 1-June 30",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole",
+       "within_area": "area:region:5"
       }
      ]
     }
@@ -6991,6 +7753,576 @@
    ]
   },
   {
+   "entry_id": "r5:lemon_lake_in_gibbons_creek_drainage@5-2",
+   "name": "LEMON LAKE (in Gibbons Creek drainage)",
+   "display_name": "Lemon Lake",
+   "region": "5",
+   "regs_verbatim": "**No Ice Fishing;** trout daily quota = 1\nBait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329184528"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "lemon_lake.r1",
+     "type": "method_rule",
+     "verbatim": "**No Ice Fishing;**",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "lemon_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "trout daily quota = 1",
+     "species": [
+      "TROUT"
+     ],
+     "take": 1,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "lemon_lake.r3",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "lemon_lake.r4",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:little_alexis_lake@5-13",
+   "name": "LITTLE ALEXIS LAKE",
+   "display_name": "Little Alexis Lake",
+   "region": "5",
+   "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329276527"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "little_alexis_lake.r1",
+     "type": "vessel_rule",
+     "verbatim": "Electric motor only - max 7.5 kW",
+     "aspect": "propulsion",
+     "level": "electric_only",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:little_bishop_lake_approx_1_7_km_northeast_of_bishop_lake@5-13",
+   "name": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bishop Lake)",
+   "display_name": "Little Bishop Lake",
+   "region": "5",
+   "regs_verbatim": "Trout daily quota = 2\nBait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329430970"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "little_bishop_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout daily quota = 2",
+     "species": [
+      "TROUT"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_bishop_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_bishop_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:little_charlotte_lake@5-6",
+   "name": "LITTLE CHARLOTTE LAKE",
+   "display_name": "Little Charlotte Lake",
+   "region": "5",
+   "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329021792"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "little_charlotte_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout daily quota = 2",
+     "species": [
+      "TROUT"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_charlotte_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_charlotte_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:little_horsefly_river@5-2",
+   "name": "LITTLE HORSEFLY RIVER",
+   "display_name": "Little Horsefly River",
+   "region": "5",
+   "regs_verbatim": "Trout/char catch and release; bait ban",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "gnis:10857"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "little_horsefly_river.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_horsefly_river.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:little_jones_lake@5-2",
+   "name": "\"LITTLE JONES\" LAKE",
+   "display_name": "Little Jones Lake",
+   "region": "5",
+   "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook\nUnnamed lake approximately 13 km east/southeast of 150 Mile House on the north side of Jones Creek",
+   "source_pages": [
+    52
+   ],
+   "symbols": [
+    "Stocked"
+   ],
+   "matched": [
+    "wbk:328987837"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "little_jones_lake.r1",
+     "type": "method_rule",
+     "verbatim": "**No Ice Fishing;**",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "ice_fishing"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_jones_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "trout catch and release",
+     "species": [
+      "TROUT"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_jones_lake.r3",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "little_jones_lake.r4",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:maud_lake@5-2",
+   "name": "MAUD LAKE",
+   "display_name": "Maud Lake",
+   "region": "5",
+   "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329480783"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "maud_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout daily quota = 2",
+     "species": [
+      "TROUT"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "maud_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "maud_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:maydoe_lake@5-6",
+   "name": "MAYDOE LAKE",
+   "display_name": "Cowboy Lakes",
+   "region": "5",
+   "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329021823",
+    "wbk:329021799"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "maydoe_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout daily quota = 2",
+     "species": [
+      "TROUT"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "maydoe_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "maydoe_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r5:mccauley_lake@5-2",
    "name": "MCCAULEY LAKE",
    "display_name": "McCauley Lake",
@@ -7017,6 +8349,242 @@
      ],
      "take": 0,
      "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:mcclinchy_lake@5-6",
+   "name": "MCCLINCHY LAKE",
+   "display_name": "McClinchy Lake",
+   "region": "5",
+   "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329238138"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mcclinchy_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "mcclinchy_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "mcclinchy_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:mckinley_creek@5-2",
+   "name": "MCKINLEY CREEK",
+   "display_name": "McKinley Creek",
+   "region": "5",
+   "regs_verbatim": "Trout/char catch and release downstream of McKinley Lake; bait ban",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "gnis:25591"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mckinley_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release downstream of McKinley Lake",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "mckinley_creek__mckinley_lake"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "mckinley_creek.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:mcneil_lake@5-15",
+   "name": "MCNEIL LAKE",
+   "display_name": "McNeil Lake",
+   "region": "5",
+   "regs_verbatim": "Trout/char daily quota = 2; bait ban, single barbless hook",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329184481"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mcneil_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "mcneil_lake.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "mcneil_lake.r3",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r5:meridian_lake@5-1",
+   "name": "MERIDIAN LAKE",
+   "display_name": "Meridian Lake",
+   "region": "5",
+   "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "source_pages": [
+    52
+   ],
+   "matched": [
+    "wbk:329354797"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "meridian_lake.r1",
+     "type": "vessel_rule",
+     "verbatim": "Electric motor only - max 7.5 kW",
+     "aspect": "propulsion",
+     "level": "electric_only",
      "extents": [
       {
        "op": "whole"
@@ -9670,6 +11238,7 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"

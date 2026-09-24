@@ -5227,7 +5227,6 @@
       }
      ],
      "verbatim": "This tributary of St. Mary River is not a Classified Water",
-     "review_reason": "the St. Mary River entry this carves out of (\"including tributaries (except Joseph Creek)\") is not in the catalogue",
      "kind": "not_classified"
     }
    ]
@@ -7403,12 +7402,18 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "lifts Slocan River's (including tributaries) closure, but the catalogue has no Slocan River entry, so the rule it lifts cannot be named — set `exempts` (target + entry_id) once that water is parsed"
+     "exempts": [
+      {
+       "target": "slocan_river.r1",
+       "entry_id": "r4:slocan_river@4-17"
+      }
+     ]
     },
     {
      "rule_id": "little_slocan_lake_tributaries.r2",
@@ -7417,12 +7422,18 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
       }
      ],
-     "review_reason": "lifts Slocan River's (including tributaries) trout/char catch and release, but the catalogue has no Slocan River entry, so the rule it lifts cannot be named — set `exempts` (target + entry_id) once that water is parsed"
+     "exempts": [
+      {
+       "target": "slocan_river.r3",
+       "entry_id": "r4:slocan_river@4-17"
+      }
+     ]
     },
     {
      "rule_id": "little_slocan_lake_tributaries.r3",
@@ -7446,6 +7457,7 @@
        }
       ]
      },
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -9687,9 +9699,16 @@
      "rule_id": "pend_doreille_river_tributaries.r1",
      "type": "advisory",
      "verbatim": "INCLUDES tributaries of the reservoirs behind Waneta Dam and Seven Mile Dam",
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:20528"
       }
      ]
     },
@@ -9706,6 +9725,12 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:20528"
       }
      ]
     },
@@ -9735,6 +9760,12 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:20528"
       }
      ]
     }
@@ -10015,11 +10046,96 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r4:quinn_creek@4-22",
+   "name": "QUINN CREEK",
+   "display_name": "Quinn (Queen) Creek",
+   "region": "4",
+   "regs_verbatim": "Trout/char catch and release; bait ban, June 15-Oct 31\n**Class II water when open, including all tributaries - Bull River classified licence required for non-resident anglers**",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
+   "matched": [
+    "gnis:1961"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "quinn_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "quinn_creek.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "bull_river",
+     "classified": "II",
+     "unit": "bull_river",
+     "unit_name": "Bull River",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when open, including all tributaries - Bull River classified licence required for non-resident anglers",
+     "kind": "designation"
     }
    ]
   },
@@ -10076,6 +10192,7 @@
      "rule_id": "revelstoke_lake_s_tributaries.r1",
      "type": "advisory",
      "verbatim": "See Lake Revelstoke's tributaries",
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -10226,6 +10343,186 @@
    ]
   },
   {
+   "entry_id": "r4:salmo_river@4-8",
+   "name": "SALMO RIVER",
+   "display_name": "Salmo River",
+   "region": "4",
+   "regs_verbatim": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
+   "source_pages": [
+    41
+   ],
+   "matched": [
+    "gnis:20528"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "salmo_river.r1",
+     "type": "retention_limit",
+     "verbatim": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout",
+     "species": [
+      "RB",
+      "BT"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "between",
+       "splits": [
+        "salmo_river__sheep_creek_into_salmo_river",
+        "salmo_river__south_salmo_river_into_salmo_river"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "salmo_river.r2",
+     "type": "retention_limit",
+     "verbatim": "Remainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31",
+     "species": [
+      "RB"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 1,
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "salmo_river__sheep_creek_into_salmo_river"
+       ]
+      },
+      {
+       "op": "downstream_of",
+       "splits": [
+        "salmo_river__south_salmo_river_into_salmo_river"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "salmo_river.r3",
+     "type": "retention_limit",
+     "verbatim": "bull trout catch and release year-round",
+     "species": [
+      "BT"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "salmo_river__sheep_creek_into_salmo_river"
+       ]
+      },
+      {
+       "op": "downstream_of",
+       "splits": [
+        "salmo_river__south_salmo_river_into_salmo_river"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "salmo_river.r4",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r4:salmo_river_s_tributaries@4-8",
+   "name": "SALMO RIVER'S TRIBUTARIES",
+   "display_name": "Salmo River",
+   "region": "4",
+   "regs_verbatim": "Regional quotas apply, EXCEPT bull trout catch and release; bait ban",
+   "source_pages": [
+    41
+   ],
+   "matched": [
+    "gnis:20528"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "salmo_river_s_tributaries.r1",
+     "type": "retention_limit",
+     "verbatim": "Regional quotas apply, EXCEPT bull trout catch and release",
+     "species": [
+      "BT"
+     ],
+     "take": 0,
+     "may_target": true,
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "salmo_river_s_tributaries.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r4:sam_s_folly_lake@4-34",
    "name": "SAM'S FOLLY LAKE",
    "display_name": "Sam'S Folly Lake",
@@ -10255,6 +10552,75 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r4:sand_creek_downstream_of_hwy_3@4-22",
+   "name": "SAND CREEK (downstream of Hwy 3)",
+   "display_name": "Sand Creek",
+   "region": "4",
+   "regs_verbatim": "Trout/char catch and release; bait ban, June 15-Oct 31",
+   "source_pages": [
+    41
+   ],
+   "matched": [
+    "gnis:20573"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "sand_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "sand_creek__hwy_3"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "sand_creek.r2",
+     "type": "bait_restriction",
+     "verbatim": "bait ban, June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "sand_creek__hwy_3"
+       ]
       }
      ]
     }
@@ -10444,6 +10810,110 @@
    ]
   },
   {
+   "entry_id": "r4:skookumchuck_creek@4-20",
+   "name": "SKOOKUMCHUCK CREEK",
+   "display_name": "Skookumchuck Creek",
+   "region": "4",
+   "regs_verbatim": "**No Fishing** from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)\nTrout/char catch and release; bait ban\n**Class II water when/where open, including tributaries**",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Incl. Tribs",
+    "Classified"
+   ],
+   "matched": [
+    "gnis:27202"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "skookumchuck_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 9,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "between",
+       "splits": [
+        "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr",
+        "skookumchuck_creek__buhl_creek_into_skookumchuck_creek"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "skookumchuck_creek.r2",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "skookumchuck_creek.r3",
+     "type": "bait_restriction",
+     "verbatim": "bait ban",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "skookumchuck_creek",
+     "classified": "II",
+     "unit": "skookumchuck_creek",
+     "unit_name": "Skookumchuck Creek",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "includes_tributaries": true,
+     "verbatim": "Class II water when/where open, including tributaries",
+     "kind": "designation"
+    }
+   ]
+  },
+  {
    "entry_id": "r4:slewiskin_macdonald_creek@4-15",
    "name": "SLEWISKIN (Macdonald) CREEK",
    "display_name": "McDonald Creek",
@@ -10548,9 +11018,128 @@
      ],
      "take": 0,
      "may_target": true,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r4:slocan_river@4-17",
+   "name": "SLOCAN RIVER",
+   "display_name": "Slocan River",
+   "region": "4",
+   "regs_verbatim": "**No Fishing** July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)\nBait ban (where open), June 15-Oct 31\nTrout/char catch and release (EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Little Slocan Lake's tributaries)",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "matched": [
+    "gnis:27958"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "includes_tributaries": true,
+   "rules": [
+    {
+     "rule_id": "slocan_river.r1",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ],
+      "hours": {
+       "start": {
+        "at": "12:00"
+       },
+       "end": {
+        "at": "00:00"
+       }
+      }
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2349",
+       "splits": [
+        "slocan_river__koch_creek_falls"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "slocan_river.r2",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban (where open), June 15-Oct 31",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "slocan_river.r3",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release (EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Little Slocan Lake's tributaries)",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2349",
+       "splits": [
+        "slocan_river__koch_creek_falls"
+       ]
       }
      ]
     }
@@ -10870,6 +11459,120 @@
        "op": "whole"
       }
      ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r4:st_mary_river@4-20",
+   "name": "ST. MARY RIVER",
+   "display_name": "St. Mary River",
+   "region": "4",
+   "regs_verbatim": "Trout/char catch and release\nTrout/char daily quota = 1 (none under 30 cm) on all tributaries, June 15-Oct 31, see tables for exceptions\nBait ban[Includes Tributaries]\n**Class II water when open, including tributaries (except Joseph Creek)**",
+   "source_pages": [
+    41
+   ],
+   "symbols": [
+    "Classified"
+   ],
+   "matched": [
+    "gnis:2619"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "st_mary_river.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "st_mary_river.r2",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 1 (none under 30 cm) on all tributaries, June 15-Oct 31, see tables for exceptions",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 1,
+     "lengths": [
+      {
+       "min_cm": 30
+      },
+      {
+       "max_cm": 30,
+       "take": 0
+      }
+     ],
+     "includes_tributaries": true,
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "st_mary_river.r3",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban[Includes Tributaries]",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "any_bait"
+       ]
+      }
+     ],
+     "includes_tributaries": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "st_mary_river",
+     "classified": "II",
+     "unit": "st_mary_river",
+     "unit_name": "St. Mary River",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "includes_tributaries": true,
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:2563"
+      }
+     ],
+     "verbatim": "Class II water when open, including tributaries (except Joseph Creek)",
+     "kind": "designation"
     }
    ]
   },
@@ -11369,6 +12072,7 @@
      ],
      "take": 0,
      "may_target": true,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -11580,6 +12284,7 @@
      ],
      "take": 0,
      "may_target": true,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -13082,7 +13787,16 @@
      ],
      "take": 0,
      "may_target": false,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4"
+      }
+     ],
      "extent_text": "the Kootenay Region, except waters listed in the tables",
+     "unresolved_locators": [
+      "the waters listed in the Water-Specific Tables"
+     ],
      "review_reason": "NOT a duplicate of z4:species_quotas — those are four separate quota rows; this is one enforcement notice with an unexpressed carve-out. Merging them would delete the perch, pike and walleye closures."
     }
    ]

@@ -71,17 +71,16 @@ stamps on what it serves and removes again on save.
 
 `API.md` has the request/response shapes. The write endpoint is `PUT /api/entries/{entry_id}`.
 
-## Not yet ported
+## What the editor covers
 
-The frontend was built on the prose `Entry` model and still carries parts of it. None of these can be
-saved — the backend refuses them — but the controls exist:
+Every control reads and writes the catalogue shape; nothing of the retired prose model is declared
+in `frontend/src/types.ts`, and the backend refuses a field the model does not know (422).
 
-- `frontend/src/types.ts` — `Rule` still declares `windows` and `windows_are`, and `Entry`
-  `reference_only`, `parse_review` and `registry_note`, because EntryDetail still reads them. The
-  catalogue shape is `when`, `lengths`, `gear`, `while`, `includes_tributaries`, `extents`,
-  `licensing`, and none of those has an editor yet.
-- `frontend/src/components/EntryDetail.tsx` — the per-rule "windows" editor writes `windows` (seasons
-  are `when.dates`); the agent-review panel reads `parse_review` (reviews live in the parse work dir);
-  the reference-only banner and the pointer target read `reference_only`/`registry_note`.
-- `backend/reuse.py` `entry_source_image` — reads `source.row_image`, which a catalogue entry does
-  not have, so it always falls back to matching the row by its text.
+- per rule: `type`, `verbatim`, `extents`, `species`, `when` (dates, hours, weekdays — `unparsed`
+  is shown read-only), `tributaries_only`, and `tributary_excludes` (carve-outs);
+- per entry: `extents` (the entry's scope, which clips every rule — it is never a rule's reach),
+  `includes_tributaries`, `matched`.
+
+Not editable here (shown, or carried through a save unchanged): `lengths`, `gear`, `while`,
+`exempts`, `licensing`. The source row-crop is found by the row's printed text; when several rows
+print the same text and none carries this entry's name, no crop is shown rather than a wrong one.

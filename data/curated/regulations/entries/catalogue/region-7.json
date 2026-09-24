@@ -9791,9 +9791,11 @@
               "take": 0
             }
           ],
+          "tributaries_only": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "within_area": "area:region:7a"
             }
           ]
         },
@@ -9809,9 +9811,11 @@
               ]
             }
           ],
+          "tributaries_only": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "within_area": "area:region:7a"
             }
           ]
         },
@@ -9819,9 +9823,11 @@
           "rule_id": "west_road_blackwater_rivers_tributaries.r3",
           "type": "advisory",
           "verbatim": "For regulations on the mainstem of the West Road River, see Region 5",
+          "tributaries_only": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "within_area": "area:region:7a"
             }
           ]
         }

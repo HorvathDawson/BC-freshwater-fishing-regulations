@@ -146,21 +146,19 @@ def source_of(rule: dict) -> Source:
     `within area:mu_group:...` / `area:wma:...` / `area:national_parks:...` is an area, and
     `whole` / `upstream_of` / `between` / `downstream_of` name a water.
 
-    WHOSE extents: the rule's own when it has any, else its ENTRY's (`entry_extents`, the
-    bundle's `entry.extents`). That is the model's own rule — `CatalogueRule.extents` is "None
-    inherits the entry" — not a fallback. It has to be said here because the bundle stopped
-    copying an entry's extents onto its rules: a rule the reach builder could not place
-    ("the Kootenay Region, except waters listed in the tables") used to ship its entry's
-    `within area:region:4`, and was read as region-wide from THAT. Shipped with none of its own,
-    it was read as "names a water" and scoped `water` — 14 zone rules moved from Region N's
-    standing table to "this water" with no water to name. Whether a rule was PLACED is a
-    different question (`uncertain`), and does not change who wrote it or what it was written
-    for.
+    WHOSE extents: THE RULE'S OWN, and only those. Nothing inherits the entry's — the model
+    requires every rule to state its reach (`CatalogueRule.extents`), so a rule's scope is what
+    it says, never what its row says. This used to read the ENTRY's extents for a rule with none
+    ("None inherits the entry"), an inheritance no other reader implemented: the reach builder
+    left those rules unbound while provenance filed them under their entry's region. The rules
+    that needed it now say it themselves — a region's table "excluding Mill Lake" is `within
+    area:region:2` with the carve-out it cannot draw in `unresolved_locators`, which keeps it
+    unbound (AGENTS 13) and region-scoped.
 
-    A zone rule with no extents by either route is scoped by the place the book named for it
-    (`extent_text`, a place nothing could draw) — `water`, since it was written for that place.
-    A zone rule whose entry passes no `entry_extents`, or one with no extents by either route
-    and no named place, is refused: its scope is unknown, and guessing one is how the 14 moved.
+    A rule with no extents names its place in words (`extent_text`, or failing that its
+    `unresolved_locators`) — a place nothing could draw ("Rubble Creek Landslide Hazard Area"),
+    written for that place, so `water`. One naming no place at all is refused: its scope is
+    unknown, and the model does not admit it.
     """
     entry = str(rule["entry"])
     prefix = entry.split(":", 1)[0]
@@ -180,20 +178,17 @@ def source_of(rule: dict) -> Source:
     if not prefix.startswith("z"):
         return Source(auth, Scope.water, region, place, frozenset(),
                       _rid(rule), rule.get("verbatim") or "")
+    if "entry_extents" in rule:
+        raise ValueError(f"source_of {_rid(rule)}: `entry_extents` — a rule's scope is its own "
+                         f"extents; nothing inherits the entry's")
     exts = list(rule.get("extents") or [])
     if not exts:
-        if "entry_extents" not in rule:
-            raise ValueError(f"source_of {_rid(rule)}: a zone rule with no extents of its own "
-                             f"needs its entry's (`entry_extents`) — its scope is the entry's")
-        exts = list(rule["entry_extents"] or [])
-    if not exts:
-        # No extents by either route, but the book NAMED a place nothing could draw ("Rubble
-        # Creek Landslide Hazard Area"): written for that place, not for the region. A rule
-        # that names no place either has no scope anyone can read, and is refused.
-        if not str(rule.get("extent_text") or "").strip():
-            raise ValueError(f"source_of {_rid(rule)}: neither the rule nor its entry has "
-                             f"extents, and it names no place — what it binds to is unknown")
-        return Source(auth, Scope.water, region, str(rule["extent_text"]), frozenset(),
+        named = str(rule.get("extent_text") or "").strip() or "; ".join(
+            rule.get("unresolved_locators") or [])
+        if not named:
+            raise ValueError(f"source_of {_rid(rule)}: the rule has no extents and names no "
+                             f"place — what it binds to is unknown")
+        return Source(auth, Scope.water, region, named, frozenset(),
                       _rid(rule), rule.get("verbatim") or "")
     areas = [str(e.get("area_id") or "") for e in exts if e.get("op") == "within"]
     kinds = [str(e.get("area_kind") or "") for e in exts if e.get("op") == "within"]

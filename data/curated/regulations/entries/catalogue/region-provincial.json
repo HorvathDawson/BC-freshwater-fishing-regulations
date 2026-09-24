@@ -775,8 +775,24 @@
      ],
      "extents": [
       {
-       "op": "within",
-       "area_id": "area:region:2"
+       "op": "upstream_of",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission"
+       ],
+       "item_id": "gnis:39325",
+       "within_area": "area:region:2"
+      },
+      {
+       "op": "between",
+       "splits": [
+        "pitt_river__cpr_bridge",
+        "pitt_river__pitt_lake"
+       ],
+       "item_id": "gnis:7551"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:15333"
       }
      ],
      "exempts": [
@@ -784,8 +800,7 @@
        "target": "bait.r1",
        "note": "the province-wide fin fish ban"
       }
-     ],
-     "extent_text": "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2"
+     ]
     },
     {
      "rule_id": "bait.r4",
@@ -1537,7 +1552,6 @@
      ],
      "allocation": "booking",
      "verbatim": "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.",
-     "review_reason": "Skookumchuck Creek has no catalogue entry, so its unit names no designation yet (a parse run or hand-authoring must add it)",
      "kind": "licence_terms"
     },
     {

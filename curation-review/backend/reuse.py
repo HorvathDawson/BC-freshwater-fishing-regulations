@@ -183,31 +183,20 @@ def _row_image_index() -> dict:
 
 
 def entry_source_image(e: dict) -> str | None:
-    """The source row-crop image for an entry.
+    """The source row-crop image for an entry, found by the row's printed text — or none.
 
-    THE ENTRY NOW RECORDS IT. `source.row_image` is injected at ingest from the extraction row
-    and backfilled on everything parsed before that, so the answer is a stored fact rather
-    than a text match — and a text match was always the weaker way to ask. It keyed on
-    `regs_verbatim` and fell back to the FIRST candidate when several rows shared the same
-    regulation text, which is not rare: "No powered boats" alone is printed on dozens of rows,
-    and a wrong crop is a picture of a different water offered as evidence for this one.
-
-    The old lookup stays as the fallback for an entry with no `source` yet — a hand-authored
-    one, or a file from before the backfill.
+    A catalogue entry records no image (`source.row_image` was the retired prose entry's, and
+    reading it here found nothing on every entry), so the crop is looked up by `regs_verbatim`.
+    When several rows print the same text ("No powered boats" alone is on dozens), the row whose
+    name is this entry's is taken, and when none is, NO crop is shown: the first candidate would be
+    a picture of a different water offered as evidence for this one.
     """
-    stored = (e.get("source") or {}).get("row_image")
-    if stored:
-        return stored
     cands = _row_image_index().get(e.get("regs_verbatim", ""), [])
-    if not cands:
-        return None
     if len(cands) == 1:
         return cands[0][1]
     name = str(_ident(e)["name"]).lower()
-    for w, img in cands:
-        if w == name:
-            return img
-    return cands[0][1]
+    named = [img for w, img in cands if w == name]
+    return named[0] if len(named) == 1 else None
 
 
 # --------------------------------------------------------------------------- #

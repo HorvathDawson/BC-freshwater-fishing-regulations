@@ -7,6 +7,8 @@ import { SpeciesPicker } from "./SpeciesPicker";
 import { AttachItem } from "./AttachItem";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { SplitEditor } from "./SplitEditor";
+import { WhenEditor } from "./WhenEditor";
+import { ExcludesEditor } from "./ExcludesEditor";
 
 interface Props {
   detail: EntryDetailT;
@@ -47,6 +49,21 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
 const SYNOPSIS_PDF =
   "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/" +
   "fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
+
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** A `when` in words, for the rule card. The rule's generated `label` already says it in the
+ *  model's own wording; this is the structured value beside the editor. */
+function whenWords(w: NonNullable<Rule["when"]>): string {
+  const clock = (c: { at?: string; solar?: string; offset_min?: number }) =>
+    c.at ?? `${c.offset_min ? `${c.offset_min > 0 ? "+" : ""}${c.offset_min} min ` : ""}${c.solar}`;
+  return [
+    ...(w.dates ?? []).map((d) => `${MON[d.from_month - 1]} ${d.from_day}–${MON[d.to_month - 1]} ${d.to_day}`),
+    ...(w.hours ? [`${clock(w.hours.start)} to ${clock(w.hours.end)}`] : []),
+    ...((w.weekdays ?? []).length ? [(w.weekdays ?? []).join(", ")] : []),
+    ...(w.unparsed ?? []),
+  ].join("; ") || "all year";
+}
 
 export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                               reloadKey = 0 }: Props) {
@@ -184,47 +201,13 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
     }
   }
 
-  // "See Cowichan Lake" -> "Cowichan Lake". The curator can override it in registry_note; this is
-  // just so the banner can NAME the target instead of saying "another entry".
-  const pointerTarget =
-    (entry.registry_note || "").trim() ||
-    (/^\s*see\s+(.+?)\s*$/im.exec((entry.regs_verbatim || "").split("\n")[0] || "")?.[1] ?? "");
-
   return (
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
-      {/* Reference-only banner. A pointer row LOOKS like a normal entry — same name, same shape,
-          a rule or two parsed out of "See Cowichan Lake" — so the only thing separating it from a
-          real regulation was a checkbox at the bottom of the page. Curators confirmed pointer rows
-          as if they carried rules. State it at the top, before anything else is read. */}
-      {entry.reference_only && (
-        <div className="reference-banner">
-          <span className="reference-banner-icon">↪</span>
-          <div>
-            <strong>Reference only — this row carries no regulations of its own.</strong>
-            <div className="reference-banner-sub">
-              The synopsis lists this water here only to send you somewhere else
-              {pointerTarget ? (
-                <> — see <b>{pointerTarget}</b></>
-              ) : null}
-              . Nothing below is a rule that applies to it; don&rsquo;t bind extents or confirm it as
-              a regulation. It stays an entry so a search for this name still finds something.
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Identity header */}
-      <div className={`identity${entry.reference_only ? " is-reference" : ""}`}>
-        <h2>
-          {entry.name}{" "}
-          {entry.reference_only && (
-            <span className="badge reference" title="pointer row — carries no regulations of its own">
-              ↪ reference only
-            </span>
-          )}
-        </h2>
+      <div className="identity">
+        <h2>{entry.name}</h2>
         <div className="sub">
           <span>region {entry.region || detail.region}</span>
           {/* The catalogue keeps no `identity` block: name and region are flat, and the MUs the
@@ -233,10 +216,7 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
           {entry.entry_id.includes("@") && (
             <span>MU {entry.entry_id.split("@")[1].split("+").join(", ")}</span>
           )}
-          <span
-            className={`badge ${isNoRegistry ? "no_registry" : "confirmed"}`}
-            title={entry.registry_note}
-          >
+          <span className={`badge ${isNoRegistry ? "no_registry" : "confirmed"}`}>
             {isNoRegistry ? "NO REGISTRY" : "matched"}
           </span>
           {item ? (
@@ -295,34 +275,7 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
             ))}
           </div>
         )}
-        {entry.registry_note && (
-          <div className="dim" style={{ marginTop: 4 }}>
-            {entry.registry_note}
-          </div>
-        )}
       </div>
-
-      {/* Durable agent-review state (persisted at ingest) */}
-      {entry.parse_review?.verdict && (
-        <div className={`parse-review ${entry.parse_review.verdict}`}>
-          <strong>
-            agent review: {entry.parse_review.verdict.replace("_", " ")}
-          </strong>
-          {entry.parse_review.model && (
-            <span className="dim"> · {entry.parse_review.model}{entry.parse_review.reviewed_at ? ` @ ${entry.parse_review.reviewed_at}` : ""}</span>
-          )}
-          {entry.parse_review.issues.length > 0 && (
-            <ul>
-              {entry.parse_review.issues.map((iss, i) => (
-                <li key={i}>
-                  <span className={`sev ${iss.severity}`}>{iss.severity}</span> {iss.problem}
-                  {iss.fix && <div className="dim">→ {iss.fix}</div>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
 
       {/* no_registry attach flow */}
       {isNoRegistry && (
@@ -384,14 +337,15 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
       <div className="section">
         <h3>Global reach (applies to all rules)</h3>
         <div className="dim" style={{ marginBottom: 6 }}>
-          The reach this whole entry covers — e.g. <em>downstream of</em> a dam/lake split. Every rule
-          below inherits it; leave empty if the entry covers the whole waterbody.
+          The reach this whole entry covers — e.g. <em>downstream of</em> a dam/lake split. It CLIPS
+          every rule below to this stretch; it is never a rule's reach — each rule states its own
+          extents (or names a place it cannot bind). Leave empty if the entry covers the whole water.
         </div>
         <ExtentEditor
           extents={entry.extents ?? []}
           boundaries={boundaries}
           itemNames={itemNames}
-          onChange={(next) => setEntry((s) => ({ ...s, scope: next }))}
+          onChange={(next) => setEntry((s) => ({ ...s, extents: next }))}
         />
       </div>
 
@@ -460,13 +414,13 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                 {rule.species.length === 0 && (
                   <div className="field dim">species: ALL</div>
                 )}
-                {(rule.windows ?? []).length > 0 && (
+                {rule.when && (
                   <div className="field">
-                    <span className="k">windows</span>
-                    {(rule.windows ?? []).join("; ")}
-                    {rule.windows_are === "excepts" && (
-                      <span className="chip-tag orphan" title="these dates say when the rule does NOT apply">
-                        excepts
+                    <span className="k">when</span>
+                    {whenWords(rule.when)}
+                    {(rule.when.unparsed ?? []).length > 0 && (
+                      <span className="chip-tag orphan" title="a season the parser could not read — not all year">
+                        unparsed
                       </span>
                     )}
                   </div>
@@ -511,7 +465,7 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                 {/* Per-rule edit controls */}
                 <details style={{ marginTop: 8 }} open={!rule.verbatim}>
                   <summary className="dim" style={{ cursor: "pointer" }}>
-                    edit rule (type · verbatim · binding · species)
+                    edit rule (type · verbatim · binding · species · when)
                   </summary>
                   <div className="rule-edit">
                     <div className="field">
@@ -555,44 +509,16 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                       />
                     </div>
                     <div className="field">
-                      <span className="k">windows</span>
-                      <div className="dates-editor">
-                        {(rule.windows ?? []).map((d: string, di: number) => (
-                          <span className="date-row" key={di}>
-                            <input
-                              value={d}
-                              placeholder="e.g. Dec 1–Apr 30"
-                              onChange={(e) =>
-                                patchRule(idx, { windows: (rule.windows ?? []).map((x: string, j: number) => (j === di ? e.target.value : x)) })
-                              }
-                            />
-                            <button
-                              type="button"
-                              className="x"
-                              title="remove date"
-                              onClick={() => patchRule(idx, { windows: (rule.windows ?? []).filter((_: string, j: number) => j !== di) })}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                        <button
-                          type="button"
-                          className="btn"
-                          style={{ padding: "1px 8px" }}
-                          onClick={() => patchRule(idx, { windows: [...(rule.windows ?? []), ""] })}
-                        >
-                          + add date
-                        </button>
-                      </div>
+                      <span className="k">when</span>
+                      <WhenEditor value={rule.when}
+                        onChange={(next) => patchRule(idx, { when: next })} />
                     </div>
                     <div className="field">
                       <span className="k">tributaries</span>
-                      {/* The catalogue keeps "does this water include its tributaries" on the
-                          ENTRY (`tributaries.included`, from the synopsis asterisk). A RULE can
-                          only narrow to the tributaries alone — there is no per-rule include /
-                          exclude / inherit any more, because two rules on one water disagreeing
-                          about what the water IS was never expressible in the book. */}
+                      {/* "Does this water include its tributaries" is the ENTRY's
+                          `includes_tributaries`, from the synopsis symbol; a rule's own
+                          `includes_tributaries` (None = the entry's) is not edited here. This
+                          control narrows a rule to the tributaries alone (`tributaries_only`). */}
                       <select
                         value={rule.tributaries_only ? "only" : "water"}
                         onChange={(e) => patchRule(idx, { tributaries_only: e.target.value === "only" })}
@@ -600,6 +526,14 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
                         <option value="water">the water (entry decides tributaries)</option>
                         <option value="only">tributaries only</option>
                       </select>
+                    </div>
+                    <div className="field">
+                      <span className="k">carve-outs</span>
+                      <ExcludesEditor
+                        itemIds={entry.matched ?? []}
+                        excludes={rule.tributary_excludes ?? []}
+                        onChange={(next) => patchRule(idx, { tributary_excludes: next })}
+                      />
                     </div>
                   </div>
                 </details>
@@ -695,8 +629,8 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
         <h3>Tributaries</h3>
         {/* The catalogue keeps ONE flag here: does this water include its tributaries, from the
             synopsis asterisk. "only" moved onto the RULE (`tributaries_only`), because it is a
-            property of a restriction and not of the water; and the hand-curated carve-outs are
-            gone — an EXCEPT is now an extent on the rule that states it. */}
+            property of a restriction and not of the water; and a carve-out ("…tributaries EXCEPT …")
+            is the `tributary_excludes` of the rule that states it (its "carve-outs" control). */}
         <label>
           <input
             type="checkbox"

@@ -234,9 +234,9 @@ def _entry(licensing, rules=None, regs=None, entry_id="r6:x@6-1"):
                                   "not required"),
         "rules": rules if rules is not None else [
             {"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing for steelhead",
-             "species": ["ST"], "take": 0, "may_target": False},
+             "species": ["ST"], "take": 0, "may_target": False, "extents": [{"op": "whole"}]},
             {"rule_id": "x.r2", "type": "bait_restriction", "verbatim": "Bait ban",
-             "gear": [{"slot": "bait", "ban": ["any_bait"]}]}],
+             "gear": [{"slot": "bait", "ban": ["any_bait"]}], "extents": [{"op": "whole"}]}],
         "licensing": licensing})
 
 
@@ -284,7 +284,7 @@ def test_every_quote_on_a_record_is_in_the_passage():
 def test_an_entry_may_hold_only_licensing_but_not_nothing():
     only = _entry([{**_SUSP}], rules=[
         {"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing for steelhead",
-         "species": ["ST"], "take": 0, "may_target": False}])
+         "species": ["ST"], "take": 0, "may_target": False, "extents": [{"op": "whole"}]}])
     assert only.licensing
     with pytest.raises(ValueError, match="says nothing"):
         _entry([], rules=[])

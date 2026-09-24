@@ -91,23 +91,26 @@ def test_the_lift_check_catches_an_export_that_drops_the_column(db, monkeypatch)
         "SELECT COUNT(*) FROM rule WHERE exempts IS NOT NULL").fetchone()[0]
 
 
-def test_a_zone_rule_with_no_extents_of_its_own_binds_to_its_entrys_scope(doc):
-    """The bundle ships a rule's OWN extents only. A zone rule with none (typically one the reach
-    builder could not place) is scoped by its entry's — the model's "None inherits the entry" —
-    and read from its own emptiness it was `water`: 14 region-wide rules left their region's
-    standing table."""
+def test_a_zone_rule_is_scoped_by_what_it_states_itself(doc):
+    """No rule inherits its entry's extents. A zone rule with extents of its own is scoped by them
+    (a region table, carve-out or not, is `region`); one with none names its place in words
+    (`extent_text`) and is scoped to that place (`water`) — "Main Body of Kootenay Lake"."""
     want = {"zone": "region", "area": "area", "province": "region"}
-    seen = 0
+    own = named = 0
     for x in doc["rules"].values():
-        e = doc["entries"][x["entry_id"]]
-        if not x["entry_id"].startswith("z") or x["fields"].get("extents") or not e["extents"]:
+        if not x["entry_id"].startswith("z"):
             continue
-        if any(ex.get("op") != "within" for ex in e["extents"]):
-            continue                    # an entry naming a water (Kootenay Lake's boundaries)
-        seen += 1
-        assert x["provenance"]["binds_to"] == want[e["kind"]], x["id"]
-    assert seen, "no zone rule without extents of its own — nothing here was tested"
-
+        e = doc["entries"][x["entry_id"]]
+        ext = x["fields"].get("extents")
+        if ext and all(ex.get("op") == "within" and str(ex.get("area_id") or "")
+                       .startswith("area:region:") for ex in ext):
+            own += 1
+            assert x["provenance"]["binds_to"] == want[e["kind"]], x["id"]
+        elif not ext:
+            named += 1
+            assert x["fields"].get("extent_text"), x["id"]
+            assert x["provenance"]["binds_to"] == "water", x["id"]
+    assert own and named, "nothing here was tested"
 
 @pytest.mark.parametrize("table,idcol", [(t, c) for t, c, _ in X._LIC_TABLES])
 def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db, table, idcol):
@@ -315,7 +318,7 @@ def test_each_concept_has_a_live_example(doc):
         assert g["sizes"]["examples"][name], name
     assert g["gear"]["first_match_per_slot"]["examples"]
     assert g["licensing"]["paths"]["examples"]["accompanied_by"]
-    for name in ("default_id", "target"):
+    for name in ("whole", "in part"):
         assert g["exempts"]["examples"][name], name
 
 

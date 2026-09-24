@@ -334,13 +334,26 @@ def _P(eid, rid, sections, trib=(), kind="designation", pending=False):
                                         via_tributary=tuple(trib), tributaries_pending=pending)
 
 
+def _D(rid="x", **kw):
+    """A designation record. All year, no stamp clause, unless said."""
+    from pipeline.regs.parsing.catalogue import Designation
+    return Designation.model_validate({"id": rid, "classified": "II", "unit": rid,
+                                       "unit_name": rid,
+                                       "verbatim": "Class II water Mar 1-May 31, Apr 1-Apr 30",
+                                       "review_reason": "test", **kw})
+
+
+def _recs(*ps, **over):
+    return {(p.entry_id, p.record_id): over.get(p.record_id, _D(p.record_id)) for p in ps}
+
+
 def test_a_waters_own_designation_takes_its_sections_out_of_anothers_tributary_walk():
     """The Bulkley's walk reached the Suskwa, Class I with its own designation, and those sections
     carried both classes; the Elk's unit sat over Wigwam, Michel, Forsyth and Abruzzi, each with
     its own unit licence. A water's own designation wins — as a water's own rule does."""
     bulkley = _P("r6:bulkley", "bulkley", ["b1", "b2", "s1", "s2", "m1"], trib=["s1", "s2", "m1"])
     suskwa = _P("r6:suskwa", "suskwa", ["s1", "s2", "s3"], trib=["s3"])
-    got, diags = reach_lic.own_beats_inherited([bulkley, suskwa])
+    got, diags = reach_lic.own_beats_inherited([bulkley, suskwa], _recs(bulkley, suskwa))
     by = {p.record_id: p for p in got}
     assert by["bulkley"].sections == ("b1", "b2", "m1")      # Morice-like m1: nobody's own
     assert by["bulkley"].via_tributary == ("m1",)
@@ -352,18 +365,115 @@ def test_a_waters_own_designation_takes_its_sections_out_of_anothers_tributary_w
 def test_only_the_inherited_half_yields_and_only_to_a_designation():
     # both name the section by reach: stays ambiguous (validator 6 reports it), neither loses it
     a, b = _P("e:a", "a", ["x"]), _P("e:b", "b", ["x"])
-    assert reach_lic.own_beats_inherited([a, b])[0] == [a, b]
+    assert reach_lic.own_beats_inherited([a, b], _recs(a, b))[0] == [a, b]
     # a requirement or not_classified binding by reach takes nothing from a designation
     walk = _P("e:a", "a", ["r", "t"], trib=["t"])
     req = _P("e:q", "q", ["t"], kind="requirement")
-    assert reach_lic.own_beats_inherited([walk, req])[0] == [walk, req]
+    assert reach_lic.own_beats_inherited([walk, req], _recs(walk))[0] == [walk, req]
     # two walks meeting on a section: neither is the water's own, both keep it
     w1, w2 = _P("e:a", "a", ["r1", "t"], trib=["t"]), _P("e:b", "b", ["r2", "t"], trib=["t"])
-    assert reach_lic.own_beats_inherited([w1, w2])[0] == [w1, w2]
+    assert reach_lic.own_beats_inherited([w1, w2], _recs(w1, w2))[0] == [w1, w2]
     # a pending walk's direct sections are its own
     pend = _P("e:p", "p", ["t"], pending=True)
-    got, _ = reach_lic.own_beats_inherited([walk, pend])
+    got, _ = reach_lic.own_beats_inherited([walk, pend], _recs(walk, pend))
     assert got[0].sections == ("r",)
+
+
+SPRING = {"dates": [{"from_month": 3, "from_day": 1, "to_month": 5, "to_day": 31}]}
+APRIL = {"dates": [{"from_month": 4, "from_day": 1, "to_month": 4, "to_day": 30}]}
+STAMP = "Steelhead Stamp mandatory Mar 1-May 31, Apr 1-Apr 30"
+
+
+@pytest.mark.parametrize("own,inherited,why", [
+    # a spring-only own designation under an all-year walk: nine months unclassified
+    (dict(when=SPRING), {}, "period"),
+    (dict(when={"unparsed": ["when open"]}), dict(when=SPRING), "period"),
+    # the walk obliges the stamp, the own designation does not / only for part of it / waives it
+    ({}, dict(steelhead_stamp_during={"when": SPRING, "verbatim": STAMP}),
+     "stamp"),
+    (dict(steelhead_stamp_during={"when": APRIL, "verbatim": STAMP}),
+     dict(steelhead_stamp_during={"when": SPRING, "verbatim": STAMP}),
+     "stamp"),
+    (dict(steelhead_stamp_waived={"verbatim": "Steelhead Stamp not required"}), {}, "stamp"),
+    # a Class I walk over a water whose own designation is only Class II
+    ({}, dict(classified="I", verbatim="Class I water"), "class"),
+])
+def test_an_inherited_designation_yields_only_to_one_that_says_as_much(own, inherited, why):
+    """The reviewer's guard: yielding drops the inherited designation from the section, so the
+    own one must cover its period, oblige the stamp no less, and sleep under a closure only when
+    the inherited one does. Otherwise both stay and the pair is reported."""
+    walk = _P("e:w", "w", ["r", "t"], trib=["t"])
+    mine = _P("e:o", "o", ["t"])
+    recs = {("e:w", "w"): _D("w", **inherited), ("e:o", "o"): _D("o", **own)}
+    assert reach_lic.why_not_yield(recs[("e:o", "o")], recs[("e:w", "w")]) == why
+    got, diags = reach_lic.own_beats_inherited([walk, mine], recs)
+    assert got == [walk, mine]
+    assert [(d.kind, d.payload["why"], d.payload["own"]) for d in diags] == [
+        ("trib_kept_beside_own", why, "e:o#o")]
+
+
+def test_a_suspension_on_one_side_only_keeps_both():
+    from pipeline.regs.parsing.catalogue import Designation
+    walk = _P("e:w", "w", ["r", "t"], trib=["t"])
+    mine = _P("e:o", "o", ["t"])
+    sleeping = Designation.model_construct(**{**_D("o").__dict__, "suspended_while": [object()]})
+    assert reach_lic.why_not_yield(sleeping, _D("w")) == "suspended"
+    assert reach_lic.own_beats_inherited([walk, mine], {("e:w", "w"): _D("w"),
+                                                        ("e:o", "o"): sleeping})[0] == [walk, mine]
+
+
+def test_an_own_designation_that_says_more_still_wins():
+    walk = _P("e:w", "w", ["r", "t"], trib=["t"])
+    mine = _P("e:o", "o", ["t"])
+    # the walk is spring-only with no stamp; the own one is all year and obliges the stamp
+    recs = {("e:w", "w"): _D("w", when=SPRING),
+            ("e:o", "o"): _D("o", steelhead_stamp_during={"when": SPRING, "verbatim": STAMP})}
+    got, diags = reach_lic.own_beats_inherited([walk, mine], recs)
+    assert got[0].sections == ("r",) and diags[0].kind == "trib_yields_to_own"
+
+
+def test_a_section_two_designations_own_is_contested_and_takes_nothing_from_a_walk():
+    walk = _P("e:w", "w", ["r", "t"], trib=["t"])
+    a, b = _P("e:a", "a", ["t"]), _P("e:b", "b", ["t"])
+    got, diags = reach_lic.own_beats_inherited([walk, a, b], _recs(walk, a, b))
+    assert got[0] == walk
+    assert [(d.kind, d.payload["why"]) for d in diags] == [("trib_kept_beside_own", "contested")]
+
+
+def test_what_a_carve_out_removes_goes_to_the_excluded_waters_own_designation():
+    """Burnt Bridge Creek: the Atnarko's carve-out removed 561 sections, Burnt Bridge's own walk
+    held 552. The other 9 go to Burnt Bridge's designation, as tributary water — and only there."""
+    bb = _P("r5:burnt", "burnt", ["b1", "b2"], trib=["b2"])
+    other = _P("r5:other", "other", ["o1"])
+    carved = {("r5:atnarko", "atnarko"): ({"b1", "b2", "lake", "pond"}, {"gnis:2100"})}
+    claims = {"gnis:2100": ["r5:burnt"]}
+    got, diags = reach_lic.carve_outs_to_owner([bb, other], carved, claims)
+    assert got[0].sections == ("b1", "b2", "lake", "pond")
+    assert got[0].via_tributary == ("b2", "lake", "pond")
+    assert got[1] == other
+    assert [(d.entry_id, d.kind, d.payload["sections"], d.payload["from"]) for d in diags] == [
+        ("r5:burnt", "carve_out_handed_to_owner", ["lake", "pond"], "r5:atnarko#atnarko")]
+    assert reach_lic.carve_out_orphans(got, carved, claims) == []
+    # an owner with two designations, or none: nothing is guessed, and the check reports it
+    two = [bb, _P("r5:burnt", "burnt_b", ["b9"])]
+    assert reach_lic.carve_outs_to_owner(two, carved, claims)[0] == two
+    assert reach_lic.carve_out_orphans(two, carved, claims)
+    assert reach_lic.carve_outs_to_owner([other], carved, claims)[0] == [other]
+
+
+def test_a_carve_out_removes_nothing_the_excluded_waters_designation_does_not_hold():
+    """The Atnarko carve-out took Burnt Bridge Creek above Sitkatapa out of its designation; 9 of
+    the sections it removed were then held by no designation. The check names them."""
+    bb = _P("r5:burnt", "burnt", ["b1", "b2"])
+    carved = {("r5:atnarko", "atnarko"): ({"b1", "b2", "lake"}, {"gnis:2100"})}
+    claims = {"gnis:2100": ["r5:burnt"]}
+    d = reach_lic.carve_out_orphans([bb], carved, claims)
+    assert [(x.rule_id, x.payload["orphans"], x.payload["owners"]) for x in d] == [
+        ("atnarko", ["lake"], ["r5:burnt"])]
+    held = _P("r5:burnt", "burnt", ["b1", "b2", "lake"])
+    assert reach_lic.carve_out_orphans([held], carved, claims) == []
+    # nobody claims the excluded water with its tributaries: nothing is asserted
+    assert reach_lic.carve_out_orphans([bb], carved, {}) == []
 
 
 def test_an_unplaced_rule_ships_its_reason_and_an_entry_ships_every_water_it_matched(

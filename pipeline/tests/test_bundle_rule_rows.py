@@ -148,8 +148,37 @@ def test_when_open_is_gone_and_refused():
 
 ZONES = {"spring_stream_closure": ["z3:spring_stream_closure", "z4:spring_stream_closure",
                                    "z7a:spring_stream_closure"],
-         "steelhead_stream_closure": ["z6:steelhead_stream_closure"]}
-RULES_OF = {"z4:species_quotas": {"species_quotas.r5"}, "r1:x@1-1": {"x.r1", "x.r2"}}
+         "steelhead_stream_closure": ["z6:steelhead_stream_closure"],
+         "trout_char_winter_release": ["z4:trout_char_winter_release"]}
+
+
+def _cr(rid, **kw):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    return CatalogueRule.model_validate({"rule_id": rid, "type": "retention_limit",
+                                         "verbatim": "x", "species": ["ALL_GAME_FISH"],
+                                         "take": 0, "may_target": False, **kw})
+
+
+def _bait(rid, **kw):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    return CatalogueRule.model_validate({"rule_id": rid, "type": "bait_restriction",
+                                         "verbatim": "x", "gear": [
+                                             {"slot": "bait", "ban": ["fin_fish"]}], **kw})
+
+
+RULES_OF = {
+    "z3:spring_stream_closure": {"spring_stream_closure.r1": _cr("spring_stream_closure.r1")},
+    "z4:spring_stream_closure": {"spring_stream_closure.r1": _cr("spring_stream_closure.r1")},
+    "z7a:spring_stream_closure": {"spring_stream_closure.r1": _cr("spring_stream_closure.r1"),
+                                  "spring_stream_closure.r2": _cr("spring_stream_closure.r2")},
+    "z6:steelhead_stream_closure": {
+        "steelhead_stream_closure.r1": _cr("steelhead_stream_closure.r1")},
+    "z4:trout_char_winter_release": {"trout_char_winter_release.r1": _cr(
+        "trout_char_winter_release.r1", species=["TROUT_CHAR"], may_target=True)},
+    "z4:species_quotas": {"species_quotas.r5": _cr("species_quotas.r5", species=["KO"])},
+    "zp:bait": {"bait.r1": _bait("bait.r1")},
+    "r1:x@1-1": {"x.r1": _cr("x.r1"), "x.r2": _cr("x.r2")},
+}
 
 
 def _lifts(entry_id, exempts, **kw):
@@ -160,20 +189,69 @@ def _lifts(entry_id, exempts, **kw):
     return json.loads(row["exempts"]) if row["exempts"] else None
 
 
-def test_exempts_ship_resolved_to_the_entry_they_lift():
-    """EXEMPTIONS WERE APPLIED NOWHERE — shipped inside `conditions`, which no client reads."""
-    # a zone default by slug: the rule's OWN region's zone entry, and only that one
-    assert _lifts("r3:north_thompson@3-27", [{"default_id": "spring_stream_closure"}]) == [
-        {"default_id": "spring_stream_closure", "entry_id": "z3:spring_stream_closure"}]
-    # Region 7's rows reach both of its zones
-    assert _lifts("r7:x@7-1", [{"default_id": "spring_stream_closure"}]) == [
-        {"default_id": "spring_stream_closure", "entry_id": "z7a:spring_stream_closure"}]
-    # a target in another entry, named
+def test_exempts_ship_resolved_to_each_rule_they_lift():
+    """EXEMPTIONS WERE APPLIED NOWHERE — shipped inside `conditions`, which no client reads. Now
+    each item names ONE rule, never a whole entry: the whole-entry item is what let a bull-trout
+    exemption lift a trout/char release wholesale."""
+    all_ = {"species": ["ALL_GAME_FISH"]}
+    # a zone default by slug: each rule of the rule's OWN region's zone entry
+    assert _lifts("r3:north_thompson@3-27", [{"default_id": "spring_stream_closure"}],
+                  **all_) == [{"entry_id": "z3:spring_stream_closure",
+                               "rule_id": "spring_stream_closure.r1"}]
+    # Region 7's rows reach both of its zones, and every rule of each
+    assert _lifts("r7:x@7-1", [{"default_id": "spring_stream_closure"}], **all_) == [
+        {"entry_id": "z7a:spring_stream_closure", "rule_id": "spring_stream_closure.r1"},
+        {"entry_id": "z7a:spring_stream_closure", "rule_id": "spring_stream_closure.r2"}]
+    # a target in another entry, named — KO lifts KO outright
     assert _lifts("r4:upper_arrow@4-31", [{"target": "species_quotas.r5",
-                                           "entry_id": "z4:species_quotas"}]) == [
-        {"entry_id": "z4:species_quotas", "target": "species_quotas.r5"}]
+                                           "entry_id": "z4:species_quotas"}],
+                  species=["KO"]) == [{"entry_id": "z4:species_quotas",
+                                       "rule_id": "species_quotas.r5"}]
     # a target in this entry
-    assert _lifts("r1:x@1-1", [{"target": "x.r2"}]) == [{"entry_id": "r1:x@1-1", "target": "x.r2"}]
+    assert _lifts("r1:x@1-1", [{"target": "x.r2"}], **all_) == [
+        {"entry_id": "r1:x@1-1", "rule_id": "x.r2"}]
+
+
+def test_a_lift_is_never_wider_than_its_lifter():
+    """Duncan River (bull trout) lifted the whole trout/char release; the sturgeon bait lift lifted
+    the fin-fish ban for every angler. Each lift now carries what it holds for."""
+    duncan = _lifts("r4:duncan_river@4-19", [{"default_id": "trout_char_winter_release"}],
+                    species=["BT"])
+    assert duncan == [{"entry_id": "z4:trout_char_winter_release",
+                       "rule_id": "trout_char_winter_release.r1", "species": ["BT"]}]
+    whole = _lifts("r4:columbia@4-15", [{"default_id": "trout_char_winter_release"}],
+                   species=["TROUT_CHAR"])
+    assert whole == [{"entry_id": "z4:trout_char_winter_release",
+                      "rule_id": "trout_char_winter_release.r1"}]
+    # fish the lifted rule does not speak about: nothing is lifted, and the build says so
+    import pytest
+    with pytest.raises(SystemExit, match="lifts no rule"):
+        _lifts("r4:x@4-1", [{"default_id": "trout_char_winter_release"}], species=["KO"])
+    # a target: lifted only when fishing FOR sturgeon; only while set lining
+    from pipeline.deliver.bundle.rules import _exempts
+    sturgeon = _bait("bait.r3", when_targeting=["WSG"], exempts=[{"target": "bait.r1"}],
+                     gear=[{"slot": "bait", "allow": ["dead_fin_fish"]}],
+                     extents=[{"op": "whole", "item_id": "gnis:15333"}])
+    assert json.loads(_exempts("zp:bait", sturgeon, ZONES, RULES_OF)) == [
+        {"entry_id": "zp:bait", "rule_id": "bait.r1", "when_targeting": ["WSG"]}]
+    setline = _bait("bait.r2", exempts=[{"target": "bait.r1"}], **{"while": ["set_lining"]},
+                    gear=[{"slot": "bait", "allow": ["dead_fin_fish"]}],
+                    water="lake", extents=[{"op": "within", "area_id": "area:region:6",
+                                            "feature_types": ["lake"]}])
+    assert json.loads(_exempts("zp:bait", setline, ZONES, RULES_OF)) == [
+        {"entry_id": "zp:bait", "rule_id": "bait.r1", "while": ["set_lining"]}]
+
+
+def test_a_lifter_whose_water_its_placement_does_not_enforce_stops_the_build():
+    """`water: lake` on a lifter is enforced where it is PLACED (`feature_types`), because the
+    client has no water kind to check it by. A lake-only lift placed on every water is refused."""
+    import pytest
+    from pipeline.deliver.bundle.rules import _exempts
+    loose = _bait("bait.r2", exempts=[{"target": "bait.r1"}], water="lake",
+                  gear=[{"slot": "bait", "allow": ["dead_fin_fish"]}],
+                  extents=[{"op": "within", "area_id": "area:region:6"}])
+    with pytest.raises(SystemExit, match="lifts only on lakes"):
+        _exempts("zp:bait", loose, ZONES, RULES_OF)
 
 
 def test_an_exemption_that_names_nothing_stops_the_build_unless_it_says_why():
@@ -200,10 +278,10 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     ces = [CatalogueEntry.model_validate(e) for e in io.read_entries_dir().values()]
     zones, rules_of = {}, {}
     for ce in ces:
-        rules_of[ce.entry_id] = {r.rule_id for r in ce.rules}
+        rules_of[ce.entry_id] = {r.rule_id: r for r in ce.rules}
         if ce.entry_id.startswith("z"):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
-    lifted, silent = 0, []
+    lifted, silent, partial = 0, [], []
     for ce in ces:
         for r in ce.rules:
             if not r.exempts:
@@ -212,13 +290,18 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
             if got:
                 lifted += 1
                 for x in json.loads(got):
-                    assert x["entry_id"] in rules_of
-                    if "default_id" in x:
-                        assert x["entry_id"] != ce.entry_id, "a zone default lifting its own entry"
-                    else:
-                        assert x["target"] in rules_of[x["entry_id"]]
+                    assert set(x) <= set(rules_mod.LIFT_KEYS), x
+                    assert x["rule_id"] in rules_of[x["entry_id"]]
+                    assert (x["entry_id"], x["rule_id"]) != (ce.entry_id, r.rule_id)
+                    if {"species", "when_targeting", "while"} & set(x):
+                        partial.append((ce.entry_id, r.rule_id, x["rule_id"]))
             else:
                 silent.append((ce.entry_id, r.rule_id))
+    # the four that lift in part, and only those
+    assert sorted(partial) == [
+        ("r4:duncan_river@4-19", "duncan_river.r2", "trout_char_winter_release.r1"),
+        ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
+        ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")]
     assert lifted >= 80
     # the z6 steelhead self-lift, and nothing else
     assert silent == [("z6:steelhead_stream_closure", "steelhead_stream_closure.r1")]

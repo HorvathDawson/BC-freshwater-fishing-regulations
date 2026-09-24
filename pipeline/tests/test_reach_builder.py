@@ -103,6 +103,25 @@ def test_no_extents_on_a_matched_entry_is_NOT_defaulted_to_whole():
     assert "Causeway" in b.detail
 
 
+def test_an_area_rule_with_a_carve_out_it_cannot_draw_stays_unbound():
+    """"Bass: 20, excluding Mill Lake": the rule states Region 2 and a carve-out no cut-point
+    expresses. Binding the extents would put the quota on the lake the book excludes."""
+    region = [{"op": "within", "area_id": "area:region:2"}]
+    b, _ = classify("e", _rule(extents=region, locators=["Mill Lake"]), [_reach(["s1"])],
+                    registry=REG, covered_ids=["i1"], scope_clipped=False,
+                    entry_has_registry=True)
+    assert b.outcome is Outcome.unresolved and b.reason is Reason.locators_unresolved
+    assert b.sections == () and "Mill Lake" in b.detail
+
+
+def test_a_water_rule_with_a_locator_keeps_the_reach_it_drew():
+    """"plus Tenas Lake" beside a bound Tweedsmuir Park reach: the drawn part stays bound (and the
+    rule's review_reason says what is missing). Unbinding it would drop a reach that IS drawn."""
+    b, _ = classify("e", _rule(locators=["plus Tenas Lake"]), [_reach(["s1"])], registry=REG,
+                    covered_ids=["i1"], scope_clipped=False, entry_has_registry=True)
+    assert b.outcome is Outcome.bound and b.sections == ("s1",)
+
+
 def test_no_extents_with_no_registry_is_reported_as_no_registry():
     b, _ = classify("e", _rule(extents=[]), [], registry=REG, covered_ids=[],
                     scope_clipped=False, entry_has_registry=False)
@@ -355,9 +374,11 @@ def test_policy_version_is_bumped_when_classify_changes():
         "straddlers_included_for": sorted(classify.STRADDLERS_INCLUDED_FOR),
         "ambiguous_cut_is_fatal": classify.AMBIGUOUS_CUT_IS_FATAL,
         "partial_extents_bind": classify.PARTIAL_EXTENTS_BIND,
+        "area_carve_outs_unbind": classify.AREA_CARVE_OUTS_UNBIND,
     }
     expected = {"straddlers_included_for": [], "ambiguous_cut_is_fatal": False,
-                "partial_extents_bind": True}
+                "partial_extents_bind": True, "area_carve_outs_unbind": True}
+    assert cache.POLICY_VERSION == "3", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

@@ -33,6 +33,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from pipeline.common.curated import GENERATED
+from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.species import SPECIES
 from pipeline.regs.table.authority import Authority, Scope, Source, source_of
@@ -126,7 +127,7 @@ _RULE_COLUMNS = (("when_", "when"), ("while_", "while"), ("species", "species"),
 _JSON_COLUMNS = frozenset({"when_", "while_", "species", "species_except", "exempts"})
 
 
-def _rule_record(r: dict, entry_name: str, entry_extents: list) -> dict:
+def _rule_record(r: dict, entry_name: str) -> dict:
     """One rule as the bundle ships it: its columns and its `conditions`, both under the model's
     own field names, empty values left out."""
     fields = {}
@@ -149,7 +150,7 @@ def _rule_record(r: dict, entry_name: str, entry_extents: list) -> dict:
                              f"condition — the bundle says it twice")
         fields[k] = v
     s = source_of({"entry": r["entry_id"], "rule": r["rule_id"], "entry_name": entry_name,
-                   "extents": fields.get("extents") or [], "entry_extents": entry_extents,
+                   "extents": fields.get("extents") or [],
                    "authority": fields.get("authority"),
                    "extent_text": r["extent_text"], "verbatim": r["verbatim"]})
     return {
@@ -224,7 +225,7 @@ def read(bundle: Path) -> dict:
 
     rules = {}
     for r in _rows(db, "SELECT * FROM rule ORDER BY entry_id, rule_id"):
-        x = _rule_record(r, names.get(r["entry_id"], ""), entries[r["entry_id"]]["extents"])
+        x = _rule_record(r, names.get(r["entry_id"], ""))
         rules[x["id"]] = x
         entries[r["entry_id"]]["rules"].append(x["id"])
 
@@ -313,7 +314,8 @@ TYPE_TEXT = {
                    "clauses on the `method` slot or a spec slot, or `conduct`.",
     "vessel_rule": "Boats: whether they are allowed, under what propulsion, at what speed, "
                    "towing. Read `aspect` first.",
-    "angling_from_vessel_prohibited": "You may fish here, but not from a boat.",
+    "angling_from_vessel_prohibited": "You may fish here, but not from a boat — or, with "
+                                      "`level: unpowered`, not from a POWERED boat.",
     "navigation_duty": "What a boat must do for other traffic.",
     "angler_closure": "The water is closed to ONE KIND of angler (`closed_to`), on the days in "
                       "`when`. A closure, never a quota; everyone else is unaffected.",
@@ -562,15 +564,18 @@ WHEN_TEXT = {
                 "never read it as all year",
 }
 
-EXEMPTS_TEXT = {
-    "default_id": "names a standing default by its entry slug — the zone closure of that name "
-                  "in the rule's own region (`spring_stream_closure`)",
-    "target": "a rule id, bare, in the entry `entry_id` names",
-    "entry_id": "the entry the lift reaches, resolved when the bundle was built and always "
-                "present: for `default_id`, the zone entry whose rules are lifted (one item per "
-                "zone entry — Region 7's rows reach both 7A and 7B); for `target`, the entry the "
-                "lifted rule is in",
+#: One resolved lift, as the bundle ships it (`pipeline.deliver.bundle.rules.LIFT_KEYS`).
+LIFT_TEXT = {
+    "entry_id": "the entry of the rule lifted — resolved when the bundle was built, always present",
+    "rule_id": "the rule lifted, in `entry_id`. One item per lifted rule: a zone default named by "
+               "slug is resolved to each of its rules the lift reaches",
     "note": "the book's words, often the only statement of WHERE the lift reaches",
+    "species": "the lift holds only for these fish (leaf codes) — the lifter names fewer than the "
+               "lifted rule does, so the rule still binds every other species. Absent = every "
+               "fish the lifted rule names",
+    "when_targeting": "the lift holds only when fishing FOR these. The angler is unknown, so the "
+                      "lifted rule stays and the lift is a condition on it",
+    "while": "the lift holds only while doing these; the lifted rule binds everyone else",
 }
 
 LENGTH_TEXT = {
@@ -967,21 +972,23 @@ def guide(d: dict) -> dict:
                              "max_power_kw", "max_kmh", "when", n=1)
                      for a in _enum(C.VesselAspect)},
     }
+    def part(e):
+        return any(k in e for k in ("species", "when_targeting", "while"))
     exempts = {
-        "reading": "A rule with `exempts` LIFTS what it names, where and while it binds. A lift "
-                   "whose place cannot be drawn is not applied (the closure stands and the "
-                   "exemption is shown beside it in the book's words), and a rule never lifts "
-                   "itself. Every item is already RESOLVED: `entry_id` is the entry the lift "
-                   "reaches. `default_id` + `entry_id` lifts every rule of that zone entry; "
-                   "`target` + `entry_id` lifts the one rule `entry_id::target`. Match on those "
-                   "exact ids, never on a bare name.",
-        "fields": {k: EXEMPTS_TEXT.get(k) for k in _fields(C.Exempts)},
+        "reading": "A rule with `exempts` LIFTS the rules it names, where and while it binds. "
+                   "Every item is RESOLVED to one rule, `entry_id::rule_id`: match on those "
+                   "exact ids, never on a bare name. An item with no `species`, "
+                   "`when_targeting` or `while` lifts that rule outright. One with any of them "
+                   "lifts it only for those anglers — the rule stays in force for everyone "
+                   "else, and since the angler is unknown the lift is a condition beside it, "
+                   "never a removal. A lift is never wider than its lifter. A lift whose place "
+                   "cannot be drawn is not applied, and a rule never lifts itself.",
+        "fields": dict(LIFT_TEXT),
         "examples": {
-            "default_id": pick(lambda x: any(e.get("default_id") for e in F(x, "exempts") or []),
-                               "exempts", n=1),
-            "target": pick(lambda x: any(
-                f"{e['entry_id']}::{e['target']}" in rules
-                for e in F(x, "exempts") or [] if e.get("target")), "exempts", n=1),
+            "whole": pick(lambda x: any(not part(e) for e in F(x, "exempts") or []),
+                          "exempts", n=1),
+            "in part": pick(lambda x: any(part(e) for e in F(x, "exempts") or []),
+                            "exempts", "species", "when_targeting", "while", n=1),
             "with the book's note": pick(
                 lambda x: any(e.get("note") for e in F(x, "exempts") or []), "exempts", n=1),
         },
@@ -1214,7 +1221,7 @@ def field_dictionary(d: dict) -> dict:
         "rule.fields.gear[]": {k: CLAUSE_TEXT.get(k) for k in _fields(C.GearClause)},
         "rule.fields.when": {k: WHEN_TEXT.get(k) for k in _fields(C.When)},
         "rule.fields.lengths[]": LENGTH_TEXT,
-        "rule.fields.exempts[]": {k: EXEMPTS_TEXT.get(k) for k in _fields(C.Exempts)},
+        "rule.fields.exempts[]": dict(LIFT_TEXT),
         "rule.fields.closed_to": {k: WHO_TEXT.get(k) for k in _fields(C.Who)},
         "model_rule_fields_not_shipped": sorted(model - shipped),
         "licensing": LICENSING_RECORD_TEXT,
@@ -1321,7 +1328,7 @@ def _registries() -> list[tuple[str, dict, set]]:
         ("GEAR_WHEN_TEXT", GEAR_WHEN_TEXT, set(_fields(C.GearWhen))),
         ("GEAR_SPEC_TEXT", GEAR_SPEC_TEXT, set(_fields(C.GearSpec))),
         ("WHEN_TEXT", WHEN_TEXT, set(_fields(C.When))),
-        ("EXEMPTS_TEXT", EXEMPTS_TEXT, set(_fields(C.Exempts))),
+        ("LIFT_TEXT", LIFT_TEXT, set(LIFT_KEYS)),
         ("LENGTH_TEXT", LENGTH_TEXT, set(_fields(C.LengthBand))),
         ("WHO_TEXT", WHO_TEXT, set(C.WHO_AXES)),
         ("PATH_TEXT", PATH_TEXT, set(_fields(C.Path))),
@@ -1427,21 +1434,18 @@ def corpus_references(doc: dict) -> list[str]:
     lifts, a record to the one it restates) that do not resolve. These are defects in the
     corpus, not in the export: the file ships them under `about.unresolved_references`, and a
     lift whose target does not resolve must not be applied."""
-    R, L, E = doc["rules"], doc["licensing"], doc["entries"]
+    R, L = doc["rules"], doc["licensing"]
     out = []
     for x in R.values():
         f, eid = x["fields"], x["entry_id"]
         for key in ("within", "condition_of", "derived_from", "suspended_while"):
             if f.get(key) and f"{eid}::{f[key]}" not in R:
                 out.append(f"rule {x['id']} {key} -> {f[key]}")
-        # Resolved lifts: `entry_id` is always there, and is the whole answer.
+        # Resolved lifts: each names one rule, which must exist and must not be the lifter.
         for ex in f.get("exempts") or []:
-            to = ex.get("entry_id")
-            if ex.get("target") and f"{to}::{ex['target']}" not in R:
-                out.append(f"rule {x['id']} exempts.target -> {to}::{ex['target']}")
-            if ex.get("default_id") and (to not in E or to == eid
-                                         or to.split(":", 1)[-1] != ex["default_id"]):
-                out.append(f"rule {x['id']} exempts.default_id -> {to} ({ex['default_id']})")
+            to = f"{ex.get('entry_id')}::{ex.get('rule_id')}"
+            if to not in R or to == x["id"]:
+                out.append(f"rule {x['id']} exempts -> {to}")
     for x in L.values():
         f, eid = x["fields"], x["entry_id"]
         for key in ("alternative_to", "restates"):

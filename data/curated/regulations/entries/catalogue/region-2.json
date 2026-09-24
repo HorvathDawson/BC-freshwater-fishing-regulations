@@ -940,6 +940,7 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -1030,6 +1031,7 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -7073,6 +7075,7 @@
      "rule_id": "nicomekl_river.r4",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats upstream of dyke gates",
+     "level": "unpowered",
      "extents": [
       {
        "op": "upstream_of",
@@ -8758,6 +8761,7 @@
      "rule_id": "serpentine_river.r4",
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats upstream of dyke gates",
+     "level": "unpowered",
      "extents": [
       {
        "op": "upstream_of",
@@ -10006,6 +10010,7 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -10375,8 +10380,13 @@
      ],
      "take": 0,
      "may_target": false,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ],
      "authority": "superior",
-     "extent_text": "Nooksack dace, Salish sucker, Green sturgeon, Cultus Lake sculpin",
      "review_reason": "Region 2 ADDS Green sturgeon to the provincial list, so zp:protected_species is a floor, not the complete set. The four taxa are not game-fish codes."
     }
    ]
@@ -10472,7 +10482,17 @@
       "BASS"
      ],
      "take": 20,
-     "extent_text": "excluding Mill Lake"
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ],
+     "extent_text": "excluding Mill Lake",
+     "unresolved_locators": [
+      "Mill Lake"
+     ],
+     "review_reason": "Region 2's bass quota EXCLUDING Mill Lake: no cut removes one lake from a region, so the rule states Region 2 and stays unbound until one does"
     },
     {
      "rule_id": "species_quotas.r2",

@@ -197,3 +197,49 @@ def test_a_single_line_exemption_targets_the_RULE_not_the_entry():
     ex = e["rules"][0]["exempts"][0]
     assert ex.get("target") == "species_quotas.r5"
     assert "default_id" not in ex
+
+
+# --- THE CLI, as the parse prompt tells the model to run it -------------------------------------
+# `main()` once splatted argparse's names into run() (`run() got an unexpected keyword argument
+# 'batch'`), so the one command CATALOGUE_PARSE_PROMPT.md gives the model crashed before it
+# checked anything. Only a subprocess on real files exercises that line.
+
+def _cli(tmp_path, entry):
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    batch = tmp_path / "batch.json"
+    batch.write_text(json.dumps({"batch": 0, "items": [
+        {"index": 0, "entry_id": "r3:tranquille_lake@3-29", "name": "TRANQUILLE LAKE",
+         "region": "3", "raw_regs": SOURCE}]}))
+    cand = tmp_path / "candidate.json"
+    cand.write_text(json.dumps([{"index": 0, "entry": entry}]))
+    return subprocess.run(
+        [sys.executable, "-m", "pipeline.regs.parsing.validate_catalogue", str(batch), str(cand)],
+        cwd=root, env={**__import__("os").environ, "PYTHONPATH": str(root)},
+        capture_output=True, text=True, timeout=120)
+
+
+def test_cli_accepts_a_clean_candidate(tmp_path):
+    p = _cli(tmp_path, _entry([_quota(extents=[{"op": "whole"}])]))
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "1/1 entries valid" in p.stdout
+
+
+def test_cli_refuses_a_bad_candidate_with_exit_1(tmp_path):
+    p = _cli(tmp_path, _entry([_quota(take=99, extents=[{"op": "whole"}])]))
+    assert p.returncode == 1, p.stdout + p.stderr
+    assert "Traceback" not in p.stderr
+    assert "0/1 entries valid" in p.stdout and "FAIL " in p.stdout
+
+
+def test_the_prompt_names_the_command_the_cli_takes():
+    """The command in the prompt is the one tested above: module path, then batch, then candidate."""
+    from pathlib import Path
+    cmd = ("PYTHONPATH=\"$PWD\" .venv/bin/python -m pipeline.regs.parsing.validate_catalogue "
+           "batch.json candidate.json")
+    prompts = Path(__file__).resolve().parents[1] / "regs" / "parsing" / "prompts"
+    for name in ("CATALOGUE_PARSE_PROMPT.md", "CHAT_INVOCATION.md"):
+        assert cmd in (prompts / name).read_text(encoding="utf-8"), name

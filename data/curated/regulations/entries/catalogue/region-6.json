@@ -6800,6 +6800,7 @@
       "GR"
      ],
      "take": 3,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -6820,6 +6821,7 @@
        "min_cm": 35
       }
      ],
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -6834,6 +6836,7 @@
       "WHITEFISH"
      ],
      "take": 5,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -6844,6 +6847,7 @@
      "rule_id": "rancheria_river_tributaries.r4",
      "type": "advisory",
      "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Rancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
@@ -9102,9 +9106,11 @@
       "TROUT"
      ],
      "take": 1,
+     "tributaries_only": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "within_area": "area:region:6"
       }
      ]
     },
@@ -9120,9 +9126,11 @@
        ]
       }
      ],
+     "tributaries_only": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "within_area": "area:region:6"
       }
      ]
     },
@@ -9138,9 +9146,11 @@
        ]
       }
      ],
+     "tributaries_only": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "within_area": "area:region:6"
       }
      ]
     }
@@ -10116,7 +10126,12 @@
      "type": "advisory",
      "verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
      "obligation": "should",
-     "extent_text": "sockeye, chinook, pink, chum and coho go to DFO, not the provincial programme"
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
     }
    ]
   },
@@ -10379,7 +10394,12 @@
       }
      ],
      "origin": "hatchery",
-     "extent_text": "hatchery steelhead count against the over-50 cm sub-limit"
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
     }
    ]
   }

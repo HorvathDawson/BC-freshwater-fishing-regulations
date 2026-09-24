@@ -394,7 +394,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("batch")
     ap.add_argument("candidate")
-    sys.exit(run(**vars(ap.parse_args())))
+    a = ap.parse_args()
+    # POSITIONAL, not `**vars(...)`: the argparse names are not run()'s parameter names, and
+    # splatting them crashed the one command the parse prompt tells the model to run.
+    sys.exit(run(a.batch, a.candidate))
 
 
 if __name__ == "__main__":

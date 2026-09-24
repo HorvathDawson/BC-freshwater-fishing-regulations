@@ -55,11 +55,14 @@ Per entry (entries are independent):
 ```
 1  covered_ids      matched[] + also[]                     which items this row regulates
 2  entry scope      resolve_extent × scope[]               clip set, or scope_unresolved
-3  per rule/extent  resolve_extent -> Reach
+3  per rule/extent  resolve_extent -> Reach               the RULE's own extents; none inherited
+                                                          (no extents -> unresolved, AGENTS 13)
 4  union extents    per rule
 5  clip to scope
 6  classify         bound | empty | unresolved(reason)
 7  emit             rows + diagnostics
+8  licensing        place_record: a record's extents, else its ENTRY's (records do inherit)
+                    then own_beats_inherited, carve_outs_to_owner, carve_out_orphans (corpus-wide)
 ```
 
 ---

@@ -21,8 +21,10 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
-    PLACED_KINDS, LicensingPlacement, own_beats_inherited, place_record,
+    PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
+    own_beats_inherited, place_record,
 )
 
 
@@ -56,6 +58,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     diagnostics: list[Diagnostic] = []
     licensing: list[LicensingPlacement] = []
     lic_diags: list[Diagnostic] = []
+    #: item -> entries covering it with `includes_tributaries: true`, and each carving
+    #: designation's removed sections — for `carve_out_orphans`.
+    claims: dict[str, list[str]] = {}
+    carved: dict[tuple[str, str], tuple[set[str], set[str]]] = {}
+    designations: dict = {}
     report = BuildReport(build=build, handles=handles)
 
     for e in sorted(iter_entries(entries), key=lambda x: x["entry_id"]):
@@ -80,21 +87,50 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             bindings.append(binding)
             diagnostics.extend(diags)
 
+        if e.get("includes_tributaries") is True:
+            for i in covered:
+                claims.setdefault(i, []).append(entry_id)
+
         # LICENSING, in the entry's own context: same covered items, same clip, same resolver.
         for rec in e.get("licensing") or []:
             if rec.get("kind") not in PLACED_KINDS:
                 continue
-            placed, diags = place_record(
-                e, rec, lambda r, e=e, covered=covered, clip=clip: build_reach(
-                    e, r, registry, graph, covered=covered, clip=clip, match=match))
+            reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
+                e, r, registry, graph, covered=covered, clip=clip, match=match))
+            placed, diags = place_record(e, rec, reach)
             licensing.append(placed)
+            if rec.get("kind") == "designation":
+                designations[(entry_id, rec["id"])] = Designation.model_validate(rec)
             lic_diags.extend(diags)
+            # What a designation's carve-out removes, for the check below.
+            if (rec.get("kind") == "designation" and rec.get("tributary_excludes")
+                    and placed.placement == "sections"):
+                bare, _ = reach(as_rule({**rec, "tributary_excludes": []},
+                                        rec.get("extents") if rec.get("extents") is not None
+                                        else list(e.get("extents") or [])))
+                items = {i for x in rec["tributary_excludes"]
+                         for i in ([x.get("item_id")] if x.get("item_id") else [])
+                         + list(x.get("item_ids") or [])}
+                carved[(entry_id, rec["id"])] = (set(bare.sections) - set(placed.sections),
+                                                 items)
 
     # A water's own designation beats one inherited by another water's tributary walk.
-    licensing, yielded = own_beats_inherited(licensing)
+    licensing, yielded = own_beats_inherited(licensing, designations)
     lic_diags.extend(yielded)
-    if yielded:
-        report.licensing["designation:trib_yields_to_own"] = len(yielded)
+    for d in yielded:
+        k = f"designation:{d.kind}"
+        report.licensing[k] = report.licensing.get(k, 0) + 1
+    # Water a carve-out removed goes to the excluded water's own designation, and must end there.
+    licensing, handed = carve_outs_to_owner(licensing, carved, claims)
+    lic_diags.extend(handed)
+    if handed:
+        report.licensing["designation:carve_out_handed_to_owner"] = sum(
+            len(d.payload["sections"]) for d in handed)
+    orphans = carve_out_orphans(licensing, carved, claims)
+    lic_diags.extend(orphans)
+    if orphans:
+        report.licensing["designation:carve_out_orphans"] = sum(
+            len(d.payload["orphans"]) for d in orphans)
 
     for p in licensing:
         key = f"{p.kind}:{p.placement}"

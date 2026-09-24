@@ -73,6 +73,7 @@ def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
                                      "regs_verbatim": "Bait ban.",
                                      "rules": [{"rule_id": "o.r1", "type": "bait_restriction",
                                                 "verbatim": "Bait ban.",
+                                                "extents": [{"op": "whole"}],
                                                 "gear": [{"slot": "bait", "ban": ["any_bait"]}]}]}]}))
     written, kept = write(accepted, out, ledger=tmp_path / "ingested.json")
     assert written == {"region-3.json": 1} and kept == []
@@ -351,6 +352,7 @@ def test_an_untouched_neighbour_is_written_byte_for_byte(tmp_path):
     from pipeline.regs.parsing.io import read_entryfile, write_entryfile
     path = tmp_path / "region-7a.json"
     rules = [{"rule_id": "r1", "type": "bait_restriction", "verbatim": "Bait ban.",
+              "extents": [{"op": "within", "area_id": "area:region:7a"}],
               "gear": [{"slot": "bait", "ban": ["any_bait"]}]}]
     doc = {"region": "7a", "entries": [
         {"entry_id": "z7a:b", "name": "B", "regs_verbatim": "Bait ban.", "rules": rules},

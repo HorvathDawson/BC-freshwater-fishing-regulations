@@ -382,37 +382,6 @@ body {
   font-family: ui-monospace, monospace;
   font-size: 11px;
 }
-.parse-review {
-  margin-top: 12px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  font-size: 12px;
-}
-.parse-review.pass {
-  background: var(--ok-bg);
-  border-color: var(--ok-border);
-  color: var(--ok-text);
-}
-.parse-review.changes_requested {
-  background: var(--warn-bg);
-  border-color: var(--warn-border);
-  color: var(--warn-text);
-}
-.parse-review ul {
-  margin: 6px 0 0;
-  padding-left: 18px;
-}
-.parse-review .sev {
-  text-transform: uppercase;
-  font-size: 10px;
-  font-weight: 700;
-  margin-right: 4px;
-}
-.parse-review .sev.high { color: var(--danger-text); }
-.parse-review .sev.medium { color: #8a5a00; }
-.parse-review .sev.low { color: var(--muted); }
-
 /* ---- boundaries ---- */
 .boundaries {
   display: flex;
@@ -1090,58 +1059,6 @@ button.btn.rebuild-running {
   white-space: pre-wrap;
   word-break: break-word;
 }
-
-/* ── Reference-only rows ────────────────────────────────────────────────────────────────────────
-   A pointer row ("BEAR LAKE — See Cowichan Lake") looks exactly like a real entry: same name, same
-   layout, and a rule or two the parser dutifully split out of the pointer sentence. The only thing
-   distinguishing it used to be a small badge and a checkbox at the bottom of the page, so it was
-   easy to work through one as though it carried regulations. These styles make the state visible
-   before anything else on the row or page is read. */
-.badge.reference {
-  background: #f3e8ff;
-  border-color: #c4a2e8;
-  color: #5b2d8e;
-  font-weight: 600;
-}
-.queue-row.is-reference {
-  background: repeating-linear-gradient(
-    -45deg, transparent, transparent 7px, rgba(147, 94, 199, 0.07) 7px, rgba(147, 94, 199, 0.07) 14px
-  );
-  border-left: 3px solid #a06fd0;
-}
-.queue-row.is-reference .name {
-  color: #5b2d8e;
-}
-.queue-row.is-reference.selected {
-  background: #e5d4f7;
-}
-.reference-banner {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  background: #f7f0ff;
-  border: 1px solid #c4a2e8;
-  border-left: 5px solid #7c3aad;
-  border-radius: 6px;
-  color: #3f1d66;
-}
-.reference-banner-icon {
-  font-size: 22px;
-  line-height: 1;
-  color: #7c3aad;
-}
-.reference-banner-sub {
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: #5b3d7a;
-}
-.identity.is-reference h2 {
-  color: #5b2d8e;
-}
-
 
 /* The queue is two jobs — regional chapters and water tables. This is the seam. */
 .queue-group{

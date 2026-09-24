@@ -31,6 +31,7 @@ class Reason(str, Enum):
     no_registry = "no_registry"                      # entry has no matched item (95 rules)
     no_extents = "no_extents"                        # rule authored with no extent (12 rules)
     no_sections_for_items = "no_sections_for_items"  # every scoped item has 0 sections (14 rules)
+    locators_unresolved = "locators_unresolved"      # an area rule + a carve-out no cut expresses
 
     # --- the extent could not be placed ---------------------------------------
     cut_not_found = "cut_not_found"                  # a bound split is not on the scoped water

@@ -1489,7 +1489,8 @@ class Requirement(_Terse):
     """AN OBLIGATION, stated once: this `who`, `doing` this, `when` and where, must satisfy ANY ONE
     of `satisfied_by` — or, for a duty, do the `conduct`.
 
-    WHERE is `extents` (like a rule; None inherits the entry, never `whole` by default) and/or
+    WHERE is `extents` (None takes the entry's, at placement — `reach.licensing.place_record`;
+    never `whole` by default. A RULE, unlike a record, always states its own) and/or
     `on`: `classified_period` is met wherever a designation is in force on a stream,
     `steelhead_period` wherever its `steelhead_stamp_during` also holds. Both together means both.
 
@@ -1905,6 +1906,10 @@ class CatalogueRule(BaseModel):
 
     # --- vessel ------------------------------------------------------------
     aspect: Optional[VesselAspect] = None
+    #: On `vessel_rule(aspect=propulsion)`: the boats allowed ON the water. On
+    #: `angling_from_vessel_prohibited`: the boats you may still ANGLE FROM, on the same scale —
+    #: absent = none ("No angling from boats"), `unpowered` = "No angling from POWERED boats". Seven
+    #: rules said "powered" and shipped as the unqualified ban, forbidding a canoe the book allows.
     level: Optional[PropulsionLevel] = None
     max_power_kw: Optional[float] = None
     max_kmh: Optional[float] = None
@@ -1923,9 +1928,20 @@ class CatalogueRule(BaseModel):
     #: "No fishing in any stream in the Fraser River Watershed ... EXCEPT the mainstem of the
     #: Fraser River." Binding it with includes_tributaries CLOSES the mainstem the rule exempts.
     tributaries_only: bool = False
-    #: Where THIS rule applies, when it differs from the entry's. `None` inherits the entry.
-    #: A row routinely binds its rules to different reaches — "no fishing above the falls, bait ban
-    #: throughout" — and without this the narrower rule silently widens to the whole water.
+    #: WHERE THIS RULE APPLIES, stated on the rule itself. NOTHING IS INHERITED: a rule with no
+    #: extents is not given its entry's by any reader — not the reach builder, not the bundle, not
+    #: provenance (`table.authority.source_of`). A row routinely binds its rules to different
+    #: reaches — "no fishing above the falls, bait ban throughout" — and an implied default is how
+    #: the narrower rule silently widens to the whole water.
+    #:
+    #: So every rule in an entry says where it is (`CatalogueEntry` refuses one that does not):
+    #: `extents`, or — for a place nothing can draw — `extent_text` / `unresolved_locators`, which
+    #: leave it UNBOUND (AGENTS 13). A rule that says nothing about location is given the entry's
+    #: reach explicitly, once, at ingest (`validate_catalogue.default_extents`), so the file states
+    #: it. On an AREA rule (every extent a `within`), `unresolved_locators` beside the extents is a
+    #: carve-out no cut-point expresses — "Bass: 20, excluding Mill Lake" is Region 2 minus one lake
+    #: — and it stays unbound too: the extents say whose rule it is, the locator why it cannot be
+    #: drawn (`reach.classify.AREA_CARVE_OUTS_UNBIND`).
     extents: Optional[List[dict]] = None
     #: WATER THIS RULE REACHES BY THE TRIBUTARY WALK AND MUST NOT. Subtracted from this rule's
     #: tributary set only. There is no entry-wide carve-out: one would cut every rule in the row,
@@ -2053,17 +2069,10 @@ class CatalogueRule(BaseModel):
                 e.append("a release rule is a daily-period rule")
             if self.per_daily is not None and self.period is not Period.possession:
                 e.append("per_daily is a possession multiplier")
-            # `lengths` IS THE ANSWER, NOT A COPY OF THE OTHER THREE. It used to be checked
-            # for equality against over_cm/under_cm/band, which quietly made it subordinate to
-            # the fields it exists to replace: it could only ever say what THEY could say.
-            # "Wild cutthroat trout daily quota = 2 (none 40 cm or more)" is the case that
-            # proves it — 40 cm is on the forbidden side, `over_cm: 40` has no way to record
-            # that, and under the equality check the corrected value was rejected as a mismatch.
-            #
-            # So where `lengths` is written it WINS, and where it is absent it is derived
-            # (`_fill_lengths`). The other three are legacy the next parse run removes; until
-            # then a rule whose hand-written `lengths` differs from them is a CORRECTION, and
-            # the difference is the point.
+            # `lengths` IS THE ONLY SIZE FIELD. over_cm/under_cm/band WERE HERE and are refused
+            # on load (`extra=forbid`): checked for equality against them, `lengths` could only
+            # ever say what they could, and "Wild cutthroat trout daily quota = 2 (none 40 cm or
+            # more)" — 40 cm on the forbidden side — was rejected as a mismatch.
         else:
             # `lengths` IS NOT ON THIS LIST. `band` was, because a band was only ever a
             # retention thing — but a size on a document rule names WHICH FISH need the stamp
@@ -2099,6 +2108,18 @@ class CatalogueRule(BaseModel):
                 e.append("speed needs max_kmh, or a review_reason if the synopsis states none")
             if self.level is PropulsionLevel.power_capped and self.max_power_kw is None:
                 e.append("power_capped needs max_power_kw")
+        if t is RuleType.angling_from_vessel_prohibited:
+            if self.level not in (None, PropulsionLevel.unpowered):
+                e.append("angling_from_vessel_prohibited takes `level: unpowered` (\"from powered "
+                         "boats\") or none (from any boat)")
+            if self.level is None and re.search(r"\bpowered\b", self.verbatim, re.I):
+                e.append("the sentence says POWERED boats — set `level: unpowered`, or the ban "
+                         "reaches a canoe the book allows")
+        elif t is not RuleType.vessel_rule and self.level is not None:
+            e.append("level belongs to vessel_rule and angling_from_vessel_prohibited")
+        if t is not RuleType.vessel_rule and (self.aspect is not None or self.max_power_kw
+                                              is not None or self.max_kmh is not None):
+            e.append("aspect, max_power_kw and max_kmh belong to vessel_rule")
         if t is RuleType.angler_closure:
             if self.closed_to is None:
                 e.append("angler_closure needs closed_to — a closure to everyone is a "
@@ -2557,7 +2578,8 @@ def label(r: CatalogueRule, siblings: Optional[dict] = None) -> str:
         return head + _dates(r) + _where(r) + _suspended(r, siblings)
 
     if t is RuleType.angling_from_vessel_prohibited:
-        return "No angling from boats" + _scope(r) + _dates(r)
+        boats = "powered boats" if r.level is PropulsionLevel.unpowered else "boats"
+        return f"No angling from {boats}" + _scope(r) + _dates(r)
 
     if t is RuleType.angler_closure:
         # `taking=False`: a closure is "in", never "from". The subject is the angler, so the
@@ -2874,6 +2896,14 @@ class CatalogueEntry(BaseModel):
                 e.append(f"designation {x.id}: no steelhead_stamp_during or _waived in "
                          f"steelhead country — record the printed clause, or say why in "
                          f"review_reason")
+        # EVERY RULE SAYS WHERE IT IS. Nothing inherits the entry's extents (see
+        # `CatalogueRule.extents`), so a rule with none and no words for its place would have a
+        # reach nobody stated — which a reader could only fill by guessing.
+        for r in self.rules:
+            if not r.extents and not r.extent_text.strip() and not r.unresolved_locators:
+                e.append(f"{r.rule_id}: says nothing about where it applies — give it `extents` "
+                         f"(the entry's reach, written out, if it covers the whole row), or name "
+                         f"the place it cannot bind in `extent_text` / `unresolved_locators`")
         if not self.rules and not self.licensing:
             e.append("an entry with no rules and no licensing says nothing")
         if e:

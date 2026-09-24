@@ -287,15 +287,15 @@ describe("exemptions: a lifted rule does not count", () => {
   /* The North Thompson case: the region's spring closure binds every stream in Region 3, and the
      river's own "Exempt from spring closure" lifts it. Applied nowhere, the river read CLOSED on
      May 1 beside its own exemption. */
-  const spring = closure({ id: "z3:spring_stream_closure.spring_stream_closure.r1", scope: "area",
+  const SPRING = { entry: "z3:spring_stream_closure", rule: "spring_stream_closure.r1" };
+  const spring = closure({ id: `${SPRING.entry}.${SPRING.rule}`, scope: "area",
                            when: season(w([1, 1], [6, 30])) });
   const exempt = rule({ id: "r3:north_thompson_river@3-27.north_thompson_river.r1",
-                        type: "retention_limit", species: ["ALL_GAME_FISH"],
-                        exempts: [{ entry: "z3:spring_stream_closure" }] });
+                        type: "retention_limit", species: ["ALL_GAME_FISH"], exempts: [SPRING] });
   const quota = rule({ id: "r3:north_thompson_river@3-27.north_thompson_river.r2",
                        type: "retention_limit", take: 2 });
 
-  it("a named zone default is lifted where the exemption is in force", () => {
+  it("a lifted rule is lifted where the exemption is in force", () => {
     expect(evaluate({ rules: [spring], on: on(5, 1), group: "provincial" }).outcome)
       .toBe("closed");
     const s = evaluate({ rules: [spring, exempt, quota], on: on(5, 1), group: "provincial" });
@@ -308,7 +308,7 @@ describe("exemptions: a lifted rule does not count", () => {
       .toBe("open");
   });
 
-  it("a target lifts that one rule of that entry, and no other", () => {
+  it("a lift names one rule of one entry, and lifts no other rule of that entry", () => {
     const r5 = closure({ id: "z4:species_quotas.species_quotas.r5", scope: "area" });
     const r1 = closure({ id: "z4:species_quotas.species_quotas.r1", scope: "area" });
     const lift = rule({ id: "r4:upper_arrow@4-31.upper_arrow.r4", type: "retention_limit",
@@ -321,17 +321,9 @@ describe("exemptions: a lifted rule does not count", () => {
 
   it("a lift out of season lifts nothing", () => {
     const summer = rule({ ...exempt, when: season(w([7, 1], [8, 31])) });
-    expect(evaluate({ rules: [spring, summer, quota], on: on(5, 1), group: "provincial" }).outcome)
-      .toBe("closed");
-  });
-
-  it("a lift WHILE doing one thing, or for part of the day, does not lift the whole day", () => {
-    const whileSetLining = rule({ ...exempt, while: ["set_lining"] });
-    const atNight = rule({ ...exempt, when: { ...ALL_YEAR,
-      hours: { start: { at: "21:00" }, end: { at: "05:00" } } } });
-    for (const lift of [whileSetLining, atNight])
-      expect(evaluate({ rules: [spring, lift, quota], on: on(5, 1), group: "provincial" }).outcome)
-        .toBe("closed");
+    const s = evaluate({ rules: [spring, summer, quota], on: on(5, 1), group: "provincial" });
+    expect(s.outcome).toBe("closed");
+    expect(s.from.find((r) => r.id === spring.id)?.liftedFor).toBeUndefined();
   });
 
   it("an uncertain lift lifts nothing", () => {
@@ -340,20 +332,10 @@ describe("exemptions: a lifted rule does not count", () => {
     expect(s.outcome).toBe("closed");
   });
 
-  it("a zone default can never lift itself (the z6 steelhead self-lift)", () => {
-    const self = closure({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r1",
-                           scope: "area", exempts: [{ entry: "z6:steelhead_stream_closure" }] });
+  it("a rule never lifts itself (the z6 steelhead self-lift)", () => {
+    const id = { entry: "z6:steelhead_stream_closure", rule: "steelhead_stream_closure.r1" };
+    const self = closure({ id: `${id.entry}.${id.rule}`, scope: "area", exempts: [id] });
     expect(evaluate({ rules: [self], on: on(5, 20), group: "provincial" }).outcome)
-      .toBe("closed");
-    // ...nor a sibling in its own entry: naming its own slug lifts nothing of that entry.
-    const lift = rule({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r0",
-                        type: "retention_limit", exempts: [{ entry: "z6:steelhead_stream_closure" }] });
-    const sibling = closure({ id: "z6:steelhead_stream_closure.steelhead_stream_closure.r2",
-                              scope: "area" });
-    expect(evaluate({ rules: [lift, sibling], on: on(5, 20), group: "provincial" }).outcome)
-      .toBe("closed");
-    const byRule = closure({ id: "zp:x.x.r1", exempts: [{ entry: "zp:x", rule: "x.r1" }] });
-    expect(evaluate({ rules: [byRule], on: on(5, 20), group: "provincial" }).outcome)
       .toBe("closed");
   });
 
@@ -361,5 +343,73 @@ describe("exemptions: a lifted rule does not count", () => {
     const salmonLift = rule({ ...exempt, group: "salmon" });
     expect(evaluate({ rules: [spring, salmonLift, quota], on: on(5, 1), group: "provincial" })
       .outcome).toBe("closed");
+  });
+});
+
+describe("a partial lift keeps the rule, marked, and never removes it", () => {
+  /* A LIFT IS NEVER WIDER THAN ITS LIFTER. Before this, all three of these lifted the whole rule. */
+  const TCW = { entry: "z4:trout_char_winter_release", rule: "trout_char_winter_release.r1" };
+  const winter = rule({ id: `${TCW.entry}.${TCW.rule}`, type: "retention_limit", scope: "area",
+                        species: ["TROUT_CHAR"], take: 0, mayTarget: true,
+                        when: season(w([11, 1], [3, 31])) });
+  const duncan = rule({ id: "r4:duncan_river@4-19.duncan_river.r2", type: "retention_limit",
+                        species: ["BT"], exempts: [{ ...TCW, species: ["BT"] }] });
+
+  it("SPECIES: Duncan's bull-trout exemption leaves the trout/char release on the others", () => {
+    const s = evaluate({ rules: [winter, duncan], on: on(12, 1), group: "provincial" });
+    const kept = s.from.find((r) => r.id === winter.id);
+    expect(kept, "the release still binds rainbow and cutthroat").toBeDefined();
+    expect(kept!.liftedFor).toEqual([{ by: duncan.id, species: ["BT"] }]);
+    expect(s.outcome).toBe("restricted");
+    // the whole-species lift beside it (Columbia's TROUT_CHAR) still lifts it outright
+    const columbia = rule({ id: "r4:columbia_river@4-15.columbia_river.r3", type: "retention_limit",
+                            species: ["TROUT_CHAR"], exempts: [TCW] });
+    const c = evaluate({ rules: [winter, columbia], on: on(12, 1), group: "provincial" });
+    expect(c.from.map((r) => r.id)).not.toContain(winter.id);
+    expect(c.outcome).toBe("open");
+  });
+
+  const BAN = { entry: "zp:bait", rule: "bait.r1" };
+  const ban = rule({ id: `${BAN.entry}.${BAN.rule}`, type: "bait_restriction", scope: "area" });
+
+  it("WHEN_TARGETING: sturgeon bait does not lift the fin-fish ban for every angler", () => {
+    const sturgeon = rule({ id: "zp:bait.bait.r3", type: "bait_restriction", scope: "area",
+                            exempts: [{ ...BAN, whenTargeting: ["WSG"] }] });
+    const s = evaluate({ rules: [ban, sturgeon], on: on(8, 1), group: "provincial" });
+    const kept = s.from.find((r) => r.id === ban.id);
+    expect(kept?.liftedFor).toEqual([{ by: sturgeon.id, whenTargeting: ["WSG"] }]);
+    expect(s.outcome).toBe("restricted");
+  });
+
+  it("WHILE: a lift while set lining leaves the rule for everyone else", () => {
+    const setLine = rule({ id: "zp:bait.bait.r2", type: "bait_restriction", scope: "area",
+                           while: ["set_lining"], exempts: [{ ...BAN, while: ["set_lining"] }] });
+    const kept = evaluate({ rules: [ban, setLine], on: on(8, 1), group: "provincial" })
+      .from.find((r) => r.id === ban.id);
+    expect(kept?.liftedFor).toEqual([{ by: setLine.id, while: ["set_lining"] }]);
+  });
+
+  it("a partly lifted CLOSURE no longer closes the water, and is never removed", () => {
+    const spring = closure({ id: "z3:spring_stream_closure.spring_stream_closure.r1",
+                             scope: "area" });
+    const lift = { entry: "z3:spring_stream_closure", rule: "spring_stream_closure.r1" };
+    for (const partial of [
+      rule({ id: "r3:x.x.r1", type: "retention_limit", exempts: [{ ...lift, species: ["BT"] }] }),
+      rule({ id: "r3:x.x.r1", type: "retention_limit", exempts: [{ ...lift, whenTargeting: ["WSG"] }] }),
+      rule({ id: "r3:x.x.r1", type: "retention_limit", exempts: [{ ...lift, while: ["set_lining"] }] }),
+      // a lifter for part of the day lifts only those hours
+      rule({ id: "r3:x.x.r1", type: "retention_limit", exempts: [lift],
+             when: { ...ALL_YEAR, hours: { start: { at: "21:00" }, end: { at: "05:00" } } } }),
+    ]) {
+      const s = evaluate({ rules: [spring, partial], on: on(5, 1), group: "provincial" });
+      expect(s.from.map((r) => r.id), JSON.stringify(partial.exempts)).toContain(spring.id);
+      expect(s.outcome).toBe("restricted");
+    }
+  });
+
+  it("a whole lift beside a partial one still lifts the rule", () => {
+    const whole = rule({ id: "r4:x.x.r3", type: "retention_limit", exempts: [TCW] });
+    const s = evaluate({ rules: [winter, duncan, whole], on: on(12, 1), group: "provincial" });
+    expect(s.from.map((r) => r.id)).not.toContain(winter.id);
   });
 });

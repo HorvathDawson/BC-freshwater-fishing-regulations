@@ -203,21 +203,52 @@ export interface Rule {
   /** We could not place this rule, or could not check the feed that carries it. */
   readonly uncertain?: boolean;
   /**
-   * WHAT THIS RULE LIFTS where it is in force — "Exempt from spring closure". Each names the
-   * entry it lifts, and one rule of it when `rule` is set; the bundle resolved both from the
-   * catalogue's `default_id` / `target`, so nothing here matches a bare name. See `evaluate`.
+   * WHAT THIS RULE LIFTS where it is in force — "Exempt from spring closure". One item per lifted
+   * rule, resolved by the bundle to exact ids, never a whole entry and never a bare name. See
+   * `Lift` and `evaluate`.
    */
   readonly exempts?: readonly Lift[];
+  /**
+   * SET BY `evaluate`, never by a source: the lifts in force here that lift this rule only IN PART
+   * — for one species, for one target, while doing one thing, or for part of the day. The rule
+   * stays in force for everyone else, so it stays in the answer, marked. See `PartialLift`.
+   */
+  readonly liftedFor?: readonly PartialLift[];
 }
 
 /**
- * One thing a rule lifts: every rule of zone entry `entry` (a named zone default), or the one
- * rule `rule` of `entry`. Rule ids are unique only within an entry (AGENTS rule 8), so the entry
- * is always named.
+ * One rule another rule lifts: rule `rule` of entry `entry` (rule ids are unique only within an
+ * entry, AGENTS rule 8, so the entry is always named).
+ *
+ * A LIFT IS NEVER WIDER THAN ITS LIFTER. With no qualifier, the lift is whole. With any, it holds
+ * only for those anglers — and the angler is always unknown, so such a lift can never remove the
+ * rule, only mark it (`liftedFor`). The bundle decides which is which, per lifted rule, from the
+ * catalogue's species sets (core has no species tree):
+ *
+ *   species        the lift holds only for these fish — Duncan River lifts the regional trout/char
+ *                  winter release for BULL TROUT; rainbow and cutthroat stay catch-and-release
+ *   whenTargeting  only when fishing FOR these — dead fin fish as sturgeon bait
+ *   while          only while doing these — dead fin fish as bait while set lining
+ *
+ * It replaced `{entry}` alone, "every rule of that zone entry", which is what let a bull-trout
+ * exemption lift the whole trout/char release.
  */
 export interface Lift {
   readonly entry: string;
-  readonly rule?: string;
+  readonly rule: string;
+  readonly species?: readonly string[];
+  readonly whenTargeting?: readonly string[];
+  readonly while?: readonly string[];
+}
+
+/** A lift in force that lifts a rule only in part: who lifts it, and for whom. `hours` is set
+ *  when the lifter holds for part of the day only. */
+export interface PartialLift {
+  readonly by: string;
+  readonly species?: readonly string[];
+  readonly whenTargeting?: readonly string[];
+  readonly while?: readonly string[];
+  readonly hours?: true;
 }
 
 export interface Status {
@@ -240,6 +271,10 @@ export interface Status {
 function severityOf(r: Rule): number {
   // A rule with no knowable place tells you something about every water and decides none.
   if (r.standing) return 1;
+  // PARTLY LIFTED: it stands for most anglers and not for some. A closure lifted for sturgeon
+  // anglers, for one species, while set lining or for part of the day no longer shuts the water
+  // to everyone — which is `restricted`, the same reading as a closure scoped by `while` or hours.
+  if ((r.liftedFor ?? []).length > 0) return Math.min(2, severityOf({ ...r, liftedFor: undefined }));
   // A LIFT AND NOTHING ELSE restricts nobody. "Exempt from spring closure" is a retention rule
   // that sets no number — 77 of them — and read as a quota it painted a lifted water RESTRICTED.
   if (r.type === "retention_limit" && r.take === undefined && r.mayTarget === undefined
@@ -286,25 +321,30 @@ export function isUncertain(r: Rule): boolean {
 }
 
 /**
- * Does `by` lift `r`? Only a rule in force lifts, and only one that holds whatever you are doing
- * and all day: a lift WHILE set lining, or for part of the day, still leaves the rule it lifts
- * standing the rest of the time, and this answer is for the whole day and any method.
+ * How `by` lifts `r`: `"whole"`, a `PartialLift`, or `null` (not at all).
  *
- * NEVER ITSELF, and a zone default is never lifted by a rule of its own entry.
- * `z6:steelhead_stream_closure.r1` names its own slug as the default it lifts; honoured, it would
- * delete itself on every stream in the region.
+ * Only exact ids: the bundle resolved every lift to the rules it reaches. NEVER ITSELF, and never
+ * a rule of its own entry by a zone default — `z6:steelhead_stream_closure.r1` names its own slug
+ * as the default it lifts, and honoured it would delete itself on every stream in the region (the
+ * bundle refuses to resolve that; this guard is the second line).
+ *
+ * WHOLE only when the item has no qualifier AND the lifter holds all day. A lifter for part of the
+ * day ("21:00 to 05:00") lifts the rule only for those hours, which is partial, not whole.
  */
-function lifts(by: Rule, r: Rule): boolean {
-  if (by === r || by.id === r.id) return false;
+function liftOf(by: Rule, r: Rule): "whole" | PartialLift | null {
+  if (by === r || by.id === r.id) return null;
   for (const l of by.exempts ?? []) {
-    const prefix = `${l.entry}.`;
-    if (l.rule !== undefined) {
-      if (r.id === prefix + l.rule) return true;
-    } else if (r.id.startsWith(prefix) && !by.id.startsWith(prefix)) {
-      return true;
-    }
+    if (r.id !== `${l.entry}.${l.rule}`) continue;
+    const terms: PartialLift = {
+      by: by.id,
+      ...(l.species?.length ? { species: l.species } : {}),
+      ...(l.whenTargeting?.length ? { whenTargeting: l.whenTargeting } : {}),
+      ...(l.while?.length ? { while: l.while } : {}),
+      ...(by.when.hours ? { hours: true as const } : {}),
+    };
+    return Object.keys(terms).length === 1 ? "whole" : terms;
   }
-  return false;
+  return null;
 }
 
 const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "open" };
@@ -329,7 +369,8 @@ export interface EvaluateInput {
 /**
  * The whole combining rule, in one place:
  *
- *   0. a rule LIFTED by another rule in force here does not count at all (`exempts`)
+ *   0. a rule LIFTED by another rule in force here does not count at all (`exempts`);
+ *      one lifted only in part stays, marked `liftedFor`, and no longer closes the water
  *   1. keep only this species group's rules that are in force today
  *   2. a section-scoped rule REPLACES an mu-scoped default about the same subject
  *   3. absolute rules (area closure, no-access, in-season) override everything
@@ -340,11 +381,17 @@ export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): 
   const ours = rules.filter((r) => r.group === group);
   /* 0 — EXEMPTIONS. "Exempt from spring closure" beside the region's spring closure: while the
      lift is in force, the closure is not a rule of this water — not a vote, not a doubt. Applied
-     nowhere before, so the North Thompson read CLOSED on May 1 beside its own exemption. */
+     nowhere before, so the North Thompson read CLOSED on May 1 beside its own exemption.
+     A lift that holds only IN PART (one species, one target, one act, some hours) removes
+     nothing: the rule stays, marked `liftedFor`, because for every other angler it still binds. */
   const lifters = ours.filter((r) => (r.exempts ?? []).length > 0 && !isUncertain(r)
-    && holdsOn(r.when, on) && (r.while ?? []).length === 0 && !r.when.hours);
-  const mine = lifters.length === 0 ? ours
-    : ours.filter((r) => !lifters.some((by) => lifts(by, r)));
+    && holdsOn(r.when, on));
+  const mine: Rule[] = [];
+  for (const r of ours) {
+    const how = lifters.map((by) => liftOf(by, r)).filter((x) => x !== null);
+    if (how.includes("whole")) continue;
+    mine.push(how.length === 0 ? r : { ...r, liftedFor: how as PartialLift[] });
+  }
   /* A rule we could not place applies to NOTHING — it must not vote on the outcome, or an
      unplaceable closure reads exactly like a placed one. It only ever raises `unknown`. The
      same holds for a rule whose SEASON could not be read: in force or not, we cannot say. */

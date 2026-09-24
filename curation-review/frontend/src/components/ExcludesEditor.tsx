@@ -6,16 +6,20 @@ import { splitArity } from "../format";
 const OPS: Op[] = ["whole", "upstream_of", "downstream_of", "between"];
 
 interface Props {
-  itemIds: string[]; // the entry's matched mainstem item(s) — their tributaries populate the dropdown
+  itemIds: string[]; // the entry's `matched` items — their tributaries populate the dropdown
   excludes: Extent[];
   onChange: (next: Extent[]) => void;
 }
 
-// Editor for entry.tributaries.excludes — hand-curated carve-outs subtracted from the tributary set
-// (e.g. Atnarko/Bella Coola "…tributaries EXCEPT Burnt Bridge Creek upstream of Sitkatapa Creek"). The
-// dropdown unions the tributaries of ALL the entry's mainstems (a shared multi-reg like Atnarko/Bella
-// Coola has two). Pick a named tributary, then the reach on it: op=whole excludes the whole tributary;
-// upstream_of a point excludes that point and everything above it (including its own upstream tributaries).
+// Editor for a rule's `tributary_excludes` (catalogue `CatalogueRule.tributary_excludes`; a licensing
+// designation carries the same field) — water the rule's tributary walk reaches and must NOT, each an
+// extent the reach builder resolves and passes to the walk as BLOCKED
+// (pipeline/atlas/reach/build.py `resolve_carve_outs`). There is no entry-wide list: a carve-out on
+// the entry would cut every rule in the row, including one that is ABOUT the excluded water.
+// The Atnarko/Bella Coola "…tributaries EXCEPT Burnt Bridge Creek upstream of Sitkatapa Creek" is the
+// case. The dropdown unions the tributaries of ALL the entry's matched items (Atnarko/Bella Coola has
+// two). Pick a named tributary, then the reach on it: op=whole excludes the whole tributary;
+// upstream_of a point excludes that point and everything above it (including its own tributaries).
 export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
   const [tribs, setTribs] = useState<{ id: string; name: string }[]>([]);
   const [cache, setCache] = useState<Record<string, Boundary[]>>({}); // item id -> its boundaries

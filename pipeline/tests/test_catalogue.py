@@ -456,9 +456,9 @@ def test_a_suspended_requirement_says_what_suspends_it():
         "entry_id": "x", "name": "X", "regs_verbatim": "No Fishing for steelhead. Class II water",
         "rules": [
             {"rule_id": "x.r1", "type": "retention_limit", "verbatim": "No Fishing for steelhead",
-             "species": ["ST"], "take": 0, "may_target": False},
+             "species": ["ST"], "take": 0, "may_target": False, "extents": [{"op": "whole"}]},
             {"rule_id": "x.r2", "type": "vessel_rule", "verbatim": "Class II water",
-             "aspect": "towing", "suspended_while": "x.r1"}]})
+             "aspect": "towing", "suspended_while": "x.r1", "extents": [{"op": "whole"}]}]})
     sib = {r.rule_id: r for r in e.rules}
     assert label(e.rules[1], sib).endswith("— not while “No fishing for steelhead” is in force")
     with pytest.raises(ValueError, match="names no other rule"):
@@ -501,9 +501,10 @@ def test_an_exemption_must_name_a_registered_default_or_a_rule_that_exists():
         return {"entry_id": eid, "name": "X", "regs_verbatim": v, "rules": rules}
 
     lift = {"rule_id": "x.r1", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
-            "verbatim": "Exempt from it."}
+            "verbatim": "Exempt from it.", "extents": [{"op": "whole"}]}
     closed = {"rule_id": "x.r2", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
-              "take": 0, "may_target": False, "verbatim": "No fishing."}
+              "take": 0, "may_target": False, "verbatim": "No fishing.",
+              "extents": [{"op": "whole"}]}
     ok = entry("r4:x@4-1", [{**lift, "exempts": [{"target": "x.r2"}]}, closed])
     CatalogueEntry.model_validate(ok)
     for bad, why in (([{"target": "x.r9"}], "names no other rule"),
@@ -518,3 +519,54 @@ def test_an_exemption_must_name_a_registered_default_or_a_rule_that_exists():
     wrong = entry("r4:x@4-1", [{**lift, "exempts": [{"target": "y.r7", "entry_id": "r4:y@4-1"}]}])
     with pytest.raises(Exception, match="name no rule of that entry"):
         CatalogueFile.model_validate({"region": "4", "entries": [wrong, other]})
+
+
+def test_every_rule_says_where_it_is_and_nothing_inherits_the_entry():
+    """`None inherits the entry` was the documented reading of a rule with no extents, and nothing
+    implemented it: the reach builder left 110 such rules unbound on entries that had extents, and
+    provenance filled them in from the entry. Now a rule states its reach — `extents`, or the words
+    for a place nothing can draw — and an entry holding one that says nothing is refused."""
+    import pytest
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+
+    base = {"entry_id": "r4:x@4-1", "name": "X", "regs_verbatim": "Bait ban.",
+            "extents": [{"op": "whole"}]}
+    rule = {"rule_id": "x.r1", "type": "bait_restriction", "verbatim": "Bait ban.",
+            "gear": [{"slot": "bait", "ban": ["any_bait"]}]}
+    with pytest.raises(ValueError, match="says nothing about where it applies"):
+        CatalogueEntry.model_validate({**base, "rules": [rule]})       # the entry's do not count
+    for said in ({"extents": [{"op": "whole"}]}, {"extent_text": "below the falls"},
+                 {"unresolved_locators": ["the falls"], "review_reason": "no cut at the falls"}):
+        CatalogueEntry.model_validate({**base, "rules": [{**rule, **said}]})
+
+
+def test_the_corpus_has_no_rule_that_says_nothing_about_where():
+    """Against the curated files: every rule states extents, or a place in words."""
+    from pipeline.regs.parsing import io
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    bare = [(e["entry_id"], r.rule_id) for e in io.read_entries_dir().values()
+            for r in CatalogueEntry.model_validate(e).rules
+            if not r.extents and not r.extent_text.strip() and not r.unresolved_locators]
+    assert bare == []
+
+
+def test_angling_from_powered_boats_says_powered():
+    """"No angling from powered boats" shipped as the unqualified `angling_from_vessel_prohibited`
+    on seven rules — forbidding a canoe the book allows. `level` is the boats you may still angle
+    from, on the propulsion scale; the sentence's own word is checked."""
+    import pytest
+    from pipeline.regs.parsing.catalogue import CatalogueRule, label
+    base = {"rule_id": "x.r1", "type": "angling_from_vessel_prohibited",
+            "extents": [{"op": "whole"}]}
+    powered = {**base, "verbatim": "No angling from powered boats upstream of dyke gates"}
+    with pytest.raises(ValueError, match="POWERED"):
+        CatalogueRule.model_validate(powered)
+    r = CatalogueRule.model_validate({**powered, "level": "unpowered"})
+    assert label(r) == "No angling from powered boats"
+    assert label(CatalogueRule.model_validate({**base, "verbatim": "No angling from boats"})) \
+        == "No angling from boats"
+    with pytest.raises(ValueError, match="level: unpowered"):
+        CatalogueRule.model_validate({**powered, "level": "electric_only"})
+    with pytest.raises(ValueError, match="level belongs to"):
+        CatalogueRule.model_validate({"rule_id": "x.r1", "type": "advisory", "verbatim": "x",
+                                      "level": "unpowered"})

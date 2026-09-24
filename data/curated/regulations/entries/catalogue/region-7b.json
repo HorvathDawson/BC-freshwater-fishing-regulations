@@ -603,7 +603,16 @@
      "take": 0,
      "may_target": true,
      "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b"
+      }
+     ],
      "extent_text": "except the Peace River",
+     "unresolved_locators": [
+      "the Peace River"
+     ],
      "review_reason": "A carve-out with NO replacement rule to win the contest — this is the case that genuinely needs a subtraction, unlike the nested-area ones."
     },
     {
@@ -762,7 +771,12 @@
      ],
      "period": "possession",
      "per_daily": 2,
-     "extent_text": "most species — the three exceptions below are more specific and displace it"
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7b"
+      }
+     ]
     },
     {
      "rule_id": "possession_exceptions.r1",

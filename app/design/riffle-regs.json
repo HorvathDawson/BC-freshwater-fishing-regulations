@@ -1,0 +1,2535 @@
+{
+ "about": "The regulations of design/riffle.html (build 54ea0bb4, Chilliwack/Harrison valley), converted ONCE into the bundle's `entry` and `rule` row shape. build-fixture.mjs writes these rows as they are. Labels are riffle's own words, which is what the design drew; `when` is the catalogue's When, parsed by catalogue.parse_date_range.",
+ "entries": [
+  {
+   "entry_id": "gnis:12117",
+   "item_id": "gnis:12117",
+   "name": "Mahood Creek",
+   "full_name": "Mahood Creek",
+   "verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:12564",
+   "item_id": "gnis:12564",
+   "name": "Frosst Creek",
+   "full_name": "Frosst Creek",
+   "verbatim": "**No Fishing** Oct 15-Apr 15",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:13015",
+   "item_id": "gnis:13015",
+   "name": "Chehalis River",
+   "full_name": "Chehalis River",
+   "verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-18",
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:14936",
+   "item_id": "gnis:14936",
+   "name": "Morris Creek",
+   "full_name": "Morris Creek",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:15333",
+   "item_id": "gnis:15333",
+   "name": "Harrison River",
+   "full_name": "Harrison River",
+   "verbatim": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
+   "symbols": [],
+   "mus": [
+    "2-10",
+    "2-18",
+    "2-19",
+    "2-4",
+    "2-8"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:16210",
+   "item_id": "gnis:16210",
+   "name": "Strawberry Slough",
+   "full_name": "Strawberry Slough",
+   "verbatim": "Speed restriction on parts (8 km/h)",
+   "symbols": [],
+   "mus": [
+    "2-8"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:1860#lonzo_marshall_creek",
+   "item_id": "gnis:1860#lonzo_marshall_creek",
+   "name": "LONZO (\"Marshall\") CREEK",
+   "full_name": "LONZO (\"Marshall\") CREEK",
+   "verbatim": "**No Fishing** Feb 1-June 15\nTrout/char 20-30 cm in lenth Jun 16-Jan 31\nYouth/Disabled Accompanied Water year round (see page 4)",
+   "symbols": [
+    "Incl. Tribs",
+    "Stocked"
+   ],
+   "mus": [
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:1860#marshall_creek",
+   "item_id": "gnis:1860#marshall_creek",
+   "name": "\"MARSHALL\" CREEK",
+   "full_name": "\"MARSHALL\" CREEK",
+   "verbatim": "See Lonzo Creek",
+   "symbols": [],
+   "mus": [
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:19983",
+   "item_id": "gnis:19983",
+   "name": "Coquihalla River",
+   "full_name": "Coquihalla River",
+   "verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-17"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:21105",
+   "item_id": "gnis:21105",
+   "name": "Nicomen Slough",
+   "full_name": "Nicomen Slough",
+   "verbatim": "Speed restriction on parts (8 km/h)",
+   "symbols": [],
+   "mus": [
+    "2-8"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:23072",
+   "item_id": "gnis:23072",
+   "name": "Sweltzer River",
+   "full_name": "Sweltzer River",
+   "verbatim": "**No Fishing**",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-3",
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:23402",
+   "item_id": "gnis:23402",
+   "name": "Norrish Creek",
+   "full_name": "Norrish Creek",
+   "verbatim": "**No Fishing** May 1-June 30",
+   "symbols": [],
+   "mus": [
+    "2-8"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:2406",
+   "item_id": "gnis:2406",
+   "name": "Statlu Creek",
+   "full_name": "Statlu Creek",
+   "verbatim": "**No Fishing**",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:24496",
+   "item_id": "gnis:24496",
+   "name": "Hope Slough",
+   "full_name": "Hope Slough",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [],
+   "mus": [
+    "2-3",
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:2500",
+   "item_id": "gnis:2500",
+   "name": "Liumchen Creek",
+   "full_name": "Liumchen Creek",
+   "verbatim": "**No Fishing** downstream of the lower falls",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:26290",
+   "item_id": "gnis:26290",
+   "name": "Silverhope Creek",
+   "full_name": "Silverhope Creek",
+   "verbatim": "**No Fishing** upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\n**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-18",
+    "2-2"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:2773",
+   "item_id": "gnis:2773",
+   "name": "Tamihi Creek",
+   "full_name": "Tamihi Creek",
+   "verbatim": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River\n**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:28114",
+   "item_id": "gnis:28114",
+   "name": "Miami Creek",
+   "full_name": "Miami Creek",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "item_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "name": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
+   "full_name": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
+   "verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
+   "symbols": [],
+   "mus": [
+    "2-17",
+    "2-18",
+    "2-2",
+    "2-3",
+    "2-4",
+    "2-8",
+    "3-14",
+    "3-15",
+    "3-16",
+    "3-17",
+    "3-31",
+    "3-32",
+    "3-33",
+    "5-13",
+    "5-14",
+    "5-2",
+    "5-3",
+    "7-1",
+    "7-10",
+    "7-15",
+    "7-16",
+    "7-17",
+    "7-2",
+    "7-24",
+    "7-3",
+    "7-4",
+    "7-5",
+    "7-7",
+    "7-8",
+    "7-9"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:7946",
+   "item_id": "gnis:7946",
+   "name": "Cogburn Creek",
+   "full_name": "Cogburn Creek",
+   "verbatim": "**No Fishing** May 1-June 30",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "gnis:8634",
+   "item_id": "gnis:8634",
+   "name": "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)",
+   "full_name": "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)",
+   "verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+   "symbols": [
+    "Incl. Tribs"
+   ],
+   "mus": [
+    "2-3",
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:328970801",
+   "item_id": "wbk:328970801",
+   "name": "Trout Lake",
+   "full_name": "Trout Lake",
+   "verbatim": "No powered boats",
+   "symbols": [],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329083341",
+   "item_id": "wbk:329083341",
+   "name": "Chilliwack Lake",
+   "full_name": "Chilliwack Lake",
+   "verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "item_id": "wbk:329083342",
+   "name": "Cultus Lake",
+   "full_name": "Cultus Lake",
+   "verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm; no vessels on parts; speed restriction (5 km/h) at north end, as buoyed and signed\nKokanee catch and release",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329083356",
+   "item_id": "wbk:329083356",
+   "name": "Foley Lake",
+   "full_name": "Foley Lake",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329083384",
+   "item_id": "wbk:329083384",
+   "name": "Sardis Pond",
+   "full_name": "Sardis Pond",
+   "verbatim": "Single barbless hook; Youth/Disabled Accompanied Water year round (see page 4)",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-4"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329154753",
+   "item_id": "wbk:329154753",
+   "name": "Kawkawa Lake",
+   "full_name": "Kawkawa Lake",
+   "verbatim": "**No Fishing** Dec 1-Feb 28\nKokanee daily quota = 4",
+   "symbols": [],
+   "mus": [
+    "2-17"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329154761",
+   "item_id": "wbk:329154761",
+   "name": "Silver Lake",
+   "full_name": "Silver Lake",
+   "verbatim": "**No Fishing** Dec 1-Apr 30; kokanee, trout and char catch and release, bait ban, single barbless hook",
+   "symbols": [],
+   "mus": [
+    "2-2"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329154779",
+   "item_id": "wbk:329154779",
+   "name": "Schkam Lake",
+   "full_name": "Schkam Lake",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177884",
+   "item_id": "wbk:329177884",
+   "name": "Harrison Lake",
+   "full_name": "Harrison Lake",
+   "verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm; speed restriction (10 km/h) at south end, as buoyed and signed",
+   "symbols": [],
+   "mus": [
+    "2-10",
+    "2-18",
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177885#chehalis_lake",
+   "item_id": "wbk:329177885#chehalis_lake",
+   "name": "CHEHALIS LAKE",
+   "full_name": "CHEHALIS LAKE",
+   "verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
+   "symbols": [],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177885#chehalis_lake_s_tributaries",
+   "item_id": "wbk:329177885#chehalis_lake_s_tributaries",
+   "name": "CHEHALIS LAKE'S TRIBUTARIES",
+   "full_name": "CHEHALIS LAKE'S TRIBUTARIES",
+   "verbatim": "**No Fishing**",
+   "symbols": [],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177886#jones_lake",
+   "item_id": "wbk:329177886#jones_lake",
+   "name": "\"JONES\" LAKE",
+   "full_name": "\"JONES\" LAKE",
+   "verbatim": "See Wahleach Lake",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177886#wahleach_jones_lake",
+   "item_id": "wbk:329177886#wahleach_jones_lake",
+   "name": "WAHLEACH (\"Jones\") LAKE",
+   "full_name": "WAHLEACH (\"Jones\") LAKE",
+   "verbatim": "Trout daily quota = 4 (one over 40 cm)",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177886#wahleach_jones_lake_s_tributaries",
+   "item_id": "wbk:329177886#wahleach_jones_lake_s_tributaries",
+   "name": "WAHLEACH (\"Jones\") LAKE'S TRIBUTARIES",
+   "full_name": "WAHLEACH (\"Jones\") LAKE'S TRIBUTARIES",
+   "verbatim": "**No Fishing**",
+   "symbols": [],
+   "mus": [
+    "2-3"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177887",
+   "item_id": "wbk:329177887",
+   "name": "Hicks Lake",
+   "full_name": "Hicks Lake",
+   "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177889",
+   "item_id": "wbk:329177889",
+   "name": "WEAVER LAKE and WEAVER CREEK",
+   "full_name": "WEAVER LAKE and WEAVER CREEK",
+   "verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
+   "symbols": [
+    "Incl. Tribs",
+    "Stocked"
+   ],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177891",
+   "item_id": "wbk:329177891",
+   "name": "Deer Lake",
+   "full_name": "Deer Lake",
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177898",
+   "item_id": "wbk:329177898",
+   "name": "Lake Errock",
+   "full_name": "Lake Errock",
+   "verbatim": "Engine power restriction - 7.5 kW (10 hp); official name: Lake Errock",
+   "symbols": [],
+   "mus": [
+    "2-8"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "item_id": "wbk:329177943",
+   "name": "Morris Lake",
+   "full_name": "Morris Lake",
+   "verbatim": "Wild trout/char catch and release; hatchery trout/char daily quota = 2 (none under 30 cm); electric motor only - max 7.5 kW\nSingle barbless hook, bait ban",
+   "symbols": [],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177957",
+   "item_id": "wbk:329177957",
+   "name": "Grace Lake",
+   "full_name": "Grace Lake",
+   "verbatim": "No powered boats",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177965",
+   "item_id": "wbk:329177965",
+   "name": "Francis Lake",
+   "full_name": "Francis Lake",
+   "verbatim": "No powered boats",
+   "symbols": [
+    "Stocked"
+   ],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329177990",
+   "item_id": "wbk:329177990",
+   "name": "Unnamed E Moss #3",
+   "full_name": "Unnamed E Moss #3",
+   "verbatim": "**No Fishing**; unnamed pothole lakes all located east of the power line and approximately 2 km east of Hicks Lake, 3 km south of Deer Lake\nand 1 km southeast of Moss Lake",
+   "symbols": [],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329178029",
+   "item_id": "wbk:329178029",
+   "name": "Wolf Lake",
+   "full_name": "Wolf Lake",
+   "verbatim": "No powered boats",
+   "symbols": [],
+   "mus": [
+    "2-19"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329178038",
+   "item_id": "wbk:329178038",
+   "name": "Bear Lake",
+   "full_name": "Bear Lake",
+   "verbatim": "No powered boats",
+   "symbols": [],
+   "mus": [
+    "2-18"
+   ],
+   "pages": []
+  },
+  {
+   "entry_id": "wbk:329707189",
+   "item_id": "wbk:329707189",
+   "name": "VEDDER RIVER",
+   "full_name": "VEDDER RIVER",
+   "verbatim": "See Chilliwack River",
+   "symbols": [],
+   "mus": [
+    "2-4"
+   ],
+   "pages": []
+  }
+ ],
+ "rules": [
+  {
+   "entry_id": "gnis:12117",
+   "rule_id": "mahood_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 1,
+   "verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+   "extent_text": "Above 152nd Street (Johnson Road)"
+  },
+  {
+   "entry_id": "gnis:12564",
+   "rule_id": "frosst_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 15,
+      "from_month": 10,
+      "to_day": 15,
+      "to_month": 4
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** Oct 15-Apr 15",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:13015",
+   "rule_id": "chehalis_river.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake",
+   "extent_text": "Chehalis Lake outlet to the main logging road bridge (~2.4 km downstream)"
+  },
+  {
+   "entry_id": "gnis:13015",
+   "rule_id": "chehalis_river.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 5
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+   "extent_text": "Below the main logging road bridge (~2.4 km below Chehalis Lake)"
+  },
+  {
+   "entry_id": "gnis:14936",
+   "rule_id": "morris_creek.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only, max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:15333",
+   "rule_id": "harrison_river.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing (night closure)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included",
+   "extent_text": "Whole river"
+  },
+  {
+   "entry_id": "gnis:15333",
+   "rule_id": "harrison_river.r2",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Dead fin fish allowed as bait only when fishing for sturgeon",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "WSG"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)",
+   "extent_text": "Whole river"
+  },
+  {
+   "entry_id": "gnis:15333",
+   "rule_id": "harrison_river.r3",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Speed restriction or no powered boats in small bays",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "Speed restriction or no powered boats in small bays along the river as signed",
+   "extent_text": "Small bays along the river, as signed"
+  },
+  {
+   "entry_id": "gnis:16210",
+   "rule_id": "strawberry_slough.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Speed restriction 8 km/h",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "Speed restriction on parts (8 km/h)",
+   "extent_text": "Parts of the slough (unspecified)"
+  },
+  {
+   "entry_id": "gnis:1860#lonzo_marshall_creek",
+   "rule_id": "lonzo_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 2,
+      "to_day": 15,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** Feb 1-June 15",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:1860#lonzo_marshall_creek",
+   "rule_id": "lonzo_creek.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Trout/char retention 20-30 cm only",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 16,
+      "from_month": 6,
+      "to_day": 31,
+      "to_month": 1
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "SLV"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Trout/char 20-30 cm in lenth Jun 16-Jan 31",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:1860#lonzo_marshall_creek",
+   "rule_id": "lonzo_creek.r3",
+   "type": "program_membership",
+   "family": "information",
+   "dimension": "program_membership",
+   "label": "Youth/Disabled Accompanied Water, year round",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:1860#marshall_creek",
+   "rule_id": "marshall_creek.r1",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "Cross-reference: see Lonzo Creek",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "See Lonzo Creek",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 11,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)",
+   "extent_text": "Above northern entrance of upper tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r2",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Fly fishing only",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Fly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31",
+   "extent_text": "Above northern entrance of upper tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r3",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Fly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31",
+   "extent_text": "Above northern entrance of upper tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r4",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 4,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31",
+   "extent_text": "Below southern entrance of lower tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r5",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length",
+   "extent_text": "Othello Tunnels reach (upper to lower tunnel entrances)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r6",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Catch and release",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "ST",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "SLV"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Trout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
+   "extent_text": "Below southern entrance of lower tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:19983",
+   "rule_id": "coquihalla_river.r7",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Trout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
+   "extent_text": "Below southern entrance of lower tunnel (Othello)"
+  },
+  {
+   "entry_id": "gnis:21105",
+   "rule_id": "nicomen_slough.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Speed restriction (8 km/h)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Speed restriction on parts (8 km/h)",
+   "extent_text": "Whole slough"
+  },
+  {
+   "entry_id": "gnis:23072",
+   "rule_id": "sweltzer_river.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing**",
+   "extent_text": "Whole river"
+  },
+  {
+   "entry_id": "gnis:23402",
+   "rule_id": "norrish_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** May 1-June 30",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:2406",
+   "rule_id": "statlu_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing**",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:24496",
+   "rule_id": "hope_slough.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only, max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole slough"
+  },
+  {
+   "entry_id": "gnis:2500",
+   "rule_id": "liumchen_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** downstream of the lower falls",
+   "extent_text": "Below the lower falls"
+  },
+  {
+   "entry_id": "gnis:26290",
+   "rule_id": "silverhope_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 11,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** upstream of Silver Lake, Nov 1-June 30",
+   "extent_text": "Above Silver Lake"
+  },
+  {
+   "entry_id": "gnis:26290",
+   "rule_id": "silverhope_creek.r2",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Fly fishing only",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Fly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31",
+   "extent_text": "Above Silver Lake"
+  },
+  {
+   "entry_id": "gnis:26290",
+   "rule_id": "silverhope_creek.r3",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Fly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31",
+   "extent_text": "Above Silver Lake"
+  },
+  {
+   "entry_id": "gnis:26290",
+   "rule_id": "silverhope_creek.r4",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+   "extent_text": "From Silver Lake to Bailey Bridge (~8km upstream of Hwy1)"
+  },
+  {
+   "entry_id": "gnis:26290",
+   "rule_id": "silverhope_creek.r5",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Bait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+   "extent_text": "Below Bailey Bridge"
+  },
+  {
+   "entry_id": "gnis:2773",
+   "rule_id": "tamihi_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River",
+   "extent_text": "Below Tamihi Creek Falls"
+  },
+  {
+   "entry_id": "gnis:2773",
+   "rule_id": "tamihi_creek.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
+   "extent_text": "Above Tamihi Creek Falls"
+  },
+  {
+   "entry_id": "gnis:28114",
+   "rule_id": "miami_creek.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only, max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r1",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Dead fin fish may be used for bait only when fishing for sturgeon",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)",
+   "extent_text": "Upstream of the CPR Bridge at Mission"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 10
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31",
+   "extent_text": "Between Landstrom Bar (Scale Bar) and the southern end of Croft Island"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r3",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing from one hour after sunset to one hour before sunrise",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise",
+   "extent_text": "Non-tidal Fraser River in Region 2 (upstream of the CPR Bridge at Mission)"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r4",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 15,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 7
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 1,
+   "verbatim": "**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas",
+   "extent_text": "Jesperson's, Herrling and Seabird Island north side channels"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r5",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing for steelhead",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 15,
+      "from_month": 8,
+      "to_day": 31,
+      "to_month": 12
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": [
+    "ST"
+   ],
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31",
+   "extent_text": "Fraser River mainstem, upstream of the CPR Bridge at Mission"
+  },
+  {
+   "entry_id": "gnis:39325#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+   "rule_id": "fraser_river_region2.r6",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Boats under 20 m must not impede commercial vessels",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Boats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
+   "extent_text": "Upstream of the CPR Bridge at Mission"
+  },
+  {
+   "entry_id": "gnis:7946",
+   "rule_id": "cogburn_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** May 1-June 30",
+   "extent_text": "Whole creek"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 1,
+   "verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek",
+   "extent_text": "Upstream of the fishing boundary signs 100 m below the Slesse Creek confluence"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 4,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 1,
+   "verbatim": "**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30",
+   "extent_text": "From the signs 100 m below Slesse Creek downstream to Tamihi Rapids Bridge"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r3",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30",
+   "extent_text": "From Tamihi Rapids Bridge downstream to Vedder Crossing Bridge"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r4a",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Fly fishing only",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 5
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Downstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r4b",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 5
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Downstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r4c",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Hatchery rainbow trout (50 cm or less): catch and release",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 5
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": [
+    "RB"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Downstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r4d",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Hatchery cutthroat: catch and release",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 5,
+      "to_day": 31,
+      "to_month": 5
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": [
+    "CT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Downstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r5",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 6,
+      "to_day": 30,
+      "to_month": 6
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**(b) No Fishing** June 1-30",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "gnis:8634",
+   "rule_id": "chilliwack_vedder_rivers.r6",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Hatchery rainbow trout 50 cm or less: daily quota = 4",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 30,
+      "to_month": 4
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": [
+    "RB"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "**(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+   "extent_text": "Downstream of Vedder Crossing Bridge (Vedder River and Vedder Canal)"
+  },
+  {
+   "entry_id": "wbk:328970801",
+   "rule_id": "wbk:328970801.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No powered boats",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No powered boats",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083341",
+   "rule_id": "chilliwack_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No wild trout over 50 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No wild trout over 50 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083341",
+   "rule_id": "chilliwack_lake.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "1 bull trout over 60 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "BT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "1 bull trout over 60 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "rule_id": "cultus_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No wild trout over 50 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No wild trout over 50 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "rule_id": "cultus_lake.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "1 bull trout over 60 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "BT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "1 bull trout over 60 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "rule_id": "cultus_lake.r3",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No vessels on parts",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "no vessels on parts",
+   "extent_text": "Parts of the lake"
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "rule_id": "cultus_lake.r4",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Speed restriction (5 km/h) at north end",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "speed restriction (5 km/h) at north end, as buoyed and signed",
+   "extent_text": "North end of the lake, as buoyed and signed"
+  },
+  {
+   "entry_id": "wbk:329083342",
+   "rule_id": "cultus_lake.r5",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Kokanee catch and release",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "KO"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Kokanee catch and release",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083356",
+   "rule_id": "foley_lake.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only - max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329083384",
+   "rule_id": "sardis_pond.r1",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Single barbless hook",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Single barbless hook",
+   "extent_text": "Whole pond"
+  },
+  {
+   "entry_id": "wbk:329083384",
+   "rule_id": "sardis_pond.r2",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+   "extent_text": "Whole pond"
+  },
+  {
+   "entry_id": "wbk:329154753",
+   "rule_id": "kawkawa_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 12,
+      "to_day": 28,
+      "to_month": 2
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** Dec 1-Feb 28",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154753",
+   "rule_id": "kawkawa_lake.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Kokanee daily quota = 4",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "KO"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Kokanee daily quota = 4",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154761",
+   "rule_id": "wbk:329154761.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 12,
+      "to_day": 30,
+      "to_month": 4
+     }
+    ],
+    "unparsed": [],
+    "weekdays": []
+   },
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing** Dec 1-Apr 30",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154761",
+   "rule_id": "wbk:329154761.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Kokanee, trout and char catch and release",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "KO",
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "SLV"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "kokanee, trout and char catch and release",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154761",
+   "rule_id": "wbk:329154761.r3a",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "bait ban, single barbless hook",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154761",
+   "rule_id": "wbk:329154761.r3b",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Single barbless hook",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "bait ban, single barbless hook",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329154779",
+   "rule_id": "schkam_lake.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only - max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177884",
+   "rule_id": "harrison_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Size/possession limits for wild trout and bull trout",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "ST",
+    "BT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177884",
+   "rule_id": "harrison_lake.r2",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Speed restriction (10 km/h) at south end",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "speed restriction (10 km/h) at south end, as buoyed and signed",
+   "extent_text": "South end of lake, as buoyed and signed"
+  },
+  {
+   "entry_id": "wbk:329177885#chehalis_lake",
+   "rule_id": "chehalis_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No wild trout over 50 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No wild trout over 50 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177885#chehalis_lake",
+   "rule_id": "chehalis_lake.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "1 bull trout over 60 cm",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "BT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "1 bull trout over 60 cm",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177885#chehalis_lake_s_tributaries",
+   "rule_id": "chehalis_lake_tributaries.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing**",
+   "extent_text": "All tributaries"
+  },
+  {
+   "entry_id": "wbk:329177886#jones_lake",
+   "rule_id": "jones_lake.r1",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "Cross-reference: see Wahleach Lake",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "See Wahleach Lake",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177886#wahleach_jones_lake",
+   "rule_id": "wahleach_jones_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Trout daily quota = 4 (only one over 40 cm)",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Trout daily quota = 4 (one over 40 cm)",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177886#wahleach_jones_lake_s_tributaries",
+   "rule_id": "wahleach_jones_lakes_tributaries.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing**",
+   "extent_text": "All tributaries of Wahleach (\"Jones\") Lake"
+  },
+  {
+   "entry_id": "wbk:329177887",
+   "rule_id": "hicks_lake.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Engine power restriction - 7.5 kW (10 hp)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177889",
+   "rule_id": "weaver_lake_and_weaver_creek.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 1,
+   "verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
+   "extent_text": "From the log-boom fishing boundary signs on Weaver Lake downstream to the Sakwi Creek confluence"
+  },
+  {
+   "entry_id": "wbk:329177889",
+   "rule_id": "weaver_lake_and_weaver_creek.r2",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Engine power restriction - 7.5 kW (10 hp)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Engine power restriction on Weaver Lake - 7.5 kW (10 hp)",
+   "extent_text": "Weaver Lake"
+  },
+  {
+   "entry_id": "wbk:329177891",
+   "rule_id": "wbk:329177891.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only - max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Electric motor only - max 7.5 kW",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177898",
+   "rule_id": "lake_errock.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Engine power restriction - 7.5 kW (10 hp)",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177898",
+   "rule_id": "lake_errock.r2",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "Official name: Lake Errock",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "official name: Lake Errock",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "rule_id": "morris_lake.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Catch and release",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "SLV"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Wild trout/char catch and release",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "rule_id": "morris_lake.r2",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "Hatchery trout/char daily quota = 2 (none under 30 cm)",
+   "scope": "section",
+   "when": null,
+   "species": [
+    "RB",
+    "CT",
+    "WCT",
+    "CCT",
+    "GB",
+    "GT",
+    "SLV"
+   ],
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "hatchery trout/char daily quota = 2 (none under 30 cm)",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "rule_id": "morris_lake.r3",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "Electric motor only, max 7.5 kW",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "electric motor only - max 7.5 kW",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "rule_id": "morris_lake.r4",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Single barbless hook",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "Single barbless hook",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177943",
+   "rule_id": "morris_lake.r5",
+   "type": "tackle_restriction",
+   "family": "gear_and_method",
+   "dimension": "barbless",
+   "label": "Bait ban",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "bait ban",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177957",
+   "rule_id": "grace_lake.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No powered boats",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No powered boats",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177965",
+   "rule_id": "francis_lake.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No powered boats",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No powered boats",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177990",
+   "rule_id": "unnamed_e_moss_3.r1",
+   "type": "retention_limit",
+   "family": "retention",
+   "dimension": "daily",
+   "label": "No fishing",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": 0,
+   "may_target": 0,
+   "uncertain": 0,
+   "verbatim": "**No Fishing**",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329177990",
+   "rule_id": "unnamed_e_moss_3.r2",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "Location description",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "unnamed pothole lakes all located east of the power line and approximately 2 km east of Hicks Lake, 3 km south of Deer Lake\nand 1 km southeast of Moss Lake",
+   "extent_text": "East of the power line, ~2 km east of Hicks Lake, 3 km south of Deer Lake, 1 km southeast of Moss Lake"
+  },
+  {
+   "entry_id": "wbk:329178029",
+   "rule_id": "wbk:329178029.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No powered boats",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No powered boats",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329178038",
+   "rule_id": "wbk:329178038.r1",
+   "type": "vessel_rule",
+   "family": "vessel",
+   "dimension": "propulsion",
+   "label": "No powered boats",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 0,
+   "verbatim": "No powered boats",
+   "extent_text": "Whole lake"
+  },
+  {
+   "entry_id": "wbk:329707189",
+   "rule_id": "vedder_river.r1",
+   "type": "advisory",
+   "family": "information",
+   "dimension": "advisory",
+   "label": "See the Chilliwack River entry for this water's regulations",
+   "scope": "section",
+   "when": null,
+   "species": null,
+   "take": null,
+   "may_target": null,
+   "uncertain": 1,
+   "verbatim": "See Chilliwack River",
+   "extent_text": "Vedder River and Vedder Canal"
+  }
+ ]
+}

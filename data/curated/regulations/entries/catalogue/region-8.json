@@ -1612,6 +1612,7 @@
        ]
       }
      ],
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -2406,6 +2407,7 @@
      },
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -2421,6 +2423,7 @@
      ],
      "take": 0,
      "may_target": true,
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -2439,6 +2442,7 @@
        ]
       }
      ],
+     "tributaries_only": true,
      "extents": [
       {
        "op": "whole"
@@ -6255,7 +6259,12 @@
        ]
       }
      ],
-     "extent_text": "use traps with minimally-sized circular openings"
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8"
+      }
+     ]
     }
    ]
   },

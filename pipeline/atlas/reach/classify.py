@@ -43,6 +43,17 @@ AMBIGUOUS_CUT_IS_FATAL = False
 #: under-apply a regulation that is partly known. 9 rules; 0 currently partial.
 PARTIAL_EXTENTS_BIND = True
 
+#: AN AREA RULE WITH A CARVE-OUT NOTHING CAN DRAW stays UNBOUND. "Bass: 20, excluding Mill Lake"
+#: is `within area:region:2` + `unresolved_locators: ["Mill Lake"]`: its extents say whose rule it
+#: is, and binding them would put the quota on the very lake the book excludes (AGENTS 13). A rule
+#: never inherits its entry's extents, so this is how a region table with a carve-out keeps its
+#: region without being placed on it.
+#:
+#: ONLY AREA RULES — every extent a `within`. On a rule that names a WATER, a locator is a sub-reach
+#: the curator bound as the water with a `review_reason` (9 rules: "the 5 signed swimming areas",
+#: "plus Tenas Lake"); unbinding those would drop reaches that are drawn, so they keep binding.
+AREA_CARVE_OUTS_UNBIND = True
+
 
 def wants_tributaries(rule: dict, entry: dict) -> bool:
     """Does this rule extend to tributaries?
@@ -114,6 +125,12 @@ def classify(
             Reason.no_extents,
             f"no extent authored; unresolved locators: {locs}" if locs else "no extent authored",
         )
+
+    # --- a stated scope with a boundary nothing can draw ---------------------------
+    locs = rule.get("unresolved_locators") or []
+    if locs and AREA_CARVE_OUTS_UNBIND and all(ex.get("op") == "within" for ex in extents):
+        return unresolved(Reason.locators_unresolved,
+                          f"an area rule with a carve-out no cut-point expresses: {locs}")
 
     # --- collect what resolved -------------------------------------------------
     sections: set[str] = set()

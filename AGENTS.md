@@ -60,14 +60,23 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     none are straddlers**, and it attached a 380 m stub hanging off Cowichan Lake to
     "No fishing, Cowichan Lake outlet to Greendale Trestle". Silent widening is a defect
     here (㉗), even in the "safe" direction.
-13. **Never widen a rule that names a place it could not bind.** Ingest gives a rule that
-    says NOTHING about location the whole water (a zone entry: its own area reach) —
-    the prompt's stated default, written out by `validate_catalogue.default_extents`. A rule
-    carrying `extent_text` or `unresolved_locators` is exempt and stays unbound: 130 matched
-    rules (2026-09-23), all with `extent_text`, 33 with `unresolved_locators`, 129 with a
-    `review_reason`. They are real, specific locations ("500 m upstream and downstream of
-    Causeway Road") with no boundary to bind to. Defaulting applies a 500 m closure to an
-    entire lake arm. They need curated splits.
+13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
+    that names a place it could not bind.** No reader (reach builder, bundle,
+    `table.authority.source_of`) hands a rule its entry's `extents`; the entry's only clip.
+    So every rule says where it is, or `CatalogueEntry` refuses it: `extents`, or its place in
+    words — `extent_text` / `unresolved_locators` — and then it stays UNBOUND. Ingest writes
+    the whole water (a zone entry: its area) onto a rule that says nothing about location
+    (`validate_catalogue.default_extents`), so the file states it. 142 rules have no extents
+    (2026-09-23), all with `extent_text`, 34 with `unresolved_locators`, 140 with a
+    `review_reason`: real, specific places ("500 m upstream and downstream of Causeway Road")
+    with no boundary to bind to. Defaulting applies a 500 m closure to an entire lake arm.
+    An AREA rule (every extent `within`) with `unresolved_locators` is a carve-out no cut
+    expresses ("Bass: 20, excluding Mill Lake") and stays unbound too
+    (`classify.AREA_CARVE_OUTS_UNBIND`, 3 rules). They need curated splits.
+    **Licensing records differ:** one with no `extents` takes its entry's at placement
+    (`reach.licensing.place_record`). What a designation's `tributary_excludes` removes goes to
+    the excluded water's own designation when it has exactly one (`carve_outs_to_owner`);
+    anything left unheld is reported by `carve_out_orphans`, never re-widened.
 14. **Every rule ends bound, or unresolved with a typed reason. Never absent, never
     bound-and-empty, never unresolved-and-unexplained.** Enforced in
     `RuleBinding.__post_init__` (⑪ + ㊳).

@@ -79,18 +79,31 @@ const TYPES = new Set<RuleType>(RULE_TYPES);
 const FAMILIES = new Set<RuleFamily>(RULE_FAMILIES);
 
 /**
- * The `exempts` column: what a rule lifts, already resolved by the bundle to the entry (and, for
- * a `target`, the rule) it lifts. A shape this client does not know fails loudly — a lift read
- * wrong either leaves a closure standing or lifts one the book never lifted.
+ * The `exempts` column: the rules a rule lifts, one item per lifted rule, resolved by the bundle to
+ * exact ids and to HOW FAR it lifts each — `species`, `when_targeting`, `while` when only in part
+ * (see `Lift` in core). A shape this client does not know fails loudly: a lift read wrong either
+ * leaves a closure standing or lifts one the book never lifted.
  */
+const LIFT_KEYS = new Set(["entry_id", "rule_id", "note", "species", "when_targeting", "while"]);
 function liftsOf(v: Row[string], where: string): Lift[] {
-  const raw = json<{ default_id?: string; target?: string; entry_id?: string }[]>(
-    v, `${where} exempts`);
+  const raw = json<Record<string, unknown>[]>(v, `${where} exempts`);
+  const codes = (x: unknown, k: string): string[] | undefined => {
+    if (x === undefined) return undefined;
+    if (!Array.isArray(x) || x.length === 0 || x.some((c) => typeof c !== "string"))
+      throw new Error(`${where}: exemption ${k} must be a non-empty list of codes: ${JSON.stringify(x)}`);
+    return x as string[];
+  };
   return raw.map((x) => {
-    if (!x.entry_id || (x.default_id == null) === (x.target == null))
-      throw new Error(`${where}: an exemption must name an entry and one of default_id/target: `
-                      + JSON.stringify(x));
-    return x.target != null ? { entry: x.entry_id, rule: x.target } : { entry: x.entry_id };
+    const unknown = Object.keys(x).filter((k) => !LIFT_KEYS.has(k));
+    if (unknown.length || typeof x.entry_id !== "string" || typeof x.rule_id !== "string")
+      throw new Error(`${where}: an exemption names one rule by entry_id and rule_id, and `
+                      + `nothing else this client does not know: ${JSON.stringify(x)}`);
+    const species = codes(x.species, "species");
+    const whenTargeting = codes(x.when_targeting, "when_targeting");
+    const during = codes(x.while, "while");
+    return { entry: x.entry_id, rule: x.rule_id,
+             ...(species ? { species } : {}), ...(whenTargeting ? { whenTargeting } : {}),
+             ...(during ? { while: during } : {}) };
   });
 }
 

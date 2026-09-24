@@ -105,46 +105,128 @@ def _zone_region(entry_id: str) -> str:
     return entry_id.split(":", 1)[0][1:]
 
 
-def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, set[str]]):
-    """The rule's `exempts`, each RESOLVED to the entry it lifts — the `exempts` column.
+#: The keys of one resolved lift in the `exempts` column — and nothing else. Two name the lifted
+#: rule; `note` is the book's words; the other three, when present, say the lift holds only IN
+#: PART (see `_lift_terms`). The client refuses any other key.
+LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while")
+
+
+def _species_of(r) -> frozenset[str] | None:
+    """The fish a rule speaks about, as leaves — `None` when it names none (it binds every angler
+    whatever they catch). `species_except` is subtracted."""
+    from pipeline.regs.parsing.catalogue import expand_species
+    if not r.species:
+        return None
+    return frozenset(expand_species(list(r.species))) - frozenset(
+        expand_species(list(r.species_except)))
+
+
+def _lift_terms(by, lifted) -> dict | None:
+    """HOW FAR `by` LIFTS `lifted`: `{}` wholly, a dict of qualifiers partly, `None` not at all.
+
+    A LIFT IS NEVER WIDER THAN ITS LIFTER. This used to lift every rule it named whole, whatever the
+    lifter said, and three rules showed what that costs:
+
+      species         Duncan River's "exempt from the regional bull trout catch and release" is
+                      about BULL TROUT and lifted the whole trout/char winter release — rainbow and
+                      cutthroat included. Only the intersection is lifted. When the lifter's fish
+                      cover the lifted rule's, the lift is whole; when they meet it in part, the
+                      lift names the fish it holds for (`species`); when they do not meet, the
+                      rule is not lifted at all.
+      when_targeting  "Dead fin fish may be used when fishing FOR STURGEON" lifted the province's
+                      fin-fish bait ban for every angler. The angler is always unknown, so a lift
+                      that holds only for some target is a CONDITION (`when_targeting`), never a
+                      removal — unless the lifted rule is itself only about those targets.
+      while           a lift that holds only WHILE doing something (set lining, spearing) leaves
+                      the rule standing for everyone else, unless the lifted rule binds only while
+                      doing the same thing (`while`).
+
+    `water` is not a qualifier: it is enforced where the lifter is PLACED (its extents carry
+    `feature_types`), and a lifter whose `water` its placement does not enforce stops the build —
+    see `_exempts`. The client lifts a rule outright only on an item with no qualifier."""
+    terms: dict = {}
+    mine, theirs = _species_of(by), _species_of(lifted)
+    if mine is not None:
+        if theirs is None:
+            terms["species"] = sorted(mine)
+        else:
+            both = mine & theirs
+            if not both:
+                return None                     # it speaks about other fish: nothing is lifted
+            if not theirs <= mine:
+                terms["species"] = sorted(both)
+    if by.when_targeting:
+        want = frozenset(by.when_targeting)
+        if not (lifted.when_targeting and frozenset(lifted.when_targeting) <= want):
+            terms["when_targeting"] = sorted(want)
+    if by.while_:
+        acts = frozenset(by.while_)
+        if not (lifted.while_ and frozenset(lifted.while_) <= acts):
+            terms["while"] = sorted(acts)
+    return terms
+
+
+def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, dict]):
+    """The rule's `exempts`, RESOLVED to the rules it lifts and how far — the `exempts` column.
 
     EXEMPTIONS WERE APPLIED NOWHERE. 88 rules carry one, 63 of them "Exempt from spring
     closure", and the bundle shipped the field buried in `conditions`, which the client never
     selected — so the North Thompson read CLOSED on May 1 beside its own "Exempt from spring
     closure", and about 27k sections carried a zone default next to the rule that lifts it.
 
-    Resolved HERE, once, so the client matches exact ids and never a bare name (AGENTS 8):
+    Resolved HERE, once, to exact rule ids, so the client matches exact ids and never a bare name
+    (AGENTS 8), and never a whole entry:
 
-      `default_id`  a zone default by its slug: every zone entry `z<region>:<slug>` of THIS
-                    rule's region (Region 7's rows reach both 7A and 7B). NEVER the rule's own
-                    entry — `z6:steelhead_stream_closure` names its own slug, and a rule that
+      `default_id`  a zone default by its slug: every rule of every zone entry `z<region>:<slug>`
+                    of THIS rule's region (Region 7's rows reach both 7A and 7B). NEVER the rule's
+                    own entry — `z6:steelhead_stream_closure` names its own slug, and a rule that
                     lifts itself deletes itself on every water it covers (the self-lift; its
                     `review_reason` carries it).
       `target`      one rule by id, in `entry_id` when the exemption says so, else in this entry.
 
+    Each lifted rule is one item, `{"entry_id", "rule_id"}` (+ the authored `note`), carrying the
+    qualifiers `_lift_terms` found — `species`, `when_targeting`, `while` — when the lift holds only
+    in part. An item with no qualifier lifts its rule outright; one with any lifts it only for those
+    anglers, so the rule stays in force and the client marks it partly lifted. (This replaced items
+    naming a whole zone entry by `default_id`, which the client lifted wholesale: that shape is what
+    let a bull-trout exemption lift the whole trout/char release.)
+
+    A lifter's `water` must be enforced by its placement — every extent of its own carrying
+    `feature_types == [water]` — or the build stops: the client has no water kind to check it by.
+
     An exemption that resolves to nothing lifts nothing, which is only allowed when the rule
     says why in `review_reason`; otherwise the build stops, because a lift that silently fails
-    leaves a closure standing where the book lifted it.
-
-    Shipped as `[{"default_id", "entry_id"} | {"target", "entry_id"}]` (+ the authored `note`
-    when there is one), one item per entry lifted. NULL = the rule lifts nothing."""
+    leaves a closure standing where the book lifted it. NULL = the rule lifts nothing."""
+    if r.exempts and r.water is not None:
+        own = r.extents or []
+        if not own or any([str(t).lower() for t in (x.get("feature_types") or [])]
+                          != [r.water.value] for x in own):
+            raise SystemExit(
+                f"{entry_id}/{r.rule_id}: lifts only on {r.water.value}s (`water`), but its "
+                f"extents do not place it only on {r.water.value}s — give every extent "
+                f"`feature_types: [\"{r.water.value}\"]`, or the lift reaches other water")
     out: list[dict] = []
     for x in r.exempts:
-        got: list[dict] = []
+        named: list[tuple[str, str]] = []
         if x.default_id:
             region = _zone_region(entry_id)
             for z in zones.get(x.default_id, ()):
                 zr = _zone_region(z)
                 if z != entry_id and (zr == region or (region and zr[:-1] == region
                                                        and zr[-1:] in ("a", "b"))):
-                    got.append({"default_id": x.default_id, "entry_id": z})
+                    named += [(z, rid) for rid in sorted(rules_of.get(z, {}))]
         if x.target:
             in_entry = x.entry_id or entry_id
-            if x.target in rules_of.get(in_entry, ()) and not (
+            if x.target in rules_of.get(in_entry, {}) and not (
                     in_entry == entry_id and x.target == r.rule_id):
-                got.append({"target": x.target, "entry_id": in_entry})
-        if x.note:
-            got = [dict(g, note=x.note) for g in got]
+                named.append((in_entry, x.target))
+        got: list[dict] = []
+        for e, rid in named:
+            terms = _lift_terms(r, rules_of[e][rid])
+            if terms is None:
+                continue
+            got.append({"entry_id": e, "rule_id": rid, **terms,
+                        **({"note": x.note} if x.note else {})})
         if not got and not r.review_reason:
             raise SystemExit(
                 f"{entry_id}/{r.rule_id}: exempts {x.model_dump(exclude_none=True)} lifts no "
@@ -298,9 +380,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                 docs.append((e, CatalogueEntry.model_validate(e)))
     # What an exemption may name: zone entries by slug, and every entry's rule ids.
     zones: dict[str, list[str]] = {}
-    rules_of: dict[str, set[str]] = {}
+    rules_of: dict[str, dict] = {}
     for _, ce in docs:
-        rules_of[ce.entry_id] = {r.rule_id for r in ce.rules}
+        rules_of[ce.entry_id] = {r.rule_id: r for r in ce.rules}
         if ce.entry_id.startswith("z"):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
     for e, ce in docs:

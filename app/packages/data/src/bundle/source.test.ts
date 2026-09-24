@@ -332,8 +332,7 @@ describe("rules out of the bundle's own schema", () => {
             null, 0, 0, '["ALL_GAME_FISH"]');
       r.run(...EXEMPT, "retention_limit", "retention", "daily", "Exempt from spring closure",
             "section", null,
-            JSON.stringify([{ default_id: "spring_stream_closure",
-                              entry_id: "z3:spring_stream_closure" }]),
+            JSON.stringify([{ entry_id: SPRING[0], rule_id: SPRING[1] }]),
             null, null, '["ALL_GAME_FISH"]');
       const set = db.prepare("INSERT INTO ruleset VALUES (?,?,?,?)");
       set.run(0, ...SPRING, "reach");                       // a stream with only the closure
@@ -362,12 +361,28 @@ describe("rules out of the bundle's own schema", () => {
       .rejects.toThrow(/unknown rule type/);
   });
 
-  it("refuses an exemption it cannot read", async () => {
+  it("reads a partial lift: the rule stays, marked, and no longer closes the water", async () => {
     const s = makeBundleSource(rules((db) => {
-      db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?")
-        .run(JSON.stringify([{ default_id: "spring_stream_closure" }]), EXEMPT[1]);
+      db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?").run(JSON.stringify(
+        [{ entry_id: SPRING[0], rule_id: SPRING[1], when_targeting: ["WSG"] }]), EXEMPT[1]);
     }));
-    await expect(s.statusFor([11 as SectionId], MAY_1, "provincial"))
-      .rejects.toThrow(/must name an entry/);
+    const nt = (await s.statusFor([11 as SectionId], MAY_1, "provincial")).get(11 as SectionId)!;
+    expect(nt.outcome).toBe("restricted");
+    const spring = nt.from.find((r) => r.id === SPRING.join("."))!;
+    expect(spring.liftedFor).toEqual([{ by: EXEMPT.join("."), whenTargeting: ["WSG"] }]);
+  });
+
+  it("refuses an exemption it cannot read — including the retired whole-entry shape", async () => {
+    for (const bad of [[{ default_id: "spring_stream_closure", entry_id: SPRING[0] }],
+                       [{ entry_id: SPRING[0], target: SPRING[1] }],
+                       [{ entry_id: SPRING[0], rule_id: SPRING[1], water: "lake" }],
+                       [{ entry_id: SPRING[0], rule_id: SPRING[1], species: [] }]]) {
+      const s = makeBundleSource(rules((db) => {
+        db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?")
+          .run(JSON.stringify(bad), EXEMPT[1]);
+      }));
+      await expect(s.statusFor([11 as SectionId], MAY_1, "provincial"), JSON.stringify(bad))
+        .rejects.toThrow(/exemption/);
+    }
   });
 });

@@ -1,6 +1,7 @@
 // TypeScript mirror of the API.md shapes — the entry is a `CatalogueEntry`
-// (pipeline/regs/parsing/catalogue.py). Fields still here from the retired prose model are listed
-// under "Not yet ported" in ../../README.md.
+// (pipeline/regs/parsing/catalogue.py), in its own shape. Nothing of the retired prose model is
+// declared here: the backend refuses those fields, and a field declared here invites a control
+// that saves one.
 // Kept in one file on purpose (throwaway internal tool).
 
 export type Op = "whole" | "upstream_of" | "downstream_of" | "between" | "within";
@@ -48,9 +49,8 @@ export interface Rule {
   /** species a bait/tackle rule is ABOUT ("when fishing for salmon"), distinct from `species`. */
   when_targeting?: string[];
 
-  windows?: string[];
-  /** `excepts` marks a window that says when the rule does NOT apply. */
-  windows_are?: string;
+  /** When the rule binds — see `When`. Absent = all year. */
+  when?: When;
 
   take?: number | null;
   unlimited?: boolean;
@@ -65,6 +65,8 @@ export interface Rule {
 
   extents: Extent[];
   tributaries_only?: boolean;
+  /** water this rule's tributary walk reaches and must not — see ExcludesEditor. */
+  tributary_excludes?: Extent[];
   /** the reach in the page's own words, when no cut-point can express it. */
   extent_text?: string;
   /** locator phrases nobody could bind; non-empty needs a review_reason. */
@@ -73,17 +75,28 @@ export interface Rule {
   review_reason: string;
 }
 
-export interface ReviewIssue {
-  severity: string;
-  problem: string;
-  fix: string;
+/** An inclusive range of calendar days, no year (catalogue `DateRange`). */
+export interface DateRange {
+  from_month: number;
+  from_day: number;
+  to_month: number;
+  to_day: number;
 }
 
-export interface ParseReview {
-  verdict: string; // "" | pass | changes_requested
-  model: string;
-  reviewed_at: string;
-  issues: ReviewIssue[];
+/** A time of day: a clock time OR a solar time with an offset in minutes (negative = before). */
+export interface Clock {
+  at?: string;
+  solar?: "sunrise" | "sunset";
+  offset_min?: number;
+}
+
+/** WHEN A RULE BINDS (catalogue `When`). Empty parts are omitted; `unparsed` is a season the
+ *  parser could not read, which is NOT all year. */
+export interface When {
+  dates?: DateRange[];
+  hours?: { start: Clock; end: Clock };
+  weekdays?: string[];
+  unparsed?: string[];
 }
 
 export interface Entry {
@@ -101,11 +114,6 @@ export interface Entry {
   symbols?: string[];
   regs_verbatim: string;
   matched: string[];
-  // NOT CATALOGUE FIELDS — still read by EntryDetail's display, never present on a served entry
-  // and refused by the backend if sent. See "Not yet ported" in ../../README.md.
-  reference_only?: boolean;
-  parse_review?: ParseReview;
-  registry_note?: string;
   rules: Rule[];
 }
 

@@ -93,6 +93,7 @@ These were each filed two ways in the old corpus. The right column is the rule:
 | *"No ice fishing"* | `method_rule`, `gear: [{"slot": "method", "ban": ["ice_fishing"]}]` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
 | *"No powered boats"* | `vessel_rule(aspect=propulsion)` | restricts the boat, not the tackle |
 | *"No angling from boats"* | `angling_from_vessel_prohibited` | restricts ANGLING, not boating — a water can allow motoring and forbid fishing from the boat |
+| *"No angling from powered boats"* | `angling_from_vessel_prohibited`, `level: "unpowered"` | `level` is the boats you may still angle from, on the propulsion scale; without it the ban reaches a canoe |
 | *"Class I/II water"* | **not a rule** — a `designation` in `licensing` | a fact about the water; the provincial requirement fires on it |
 | *"Youth/disabled accompanied water"* | `program_membership` | an ACCESS provision — who may be brought along, not what licence is held |
 | *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `angler_closure`, `closed_to: {"residency": ["non_resident_alien"], "guidance": ["non_guided"]}` | it closes the water to **one kind of angler**. Filed as `retention_limit` it shares a key with — and can displace — a quota that binds everyone. |
