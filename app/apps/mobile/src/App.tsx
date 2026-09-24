@@ -1,5 +1,5 @@
 /**
- * The app shell. Views only — no regulation logic ever lands here (layers.json).
+ * The app shell. Views only — no domain logic ever lands here (layers.json).
  *
  * ONE tree for all three targets: expo start --web renders this through react-native-web,
  * expo run:android / run:ios render the same file natively. Every screen lives in
@@ -24,7 +24,6 @@ import { httpFeed } from "@app/data";
 import { openMeteo, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { today, type PlainDate } from "@app/core";
 
 
 /**
@@ -38,8 +37,8 @@ const TILES = {
   outside: "http://localhost:39217/bc_outside.geojson",
 };
 /**
- * The regulations. `province.sqlite` is the real build — 19,862 waters — and
- * `bundle.sqlite` is the small Chilliwack slice that has rules and gauges in it. Both are
+ * The data bundle. `province.sqlite` is the real build — 19,862 waters — and
+ * `bundle.sqlite` is the small Chilliwack slice that has gauges in it. Both are
  * the same format, which is the point: swapping this line is the whole difference between
  * a development bundle and a shipped one.
  */
@@ -106,15 +105,6 @@ export default function App() {
       .catch((e: unknown) => { if (live) setFailed(e instanceof Error ? e.message : String(e)); });
     return () => { live = false; };
   }, []);
-  /**
-   * WHICH DAY THE APP IS ANSWERING FOR, and it starts as TODAY.
-   *
-   * This was `const ON = { year: 2026, month: 8, day: 30 }` — a date lifted from the design
-   * mock — so every regulation the app resolved was for 30 August whatever the real date,
-   * and half of BC's freshwater rules are seasonal. The date pill has always said which day
-   * it meant; now it says the right one, and the sheet behind it can change it.
-   */
-  const [on, setOn] = useState<PlainDate>(() => today());
   const feed = useMemo(() => httpFeed(FEED), []);
   const source = useMemo(
     () => (bundle ? makeBundleSource(bundle, { feed }) : null), [bundle, feed]);
@@ -137,7 +127,7 @@ export default function App() {
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,
                        gap: 8 }}>
           <Text style={{ color: palette.closed, fontSize: 16, textAlign: "center" }}>
-            The regulations could not be loaded.
+            The map data could not be loaded.
           </Text>
           <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>
             {failed}
@@ -147,8 +137,7 @@ export default function App() {
           </Text>
         </View>
       ) : ready && source ? (
-        <Shell source={source} palette={palette} on={on} onDateChange={setOn}
-               group="provincial"
+        <Shell source={source} palette={palette}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={TILES}
                spots={spots}
@@ -190,8 +179,8 @@ export default function App() {
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>
           <FishSpinner palette={palette} size={110} label={`Loading — ${stage}`} />
           <Text style={{ color: palette.sub, fontSize: 13 }}>
-            {stage === "fetching" ? "Downloading the regulations…"
-             : stage === "opening" ? "Opening the regulations…"
+            {stage === "fetching" ? "Downloading the map data…"
+             : stage === "opening" ? "Opening the map data…"
              : !ready ? "Loading type…" : "Starting…"}
           </Text>
         </View>

@@ -26,7 +26,7 @@ const LOADING = { state: "loading", value: null, error: null } as const;
  * comment suppressed nothing while implying a check had been considered and waived —
  * a lie in a comment is harder to spot than a missing test.
  *
- * A caller now names its own identity ("regs:gnis:8634:2026-08-30:provincial"), the
+ * A caller now names its own identity ("water-item:gnis:8634"), the
  * dependency array is a literal, and no suppression is possible.
  *
  * WHICH IS THE WHOLE POINT OF THE REF BELOW. `run` must NOT be a dependency. Every caller

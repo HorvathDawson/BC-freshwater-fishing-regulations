@@ -1,8 +1,8 @@
 /**
- * The small pills on a search row: the outcome, the live reading, whether it is stocked.
+ * The small pills on a search row: the live reading, whether it is stocked.
  *
- * `StatusPill` is the ANSWER and looks like one. These are secondary — same vocabulary,
- * quieter treatment — so a list can carry several without any of them shouting.
+ * Secondary by design — a quiet treatment, so a list can carry several without any of them
+ * shouting.
  */
 import { Text, View } from "react-native";
 import { percentileLabel } from "@app/core";

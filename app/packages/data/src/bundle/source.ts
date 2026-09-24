@@ -7,25 +7,19 @@
  * same assertions against this and against the hand-written fixture, so a divergence in
  * ANSWERS is a test failure rather than something a user finds.
  *
- * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
- * rules that function needs and gets out of the way (AGENTS rule 23).
+ * It decides nothing, and it reads no regulation table: regulations are not integrated (see
+ * `regulations.ts` in @app/core for where they plug in).
  */
-import { ALL_YEAR, bandAt, evaluate, isUncertain, isValid, regimesOf, type Band, type Hours,
-         type Lift, type PlainDate, type Rule, RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
-         type SpeciesGroup, type Status, type Weekday, WEEKDAYS, type When,
-         type Window } from "@app/core";
+import { bandAt, type Band } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { BasinMember,
-  Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
+  Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
   Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, Reading, RegsSource, Release,
   SectionId, Series,
-  StationId,
+  StationId, Water,
 } from "../index";
 import * as Q from "./queries";
-
-// Licensing is read beside the rules, never through them: it does not vote on open/closed.
-export * from "./licensing";
-import { json, num, str, type Cell, type Db, type Row } from "./db";
+import { num, str, type Cell, type Db, type Row } from "./db";
 
 /**
  * A section handle out of SQLite.
@@ -42,130 +36,6 @@ const sid = (v: Cell): SectionId => {
     throw new Error(`section handle is not an integer: ${JSON.stringify(v)}`);
   return n as SectionId;
 };
-
-/**
- * A rule's `when`, out of the bundle's `when_` column — the catalogue's own `When`, by alias.
- *
- * NULL is ALL YEAR, per the synopsis. A malformed day or weekday is a build defect and fails
- * here, loudly, rather than becoming a window that never matches (a closure that never holds).
- */
-interface RawClock { at?: string; solar?: "sunrise" | "sunset"; offset_min?: number }
-function whenOf(v: Row[string], where: string): When {
-  if (v == null || v === "") return ALL_YEAR;
-  const raw = json<{
-    dates?: { from_month: number; from_day: number; to_month: number; to_day: number }[];
-    weekdays?: string[]; unparsed?: string[];
-    hours?: { start: RawClock; end: RawClock };
-  }>(v, `${where} when`);
-  const dates: Window[] = (raw.dates ?? []).map((d) => ({
-    from: { month: d.from_month, day: d.from_day }, to: { month: d.to_month, day: d.to_day } }));
-  for (const d of dates)
-    if (!isValid(d.from) || !isValid(d.to))
-      throw new Error(`${where}: not a calendar day in ${JSON.stringify(d)}`);
-  const days = new Set<string>(WEEKDAYS);
-  for (const w of raw.weekdays ?? [])
-    if (!days.has(w)) throw new Error(`${where}: ${JSON.stringify(w)} is not a weekday`);
-  const clock = (c: RawClock) => ({
-    ...(c.at ? { at: c.at } : {}), ...(c.solar ? { solar: c.solar } : {}),
-    ...(c.offset_min ? { offsetMin: c.offset_min } : {}) });
-  const hours: Hours | undefined = raw.hours
-    ? { start: clock(raw.hours.start), end: clock(raw.hours.end) } : undefined;
-  return { dates, weekdays: (raw.weekdays ?? []) as Weekday[], unparsed: raw.unparsed ?? [],
-           ...(hours ? { hours } : {}) };
-}
-
-/** Rule types core knows. Anything else is a build that added one without telling us. */
-const TYPES = new Set<RuleType>(RULE_TYPES);
-const FAMILIES = new Set<RuleFamily>(RULE_FAMILIES);
-
-/**
- * The `exempts` column: the rules a rule lifts, one item per lifted rule, resolved by the bundle to
- * exact ids and to HOW FAR it lifts each — `species`, `when_targeting`, `while` when only in part
- * (see `Lift` in core). A shape this client does not know fails loudly: a lift read wrong either
- * leaves a closure standing or lifts one the book never lifted.
- */
-const LIFT_KEYS = new Set(["entry_id", "rule_id", "note", "species", "when_targeting", "while"]);
-function liftsOf(v: Row[string], where: string): Lift[] {
-  const raw = json<Record<string, unknown>[]>(v, `${where} exempts`);
-  const codes = (x: unknown, k: string): string[] | undefined => {
-    if (x === undefined) return undefined;
-    if (!Array.isArray(x) || x.length === 0 || x.some((c) => typeof c !== "string"))
-      throw new Error(`${where}: exemption ${k} must be a non-empty list of codes: ${JSON.stringify(x)}`);
-    return x as string[];
-  };
-  return raw.map((x) => {
-    const unknown = Object.keys(x).filter((k) => !LIFT_KEYS.has(k));
-    if (unknown.length || typeof x.entry_id !== "string" || typeof x.rule_id !== "string")
-      throw new Error(`${where}: an exemption names one rule by entry_id and rule_id, and `
-                      + `nothing else this client does not know: ${JSON.stringify(x)}`);
-    const species = codes(x.species, "species");
-    const whenTargeting = codes(x.when_targeting, "when_targeting");
-    const during = codes(x.while, "while");
-    return { entry: x.entry_id, rule: x.rule_id,
-             ...(species ? { species } : {}), ...(whenTargeting ? { whenTargeting } : {}),
-             ...(during ? { while: during } : {}) };
-  });
-}
-
-/**
- * Both facts, from the row that carries both.
- *
- * `scope` is where the rule was WRITTEN (specificity, which drives precedence) and comes
- * from the `rule` table; `via` is how it REACHES this section (provenance, which is what a
- * reader is told) and comes from the `ruleset` row. They are not the same question, and an
- * earlier schema had one column trying to answer both.
- */
-function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
-  const type = str(r.type) as RuleType;
-  const family = str(r.family) as RuleFamily;
-  const where = `rule ${str(r.entry_id)}/${str(r.rule_id)}`;
-  /* A TYPE OR FAMILY THIS CLIENT DOES NOT KNOW IS A BUILD/VERSION MISMATCH, and it throws. It used
-     to read as `advisory` — a harmless-looking guess about a rule the client cannot read, which is
-     how a new closure type would have shipped as a note. */
-  if (!TYPES.has(type))
-    throw new Error(`${where}: unknown rule type ${JSON.stringify(type)} — the bundle is newer `
-                    + `than this client`);
-  if (!FAMILIES.has(family))
-    throw new Error(`${where}: unknown rule family ${JSON.stringify(family)} — the bundle is `
-                    + `newer than this client`);
-  if (r.dimension == null)
-    throw new Error(`${where}: no dimension — the precedence key would never match`);
-  return {
-    // Unique only within an entry (AGENTS rule 8) — 49 rule_ids collide corpus-wide, so
-    // the id carried around is always the pair.
-    id: `${str(r.entry_id)}.${str(r.rule_id)}`,
-    type,
-    family,
-    scope: (r.scope == null ? "section" : str(r.scope)) as Rule["scope"],
-    via,
-    group,
-    when: whenOf(r.when_, where),
-    /* Both halves of the precedence key. `dimension` is NOT optional: a rule missing one
-       would silently never displace anything, which is the failure `subject` had — it was
-       populated on 2 rules out of 3,273. */
-    dimension: str(r.dimension),
-    ...(r.take == null ? {} : { take: Number(r.take) }),
-    ...(r.may_target == null ? {} : { mayTarget: Number(r.may_target) === 1 }),
-    /* `while` decides whether a zero limit shuts the water or one way of fishing it — see
-       `closesTheWater` in core. A column of its own: this used to dig `method` out of
-       `conditions`, a field the catalogue retired, in a column the query never selected — so
-       "only non-game fish may be speared" closed every river in the province. */
-    ...(r.while_ == null ? {} : { while: json<string[]>(r.while_, "rule while") }),
-    ...(Number(r.standing) === 1 ? { standing: true as const } : {}),
-    /* The line a person reads, GENERATED from the rule's type and conditions — so the map,
-       the sheet and the curation app cannot word the same rule differently. It replaced the
-       curator's prose `details`, which drifted from the numbers beside it. */
-    label: r.label == null ? "" : str(r.label),
-    ...(r.verbatim == null ? {} : { verbatim: str(r.verbatim) }),
-    ...(r.extent_text == null ? {} : { extentText: str(r.extent_text) }),
-    ...(r.species == null ? {} : { species: json<string[]>(r.species, "rule species") }),
-    // A rule nobody could place applies to NOTHING. It may only ever raise "unknown";
-    // core enforces that, and this is where the flag crosses over from the build.
-    ...(Number(r.uncertain) ? { uncertain: true as const } : {}),
-    // What it lifts — `evaluate` drops a lifted rule wherever the lift is in force.
-    ...(r.exempts == null ? {} : { exempts: liftsOf(r.exempts, where) }),
-  };
-}
 
 export interface BundleSourceOptions {
   /** The live feed. Absent means conditions render as "we could not check", never as a number. */
@@ -193,38 +63,6 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
   const ready = db.all(Q.META).then((rows) => {
     meta = new Map(rows.map((r) => [str(r.k), str(r.v)]));
   });
-
-  /** Rules bound to a set of sections, grouped by section. One query, not one per section. */
-  /**
-   * The rules covering each section, and the id of the SET each one belongs to.
-   *
-   * The set id is returned alongside the rules because it is the only cheap way to know
-   * that two sections answer identically — comparing rule lists would mean comparing
-   * hundreds of arrays per river, which is the front-end computation this whole design
-   * exists to avoid. The bundle already decided it; the client reads the number.
-   */
-  const rulesBySection = async (sections: readonly SectionId[], group: SpeciesGroup) => {
-    const rules = new Map<SectionId, Rule[]>();
-    const sets = new Map<SectionId, number>();
-    if (sections.length === 0) return { rules, sets };
-    /*
-     * CHUNKED, like the gauge queries beside it: SQLite's default parameter ceiling is 999
-     * and a dense viewport holds thousands of sections. This never bit before because
-     * `rule_section` was declared and never written — every lookup returned nothing, so the
-     * query was never asked a big question. The moment real rules landed it became a crash
-     * on a zoomed-in map, which is the worst place to find a limit.
-     */
-    for (let i = 0; i < sections.length; i += 500) {
-      const chunk = sections.slice(i, i + 500);
-      for (const r of await db.all(Q.rulesForSections(chunk.length), ...chunk)) {
-        const id = sid(r.sid);
-        sets.set(id, Number(r.set_id));
-        (rules.get(id) ?? rules.set(id, []).get(id)!)
-          .push(toRule(r, str(r.via) === "trib" ? "trib" : "reach", group));
-      }
-    }
-    return { rules, sets };
-  };
 
   return {
     async info(): Promise<BundleInfo> {
@@ -261,71 +99,14 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         : null;
     },
 
-    async regsForItem(id, on, group): Promise<ItemRegs | null> {
+    async water(id): Promise<Water | null> {
       const item = await db.get(Q.ITEM, id);
       if (!item) return null;
-      const sections = (await db.all(Q.SECTIONS_FOR_ITEM, id)).map((r) => sid(r.sid));
-      const { rules: bySection, sets } = await rulesBySection(sections, group);
-      const entry = await db.get(Q.ENTRY_FOR_ITEM, id);
-      const rules = entry
-        ? (await db.all(Q.RULES_FOR_ENTRY, str(entry.entry_id)))
-            .map((r) => toRule(r, "reach", group))
-        : [];
       return {
-        item: id,
-        name: str(item.name),
-        // Mouth -> source is the order the sheet draws them, and section ids sort that way
-        // because the measure is distance up the blue line.
-        /*
-         * THE STRETCHES THAT DIFFER, not every cut in the atlas.
-         *
-         * The atlas splits a river at confluences, lake outlets, gauge matches and a 25 km
-         * cap — none of which is a reason a regulation changes — so the Fraser arrived here
-         * as 201 sections and left as 201 identical rows. Adjacent sections sharing a rule
-         * set are one stretch; `runsOfSameRules` in @app/core is the single implementation,
-         * so the sheet and anything else that lists a river agree about where it changes.
-         */
-        reaches: regimesOf(
-          sections.map((section) => ({ section, setId: sets.get(section) ?? null })),
-        ).map((regime, seq) => ({
-          // The first section stands for the regime: it is where it first appears from the
-          // mouth, and what a tap on the row should open.
-          section: regime.sections[0]!.section, seq,
-          sections: regime.sections.map((x) => x.section),
-          // How many separate pieces of this water it covers. One regime is not always one
-          // stretch: a closure can apply above and below an open middle, and saying "in 3
-          // places" is the difference between a true row and a misleading one.
-          pieces: regime.runs.length,
-          lowerLabel: null, upperLabel: null,
-          // Every section in a regime carries the same rules by construction — that is what
-          // makes it a regime — so the first one answers for all of them.
-          status: evaluate({ rules: bySection.get(regime.sections[0]!.section) ?? [],
-                             on, group }),
-        })),
-        rules,
-        area: [],
-        // The synopsis paragraph, quoted exactly. The clause offsets are a parser output
-        // the bundle does not carry yet, so the panel highlights nothing rather than
-        // highlighting the wrong words.
-        verbatim: entry ? { text: str(entry.verbatim), clauseStart: 0, clauseLength: 0 } : null,
-        // Rules named in this entry that nobody could bind to geometry. SHOWN, never
-        // applied — a person should be told a rule exists here even when the app cannot
-        // say where it reaches.
-        unplaceable: rules.filter(isUncertain)
-          .map((rule) => ({ rule, detail: rule.uncertain
-            ? "no boundary could be resolved for this rule"
-            : `its season could not be read: ${rule.when.unparsed.join("; ")}` })),
+        item: str(item.item_id) as ItemId, name: str(item.name), kind: str(item.kind),
+        // The water's own order — see SECTIONS_FOR_ITEM for why that is `ORDER BY sid`.
+        sections: (await db.all(Q.SECTIONS_FOR_ITEM, id)).map((r) => sid(r.sid)),
       };
-    },
-
-    async statusFor(ids, on, group): Promise<ReadonlyMap<SectionId, Status>> {
-      const { rules: byScope } = await rulesBySection(ids, group);
-      const out = new Map<SectionId, Status>();
-      // EVERY id asked about gets an answer, including ones with no rule at all — that is
-      // "open under the general rules", which is a real answer and not an absence.
-      for (const id of ids)
-        out.set(id, evaluate({ rules: byScope.get(id) ?? [], on, group }));
-      return out;
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {

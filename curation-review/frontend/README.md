@@ -27,7 +27,7 @@ npm run build      # tsc -b && vite build — must compile clean
 ## What it does
 
 - **Filter bar** — region dropdown (`GET /api/regions`) + status filter
-  (`no_registry | needs_review | unused_splits | unreviewed | zone`).
+  (`no_registry | flagged | unused_splits | unreviewed | zone`).
 - **Queue** (`GET /api/entries?region=&status=`) — attention-first (server-sorted); rows show
   name, status badge, MUs, and an ⚠ marker when `unused_curated_splits > 0`.
 - **Detail** (`GET /api/entries/{id}`):

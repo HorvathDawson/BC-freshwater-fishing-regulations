@@ -1,6 +1,6 @@
 {
   "name": "cvd",
-  "$comment": "Colour-blind. A THEME, not a special case — the same tokens, different hues, so nothing else in the style changes.\nANCHORED ON PUBLISHED WORK, not on taste: the categorical hues follow Okabe & Ito's Color Universal Design set, and the stocking ramp is cividis, which is a sequential scheme built to stay monotonic under dichromacy. Every value here is held by tools/cvd.test.ts, which simulates protanopia, deuteranopia and tritanopia (Viénot–Brettel–Mollon) and measures the separations in ΔE2000.\nWHAT THE TEST CAUGHT. This theme used to change the four status hues and nothing else, so the stocking ramp was three greens (ΔE 7.3 apart under tritanopia), 'restricted' failed WCAG AA as pill text at 2.73:1, and `accent` and `status.unknown` were the SAME HEX — the 'you are here' marker and 'no rule found' were one colour.\nRed/green is the pair a deuteranope cannot separate, and it is exactly the pair that carried 'closed' and 'open'. The words survive regardless: statusWord() is what actually carries the answer, and this only changes what colour it arrives in.",
+  "$comment": "Colour-blind. A THEME, not a special case — the same tokens, different hues, so nothing else in the style changes.\nANCHORED ON PUBLISHED WORK, not on taste: the categorical hues follow Okabe & Ito's Color Universal Design set, and the stocking ramp is cividis, which is a sequential scheme built to stay monotonic under dichromacy. Every value here is held by tools/cvd.test.ts, which simulates protanopia, deuteranopia and tritanopia (Viénot–Brettel–Mollon) and measures the separations in ΔE2000.\nWHAT THE TEST CAUGHT. This theme used to change the status hues and nothing else, so the stocking ramp was three greens (ΔE 7.3 apart under tritanopia), 'restricted' failed WCAG AA as pill text at 2.73:1, and `accent` and `status.unknown` were the SAME HEX — the 'you are here' marker and 'no rule found' were one colour.\nRed/green is the pair a deuteranope cannot separate, and it is exactly the pair that carried 'closed' and 'open'.",
   "values": {
     "color.water.mapped": "#0B6987",
     "color.water.unmapped": "#7F8C99",
@@ -8,7 +8,6 @@
     "color.status.open": "#0063D2",
     "color.status.restricted": "#5C0453",
     "color.status.closed": "#C80D00",
-    "color.status.unknown": "#716568",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
     "opacity.overlay": 0.55,

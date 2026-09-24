@@ -7,13 +7,16 @@ include Sumas River) …"). An entry only stores the item's cleaned-up name
 ("Chilliwack River"), so re-matching can find the Chilliwack but can never learn about the
 Vedder or the Vedder Canal.
 
-But `matched` is not always filled — it became an ingest-time field partway through, so
-entries parsed earlier have an empty list even when their water is plainly in the registry.
-The review app has always fallen back to a live re-match for those. The builder must use
-the SAME fallback, or the bundle and the app disagree on which water a rule is even about.
+EMPTY MEANS THE ENTRY BINDS NOTHING. There used to be a live re-match by name for an entry
+whose `matched` was empty — a bridge for entries parsed before `matched` was an ingest-time
+field. No catalogue entry needs it any more (`backfill_matched` stamped them), and the only
+callers still reaching it were the DFO locations, which carry no name at all: of 346, the 19
+with an empty `matched` re-matched to nothing (measured 2026-09-23). A fallback nobody needs is
+a second, unreviewed answer to "which water is this rule about", so it is gone. An entry that
+should bind gets its `matched` stamped (`backfill_matched`, or the review app), never guessed.
 
-`pipeline.regs.parsing.backfill_matched` can stamp the historical gap permanently; this fallback
-means nothing is broken until someone runs it.
+`make_matcher` stays: `reparse_candidates` and the DFO matcher use it to FIND entries worth
+curating, which is a report, not a binding.
 """
 
 from __future__ import annotations
@@ -62,18 +65,20 @@ def make_matcher(registry, overrides_path="__default__"):
     return match
 
 
-def covered_ids(entry: dict, registry, match=None) -> list[str]:
-    """The registry items this entry regulates, primary first.
+def covered_ids(entry: dict, registry) -> list[str]:
+    """The registry items this entry regulates, primary first: its `matched`, and nothing else.
 
     Filtered to items actually present in this build — a `matched` id naming an item the
-    build does not have must not silently widen the resolve scope. Falls back to a live
-    match only when `matched` yields nothing.
+    build does not have must not silently widen the resolve scope. Empty `matched` is empty:
+    the entry binds nothing through its water (its rules may still name an item or an area in
+    their own extents).
     """
-    stored = [i for i in (entry.get("matched") or []) if i in registry]
-    if stored:
-        return stored
-    if match is None:
-        return []
+    return [i for i in (entry.get("matched") or []) if i in registry]
+
+
+def live_match_ids(entry: dict, registry, match) -> list[str]:
+    """What a LIVE re-match by name would give this entry — for reports that look for entries
+    worth curating (`reparse_candidates`). Never a binding: `covered_ids` is."""
     mr = match(entry)
     out: list[str] = []
     for iid in (getattr(mr, "item_id", None), *(getattr(mr, "also", ()) or ())):

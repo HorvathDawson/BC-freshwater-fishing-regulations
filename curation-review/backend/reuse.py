@@ -26,7 +26,9 @@ from pipeline.regs.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueRule, label as rule_label
+from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
+from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
+import model_api
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
@@ -36,7 +38,10 @@ from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-ENTRIES_DIR = CURATED.regulations.entries.catalogue
+#: The catalogue region files the app reads AND WRITES. `CURATION_ENTRIES_DIR` points it at a copy
+#: — the API tests and a headless click-through run against a temp copy, never the real files.
+ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURATION_ENTRIES_DIR")
+               else CURATED.regulations.entries.catalogue)
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
 # rebuild.py (which writes this same directory) — see config.yaml `generated.atlas.default_build`. Hard-coding
 # it here meant the app could serve a build months older than the pipeline and say nothing: every
@@ -203,63 +208,46 @@ def entry_source_image(e: dict) -> str | None:
 # Derived views (status, boundaries, unused curated splits)
 # --------------------------------------------------------------------------- #
 
-def _rule_needs_review(e: dict) -> bool:
-    """A rule needs review when it carries a `review_reason` — a reason present IS the flag."""
-    return any(r.get("review_reason") or r.get("unresolved_locators")
-               for r in e.get("rules", []))
+def _flagged(e: dict) -> bool:
+    """A rule or licensing record carries a `review_reason` (or a rule an unresolved locator) —
+    a reason present IS the flag; the model has no separate one."""
+    return (any(r.get("review_reason") or r.get("unresolved_locators")
+                for r in e.get("rules") or [])
+            or any(x.get("review_reason") for x in e.get("licensing") or []))
 
 
-def _match_and_item(e: dict):
-    """(MatchResult, RegistryItem|None) for an entry. The MatchResult is the live re-match — the same
-    logic and overrides the build used, kept so the UI can show WHY a match is ambiguous. The ITEM
-    prefers `entry.matched`, which is authoritative for the same reason `_covered_ids` trusts it.
+def _covered_ids(e: dict) -> list[str]:
+    """Every registry item this entry covers, primary first — `entry.matched`, filtered to the
+    items this build has.
 
-    This matters most where the live match cannot decide: four separate lakes are all gazetted
-    "Nation Lakes", so re-matching that name returns `ambiguous` with four candidates and no item —
-    but the entry already records WHICH one it is. Reading the item off the live match instead left
-    20 such entries with no item at all: a blank name in the queue and an empty boundary picker, even
-    though the lake was known all along."""
-    ident = _ident(e)
-    mr = match_identity(ident["name"], ident["region"], ident["mus"])
-    reg = _registry()
-    for iid in (*(e.get("matched") or []), mr.item_id):
-        if iid and iid in reg:
-            return mr, reg[iid]
-    return mr, None
+    `matched` IS AUTHORITATIVE AND EMPTY MEANS IT BINDS NOTHING. This used to fall back to a live
+    re-match of the entry's cleaned-up name when `matched` was empty, which let the review app
+    show — and resolve reaches against — a water the entry never recorded, while the bundle
+    (whose own fallback is being removed in `pipeline.atlas.reach.covered`) binds nothing there.
+    The two would disagree about the one thing a curator signs off. The shared implementation is
+    called WITHOUT a matcher, so it reads `matched` and nothing else (AGENTS 16)."""
+    return list(_pipeline_covered_ids(e, _registry()))
 
 
 def _item_for_entry(e: dict):
-    """The registry item (RegistryItem) for an entry, resolved via the matcher over its identity."""
-    return _match_and_item(e)[1]
+    """The primary registry item of an entry: the first of its `matched` this build has, or None."""
+    ids = _covered_ids(e)
+    return _registry()[ids[0]] if ids else None
 
 
-def _covered_ids(e: dict, mr) -> list[str]:
-    """Every registry item this entry covers, primary first.
-
-    `entry.matched` is authoritative — the matcher wrote it against the synopsis row's VERBATIM name,
-    which is what a combined override is keyed on ("CHILLIWACK / VEDDER RIVERS (does not include Sumas
-    River) …"). Re-matching the entry here cannot recover that: the entry only stores the item's name
-    ("Chilliwack River"), which finds the Chilliwack and never learns about the Vedder. So the live
-    match is only a fallback for entries stamped before `matched` was filled."""
-    reg = _registry()
-    stored = [i for i in (e.get("matched") or []) if i in reg]
-    if stored:
-        return stored
-    return [i for i in (mr.item_id, *mr.also) if i and i in reg]
+def _suggest_match(e: dict) -> MatchResult:
+    """A LIVE re-match of the entry's name, SHOWN to a curator attaching an item to an entry whose
+    `matched` is empty. A suggestion only: it never becomes the entry's water until the curator
+    attaches it and saves."""
+    ident = _ident(e)
+    return match_identity(ident["name"], ident["region"], ident["mus"])
 
 
-def _also_items(e: dict, mr) -> list[dict]:
+def _also_items(e: dict) -> list[dict]:
     """The OTHER registry items this entry covers — "CHILLIWACK / VEDDER RIVERS" is one synopsis row
-    over the Chilliwack, the Vedder and the Vedder Canal, so the reviewer needs to see all three.
-
-    "Other" means other than the item actually shown as primary, which `_match_and_item` may take from
-    `entry.matched` when the live match is ambiguous. Keying this on `mr.item_id` instead listed the
-    primary a second time whenever those two differed."""
+    over the Chilliwack, the Vedder and the Vedder Canal, so the reviewer needs to see all three."""
     reg = _registry()
-    _, item = _match_and_item(e)
-    primary = item.id if item is not None else mr.item_id
-    return [{"id": i, "name": reg[i].name, "kind": reg[i].kind}
-            for i in _covered_ids(e, mr) if i != primary]
+    return [{"id": i, "name": reg[i].name, "kind": reg[i].kind} for i in _covered_ids(e)[1:]]
 
 
 def _boundaries(item):
@@ -352,11 +340,11 @@ def bindable(item) -> list[dict]:
     return list(out.values())
 
 
-def _combined_bindable(item, e: dict, mr) -> list[dict]:
+def _combined_bindable(item, e: dict) -> list[dict]:
     """`bindable` over every item this entry covers, each boundary tagged with the `item_id` it came
     from. The matched item goes first, so its ids win an id collision."""
     reg = _registry()
-    items = [item] + [reg[i] for i in _covered_ids(e, mr) if i != item.id]
+    items = [item] + [reg[i] for i in _covered_ids(e) if i != item.id]
     # The REGISTRY says which water a built cut-point is actually on; `bindable` also folds in
     # splits.json splits, which attach to every item their waterbody's `applies_to` names — so
     # Vedder Crossing Bridge would otherwise be labelled "on the Chilliwack" when the built cut
@@ -615,8 +603,7 @@ def entry_reaches(entry_id: str) -> dict:
     for _, e in _all_entries():
         if e["entry_id"] != entry_id:
             continue
-        mr, item = _match_and_item(e)
-        covered = _covered_ids(e, mr)
+        covered = _covered_ids(e)
         clip, scope_failed = _scope_sections(e, covered)
 
         out: dict = {}
@@ -665,23 +652,6 @@ def _clip(got: dict | None, clip: set[str] | None) -> dict | None:
             "waters": _waters(sections)}
 
 
-def _referenced_item_ids(entry_dict: dict) -> set[str]:
-    """Every other-item id an extent scopes to (rule extents, entry scope, tributary excludes)."""
-    ids: set[str] = set()
-
-    def _scan(extents):
-        for ex in extents or []:
-            if ex.get("item_id"):
-                ids.add(ex["item_id"])
-            ids.update(ex.get("item_ids") or ())
-
-    _scan(entry_dict.get("extents"))
-    for r in entry_dict.get("rules") or []:
-        _scan(r.get("extents"))
-        _scan(r.get("tributary_excludes"))
-    return ids
-
-
 def related_entries(entry_id: str) -> list[dict]:
     """Other entries covering ANY of the same registry items — the ones to review alongside this one.
 
@@ -695,8 +665,7 @@ def related_entries(entry_id: str) -> list[dict]:
     mine: set[str] = set()
     for _, e in _all_entries():
         if e["entry_id"] == entry_id:
-            mr, item = _match_and_item(e)
-            mine = set(_covered_ids(e, mr))
+            mine = set(_covered_ids(e))
             break
     if not mine:
         return []
@@ -704,8 +673,7 @@ def related_entries(entry_id: str) -> list[dict]:
     for reg_id, e in _all_entries():
         if e["entry_id"] == entry_id:
             continue
-        mr, _ = _match_and_item(e)
-        shared = mine & set(_covered_ids(e, mr))
+        shared = mine & set(_covered_ids(e))
         if not shared:
             continue
         out.append({
@@ -742,17 +710,17 @@ def entry_status(e: dict, item: dict | None) -> str:
     # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
     # the definition of it. Saying otherwise put 117 correct entries at the top of the queue.
     if entry_kind(e) == "zone":
-        return "needs_review" if _rule_needs_review(e) else "zone"
-    if not e.get("matched"):                     # a water row the matcher bound to no item
+        return "flagged" if _flagged(e) else "zone"
+    if item is None:              # `matched` names no item this build has: it binds nothing
         return "no_registry"
-    if _rule_needs_review(e):
-        return "needs_review"
+    if _flagged(e):
+        return "flagged"
     if unused_curated_splits(e, item):
         return "unused_splits"
     return "unreviewed"
 
 
-_STATUS_ORDER = {"no_registry": 0, "needs_review": 1, "unused_splits": 2, "unreviewed": 3,
+_STATUS_ORDER = {"no_registry": 0, "flagged": 1, "unused_splits": 2, "unreviewed": 3,
                  "zone": 4}
 
 
@@ -775,7 +743,7 @@ def queue(region: str | None = None, status: str | None = None,
     rows = []
     src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for reg_id, e in src:
-        mr, item = _match_and_item(e)
+        item = _item_for_entry(e)
         st = entry_status(e, item)
         if status and st != status:
             continue
@@ -791,7 +759,7 @@ def queue(region: str | None = None, status: str | None = None,
             "n_rules": len(e.get("rules", [])),
             "matched_item_id": item.id if item else None,
             "matched_item_name": item.name if item else None,
-            "also_item_ids": [a["id"] for a in _also_items(e, mr)],      # combined-override items
+            "also_item_ids": [a["id"] for a in _also_items(e)],      # combined-override items
             "unused_curated_splits": len(unused_curated_splits(e, item)),
         })
     rows.sort(key=lambda r: (_KIND_ORDER.get(r["kind"], 9),
@@ -800,46 +768,60 @@ def queue(region: str | None = None, status: str | None = None,
 
 
 def entry_detail(entry_id: str) -> dict | None:
-    """Full entry + its resolved item's boundaries/variants + unused curated splits + match info."""
+    """Full entry + its item's boundaries/variants + unused curated splits.
+
+    The entry is served with each rule's and each licensing record's GENERATED `label` stamped on
+    it — `catalogue.label` / `catalogue.licensing_label`, the functions the bundle uses, so the
+    curator reads exactly what the reader will. `save_entry` strips them again.
+
+    `match` is a SUGGESTION, filled only when `matched` is empty: the live matcher's answer for the
+    row's name, for the attach flow. It is never the entry's water until attached and saved."""
     for reg_id, e in _all_entries():
-        if e["entry_id"] == entry_id:
-            mr, item = _match_and_item(e)
-            # Stamp the GENERATED label on every rule. The frontend has no `details` to show any
-            # more, and generating it here keeps one implementation: the same `label()` the bundle
-            # and the app use, so the curator reads exactly what the reader will.
-            e = dict(e, rules=[dict(r, label=_label(r)) for r in (e.get("rules") or [])])
-            return {
-                "entry": e,
-                "kind": entry_kind(e),
-                "region": reg_id,
-                "match": {"item_id": mr.item_id, "status": mr.status, "reason": mr.reason,
-                          "candidates": list(mr.candidates),
-                          "also": [a["id"] for a in _also_items(e, mr)]},
-                "item": None if not item else {
-                    "id": item.id, "name": item.name, "kind": item.kind,
-                    "variants": list(item.variants), "mus": list(item.mus),
-                    # built graph ∪ live splits.json, over the primary item AND a combined
-                    # override's other items — the same closed set the parser was given, so a
-                    # Vedder rule on the Chilliwack/Vedder entry has a Vedder cut-point to bind.
-                    "boundaries": _combined_bindable(item, e, mr),
-                },
-                "also_items": _also_items(e, mr),      # a combined override's other items (Vedder, …)
-                "related_entries": related_entries(entry_id),   # other rows over the same water
-                "unused_curated_splits": unused_curated_splits(e, item),
-                "source_image": entry_source_image(e),
-            }
+        if e["entry_id"] != entry_id:
+            continue
+        item = _item_for_entry(e)
+        lab = model_api.labels(e, ENTRIES_DIR)
+        e = dict(e,
+                 rules=[dict(r, label=lab["rules"][i] or r.get("verbatim", ""))
+                        for i, r in enumerate(e.get("rules") or [])],
+                 licensing=[dict(x, label=lab["licensing"][i] or x.get("verbatim", ""))
+                            for i, x in enumerate(e.get("licensing") or [])])
+        match = None
+        if item is None and entry_kind(e) == "water":
+            mr = _suggest_match(e)
+            match = {"item_id": mr.item_id, "status": mr.status, "reason": mr.reason,
+                     "candidates": list(mr.candidates)}
+        return {
+            "entry": e,
+            "kind": entry_kind(e),
+            "region": reg_id,
+            "match": match,
+            "item": None if not item else {
+                "id": item.id, "name": item.name, "kind": item.kind,
+                "variants": list(item.variants), "mus": list(item.mus),
+                # built graph ∪ live splits.json, over the primary item AND a combined
+                # override's other items — the same closed set the parser was given, so a
+                # Vedder rule on the Chilliwack/Vedder entry has a Vedder cut-point to bind.
+                "boundaries": _combined_bindable(item, e),
+            },
+            "also_items": _also_items(e),      # a combined override's other items (Vedder, …)
+            "related_entries": related_entries(entry_id),   # other rows over the same water
+            "unused_curated_splits": unused_curated_splits(e, item),
+            "source_image": entry_source_image(e),
+        }
     return None
 
 
-@lru_cache(maxsize=1)
 def species_list() -> list[dict]:
-    """All species/group codes with their common names — for the species picker. `is_group` marks a
-    group code (e.g. AO = All Salmon)."""
-    from pipeline.regs.parsing.species import COMMON_NAME, GROUPS
-    return sorted(
-        ({"code": c, "name": n, "is_group": c in GROUPS} for c, n in COMMON_NAME.items()),
-        key=lambda d: d["name"].lower(),
-    )
+    """Every species code a rule may name — `catalogue.KNOWN_SPECIES`, with the model's own words
+    for it and, for a group, its members. It was read from `species.COMMON_NAME`, the official CSV
+    list, which is a different vocabulary: it offered codes the model refuses."""
+    return sorted(model_api.vocab([])["species"], key=lambda d: d["name"].lower())
+
+
+def vocab() -> dict:
+    """Every option list the editors offer, read off the model (see `model_api.vocab`)."""
+    return model_api.vocab([e for _, e in _all_entries()])
 
 
 def search_items(q: str, limit: int = 20) -> list[dict]:
@@ -919,8 +901,7 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
         return {"error": f"no rule {rule_id} on {entry_id}"}
 
     reg, graph = _registry(), _graph()
-    mr, _item = _match_and_item(entry)
-    covered = _covered_ids(entry, mr)
+    covered = _covered_ids(entry)
     clip, _scope_failed = _scope_sections(entry, covered)
 
     # DIRECT = resolve + clip, no expansion. Same path entry_reaches uses for the raw view, so
@@ -1358,16 +1339,30 @@ def delete_split(split_id: str) -> dict:
     return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
 
 
+def _extent_lists(e: dict):
+    """(part id, label, extents list) for every place an entry stores extents: its scope, each
+    rule's extents and tributary excludes, each licensing record's."""
+    yield "(entry scope)", "the entry's own reach", e.get("extents") or []
+    for r in e.get("rules") or []:
+        for key in ("extents", "tributary_excludes"):
+            yield r["rule_id"], _label(r), r.get(key) or []
+    for x in e.get("licensing") or []:
+        for key in ("extents", "tributary_excludes"):
+            yield x.get("id", ""), f"{x.get('kind')}: {x.get('verbatim', '')}", x.get(key) or []
+
+
 def split_refs(split_id: str) -> list[dict]:
-    """Every rule whose extents bind this split id (across the catalogue region files). This is
-    the IMPACT PREVIEW for a rename — the exact scope of rules that will be rewritten."""
+    """Every rule, licensing record or entry scope whose extents bind this split id (across the
+    catalogue region files). The IMPACT PREVIEW for a rename — the exact scope it rewrites."""
     out: list[dict] = []
     for region in regions():
         for eid, e in load_region(region).items():
-            for r in e.get("rules", []):
-                if any(split_id in (ex.get("splits") or []) for ex in r.get("extents", [])):
-                    out.append({"entry_id": eid, "region": region, "rule_id": r["rule_id"],
-                                "label": _label(r), "entry_name": e.get("name", "")})
+            seen: set = set()
+            for part, label, exts in _extent_lists(e):
+                if part not in seen and any(split_id in (ex.get("splits") or []) for ex in exts):
+                    seen.add(part)
+                    out.append({"entry_id": eid, "region": region, "rule_id": part,
+                                "label": label, "entry_name": e.get("name", "")})
     return out
 
 
@@ -1396,105 +1391,133 @@ def rename_split(old_id: str, new_id: str) -> dict:
     # cascade: rewrite rules that bind old_id -> new_id, and save each affected entry
     updated: list[dict] = []
     failed: list[dict] = []
-    for ref in split_refs(old_id):
-        region = ref["region"]
-        e = load_region(region).get(ref["entry_id"])
+    refs = split_refs(old_id)
+    for region, eid in dict.fromkeys((r["region"], r["entry_id"]) for r in refs):
+        e = load_region(region).get(eid)
         if not e:
             continue
-        for r in e.get("rules", []):
-            for ex in r.get("extents", []):
+        for _part, _label_, exts in _extent_lists(e):
+            for ex in exts:
                 if old_id in (ex.get("splits") or []):
                     ex["splits"] = [new_id if s == old_id else s for s in ex["splits"]]
         res = save_entry(region, e)
-        (updated if res["ok"] else failed).append({**ref, **({} if res["ok"] else {"error": res["errors"]})})
+        for ref in (r for r in refs if r["entry_id"] == eid):
+            (updated if res["ok"] else failed).append(
+                {**ref, **({} if res["ok"] else {"error": res["errors"]})})
     return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": updated, "failed_rules": failed}
 
 
 def _label(rule: dict) -> str:
-    """The line a curator reads for a rule.
-
-    A catalogue rule has no `details` — the prose field was removed precisely because a label typed
-    beside a number drifts from it. The label is GENERATED from type + conditions, so it cannot.
-    Falls back to the rule's own verbatim if the rule is too malformed to render, because a curator
-    looking at a broken rule needs to see something rather than an empty row."""
+    """The generated line for one rule, for the split-rename impact preview. A rule too malformed
+    to render shows its verbatim, so a curator looking at it still sees something."""
     try:
         return rule_label(CatalogueRule.model_validate(rule)) or (rule.get("verbatim") or "")
     except Exception:                                    # noqa: BLE001
         return (rule.get("verbatim") or "")
 
 
-def _to_entry(e: dict) -> CatalogueEntry:
-    """The catalogue model. `entry_models.Entry` is the retired prose model — it wants
-    `restriction_type` and `details`, which no longer exist, so every catalogue entry failed
-    validation with four missing fields and the app could not save at all."""
-    return CatalogueEntry.model_validate(e)
+def _check_splits(entry_dict: dict, allowed: set[str]) -> list[dict]:
+    """Every split id an extent binds must be a cut-point the curator can actually bind: the entry
+    scope, every rule's extents, and every licensing record's extents. A cut-point answers to its
+    own id AND to any alias of it, because extent.py resolves either."""
+    errs: list[dict] = []
 
-
-def _check_splits(entry_dict: dict, allowed: set[str]) -> list[str]:
-    """Every split id an extent binds must be a cut-point the curator can actually bind.
-
-    `validate_entry_splits` took the retired Entry. This walks the catalogue's plain-dict extents
-    and applies the same rule, plus the alias rule the parser uses: a cut-point answers to its own
-    id AND to any alias of it, because extent.py resolves either."""
-    errs: list[str] = []
-
-    def visit(extents, where: str) -> None:
-        for ex in extents or ():
+    def visit(extents, path: list) -> None:
+        for i, ex in enumerate(extents or ()):
             if not isinstance(ex, dict):
                 continue
             for sid in (ex.get("splits") or ()):
                 if sid not in allowed:
-                    errs.append(f"{where}: unknown split id {sid!r}")
+                    errs.append({"path": ".".join(map(str, path + [i, "splits"])),
+                                 "msg": f"unknown split id {sid!r} — not a cut-point of any water "
+                                        f"this entry or extent names"})
 
-    visit(entry_dict.get("extents"), "entry scope")
-    for r in (entry_dict.get("rules") or ()):
+    visit(entry_dict.get("extents"), ["extents"])
+    for j, r in enumerate(entry_dict.get("rules") or ()):
         if isinstance(r, dict):
-            visit(r.get("extents"), f"rule {r.get('rule_id') or '?'}")
+            visit(r.get("extents"), ["rules", j, "extents"])
+    for j, x in enumerate(entry_dict.get("licensing") or ()):
+        if isinstance(x, dict):
+            visit(x.get("extents"), ["licensing", j, "extents"])
     return errs
 
 
 _atomic_write = io.atomic_write                          # shared helper (io is the single home)
 
 
-#: Fields `entry_detail` STAMPS on what it serves, which are not stored: each rule's generated
-#: `label`. The frontend sends the entry back as it received it, so these — and only these — are
-#: removed before validation. Anything else the model does not know is refused.
-_SERVED_ONLY_RULE_FIELDS = ("label",)
+def _referenced_item_ids(entry_dict: dict) -> set[str]:
+    """Every other-item id an extent scopes to (entry scope, rule extents and tributary excludes,
+    licensing extents and tributary excludes)."""
+    ids: set[str] = set()
+
+    def _scan(extents):
+        for ex in extents or []:
+            if isinstance(ex, dict):
+                if ex.get("item_id"):
+                    ids.add(ex["item_id"])
+                ids.update(ex.get("item_ids") or ())
+
+    _scan(entry_dict.get("extents"))
+    for r in list(entry_dict.get("rules") or []) + list(entry_dict.get("licensing") or []):
+        if isinstance(r, dict):
+            _scan(r.get("extents"))
+            _scan(r.get("tributary_excludes"))
+    return ids
+
+
+def _find(entry_id: str) -> tuple[str, dict] | None:
+    for region, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            return region, e
+    return None
+
+
+def check_entry(entry_dict: dict, region: str | None = None) -> dict:
+    """EVERYTHING a save would refuse, without writing: the model, the pass-through fields, the
+    split ids. Plus the generated label of every rule and record, so the editor shows what the app
+    will say while the curator types. `{ok, errors, warnings, labels}`; each error is
+    `{path, msg}` with `path` in the entry's own JSON keys (`rules.2.gear.0.max`)."""
+    data = model_api.strip_served(entry_dict)
+    labels = model_api.labels(data, ENTRIES_DIR)
+    entry, errs = model_api.check(data)
+    found = _find(str(data.get("entry_id", "")))
+    if found is None:
+        errs.append({"path": "entry_id", "msg": f"{data.get('entry_id')!r} is not an entry in "
+                     f"the catalogue — the app edits entries, it does not create or move them"})
+    else:
+        on_region, on_disk = found
+        if region is not None and region != on_region:
+            errs.append({"path": "region", "msg": f"the entry is in region-{on_region}.json, not "
+                                                 f"region-{region}.json"})
+        errs += model_api.pass_through_changes(on_disk, data)
+    if entry is not None:
+        item = _item_for_entry(data)
+        allowed = _bindable_ids(item)           # built graph ∪ splits.json — bind pending splits too
+        for iid in _referenced_item_ids(data):  # + splits of any cross-item extent / exclude
+            it2 = _registry().get(iid)
+            if it2:
+                allowed |= _bindable_ids(it2)
+        errs += _check_splits(data, allowed)
+    return {"ok": not errs, "errors": errs, "warnings": model_api.warnings_of(data),
+            "labels": labels}
 
 
 def save_entry(region: str, entry_dict: dict) -> dict:
-    """Validate an edited entry (the catalogue model + a split-id check against its matched item's
-    boundaries) and write it back to its region file, the single source of truth. Returns
-    {ok, errors}.
+    """Validate an edited entry (`check_entry`) and write it back to its region file, the single
+    source of truth, through `io.write_entryfile` — every other entry in the file is written back
+    exactly as it was read, and the whole file is validated as written. Returns `{ok, errors}`.
 
-    The write is `io.write_entryfile`: every other entry in the file is written back exactly as it
-    was read, and the whole file is validated as written. There is no confirm/lock — a catalogue
-    entry has no such field; a re-parse leaves an entry edited here alone (see the module doc)."""
-    data = dict(entry_dict)
-    data["rules"] = [{k: v for k, v in r.items() if k not in _SERVED_ONLY_RULE_FIELDS}
-                     for r in (data.get("rules") or [])]
-    try:
-        entry = _to_entry(data)
-    except Exception as ex:  # noqa: BLE001
-        return {"ok": False, "errors": [f"schema: {ex}"]}
-    item = _item_for_entry(data)
-    allowed = _bindable_ids(item)               # built graph ∪ splits.json — bind pending splits too
-    for iid in _referenced_item_ids(data):      # + splits of any cross-item extent / tributary exclude
-        it2 = _registry().get(iid)
-        if it2:
-            allowed |= _bindable_ids(it2)
-    errs = _check_splits(data, allowed)
-    if errs:
-        return {"ok": False, "errors": errs}
-
+    There is no confirm/lock — a catalogue entry has no such field; a re-parse leaves an entry
+    edited here alone (see the module doc)."""
+    res = check_entry(entry_dict, region)
+    if not res["ok"]:
+        return {"ok": False, "errors": res["errors"]}
+    entry, _ = model_api.check(model_api.strip_served(entry_dict))
     path = ENTRIES_DIR / f"region-{region}.json"
     existing: dict[str, object] = dict(io.read_entryfile(path))
-    if entry.entry_id not in existing:
-        return {"ok": False, "errors": [f"{entry.entry_id} is not in {path.name} — the app edits "
-                                        f"entries, it does not create or move them"]}
     existing[entry.entry_id] = entry
     try:
         io.write_entryfile(path, region, existing.values())
     except Exception as ex:  # noqa: BLE001
-        return {"ok": False, "errors": [f"file: {ex}"]}
+        return {"ok": False, "errors": [{"path": "", "msg": f"file: {ex}"}]}
     return {"ok": True, "errors": []}

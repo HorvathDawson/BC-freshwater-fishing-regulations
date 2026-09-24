@@ -34,9 +34,3 @@ export interface Db {
 export const str = (v: Cell): string => (v == null ? "" : String(v));
 export const num = (v: Cell): number | null =>
   v == null || v === "" ? null : Number(v);
-/** A JSON column. Bad JSON is a build bug, so it fails loudly rather than silently empty. */
-export const json = <T>(v: Cell, where: string): T => {
-  if (v == null || v === "") return [] as unknown as T;
-  try { return JSON.parse(String(v)) as T; }
-  catch { throw new Error(`${where}: column is not JSON — ${String(v).slice(0, 60)}`); }
-};

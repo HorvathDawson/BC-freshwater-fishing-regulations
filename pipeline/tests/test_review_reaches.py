@@ -250,8 +250,7 @@ def test_a_rows_scope_clips_every_rule_in_it(braided, monkeypatch):
              "extents": [{"op": "downstream_of", "splits": ["thecut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("1", entry)])
-    monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))
-    monkeypatch.setattr(reuse, "_covered_ids", lambda e, mr: ["gnis:1"])
+    # the covered item comes from `matched` against the stubbed registry — nothing else
 
     got = reuse.entry_reaches("gnis:1#below")
     whole = got["rules"]["r1"][0]["sections"]
@@ -271,8 +270,7 @@ def test_an_unresolvable_scope_clips_nothing_rather_than_everything(braided, mon
              "extents": [{"op": "downstream_of", "splits": ["nosuchcut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("1", entry)])
-    monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))
-    monkeypatch.setattr(reuse, "_covered_ids", lambda e, mr: ["gnis:1"])
+    # the covered item comes from `matched` against the stubbed registry — nothing else
 
     got = reuse.entry_reaches("gnis:1#x")
     assert set(got["rules"]["r1"][0]["sections"]) == braided
@@ -292,8 +290,7 @@ def test_a_broken_scope_is_reported_not_swallowed(braided, monkeypatch):
              "extents": [{"op": "between", "splits": ["thecut", "nosuchcut"]}],
              "rules": [{"rule_id": "r1", "extents": [{"op": "whole"}]}]}
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("3", entry)])
-    monkeypatch.setattr(reuse, "_match_and_item", lambda e: (None, item))
-    monkeypatch.setattr(reuse, "_covered_ids", lambda e, mr: ["gnis:1"])
+    # the covered item comes from `matched` against the stubbed registry — nothing else
 
     got = reuse.entry_reaches("gnis:1#r3")
     assert got["scope_unresolved"], "a scope that cannot resolve must be surfaced"

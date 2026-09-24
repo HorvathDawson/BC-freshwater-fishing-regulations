@@ -3,9 +3,11 @@
  *
  * WHAT I HAD WRONG, because it matters structurally and not just visually:
  *
- *  - Streams and lakes are coloured INDEPENDENTLY. Rules on the rivers while the lakes
- *    show Stocked is a normal thing to want — they answer different questions. I had one
- *    global "view" forcing both, which is a preset, not a control.
+ *  - Streams and lakes are coloured INDEPENDENTLY — they answer different questions. I had
+ *    one global "view" forcing both, which is a preset, not a control. Streams currently
+ *    have nothing to choose between: their only colouring on the Map tab was the
+ *    regulation outcome, and regulations are not integrated, so they are drawn plain and
+ *    the sheet offers no stream choice.
  *  - The choices are BUTTONS CARRYING THEIR OWN COLOURS, not switches. "Stocked" means
  *    nothing as a word; three swatches in the stocking ramp say what the map will look
  *    like before you commit to it.
@@ -57,19 +59,11 @@ export const STOCK_BANDS = [
 ] as const;
 
 export interface LayersState {
-  stream: string;
   lake: string;
   basemap: "map" | "satellite";
 }
 
-export const streamChoices = (p: Palette): LayerChoice[] => [
-  { k: "rules", t: "Rules", mode: "closure",
-    swatch: [p.closed, p.restricted, p.open] },
-  { k: "plain", t: "Plain", mode: "plain", swatch: [p.live, p.live, p.live] },
-];
-
 export const lakeChoices = (p: Palette): LayerChoice[] => [
-  { k: "rules", t: "Rules", mode: "closure", swatch: [p.closed, p.restricted, p.open] },
   // Depth is BOTH: the contour layer turns on, and the lakes themselves colour by whether
   // they were surveyed at all. Colouring by digitised contours alone showed a near-empty
   // map — 2,741 bathymetric sheets exist and only a fraction were ever traced — which tells
@@ -90,15 +84,12 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
   fetchedAt?: string | null;
   attribution?: readonly string[];
 }) {
-  const streamOpts = streamChoices(palette);
   const lakeOpts = lakeChoices(palette);
 
   return (
     <Sheet open={open} onClose={onClose} title="Layers" palette={palette}>
       <ScrollView style={{ maxHeight: 520 }}>
         <Section palette={palette} title="Streams" note={count(reaches, "reaches")}>
-          <OptionRow palette={palette} shape="line" options={streamOpts} value={state.stream}
-                     onChange={(k) => onState({ ...state, stream: k })} label="Colour streams by" />
           <Fine palette={palette}>
             Flow, depth and temperature live in the Conditions tab — they are questions
             about the water, not paint jobs, and they are switched where they are asked.
@@ -154,8 +145,7 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
           <Choice palette={palette} label="Palette" value={theme} onChange={onTheme}
                   options={THEME_OPTIONS} />
           <Fine palette={palette}>
-            Every outcome keeps its word as well as its colour, so the colour-blind palette
-            changes the hues and nothing else.
+            The colour-blind palette changes the hues and nothing else.
           </Fine>
         </Section>
 

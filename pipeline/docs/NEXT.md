@@ -245,9 +245,9 @@ Two of them now resolve against the active build, both unambiguously **by MU ove
 | `noreg_green_lake_871` (MU 5-1, unlocked) | `wbk:329170743` Green Lake, MU 5-1 | MU overlap, `also: ()` |
 | `noreg_pitt_lake_347` (MU 2-8, unlocked) | `wbk:329291806` Pitt Lake, MU 2-8 | MU overlap, `also: ()` |
 
-Both exist *because* minting created their lake node — they are the payoff of §0. Nothing is
-broken today: `pipeline.atlas.reach.covered` falls back to a live re-match and the builder and the
-review app agree exactly. But **attaching an item to a `no_registry` entry is a curation
+Both exist *because* minting created their lake node — they are the payoff of §0. There is no
+live re-match any more (removed 2026-09-23): `pipeline.atlas.reach.covered` reads `matched` and
+nothing else, so an entry with an empty `matched` binds nothing until it is stamped. **Attaching an item to a `no_registry` entry is a curation
 decision, not a migration.** Do it through the review app's attach-item flow, or write a
 tool that stamps from the live match — deliberately, not as a chore. Green Lake in
 particular is a name BC reuses heavily; MU overlap is what makes these two safe, and that

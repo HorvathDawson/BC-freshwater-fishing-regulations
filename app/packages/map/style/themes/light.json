@@ -7,7 +7,6 @@
     "color.status.open": "#1D7741",
     "color.status.restricted": "#8f5c00",
     "color.status.closed": "#B33124",
-    "color.status.unknown": "#74519C",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
     "opacity.overlay": 0.55,

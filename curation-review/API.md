@@ -13,11 +13,12 @@ TRUTH. Curator edits are written straight back to them through `pipeline.regs.pa
 ## Queue
 
 ### GET /api/regions
-→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"needs_review":35,"unused_splits":5,"unreviewed":168,"zone":0} }]`
+→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"flagged":35,"unused_splits":5,"unreviewed":168,"zone":0} }]`
 
 ### GET /api/entries?region=&status=
-Both query params optional. `status` ∈ `no_registry | needs_review | unused_splits | unreviewed | zone`.
-`no_registry` = a water row whose `matched` is empty; `needs_review` = a rule carries a `review_reason`
+Both query params optional. `status` ∈ `no_registry | flagged | unused_splits | unreviewed | zone`.
+`no_registry` = a water row whose `matched` names no item of this build (it binds nothing); `flagged` = a
+rule or licensing record carries a `review_reason` (or a rule an unresolved locator)
 or `unresolved_locators`.
 Rows are pre-sorted (attention first).
 ```json
@@ -37,11 +38,12 @@ covers all of them.
 ### GET /api/entries/{entry_id}
 ```json
 {
-  "entry": { ...a CatalogueEntry — see pipeline/regs/parsing/catalogue.py; each rule also carries
-             its generated `label`, which is not stored and is dropped again on save... },
+  "entry": { ...a CatalogueEntry — see pipeline/regs/parsing/catalogue.py; each rule AND each
+             licensing record also carries its generated `label` (catalogue.label /
+             catalogue.licensing_label), which is not stored and is dropped again on save... },
   "region": "2",
-  "match": { "item_id":"gnis:8634", "status":"matched|override|skip|ambiguous|no_registry|feature_pin",
-             "reason":"", "candidates":[], "also":["gnis:3062","wbk:329707189"] },
+  "match": null,   // or, ONLY when `matched` is empty: the live matcher's SUGGESTION for the attach
+                   // flow — { "item_id", "status", "reason", "candidates" }. Never the entry's water.
   "item": { "id":"gnis:8634", "name":"Chilliwack River", "kind":"stream", "variants":[], "mus":[],
             "boundaries":[ { "id":"chilliwack_vedder_rivers__tamihi_rapids_bridge",
                              "label":"Tamihi Rapids Bridge", "kind":"split",
@@ -61,22 +63,50 @@ covers all of them.
 synopsis rows over the same water — the synopsis splits one regulation across several rows, and
 reviewing one without the other is how a half-linked entry gets signed off.
 
-**Rule shape** (inside `entry.rules[]`): a `CatalogueRule` — `pipeline/regs/parsing/catalogue.py` is
-the definition, and `pipeline/docs/18-how-regulations-are-stored.md` explains it. The fields the
-editor works with: `rule_id`, `type`, `verbatim`, `species`, `extents[{op,splits[],item_id?,item_ids?,
-area_id?,within_area?}]`, `includes_tributaries`, `tributaries_only`, `tributary_excludes[…]`,
-`exempts[…]`, `when`, `review_reason`, `unresolved_locators[]`, `extent_text`.
+**`matched` is authoritative.** The items an entry covers are `entry.matched` (filtered to this
+build's registry, via `pipeline.atlas.reach.covered.covered_ids` with no matcher). An empty
+`matched` binds nothing; there is no live re-match fallback.
 
-- **`Extent.op`** ∈ `whole | upstream_of | downstream_of | between | within`; `splits` are boundary
-  **ids** from `item.boundaries`. `Extent.item_id` scopes the extent to ONE covered item — required on
-  a combined entry when a rule applies to only one of its waters.
-- **`tributary_excludes`** — per-rule tributary carve-outs, extents of the same shape.
+**The entry is the model, whole.** `entry.rules[]` are `CatalogueRule`s and `entry.licensing[]` are
+`LicensingRecord`s (`kind` ∈ designation | not_classified | requirement | licence_terms | exemption |
+alternative); `pipeline/regs/parsing/catalogue.py` is the definition. Every field is editable in the
+app except the pass-through ones (`entry_id`, `name`, `display_name`, `region`, `regs_verbatim`,
+`source_pages`, `symbols`), which come from the synopsis row and are refused if changed.
+
+- **`Extent.op`** ∈ `whole | upstream_of | downstream_of | between | within` (from `entry_models.Op`);
+  `splits` are boundary **ids** from `item.boundaries`. `Extent.item_id` scopes the extent to ONE
+  covered item. Also `item_ids`, `area_id`, `area_kind`, `feature_types`, `within_area`,
+  `outside_area`, `outside_areas` — the keys of `entry_models.Extent`.
+- **`tributary_excludes`** — per-rule / per-designation tributary carve-outs, extents of the same shape.
+
+### POST /api/check   (validate a draft — writes nothing)
+Body: `{ "region":"2", "entry": {...the draft...} }`
+→ `{ "ok": bool, "errors": [{path, msg}], "warnings": [{path, msg}],
+     "labels": { "rules": [label|null, ...], "licensing": [label|null, ...] } }`
+
+`errors` is everything a save would refuse — the model (`CatalogueEntry`), the pass-through fields,
+the split ids — each ADDRESSED to a field in the entry's own JSON keys: `rules.2.gear.0.max`,
+`licensing.0.classified` (the union's `kind` tag is dropped from the path), `rules.1` for a rule-level
+message, `""` for the entry. An entry-level message that names a rule id or a licensing id is split
+and addressed to it. `labels` is the generated label of every rule and record that validates on its
+own (`null` where it does not). `warnings` are extent shapes `entry_models.Extent` would reject,
+reported and not refused (the corpus carries some today). The editor calls this on every edit.
 
 ### PUT /api/entries/{entry_id}   (save an edit)
 Body: `{ "region":"2", "entry": {...the entry as served...} }`
-→ `200 {"ok":true,"errors":[]}` · `422 {detail:[...errors...]}` when the entry fails validation
-(the `CatalogueEntry` schema — an unknown field is refused, not dropped — plus every split id must
-exist in the boundaries of the item its extent is scoped to), or is not already in that region file.
+→ `200 {"ok":true,"errors":[]}` · `422 {detail:[{path, msg}, ...]}` — the same errors `/api/check`
+returns. On success the file is written through `pipeline.regs.parsing.io.write_entryfile` (every other
+entry byte-for-byte as it was; the whole file validated as written). Saving an entry unchanged
+rewrites nothing.
+
+### GET /api/vocab
+Every option list the editors offer, READ OFF the model: rule types + family, licensing kinds, gear
+slots + shape (set | spec | count | measured), methods, `while` tokens, conduct acts + words,
+documents + words, periods, water kinds, origins, obligations, vessel aspects, propulsion levels,
+angler states, Who axes, exemptable defaults, `Doing.act`, `Requirement.on`, licence-terms literals,
+path quota, extent ops/keys, feature types, species (`KNOWN_SPECIES` + words + members). Open-string
+fields (gear member tokens, `must_be`, `area_kind`) come with the tokens the corpus already uses, as
+suggestions only.
 
 ### GET /api/entries/{entry_id}/reaches
 What each rule actually selects on the map — the answer to "show me what this rule covers".
@@ -130,7 +160,8 @@ Bindable splits/boundaries for an arbitrary item — the cross-item and tributar
 read from the graph's flow edges. The carve-out picker's dropdown.
 
 ### GET /api/species
-→ `[{ "code":"RB", "name":"Rainbow Trout", "is_group":false }]` — the species picker.
+→ `[{ "code":"TROUT_CHAR", "name":"Trout and char", "is_group":true, "members":[...] }]` — every code
+a rule may name (`catalogue.KNOWN_SPECIES`), with the model's words. Also inside `/api/vocab`.
 
 ---
 

@@ -7,7 +7,7 @@ export function boundaryLabel(id: string, boundaries: Boundary[]): string {
 
 // Human-readable text for one extent, e.g. "upstream of Foo Falls".
 export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
-  const lbls = ex.splits.map((s) => boundaryLabel(s, boundaries));
+  const lbls = (ex.splits ?? []).map((s) => boundaryLabel(s, boundaries));
   switch (ex.op) {
     case "whole":
       return "whole reach";
@@ -26,7 +26,7 @@ export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
 
 // Raw form, e.g. "upstream_of[foo_falls]".
 export function rawExtent(ex: Extent): string {
-  const parts = [...ex.splits];
+  const parts = [...(ex.splits ?? [])];
   if (ex.area_id) parts.push(`area=${ex.area_id}`);
   return `${ex.op}[${parts.join(", ")}]`;
 }

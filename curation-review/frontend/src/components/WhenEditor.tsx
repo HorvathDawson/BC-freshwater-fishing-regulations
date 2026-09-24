@@ -1,12 +1,12 @@
 import type { Clock, DateRange, When } from "../types";
+import { useVocab } from "../model";
 
 /**
  * A rule's `when` — the catalogue's own shape (pipeline/regs/parsing/catalogue.py `When`):
  * `dates` (inclusive calendar ranges, no year), `hours` (a start and an end, each a clock time or
  * a solar time with an offset), `weekdays`, and `unparsed`.
  *
- * It replaced a free-text "windows" list that saved a field the model no longer has. There is no
- * "excepts" switch: a rule's days are always the days it HOLDS, and the complement of a printed
+ * There is no "excepts" switch: a rule's days are always the days it HOLDS, and the complement of a printed
  * "except" is computed by the parser. `unparsed` is what the parser could not read — shown, never
  * edited here: the fix is to write the dates it means and remove it, which the model decides when
  * the entry is re-parsed or hand-authored.
@@ -15,7 +15,6 @@ import type { Clock, DateRange, When } from "../types";
  * nothing in it is removed from the rule: no `when` is all year.
  */
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 function terse(w: When): When | undefined {
   const out: When = {};
@@ -28,14 +27,14 @@ function terse(w: When): When | undefined {
 
 function ClockInput({ value, onChange }: { value: Clock; onChange: (c: Clock) => void }) {
   const solar = value.solar != null;
+  const events = useVocab().solar;
   return (
     <span className="clock">
       <select value={solar ? value.solar : "clock"}
         onChange={(e) => onChange(e.target.value === "clock" ? { at: "00:00" }
           : { solar: e.target.value as "sunrise" | "sunset", ...(value.offset_min ? { offset_min: value.offset_min } : {}) })}>
         <option value="clock">clock</option>
-        <option value="sunrise">sunrise</option>
-        <option value="sunset">sunset</option>
+        {events.map((ev) => <option key={ev} value={ev}>{ev}</option>)}
       </select>
       {solar ? (
         <input type="number" step={15} style={{ width: 70 }} title="minutes from the event; negative is BEFORE"
@@ -54,6 +53,7 @@ function ClockInput({ value, onChange }: { value: Clock; onChange: (c: Clock) =>
 }
 
 export function WhenEditor({ value, onChange }: { value?: When; onChange: (w: When | undefined) => void }) {
+  const WEEKDAYS = useVocab().weekdays;
   const w: When = value ?? {};
   const dates = w.dates ?? [];
   const set = (patch: Partial<When>) => onChange(terse({ ...w, ...patch }));
@@ -101,7 +101,7 @@ export function WhenEditor({ value, onChange }: { value?: When; onChange: (w: Wh
       </div>
       <div className="date-row">
         {WEEKDAYS.map((d) => (
-          <label key={d} style={{ marginRight: 6 }}>
+          <label key={d} className="check" style={{ marginRight: 6 }}>
             <input type="checkbox" checked={(w.weekdays ?? []).includes(d)}
               onChange={(e) => set({ weekdays: WEEKDAYS.filter((x) =>
                 x === d ? e.target.checked : (w.weekdays ?? []).includes(x)) })} />

@@ -3,43 +3,26 @@
  * and the desktop render the same answers with completely different components.
  */
 import { useMemo } from "react";
-import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
-import { monthAbbr, statusWord } from "@app/core";
+import type { GaugeTrace } from "@app/core";
+import { monthAbbr } from "@app/core";
 import type {
-  BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit,
-  Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId,
+  BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
+  Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
 import { buildHydrograph, type Hydrograph } from "./hydrograph";
 import { gaugeGeoJSON, type GaugeQuantity } from "./gaugePoints";
 
-/** A date as a stable string, for query identity. */
-const day = (d: PlainDate): string => `${d.year}-${d.month}-${d.day}`;
-
-/** Map colouring for a viewport's worth of features. */
-export function useStatuses(
-  source: RegsSource,
-  sections: readonly SectionId[],
-  on: PlainDate,
-  group: SpeciesGroup,
-): Async<ReadonlyMap<SectionId, Status>> {
-  // The identity of the array changes every render; its CONTENT is what the query depends on.
+/**
+ * One water — its name and its sections. What the water sheet titles itself with.
+ *
+ * No regulations: they are not integrated (see `regulations.ts` in @app/core). The sheet
+ * renders a placeholder where they will go.
+ */
+export function useWater(source: RegsSource, item: ItemId | null): Async<Water | null> {
   return useAsync(
-    () => source.statusFor(sections, on, group),
-    `status:${sections.join(",")}:${day(on)}:${group}`,
-  );
-}
-
-/** One water's whole sheet, in one call. */
-export function useWaterSheet(
-  source: RegsSource,
-  item: ItemId | null,
-  on: PlainDate,
-  group: SpeciesGroup,
-): Async<ItemRegs | null> {
-  return useAsync(
-    () => (item ? source.regsForItem(item, on, group) : Promise.resolve(null)),
-    `sheet:${item}:${day(on)}:${group}`,
+    () => (item ? source.water(item) : Promise.resolve(null)),
+    `water-item:${item}`,
     item !== null,
   );
 }
@@ -130,9 +113,9 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
 /**
  * Which water a reach belongs to, by name.
  *
- * One indexed read and no rules, so a screen can put a TITLE on itself without loading the
- * regulation sheet to find one. The Conditions screen had no title at all for exactly that
- * reason: the only thing that knew a water's name also read every rule it had.
+ * One indexed read, so a screen can put a TITLE on itself without listing the whole water.
+ * The Conditions screen once had no title at all because the only thing that knew a water's
+ * name also read everything else about it.
  */
 export function useWaterName(
   source: RegsSource, section: SectionId | null,
@@ -390,9 +373,6 @@ export function useGaugeParameters(
     station !== null,
   );
 }
-
-/** The word every surface shows. Never re-worded locally (AGENTS.md rule 23). */
-export { statusWord };
 
 
 /**

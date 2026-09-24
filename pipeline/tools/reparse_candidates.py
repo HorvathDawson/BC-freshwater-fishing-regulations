@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline.regs.parsing import io as parse_io
-from pipeline.atlas.reach.covered import covered_ids, make_matcher
+from pipeline.atlas.reach.covered import live_match_ids, make_matcher
 from pipeline.atlas.registry import load_registry
 from pipeline.common.curated import GENERATED
 
@@ -59,7 +59,7 @@ def main() -> int:
             if stored:
                 kept["already bound to a registry item"] += 1
                 continue
-            found = covered_ids(e, registry, match)
+            found = live_match_ids(e, registry, match)
             if not found:
                 kept["still has no registry item — re-parsing cannot help"] += 1
                 continue

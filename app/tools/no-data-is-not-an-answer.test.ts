@@ -1,16 +1,14 @@
 /**
  * Water the app has said nothing about must not be drawn as an answer.
  *
- * The `missing` colour of a categorical mode fires when NO feature-state has been pushed
- * for a feature — the app has not evaluated it, or the viewport query has not returned yet.
- * Every closure mode had `missing: color.status.open`, so the whole province rendered as
- * open until data arrived, and any feature the app never evaluated stayed that way.
+ * The `missing` colour of a data-driven mode fires when NO feature-state has been pushed
+ * for a feature — the app has not asked about it, or the viewport query has not returned
+ * yet. The (since removed) regulation closure mode once had `missing: color.status.open`, so
+ * the whole province rendered as open until data arrived.
  *
  * That is the failure AGENTS rule 29 exists for, and it is the worst one this app can
- * produce: "we have not checked" and "you may fish here" are not the same sentence.
- *
- * "Open under the general rules" IS a real answer — it is computed by `evaluate()` and
- * pushed as a status. This test is about the absence of any answer at all.
+ * produce: "we have not checked" and an answer are not the same sentence. It holds for every
+ * mode — flow, stocking, survey — and for whatever colouring regulations bring back.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";

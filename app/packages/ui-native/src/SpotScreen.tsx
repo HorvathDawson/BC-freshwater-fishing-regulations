@@ -11,9 +11,9 @@
  * saved a spot, opened it, and found more than they had been shown. What you confirm before
  * saving must be what you get.
  *
- * EVERYTHING HERE IS A RECORD, NOT A READING. The gauge figure, the weather and the
- * regulation were copied in when the spot was made and are never recomputed, so nothing on
- * this screen may imply they are current. Each carries its own date, and a value filled in
+ * EVERYTHING HERE IS A RECORD, NOT A READING. The gauge figure and the weather were copied
+ * in when the spot was made and are never recomputed, so nothing on this screen may imply
+ * they are current. Each carries its own date, and a value filled in
  * after the fact says so.
  *
  * The trace panel is the same component the Conditions tab shows, fed from the spot's
@@ -26,10 +26,9 @@ import { isUntitled, needsRefresh, refreshReason, spotLabel, type Spot,
   type SpotWeather, type WeatherSample } from "@app/data/spots";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
-import { StatusPill } from "./StatusPill";
 import { percentileLabel } from "@app/core";
 import { TYPE } from "./type";
-import { outcomeColour, type Palette } from "./theme";
+import type { Palette } from "./theme";
 import { Button } from "./Button";
 
 export type SpotMode = "draft" | "view" | "edit";
@@ -246,22 +245,6 @@ export function SpotScreen(p: SpotScreenProps) {
           )}
         </Block>
 
-        {spot.regulation && (
-          <Block palette={palette} title={`In force on ${spot.regulation.on}`}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <View style={{ width: 4, height: 22, borderRadius: 2,
-                             backgroundColor: outcomeColour(palette, spot.regulation.outcome) }} />
-              <StatusPill palette={palette}
-                          status={{ outcome: spot.regulation.outcome,
-                                    provenance: spot.regulation.provenance, from: [] }} />
-            </View>
-            <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-              What was true that day. Half of these rules are seasonal, so this is recorded
-              rather than recalculated — otherwise a river you fished in a closure would
-              quietly start reading as open.
-            </Text>
-          </Block>
-        )}
 
         <Block palette={palette} title="Notes">
           {editable && p.onNotes ? (

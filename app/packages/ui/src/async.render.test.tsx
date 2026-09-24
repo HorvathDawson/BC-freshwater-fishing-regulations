@@ -19,7 +19,7 @@ afterEach(cleanup);
  * Counts renders and lets a test force one without changing the query.
  *
  * The arrow handed to `useAsync` is built INSIDE the component, which is what every real
- * caller does — `useWaterSheet` and friends close over their arguments on every render.
+ * caller does — `useWater` and friends close over their arguments on every render.
  * An earlier version of this probe took the arrow as a prop, so its identity only changed
  * when the parent re-rendered, and the test passed against the very bug it was written
  * for. A probe that does not reproduce the caller's shape proves nothing.

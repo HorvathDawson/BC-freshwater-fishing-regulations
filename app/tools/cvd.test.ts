@@ -26,15 +26,15 @@
  * pass a test written by the same person who picked them.
  *
  * THE ONE THING THIS TEST CANNOT DO is make colour carry the answer alone, and it must not:
- * every outcome is drawn with a WORD (statusWord) and, on the map, a DASH (outcomeDash).
- * The thresholds below are what makes colour a good SECOND channel, never the only one.
+ * every legend swatch sits beside its WORD, and the closed areas carry a HATCH. The
+ * thresholds below are what makes colour a good SECOND channel, never the only one.
  */
 import { describe, expect, it } from "vitest";
 import { resolveTheme } from "@app/map";
 import { CVD, DARK, LIGHT, type Palette } from "../packages/ui-native/src/theme";
 import { contrast, deltaE, parseHex, simulate } from "./cvd";
 
-/** The pill draws the outcome as TEXT over a 13% tint of itself — so that is the ground. */
+/** A status colour drawn as TEXT over a 13% tint of itself — so that is the ground. */
 function tintOf(colour: string, card: string): string {
   const [r, g, b] = parseHex(colour), [R, G, B] = parseHex(card);
   const mix = (x: number, y: number) => Math.round(x * 0.133 + y * (1 - 0.133));
@@ -74,11 +74,10 @@ function allPairs(set: [string, string][], rgFloor: number, tritanFloor: number)
 
 const cvdMap = resolveTheme("cvd") as Record<string, string>;
 const status = (p: Palette): [string, string][] =>
-  [["closed", p.closed], ["restricted", p.restricted], ["open", p.open],
-   ["unknown", p.unknown]];
+  [["closed", p.closed], ["restricted", p.restricted], ["open", p.open]];
 
 describe("the colour-blind theme", () => {
-  it("keeps the four outcomes apart under every deficiency", () => {
+  it("keeps the three status colours apart under every deficiency", () => {
     allPairs(status(CVD), 20, 18);
   });
 
@@ -99,7 +98,7 @@ describe("the colour-blind theme", () => {
           .not.toBe(meanings[j]![1].toLowerCase());
   });
 
-  it("draws every outcome as readable text in the pill", () => {
+  it("draws every status colour as readable text on its own tint", () => {
     /*
      * 4.5:1, WCAG AA — the pill's word is 11.5px bold, which is not "large text" by any
      * definition, so the relaxed 3:1 does not apply. This is the constraint that shapes the

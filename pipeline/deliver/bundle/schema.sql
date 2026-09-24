@@ -34,8 +34,14 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- is NOT durable across a rebuild, so it must never leave the bundle. `item_id` is still the
 -- identity and still unique — the UNIQUE index below is the same b-tree the old TEXT PRIMARY
 -- KEY built, so naming the rowid costs nothing and buys 15.9 MB (measured) in place_water.
+--
+-- `part_of` IS THE PARENT ITEM of a lake PART, else NULL. The book writes some lakes as several
+-- waters — Kootenay Lake's Main Body and two West Arms, Shannon Lake's netted-off corner — and
+-- each part is drawn as its own polygon (`data/curated/waters/added_lakes.geojson`), so each is
+-- its own item with its own sections. `part_of` is what says they are one lake: a reader groups
+-- the parts on one screen by it, and never has to open the curated file to find out.
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
-                   name TEXT NOT NULL, kind TEXT);
+                   name TEXT NOT NULL, kind TEXT, part_of TEXT);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
 -- `ord` and `sid` are HANDLES, not ids — item.ord and the section handle table. See
 -- pipeline/common/section_handles for who owns the section one and why it may never leave

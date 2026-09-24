@@ -18,7 +18,7 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
   id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
   lat: 49.0974, lon: -121.9675, item: null, section: null, waterName: null,
   title: "Tamihi run", notes: "", photos: [],
-  reading: null, weather: null, trace: null, panel: null, regulation: null, ...over,
+  reading: null, weather: null, trace: null, panel: null, ...over,
 });
 
 describe("<SpotScreen>", () => {
@@ -53,14 +53,6 @@ describe("<SpotScreen>", () => {
                    at: "2026-08-30T09:00", backfilled: false },
       })} />);
     expect(queryByText(/filled in afterwards/)).toBeNull();
-  });
-
-  it("dates the regulation it recorded, since half of them are seasonal", () => {
-    const { getByText } = render(
-      <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({
-        regulation: { outcome: "closed", provenance: "specific", on: "2026-08-30" },
-      })} />);
-    expect(getByText(/In force on 2026-08-30/i)).toBeTruthy();
   });
 
   it("offers a refresh only when something is actually stale", () => {

@@ -8,7 +8,7 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import type { GaugeTrace, PlainDate, SpeciesGroup } from "@app/core";
+import type { GaugeTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
 import type { ItemId, RegsSource, SectionId } from "../index";
 import type { Spot, SpotReading, SpotWeather } from "./model";
@@ -34,7 +34,6 @@ export interface CaptureInput {
   item: ItemId | null;
   section: SectionId | null;
   waterName: string | null;
-  group: SpeciesGroup;
   title: string;
   /**
    * When the person was at the water. Defaults to now.
@@ -42,8 +41,8 @@ export interface CaptureInput {
    * THE ONLY DATE THIS FUNCTION TAKES, and it replaced a separate `on: PlainDate`. Two date
    * inputs is two dates that can disagree — and they did: the test that caught this passed
    * `on: 2026-08-30` alongside a `now` in August 2025, and nothing complained, because each
-   * value was used for something different. Weather, gauge reading and regulation are all
-   * claims about one instant, so they take one instant.
+   * value was used for something different. Weather and gauge reading are claims about one
+   * instant, so they take one instant.
    */
   visitedAt?: number;
   /** The live index, so the estimate can be frozen as the reader saw it. */
@@ -69,23 +68,15 @@ async function panelFor(source: RegsSource, section: SectionId | null,
 }
 
 export async function captureSpot(input: CaptureInput): Promise<Spot> {
-  const { source, at, item, section, waterName, group } = input;
+  const { source, at, item, section, waterName } = input;
   const now = input.now ?? Date.now();
   const visitedAt = input.visitedAt ?? now;
-  // The date the CONTENTS are about. `input.on` is the day the app was showing; if the
-  // person then said they were there on the 12th, the 12th is what the record must answer
-  // for — otherwise a spot from a closed weekend reads as open because it was typed up on
-  // the Tuesday after the closure lifted.
-  const v = new Date(visitedAt);
-  const on: PlainDate = { year: v.getUTCFullYear(), month: v.getUTCMonth() + 1,
-                          day: v.getUTCDate() };
 
   // Everything in parallel: this runs while a person is looking at a "saving" spinner, and
   // three round trips in series is three times as long to look at it.
-  const [reading, trace, regulation, weather, panel] = await Promise.all([
+  const [reading, trace, weather, panel] = await Promise.all([
     readingFor(source, section),
     traceFor(source, section),
-    regulationFor(source, section, on, group),
     (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt)),
     // THE ANSWER THE APP WAS SHOWING, through the same function the map and the sheet use.
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
@@ -103,7 +94,7 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
     // to be a name. The list falls back to the water or the coordinates, which are true.
     title: input.title || waterName || "",
     notes: "", photos: [],
-    reading, weather, trace, regulation,
+    reading, weather, trace,
   };
 }
 
@@ -147,16 +138,4 @@ async function traceFor(source: RegsSource, section: SectionId | null):
     lon: link.lon,
     lat: link.lat,
   };
-}
-
-async function regulationFor(source: RegsSource, section: SectionId | null,
-                             on: PlainDate, group: SpeciesGroup) {
-  if (!section) return null;
-  const statuses = await source.statusFor([section], on, group);
-  const s = statuses.get(section);
-  if (!s) return null;
-  // The DATE is stored with it. Half of these regulations are seasonal, so an outcome with
-  // no date is a sentence that stops being true and never says when it did.
-  return { outcome: s.outcome, provenance: s.provenance,
-           on: `${on.year}-${String(on.month).padStart(2, "0")}-${String(on.day).padStart(2, "0")}` };
 }

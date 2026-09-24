@@ -3,7 +3,7 @@ import type { RegionSummary, Status } from "../types";
 
 const STATUSES: Status[] = [
   "no_registry",
-  "needs_review",
+  "flagged",
   "unused_splits",
   "unreviewed",
   "zone",

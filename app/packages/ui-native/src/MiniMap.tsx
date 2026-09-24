@@ -13,7 +13,7 @@ import { Map, type Camera, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
 import { mapChrome, type Palette } from "./theme";
 
-export function MiniMap({ at, palette, theme, camera, height = 190, view = "regulations",
+export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
                           hint, data, highlight, marker, pins, bare, groups }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;

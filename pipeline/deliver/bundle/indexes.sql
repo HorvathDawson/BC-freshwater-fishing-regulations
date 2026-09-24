@@ -1,6 +1,7 @@
 -- Built AFTER the rows, so each index is constructed once rather than maintained per insert.
 CREATE INDEX alias_by_text   ON alias(alias);
 CREATE INDEX item_by_name    ON item(name);
+CREATE INDEX item_by_parent  ON item(part_of) WHERE part_of IS NOT NULL;
 CREATE INDEX section_by_item ON item_section(ord);
 CREATE INDEX item_by_section ON item_section(sid);
 -- Both new tables are WITHOUT ROWID and keyed the way they are read — section -> set, then

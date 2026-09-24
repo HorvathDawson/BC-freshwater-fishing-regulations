@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Boundary, Extent, Op } from "../types";
 import { api } from "../api";
 import { splitArity } from "../format";
-
-const OPS: Op[] = ["whole", "upstream_of", "downstream_of", "between"];
+import { orNone, put, useVocab } from "../model";
 
 interface Props {
   itemIds: string[]; // the entry's `matched` items — their tributaries populate the dropdown
@@ -21,6 +20,8 @@ interface Props {
 // two). Pick a named tributary, then the reach on it: op=whole excludes the whole tributary;
 // upstream_of a point excludes that point and everything above it (including its own tributaries).
 export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
+  // A carve-out is a place on a named tributary, so every op but `within` (an area) applies.
+  const OPS: Op[] = useVocab().extent_ops.filter((o) => o !== "within");
   const [tribs, setTribs] = useState<{ id: string; name: string }[]>([]);
   const [cache, setCache] = useState<Record<string, Boundary[]>>({}); // item id -> its boundaries
 
@@ -55,14 +56,14 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
   }
 
   function update(i: number, patch: Partial<Extent>) {
-    onChange(excludes.map((ex, j) => (j === i ? { ...ex, ...patch } : ex)));
+    onChange(excludes.map((ex, j) => (j === i ? put(ex, patch) : ex)));
   }
   function setOp(i: number, op: Op) {
     const arity = splitArity(op);
-    let splits = excludes[i].splits;
+    let splits = excludes[i].splits ?? [];
     if (arity != null && splits.length > arity) splits = splits.slice(0, arity);
     if (op === "whole") splits = [];
-    update(i, { op, splits });
+    update(i, { op, splits: orNone(splits) });
   }
 
   return (
@@ -76,7 +77,7 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
         const opts = reachOptions(ex);
         return (
           <div className="extent-row" key={i}>
-            <select value={ex.item_id ?? ""} onChange={(e) => update(i, { item_id: e.target.value || null, splits: [] })}>
+            <select value={ex.item_id ?? ""} onChange={(e) => update(i, { item_id: e.target.value || undefined, splits: undefined })}>
               <option value="">— pick tributary —</option>
               {ex.item_id && !tribName[ex.item_id] && <option value={ex.item_id}>{ex.item_id}</option>}
               {tribs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -86,20 +87,20 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
             </select>
             {need && (
               ex.item_id ? (
-                <select className="split-multi" multiple value={ex.splits}
-                  onChange={(e) => update(i, { splits: Array.from(e.target.selectedOptions).map((o) => o.value).slice(0, arity ?? undefined) })}>
+                <select className="split-multi" multiple value={ex.splits ?? []}
+                  onChange={(e) => update(i, { splits: orNone(Array.from(e.target.selectedOptions).map((o) => o.value).slice(0, arity ?? undefined)) })}>
                   {opts.length === 0 && <option disabled>no splits on this tributary</option>}
                   {opts.map((b) => <option key={b.id} value={b.id}>{b.curated ? "★ " : ""}{b.label && b.label !== b.id ? `${b.label} — ${b.id}` : b.id}</option>)}
                 </select>
               ) : <span className="dim">pick a tributary first</span>
             )}
-            {need && <span className="dim">{ex.splits.length}/{arity}{ex.splits.length !== arity ? " ⚠" : ""}</span>}
+            {need && <span className="dim">{(ex.splits ?? []).length}/{arity}{(ex.splits ?? []).length !== arity ? " ⚠" : ""}</span>}
             <button className="btn" style={{ padding: "2px 8px" }} onClick={() => onChange(excludes.filter((_, j) => j !== i))}>remove</button>
           </div>
         );
       })}
       <button className="btn" style={{ padding: "3px 10px", marginTop: 4 }}
-        onClick={() => onChange([...excludes, { op: "whole", splits: [] }])}>
+        onClick={() => onChange([...excludes, { op: "whole" }])}>
         + add carve-out
       </button>
       {excludes.length > 0 && (

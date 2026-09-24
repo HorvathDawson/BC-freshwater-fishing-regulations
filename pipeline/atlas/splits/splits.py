@@ -57,21 +57,26 @@ def _flatten_waterbodies(data: dict) -> tuple[list[dict], list[tuple[str, str]]]
 
 
 def load_split_defs(path: str) -> list[SplitDef]:
-    """Parse + validate a splits.json. Accepts the by-waterbody shape ({"waterbodies": [...]})
-    or the legacy flat shape ({"splits": [...]} / a bare list). Fails loud on bad targets,
-    but skips (with a warning) splits whose waterbody has no ``applies_to`` yet."""
+    """Parse + validate a splits.json in the by-waterbody shape ({"waterbodies": [...]}).
+
+    ONE SHAPE. The old flat shape ({"splits": [...]} / a bare list, each split carrying its own
+    blk/wsc/gnis_id) is REFUSED, not read: the curated file has not used it since the move to
+    waterbodies, and a second accepted shape is a second place a target can hide. Fails loud on
+    a split with no resolvable target."""
     data = json.loads(Path(path).read_text())
-    if isinstance(data, dict) and "waterbodies" in data:
-        entries, untargeted = _flatten_waterbodies(data)
-        if untargeted:                       # a null-applies_to waterbody whose split has no own target
-            raise ValueError(
-                "splits.json validation: split(s) with no resolvable target (waterbody applies_to is "
-                "null and the split has no applies_to of its own): "
-                + ", ".join(f"{wb}:{sid}" for wb, sid in untargeted[:12]))
-    elif isinstance(data, dict):
-        entries = data.get("splits", [])
-    else:
-        entries = data
+    if not isinstance(data, dict) or "waterbodies" not in data:
+        got = "a list" if isinstance(data, list) else f"keys {sorted(data)[:6]}" \
+            if isinstance(data, dict) else type(data).__name__
+        raise ValueError(
+            f"{path}: splits must be the by-waterbody shape {{\"waterbodies\": [...]}}, got {got} — "
+            "the flat {\"splits\": [...]} shape is retired; put each split under a waterbody and "
+            "its target in `applies_to`")
+    entries, untargeted = _flatten_waterbodies(data)
+    if untargeted:                           # a null-applies_to waterbody whose split has no own target
+        raise ValueError(
+            "splits.json validation: split(s) with no resolvable target (waterbody applies_to is "
+            "null and the split has no applies_to of its own): "
+            + ", ".join(f"{wb}:{sid}" for wb, sid in untargeted[:12]))
     defs: list[SplitDef] = []
     skipped: list[tuple[str, str]] = []
     for e in entries:

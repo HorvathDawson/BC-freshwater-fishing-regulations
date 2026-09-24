@@ -69,9 +69,6 @@ def main() -> int:
             if p.placement == "unresolved":
                 print(f"    UNRESOLVED {p.entry_id}#{p.record_id} ({p.kind}): {p.reason} — "
                       f"{p.detail[:80]}")
-    if r.needs_backfill:
-        print(f"\n  {len(r.needs_backfill)} entries resolved only via a live re-match "
-              f"(stale `matched`); run pipeline.regs.parsing.backfill_matched")
 
     if args.out:
         counts = write_run(args.out, result, entries)

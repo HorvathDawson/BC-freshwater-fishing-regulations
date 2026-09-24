@@ -42,49 +42,6 @@
   ],
   "views": [
     {
-      "id": "regulations",
-      "label": "Regulations",
-      "default": true,
-      "modes": {
-        "stream": "closure",
-        "under_lake": "plain",
-        "lake": "closure",
-        "wetland": "plain",
-        "contour": "plain",
-        "park": "plain",
-        "eco_reserve": "plain",
-        "no_access": "plain",
-        "indigenous_land": "plain",
-        "mu": "plain",
-        "parcel_private": "plain",
-        "region": "plain",
-        "park_closed": "plain",
-        "no_access_permit": "plain",
-        "gauges": "standing",
-        "basin": "plain",
-        "parcel_private__edge": "plain",
-        "indigenous_land__edge": "plain",
-        "no_access__edge": "plain",
-        "no_access_permit__edge": "plain",
-        "eco_reserve__edge": "plain",
-        "park_closed__edge": "plain",
-        "lake__edge": "closure",
-        "region__edge": "plain",
-        "mu__edge": "plain",
-        "indigenous_land__label": "plain",
-        "no_access__label": "plain",
-        "no_access_permit__label": "plain",
-        "eco_reserve__label": "plain",
-        "park__label": "plain",
-        "park_closed__label": "plain",
-        "lake__label": "plain",
-        "stream__label": "plain",
-        "region__label": "plain",
-        "mu__label": "plain"
-      },
-      "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
-    },
-    {
       "id": "conditions",
       "label": "Conditions",
       "modes": {
@@ -216,6 +173,7 @@
     {
       "id": "plain",
       "label": "Plain map",
+      "default": true,
       "modes": {
         "stream": "plain",
         "under_lake": "plain",
@@ -252,19 +210,14 @@
         "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain"
-      }
+      },
+      "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }
   ],
   "runtimeLayers": [
     "gauges"
   ],
   "providers": {
-    "regs": {
-      "kind": "bundle",
-      "key": "section_id",
-      "freshness": "bundle",
-      "$comment": "Status per section for a date AND a species group. Two parallel stacks: the provincial synopsis governs trout, char and coarse fish; DFO governs salmon. There is no blended answer, so the view carries the group."
-    },
     "gauges": {
       "kind": "feed",
       "key": "section_id",
@@ -280,14 +233,6 @@
       "freshness": "live",
       "staleAfterMs": 1209600000,
       "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id — stocking is INTO a lake, not onto a reach."
-    },
-    "in_season": {
-      "kind": "feed",
-      "key": "item_id",
-      "fanout": "item_to_sections",
-      "freshness": "live",
-      "staleAfterMs": 43200000,
-      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold — two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
     },
     "lakes": {
       "kind": "bundle",
@@ -484,38 +429,6 @@
         "color": {
           "token": "color.wetland.fill"
         }
-      },
-      "closure": {
-        "label": "Open / closed",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "reg_status",
-        "categories": {
-          "open": {
-            "token": "color.status.open"
-          },
-          "restricted": {
-            "token": "color.status.restricted"
-          },
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "unknown": {
-            "token": "color.status.unknown"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "regs",
-          "field": "status",
-          "params": [
-            "date",
-            "species"
-          ]
-        },
-        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
       }
     },
     "lake": {
@@ -525,38 +438,6 @@
         "color": {
           "token": "color.lake.fill"
         }
-      },
-      "closure": {
-        "label": "Open / closed",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "reg_status",
-        "categories": {
-          "open": {
-            "token": "color.status.open"
-          },
-          "restricted": {
-            "token": "color.status.restricted"
-          },
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "unknown": {
-            "token": "color.status.unknown"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "regs",
-          "field": "status",
-          "params": [
-            "date",
-            "species"
-          ]
-        },
-        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
       },
       "standing": {
         "label": "Flow for the date",
@@ -699,38 +580,6 @@
         "color": {
           "token": "color.water.mapped"
         }
-      },
-      "closure": {
-        "label": "Open / closed",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "reg_status",
-        "categories": {
-          "open": {
-            "token": "color.status.open"
-          },
-          "restricted": {
-            "token": "color.status.restricted"
-          },
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "unknown": {
-            "token": "color.status.unknown"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "regs",
-          "field": "status",
-          "params": [
-            "date",
-            "species"
-          ]
-        },
-        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
       },
       "standing": {
         "label": "Flow for the date",
@@ -875,38 +724,6 @@
         "color": {
           "token": "color.water.mapped"
         }
-      },
-      "closure": {
-        "label": "Open / closed",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "reg_status",
-        "categories": {
-          "open": {
-            "token": "color.status.open"
-          },
-          "restricted": {
-            "token": "color.status.restricted"
-          },
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "unknown": {
-            "token": "color.status.unknown"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "regs",
-          "field": "status",
-          "params": [
-            "date",
-            "species"
-          ]
-        },
-        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
       },
       "standing": {
         "label": "Flow for the date",
@@ -1376,7 +1193,6 @@
       "color.status.open": "#0063D2",
       "color.status.restricted": "#5C0453",
       "color.status.closed": "#C80D00",
-      "color.status.unknown": "#716568",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "opacity.overlay": 0.55,
@@ -1444,7 +1260,6 @@
       "color.highlight": "#ff77b8",
       "color.status.open": "#48b07a",
       "color.status.restricted": "#e8a733",
-      "color.status.unknown": "#a78bd0",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "opacity.overlay": 0.45,
@@ -1514,7 +1329,6 @@
       "color.status.open": "#1D7741",
       "color.status.restricted": "#8f5c00",
       "color.status.closed": "#B33124",
-      "color.status.unknown": "#74519C",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "opacity.overlay": 0.55,
@@ -1597,16 +1411,12 @@
     "color.status.restricted": {
       "type": "color",
       "themeable": true,
-      "$comment": "RESTRICTED — a rule with conditions, or land you may enter with permission. Amber, v1's second tier, and never the same colour as a closure."
+      "$comment": "RESTRICTED — land you may enter only with permission, and the middle temperature band. Amber, v1's second tier, and never the same colour as a closure."
     },
     "color.status.closed": {
       "type": "color",
       "themeable": true,
-      "$comment": "CLOSED — and it is one colour for one meaning, whichever way the water got closed. A rule that says so, a national park boundary, an ecological reserve, land with no public access: all crimson, all the same crimson. A second near-identical red for 'the AREA that closes it' was written and then deleted; the palette guard caught it at delta-E 5.4, which is the right complaint about two names for one idea."
-    },
-    "color.status.unknown": {
-      "type": "color",
-      "themeable": true
+      "$comment": "CLOSED — and it is one colour for one meaning, whichever way the ground got closed. A national park boundary, an ecological reserve, land with no public access: all crimson, all the same crimson. A second near-identical red for 'the AREA that closes it' was written and then deleted; the palette guard caught it at delta-E 5.4, which is the right complaint about two names for one idea."
     },
     "color.flow.f1": {
       "type": "color",
@@ -1863,13 +1673,7 @@
     }
   },
   "enums": {
-    "$comment": "Vocabularies a categorical colour mode can be declared over. A mode bound to an enum MUST colour every member — that is how `unknown` cannot be silently forgotten (doc 10 ⑨/㉜). `default_only` is GONE: it fused what is allowed with where we learned it. Outcome is the colour (reg_status); provenance is line WEIGHT, so water nobody wrote a rule about is `open` drawn as a hairline, not a fifth colour.",
-    "reg_status": [
-      "open",
-      "restricted",
-      "closed",
-      "unknown"
-    ],
+    "$comment": "Vocabularies a categorical colour mode can be declared over. A mode bound to an enum MUST colour every member — that is how a member cannot be silently forgotten (doc 10 ⑨/㉜). The regulation-outcome enum (`reg_status`) was removed with the regulation integration; see app/packages/core/src/regulations.ts.",
     "stock_recency": [
       "season",
       "year",

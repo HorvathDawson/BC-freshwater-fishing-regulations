@@ -42,8 +42,7 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
         <Text style={{ ...TYPE.body, fontSize: 15, lineHeight: 22.5, color: palette.sub,
                        textAlign: "center", marginBottom: 18 }}>
           Pin an exact point on a stream and the app records the gauge, its standing
-          against the record, the weather and the regulation in force that day. Notes and
-          photographs go on top.
+          against the record and the weather that day. Notes and photographs go on top.
         </Text>
         <Button palette={palette} onPress={onAdd} label="Add a spot" />
       </View>

@@ -83,6 +83,13 @@ def test_a_malformed_id_is_refused(tmp_path, bad, msg):
         ingest.load(p)
 
 
+def test_a_missing_file_is_refused(tmp_path):
+    """AGENTS 37: a loader for a curated file RAISES on a missing file. Returning [] left the
+    bundle's `item.part_of` silently empty."""
+    with pytest.raises(FileNotFoundError, match="missing"):
+        ingest.load(tmp_path / "nope.geojson")
+
+
 def test_a_duplicate_id_is_refused(tmp_path):
     """One id is one lake; two features sharing it would have one silently re-stamp the other."""
     feat = {"type": "Feature", "properties": {"id": 7},

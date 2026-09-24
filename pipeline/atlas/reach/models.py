@@ -131,9 +131,6 @@ class BuildReport:
     scope_unresolved: list[str] = field(default_factory=list)
     #: Rules bound to their DIRECT sections only, pending the tributary walk.
     tributaries_pending: int = 0
-    #: entries whose `matched` is empty although the entry names a real item — run
-    #: `python -m pipeline.regs.parsing.backfill_matched` rather than working around it.
-    needs_backfill: list[str] = field(default_factory=list)
     #: Licensing records by `kind:placement` (see `pipeline.atlas.reach.licensing`).
     licensing: dict[str, int] = field(default_factory=dict)
     seconds: float = 0.0

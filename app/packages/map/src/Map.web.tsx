@@ -294,7 +294,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       // map alive: a map still showing the previous colouring is recoverable, a white
       // screen is not.
       // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet
-      // ground, the regulations view wants the map legible as a map. 0.42 rather than the
+      // ground, every other mode wants the map legible as a map. 0.42 rather than the
       // 0.58 it shipped at — enough that roads and landcover stop competing with a 1.4 px
       // coloured line, little enough that a reader can still find the town they launched
       // from. A wash heavy enough to guarantee the ramp is a wash that hides the map.

@@ -11,25 +11,20 @@
  */
 import { describe, expect, it } from "vitest";
 import { STYLE_META } from "@app/map";
-import { lakeChoices, streamChoices } from "./LayersSheet";
+import { lakeChoices } from "./LayersSheet";
 import { LIGHT } from "./theme";
 
 const modesFor = (layer: string) => Object.keys(STYLE_META.colorModes[layer] ?? {});
 const groupIds = new Set(STYLE_META.groups.map((g) => g.id));
 
 describe("Layers choices", () => {
-  it("only offer colour modes the stream layer has", () => {
-    for (const c of streamChoices(LIGHT))
-      expect(modesFor("stream"), `stream choice "${c.k}" -> mode "${c.mode}"`).toContain(c.mode);
-  });
-
   it("only offer colour modes the lake layer has", () => {
     for (const c of lakeChoices(LIGHT))
       expect(modesFor("lake"), `lake choice "${c.k}" -> mode "${c.mode}"`).toContain(c.mode);
   });
 
   it("only switch on layer groups that exist", () => {
-    for (const c of [...streamChoices(LIGHT), ...lakeChoices(LIGHT)])
+    for (const c of lakeChoices(LIGHT))
       if (c.group) expect(groupIds, `choice "${c.k}" -> group "${c.group}"`).toContain(c.group);
   });
 
@@ -45,7 +40,7 @@ describe("Layers choices", () => {
   });
 
   it("gives every choice three swatches, because the swatches are the label", () => {
-    for (const c of [...streamChoices(LIGHT), ...lakeChoices(LIGHT)]) {
+    for (const c of lakeChoices(LIGHT)) {
       expect(c.swatch, c.k).toHaveLength(3);
       for (const s of c.swatch) expect(s, `${c.k} swatch`).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }

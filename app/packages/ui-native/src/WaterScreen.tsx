@@ -1,9 +1,12 @@
 /**
  * One water's sheet. Drawn to `design/riffle.html`.
  *
- * THE RULES, AND A DOOR TO THE CONDITIONS. The switch under the title shows both questions
- * a water answers — which is worth showing, because a reader who does not know Conditions
- * exists will never go looking for it — but pressing the other one LEAVES.
+ * THE REGULATIONS FACE, AND A DOOR TO THE CONDITIONS. The switch under the title shows both
+ * questions a water answers — which is worth showing, because a reader who does not know
+ * Conditions exists will never go looking for it — but pressing the other one LEAVES.
+ *
+ * REGULATIONS ARE NOT INTEGRATED. The face keeps its place and shows `RegulationsPlaceholder`
+ * where the regulations will go; see `regulations.ts` in @app/core.
  *
  * This sheet used to render conditions in place. Sharing `ConditionsPanel` made the two
  * agree on the numbers and on nothing else: the Conditions tab's screen carries the reach
@@ -13,27 +16,21 @@
  * the drift AGENTS rule 23 exists to stop.
  *
  * Every value here arrived from a hook in @app/ui (rule 25). Nothing on this screen decides
- * whether a stretch is open, what a flow reading means, or whether a gauge may speak for
- * this water — read it as a list of the questions the app knows how to ask.
+ * what a flow reading means or whether a gauge may speak for this water.
  */
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { stretchLabel, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
-import type { TileEndpoints } from "@app/map";
-import { useWaterSheet } from "@app/ui";
+import { useWater } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
-import { RulesPlaceholder } from "./RulesPlaceholder";
-import { StatusPill } from "./StatusPill";
+import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { TYPE } from "./type";
-import { outcomeColour, type Palette } from "./theme";
-import { plural } from "./format";
+import type { Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
 
-export function WaterScreen({ source, item, on, group, palette, onBack,
-                              onConditions }: {
-  source: RegsSource; item: ItemId; on: PlainDate; group: SpeciesGroup;
+export function WaterScreen({ source, item, palette, onBack, onConditions }: {
+  source: RegsSource; item: ItemId;
   palette: Palette; onBack?: () => void;
   /**
    * Leave for the Conditions screen, on this water's first reach.
@@ -44,11 +41,11 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
    */
   onConditions?: (section: SectionId) => void;
 }) {
-  const sheet = useWaterSheet(source, item, on, group);
-  // Reaches run mouth -> source; conditions belong to the first, which is the stretch a
+  const sheet = useWater(source, item);
+  // Sections run mouth -> source; conditions belong to the first, which is the reach a
   // gauge is most likely to be entitled to speak for.
   const first: SectionId | null =
-    sheet.state === "ready" && sheet.value ? sheet.value.reaches[0]?.section ?? null : null;
+    sheet.state === "ready" && sheet.value ? sheet.value.sections[0] ?? null : null;
   /*
    * NO CONDITIONS HOOK RUNS HERE, deliberately.
    *
@@ -90,67 +87,16 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
         <FaceBar palette={palette} face="regulations" onBack={onBack} backLabel="Back"
                  onFace={(f) => { if (f === "conditions" && first) onConditions?.(first); }} />
         <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>
-          {plural(s.reaches.length, "set of rules", "sets of rules")}
-          {" \u00b7 "}{plural(s.rules.length, "written rule", "written rules")}
-        </Text>
       </View>
 
-      {/* ONE CONDITIONS SCREEN, REACHED ONE WAY.
-
-           This used to render `ConditionsPanel` in place, which meant the app still had two
-           conditions surfaces: the tab's, opened by tapping a reach, and this one, opened by
-           toggling here. Sharing the panel made them agree on the numbers and not on
-           anything else — the tab's carries the reach you actually tapped, the tap
-           coordinate that puts "you are here" on the route map, and the map's own flow/level
-           choice, none of which a sheet opened from a list can know.
-
-           So the toggle NAVIGATES. `Faces` is still two buttons because which two questions
-           exist about a water is itself worth showing, but pressing Conditions leaves for
-           the one screen that answers it. */}
-      {/*
-          THE RULE REGIMES, NOT THE ATLAS'S CUTS.
-
-          This listed one row per section, and the atlas cuts a river at confluences, lake
-          outlets, gauge matches and a 25 km cap — none of which is a reason a REGULATION
-          changes. The Fraser rendered 248 rows, every one of them reading the same, and the
-          stretch where the rules actually change was indistinguishable from its neighbours.
-
-          The bundle already interned the rule sets, so "which sections answer identically"
-          is a number it hands over rather than something to work out here. The Fraser is 16
-          rows now. A regime that applies in more than one place says so, because "Fraser
-          River, closed" in three separate pieces is not one stretch and must not read as
-          one. */}
-      <Section palette={palette} title="Rules along this water" />
-      {s.reaches.map((r, i) => (
-        <View key={r.section}
-              style={{ paddingHorizontal: 18, paddingVertical: 14, gap: 9,
-                       borderTopWidth: 1, borderTopColor: palette.line,
-                       flexDirection: "row" }}>
-          {/* colour is the outcome; it never carries the whole message alone */}
-          <View style={{ width: 4, borderRadius: 2, alignSelf: "stretch",
-                         backgroundColor: outcomeColour(palette, r.status.outcome) }} />
-          <View style={{ flex: 1, gap: 8 }}>
-            <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
-              {stretchLabel({ lower: r.lowerLabel, upper: r.upperLabel }, i,
-                            s.reaches.length)}
-            </Text>
-            {r.pieces > 1 && (
-              <Text style={{ ...TYPE.small, color: palette.faint }}>
-                {plural(r.pieces, "separate stretch", "separate stretches")} of this water
-              </Text>
-            )}
-            <View style={{ flexDirection: "row" }}>
-              <StatusPill status={r.status} palette={palette} />
-            </View>
-            {/* THE TABLE GOES HERE — see RulesPlaceholder, and
-                `pipeline/docs/06-ui-data-contract.md`. What stood here joined each rule's
-                generated label with dots, which names the shape of a rule and never its
-                content; a reader could neither act on it nor check it against the book. */}
-            <RulesPlaceholder palette={palette} count={r.status.from.length} />
-          </View>
-        </View>
-      ))}
+      {/* ONE CONDITIONS SCREEN, REACHED ONE WAY. The toggle above NAVIGATES rather than
+           rendering conditions here: the Conditions tab's screen carries the reach you
+           actually tapped, the tap coordinate that puts "you are here" on the route map, and
+           the map's own flow/level choice, none of which a sheet opened from a list can know. */}
+      <Section palette={palette} title="Regulations" />
+      <View style={{ paddingHorizontal: 18, paddingTop: 8 }}>
+        <RegulationsPlaceholder palette={palette} />
+      </View>
       <View style={{ paddingHorizontal: 18, paddingTop: 20 }}>
             {/*
               THE BADGE AND THIS LINE MUST NOT CONTRADICT EACH OTHER, and they did.

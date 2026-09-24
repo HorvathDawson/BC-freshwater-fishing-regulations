@@ -5,23 +5,19 @@
  * (`python -m pipeline.deliver.bundle`) executes, so a development fixture cannot drift from the
  * artifact a real build produces.
  * One file serves both platforms — resident on the phone, range-read from R2 on the web —
- * and the tables are written in the order the queries read them, so one reach's rules land
+ * and the tables are written in the order the queries read them, so one reach's rows land
  * in one or two 64 KB reads. An earlier pass of this shipped a single JSON blob, which
  * quietly dropped the whole storage design: no indexes, no query planner, and nothing to
  * range-read, so the web packaging had no way to exist.
  *
  * CONTENT: extracted from `design/riffle.html`, which embeds a real slice of build 54ea0bb4
  * for the Chilliwack / Harrison valley. Real data, so the UI is built against the cases
- * that exist — a gauge at its 4th percentile, a rule nobody could place, a creek the Fraser
- * must refuse to speak for.
+ * that exist — a gauge at its 4th percentile, a creek the Fraser must refuse to speak for.
  *
- * THE REGULATIONS come from `design/riffle-regs.json`, not from the page. riffle.html is frozen
- * in the retired prose vocabulary (`restriction_type`, `details`, `identity`), and this file used
- * to translate it on every run through `??` fallbacks across two shapes. It was converted ONCE
- * into the bundle's own `entry`/`rule` row shape — the same translation, so the dev bundle came
- * out byte-identical — and those rows are written here as they are, every column named and
- * nothing else accepted. The riffle-based UI tests keep their data; nothing here reads a prose
- * field.
+ * NO REGULATIONS. The regulation tables (`entry`, `rule`, `ruleset`, `section_ruleset` and the
+ * licensing tables) are created by the schema and left EMPTY: regulations are not integrated
+ * in the app (see `packages/core/src/regulations.ts`). riffle.html's rule data is read for one
+ * thing only — the registry item a water belongs to, which the page records nowhere else.
  *
  * WHAT IS NOT HERE, and where it lives instead:
  *
@@ -72,6 +68,8 @@ const counts = {};
 
 // ---- identity ---------------------------------------------------------------------
 // Riffle's `waters` are SECTIONS. Group them by name to recover the item they belong to.
+// The page names a water's registry item only through its rules (`rule_entry` maps a rule to
+// the item its entry matched), so that map is read here as IDENTITY — no rule is written.
 const byName = new Map();
 for (const w of src.waters) {
   const item = w.rules?.length ? src.rule_entry[w.rules[0]] ?? null : null;
@@ -104,11 +102,6 @@ const allSections = [...new Set([
   ...[...byName].flatMap(([, e]) => e.sections),
   ...Object.keys(src.gauge_shed), ...Object.keys(src.down),
   ...Object.values(src.down),
-  // Rule bindings too. A section can carry a regulation without belonging to a named item
-  // or sitting in a gauge's shed, and leaving those out made `sid()` throw halfway through
-  // the build — which is the right failure: a handle table that does not cover every
-  // section the bundle mentions cannot be used to name them.
-  ...Object.values(src.rule_sections).flatMap((xs) => xs ?? []),
 ])].sort((a, b) => {
   const [al, am] = String(a).split(":");
   const [bl, bm] = String(b).split(":");
@@ -124,85 +117,6 @@ const sid = (s) => {
 
 counts.item_section = insert("INSERT INTO item_section (ord, sid) VALUES (?,?)",
   [...byName].flatMap(([n, e]) => e.sections.map((s) => [ordOf.get(idOf(n, e)), sid(s)])));
-
-// ---- regulations ------------------------------------------------------------------
-const regs = JSON.parse(readFileSync(here("../design/riffle-regs.json"), "utf8"));
-/** A row with exactly these keys, or the build stops: a missing key is not a NULL. */
-const exactly = (row, keys, what) => {
-  const got = Object.keys(row).sort().join(","), want = [...keys].sort().join(",");
-  if (got !== want) throw new Error(`riffle-regs.json: ${what} has keys [${got}], not [${want}]`);
-  return keys.map((k) => row[k]);
-};
-const ENTRY_COLS = ["entry_id", "item_id", "name", "full_name", "verbatim", "symbols", "mus", "pages"];
-const JSON_ENTRY_COLS = new Set(["symbols", "mus", "pages"]);
-const entries = regs.entries.map((e) => [e.entry_id, e]).sort();
-// COLUMNS NAMED. This read `VALUES (?,?,?,?,?,?,?)` against an eight-column table and had
-// been failing since `pages` was added — so the fixture could not be rebuilt at all, and the
-// committed one silently went stale. Naming the columns is what stops it being possible.
-counts.entry = insert(
-  `INSERT INTO entry (${ENTRY_COLS.join(", ")}) VALUES (${ENTRY_COLS.map(() => "?").join(",")})`,
-  entries.map(([, e]) => exactly(e, ENTRY_COLS, `entry ${e.entry_id}`)
-    .map((v, i) => (JSON_ENTRY_COLS.has(ENTRY_COLS[i]) ? JSON.stringify(v) : v))));
-
-// The rule rows, as the bundler writes them. `when` is the catalogue's `When` (the `when_`
-// column); `species` a JSON list or NULL. `while_`, `species_except` and `conditions` are NULL:
-// no riffle rule is method-scoped or carries a condition.
-const RULE_KEYS = ["entry_id", "rule_id", "type", "family", "dimension", "label", "scope", "when",
-                   "species", "take", "may_target", "uncertain", "verbatim", "extent_text"];
-counts.rule = insert(
-  "INSERT OR REPLACE INTO rule (entry_id, rule_id, type, family, dimension, label, scope," +
-  "  when_, while_, species, species_except, take, may_target, conditions, uncertain, verbatim," +
-  "  extent_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-  regs.rules.map((r) => {
-    const [entryId, ruleId, type, family, dimension, label, scope, when, species, take,
-           mayTarget, uncertain, verbatim, extentText] =
-      exactly(r, RULE_KEYS, `rule ${r.entry_id}/${r.rule_id}`);
-    return [entryId, ruleId, type, family, dimension, label, scope,
-            when === null ? null : JSON.stringify(when), null,
-            species === null ? null : JSON.stringify(species), null,
-            take, mayTarget, null, uncertain, verbatim, extentText];
-  }));
-/*
- * THE INTERNED RULE SETS, built the way the pipeline builds them.
- *
- * The fixture must produce the SHAPE the bundler emits, not a hand-written approximation of
- * it: writing this file by hand is how 1,785 rows of a trust band the pipeline has never
- * emitted got in here and three test files asserted against them. So the sets are interned
- * here exactly as `pipeline/deliver/bundle/rules.py` interns them — group each section's
- * (entry, rule, via) triples, sort, intern, point at it.
- *
- * The design fixture records only direct bindings, so every `via` here is "reach". A
- * fixture with no tributary rows is honest about what the design file contains; it is not a
- * claim that the province has none (98.6% of real bindings are tributary).
- */
-const bySection = new Map();
-for (const [ruleId, scopes] of Object.entries(src.rule_sections)) {
-  const entryId = src.rule_entry[ruleId];
-  if (!entryId) continue;
-  for (const section of scopes ?? []) {
-    if (!bySection.has(section)) bySection.set(section, []);
-    bySection.get(section).push([entryId, ruleId, "reach"]);
-  }
-}
-const intern = new Map();
-const sets = [];
-const sectionSet = [];
-for (const section of [...bySection.keys()].sort()) {
-  const rows = bySection.get(section)
-    .map((t) => t.join("\u0000")).sort();
-  const key = rows.join("\u0001");
-  let id = intern.get(key);
-  if (id === undefined) {
-    id = sets.length;
-    intern.set(key, id);
-    sets.push(rows.map((r) => r.split("\u0000")));
-  }
-  sectionSet.push([section, id]);
-}
-counts.section_ruleset = insert("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
-  sectionSet.map(([section, id]) => [sid(section), id]));
-counts.ruleset = insert("INSERT INTO ruleset VALUES (?,?,?,?)",
-  sets.flatMap((rows, id) => rows.map(([e, r, via]) => [id, e, r, via])));
 
 // ---- conditions -------------------------------------------------------------------
 // Stream magnitudes, CONSTRUCTED. The design fixture records a trust band per section but

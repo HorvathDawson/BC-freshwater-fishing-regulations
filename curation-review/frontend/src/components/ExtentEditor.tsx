@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import type { Boundary, Extent, Op } from "../types";
 import { splitArity } from "../format";
-
-const OPS: Op[] = ["whole", "upstream_of", "downstream_of", "between", "within"];
+import { Checks, ErrorsAt, F, Tags, Text, orNone, put, useVocab } from "../model";
 
 interface Props {
   extents: Extent[];
@@ -10,11 +9,15 @@ interface Props {
   onChange: (next: Extent[]) => void;
   /** registry id -> display name, for showing which waters an extent spans */
   itemNames?: Record<string, string>;
+  /** where this list sits in the entry (`rules.2.extents`), so errors land on the right row */
+  path?: string;
 }
 
 // Per-rule extent editor: op dropdown + split-id multiselect populated from the
 // item's boundaries. Arity is enforced in the UI (whole=0, up/down=1, between=2).
-export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: Props) {
+export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, path = "extents" }: Props) {
+  const v = useVocab();
+  const OPS: Op[] = v.extent_ops;
   // Bindable options: drop curated splits no longer in splits.json (orphans — they vanish on rebuild),
   // keep auto boundaries, and float curated splits (splits.json) to the top.
   const baseOptions = useMemo(
@@ -39,17 +42,18 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
   }
 
   function update(i: number, patch: Partial<Extent>) {
-    onChange(extents.map((ex, j) => (j === i ? { ...ex, ...patch } : ex)));
+    onChange(extents.map((ex, j) => (j === i ? put(ex, patch) : ex)));
   }
   function setOp(i: number, op: Op) {
     const arity = splitArity(op);
-    let splits = extents[i].splits;
+    let splits = extents[i].splits ?? [];
     if (arity != null && splits.length > arity) splits = splits.slice(0, arity);
     if (op === "whole") splits = [];
     // `item_ids` is derived from the CUT-POINTS' owners, so it is meaningless once there are no
     // cuts; leaving it set would scope a whole-water extent to whatever the previous op happened to
     // bind. `item_id` is the curator's own choice and survives.
-    update(i, op === "whole" ? { op, splits, item_ids: [] } : { op, splits });
+    update(i, op === "whole" ? { op, splits: orNone(splits), item_ids: undefined }
+                             : { op, splits: orNone(splits) });
   }
   // Which registry items the chosen cut-points belong to.
   function owners(splits: string[]): string[] {
@@ -70,11 +74,11 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
     // Chilliwack and one on the Vedder. So the scope follows the cut-points automatically.
     const own = owners(splits);
     update(i, own.length > 1
-      ? { splits, item_ids: own, item_id: null }
-      : { splits, item_ids: [] });
+      ? { splits: orNone(splits), item_ids: own, item_id: undefined }
+      : { splits: orNone(splits), item_ids: undefined });
   }
   function add() {
-    onChange([...extents, { op: "whole", splits: [] }]);
+    onChange([...extents, { op: "whole" }]);
   }
   function remove(i: number) {
     onChange(extents.filter((_, j) => j !== i));
@@ -84,14 +88,16 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
     <div>
       {extents.length === 0 && (
         <div className="dim" style={{ marginBottom: 6 }}>
-          (no extents — add one, or leave empty for a needs_review / no_registry rule)
+          (no extents — add one; a rule with none must name its place in extent_text / unresolved_locators)
         </div>
       )}
       {extents.map((ex, i) => {
         const arity = splitArity(ex.op);
         const needSplits = arity != null && arity > 0;
+        const splits = ex.splits ?? [];
+        const at = `${path}.${i}`;
         return (
-          <div className="extent-row" key={i}>
+          <div className="extent-row" key={i} data-path={at}>
             <select value={ex.op} onChange={(e) => setOp(i, e.target.value as Op)}>
               {OPS.map((o) => (
                 <option key={o} value={o}>
@@ -101,12 +107,12 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
             </select>
             {needSplits &&
               (() => {
-                const opts = optionsFor(ex.splits);
+                const opts = optionsFor(splits);
                 return opts.length > 0 ? (
                   <select
                     className="split-multi"
                     multiple
-                    value={ex.splits}
+                    value={splits}
                     onChange={(e) =>
                       setSplits(
                         i,
@@ -136,7 +142,7 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
                 value={ex.item_id ?? ""}
                 title="which of this entry's waters this extent selects — default is all of them"
                 onChange={(e) =>
-                  update(i, { item_id: e.target.value || null, item_ids: [] })
+                  update(i, { item_id: e.target.value || undefined, item_ids: undefined })
                 }
               >
                 <option value="">every water this entry covers</option>
@@ -147,18 +153,41 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
                 ))}
               </select>
             )}
-            {ex.op === "within" && (
-              <input
-                type="text"
-                placeholder="area id (e.g. area:park:foo)"
-                value={ex.area_id ?? ""}
-                onChange={(e) => update(i, { area_id: e.target.value })}
-              />
+            {(ex.op === "within" || ex.area_id || ex.area_kind || (ex.feature_types ?? []).length > 0) && (
+              <span className="extent-area">
+                <F path={`${at}.area_id`}>
+                  <Text value={ex.area_id} placeholder="area:region:5" label="area_id"
+                    onChange={(x) => update(i, { area_id: x })} />
+                </F>
+                <F path={`${at}.area_kind`} hint="every area of a kind (open string; corpus values offered)">
+                  <input type="text" list="area-kinds" aria-label="area_kind" value={ex.area_kind ?? ""}
+                    onChange={(e) => update(i, { area_kind: e.target.value || undefined })} />
+                  <datalist id="area-kinds">{v.area_kinds.map((k) => <option key={k} value={k} />)}</datalist>
+                </F>
+                <F path={`${at}.feature_types`} deep>
+                  <Checks values={ex.feature_types} options={v.feature_types}
+                    onChange={(x) => update(i, { feature_types: x })} />
+                </F>
+              </span>
             )}
+            <details className="extent-limits" open={!!(ex.within_area || ex.outside_area || (ex.outside_areas ?? []).length)}>
+              <summary className="dim">limit to / subtract an area</summary>
+              <F path={`${at}.within_area`}>
+                <Text value={ex.within_area} placeholder="area id" label="within_area"
+                  onChange={(x) => update(i, { within_area: x })} />
+              </F>
+              <F path={`${at}.outside_area`}>
+                <Text value={ex.outside_area} placeholder="area id" label="outside_area"
+                  onChange={(x) => update(i, { outside_area: x })} />
+              </F>
+              <F path={`${at}.outside_areas`} deep>
+                <Tags values={ex.outside_areas} onChange={(x) => update(i, { outside_areas: x })} label="outside_areas" />
+              </F>
+            </details>
             {needSplits && (
               <span className="dim">
-                {ex.splits.length}/{arity} split{arity === 1 ? "" : "s"}
-                {ex.splits.length !== arity ? " ⚠" : ""}
+                {splits.length}/{arity} split{arity === 1 ? "" : "s"}
+                {splits.length !== arity ? " ⚠" : ""}
               </span>
             )}
             {ex.item_id && (
@@ -177,6 +206,15 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
             <button className="btn" style={{ padding: "2px 8px" }} onClick={() => remove(i)}>
               remove
             </button>
+            <ErrorsAt path={at} />
+            {(() => {
+              const other = Object.keys(ex).filter((k) => !v.extent_keys.includes(k));
+              return other.length ? (
+                <span className="chip-tag orphan" title="kept as written; edit it in the rule's raw JSON">
+                  also: {other.map((k) => `${k}=${JSON.stringify(ex[k])}`).join(", ")}
+                </span>
+              ) : null;
+            })()}
           </div>
         );
       })}

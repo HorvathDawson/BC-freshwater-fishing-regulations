@@ -475,16 +475,16 @@ for (const l of src.layers ?? []) {
 
 // --- a colour token may not cross semantic families ---
 //
-// Tokens are namespaced by MEANING: `status.*` is regulatory, `flow.*` is hydrological,
-// `water.*` is neutral ("no data expressed") and may be used anywhere. A mode reading the
-// `regs` provider may use status.*; one reading a feed like `gauges` may use flow.*.
+// Tokens are namespaced by MEANING: `status.*` is access and closure (static area layers),
+// `flow.*` is hydrological, `water.*` is neutral ("no data expressed") and may be used
+// anywhere. A mode reading a feed like `gauges` may use flow.*.
 //
-// This exists because the discharge mode declared `missing: color.status.unknown`. About
-// 19,250 of 19,700 waters have no gauge, so nearly the whole Conditions view rendered in
-// the same violet that means "we could not parse this regulation" in the Regulations view
-// — two unrelated unknowns, one colour. The ΔE rule cannot catch it: it is the SAME token,
-// not two similar ones.
-const FAMILY_FOR_PROVIDER = { regs: "status", gauges: "flow" };
+// This exists because the discharge mode once declared `missing: color.status.unknown`.
+// About 19,250 of 19,700 waters have no gauge, so nearly the whole Conditions view rendered
+// in the same violet that meant "we could not parse this regulation" in the (since removed)
+// Regulations view — two unrelated unknowns, one colour. The ΔE rule cannot catch it: it is
+// the SAME token, not two similar ones.
+const FAMILY_FOR_PROVIDER = { gauges: "flow" };
 for (const l of src.layers ?? []) {
   for (const [mode, m] of Object.entries(l.colorModes ?? {})) {
     const provider = m.data?.provider;

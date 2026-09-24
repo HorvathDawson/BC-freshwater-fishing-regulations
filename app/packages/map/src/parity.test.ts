@@ -67,15 +67,16 @@ describe("map parity", () => {
   it("a user palette override changes colour identically on both", () => {
     const a = recorder(), b = recorder();
     const o = { "color.status.closed": "#123456" };
-    native.applyView(a.h, "regulations", "light", o);
-    web.applyView(b.h, "regulations", "light", o);
+    // The closed-area hatch (national parks, no-access land) draws in this token.
+    native.applyView(a.h, "plain", "light", o);
+    web.applyView(b.h, "plain", "light", o);
     expect(a.calls).toEqual(b.calls);
     expect(a.calls.join(" ")).toContain("#123456");
   });
 
   it("feature data pushes identically on both", () => {
     const a = recorder(), b = recorder();
-    const v = { "380887781:11988": { status: "closed" } };
+    const v = { "380887781:11988": { standing: 42 } };
     native.setData(a.h, "stream", v);
     web.setData(b.h, "stream", v);
     expect(a.calls).toEqual(b.calls);
@@ -153,9 +154,9 @@ describe("theme + toggle rules", () => {
 
   it("colour expressions read feature-state, so a view switch refetches nothing", () => {
     const t = resolveTheme("light");
-    const expr = JSON.stringify(colorExpression("stream", "closure", t));
+    const expr = JSON.stringify(colorExpression("stream", "standing", t));
     expect(expr).toContain("feature-state");
-    expect(expr).toContain("status");
+    expect(expr).toContain("standing");
   });
 });
 

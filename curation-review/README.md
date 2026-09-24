@@ -4,9 +4,8 @@ A small, **local** app for a human to review the LLM-parsed catalogue entries ag
 the original regulation text, the parsed rules, the split bindings, and the water on a map — and to
 correct what is wrong. Edits are written straight back to the catalogue region files.
 
-> Status: **built and in use, partly ported.** The save path writes catalogue entries (see "Write
-> model"). Parts of the rule editor still show or edit fields from the retired prose model — see
-> "Not yet ported" below.
+> Status: **built and in use.** It reads and writes the current catalogue model (`CatalogueEntry`
+> with `rules` and `licensing`) — every field of it; see "What the editor covers".
 
 ## Run it
 
@@ -73,14 +72,41 @@ stamps on what it serves and removes again on save.
 
 ## What the editor covers
 
-Every control reads and writes the catalogue shape; nothing of the retired prose model is declared
-in `frontend/src/types.ts`, and the backend refuses a field the model does not know (422).
+Every part of the catalogue model, labelled with the model's own keys, so a validator error lands on
+the control that edits it (`rules.2.gear.0.max`). Every option list comes from `GET /api/vocab`,
+read off `catalogue.py`; nothing is hard-coded in the UI. Every edit is checked live
+(`POST /api/check`): the errors appear on their fields and the generated label of every rule and
+record is recomputed, so the curator reads what the app will say before saving.
 
-- per rule: `type`, `verbatim`, `extents`, `species`, `when` (dates, hours, weekdays — `unparsed`
-  is shown read-only), `tributaries_only`, and `tributary_excludes` (carve-outs);
-- per entry: `extents` (the entry's scope, which clips every rule — it is never a rule's reach),
-  `includes_tributaries`, `matched`.
+- **entry**: `extents` (the scope that clips every rule), `includes_tributaries`, `scope_note`,
+  `matched` (add from a registry search, remove). Read-only, with the reason shown: `entry_id`,
+  `name`, `display_name`, `region`, `regs_verbatim`, `source_pages`, `symbols` — passed through from
+  the synopsis row, and refused by the backend if changed.
+- **rules**, every type (incl. `angler_closure`): `type`, `obligation`, `verbatim`; `species`,
+  `species_except`, `when_targeting`, `closed_to` (Who), `water`, `origin`; `take`, `unlimited`,
+  `may_target`, `period`, `per_daily`, `within`, `record_retention`, `lengths` (ordered ranges);
+  `when` (dates, hours, weekdays; `unparsed` read-only); `gear` (ordered clauses — slot, of,
+  allow/only/ban, except, members, max/min/unlimited, must_be, requires, when, unless), `while`,
+  `conduct`; `aspect`, `level`, `max_power_kw`, `max_kmh`; `exempts`, `suspended_while`,
+  `condition_of`, `derived_from`, `authority`, `notice`, `standing`; `extents`,
+  `includes_tributaries`, `tributaries_only`, `tributary_excludes`, `extent_text`,
+  `unresolved_locators`; `review_reason`.
+- **licensing**, every kind: designation (classified, unit, unit_name, when, extents, tributaries,
+  excludes, steelhead stamp during/waived, suspended_while), not_classified, requirement (doing,
+  who, who_except, satisfied_by paths — hold / accompanied_by / as, with quota — conduct, water, on,
+  authority, when, extents, restates), licence_terms, exemption, alternative. Add a record of any
+  kind; remove one.
+- A **raw JSON** view on every rule and record, validated live like everything else — for an extent
+  key the Extent model does not declare, or to see exactly what will be written.
 
-Not editable here (shown, or carried through a save unchanged): `lengths`, `gear`, `while`,
-`exempts`, `licensing`. The source row-crop is found by the row's printed text; when several rows
-print the same text and none carries this entry's name, no crop is shown rather than a wrong one.
+The source row-crop is found by the row's printed text; when several rows print the same text and
+none carries this entry's name, no crop is shown rather than a wrong one.
+
+## Tests
+
+`pipeline/tests/test_curation_review_api.py` drives the API with `TestClient` on a temp copy of the
+catalogue: GET, unchanged PUT (byte-identical), an edit to each editor's field, and invalid edits
+refused at the field — one entry of every rule type and every licensing kind.
+
+To run the app against a copy (never the real files): `CURATION_ENTRIES_DIR=<copy>` on the backend,
+and `CURATION_API=http://127.0.0.1:<port>` on `vite` when the backend is on another port.

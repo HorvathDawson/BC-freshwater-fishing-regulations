@@ -6,7 +6,6 @@
     "color.highlight": "#ff77b8",
     "color.status.open": "#48b07a",
     "color.status.restricted": "#e8a733",
-    "color.status.unknown": "#a78bd0",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
     "opacity.overlay": 0.45,

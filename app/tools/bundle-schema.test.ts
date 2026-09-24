@@ -31,9 +31,10 @@ describe("the bundle format", () => {
     expect(builder, "the fixture builder declares its own tables").not.toMatch(/CREATE TABLE/);
   });
 
-  it("declares the tables the data contract names", () => {
-    // Named individually: if one is dropped, the failure should say which.
-    for (const t of ["item", "alias", "item_section", "entry", "rule", "section_ruleset", "ruleset",
+  it("declares the tables the app reads", () => {
+    // Named individually: if one is dropped, the failure should say which. No regulation
+    // table is listed — the app reads none (see `regulations.ts` in @app/core).
+    for (const t of ["item", "alias", "item_section",
                      "gauge", "section_gauge", "section_down", "gauge_clim", "chart", "release",
                      "place", "place_water"])
       expect(TABLES, `${t} is missing from schema.sql`).toContain(t);
@@ -53,11 +54,5 @@ describe("the bundle format", () => {
       "SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name as string));
     db.close();
     for (const t of TABLES) expect(got, `${t} missing from the built fixture`).toContain(t);
-  });
-
-  it("keys rules on (entry_id, rule_id), never on rule_id alone", () => {
-    // 49 rule_ids collide corpus-wide (AGENTS rule 8). A table keyed on rule_id alone
-    // silently merges two different waters' rules.
-    expect(ddl).toMatch(/PRIMARY KEY \(entry_id, rule_id\)/);
   });
 });

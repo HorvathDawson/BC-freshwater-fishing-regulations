@@ -1,33 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Boundary, Entry, EntryDetail as EntryDetailT, EntryReaches, ItemSearchResult, Rule, SpeciesOption } from "../types";
-import { api, type ValidationError } from "../api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  Boundary, CheckResult, Entry, EntryDetail as EntryDetailT, EntryReaches, FieldError,
+  ItemSearchResult, LicensingRecord, Rule,
+} from "../types";
+import { api, type EntryRefused } from "../api";
 import { reachIdentities } from "../format";
 import { ExtentEditor } from "./ExtentEditor";
-import { SpeciesPicker } from "./SpeciesPicker";
 import { AttachItem } from "./AttachItem";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { SplitEditor } from "./SplitEditor";
-import { WhenEditor } from "./WhenEditor";
-import { ExcludesEditor } from "./ExcludesEditor";
+import { RuleEditor } from "./model/RuleEditor";
+import { LicensingEditor, blankRecord } from "./model/LicensingEditor";
+import { ErrorsAt, ErrorsCtx, F, Text, Tri, put, useVocab } from "../model";
 
 interface Props {
   detail: EntryDetailT;
-  speciesOptions: SpeciesOption[];
   onSaved: () => void;
   /** jump to another entry (a related row over the same water) */
   onNavigate?: (entryId: string) => void;
   /** bumped after a graph rebuild — forces the map to refetch geometry for the same item */
   reloadKey?: number;
 }
-
-// The 15 catalogue types, fetched from the backend so this list cannot drift from the model.
-// It used to hold the 6 retired coarse kinds, every one of which the model now refuses.
-const FALLBACK_TYPES = [
-  "retention_limit", "stop_fishing_after_quota", "bait_restriction", "tackle_restriction",
-  "method_rule", "vessel_rule", "angling_from_vessel_prohibited", "navigation_duty",
-  "angler_closure", "handling_rule", "hazard", "advisory",
-  "program_membership", "facility",
-];
 
 // Curated-split state vs the built graph, for the colour-coded chip badge.
 function boundaryState(b: Boundary): { cls: string; text: string; title: string } | null {
@@ -50,30 +43,21 @@ const SYNOPSIS_PDF =
   "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/" +
   "fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
 
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/** A `when` in words, for the rule card. The rule's generated `label` already says it in the
- *  model's own wording; this is the structured value beside the editor. */
-function whenWords(w: NonNullable<Rule["when"]>): string {
-  const clock = (c: { at?: string; solar?: string; offset_min?: number }) =>
-    c.at ?? `${c.offset_min ? `${c.offset_min > 0 ? "+" : ""}${c.offset_min} min ` : ""}${c.solar}`;
-  return [
-    ...(w.dates ?? []).map((d) => `${MON[d.from_month - 1]} ${d.from_day}–${MON[d.to_month - 1]} ${d.to_day}`),
-    ...(w.hours ? [`${clock(w.hours.start)} to ${clock(w.hours.end)}`] : []),
-    ...((w.weekdays ?? []).length ? [(w.weekdays ?? []).join(", ")] : []),
-    ...(w.unparsed ?? []),
-  ].join("; ") || "all year";
+/** Strip what the backend stamps on a served entry (each rule's / record's generated `label`),
+ *  so "unsaved changes" compares what would be written. */
+function stored(e: Entry): Entry {
+  return {
+    ...e,
+    rules: (e.rules ?? []).map(({ label: _l, ...r }) => r as Rule),
+    licensing: (e.licensing ?? []).map(({ label: _l, ...x }) => x as LicensingRecord),
+  };
 }
 
-export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
-                              reloadKey = 0 }: Props) {
-  const { item, unused_curated_splits, match, source_image } = detail;
+export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Props) {
+  const vocab = useVocab();
+  const { item, unused_curated_splits, source_image } = detail;
   const related = detail.related_entries ?? [];
   const boundaries = item?.boundaries ?? [];
-  const speciesName = useMemo(
-    () => Object.fromEntries(speciesOptions.map((o) => [o.code, o.name])),
-    [speciesOptions],
-  );
 
   // Editable working copy of the entry, reset whenever a new entry loads.
   // A combined override puts several registry items behind ONE synopsis row ("CHILLIWACK / VEDDER
@@ -83,27 +67,41 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
   // AND water-by-water, so each is clickable to focus the map on just that body.
   const coveredItems = item ? [{ id: item.id, name: item.name, kind: item.kind }, ...alsoItems] : [];
   const [focusItemId, setFocusItemId] = useState<string | null>(null);
-  const [entry, setEntry] = useState<Entry>(() => structuredClone(detail.entry));
-  const [errors, setErrors] = useState<string[]>([]);
+  const [entry, setEntry] = useState<Entry>(() => stored(structuredClone(detail.entry)));
+  // the save's refusal, and the live check of the draft — both addressed to fields
+  const [saveErrors, setSaveErrors] = useState<FieldError[]>([]);
+  const [checked, setChecked] = useState<CheckResult | null>(null);
+  const [openRule, setOpenRule] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [selBoundary, setSelBoundary] = useState<string | null>(null); // clicked split -> map highlight + info
   const [pendingPoint, setPendingPoint] = useState<{ lon: number; lat: number } | null>(null); // live coord "show on map"
   const [reaches, setReaches] = useState<EntryReaches | null>(null); // resolved reach per rule/extent
-  const [ruleTypes, setRuleTypes] = useState<string[]>(FALLBACK_TYPES);
+  const rules = entry.rules ?? [];
+  const licensing = entry.licensing ?? [];
 
+  // THE LIVE CHECK. Every edit is sent to /api/check (debounced): the model validates the draft
+  // and returns each error addressed to its field, plus the label every rule and record will
+  // show. Nothing is written — that is Save's job, which runs the same check again.
+  const seq = useRef(0);
   useEffect(() => {
-    fetch("/api/rule-types")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (Array.isArray(d) && d.length) setRuleTypes(d.map((x: {type: string}) => x.type)); })
-      .catch(() => { /* keep the fallback list */ });
-  }, []);
+    const n = ++seq.current;
+    const ctl = new AbortController();
+    const t = setTimeout(() => {
+      api.check(entry, detail.region, ctl.signal)
+        .then((r) => { if (n === seq.current) setChecked(r); })
+        .catch(() => { /* aborted or offline: keep the last answer */ });
+    }, 300);
+    return () => { clearTimeout(t); ctl.abort(); };
+  }, [entry, detail.region]);
+  const liveErrors = checked?.errors ?? [];
+  const errors = saveErrors.length ? saveErrors : liveErrors;
 
   // Which distinct reach each rule lands on. Several rules almost always share one, and the authored
   // extent text ("downstream of Vedder Crossing Bridge") does not reveal which WATER that is.
   const reachOf = useMemo(
-    () => reachIdentities(reaches, entry.rules.map((r) => r.rule_id)),
-    [reaches, entry.rules],
+    () => reachIdentities(reaches, rules.map((r) => r.rule_id)),
+    [reaches, rules],
   );
 
   // registry id -> name, over every water this entry covers, so an extent can say which it spans
@@ -127,14 +125,15 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
 
 
   useEffect(() => {
-    setEntry(structuredClone(detail.entry));
-    setErrors([]);
-    setToast("");
+    // a reload after a save lands here: keep its "Saved ✓" toast, which is the confirmation
+    setEntry(stored(structuredClone(detail.entry)));
+    setSaveErrors([]);
   }, [detail.entry]);
 
-  const mapItemId = item?.id ?? entry.matched[0] ?? null;
+  const matched = entry.matched ?? [];
+  const mapItemId = item?.id ?? matched[0] ?? null;
   // A catalogue entry records the items it covers in `matched`; a water row with none is unbound.
-  const isNoRegistry = detail.kind !== "zone" && (entry.matched ?? []).length === 0;
+  const isNoRegistry = detail.kind !== "zone" && item == null;
 
   // Flag when the printed synopsis symbol (`symbols`, copied from the row at ingest) says the reg
   // extends to tributaries but the entry's `includes_tributaries` is off.
@@ -142,46 +141,56 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
   const tribFlagMismatch = symbolSaysTributaries && entry.includes_tributaries === false;
 
   const dirty = useMemo(
-    () => JSON.stringify(entry) !== JSON.stringify(detail.entry),
+    () => JSON.stringify(entry) !== JSON.stringify(stored(detail.entry)),
     [entry, detail.entry],
   );
 
-  function patchRule(idx: number, patch: Partial<Rule>) {
-    setEntry((e) => ({
-      ...e,
-      rules: e.rules.map((r, i) => (i === idx ? { ...r, ...patch } : r)),
-    }));
+  function edit(fn: (e: Entry) => Entry) {
+    setSaveErrors([]);
+    setEntry(fn);
   }
-
-  function removeRule(idx: number) {
-    setEntry((e) => ({ ...e, rules: e.rules.filter((_, i) => i !== idx) }));
-  }
+  const patchRule = (idx: number, r: Rule) =>
+    edit((e) => ({ ...e, rules: (e.rules ?? []).map((x, i) => (i === idx ? r : x)) }));
+  const removeRule = (idx: number) =>
+    edit((e) => ({ ...e, rules: (e.rules ?? []).filter((_, i) => i !== idx) }));
+  const patchRecord = (idx: number, x: LicensingRecord) =>
+    edit((e) => ({ ...e, licensing: (e.licensing ?? []).map((y, i) => (i === idx ? x : y)) }));
+  const removeRecord = (idx: number) =>
+    edit((e) => ({ ...e, licensing: (e.licensing ?? []).filter((_, i) => i !== idx) }));
 
   function addRule() {
-    setEntry((e) => {
-      const nums = e.rules.map((r) => Number(r.rule_id.match(/\.r(\d+)$/)?.[1] ?? 0));
+    edit((e) => {
+      // a rule id is `<entry slug>.r<n>` — the slug is what the entry's other rules already use
+      const slug = (e.rules?.[0]?.rule_id ?? `${e.entry_id.split(":").pop()?.split("@")[0]}.r0`)
+        .replace(/\.r\d+[a-z]?$/, "");
+      const nums = (e.rules ?? []).map((r) => Number(r.rule_id.match(/\.r(\d+)[a-z]?$/)?.[1] ?? 0));
       const n = (nums.length ? Math.max(...nums) : 0) + 1;
       const blank: Rule = {
-        rule_id: `${e.entry_id}.r${n}`,
-        type: "advisory",
-        extents: [],
-        review_reason: "manually added — set the type and quote its sentence, then bind",
-        verbatim: "",
-        unresolved_locators: [],
-        species: [],
+        rule_id: `${slug}.r${n}`, type: "advisory", verbatim: "",
+        review_reason: "manually added — set the type, quote its sentence, then say where",
       };
-      return { ...e, rules: [...e.rules, blank] };
+      setOpenRule((o) => ({ ...o, [blank.rule_id]: true }));
+      return { ...e, rules: [...(e.rules ?? []), blank] };
+    });
+  }
+
+  function addRecord(kind: string) {
+    edit((e) => {
+      const ids = new Set((e.licensing ?? []).map((x) => x.id));
+      let n = 1;
+      while (ids.has(`${kind}_${n}`)) n++;
+      return { ...e, licensing: [...(e.licensing ?? []), blankRecord(kind, `${kind}_${n}`)] };
     });
   }
 
   function attach(chosen: ItemSearchResult) {
     // `matched` is the whole record of what the entry covers; nothing else is flipped.
-    setEntry((e) => ({ ...e, matched: [chosen.id] }));
-    setToast(`attached ${chosen.name} — reload after save to load its boundaries`);
+    edit((e) => ({ ...e, matched: [...(e.matched ?? []).filter((x) => x !== chosen.id), chosen.id] }));
+    setToast(`attached ${chosen.name} — save, then reload, to load its boundaries`);
   }
 
   async function doSave() {
-    setErrors([]);
+    setSaveErrors([]);
     setToast("");
     setSaving(true);
     try {
@@ -190,34 +199,36 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
         setToast("Saved ✓");
         onSaved();
       } else {
-        setErrors(res.errors);
+        setSaveErrors(res.errors);
       }
     } catch (err) {
-      const ve = err as ValidationError;
-      if (ve.errors) setErrors(ve.errors);
-      else setErrors([String((err as Error).message ?? err)]);
+      const fe = (err as EntryRefused).fieldErrors;
+      setSaveErrors(fe ?? [{ path: "", msg: String((err as Error).message ?? err) }]);
     } finally {
       setSaving(false);
     }
   }
 
+  const liveLabel = (kind: "rules" | "licensing", i: number, served?: string) => {
+    const got = checked?.labels?.[kind]?.[i];
+    return got === undefined ? served : got;
+  };
+
   return (
+    <ErrorsCtx.Provider value={errors}>
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
       {/* Identity header */}
-      <div className="identity">
-        <h2>{entry.name}</h2>
+      <div className="entry-head">
+        <h2>{entry.display_name || entry.name}</h2>
         <div className="sub">
           <span>region {entry.region || detail.region}</span>
-          {/* The catalogue keeps no `identity` block: name and region are flat, and the MUs the
-              ROW was printed under are encoded in entry_id after the `@` — which is what makes the
-              id stable when matching moves. */}
           {entry.entry_id.includes("@") && (
             <span>MU {entry.entry_id.split("@")[1].split("+").join(", ")}</span>
           )}
           <span className={`badge ${isNoRegistry ? "no_registry" : "confirmed"}`}>
-            {isNoRegistry ? "NO REGISTRY" : "matched"}
+            {isNoRegistry ? "NO REGISTRY" : detail.kind === "zone" ? "zone" : "matched"}
           </span>
           {item ? (
             <span className="dim">
@@ -246,15 +257,12 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
               )}
             </span>
           ) : detail.kind === "zone" ? (
-            /* A regional rule names no water on purpose. Saying "unmatched" here reported
-               the entry as broken when it is exactly what it should be. */
-            <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on the entry, not a named water">
+            /* A regional rule names no water on purpose. */
+            <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on its rules, not a named water">
               regional rule · applies by area
             </span>
           ) : (
-            <span className="dim">
-              item: none {match.status ? `(${match.status})` : ""}
-            </span>
+            <span className="dim">item: none — `matched` is empty, so this entry binds nothing</span>
           )}
         </div>
         {related.length > 0 && (
@@ -275,14 +283,54 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
             ))}
           </div>
         )}
+        {/* PASS-THROUGH FIELDS. They are copied from the synopsis row by the batch, and
+            `entry_id` encodes the row (name slug + the MUs it was printed under). A re-parse
+            compares the entry to the row by them, so editing one here would desync the entry from
+            its source — the backend refuses a change to any of them. */}
+        <details className="identity-fields">
+          <summary className="dim">identity (pass-through from the synopsis row — read-only)</summary>
+          <table>
+            <tbody>
+              <tr><td className="k">entry_id</td><td><code>{entry.entry_id}</code></td></tr>
+              <tr><td className="k">name</td><td>{entry.name}</td></tr>
+              <tr><td className="k">display_name</td><td>{entry.display_name || <span className="dim">—</span>}</td></tr>
+              <tr><td className="k">region</td><td>{entry.region || <span className="dim">—</span>}</td></tr>
+              <tr><td className="k">source_pages</td><td>{(entry.source_pages ?? []).join(", ") || "—"}</td></tr>
+              <tr><td className="k">symbols</td><td title="the printed glyphs, 1:1 — a cross-check, never a binding">
+                {(entry.symbols ?? []).length ? (entry.symbols ?? []).map((g) => <span key={g} className="tag">{g}</span>) : <span className="dim">none printed</span>}
+              </td></tr>
+            </tbody>
+          </table>
+          <ErrorsAt path="entry_id" /><ErrorsAt path="name" /><ErrorsAt path="display_name" />
+          <ErrorsAt path="region" /><ErrorsAt path="symbols" /><ErrorsAt path="source_pages" />
+        </details>
+        <ErrorsAt path="" />
       </div>
 
-      {/* no_registry attach flow */}
-      {isNoRegistry && (
-        <div className="section">
-          <AttachItem matched={entry.matched} onAttach={attach} />
-        </div>
-      )}
+      {/* matched — the items this entry covers. AUTHORITATIVE: empty binds nothing. */}
+      <div className="section">
+        <F path="matched" deep hint="the registry items this row regulates, primary first — empty means it binds nothing">
+          <span className="tag-input">
+            {matched.map((id) => (
+              <span className="tag" key={id}>
+                {itemNames[id] ?? id} <span className="dim">{id}</span>
+                <button type="button" aria-label={`remove ${id}`}
+                  onClick={() => edit((e) => ({ ...e, matched: (e.matched ?? []).filter((x) => x !== id) }))}>×</button>
+              </span>
+            ))}
+            {matched.length === 0 && <span className="dim">none</span>}
+          </span>
+        </F>
+        {detail.match && matched.length === 0 && (
+          <div className="dim">
+            live matcher suggests: <code>{detail.match.item_id ?? "nothing"}</code> ({detail.match.status}
+            {detail.match.reason ? ` — ${detail.match.reason}` : ""}) — attach it below if it is right
+          </div>
+        )}
+        {(isNoRegistry || detail.kind !== "zone") && (
+          <AttachItem matched={matched} onAttach={attach} />
+        )}
+      </div>
 
       {/* Unused curated splits warning */}
       {unused_curated_splits.length > 0 && (
@@ -332,216 +380,138 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
         </div>
       )}
 
-      {/* Global reach — the entry-level scope that applies to EVERY rule (e.g. a row named
-          "Elk River (downstream of Elko Dam)" scopes the whole entry downstream of that split). */}
+      {/* The entry's own fields: its reach (which CLIPS every rule, and is never a rule's reach),
+          whether it includes tributaries, and the scope note. */}
       <div className="section">
-        <h3>Global reach (applies to all rules)</h3>
-        <div className="dim" style={{ marginBottom: 6 }}>
-          The reach this whole entry covers — e.g. <em>downstream of</em> a dam/lake split. It CLIPS
-          every rule below to this stretch; it is never a rule's reach — each rule states its own
-          extents (or names a place it cannot bind). Leave empty if the entry covers the whole water.
-        </div>
-        <ExtentEditor
-          extents={entry.extents ?? []}
-          boundaries={boundaries}
-          itemNames={itemNames}
-          onChange={(next) => setEntry((s) => ({ ...s, extents: next }))}
-        />
+        <h3>Entry scope (clips every rule)</h3>
+        <F path="extents" hint="the stretch this row is about — it clips every rule; each rule still states its own reach">
+          <ExtentEditor
+            extents={entry.extents ?? []}
+            boundaries={boundaries}
+            itemNames={itemNames}
+            path="extents"
+            onChange={(next) => edit((s) => put(s, { extents: next.length ? next : undefined }))}
+          />
+        </F>
+        <F path="includes_tributaries" hint="from the synopsis symbol; a rule or record with its own unset inherits this">
+          <Tri value={entry.includes_tributaries} unset="not stated by the row" yes="includes tributaries"
+            no="does not include tributaries"
+            onChange={(x) => edit((s) => put(s, { includes_tributaries: x }))} />
+        </F>
+        {tribFlagMismatch && (
+          <div className="trib-warning">
+            ⚠ The printed symbol says <strong>[Includes Tributaries]</strong> but
+            <code> includes_tributaries</code> is false.
+          </div>
+        )}
+        <F path="scope_note">
+          <Text value={entry.scope_note} label="scope_note" onChange={(x) => edit((s) => put(s, { scope_note: x }))} />
+        </F>
       </div>
 
-      {/* Side-by-side: original text vs parsed rules */}
+      {/* The printed passage, then every rule and every licensing record as the app will say it
+          — the GENERATED label, recomputed by the backend on every edit — with its editor. */}
       <div className="section">
-        <h3>Original regs ↔ parsed rules</h3>
-        <div className="stacked">
-          <div>
-            {tribFlagMismatch && (
-              <div className="trib-warning">
-                ⚠ The synopsis symbol flags this row <strong>[Includes Tributaries]</strong> but this
-                entry's global tributaries flag is <strong>off</strong>. Verify — the parser defaulted
-                many entries to false.
-              </div>
-            )}
-            <div className="verbatim">{entry.regs_verbatim}</div>
-          </div>
-          <div className="rules-list">
-            {entry.rules.map((rule, idx) => (
-              <div
-                className={`rule${rule.review_reason ? " needs_review" : ""}`}
-                key={rule.rule_id}
-              >
+        <h3>Original regs</h3>
+        <div className="verbatim" data-testid="regs-verbatim">{entry.regs_verbatim}</div>
+      </div>
+
+      <div className="section">
+        <h3>Rules ({rules.length})</h3>
+        <div className="rules-list">
+          {rules.map((rule, idx) => {
+            const path = `rules.${idx}`;
+            const lab = liveLabel("rules", idx, rule.label);
+            const bad = errors.some((e) => e.path === path || e.path.startsWith(path + "."));
+            const rc = reachOf[rule.rule_id];
+            return (
+              <div className={`rule${rule.review_reason ? " flagged" : ""}${bad ? " has-error" : ""}`}
+                   key={idx} data-rule={rule.rule_id}>
                 <div className="rule-head">
                   <span className="badge">{rule.type}</span>
                   <span className="rule-id">{rule.rule_id}</span>
-                  {(() => {
-                    const rc = reachOf[rule.rule_id];
-                    if (!rc) {
-                      return reaches ? (
-                        <span className="badge warn" title="this rule's extent does not resolve to any geometry — an area scope, an unbound locator, or a cut that is not on this water">
-                          no reach
-                        </span>
-                      ) : null;
-                    }
-                    return (
-                      <span
-                        className="reach-tag"
-                        style={{ borderColor: rc.color, color: rc.color }}
-                        title={`reach ${rc.key}: ${rc.n} section${rc.n === 1 ? "" : "s"} on ${rc.waters.join(", ")}. Rules sharing this tag cover the same water; pick reach ${rc.key} on the map to see it.`}
-                      >
-                        <i style={{ background: rc.color }} />
-                        {rc.key} · {rc.waters.join(", ") || "—"} · {rc.n}
-                      </span>
-                    );
-                  })()}
-                  <button
-                    className="btn"
-                    style={{ marginLeft: "auto", padding: "1px 8px" }}
-                    disabled={entry.rules.length <= 1}
-                    title={entry.rules.length <= 1 ? "an entry needs at least 1 rule" : "remove this rule (not applicable)"}
-                    onClick={() => removeRule(idx)}
-                  >
-                    remove rule
-                  </button>
-                </div>
-                <div className="details">{rule.label}</div>
-                {rule.verbatim && <div className="rule-verbatim">{rule.verbatim}</div>}
-
-                {rule.species.length > 0 && (
-                  <div className="field">
-                    <span className="k">species</span>
-                    {rule.species.map((c) => speciesName[c] ?? c).join(", ")}
-                  </div>
-                )}
-                {rule.species.length === 0 && (
-                  <div className="field dim">species: ALL</div>
-                )}
-                {rule.when && (
-                  <div className="field">
-                    <span className="k">when</span>
-                    {whenWords(rule.when)}
-                    {(rule.when.unparsed ?? []).length > 0 && (
-                      <span className="chip-tag orphan" title="a season the parser could not read — not all year">
-                        unparsed
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* What this rule LIFTS. In the catalogue an exemption is a FIELD, not a type,
-                    and it takes the type of whatever it lifts — so this is structured data now,
-                    not a fixed vocabulary of seven ids. Shown, not edited: editing it safely means
-                    editing the rule it points at. */}
-                {rule.exempts != null && (
-                  <div className="field">
-                    <span className="k">exempts</span>
-                    <code className="dim">{JSON.stringify(rule.exempts)}</code>
-                  </div>
-                )}
-                {rule.extent_text && (
-                  <div className="field dim" title="the reach in the page's own words — no cut-point expresses it">
-                    “{rule.extent_text}”
-                  </div>
-                )}
-                {rule.tributaries_only && (
-                  <div className="field">
-                    <span className="k">tributaries</span>
-                    <span className="chip-tag new" title="walks the tributaries WITHOUT the mainstem">
-                      tributaries only
+                  {rc ? (
+                    <span className="reach-tag" style={{ borderColor: rc.color, color: rc.color }}
+                      title={`reach ${rc.key}: ${rc.n} section${rc.n === 1 ? "" : "s"} on ${rc.waters.join(", ")}`}>
+                      <i style={{ background: rc.color }} />
+                      {rc.key} · {rc.waters.join(", ") || "—"} · {rc.n}
                     </span>
-                  </div>
+                  ) : reaches ? (
+                    <span className="badge warn" title="this rule's extent does not resolve to any geometry">no reach</span>
+                  ) : null}
+                  <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
+                    title="remove this rule" onClick={() => removeRule(idx)}>remove rule</button>
+                </div>
+                <div className="label" data-testid={`label-${path}`}
+                  title="GENERATED from the fields below by catalogue.label — what the app will say">
+                  {lab ?? <span className="dim">— does not validate; see the errors below —</span>}
+                </div>
+                {rule.verbatim && <div className="rule-verbatim">{rule.verbatim}</div>}
+                {rule.review_reason && (
+                  <div className="review-flag"><strong>⚠ review_reason</strong> {rule.review_reason}</div>
                 )}
-
-                {(rule.review_reason || (rule.unresolved_locators ?? []).length > 0) && (
-                  <div className="review-flag">
-                    <strong>⚠ needs review</strong>
-                    {rule.review_reason && <div>{rule.review_reason}</div>}
-                    {(rule.unresolved_locators ?? []).length > 0 && (
-                      <div className="locators">
-                        unresolved: {(rule.unresolved_locators ?? []).join(" · ")}
-                      </div>
-                    )}
-                  </div>
+                <ErrorsAt path={path} />
+                <button type="button" className="btn small edit-toggle"
+                  onClick={() => setOpenRule((o) => ({ ...o, [rule.rule_id]: !(o[rule.rule_id] ?? bad) }))}>
+                  {(openRule[rule.rule_id] ?? bad) ? "▾ close editor" : "▸ edit rule"}
+                </button>
+                {(openRule[rule.rule_id] ?? bad) && (
+                  <RuleEditor rule={rule} path={path} onChange={(r) => patchRule(idx, r)}
+                    siblings={rules.map((r) => r.rule_id)} boundaries={boundaries}
+                    itemNames={itemNames} matched={matched} />
                 )}
-
-                {/* Per-rule edit controls */}
-                <details style={{ marginTop: 8 }} open={!rule.verbatim}>
-                  <summary className="dim" style={{ cursor: "pointer" }}>
-                    edit rule (type · verbatim · binding · species · when)
-                  </summary>
-                  <div className="rule-edit">
-                    <div className="field">
-                      <span className="k">type</span>
-                      <select value={rule.type}
-                        onChange={(e) => patchRule(idx, { type: e.target.value })}>
-                        {ruleTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </div>
-                    <div className="field">
-                      <span className="k">label</span>
-                      {/* GENERATED from type + conditions. It was a free-text box, and a label
-                          typed beside a number drifts from it — which is why the prose field was
-                          removed. Read-only here: change the conditions and the label follows. */}
-                      <span className="grow dim" title="generated from the rule's type and conditions — not editable">
-                        {rule.label || "—"}
-                      </span>
-                    </div>
-                    <div className="field">
-                      <span className="k">verbatim</span>
-                      <textarea className="grow" rows={2} spellCheck={false} value={rule.verbatim}
-                        onChange={(e) => patchRule(idx, { verbatim: e.target.value })}
-                        placeholder="exact verbatim substring of the regs (left panel)" />
-                      <span className="hint">must be an exact substring of the entry's regs_verbatim.</span>
-                    </div>
-                    <div className="field">
-                      <span className="k">extents</span>
-                      <ExtentEditor
-                        extents={(rule.extents ?? [])}
-                        boundaries={boundaries}
-                        itemNames={itemNames}
-                        onChange={(next) => patchRule(idx, { extents: next })}
-                      />
-                    </div>
-                    <div className="field">
-                      <span className="k">species</span>
-                      <SpeciesPicker
-                        values={rule.species}
-                        options={speciesOptions}
-                        onChange={(next) => patchRule(idx, { species: next })}
-                      />
-                    </div>
-                    <div className="field">
-                      <span className="k">when</span>
-                      <WhenEditor value={rule.when}
-                        onChange={(next) => patchRule(idx, { when: next })} />
-                    </div>
-                    <div className="field">
-                      <span className="k">tributaries</span>
-                      {/* "Does this water include its tributaries" is the ENTRY's
-                          `includes_tributaries`, from the synopsis symbol; a rule's own
-                          `includes_tributaries` (None = the entry's) is not edited here. This
-                          control narrows a rule to the tributaries alone (`tributaries_only`). */}
-                      <select
-                        value={rule.tributaries_only ? "only" : "water"}
-                        onChange={(e) => patchRule(idx, { tributaries_only: e.target.value === "only" })}
-                      >
-                        <option value="water">the water (entry decides tributaries)</option>
-                        <option value="only">tributaries only</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <span className="k">carve-outs</span>
-                      <ExcludesEditor
-                        itemIds={entry.matched ?? []}
-                        excludes={rule.tributary_excludes ?? []}
-                        onChange={(next) => patchRule(idx, { tributary_excludes: next })}
-                      />
-                    </div>
-                  </div>
-                </details>
               </div>
-            ))}
-            <button className="btn" style={{ padding: "3px 10px", marginTop: 6 }} onClick={addRule}>
-              + add rule
-            </button>
+            );
+          })}
+          <button className="btn" style={{ padding: "3px 10px", marginTop: 6 }} onClick={addRule}>
+            + add rule
+          </button>
+        </div>
+      </div>
+
+      <div className="section">
+        <h3>Licensing ({licensing.length})</h3>
+        <div className="dim" style={{ marginBottom: 6 }}>
+          What you must hold, and what this water is. Never votes on open/closed.
+        </div>
+        <div className="rules-list">
+          {licensing.map((rec, idx) => {
+            const path = `licensing.${idx}`;
+            const lab = liveLabel("licensing", idx, rec.label);
+            const bad = errors.some((e) => e.path === path || e.path.startsWith(path + "."));
+            const key = `lic:${idx}`;
+            return (
+              <div className={`rule${rec.review_reason ? " flagged" : ""}${bad ? " has-error" : ""}`}
+                   key={idx} data-record={rec.id}>
+                <div className="rule-head">
+                  <span className="badge">{rec.kind}</span>
+                  <span className="rule-id">{rec.id}</span>
+                  <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
+                    onClick={() => removeRecord(idx)}>remove record</button>
+                </div>
+                <div className="label" data-testid={`label-${path}`}
+                  title="GENERATED by catalogue.licensing_label — what the app will say">
+                  {lab ?? <span className="dim">— does not validate; see the errors below —</span>}
+                </div>
+                {rec.verbatim && <div className="rule-verbatim">{rec.verbatim}</div>}
+                <ErrorsAt path={path} />
+                <button type="button" className="btn small edit-toggle"
+                  onClick={() => setOpenRule((o) => ({ ...o, [key]: !(o[key] ?? bad) }))}>
+                  {(openRule[key] ?? bad) ? "▾ close editor" : "▸ edit record"}
+                </button>
+                {(openRule[key] ?? bad) && (
+                  <LicensingEditor rec={rec} onChange={(x) => patchRecord(idx, x)}
+                    ctx={{ path, rules: rules.map((r) => r.rule_id), boundaries, itemNames, matched }} />
+                )}
+              </div>
+            );
+          })}
+          <div className="add-record">
+            <select value="" aria-label="add licensing record"
+              onChange={(e) => { if (e.target.value) addRecord(e.target.value); }}>
+              <option value="">+ add licensing record…</option>
+              {vocab.licensing_kinds.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
           </div>
         </div>
       </div>
@@ -624,50 +594,39 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
         })()}
       </div>
 
-      {/* Entry-level tributaries */}
-      <div className="section">
-        <h3>Tributaries</h3>
-        {/* The catalogue keeps ONE flag here: does this water include its tributaries, from the
-            synopsis asterisk. "only" moved onto the RULE (`tributaries_only`), because it is a
-            property of a restriction and not of the water; and a carve-out ("…tributaries EXCEPT …")
-            is the `tributary_excludes` of the rule that states it (its "carve-outs" control). */}
-        <label>
-          <input
-            type="checkbox"
-            checked={entry.includes_tributaries === true}
-            onChange={(e) => setEntry((s) => ({ ...s, includes_tributaries: e.target.checked }))}
-          />{" "}
-          includes tributaries
-        </label>
-        {entry.includes_tributaries == null && (
-          <div className="dim" style={{ marginTop: 4 }}>
-            not stated by the row — inherits the default
-          </div>
-        )}
-      </div>
-
-      {/* Errors / toast */}
+      {/* Errors / toast — every error, with the field it is addressed to. The same errors also
+          sit on the controls above; this is the list to work down. */}
       {errors.length > 0 && (
-        <div className="errors">
-          <strong>Validation failed</strong>
+        <div className="errors" data-testid="errors">
+          <strong>{saveErrors.length ? "Save refused" : "The model refuses this draft"}</strong>
           <ul>
             {errors.map((e, i) => (
-              <li key={i}>{e}</li>
+              <li key={i}>{e.path && <code>{e.path}</code>} {e.msg}</li>
             ))}
           </ul>
         </div>
       )}
+      {(checked?.warnings ?? []).length > 0 && (
+        <details className="warnings">
+          <summary>{checked!.warnings.length} extent warning(s) — reported, not refused</summary>
+          <ul>{checked!.warnings.map((w, i) => <li key={i}><code>{w.path}</code> {w.msg}</li>)}</ul>
+        </details>
+      )}
 
       {/* Actions */}
       <div className="actions">
-        <button
-          className="btn"
-          disabled={saving || !dirty}
-          onClick={() => doSave()}
-        >
+        <button className="btn" disabled={saving || !dirty} onClick={() => doSave()}>
           Save edit
         </button>
         {dirty && <span className="dim">unsaved changes</span>}
+        {dirty && checked && (checked.ok
+          ? <span className="chip-tag synced">the model accepts this draft</span>
+          : <span className="chip-tag orphan">{checked.errors.length} error(s)</span>)}
+        {dirty && (
+          <button className="btn" onClick={() => { setEntry(stored(structuredClone(detail.entry))); setSaveErrors([]); }}>
+            discard
+          </button>
+        )}
         {toast && <span className="toast">{toast}</span>}
       </div>
         </div>
@@ -682,7 +641,7 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
             onSelectSplit={setSelBoundary}
             pendingPoint={pendingPoint}
             reaches={reaches}
-            rules={entry.rules.map((r) => ({
+            rules={rules.map((r) => ({
               rule_id: r.rule_id,
               type: r.type,
               label: r.label,
@@ -694,5 +653,6 @@ export function EntryDetail({ detail, speciesOptions, onSaved, onNavigate,
         </div>
       </div>
     </div>
+    </ErrorsCtx.Provider>
   );
 }

@@ -2,58 +2,22 @@
  * An in-memory RegsSource holding a slice of the REAL Chilliwack valley build.
  *
  * Not a toy. Every value below came out of build 54ea0bb4 or a live feed on 30 Aug 2026,
- * so the conformance suite exercises the cases that actually broke things: a river with
- * several regulated stretches, a June closure, a rule nobody could place, a gauge running
- * at its 4th percentile, and a creek the Fraser gauge must refuse to speak for.
+ * so the conformance suite exercises the cases that actually broke things: a river cut into
+ * several sections, a gauge running at its 4th percentile, and a creek the Fraser gauge must
+ * refuse to speak for. It carries NO regulations — they are not integrated (see
+ * `regulations.ts` in @app/core).
  */
-import type { Band, PlainDate, Rule, SpeciesGroup, Status } from "@app/core";
-import { ALL_YEAR, evaluate } from "@app/core";
+import type { Band } from "@app/core";
 import type {
-  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
-  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
+  Aged, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
+  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
 } from "./index";
 
 const id = <T extends string>(s: string): T => s as T;
 
-/* A closure is a retention limit of zero you may NOT fish for. `mayTarget` is what
-   separates it from catch-and-release, which is the same type with the same take. */
-const JUNE_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r5", type: "retention_limit", family: "retention",
-  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
-  scope: "section", via: "reach",
-  group: "provincial", when: { ...ALL_YEAR, dates: [{ from: { month: 6, day: 1 }, to: { month: 6, day: 30 } }] },
-};
-const FLY_ONLY: Rule = {
-  id: "chilliwack_vedder_rivers.r4a", type: "tackle_restriction", family: "gear_and_method",
-  dimension: "lure", label: "Fly fishing only", scope: "section", via: "reach",
-  group: "provincial",
-  when: { ...ALL_YEAR, dates: [{ from: { month: 5, day: 1 }, to: { month: 5, day: 31 } }] },
-};
-const UPSTREAM_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r1", type: "retention_limit", family: "retention",
-  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
-  scope: "section", via: "reach", group: "provincial", when: ALL_YEAR,
-};
-/** Real: the Fraser side-channel closure for which no extent was ever authored. */
-const UNPLACEABLE: Rule = {
-  id: "fraser_river_region2.r4", type: "retention_limit", family: "retention",
-  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
-  scope: "section", via: "reach", group: "provincial", uncertain: true,
-  when: { ...ALL_YEAR, dates: [{ from: { month: 5, day: 15 }, to: { month: 7, day: 31 } }] },
-};
-
-interface Reach { section: string; seq: number; lo: string | null; hi: string | null; rules: Rule[] }
-
-const CHILLIWACK: { item: string; name: string; reaches: Reach[] } = {
+const CHILLIWACK = {
   item: "gnis:8634", name: "Chilliwack River",
-  reaches: [
-    { section: "380887781:0", seq: 0, lo: null, hi: "Vedder Crossing Bridge",
-      rules: [JUNE_CLOSURE, FLY_ONLY] },
-    { section: "380887781:8200", seq: 1, lo: "Vedder Crossing Bridge", hi: "Tamihi Rapids Bridge",
-      rules: [] },
-    { section: "380887781:23325", seq: 2, lo: "Tamihi Rapids Bridge", hi: "Chilliwack Lake",
-      rules: [UPSTREAM_CLOSURE] },
-  ],
+  sections: ["380887781:0", "380887781:8200", "380887781:23325"],
 };
 const JEPERSON = { item: "gnis:11481", name: "Jeperson Side Channel",
                    section: "355994562:0", alias: "Greyell Slough" };
@@ -67,7 +31,7 @@ const JEPERSON = { item: "gnis:11481", name: "Jeperson Side Channel",
  * fixture names are sorted into the water's own order (blue line, then measure as a NUMBER —
  * see pipeline/common/section_handles) and the handle is the index.
  */
-const ORDERED = [...CHILLIWACK.reaches.map((r) => r.section), JEPERSON.section]
+const ORDERED = [...CHILLIWACK.sections, JEPERSON.section]
   .sort((a, b) => {
     const [al, am] = a.split(":");
     const [bl, bm] = b.split(":");
@@ -87,11 +51,10 @@ const handleOf = (s: string): SectionId => {
  *
  * A handle only means something against the table that minted it, so a literal in a test
  * would be a guess about this file's internals. These are the two the conformance suite
- * needs: the reach carrying the June closure, and the side channel whose only rule could
- * never be placed.
+ * needs: the lowest reach of the Chilliwack, and the side channel no gauge may speak for.
  */
 export const FIXTURE_SECTIONS = {
-  get lowerChilliwack(): SectionId { return handleOf(CHILLIWACK.reaches[0]!.section); },
+  get lowerChilliwack(): SectionId { return handleOf(CHILLIWACK.sections[0]!); },
   get jeperson(): SectionId { return handleOf(JEPERSON.section); },
 };
 
@@ -122,13 +85,11 @@ const ELF = {
 };
 
 export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): RegsSource {
-  const sectionRules = new Map<SectionId, Rule[]>(
-    CHILLIWACK.reaches.map((r) => [handleOf(r.section), r.rules]),
-  );
-  sectionRules.set(handleOf(JEPERSON.section), [UNPLACEABLE]);
-
-  const statusOf = (section: SectionId, on: PlainDate, group: SpeciesGroup): Status =>
-    evaluate({ rules: sectionRules.get(section) ?? [], on, group });
+  /** Every section this fixture knows, and the water each belongs to. */
+  const itemOf = new Map<SectionId, string>([
+    ...CHILLIWACK.sections.map((sec) => [handleOf(sec), CHILLIWACK.item] as const),
+    [handleOf(JEPERSON.section), JEPERSON.item],
+  ]);
 
   return {
     async info(): Promise<BundleInfo> {
@@ -147,45 +108,22 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // distinction is the whole reason the app must read them rather than state them:
     // the numbers a screen shows have to belong to the bundle it actually opened.
     async counts() {
-      return { waters: 2, reaches: sectionRules.size, surveyed: null, stations: 1 };
+      return { waters: 2, reaches: itemOf.size, surveyed: null, stations: 1 };
     },
 
     async itemExists(i) { return i === CHILLIWACK.item || i === JEPERSON.item; },
     async itemForSection(s) {
-      if (sectionRules.has(s) && s !== handleOf(JEPERSON.section)) return id<ItemId>(CHILLIWACK.item);
-      if (s === handleOf(JEPERSON.section)) return id<ItemId>(JEPERSON.item);
-      return null;
+      const item = itemOf.get(s);
+      return item ? id<ItemId>(item) : null;
     },
 
-    async regsForItem(i, on, group): Promise<ItemRegs | null> {
-      if (i !== CHILLIWACK.item) return null;
-      return {
-        item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name,
-        reaches: CHILLIWACK.reaches.map((r) => ({
-          section: handleOf(r.section), seq: r.seq,
-          // One section per stretch in the hand-written fixture: it names distinct reaches
-          // already, so there is nothing to collapse.
-          sections: [handleOf(r.section)], pieces: 1,
-          lowerLabel: r.lo, upperLabel: r.hi,
-          status: statusOf(handleOf(r.section), on, group),
-        })),
-        rules: [UPSTREAM_CLOSURE, JUNE_CLOSURE, FLY_ONLY],
-        area: [{
-          rule: { id: "mu.2-2.bait", type: "bait_restriction", family: "gear_and_method",
-                  dimension: "bait:any", label: "Bait ban", scope: "mu", via: "reach",
-                  group: "provincial", when: ALL_YEAR },
-          scopeLabel: "Everywhere in MU 2-2",
-        }],
-        verbatim: {
-          text: "**No Fishing **upstream from a line between two fishing boundary signs",
-          clauseStart: 0, clauseLength: 14,
-        },
-        unplaceable: [],
-      };
-    },
-
-    async statusFor(ids, on, group) {
-      return new Map(ids.map((s) => [s, statusOf(s, on, group)]));
+    async water(i): Promise<Water | null> {
+      const w = i === CHILLIWACK.item ? { ...CHILLIWACK, kind: "stream" }
+        : i === JEPERSON.item ? { ...JEPERSON, sections: [JEPERSON.section], kind: "stream" }
+        : null;
+      if (!w) return null;
+      return { item: id<ItemId>(w.item), name: w.name, kind: w.kind,
+               sections: w.sections.map(handleOf) };
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
@@ -193,7 +131,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       const rows: NameHit[] = [];
       if (CHILLIWACK.name.toLowerCase().includes(needle)) {
         rows.push({ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name,
-                    matchedAs: null, pieces: CHILLIWACK.reaches.length });
+                    matchedAs: null, pieces: CHILLIWACK.sections.length });
       }
       const byAlias = JEPERSON.alias.toLowerCase().includes(needle);
       if (byAlias || JEPERSON.name.toLowerCase().includes(needle)) {
@@ -214,7 +152,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     },
 
     async gaugeForSection(s): Promise<GaugeLink | null> {
-      if (!sectionRules.has(s)) return null;
+      if (!itemOf.has(s)) return null;
       // THE BAND IS READ, NOT COMPUTED — because that is what the real source does. It
       // selects `section_gauge.trust`, a value `pipeline/gauges/consume/shed.py` decided against the
       // full graph. This used to call a `gaugeTrust()` in @app/core, so the suite asserted
@@ -238,12 +176,12 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       // The best reach on the water, which is not the same as any particular one: the
       // Jeperson creek section would answer "weak", the river as a whole answers "good".
       if (i !== CHILLIWACK.item) return null;
-      return this.gaugeForSection(handleOf(CHILLIWACK.reaches[0]!.section));
+      return this.gaugeForSection(handleOf(CHILLIWACK.sections[0]!));
     },
     async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
       const out = new Map<SectionId, StationId>();
       for (const s of sections)
-        if (sectionRules.has(s)) out.set(s, id<StationId>(GAUGE.station));
+        if (itemOf.has(s)) out.set(s, id<StationId>(GAUGE.station));
       return out;
     },
 
@@ -312,7 +250,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return st === GAUGE.station ? ["discharge", "level"] : [];
     },
     async traceToGauge(from) {
-      return sectionRules.has(from) ? [from] : [];
+      return itemOf.has(from) ? [from] : [];
     },
     // No panel in the fixture (`panelsFor` is empty), so no routes. Empty and not a throw:
     // "this water has no donors" is a real answer the screens must render.
@@ -328,7 +266,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async waterFor(sec) {
       if (sec === handleOf(JEPERSON.section))
         return { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream" };
-      return sectionRules.has(sec)
+      return itemOf.has(sec)
         ? { item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream" }
         : null;
     },

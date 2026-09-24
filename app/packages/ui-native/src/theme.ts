@@ -2,22 +2,20 @@ import { resolveTheme, type MapChrome } from "@app/map";
 /**
  * Tokens for the phone components.
  *
- * OUTCOME COLOURS ARE NOT DEFINED HERE. They are read from the generated map themes, so
- * the pill, the reach stripe and the legend are painted with the exact hex the river beside
- * them is painted with. They used to be typed out twice and the two copies had DIFFERENT
- * VALUES — `#D81E1E` here against `#c0392b` on the map for the same word "closed" — under a
- * comment claiming "the two agree because they name the same outcomes". Naming the same
- * outcome is not agreeing about it.
+ * THE STATUS COLOURS ARE NOT DEFINED HERE. `closed`, `restricted` and `open` are read from
+ * the generated map themes (`color.status.*`), so a legend swatch is painted with the exact
+ * hex the map beside it uses — the temperature bands, the no-access hatch. They used to be
+ * typed out twice and the two copies had DIFFERENT VALUES. They no longer colour water by a
+ * regulation outcome: regulations are not integrated (see `regulations.ts` in @app/core).
  *
- * Outcome colour is paired with a dash pattern and always with a WORD, so the answer never
- * depends on hue alone. A colour-blind theme swaps the palette and nothing else changes.
+ * A colour-blind theme swaps the palette and nothing else changes.
  */
 export interface Palette {
   /** The ground behind the app shell — darker than `wash`, so a sheet reads as lifted. */
   page: string;
   card: string; wash: string; tint: string; line: string; line2: string;
   ink: string; sub: string; faint: string;
-  closed: string; restricted: string; open: string; unknown: string; quiet: string;
+  closed: string; restricted: string; open: string; quiet: string;
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
@@ -112,12 +110,12 @@ const legend = (theme: string) => {
   };
 };
 
-/** Outcome colours for one theme, from the generated style. The map is the source. */
-const outcomes = (theme: string) => {
+/** The status colours for one theme, from the generated style. The map is the source. */
+const statusColours = (theme: string) => {
   const v = resolveTheme(theme) as Record<string, string>;
   return {
     closed: v["color.status.closed"]!, restricted: v["color.status.restricted"]!,
-    open: v["color.status.open"]!, unknown: v["color.status.unknown"]!,
+    open: v["color.status.open"]!,
   };
 };
 
@@ -127,7 +125,7 @@ export const LIGHT: Palette = {
   // 4.54:1 on the card. #99A0A6 was 2.65:1 — a WCAG AA failure in the DEFAULT theme,
   // found while measuring the colour-blind one. "Faint" is a role, not a licence.
   faint: "#6E757B",
-  ...outcomes("light"), ...legend("light"),
+  ...statusColours("light"), ...legend("light"),
   // 3.02:1 — WCAG 1.4.11 for a non-text mark. #C3C8CD was 1.68:1.
   quiet: "#8A9196", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
@@ -141,7 +139,7 @@ export const DARK: Palette = {
   // 4.51:1 on the dark card. #6E767D was 3.86:1 — on a dark ground "faint" has to get
   // LIGHTER to pass, which is the opposite move from the light theme and easy to miss.
   faint: "#7C858C",
-  ...outcomes("dark"), ...legend("dark"),
+  ...statusColours("dark"), ...legend("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
   donor: ["#37D6EA", "#FF9B54", "#FF7BB8", "#4ADE80"],
@@ -173,7 +171,7 @@ export const DARK: Palette = {
  */
 export const CVD: Palette = {
   ...LIGHT,
-  ...outcomes("cvd"), ...legend("cvd"),
+  ...statusColours("cvd"), ...legend("cvd"),
   // Okabe–Ito, adjusted only where WCAG 1.4.11 (3:1 for a non-text mark) demanded it.
   // These are fills — a pin, a swatch, a stripe, a dot, a bar — never text.
   donor: ["#373708", "#670848", "#D77782", "#797000"],
@@ -187,17 +185,6 @@ export const CVD: Palette = {
 
 export const THEMES = { light: LIGHT, dark: DARK, cvd: CVD } as const;
 export type ThemeName = keyof typeof THEMES;
-
-export type OutcomeKey = "closed" | "restricted" | "open" | "unknown";
-
-export function outcomeColour(p: Palette, outcome: OutcomeKey): string {
-  return p[outcome];
-}
-
-/** Dash pattern per outcome, so the answer survives without colour. */
-export function outcomeDash(outcome: OutcomeKey): readonly number[] | undefined {
-  return outcome === "unknown" ? [4, 3] : outcome === "restricted" ? [10, 4] : undefined;
-}
 
 /**
  * The flow ramp, low-for-the-date to high, read from the map style.

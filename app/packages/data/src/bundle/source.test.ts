@@ -6,13 +6,11 @@
  * only way that holds is if "the same" is written down somewhere executable.
  */
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
-import { DEV_BUNDLE, hasDevBundle, openBundle, schemaBundle } from "./drivers/node";
+import { DEV_BUNDLE, hasDevBundle, openBundle } from "./drivers/node";
 import { str } from "./db";
 import { makeBundleSource } from "./source";
 import type { Db } from "./db";
 import type { ItemId, RegsSource, SectionId } from "../index";
-
-const ON = { year: 2026, month: 8, day: 30 } as const;
 
 let db: Db;
 let src: RegsSource;
@@ -68,32 +66,15 @@ describe("the bundle source", () => {
     const section = Number(row.sid) as SectionId;
     const item = await src.itemForSection(section);
     expect(item).toBeTruthy();
-    const sheet = await src.regsForItem(item!, ON, "provincial");
-    expect(sheet!.reaches.map((r) => r.section)).toContain(section);
+    const water = await src.water(item!);
+    expect(water!.item).toBe(item);
+    expect(water!.sections).toContain(section);
+    // In the water's own order — the handle order — so the first is nearest the mouth.
+    expect(water!.sections).toEqual([...water!.sections].sort((a, b) => a - b));
   });
 
-  it("answers for EVERY section asked about, including ones with no rule", async () => {
-    // "Open under the general rules" is an answer. A missing map entry would make the
-    // caller fall back to a default, and the map would be coloured by an assumption.
-    const ids = (await db.all("SELECT sid FROM item_section LIMIT 25"))
-      .map((r) => Number(r.sid) as SectionId);
-    const out = await src.statusFor(ids, ON, "provincial");
-    expect(out.size).toBe(ids.length);
-    for (const id of ids) expect(out.get(id)).toBeTruthy();
-  });
-
-  it("never lets an unplaceable rule decide an outcome", async () => {
-    const row = await db.get(
-      "SELECT entry_id, item_id FROM entry WHERE entry_id IN " +
-      "(SELECT entry_id FROM rule WHERE uncertain = 1) LIMIT 1");
-    if (!row?.item_id) return;                    // no such entry in this slice
-    const sheet = await src.regsForItem(row.item_id as ItemId, ON, "provincial");
-    expect(sheet).toBeTruthy();
-    // it is SHOWN...
-    expect(sheet!.unplaceable.length).toBeGreaterThan(0);
-    // ...and it never appears among the rules that produced a reach's answer
-    for (const r of sheet!.reaches)
-      for (const rule of r.status.from) expect(rule.uncertain).toBeFalsy();
+  it("an unknown water is null, not an empty one", async () => {
+    expect(await src.water("gnis:does-not-exist" as ItemId)).toBeNull();
   });
 
   it("returns what is near a town, nearest first", async () => {
@@ -247,7 +228,7 @@ describe("the gauge model", () => {
       expect(cols, `'${c}' is a live fact and must come from the feed`).not.toContain(c);
   });
 
-  it("colours a viewport without binding more parameters than SQLite allows", async () => {
+  it("reads a viewport without binding more parameters than SQLite allows", async () => {
     /*
      * SQLite's parameter ceiling is 999 in the classic build and 32,766 in newer ones, and
      * we do not get to choose which one a phone's wasm or native driver was compiled with.
@@ -255,9 +236,8 @@ describe("the gauge model", () => {
      * lowest limit — rather than on whether this machine happens to survive a big query.
      * The first version of this test passed at 5,000 parameters and proved nothing.
      *
-     * It matters now because it did not before: `rule_section` was declared and never
-     * written, so every lookup returned nothing and the query was never asked a big
-     * question. Real rules turn that into a crash on a zoomed-in map.
+     * Every bulk, viewport-scoped read is asked: the map hands over whatever is on screen,
+     * and a dense viewport holds thousands of sections.
      */
     const CEILING = 999;
     let worst = 0;
@@ -270,119 +250,11 @@ describe("the gauge model", () => {
     };
     // Handles, not names — and starting at 1, because 0 is reserved for "no section".
     const many = Array.from({ length: 2500 }, (_, i) => (i + 1) as SectionId);
-    const out = await makeBundleSource(spy).statusFor(many, ON, "provincial");
-    // Every id gets an answer — "open under the general rules" is an answer, not an absence.
-    expect(out.size).toBe(many.length);
+    const s = makeBundleSource(spy);
+    await s.stationsFor(many);
+    await s.panelsFor(many);
+    await s.lakeStationsFor(many);
+    expect(worst).toBeGreaterThan(0);
     expect(worst).toBeLessThanOrEqual(CEILING);
-  });
-
-  it("evaluates a rule that has a season on it", async () => {
-    /*
-     * THE ASSERTION THAT WAS MISSING — twice. First `rule.windows` held the curated strings
-     * verbatim and every regulation screen threw on `.month`. Then the catalogue moved seasons
-     * into `when`, the bundler went on reading the retired field, and every rule shipped an
-     * EMPTY window list — which is "all year", so every seasonal closure in the province was in
-     * force every day, and nothing threw at all.
-     *
-     * Both survived a full suite because the FIXTURE agreed with the bug. This asks a seasonal
-     * rule, out of the bundle, whether it is in force on both sides of its window.
-     */
-    const seasonal = (await db.all(
-      "SELECT entry_id, rule_id, when_ FROM rule WHERE when_ LIKE '%from_month%' LIMIT 1"))[0];
-    expect(seasonal, "the fixture must carry at least one seasonal rule").toBeTruthy();
-    const parsed = JSON.parse(str(seasonal!.when_)) as {
-      dates: { from_month: number; from_day: number; to_month: number; to_day: number }[] };
-    // The SHAPE, named explicitly: a bare string, or an empty list, here is the bug.
-    expect(parsed.dates[0]!.from_month).toBeTypeOf("number");
-    expect(parsed.dates[0]!.to_day).toBeTypeOf("number");
-
-    // And it has to survive the thing that actually reads it. A section under this rule,
-    // asked on a day inside its window and a day outside, must not throw either time.
-    const covered = (await db.all(
-      "SELECT sr.sid FROM section_ruleset sr JOIN ruleset rs USING(set_id) " +
-      "WHERE rs.entry_id = ? AND rs.rule_id = ? LIMIT 1",
-      str(seasonal!.entry_id), str(seasonal!.rule_id)))[0];
-    if (!covered) return;                    // this rule binds nowhere in the slice
-    const id = Number(covered.sid) as SectionId;
-    const w = parsed.dates[0]!;
-    for (const day of [{ year: 2026, month: w.from_month, day: w.from_day },
-                       { year: 2026, month: w.to_month, day: w.to_day },
-                       { year: 2026, month: 1, day: 1 }]) {
-      const out = await src.statusFor([id], day, "provincial");
-      expect(out.get(id), `no answer for ${day.month}/${day.day}`).toBeTruthy();
-    }
-  });
-});
-
-describe("rules out of the bundle's own schema", () => {
-  /* The dev fixture predates `exempts` and every type is one core knows, so these build a bundle
-     from `pipeline/deliver/bundle/schema.sql` — the one definition of the format — with rows
-     shaped as `pipeline/deliver/bundle/rules.py` writes them. */
-  const SPRING = ["z3:spring_stream_closure", "spring_stream_closure.r1"] as const;
-  const EXEMPT = ["r3:north_thompson_river@3-27", "north_thompson_river.r1"] as const;
-  const MAY_1 = { year: 2026, month: 5, day: 1 } as const;
-
-  function rules(extra: (db: Parameters<Parameters<typeof schemaBundle>[0]>[0]) => void) {
-    return schemaBundle((db) => {
-      const r = db.prepare(
-        "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, scope, when_, " +
-        "exempts, take, may_target, species, uncertain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)");
-      r.run(...SPRING, "retention_limit", "retention", "daily", "No fishing", "area",
-            JSON.stringify({ dates: [{ from_month: 1, from_day: 1, to_month: 6, to_day: 30 }] }),
-            null, 0, 0, '["ALL_GAME_FISH"]');
-      r.run(...EXEMPT, "retention_limit", "retention", "daily", "Exempt from spring closure",
-            "section", null,
-            JSON.stringify([{ entry_id: SPRING[0], rule_id: SPRING[1] }]),
-            null, null, '["ALL_GAME_FISH"]');
-      const set = db.prepare("INSERT INTO ruleset VALUES (?,?,?,?)");
-      set.run(0, ...SPRING, "reach");                       // a stream with only the closure
-      set.run(1, ...SPRING, "reach");                       // the North Thompson: both
-      set.run(1, ...EXEMPT, "reach");
-      db.prepare("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)").run(10, 0);
-      db.prepare("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)").run(11, 1);
-      extra(db);
-    });
-  }
-
-  it("applies an exemption: the lifted zone default does not count where the lift is", async () => {
-    const s = makeBundleSource(rules(() => {}));
-    const out = await s.statusFor([10 as SectionId, 11 as SectionId], MAY_1, "provincial");
-    expect(out.get(10 as SectionId)!.outcome).toBe("closed");
-    const nt = out.get(11 as SectionId)!;
-    expect(nt.outcome).toBe("open");
-    expect(nt.from.map((r) => r.id)).toEqual([EXEMPT.join(".")]);
-  });
-
-  it("refuses a rule type this client does not know — never reads it as advisory", async () => {
-    const s = makeBundleSource(rules((db) => {
-      db.prepare("UPDATE rule SET type = 'teleport_ban' WHERE rule_id = ?").run(SPRING[1]);
-    }));
-    await expect(s.statusFor([10 as SectionId], MAY_1, "provincial"))
-      .rejects.toThrow(/unknown rule type/);
-  });
-
-  it("reads a partial lift: the rule stays, marked, and no longer closes the water", async () => {
-    const s = makeBundleSource(rules((db) => {
-      db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?").run(JSON.stringify(
-        [{ entry_id: SPRING[0], rule_id: SPRING[1], when_targeting: ["WSG"] }]), EXEMPT[1]);
-    }));
-    const nt = (await s.statusFor([11 as SectionId], MAY_1, "provincial")).get(11 as SectionId)!;
-    expect(nt.outcome).toBe("restricted");
-    const spring = nt.from.find((r) => r.id === SPRING.join("."))!;
-    expect(spring.liftedFor).toEqual([{ by: EXEMPT.join("."), whenTargeting: ["WSG"] }]);
-  });
-
-  it("refuses an exemption it cannot read — including the retired whole-entry shape", async () => {
-    for (const bad of [[{ default_id: "spring_stream_closure", entry_id: SPRING[0] }],
-                       [{ entry_id: SPRING[0], target: SPRING[1] }],
-                       [{ entry_id: SPRING[0], rule_id: SPRING[1], water: "lake" }],
-                       [{ entry_id: SPRING[0], rule_id: SPRING[1], species: [] }]]) {
-      const s = makeBundleSource(rules((db) => {
-        db.prepare("UPDATE rule SET exempts = ? WHERE rule_id = ?")
-          .run(JSON.stringify(bad), EXEMPT[1]);
-      }));
-      await expect(s.statusFor([11 as SectionId], MAY_1, "provincial"), JSON.stringify(bad))
-        .rejects.toThrow(/exemption/);
-    }
   });
 });

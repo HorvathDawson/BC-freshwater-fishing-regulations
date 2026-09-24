@@ -7,15 +7,14 @@
  * the phone and the browser answering the same question two ways — the v1 failure where
  * `waterbodyDataService.ts` was 1,157 lines on web and 116 on mobile.
  *
- * Two shapes carry the design:
+ * One shape carries the design: bulk reads take an ARRAY, because the map
+ * colours a viewport, not a feature — `stationsFor`, `panelsFor` and `lakeStationsFor` below.
  *
- *   regsForItem  returns a whole sheet in ONE call. Six queries is six page faults on a
- *                phone and six round trips on the web.
- *   statusFor    takes an ARRAY, because the map colours a viewport, not a feature.
+ * REGULATIONS ARE NOT READ HERE. There is no rule, rule-set or licensing query on this
+ * interface: regulations are not integrated, and `@app/core`'s `regulations.ts` says where
+ * they plug in and which bundle tables they will read.
  */
-import type {
-  Band, GaugeTrust, PlainDate, Rule, SpeciesGroup, Standing, Status,
-} from "@app/core";
+import type { Band, GaugeTrust, Standing } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
 export type ItemId = string & { readonly __brand: "ItemId" };
@@ -297,46 +296,19 @@ export interface ForecastSeries {
   hi: readonly (number | null)[];
 }
 
-/** One water's whole sheet. Assembled by the source, never by the client. */
-export interface ItemRegs {
+/**
+ * One named water: what its sheet is titled with, and the reaches it covers.
+ *
+ * `sections` is every section of the water in the water's own order — blue line, then
+ * distance up it — which is what a highlight draws and where a "conditions on this water"
+ * door starts (the first one, nearest the mouth). It is NOT a list of stretches that
+ * differ: that grouping was a regulation concept and left with the regulations.
+ */
+export interface Water {
   item: ItemId;
   name: string;
-  /**
-   * The stretches that DIFFER, mouth -> source — not every section the atlas cut.
-   *
-   * A river is split at confluences, lake outlets, gauge matches and a 25 km cap, none of
-   * which is a reason a regulation changes; the Fraser used to arrive here as 201 sections
-   * and render as 201 identical rows. Adjacent sections covered by the same rule set are
-   * one stretch, decided in the bundle (which already interned those sets) and grouped by
-   * `runsOfSameRules` in @app/core.
-   */
-  reaches: readonly {
-    /** Where the stretch begins — what a tap on it should open. */
-    section: SectionId;
-    seq: number;
-    /** Every section under this regime, so the map can highlight all of it. */
-    sections: readonly SectionId[];
-    /** How many separate pieces of the water it covers. Often 1; never 0. */
-    pieces: number;
-    /** The landmarks that bound this stretch, e.g. "Vedder Crossing Bridge". */
-    lowerLabel: string | null;
-    upperLabel: string | null;
-    status: Status;
-  }[];
-  /** Tier 1: written for this water. */
-  rules: readonly Rule[];
-  /** Tiers 2 and 3: the zone and province-wide rules that also apply here. */
-  area: readonly AreaRule[];
-  /** The synopsis paragraph, and where inside it the first rule was parsed from. */
-  verbatim: { text: string; clauseStart: number; clauseLength: number } | null;
-  /** Named in a rule we could not place. Shown, never applied. */
-  unplaceable: readonly { rule: Rule; detail: string }[];
-}
-
-export interface AreaRule {
-  rule: Rule;
-  /** What the reader is told this applies to: "Everywhere in MU 2-2". */
-  scopeLabel: string;
+  kind: string;
+  sections: readonly SectionId[];
 }
 
 export interface NameHit {
@@ -407,20 +379,14 @@ export interface RegsSource {
   /**
    * What water a reach is part of — its id, its name, and what kind of water it is.
    *
-   * `itemForSection` above gives the id and leaves the caller to fetch the name, and the
-   * only thing that fetched a name was `regsForItem`, which also reads every section and
-   * every rule for the item. A screen that wants a TITLE was therefore either loading the
-   * whole regulation sheet or going without — and the Conditions screen went without, so a
-   * reader could open a chart with nothing on screen saying which river it was.
+   * `itemForSection` above gives the id and leaves the caller to fetch the name. A screen
+   * that wants a TITLE for a reach asks this — one indexed read — rather than `water()`,
+   * which also lists every section of the item.
    */
   waterFor(id: SectionId): Promise<{ item: ItemId; name: string; kind: string } | null>;
 
-  // ---- regulations ----------------------------------------------------
-  regsForItem(id: ItemId, on: PlainDate, group: SpeciesGroup): Promise<ItemRegs | null>;
-  /** Map colouring. `group` is required: there is no blended "overall" answer. */
-  statusFor(
-    ids: readonly SectionId[], on: PlainDate, group: SpeciesGroup,
-  ): Promise<ReadonlyMap<SectionId, Status>>;
+  /** One water by its durable id, with its sections. Null when the bundle has no such item. */
+  water(id: ItemId): Promise<Water | null>;
 
   // ---- search ---------------------------------------------------------
   searchNames(q: string, limit: number): Promise<readonly NameHit[]>;

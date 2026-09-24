@@ -66,13 +66,18 @@ def parse_id(props: dict) -> int:
 
 
 def load(path: str | Path | None = None) -> list[dict]:
-    """The curated features, validated. [] when the file is absent (added lakes are optional).
+    """The curated features, validated. RAISES when the file is absent (AGENTS 37).
+
+    Absent curated data is a bug, never an empty set: an empty list here would build an atlas
+    with no lake parts and a bundle whose `item.part_of` is silently empty. A build that wants
+    no added lakes says so (`--no-added-lakes`); it does not get there by a missing file.
 
     Each feature authors a single positive `id`; `wbk` and `gnis_id` are derived from it here, so
     every consumer downstream still sees the same two negative keys it always did."""
     p = Path(path) if path else GEOJSON
     if not p.exists():
-        return []
+        raise FileNotFoundError(f"added lakes: curated file {p} is missing — absent curated data "
+                                "is a bug, not an empty set (pass --no-added-lakes to build without)")
     fc = json.loads(p.read_text(encoding="utf-8"))
     out: list[dict] = []
     seen: set[int] = set()

@@ -17,8 +17,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   info: async () => ({ version: "t", validUntil: null }),
   itemExists: async () => true,
   itemForSection: async () => null,
-  regsForItem: async () => null,
-  statusFor: async () => new Map(),
+  water: async () => null,
   searchNames: async () => [],
   searchPlaces: async () => [],
   watersNear: async () => [],
@@ -34,7 +33,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
 const base = {
   at: { lat: 49.0974, lon: -121.9675 },
   item: null, section: 1 as SectionId, waterName: "Chilliwack River",
-  group: "provincial" as const, title: "", now: VISITED, visitedAt: VISITED,
+  title: "", now: VISITED, visitedAt: VISITED,
 };
 
 describe("captureSpot", () => {
@@ -63,19 +62,6 @@ describe("captureSpot", () => {
   it("records no weather when nothing is wired, rather than a temperature of zero", async () => {
     const s = await captureSpot({ source: source(), weather: noWeather, ...base });
     expect(s.weather).toBeNull();
-  });
-
-  it("stores the DATE with the regulation, because half of them are seasonal", async () => {
-    const s = await captureSpot({
-      ...base,
-      source: source({
-        statusFor: async (ids) => new Map(ids.map((i) => [i, {
-          outcome: "closed" as const, provenance: "specific" as const, from: [],
-        }])),
-      }),
-    });
-    expect(s.regulation).toEqual({ outcome: "closed", provenance: "specific",
-                                   on: "2026-08-30" });
   });
 
   it("always stores where it is, even with no water attached", async () => {
@@ -114,20 +100,6 @@ describe("the visit date", () => {
       weather: { at: async (_la, _lo, when) => { seen.push(when); return null; } },
     });
     expect(seen[0]!.toISOString()).toBe("2026-08-30T09:00:00.000Z");
-  });
-
-  it("dates the regulation by the visit too, since half of them are seasonal", async () => {
-    const s = await captureSpot({
-      ...base, now: Date.parse("2026-09-01T20:00:00Z"),
-      visitedAt: Date.parse("2026-06-15T07:00:00Z"),
-      source: source({
-        statusFor: async (ids) => new Map(ids.map((i) => [i, {
-          outcome: "closed" as const, provenance: "specific" as const, from: [],
-        }])),
-      }),
-    });
-    // June, not September — a closure that lifted in July must still show for a June visit.
-    expect(s.regulation!.on).toBe("2026-06-15");
   });
 
   it("keeps the visit and the record as separate instants", async () => {

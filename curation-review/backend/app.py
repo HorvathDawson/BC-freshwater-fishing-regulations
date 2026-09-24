@@ -50,13 +50,13 @@ def get_entry(entry_id: str):
     return d
 
 
-@app.get("/api/rule-types")
-def get_rule_types():
-    """The 15 catalogue types with their family. Served rather than hardcoded in the UI: the picker
-    used to list the 6 retired coarse kinds (closure/harvest/gear_restriction/...), and a curator
-    choosing one of those would write a type the model refuses."""
-    from pipeline.regs.parsing.catalogue import RuleType, _FAMILY
-    return [{"type": t.value, "family": _FAMILY[t]} for t in RuleType]
+@app.get("/api/vocab")
+def get_vocab():
+    """Every option list the editors offer — rule types, slots, conduct acts, documents, Who axes,
+    species, … — READ OFF the catalogue model (`model_api.vocab`). Served rather than hardcoded in
+    the UI: the rule-type picker once listed six retired kinds, every one of which the model
+    refused."""
+    return reuse.vocab()
 
 
 @app.get("/api/items/search")
@@ -66,7 +66,7 @@ def search(q: str):
 
 @app.get("/api/species")
 def species():
-    """All species/group codes + common names, for the species picker."""
+    """Every species code a rule may name (`catalogue.KNOWN_SPECIES`), with the model's words."""
     return reuse.species_list()
 
 
@@ -87,8 +87,26 @@ class SavePayload(BaseModel):
     entry: dict
 
 
+class CheckPayload(BaseModel):
+    region: str | None = None
+    entry: dict
+
+
+@app.post("/api/check")
+def check(body: CheckPayload):
+    """Validate a DRAFT without writing it: `{ok, errors, warnings, labels}`. `errors` are what a
+    save would refuse, each `{path, msg}` addressed to the field (`rules.2.gear.0.max`);
+    `labels` is the generated label of every rule and licensing record that validates on its own,
+    so the editor shows what the app will say while the curator types."""
+    return reuse.check_entry(body.entry, body.region)
+
+
 @app.put("/api/entries/{entry_id}")
 def save(entry_id: str, body: SavePayload):
+    if body.entry.get("entry_id") != entry_id:
+        raise HTTPException(422, [{"path": "entry_id",
+                                   "msg": f"the body is entry {body.entry.get('entry_id')!r}, "
+                                          f"the URL is {entry_id!r}"}])
     res = reuse.save_entry(body.region, body.entry)
     if not res["ok"]:
         raise HTTPException(422, res["errors"])

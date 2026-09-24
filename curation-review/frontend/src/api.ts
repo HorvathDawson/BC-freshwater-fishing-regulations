@@ -2,7 +2,10 @@
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
 import type {
+  CheckResult,
   EntryKind,
+  FieldError,
+  Vocab,
   Boundary,
   EntryDetail,
   EntryReaches,
@@ -32,12 +35,22 @@ export interface ValidationError extends Error {
   status: number;
 }
 
-// PUT write path. Returns {ok, errors} on 200; throws a ValidationError
-// carrying the returned errors on 422 (FastAPI puts them under `detail`).
-async function writeEntry(
-  url: string,
-  body: Record<string, unknown>,
-): Promise<SaveResult> {
+/** A refused entry save: the model's errors, each addressed to a field. */
+export interface EntryRefused extends Error {
+  fieldErrors: FieldError[];
+}
+
+function asFieldErrors(detail: unknown): FieldError[] {
+  const list = Array.isArray(detail) ? detail : [detail ?? "validation failed"];
+  return list.map((d) =>
+    d && typeof d === "object" && "msg" in (d as object)
+      ? { path: String((d as FieldError).path ?? ""), msg: String((d as FieldError).msg) }
+      : { path: "", msg: typeof d === "string" ? d : JSON.stringify(d) });
+}
+
+// PUT write path. Returns {ok, errors} on 200; throws an EntryRefused carrying the addressed
+// errors on 422 (FastAPI puts them under `detail`).
+async function writeEntry(url: string, body: Record<string, unknown>): Promise<SaveResult> {
   const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -45,13 +58,8 @@ async function writeEntry(
   });
   if (res.status === 422) {
     const payload = await res.json().catch(() => ({}));
-    const detail = (payload && (payload.detail ?? payload.errors)) as unknown;
-    const errors = Array.isArray(detail)
-      ? detail.map((d) => (typeof d === "string" ? d : JSON.stringify(d)))
-      : [String(detail ?? "validation failed")];
-    const err = new Error("validation failed") as ValidationError;
-    err.errors = errors;
-    err.status = 422;
+    const err = new Error("validation failed") as EntryRefused;
+    err.fieldErrors = asFieldErrors(payload?.detail ?? payload?.errors);
     throw err;
   }
   if (!res.ok) {
@@ -85,6 +93,21 @@ export const api = {
     getJSON<{ id: string; name: string }[]>(`/api/items/${encodeURIComponent(itemId)}/tributaries`),
 
   species: () => getJSON<SpeciesOption[]>("/api/species"),
+
+  /** every option list the editors offer, read off the catalogue model */
+  vocab: () => getJSON<Vocab>("/api/vocab"),
+
+  /** validate a draft without writing: errors (addressed), warnings, and the generated labels */
+  check: async (entry: Entry, region: string, signal?: AbortSignal): Promise<CheckResult> => {
+    const res = await fetch("/api/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ region, entry }),
+      signal,
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText} for /api/check`);
+    return (await res.json()) as CheckResult;
+  },
 
   /** per-rule, per-extent resolved reach — what to highlight on the map */
   reaches: (entryId: string) =>

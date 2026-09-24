@@ -12,7 +12,7 @@
  * completely different claims about a river.
  */
 import type { GaugeTrust } from "./flow";
-import type { SectionKey } from "./stretches";
+import type { SectionKey } from "./section";
 
 export interface GaugeTrace {
   /** The station this reach drains through. Null means no station may speak for it. */

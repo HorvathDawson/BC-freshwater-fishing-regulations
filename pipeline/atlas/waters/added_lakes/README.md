@@ -90,6 +90,7 @@ polygon arrived as EPSG:3857. Per-feature properties:
 | `source` | `manual` (hand-drawn) \| `osm` \| the layer it came from |
 | `note` | why FWA lacks it, where the polygon came from, what it sits on |
 | `claims` | (informational) the blks/wscs the polygon overlaps, so a reviewer can check the re-stamp hit what was intended |
+| `part_of` | `{"wbk": "<parent>"}` on a PART of a lake the book splits (Kootenay, Williston, Shannon). The atlas does not read it; the bundle build copies it to `item.part_of` (refusing a part or parent this build lacks), and readers group a lake's parts by that column — never by this file |
 
 `claims` is **documentation, not input**: which fids get re-stamped is decided by geometry at build
 time, so the file cannot silently disagree with the map.

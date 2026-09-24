@@ -6,16 +6,13 @@
  * an implementation can diverge with no test noticing, which is exactly how v1's two
  * clients ended up 1,203 lines apart.
  *
- * The cases are the ones that actually go wrong, not a coverage sweep: a river with
- * several regulated stretches, a seasonal closure, a rule nobody could place, an alias
- * search, and a gauge that must refuse to speak for water it does not measure.
+ * The cases are the ones that actually go wrong, not a coverage sweep: a river cut into
+ * several sections, an alias search, and a gauge that must refuse to speak for water it does
+ * not measure. Regulations are not integrated, so nothing here asks about them.
  */
 import { expect, it } from "vitest";
-import type { PlainDate } from "@app/core";
 import type { ItemId, RegsSource, SectionId, StationId } from "@app/data";
 
-const AUG = { year: 2026, month: 8, day: 30 } satisfies PlainDate;
-const JUN = { year: 2026, month: 6, day: 15 } satisfies PlainDate;
 const CHILLIWACK = "gnis:8634" as ItemId;
 /**
  * A handle no table issues, for "look up something that is not there". Not `0` — that is
@@ -36,9 +33,9 @@ const NO_SUCH_SECTION = 2_000_000_000 as SectionId;
  * durable across rebuilds (99.88%) and identical in every source.
  */
 export interface ConformanceSections {
-  /** The lowest reach of the named water — the one carrying the June closure. */
+  /** The lowest reach of the Chilliwack River. */
   lowerChilliwack: SectionId;
-  /** The side channel whose only rule could never be placed. */
+  /** A side channel too small for the nearby gauge to speak for. */
   jeperson: SectionId;
 }
 
@@ -81,44 +78,20 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     expect(await s.itemForSection(NO_SUCH_SECTION)).toBeNull();
   });
 
-  // ---- regulations ----
-  T("a sheet arrives in ONE call, with its stretches in order", async (s) => {
-    const r = await s.regsForItem(CHILLIWACK, AUG, "provincial");
-    expect(r).not.toBeNull();
-    const seqs = r!.reaches.map((x) => x.seq);
-    expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
-    // A river with several regulated stretches must not collapse to one answer.
-    expect(r!.reaches.length).toBeGreaterThan(1);
+  // ---- water ----
+  T("a water arrives with every section it covers, in the water's own order", async (s) => {
+    const w = await s.water(CHILLIWACK);
+    expect(w).not.toBeNull();
+    expect(w!.item).toBe(CHILLIWACK);
+    expect(w!.name).toBeTruthy();
+    // A river cut into several sections must not collapse to one.
+    expect(w!.sections.length).toBeGreaterThan(1);
+    expect(w!.sections).toContain(LOWER_REACH);
+    expect(w!.sections).toEqual([...w!.sections].sort((a, b) => a - b));
   });
 
-  T("every stretch names the landmarks that bound it", async (s) => {
-    const r = await s.regsForItem(CHILLIWACK, AUG, "provincial");
-    // Without these the sheet cannot tell a person WHICH stretch they tapped.
-    expect(r!.reaches.some((x) => x.lowerLabel || x.upperLabel)).toBe(true);
-  });
-
-  T("zone and province-wide rules are carried, and labelled for a reader", async (s) => {
-    const r = await s.regsForItem(CHILLIWACK, AUG, "provincial");
-    expect(r!.area.length).toBeGreaterThan(0);
-    for (const a of r!.area) expect(a.scopeLabel).toBeTruthy();
-  });
-
-  T("the date decides: a June closure is closed in June and open in August", async (s) => {
-    const jun = await s.statusFor([LOWER_REACH], JUN, "provincial");
-    const aug = await s.statusFor([LOWER_REACH], AUG, "provincial");
-    expect(jun.get(LOWER_REACH)!.outcome).toBe("closed");
-    expect(aug.get(LOWER_REACH)!.outcome).not.toBe("closed");
-  });
-
-  T("statusFor answers a whole viewport in one call", async (s) => {
-    const m = await s.statusFor([LOWER_REACH, JEPERSON], AUG, "provincial");
-    expect(m.size).toBe(2);
-  });
-
-  T("a rule nobody could place reads UNKNOWN, never open", async (s) => {
-    // The Fraser side-channel closure: no extent was ever authored for it.
-    const m = await s.statusFor([JEPERSON], AUG, "provincial");
-    expect(m.get(JEPERSON)!.outcome).toBe("unknown");
+  T("an unknown water is null, never an empty one", async (s) => {
+    expect(await s.water("gnis:does-not-exist" as ItemId)).toBeNull();
   });
 
   // ---- search ----

@@ -2,7 +2,7 @@
 
 `vitest` mounts `@app/ui-native` through **react-native-web** (see `vitest.config.ts`), so
 components built from React Native primitives — `View`, `Text`, `Animated` — are really
-rendered and really asserted. `StatusPill.test.tsx` is that.
+rendered and really asserted. `WaterScreen.test.tsx` is that.
 
 **Components importing `react-native-svg` cannot be mounted here**, and it is worth writing
 down why so nobody spends an afternoon on it twice:

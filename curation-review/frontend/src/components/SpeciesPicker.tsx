@@ -2,37 +2,40 @@ import { useMemo } from "react";
 import type { SpeciesOption } from "../types";
 
 interface Props {
-  values: string[]; // species codes
-  options: SpeciesOption[];
-  onChange: (next: string[]) => void;
+  values?: string[]; // species codes
+  options: SpeciesOption[]; // catalogue.KNOWN_SPECIES, from /api/vocab
+  onChange: (next: string[] | undefined) => void;
+  label?: string;
 }
 
-// Species editor: selected species show as common names (with the code), and a dropdown "+ add" appends
-// from the full BC species/group list. Empty = ALL species.
-export function SpeciesPicker({ values, options, onChange }: Props) {
+// Species editor over the MODEL's vocabulary (`KNOWN_SPECIES`, groups first-class): selected codes
+// show with the model's own words, and "+ add" appends. An empty list is NOT "all species" — a
+// retention rule refuses it; ALL_GAME_FISH / ALL_FIN_FISH say "everything" explicitly.
+export function SpeciesPicker({ values, options, onChange, label }: Props) {
+  const have = values ?? [];
   const nameByCode = useMemo(() => Object.fromEntries(options.map((o) => [o.code, o.name])), [options]);
-  const available = options.filter((o) => !values.includes(o.code));
-
-  function add(code: string) {
-    if (code && !values.includes(code)) onChange([...values, code]);
-  }
+  const available = options.filter((o) => !have.includes(o.code));
+  const groups = available.filter((o) => o.is_group);
+  const single = available.filter((o) => !o.is_group);
+  const emit = (next: string[]) => onChange(next.length ? next : undefined);
 
   return (
     <div className="species-picker">
-      {values.length === 0 && <span className="dim">ALL species</span>}
-      {values.map((c) => (
+      {have.length === 0 && <span className="dim">none</span>}
+      {have.map((c) => (
         <span className="species-chip" key={c}>
-          {nameByCode[c] ?? c} <span className="dim">({c})</span>
-          <button type="button" className="x" title="remove" onClick={() => onChange(values.filter((v) => v !== c))}>×</button>
+          {nameByCode[c] ?? `${c} (not a known code)`} <span className="dim">({c})</span>
+          <button type="button" className="x" title="remove" onClick={() => emit(have.filter((v) => v !== c))}>×</button>
         </span>
       ))}
-      <select value="" onChange={(e) => add(e.target.value)} title="add a species">
-        <option value="">+ add species…</option>
-        {available.map((o) => (
-          <option key={o.code} value={o.code}>
-            {o.name}{o.is_group ? " (group)" : ""} — {o.code}
-          </option>
-        ))}
+      <select aria-label={label} value="" onChange={(e) => e.target.value && emit([...have, e.target.value])} title="add a species">
+        <option value="">+ add…</option>
+        <optgroup label="groups — the word the page prints">
+          {groups.map((o) => <option key={o.code} value={o.code}>{o.name} — {o.code}</option>)}
+        </optgroup>
+        <optgroup label="individual fish">
+          {single.map((o) => <option key={o.code} value={o.code}>{o.name} — {o.code}</option>)}
+        </optgroup>
       </select>
     </div>
   );

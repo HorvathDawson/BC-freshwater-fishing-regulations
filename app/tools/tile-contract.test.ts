@@ -197,9 +197,16 @@ describe("the style and the tiles agree", () => {
   it("no tile layer is silently unused", () => {
     // Not a failure — the pipeline may build a layer before the app draws it — but it
     // should be a deliberate, visible list rather than something nobody notices.
+    //
+    //   sign_zone  the area a regulation encloses with fishing boundary signs. The tile
+    //              contract calls it "not a place, a rule": it has no meaning apart from the
+    //              rules bound to it (`cuts` names the water they are written about).
+    //              Regulations are not integrated, so it is not drawn; it comes back with
+    //              them (see `regulations.ts` in @app/core).
+    //   wma, watershed  built for regulation scopes; nothing in the app draws them yet.
     const drawn = new Set(source.layers.map((l) => l.sourceLayer));
     const undrawn = Object.keys(contract.layers).filter((n) => !drawn.has(n));
-    expect(undrawn).toEqual(["wma", "watershed"]);
+    expect(undrawn).toEqual(["sign_zone", "wma", "watershed"]);
   });
 });
 

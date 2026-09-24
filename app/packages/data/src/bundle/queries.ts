@@ -4,12 +4,14 @@
  * Written against `pipeline/deliver/bundle/schema.sql` and nothing else. The SQL lives here rather
  * than in the source implementation so that the shape of a read — how many statements, in
  * what order, over which indexes — is reviewable in one place. That matters more than it
- * looks: on the web each of these is a range request, and `regsForItem` is budgeted at
- * two to four (data contract §10). A query added in a component is a round trip nobody
- * counted.
+ * looks: on the web each of these is a range request (data contract §10). A query added in
+ * a component is a round trip nobody counted.
+ *
+ * No regulation table is read — regulations are not integrated (see `regulations.ts` in
+ * @app/core).
  */
 
-/** A water's sheet, in as few statements as the schema allows. */
+/** A water by its durable id. */
 export const ITEM = "SELECT item_id, name, kind FROM item WHERE item_id = ?";
 
 /**
@@ -37,49 +39,6 @@ export const SECTIONS_FOR_ITEM =
 export const ITEM_FOR_SECTION =
   "SELECT i.item_id FROM item_section s JOIN item i ON i.ord = s.ord " +
   "WHERE s.sid = ? LIMIT 1";
-
-export const ENTRY_FOR_ITEM =
-  "SELECT entry_id, name, full_name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
-
-export const RULES_FOR_ENTRY =
-  "SELECT entry_id, rule_id, type, family, dimension, label, scope, when_, while_, standing, " +
-  "       species, exempts, " +
-  "       take, may_target, uncertain, verbatim, extent_text " +
-  "FROM rule WHERE entry_id = ? ORDER BY rule_id";
-
-/**
- * Which rules bind to these sections.
- *
- * Scope is a property of the geometry, so this asks by scope and lets the caller supply
- * section ids, MU ids or area ids — one query serves all three tiers.
- */
-/**
- * The rules covering a set of sections, and the SET each section belongs to.
- *
- * TWO JOINS AND NO EXPANSION. The bundle does not store one row per (section, rule) — that
- * is 1,720,243 rows and 69.6 MB — it stores the 1,905 distinct answers and lets each section
- * name one. So this reads `section_ruleset` to find the answer and `ruleset` to read it,
- * and a 300-section viewport comes back in 0.25 ms against 1.0 ms for the flat table. Less
- * to read is faster, which is the happy direction for a compression to fail in.
- *
- * `set_id` comes back too, and is not a debugging aid: it is what lets a screen show a
- * river as the few stretches that differ rather than as 201 identical rows. See
- * `runsOfSameRules` in @app/core.
- */
-export const rulesForSections = (n: number) =>
-  "SELECT sr.sid, sr.set_id, rs.via, " +
-  "       r.entry_id, r.rule_id, r.type, r.family, r.dimension, r.label, " +
-  "       r.scope, r.when_, r.while_, r.standing, r.species, r.exempts, r.take, r.may_target, " +
-  "       r.uncertain, r.verbatim, r.extent_text " +
-  "FROM section_ruleset sr " +
-  "JOIN ruleset rs ON rs.set_id = sr.set_id " +
-  "JOIN rule r ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id " +
-  `WHERE sr.sid IN (${placeholders(n)})`;
-
-/** Just the set each section belongs to — for grouping, with no rule bodies fetched. */
-export const setsForSections = (n: number) =>
-  "SELECT sid, set_id FROM section_ruleset " +
-  `WHERE sid IN (${placeholders(n)})`;
 
 /**
  * Name search.

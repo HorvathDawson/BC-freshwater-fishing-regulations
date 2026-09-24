@@ -152,7 +152,7 @@ body {
   border-color: var(--danger-border);
   color: var(--danger-text);
 }
-.badge.needs_review {
+.badge.flagged {
   background: var(--warn-bg);
   border-color: var(--warn-border);
   color: var(--warn-text);
@@ -212,11 +212,11 @@ body {
 }
 
 /* ---- detail sections ---- */
-.identity h2 {
+.entry-head h2 {
   margin: 0 0 4px;
   font-size: 18px;
 }
-.identity .sub {
+.entry-head .sub {
   color: var(--muted);
   display: flex;
   gap: 10px;
@@ -272,7 +272,7 @@ body {
   padding: 10px;
   margin-bottom: 10px;
 }
-.rule.needs_review {
+.rule.flagged {
   border-color: var(--warn-border);
 }
 .rule .rule-head {
@@ -299,7 +299,7 @@ body {
   font-size: 11px;
   font-family: ui-monospace, monospace;
 }
-.rule .details {
+.rule .label {
   font-weight: 600;
   margin: 4px 0;
 }
@@ -1069,3 +1069,82 @@ button.btn.rebuild-running {
   font-size:11px; letter-spacing:.06em; text-transform:uppercase; opacity:.75;
 }
 .queue-group:first-child{ margin-top:0 }
+
+/* ---- model editors (components/model, model.tsx) ---- */
+.mfield {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 6px;
+  align-items: start;
+  margin: 3px 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.mfield > .k {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding-top: 4px;
+  overflow-wrap: anywhere;
+}
+.mfield > .v { min-width: 0; }
+.mfield .mfield { grid-template-columns: 110px 1fr; }
+.mfield.has-error { border-color: var(--danger-border); background: var(--danger-bg); }
+.mfield.named-error { border-color: var(--warn-border); background: var(--warn-bg); }
+.mfield input.grow, .mfield textarea.grow {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.mfield textarea.grow { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.field-error { color: var(--danger-text); font-size: 11px; margin-top: 2px; }
+.field-errors {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 4px 0;
+}
+.hint { color: var(--muted); font-size: 11px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
+.grid2 .mfield, .grid3 .mfield { grid-template-columns: 1fr; gap: 1px; }
+.group { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 4px; }
+.group > summary { cursor: pointer; font-weight: 600; font-size: 12px; color: #374151; }
+.group.hot > summary { color: var(--danger-text); }
+.clause, .sub-record {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 6px;
+  margin: 4px 0;
+  background: #fafbfc;
+}
+.clause-head, .band-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.band-row .mfield { grid-template-columns: auto auto; margin: 0; }
+.row-tools { display: inline-flex; gap: 2px; }
+.row-tools button:disabled { opacity: 0.3; }
+.checks { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.check { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; }
+.radio-row { display: inline-flex; gap: 10px; margin-right: 8px; }
+.who-axis { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+.gear-when { border-left: 2px solid var(--border); padding-left: 6px; }
+.unless-row { display: flex; gap: 4px; align-items: flex-start; }
+.btn.small { padding: 1px 8px; font-size: 11px; margin-top: 3px; }
+.raw-json summary { cursor: pointer; font-size: 11px; color: var(--muted); }
+.raw-json textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+}
+.rule.has-error { border-color: var(--danger-border); }
+.extent-area, .extent-limits { display: block; width: 100%; }
+.extent-limits summary { cursor: pointer; font-size: 11px; }
+.identity-fields table td.k { font-family: ui-monospace, monospace; color: var(--muted); padding-right: 10px; }
+.warnings { margin: 6px 0; font-size: 12px; }
+.add-record select { font-size: 12px; }
+.ref { display: inline-flex; gap: 6px; }

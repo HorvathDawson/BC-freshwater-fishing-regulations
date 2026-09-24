@@ -14,7 +14,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
-from pipeline.atlas.reach.covered import covered_ids as _covered_ids, make_matcher
+from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
 from pipeline.atlas.reach.classify import classify, wants_tributaries
 from pipeline.atlas.reach.models import (
@@ -41,19 +41,17 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None, overrides_path="__default__") -> ReachResult:
+                  covered_fn=None) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
     `pipeline.regs.parsing.io.read_entries_dir` and the review app both produce.
 
-    Covered items come from `pipeline.atlas.reach.covered` — `entry.matched` when present, else
-    a live re-match with the build's own matcher and overrides. That is exactly what the
-    review app does, so the bundle and the app never disagree about which water a rule is
-    about. Pass `covered_fn(entry, registry)` to override.
+    Covered items come from `pipeline.atlas.reach.covered` — `entry.matched`, and nothing else;
+    the review app reads the same function, so the bundle and the app never disagree about
+    which water a rule is about. Pass `covered_fn(entry, registry)` to override.
     """
     t0 = time.time()
-    match = make_matcher(registry, overrides_path)
     bindings: list[RuleBinding] = []
     diagnostics: list[Diagnostic] = []
     licensing: list[LicensingPlacement] = []
@@ -69,12 +67,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         report.n_entries += 1
         entry_id = e["entry_id"]
         covered = (covered_fn(e, registry) if covered_fn
-                   else _covered_ids(e, registry, match))
-        has_registry = bool(covered)
-        if has_registry and not (e.get("matched") or []):
-            # Resolved only via the live re-match. Nothing is broken, but the entry file
-            # is stale; `pipeline.regs.parsing.backfill_matched` stamps it permanently.
-            report.needs_backfill.append(entry_id)
+                   else _covered_ids(e, registry))
 
         clip, scope_failed = _scope_sections(e, covered, registry, graph)
         if scope_failed:
@@ -83,7 +76,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         for rule in e.get("rules") or []:
             report.n_rules += 1
             binding, diags = build_reach(e, rule, registry, graph,
-                                         covered=covered, clip=clip, match=match)
+                                         covered=covered, clip=clip)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -96,7 +89,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             if rec.get("kind") not in PLACED_KINDS:
                 continue
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
-                e, r, registry, graph, covered=covered, clip=clip, match=match))
+                e, r, registry, graph, covered=covered, clip=clip))
             placed, diags = place_record(e, rec, reach)
             licensing.append(placed)
             if rec.get("kind") == "designation":
@@ -160,8 +153,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     return ReachResult(bindings, diagnostics, report, licensing, lic_diags)
 
 
-def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None, clip=None,
-                match=None) -> tuple[RuleBinding, list[Diagnostic]]:
+def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
+                clip=None) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
     One call, so no caller has to remember the order, or that tributaries need expanding.
@@ -173,7 +166,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None, clip=
     `tributaries.expand`, `classify.classify`. This only removes the chance to skip one.
     """
     if covered is None:
-        covered = _covered_ids(entry, registry, match or make_matcher(registry))
+        covered = _covered_ids(entry, registry)
 
     per: list[dict | None] = []
     clipped = False

@@ -10,19 +10,26 @@ from pipeline.atlas.splits.splits import load_split_defs
 from pipeline.common.curated import CURATED, SOURCE
 
 # The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
+# The by-waterbody shape — the only one the loader reads. Each split names its own target in
+# `applies_to`, so one fixture still covers the blk-target and wsc-target (braided) forms.
 _SAMPLE_SPLITS = {
-    "splits": [
-        {"id": "adams_lake", "blk": "356362743",
-         "anchor": {"type": "lake", "wbk": "329480864"}},
-        {"id": "fraser_section_boundary_example", "wsc": "100-190442", "proximity_m": 1200,
-         "anchor": {"type": "point", "coord": [-121.5, 49.1], "is_lonlat": True}},
-        {"id": "example_point_on_blk", "blk": "356362743",
-         "anchor": {"type": "point", "coord": [-119.615, 51.010], "is_lonlat": True},
-         "label": "Squilax bridge"},
-        {"id": "fraser_mu_2_3", "blk": "356362743",
-         "anchor": {"type": "mu_boundary", "mu_a": "2-3", "mu_b": "3-12"}},
-        {"id": "example_confluence", "blk": "356362743",
-         "anchor": {"type": "confluence", "tributary_blk": "356358584"}},
+    "waterbodies": [
+        {"name": "SOUTH THOMPSON RIVER", "applies_to": {"blk": "356362743"},
+         "splits": [
+             {"id": "adams_lake", "anchor": {"type": "lake", "wbk": "329480864"}},
+             {"id": "example_point_on_blk",
+              "anchor": {"type": "point", "coord": [-119.615, 51.010], "is_lonlat": True},
+              "label": "Squilax bridge"},
+             {"id": "example_confluence",
+              "anchor": {"type": "confluence", "tributary_blk": "356358584"}},
+         ]},
+        {"name": "FRASER RIVER", "applies_to": {"wsc": "100-190442"},
+         "splits": [
+             {"id": "fraser_section_boundary_example", "proximity_m": 1200,
+              "anchor": {"type": "point", "coord": [-121.5, 49.1], "is_lonlat": True}},
+             {"id": "fraser_mu_2_3", "applies_to": {"blk": "356362743"},
+              "anchor": {"type": "mu_boundary", "mu_a": "2-3", "mu_b": "3-12"}},
+         ]},
     ]
 }
 
@@ -69,11 +76,26 @@ def test_anchor_field_requirements():
 def test_duplicate_ids_rejected(tmp_path):
     import json
     p = tmp_path / "s.json"
-    p.write_text(json.dumps({"splits": [
-        {"id": "dup", "blk": "1", "anchor": {"type": "point", "coord": [0, 0]}},
-        {"id": "dup", "blk": "2", "anchor": {"type": "point", "coord": [1, 1]}},
+    p.write_text(json.dumps({"waterbodies": [
+        {"name": "A", "applies_to": {"blk": "1"},
+         "splits": [{"id": "dup", "anchor": {"type": "point", "coord": [0, 0]}}]},
+        {"name": "B", "applies_to": {"blk": "2"},
+         "splits": [{"id": "dup", "anchor": {"type": "point", "coord": [1, 1]}}]},
     ]}))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="duplicate split ids"):
+        load_split_defs(str(p))
+
+
+@pytest.mark.parametrize("body", [
+    {"splits": [{"id": "flat", "blk": "1", "anchor": {"type": "point", "coord": [0, 0]}}]},
+    [{"id": "bare", "blk": "1", "anchor": {"type": "point", "coord": [0, 0]}}],
+])
+def test_the_flat_shape_is_refused(tmp_path, body):
+    """The retired flat shape is refused outright, not read: a second accepted shape is a second
+    place a target can hide."""
+    p = tmp_path / "s.json"
+    p.write_text(json.dumps(body))
+    with pytest.raises(ValueError, match="by-waterbody shape"):
         load_split_defs(str(p))
 
 

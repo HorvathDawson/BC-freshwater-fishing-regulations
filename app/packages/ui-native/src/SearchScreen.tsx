@@ -120,7 +120,7 @@ export function SearchScreen({ source, palette, onPick, onPickPlace, total, tile
       */}
       {tiles && (
         <MiniMap at={tiles} palette={palette} theme={theme ?? "light"} camera={HOME}
-                 height={186} view="regulations"
+                 height={186} view="plain"
                  hint={peek ? peek.name : "Tap a result to see where it is"} />
       )}
     </View>

@@ -612,44 +612,12 @@
           "color": {
             "token": "color.wetland.fill"
           }
-        },
-        "closure": {
-          "label": "Open / closed",
-          "scale": "categorical",
-          "property": "status",
-          "enum": "reg_status",
-          "categories": {
-            "open": {
-              "token": "color.status.open"
-            },
-            "restricted": {
-              "token": "color.status.restricted"
-            },
-            "closed": {
-              "token": "color.status.closed"
-            },
-            "unknown": {
-              "token": "color.status.unknown"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "data": {
-            "provider": "regs",
-            "field": "status",
-            "params": [
-              "date",
-              "species"
-            ]
-          },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         }
       },
       "opacity": {
         "token": "opacity.wetland"
       },
-      "$comment": "Marsh and swamp — the largest layer by area in the province, and CONTEXT rather than an answer. It is HATCHED (see src/hatch.ts): texture is what lets it read at 45% where a flat wash needs 60% and buries every river it surrounds. The pattern applies to the static colouring ONLY — the moment the fill is carrying a regulation status, the status colour must win, or 'closed' and 'open' look like the same green weave.",
+      "$comment": "Marsh and swamp — the largest layer by area in the province, and CONTEXT rather than an answer. It is HATCHED (see src/hatch.ts): texture is what lets it read at 45% where a flat wash needs 60% and buries every river it surrounds. The pattern applies to the static colouring ONLY: a fill that carries a data-driven answer must win over the weave.",
       "pattern": {
         "token": "color.wetland.fill",
         "spacing": 4,
@@ -672,38 +640,6 @@
           "color": {
             "token": "color.lake.fill"
           }
-        },
-        "closure": {
-          "label": "Open / closed",
-          "scale": "categorical",
-          "property": "status",
-          "enum": "reg_status",
-          "categories": {
-            "open": {
-              "token": "color.status.open"
-            },
-            "restricted": {
-              "token": "color.status.restricted"
-            },
-            "closed": {
-              "token": "color.status.closed"
-            },
-            "unknown": {
-              "token": "color.status.unknown"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "data": {
-            "provider": "regs",
-            "field": "status",
-            "params": [
-              "date",
-              "species"
-            ]
-          },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         },
         "standing": {
           "label": "Flow for the date",
@@ -1028,38 +964,6 @@
             "token": "color.water.mapped"
           }
         },
-        "closure": {
-          "label": "Open / closed",
-          "scale": "categorical",
-          "property": "status",
-          "enum": "reg_status",
-          "categories": {
-            "open": {
-              "token": "color.status.open"
-            },
-            "restricted": {
-              "token": "color.status.restricted"
-            },
-            "closed": {
-              "token": "color.status.closed"
-            },
-            "unknown": {
-              "token": "color.status.unknown"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "data": {
-            "provider": "regs",
-            "field": "status",
-            "params": [
-              "date",
-              "species"
-            ]
-          },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
-        },
         "standing": {
           "label": "Flow for the date",
           "scale": "continuous",
@@ -1285,30 +1189,6 @@
   ],
   "views": [
     {
-      "id": "regulations",
-      "label": "Regulations",
-      "default": true,
-      "modes": {
-        "stream": "closure",
-        "under_lake": "plain",
-        "lake": "closure",
-        "wetland": "plain",
-        "contour": "plain",
-        "park": "plain",
-        "eco_reserve": "plain",
-        "no_access": "plain",
-        "indigenous_land": "plain",
-        "mu": "plain",
-        "parcel_private": "plain",
-        "region": "plain",
-        "park_closed": "plain",
-        "no_access_permit": "plain",
-        "gauges": "standing",
-        "basin": "plain"
-      },
-      "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
-    },
-    {
       "id": "conditions",
       "label": "Conditions",
       "modes": {
@@ -1383,6 +1263,7 @@
     {
       "id": "plain",
       "label": "Plain map",
+      "default": true,
       "modes": {
         "stream": "plain",
         "under_lake": "plain",
@@ -1400,17 +1281,12 @@
         "no_access_permit": "plain",
         "gauges": "standing",
         "basin": "plain"
-      }
+      },
+      "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }
   ],
   "providers": {
-    "$comment": "Where a colour mode's values come from. Tiles carry IDENTITY (section_id) and almost nothing else — status and discharge live in the bundle and the live feed. The app fetches per visible feature and pushes feature-state; the tiles never change.",
-    "regs": {
-      "kind": "bundle",
-      "key": "section_id",
-      "freshness": "bundle",
-      "$comment": "Status per section for a date AND a species group. Two parallel stacks: the provincial synopsis governs trout, char and coarse fish; DFO governs salmon. There is no blended answer, so the view carries the group."
-    },
+    "$comment": "Where a colour mode's values come from. Tiles carry IDENTITY (section_id) and almost nothing else — discharge, stocking and survey facts live in the bundle and the live feeds. The app fetches per visible feature and pushes feature-state; the tiles never change.",
     "gauges": {
       "kind": "feed",
       "key": "section_id",
@@ -1426,14 +1302,6 @@
       "freshness": "live",
       "staleAfterMs": 1209600000,
       "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id — stocking is INTO a lake, not onto a reach."
-    },
-    "in_season": {
-      "kind": "feed",
-      "key": "item_id",
-      "fanout": "item_to_sections",
-      "freshness": "live",
-      "staleAfterMs": 43200000,
-      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold — two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
     },
     "lakes": {
       "kind": "bundle",

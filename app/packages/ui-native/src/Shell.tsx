@@ -2,18 +2,16 @@
  * The app: four tabs, the map as home, and a legend that always says what the colours mean.
  *
  * Drawn to `design/riffle.html`. The shell owns the state that more than one screen needs —
- * which tab, which water, which date, which colouring, which layers, which palette — and
- * hands it down. It holds no regulation logic (rule 25): every answer on every screen comes
- * from a hook.
+ * which tab, which water, which colouring, which layers, which palette — and hands it down.
+ * Every answer on every screen comes from a hook (rule 25). Regulations are not integrated:
+ * the map draws water plain and a water's sheet shows a placeholder where they will go.
  */
 import type { SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { OUTCOMES, statusWord, type Outcome, type PlainDate,
-         type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         useStatuses, useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
+         useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 /**
@@ -26,10 +24,8 @@ import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
-import { DateSheet } from "./DateSheet";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
-import { LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
-         type LayersState } from "./LayersSheet";
+import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
 import { SpotsScreen } from "./SpotsScreen";
@@ -39,7 +35,7 @@ import { SpotScreen } from "./SpotScreen";
 import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
 import { TYPE } from "./type";
-import { flowRamp, outcomeColour, type Palette, type ThemeName } from "./theme";
+import { flowRamp, type Palette, type ThemeName } from "./theme";
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
@@ -54,20 +50,13 @@ const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
  */
 const HANDOVER_Z = 9;
 
-export function Shell({ source, palette, theme, themeName, onTheme, on, onDateChange, group, tiles,
+export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        attribution }: {
   source: RegsSource; palette: Palette;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
   theme: string; themeName: ThemeName; onTheme: (t: ThemeName) => void;
-  on: PlainDate; group: SpeciesGroup;
-  /**
-   * Change the date the whole app is answering for. Absent -> the pill does not react,
-   * which is at least honest; it used to LOOK pressable and do nothing, because MapScreen
-   * declared `onDate` and nothing ever passed one.
-   */
-  onDateChange?: (d: PlainDate) => void;
   /** Where the two pmtiles archives are served from. */
   tiles: TileEndpoints;
   /** The user's pins. Empty is the normal first-run state, not a failure. */
@@ -100,7 +89,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const [tab, setTab] = useState<TabKey>("map");
   const [item, setItem] = useState<ItemId | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
   /** Adding a spot takes over the whole screen: it is a flow, not a mode of the map. */
   const [adding, setAdding] = useState(false);
   const [openSpot, setOpenSpot] = useState<string | null>(null);
@@ -111,14 +99,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // to something else, so it never lingers as a mystery dot.
   const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(null);
   /**
-   * The reaches the map currently has rendered.
-   *
-   * BOTH map tabs report now. It used to be Conditions only — but the legend on the
-   * regulations map is supposed to carry counts ("29 closed · 33 restricted · …"), which is
-   * how `design/riffle.html` draws it and why `LegendCount` has always had an `n` prop with
-   * a comment reading "the count is the point". Nothing ever passed one, so the legend was
-   * a key rather than a reading: it said what the colours mean and not how much of the
-   * screen is each one.
+   * The reaches the map currently has rendered — what the Conditions view asks the panel
+   * about. Viewport-scoped because the whole table is far too big to hold for a question
+   * about the few hundred reaches actually on screen.
    */
   const [visible, setVisible] = useState<readonly SectionId[]>([]);
   // The reach tapped while in Conditions. A tap there asks "what is THIS water doing",
@@ -187,26 +170,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const basins = useBasinStandings(source, feed, fieldOn,
                                    flowParam === "temperature" ? "discharge" : flowParam,
                                    horizon);
-  // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
-  // `usePanelStandings` beside it — the whole table is far too big to hold to answer a
-  // question about the few hundred reaches actually rendered.
-  const shown = useStatuses(source, tab === "map" ? visible : [], on, group);
-  const tally = useMemo(() => {
-    const n = new Map<Outcome, number>();
-    if (shown.state !== "ready") return n;
-    for (const st of shown.value.values())
-      n.set(st.outcome, (n.get(st.outcome) ?? 0) + 1);
-    return n;
-  }, [shown]);
   // Streams, lakes and gauges each carry their own colouring, as the design has it —
-  // Rules on the rivers while the lakes show Stocked is a normal thing to want.
+  // plain rivers while the lakes show Stocked is a normal thing to want.
   //
   // DECLARED BEFORE THE HOOKS THAT READ IT. `useGaugeGeoJSON` needs to know whether it is
   // fetching the temperature roster or the flow one, and a `const` read above its own
   // initialiser is a ReferenceError at render — which is a blank screen, not a type error,
   // so the compiler said nothing and only opening the page found it.
   const [layers, setLayers] = useState<LayersState>(
-    { stream: "rules", lake: "rules", basemap: "map" });
+    { lake: "plain", basemap: "map" });
   /*
    * WHAT THE CONDITIONS VIEW IS ASKING. Flow, depth or temperature — a question about the
    * water, so it is asked ON the map rather than filed in the Layers sheet, and it only
@@ -268,7 +240,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
    *
    * A section is an integer handle into the atlas's table, and both artifacts carry it. A
    * mixed pair does not fail to match — it matches the WRONG SECTION, so every colour on
-   * screen would be a real regulation about a different river. That is the one outcome this
+   * screen would be a real reading about a different river. That is the one outcome this
    * app may never produce, and it has happened once already: the tiles were rebuilt and
    * `bundle.sqlite` was left behind, and the map went quietly grey.
    *
@@ -278,7 +250,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const vintage = useVintage(source, tiles?.atlas);
   const mixedPair = vintage.ok === false;
 
-  const streamChoice = streamChoices(palette).find((c) => c.k === layers.stream);
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
     /*
@@ -297,10 +268,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
      * reading for water nobody measured. The dots say what they know; the rivers say
      * nothing.
      */
+    // Plain on the Map tab: its only other colouring was the regulation outcome, and
+    // regulations are not integrated.
     stream: mixedPair ? "plain"
       : onConditions
         ? (quantity === "temperature" ? "plain" : "standing")
-        : streamChoice?.mode ?? "plain",
+        : "plain",
     // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
     // sitting IN the lake. Under depth and temperature they go plain for the same reason
     // the rivers do: nothing can carry either to a water with no station of its own.
@@ -324,8 +297,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       : onConditions && quantity !== "temperature" ? "standing" : "plain",
   };
   const activeGroups = { ...groups };
-  for (const c of [streamChoice, lakeChoice])
-    if (c?.group) activeGroups[c.group] = true;
+  if (lakeChoice?.group) activeGroups[lakeChoice.group] = true;
 
   /**
    * Tapping the map. A tile carries a `section_id`, and a section is not something a person
@@ -401,13 +373,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
                    feed={feed}
-                   theme={theme} camera={camera.current} on={on} group={group}
+                   theme={theme} camera={camera.current}
                    onCancel={() => setAdding(false)}
                    onSaved={(s) => { setAdding(false); void onSaveSpot(s); setTab("spots"); }} />
     );
 
   const body = item !== null
-    ? <WaterScreen source={source} item={item} on={on} group={group} palette={palette}
+    ? <WaterScreen source={source} item={item} palette={palette}
                    // NO `feed`. The sheet quotes no number, so it reads no gauge data —
                    // see the note in WaterScreen about why the hooks came out with the UI.
                    // The toggle LEAVES for the one conditions screen rather than rendering
@@ -462,7 +434,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             credits={attribution} horizon={horizon}
                             onHorizon={setHorizon} />
       : tab === "map" || tab === "conditions"
-        ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
+        ? <MapScreen at={tiles} palette={palette} theme={theme}
                      camera={camera.current}
                      marker={focus}
                      data={tab === "conditions" ? conditionData : undefined}
@@ -492,9 +464,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      // The list is the style's; the trigger is this screen's, because the
                      // app drives by mode and never renders the named view.
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
-                     onDate={onDateChange ? () => setDateOpen(true) : undefined}
-                     // The Conditions tab swaps the date control for the horizons — see
-                     // MapScreen. Temperature has no forecast, so it keeps neither.
+                     // The forecast horizons, on the Conditions tab. Temperature has no
+                     // forecast, so it gets none.
                      horizons={tab === "conditions" && flowParam !== "temperature"
                        ? { days: HORIZONS, value: horizon,
                            onPick: (d) => setHorizon(d as Horizon) }
@@ -539,8 +510,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
    * repainted a map behind the panel, and the ramp described a legend for water that is not
    * being drawn. Same reason `item` hides them: a detail view is not a map.
    */
+  /*
+   * THE MAP TAB HAS A LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE. With regulations
+   * not integrated its water is plain, and a key for plain water says nothing; the lakes'
+   * Stocked colouring is the one thing on that tab that needs its scale explained.
+   */
   const showLegend = item === null && condSection === null
-    && (tab === "map" || tab === "conditions");
+    && (tab === "conditions" || (tab === "map" && layers.lake === "stocked"));
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -557,11 +533,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
         <View style={{ paddingVertical: 8, paddingHorizontal: 12,
                        backgroundColor: palette.closed ?? "#7A1F2B" }}>
           <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
-            Map data is out of step — the tiles and the regulations came from different
+            Map data is out of step — the tiles and the data bundle came from different
             builds, so nothing is coloured. Rebuild or re-download both.
           </Text>
           <Text style={{ color: "#fff", fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-            tiles {vintage.tiles ?? "unknown"} · regulations {vintage.bundle ?? "unknown"}
+            tiles {vintage.tiles ?? "unknown"} · bundle {vintage.bundle ?? "unknown"}
           </Text>
         </View>
       )}
@@ -616,31 +592,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                           mid="normal" high="high"
                           stops={flowRamp(theme)} marks={visibleMarks} />
             )
-          ) : layers.lake === "stocked" ? (
+          ) : (
             palette.stock.map((c, i) => (
               <LegendCount key={c} palette={palette} colour={c}
                            label={STOCK_BANDS[i]!.label} />
-            ))
-          ) : (
-            // The word comes from core, not from a ternary here. This line used to say
-            // "limited" where StatusPill says "RESTRICTED" — two vocabularies for one
-            // outcome, in one screen, which is the drift rule 23 exists to stop.
-            OUTCOMES.map((k) => (
-              <LegendCount key={k} palette={palette} colour={outcomeColour(palette, k)}
-                           /*
-                            * Undefined until the answer arrives; 0 once it has.
-                            *
-                            * The distinction is the same one `count()` makes: before the
-                            * query returns we do not know, and a flashed "0" would say we
-                            * looked. After it returns, an outcome with no reaches on screen
-                            * genuinely has none — and "0 closed" is worth reading, because
-                            * it is the difference between "nothing here is shut" and "we
-                            * did not check". Riffle draws all four for the same reason.
-                            */
-                           n={tab === "map" && shown.state === "ready"
-                             ? tally.get(k) ?? 0 : undefined}
-                           label={statusWord({ outcome: k, provenance: "specific",
-                                               from: [] }).toLowerCase()} />
             ))
           )}
         </LegendStrip>
@@ -649,11 +604,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       <TabBar active={tab} palette={palette}
               onChange={(k) => { setItem(null); setCondSection(null); setCondAt(null);
                                  setTab(k); }} />
-
-      {onDateChange && (
-        <DateSheet open={dateOpen} onClose={() => setDateOpen(false)} palette={palette}
-                   value={on} onChange={onDateChange} />
-      )}
 
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}

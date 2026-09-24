@@ -4,34 +4,27 @@
  *   1. PICK THE WATER    tap a stream or lake; it highlights; Next
  *   2. PICK THE POINT    tap the exact place on it; Next
  *   3. WHEN WERE YOU     the date and hour you were there; Next
- *   4. WHAT WAS TRUE     gauge, how the gauge reaches this spot, weather, the regulation
- *                        in force that day — then notes and photographs, then Save
+ *   4. WHAT WAS TRUE     gauge, how the gauge reaches this spot, weather that day — then
+ *                        notes and photographs, then Save
  *
  * STEP 3 COMES BEFORE ANYTHING IS FETCHED, and that is the whole reason it exists as a
- * step rather than a field on the last screen. Weather, the gauge reading and the
- * regulation are all fetched FOR A DATE; asking afterwards would mean fetching twice, or
+ * step rather than a field on the last screen. Weather and the gauge reading are fetched
+ * FOR A DATE; asking afterwards would mean fetching twice, or
  * — worse — showing a person Tuesday's sky over the Sunday they actually fished.
  *
  * WHY THE CONFIRM STEPS. The first version tapped once and saved. On a phone, over a
  * one-pixel river, that is a coin toss: you get whichever water your thumb happened to
  * cover and no chance to see it was wrong before it is a permanent record. Highlighting
  * the choice and asking is the difference between picking and guessing.
- *
- * The satellite toggle is on screen during step 2 for the same reason. You are choosing a
- * point you can find again — a gravel bar, a seam below a bend — and the base map draws a
- * river as a blue line where the imagery shows you the actual bar. Satellite drops the
- * overlay entirely while picking, because a coloured line over the imagery hides the very
- * thing you came to look at.
+
  */
 import type { SectionKey } from "@app/core";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { PlainDate, SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { captureSpot } from "@app/data/spots";
 import type { Camera, TileEndpoints } from "@app/map";
-import { Pill } from "./Chrome";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
 import { SpotScreen } from "./SpotScreen";
@@ -56,16 +49,13 @@ export interface SpotCaptureProps {
   palette: Palette;
   theme: string;
   camera: Camera;
-  on: PlainDate;
-  group: SpeciesGroup;
   onCancel: () => void;
   onSaved: (spot: Spot) => void;
 }
 
 export function SpotCapture(props: SpotCaptureProps) {
-  const { palette, tiles, theme, camera, source, on, group, feed } = props;
+  const { palette, tiles, theme, camera, source, feed } = props;
   const [step, setStep] = useState<Step>("water");
-  const [satellite, setSatellite] = useState(false);
   const [water, setWater] = useState<{ section: SectionId; item: ItemId | null;
                                        name: string | null } | null>(null);
   const [point, setPoint] = useState<{ lat: number; lon: number } | null>(null);
@@ -79,9 +69,9 @@ export function SpotCapture(props: SpotCaptureProps) {
   const pickWater = async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
     const section = Number(featureId) as SectionId;
-    const item = await source.itemForSection(section);
-    const sheet = item ? await source.regsForItem(item, on, group) : null;
-    setWater({ section, item, name: sheet?.name ?? null });
+    // One read for the id and the name: `waterFor` is the reach-to-water lookup.
+    const found = await source.waterFor(section);
+    setWater({ section, item: found?.item ?? null, name: found?.name ?? null });
   };
 
   const toDetails = async () => {
@@ -91,7 +81,7 @@ export function SpotCapture(props: SpotCaptureProps) {
       feed,
       source, weather: props.weather, at: point, visitedAt,
       item: water.item, section: water.section, waterName: water.name,
-      group, title: title || water.name || "",
+      title: title || water.name || "",
     });
     setDraft(spot);
     setTitle(spot.title);
@@ -123,12 +113,8 @@ export function SpotCapture(props: SpotCaptureProps) {
   const ready = step === "water" ? water !== null : point !== null;
   return (
     <View style={{ flex: 1 }}>
-      <MapScreen at={tiles} palette={palette} theme={theme} camera={camera} on={on}
-                 // Satellite drops the overlay: you are looking for a gravel bar, and a
-                 // coloured line drawn over it hides exactly what you came to see.
-                 view={satellite ? "plain" : "regulations"}
-                 modes={{ stream: satellite ? "plain" : "closure",
-                          lake: satellite ? "plain" : "closure" }}
+      <MapScreen at={tiles} palette={palette} theme={theme} camera={camera}
+                 view="plain"
                  onPressFeature={step === "water"
                    ? pickWater
                    : () => { /* step 2 takes a POINT, handled by onMapPoint below */ }}
@@ -143,7 +129,6 @@ export function SpotCapture(props: SpotCaptureProps) {
                : `Tap the point on ${water?.name ?? "this reach"}.`}
              chose={step === "water" ? water?.name ?? null
                                      : point && `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`}
-             satellite={satellite} onSatellite={setSatellite}
              onCancel={props.onCancel}
              onNext={ready ? () => setStep(step === "water" ? "point" : "when") : undefined} />
     </View>
@@ -270,10 +255,8 @@ function Step({ palette, label, glyph, onPress, disabled }: {
 }
 
 /** The banner: what to do, what you chose, and the way forward. */
-function Coach({ palette, title, detail, chose, satellite, onSatellite, onCancel, onNext,
-                 onNextAsync }: {
+function Coach({ palette, title, detail, chose, onCancel, onNext, onNextAsync }: {
   palette: Palette; title: string; detail: string; chose: string | null;
-  satellite: boolean; onSatellite: (on: boolean) => void;
   onCancel: () => void; onNext?: () => void; onNextAsync?: () => void;
 }) {
   const go = onNextAsync ?? onNext;
@@ -290,16 +273,6 @@ function Coach({ palette, title, detail, chose, satellite, onSatellite, onCancel
                            marginTop: 3 }}>{chose}</Text>
           )}
         </View>
-        <Pressable onPress={() => onSatellite(!satellite)} accessibilityRole="switch"
-                   aria-checked={satellite}
-                   accessibilityLabel="Satellite imagery">
-          <Pill palette={palette}>
-            <Text style={{ ...TYPE.micro, fontSize: 12,
-                           color: satellite ? palette.accent : palette.sub }}>
-              {satellite ? "Satellite" : "Map"}
-            </Text>
-          </Pill>
-        </Pressable>
       </View>
       <View style={{ flexDirection: "row", gap: 10 }}>
         <Button palette={palette} label="Cancel" onPress={onCancel} kind="ghost" />

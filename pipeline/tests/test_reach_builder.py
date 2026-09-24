@@ -424,3 +424,41 @@ def test_the_provenance_never_names_a_section_the_rule_does_not_cover():
     outside `sections` would be unjoinable and would read as coverage that is not there."""
     b = _bound(["a"], expand=lambda direct, only: {"a", "t1"})
     assert set(b.via_tributary) <= set(b.sections)
+
+
+# ---- `matched` is authoritative -------------------------------------------------------------
+
+def test_empty_matched_covers_nothing_even_when_the_name_would_match():
+    """There is no live re-match by name any more: an entry with an empty `matched` binds
+    nothing through its water, however plainly its name is in the registry. A fallback is a
+    second, unreviewed answer to "which water is this rule about"."""
+    import inspect
+
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.covered import covered_ids
+
+    reg = {"gnis:1": object(), "gnis:2": object()}
+    assert covered_ids({"entry_id": "e", "name": "Chilliwack River", "matched": []}, reg) == []
+    assert covered_ids({"entry_id": "e", "name": "Chilliwack River"}, reg) == []
+    # Filtered to this build, order kept, primary first.
+    assert covered_ids({"matched": ["gnis:2", "gnis:9", "gnis:1"]}, reg) == ["gnis:2", "gnis:1"]
+    # No way left to hand either function a matcher.
+    assert "match" not in inspect.signature(covered_ids).parameters
+    assert "match" not in inspect.signature(build_reach).parameters
+
+
+def test_an_unbound_dfo_location_stays_unbound():
+    """A DFO location with no water record hands the builder an empty `matched`, and must come
+    back unresolved (`no_registry`) — not re-matched by name to whatever answers to it."""
+    from pipeline.atlas.reach.build import build_reach
+    from types import SimpleNamespace
+
+    from pipeline.regs.dfo_salmon.entries import Binding, to_reach_input
+
+    # The shape `to_reach_input` reads — Sheldens Creek's, the one real case (2026-09-23).
+    loc = SimpleNamespace(location_id="6:sheldens-creek:upstream", binding=Binding())
+    entry, rules = to_reach_input(loc, [{"species": None}], None)
+    assert entry["matched"] == []
+    b, _ = build_reach(entry, rules[0], {"gnis:1": object()}, graph=None)
+    assert b.outcome.value == "unresolved" and not b.sections
+    assert b.reason.value == "no_registry"

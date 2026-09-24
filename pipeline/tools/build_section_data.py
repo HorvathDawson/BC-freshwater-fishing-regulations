@@ -25,10 +25,10 @@ WHAT IT READS, and why each one:
     graph.pkl          chainage. `down_m`/`up_m` are metres along the blue line, which is what
                        turns a set of sections into a STRETCH with a start and an end.
     geometries.pkl     the line to draw, in BC Albers, reprojected here and nowhere else.
-    lake geometry      a lake's shoreline from the FWA geopackage, and the curated lake PARTS
-                       (`added_lakes.geojson` `part_of`, `sub_lake_areas.json`). Geometry, not
-                       regulation — but still read outside the bundle, which carries no
-                       part-of relation between items yet.
+    lake geometry      a lake's shoreline from the FWA geopackage; a lake PART's polygon from the
+                       build's `waterbody_polys.pkl` (the polygon the atlas cut with). Which
+                       items are parts of which lake is `item.part_of`, in the bundle. Nothing
+                       under data/curated is read.
 """
 
 from __future__ import annotations
@@ -95,9 +95,9 @@ WATERS: list[tuple[str, str, str]] = [
     # the lake splitter and is `wbk:-15`, 0.19 ha, leaving 14.56 ha as Shannon Lake proper. It is
     # here to exercise the case a lake with parts renders as a LADDER, the way a river does —
     # one screen, a rung per water — rather than as two unrelated screens.
-    # No item id here even though BC has three Shannon Lakes: a lake that has been CUT is named
-    # by the worklist that its polygons were cut from, and `_lake_parts` supplies the id. Naming
-    # it twice is how the page and the curation come to disagree about which lake this is.
+    # No item id here even though BC has three Shannon Lakes: a lake that has been CUT is the
+    # one the bundle's `item.part_of` names, and `_parent_of` finds it. Naming it twice is how
+    # the page and the curation come to disagree about which lake this is.
     ("Shannon Lake",     "a lake with curated parts: one row for the lake, one for the netted-"
                          "off corner, drawn as two rungs of one ladder", "lake"),
     # THE HARD CASE, included BECAUSE it does not work yet. The book divides Kootenay Lake into
@@ -225,94 +225,76 @@ def _widened(db) -> set:
     return out
 
 
-_PARTS = None
-_PARENT_BY_NAME: dict | None = None
-
-
 def name_of_item(db, item_id: str):
     row = db.execute("SELECT name FROM item WHERE item_id = ?", (item_id,)).fetchone()
     return row[0] if row else None
 
 
-def _parent_of(name: str):
-    """The item id `sub_lake_areas.json` gives for a lake of this name, or None.
+def _parent_of(db, name: str):
+    """The item id of the lake of this name that has PARTS, or None.
 
-    A CUT LAKE IS NAMED BY THE WORKLIST ITS POLYGONS CAME FROM. Three lakes in BC are called
-    Shannon Lake, and resolving the page's name against `item` alone picked wbk:329244252 —
-    which has no parts, so the page drew one rung and looked exactly as though the split had
-    failed. The worklist says which one the book's two rows are about, because that is the file
-    the polygons were cut against; asking it is how the page and the curation stay the same
+    A CUT LAKE IS NAMED BY THE LAKE ITS PARTS ARE PART OF. Three lakes in BC are called Shannon
+    Lake, and resolving the page's name against `item` alone picked wbk:329244252 — which has no
+    parts, so the page drew one rung and looked exactly as though the split had failed. The
+    bundle's `item.part_of` says which one the book's two rows are about, because it is copied
+    from the polygons that were cut; asking it is how the page and the curation stay the same
     answer instead of two.
     """
-    _lake_parts("")                                   # prime the cache
-    for lake, parent in (_PARENT_BY_NAME or {}).items():
-        if lake.lower() == (name or "").lower():
-            return parent
-    return None
+    row = db.execute(
+        "SELECT p.item_id FROM item p WHERE p.name = ? COLLATE NOCASE AND p.kind = 'lake'"
+        "   AND EXISTS (SELECT 1 FROM item c WHERE c.part_of = p.item_id)"
+        " ORDER BY p.ord LIMIT 1", (name or "",)).fetchone()
+    return row[0] if row else None
 
 
-def _lake_parts(item_id: str):
-    """`[(child_item_id, name)]` — the pieces curated OUT of this lake, from the worklist.
-
-    Read from `part_of` on each polygon in `added_lakes.geojson`.
+def _lake_parts(db, item_id: str):
+    """`[(child_item_id, name)]` — the pieces curated OUT of this lake, from `item.part_of`.
 
     A LAKE THE BOOK WRITES AS SEVERAL WATERS IS STILL ONE LAKE ON THE MAP. Shannon Lake has a
     netted-off corner with its own row; Kootenay Lake is a Main Body and two West Arms. Each
     piece becomes its own registry item — `added_lakes` ingest re-stamps the fids inside the
-    polygon, so the corner is `wbk:-15` and the remainder keeps `wbk:329459193` — and as
-    separate items they would open as separate, unrelated screens, with no way to see that one
-    is part of the other or to compare their rules.
+    polygon, so the corner is `wbk:-15` — and as separate items they would open as separate,
+    unrelated screens, with no way to see that one is part of the other or to compare their rules.
 
     A river with different rules along it is not shown that way: it is one screen with a ladder
     of stretches. A lake with different rules across it is the same question, and gets the same
-    answer. `sub_lake_areas.json` is what says which piece belongs to which lake — it is the
-    worklist the polygons were drawn from, so the page and the curation cannot drift apart.
+    answer. The bundle carries the relation (`item.part_of`, written at bundle build from the
+    polygons' own `part_of`), so this reads the shipped artifact and nothing curated.
     """
-    global _PARTS, _PARENT_BY_NAME
-    if _PARTS is None:
-        _PARTS = defaultdict(list)
-        _PARENT_BY_NAME = {}
-        # THE POLYGON SAYS WHAT IT IS PART OF. `part_of: {"wbk": ...}` is on the feature itself,
-        # the way an added stream carries `connect_to` — so the relationship travels with the
-        # geometry and anything reading the file knows it, rather than it living only in a
-        # worklist and a sentence of prose.
-        af = REPO_ROOT / "data" / "curated" / "waters" / "added_lakes.geojson"
-        if af.exists():
-            for feat in json.loads(af.read_text(encoding="utf-8")).get("features", []):
-                pr = feat.get("properties") or {}
-                par = (pr.get("part_of") or {}).get("wbk")
-                if par and pr.get("id"):
-                    _PARTS[f"wbk:{par}"].append((f"wbk:-{int(pr['id'])}",
-                                                 pr.get("name") or "Part"))
-        # The worklist still says which NAME a lake goes by on the page, and is the record of
-        # what is still to be drawn.
-        wl = REPO_ROOT / "data" / "curated" / "waters" / "sub_lake_areas.json"
-        if wl.exists():
-            for lake in json.loads(wl.read_text(encoding="utf-8")).get("lakes", []):
-                parent = lake.get("item_id") or ""
-                if lake.get("lake") and parent:
-                    _PARENT_BY_NAME[lake["lake"]] = parent
-    return _PARTS.get(item_id, [])
+    return [(c, n or "Part") for c, n in db.execute(
+        "SELECT item_id, name FROM item WHERE part_of = ? ORDER BY ord", (item_id,))]
 
 
-def _added_lake_ring(child_item_id: str, to_lonlat, ndigits: int = 5):
-    """The curated polygon for `wbk:-N`, straight from added_lakes.geojson.
+_POLYS = None
 
-    FWA has no polygon for it — that is the whole reason it was drawn — so the shoreline lookup
-    used for a real lake finds nothing and the piece would draw as a blank stretch.
+
+def _part_ring(build: Path, child_item_id: str, to_lonlat, ndigits: int = 5):
+    """`(ring [[lon, lat], ...], km²)` for a lake part, from the atlas's own polygon — or None.
+
+    FWA has no polygon for a part — that is the whole reason it was drawn — so the shoreline
+    lookup used for a real lake finds nothing and the piece would draw as a blank stretch. The
+    atlas keeps the polygon it cut with (`waterbody_polys.pkl`, keyed `lake:{wbk}`, in BC
+    Albers), which is the same build as the graph and geometries this page already reads.
+
+    The area is measured on that projected polygon. km², kept to 6 dp: a netted-off corner is
+    0.0019 km² and rounding it to 2 gives 0.0, which the page then cannot tell from 'no area at
+    all'.
     """
-    f = REPO_ROOT / "data" / "curated" / "waters" / "added_lakes.geojson"
-    if not f.exists() or not child_item_id.startswith("wbk:-"):
+    global _POLYS
+    if not str(child_item_id).startswith("wbk:-"):
         return None
-    want = abs(int(child_item_id.split(":", 1)[1]))
-    for feat in json.loads(f.read_text(encoding="utf-8")).get("features", []):
-        if feat.get("properties", {}).get("id") != want:
-            continue
-        g = feat.get("geometry") or {}
-        coords = g.get("coordinates") or []
-        ring = coords[0] if g.get("type") == "Polygon" else (coords[0][0] if coords else [])
-        return [[round(x, ndigits), round(y, ndigits)] for x, y in ring] or None
-    return None
+    if _POLYS is None:
+        from pipeline.common.io.serialize import read_artifact
+        _POLYS = read_artifact(str(build / "waterbody_polys.pkl"))
+    geom = _POLYS.get(f"lake:{child_item_id[4:]}")
+    if geom is None or geom.is_empty:
+        return None
+    area = round(geom.area / 1e6, 6)
+    if geom.geom_type.startswith("Multi"):
+        geom = max(geom.geoms, key=lambda g: g.area)
+    xs, ys = zip(*list(geom.exterior.coords))
+    lon, lat = to_lonlat(list(xs), list(ys))
+    return [[round(a, ndigits), round(b, ndigits)] for a, b in zip(lon, lat)] or None, area
 
 
 def _co_items(db, item_id: str) -> set[str]:
@@ -526,7 +508,7 @@ def _set_by(eid: str, db, eareas: dict[str, list[str]] | None,
 
 def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "stream",
                eareas: dict[str, list[str]] | None = None,
-               want_item: str = "", wide: set | None = None):
+               want_item: str = "", wide: set | None = None, build: Path | None = None):
     """One water's stretches, rules, cut-points and landmarks.
 
     THE FIRST STAGE OF THE DOCUMENT, computed the way the app computes it: collapse adjacent
@@ -555,10 +537,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
     #
     # So the caller may name the registry item outright, and where it does not, an item the
     # synopsis actually writes about beats one it does not.
-    # A CUT LAKE IS NAMED BY THE WORKLIST ITS POLYGONS CAME FROM, before any name lookup. Three
+    # A CUT LAKE IS NAMED BY THE LAKE ITS PARTS ARE PART OF, before any name lookup. Three
     # lakes are called Shannon Lake and the plain lookup picked wbk:329244252 — which has no
     # parts, so the page drew one rung and looked exactly as though the split had failed.
-    want_item = want_item or (_parent_of(name) if kind == "lake" else "") or ""
+    want_item = want_item or (_parent_of(db, name) if kind == "lake" else "") or ""
     if want_item:
         row = db.execute("SELECT ord, item_id, kind FROM item WHERE item_id = ?",
                          (want_item,)).fetchone()
@@ -767,7 +749,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
     # A part becomes a RUN carrying its own `set`, which is all the machinery below needs: the
     # rules are collected from every set on the screen and their spans come from which runs
     # carry which set, so a rule that binds only the netted-off corner spans only that rung.
-    parts = _lake_parts(item_id) if water_kind == "lake" else []
+    parts = _lake_parts(db, item_id) if water_kind == "lake" else []
     if parts and runs:
         base = runs[0]
         lake_runs = []
@@ -793,11 +775,9 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                                   **{"from": 0.0, "to": 1.0}))
             i = 1
         for child_id, child_name in parts:
+            # `part_of` comes from the bundle, which refuses a part its registry lacks, so the
+            # child is always an item here.
             row = db.execute("SELECT ord FROM item WHERE item_id = ?", (child_id,)).fetchone()
-            if row is None:
-                print(f"    !! {child_name}: {child_id} is not in this build — "
-                      f"the atlas has not been rebuilt since the polygon was drawn")
-                continue
             csids = [r[0] for r in db.execute(
                 "SELECT sid FROM item_section WHERE ord = ?", (row[0],))]
             cset = None
@@ -807,23 +787,11 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 if got2:
                     cset = got2[0]
                     break
-            ring2 = _added_lake_ring(child_id, to_lonlat)
             # A PART HAS AN AREA, NOT A LENGTH. `from`/`to` are ordinals that put the rungs in
             # order, so their difference is 1 and the rung would read "1 KM" — meaningless for
             # still water, and wrong about a 389 km² lake body.
-            area2 = None
-            if ring2:
-                try:
-                    from shapely.geometry import Polygon as _Poly
-                    from shapely.ops import transform as _tf
-                    from pyproj import Transformer as _Tr
-                    _to = _Tr.from_crs(4326, 3005, always_xy=True).transform
-                    # km², kept to 6 dp: a netted-off corner is 0.0019 km² and
-                    # rounding it to 2 gives 0.0, which the page then cannot tell
-                    # from 'no area at all'.
-                    area2 = round(_tf(_to, _Poly(ring2)).area / 1e6, 6)
-                except Exception:
-                    area2 = None
+            got2 = _part_ring(build, child_id, to_lonlat) if build is not None else None
+            ring2, area2 = got2 if got2 else (None, None)
             lake_runs.append({**base, "set": cset, "from": float(i), "to": float(i + 1),
                               "pts": [ring2] if ring2 else [], "ring": bool(ring2),
                               "label": child_name, "n": 1, "joins": [], "bkind": "part",
@@ -1084,13 +1052,16 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
 
 
 def _refuse_stale(db) -> None:
-    """The bundle this reads must carry `entry.matched`, `rule.exempts`, and no retired rule
-    field."""
+    """The bundle this reads must carry `entry.matched`, `item.part_of`, `rule.exempts`, and no
+    retired rule field."""
     from pipeline.tools.export_ui_rules import RETIRED_ON_RULE
 
     if "matched" not in {r[1] for r in db.execute("PRAGMA table_info(entry)")}:
         raise SystemExit("build_section_data: the bundle has no `entry.matched` — rebuild it "
                          "with a rules.py that writes every matched item")
+    if "part_of" not in {r[1] for r in db.execute("PRAGMA table_info(item)")}:
+        raise SystemExit("build_section_data: the bundle has no `item.part_of` — a lake's parts "
+                         "would open as unrelated waters; rebuild it")
     if "exempts" not in {r[1] for r in db.execute("PRAGMA table_info(rule)")}:
         raise SystemExit("build_section_data: the bundle has no `rule.exempts` column — its "
                          "lifts would be dropped; rebuild it")
@@ -1136,7 +1107,7 @@ def main() -> int:
         kind = entry[2] if len(entry) > 2 else "stream"
         want = entry[3] if len(entry) > 3 else ""
         got = _one_water(db, graph, geoms, handles, to_lonlat, name, kind,
-                         eareas, want, wide)
+                         eareas, want, wide, build)
         if got is None:
             log(f"  ✗ {name}: no stream item of that name — SKIPPED")
             continue

@@ -1,9 +1,9 @@
 /**
- * The control in the map's top-left corner: a DATE, or a set of forecast HORIZONS.
+ * The control in the map's top-left corner: the forecast HORIZONS, on the Conditions tab.
  *
- * Never both, because they are not both questions the screen can answer. A regulation
- * applies on a date and the map asks which. Conditions are now — there is no reading for
- * last Tuesday — so on that tab the same corner asks the other direction instead.
+ * Conditions are now — there is no reading for last Tuesday — so the corner asks where the
+ * water is heading. It used to hold a date pill on the Map tab, which existed for seasonal
+ * regulations; regulations are not integrated, and the pill went with them.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -27,25 +27,21 @@ afterEach(cleanup);
 const BASE = {
   at: { atlas: "a", basemap: "b" } as never,
   palette: LIGHT, theme: "light", view: "plain",
-  on: { year: 2026, month: 9, day: 4 } as never,
   camera: { lon: -122, lat: 49, zoom: 8 } as never,
 };
 
 describe("<MapScreen> corner control", () => {
-  it("shows the date when there are no horizons", () => {
-    render(<MapScreen {...BASE} onDate={() => {}} />);
-    // One Text node — "4 SEP" — so match the line rather than its halves.
-    expect(screen.getByText(/^4\s+SEP$/)).toBeTruthy();
+  it("shows nothing in the corner when there are no horizons", () => {
+    render(<MapScreen {...BASE} />);
     expect(screen.queryByText("Now")).toBeNull();
+    // No date control: it existed for seasonal regulations, which are not integrated.
+    expect(screen.queryByLabelText("Change the date")).toBeNull();
   });
 
-  it("shows the horizons instead of the date, never as well", () => {
-    render(<MapScreen {...BASE} onDate={() => {}}
+  it("shows every horizon it is given", () => {
+    render(<MapScreen {...BASE}
                       horizons={{ days: [0, 1, 3, 5], value: 0, onPick: () => {} }} />);
     for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.getByText(t)).toBeTruthy();
-    // The date is GONE, not merely covered: a date picker on the Conditions tab offers a
-    // question with no answer behind it.
-    expect(screen.queryByText(/SEP/)).toBeNull();
   });
 
   it("reports which horizon is showing to a screen reader, not only in colour", () => {

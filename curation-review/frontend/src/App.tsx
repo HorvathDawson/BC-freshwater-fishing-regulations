@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
-import type { EntryDetail as EntryDetailT, QueueRow, RegionSummary, SpeciesOption, Status } from "./types";
+import type { EntryDetail as EntryDetailT, QueueRow, RegionSummary, Status, Vocab } from "./types";
+import { VocabCtx } from "./model";
 import { FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
 import { EntryDetail } from "./components/EntryDetail";
@@ -14,12 +15,13 @@ export default function App() {
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
-  const [species, setSpecies] = useState<SpeciesOption[]>([]);
+  // The model's vocabulary — every option list the editors offer, read off catalogue.py.
+  const [vocab, setVocab] = useState<Vocab | null>(null);
   const [error, setError] = useState<string>("");
   // bumped after a graph rebuild so the map (and anything keyed on it) refetches even for the same item
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Load region summaries + the species list once.
+  // Load region summaries + the model vocabulary once.
   useEffect(() => {
     api
       .regions()
@@ -28,7 +30,7 @@ export default function App() {
         if (r.length && !region) setRegion(r[0].id);
       })
       .catch((e) => setError(String(e)));
-    api.species().then(setSpecies).catch(() => {});
+    api.vocab().then(setVocab).catch((e) => setError(`vocabulary: ${e}`));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -62,12 +64,12 @@ export default function App() {
   }, [loadRows, selected]);
 
   // After a graph rebuild: the backend has dropped its caches, so reload every view — region summaries,
-  // species, the queue, and the open entry (its boundaries/geometry are now the freshly-built ones).
+  // the vocabulary, the queue, and the open entry (its boundaries/geometry are now the freshly-built ones).
   // Bumping reloadKey forces the map to refetch geojson even when the same item stays selected.
   const onRebuilt = useCallback(() => {
     loadRows();
     api.regions().then(setRegions).catch(() => {});
-    api.species().then(setSpecies).catch(() => {});
+    api.vocab().then(setVocab).catch(() => {});
     if (selected) api.entry(selected).then(setDetail).catch(() => {});
     setReloadKey((k) => k + 1);
   }, [loadRows, selected]);
@@ -106,15 +108,16 @@ export default function App() {
           loading={loadingRows}
           onSelect={loadDetail}
         />
-        {detail ? (
-          <EntryDetail
-            key={detail.entry.entry_id}
-            detail={detail}
-            speciesOptions={species}
-            onSaved={onSaved}
-            onNavigate={setSelected}
-            reloadKey={reloadKey}
-          />
+        {detail && vocab ? (
+          <VocabCtx.Provider value={vocab}>
+            <EntryDetail
+              key={detail.entry.entry_id}
+              detail={detail}
+              onSaved={onSaved}
+              onNavigate={loadDetail}
+              reloadKey={reloadKey}
+            />
+          </VocabCtx.Provider>
         ) : (
           <div className="detail">
             <div className="empty-state">Select an entry from the queue.</div>

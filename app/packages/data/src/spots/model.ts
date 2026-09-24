@@ -2,15 +2,14 @@
  * A spot: what was true at one point on one day.
  *
  * The distinction that shapes everything else here — a spot is a RECORD, not a view. The
- * gauge reading, the weather and the regulation are copied in at capture time and never
- * recomputed. Re-deriving them later would quietly rewrite history: a river that was
- * closed the day you fished it would start showing as open once the season changed, and
- * the note "took two on a bead" would sit under the wrong conditions forever.
+ * gauge reading and the weather are copied in at capture time and never recomputed.
+ * Re-deriving them later would quietly rewrite history: the note "took two on a bead" would
+ * sit under the wrong conditions forever.
  *
  * It is also the only user-authored data in the app, and the only thing that cannot be
  * re-downloaded. `pins.ts` says why it lives in its own store.
  */
-import type { GaugeTrace, Outcome, Provenance } from "@app/core";
+import type { GaugeTrace } from "@app/core";
 import type { PanelAnswer } from "../panel";
 import type { ItemId, SectionId } from "../index";
 
@@ -89,8 +88,8 @@ export interface Spot {
    *
    * SEPARATE FROM `createdAt` because they are routinely days apart: spots get entered on
    * the drive home, or the following week from a photograph. Everything frozen onto a spot
-   * — the weather, the gauge reading, the regulation in force — is as of THIS instant, so
-   * conflating the two silently attaches Tuesday's closure to a Sunday you fished.
+   * — the weather, the gauge reading — is as of THIS instant, so conflating the two
+   * silently attaches Tuesday's river to a Sunday you fished.
    */
   visitedAt: number;
 
@@ -132,8 +131,6 @@ export interface Spot {
    * screen shows the reading alone in that case, which is what it always did.
    */
   panel: PanelAnswer | null;
-  /** The regulation in force ON THAT DAY, so the record still reads true next season. */
-  regulation: { outcome: Outcome; provenance: Provenance; on: string } | null;
 }
 
 /** Where spots live. One file on a phone, browser storage on the web. */

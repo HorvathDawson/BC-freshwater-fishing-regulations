@@ -21,8 +21,7 @@ export { GaugeBadge } from "./GaugeBadge";
 export { TabBar, TABS, type TabKey } from "./TabBar";
 export { Pill, LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
-export { DateSheet, daysInMonth } from "./DateSheet";
-export { LayersSheet, STOCK_BANDS, streamChoices, lakeChoices,
+export { LayersSheet, STOCK_BANDS, lakeChoices,
          type LayersState, type LayerChoice } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
@@ -31,7 +30,7 @@ export { MiniMap } from "./MiniMap";
 export { Chip } from "./StatusChip";
 export { Icon, LayersIcon, type IconName } from "./icons";
 export * from "./type";
-export { StatusPill } from "./StatusPill";
+export { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
