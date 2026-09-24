@@ -18,7 +18,13 @@ describe("<WaterScreen>", () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId}
                         palette={LIGHT} />);
     await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy());
-    expect(screen.getByLabelText("Regulations are coming")).toBeTruthy();
+    // The panel's words are what a screen reader reads: the title as a heading, and the sentence
+    // under it — not one container label standing in for both (which hid the sentence).
+    const title = screen.getByRole("heading", { name: "Regulations are coming" });
+    expect(title).toBeTruthy();
+    expect(screen.getByText(/Check the current BC Freshwater Fishing Regulations Synopsis/))
+      .toBeTruthy();
+    expect(screen.queryByLabelText("Regulations are coming")).toBeNull();
     // Nothing on the sheet claims an outcome.
     for (const word of [/\bCLOSED\b/, /\bRESTRICTED\b/, /\bOPEN\b/])
       expect(screen.queryByText(word)).toBeNull();

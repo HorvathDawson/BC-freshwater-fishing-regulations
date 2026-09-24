@@ -243,3 +243,60 @@ def test_the_prompt_names_the_command_the_cli_takes():
     prompts = Path(__file__).resolve().parents[1] / "regs" / "parsing" / "prompts"
     for name in ("CATALOGUE_PARSE_PROMPT.md", "CHAT_INVOCATION.md"):
         assert cmd in (prompts / name).read_text(encoding="utf-8"), name
+
+
+# --------------------------------------------------------------------------- split lakes, one gate
+
+@pytest.mark.parametrize("where", ["matched", "rule", "licensing"])
+def test_a_lake_cut_into_parts_is_not_a_place_a_record_may_name(where):
+    """Kootenay Lake's parent keeps one section — its whole 423 km² polygon — while its three parts
+    carry the water; binding the parent put the Main Body's quota and stamp on that ghost."""
+    e = _entry([_quota(extents=[{"op": "whole"}])])
+    if where == "matched":
+        e["matched"] = ["wbk:328974235"]
+    elif where == "rule":
+        e["rules"][0]["extents"] = [{"op": "whole", "item_id": "wbk:328961697"}]
+    else:
+        e["licensing"] = [{"kind": "requirement", "id": "x", "doing": {"act": "fishing"},
+                           "satisfied_by": [{"hold": ["basic_licence"]}],
+                           "extents": [{"op": "whole", "item_ids": ["wbk:329459193"]}],
+                           "verbatim": "Rainbow trout daily quota = 8"}]
+    _, errors = check_entry(e, SOURCE)
+    assert any("is cut into" in x for x in errors), errors
+
+
+def test_the_parts_themselves_are_fine():
+    e = _entry([_quota(extents=[{"op": "whole", "item_id": "wbk:-20"}])])
+    e["matched"] = ["wbk:-21"]
+    _, errors = check_entry(e, SOURCE)
+    assert not any("is cut into" in x for x in errors), errors
+
+
+def test_every_lake_with_parts_is_a_split_parent():
+    from pipeline.atlas.waters.added_lakes.split_parents import split_parents
+    got = split_parents()
+    assert got["wbk:328974235"] == ["wbk:-20", "wbk:-21", "wbk:-22"]
+    assert got["wbk:328961697"] == ["wbk:-16", "wbk:-17", "wbk:-18", "wbk:-19"]
+    assert got["wbk:329459193"] == ["wbk:-15", "wbk:-23"]
+
+
+def test_the_post_model_gate_addresses_each_refusal_to_its_field():
+    """The review app shows the refusal on the field; ingest prints the same words."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    from pipeline.regs.parsing.validate_catalogue import post_model_checks
+    e = _entry([_quota(take=99, lengths=[{"min_cm": 77}], extents=[{"op": "whole"}])])
+    got = post_model_checks(CatalogueEntry.model_validate(e))
+    paths = {tuple(p) for p, _ in got}
+    assert ("rules", 0, "take") in paths and ("rules", 0, "lengths", 0, "min_cm") in paths
+    _, errors = check_entry(e, SOURCE)
+    assert [m for _, m in got] == [x for x in errors if "does not appear" in x]
+
+
+def test_no_catalogue_rule_names_a_split_parent():
+    """The corpus itself: every record that meant a part now names the part."""
+    import json
+    from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
+    from pipeline.common.curated import CURATED
+    entries = [e for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
+               for e in json.loads(p.read_text())["entries"]]
+    assert refs_to_parents(entries, split_parents()) == []

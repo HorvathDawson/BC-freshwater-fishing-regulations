@@ -100,13 +100,15 @@ WATERS: list[tuple[str, str, str]] = [
     # the page and the curation come to disagree about which lake this is.
     ("Shannon Lake",     "a lake with curated parts: one row for the lake, one for the netted-"
                          "off corner, drawn as two rungs of one ladder", "lake"),
-    # THE HARD CASE, included BECAUSE it does not work yet. The book divides Kootenay Lake into
-    # Main Body, Upper West Arm and Lower West Arm — in a zone entry that belongs to no registry
-    # item, because a definition is not a rule — and two real rules then name one of those areas.
-    # Until the three polygons exist, both are carried on the whole lake, unplaced and marked.
-    # `data/curated/waters/sub_lake_areas.json` is the worklist.
-    ("Kootenay Lake",    "a lake the book cuts into three named arms that the atlas cannot draw "
-                         "— the rules that need them are shown unplaced, not widened",
+    # THE THREE-PART LAKE. The book divides Kootenay Lake into Main Body, Upper West Arm and
+    # Lower West Arm (the zone entry `z4:kootenay_lake_boundaries` says where the lines fall), and
+    # the lake splitter has drawn all three: `wbk:-20`, `-21`, `-22`, listed in
+    # `data/curated/waters/sub_lake_areas.json`. Each arm's row binds its own part, the zone's
+    # "main body" quota and the rainbow stamp bind the Main Body, and the page draws the parts as
+    # three rungs of one ladder. The parent item keeps the name and the gauges and binds nothing:
+    # its one section is the uncut polygon, and the builder refuses a record that names it.
+    ("Kootenay Lake",    "a lake the book cuts into three named arms, each drawn as its own part "
+                         "— a rule that names an arm binds that arm alone",
                          "lake", "wbk:328974235"),
     # Named by item id: three lakes are called Elk Lake and two of them have their own row.
     ("Elk Lake",         "a small Region 1 lake whose rules are almost all about boats, and a "
@@ -205,22 +207,23 @@ def _widened(db) -> set:
     """Rules the book restricts to PART of a water and the atlas could only give the whole of.
 
     The signal is structural and in the bundle: the rule is BOUND (`uncertain` = 0), its extents
-    are only `op: "whole"` — the entire water — and it still carries an `extent_text`, the
+    are the bare whole water (`catalogue.bare_whole`) and it still carries an `extent_text`, the
     parser's record of a place it was told about and could not express. "Rainbow trout — 20 per
-    licence year over 50 cm" is written for the MAIN BODY of Kootenay Lake, and binds to all
+    licence year over 50 cm" was written for the MAIN BODY of Kootenay Lake, and bound all
     423 km² of it including both West Arms.
 
-    It is the over-application direction — the app claims a rule covers more water than it does
-    — and unlike the unplaced rules, which bind nothing and are obvious, these bind everything
-    and look completely ordinary. So they are marked, and the row says the book names a part.
+    THE MODEL NOW REFUSES THAT SHAPE (`CatalogueRule`: `whole` + `extent_text`), so a current
+    bundle yields nothing here and a test pins it empty; this stays as the reader's check on a
+    bundle built before the refusal. A `whole` qualified by an item, an area or a kind is a place
+    of its own, and its `extent_text` only describes it — it is not widened.
     """
+    from pipeline.regs.parsing.catalogue import bare_whole
     out = set()
     for eid, rid, text, cond, uncertain in db.execute(
             "SELECT entry_id, rule_id, extent_text, conditions, uncertain FROM rule"):
         if uncertain or not (text or "").strip():
             continue
-        ops = {x.get("op") for x in json.loads(cond or "{}").get("extents") or []}
-        if ops and ops <= {"whole"}:
+        if bare_whole(json.loads(cond or "{}").get("extents") or []):
             out.add((eid, rid))
     return out
 

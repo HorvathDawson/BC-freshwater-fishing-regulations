@@ -84,8 +84,11 @@ class Extent(BaseModel):
     )
     feature_types: List[str] = Field(
         default_factory=list,
-        description="op=within only: restrict the area's members to these feature kinds "
-        "(subset of stream/lake/wetland); empty = all features inside the area",
+        description="restrict what this extent selects to these feature kinds (subset of "
+        "stream/lake/wetland); empty = every kind. On `within` it filters the area's members; on "
+        "any op it also filters the rule's reach AFTER the tributary walk (`reach.classify`), so "
+        "'lakes of the Fraser watershed' is the Fraser and its tributaries, lakes only. Every "
+        "extent of a rule says it or none does (`CatalogueRule` refuses a mixture).",
     )
     within_area: Optional[str] = Field(
         default=None,
@@ -142,8 +145,10 @@ class Extent(BaseModel):
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:
-            if self.op != Op.WITHIN:
-                raise ValueError("feature_types is only valid for op=within")
+            # ANY OP, not only `within`. Seven zone rules — "lakes of the Fraser watershed", "any
+            # stream upstream of the Forrest Kerr canyon" — carry it on a `whole` or a reach, and
+            # the builder applies it to their reach after the tributary walk. This model refused
+            # the shape the resolver was built to read, so the review app flagged all seven.
             bad = [t for t in self.feature_types if t not in _FEATURE_TYPES]
             if bad:
                 raise ValueError(f"invalid feature_types {bad}; allowed: {sorted(_FEATURE_TYPES)}")

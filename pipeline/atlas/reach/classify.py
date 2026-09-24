@@ -49,10 +49,21 @@ PARTIAL_EXTENTS_BIND = True
 #: never inherits its entry's extents, so this is how a region table with a carve-out keeps its
 #: region without being placed on it.
 #:
-#: ONLY AREA RULES — every extent a `within`. On a rule that names a WATER, a locator is a sub-reach
-#: the curator bound as the water with a `review_reason` (9 rules: "the 5 signed swimming areas",
-#: "plus Tenas Lake"); unbinding those would drop reaches that are drawn, so they keep binding.
+#: ONLY AREA RULES — every extent a `within`. On a rule that names a WATER, a locator is a part the
+#: extents leave out ("plus Tenas Lake" beside a drawn reach); unbinding those would drop reaches
+#: that are drawn, so they keep binding. A rule whose ONLY extent is the bare whole water and whose
+#: place is a part ("in 5 signed swimming areas") is refused by the model instead — it keeps its
+#: words and no extents (`CatalogueRule`: `whole` + `extent_text`).
 AREA_CARVE_OUTS_UNBIND = True
+
+#: `feature_types` limits a rule's WHOLE reach, after the tributary walk — "lakes of the Fraser
+#: watershed" is every lake the walk finds, not the lakes on the Fraser. It was read only on a
+#: `within` area's members, so the seven zone rules that carry it on a watershed ignored it.
+FEATURE_TYPES_AFTER_WALK = True
+
+#: Water outside British Columbia is subtracted from every binding (`reach.outside`). The book
+#: does not govern it; 181 sections past the border carried a rule set with no provincial rule.
+OUTSIDE_BC_SUBTRACTED = True
 
 
 def wants_tributaries(rule: dict, entry: dict) -> bool:
@@ -80,6 +91,8 @@ def classify(
     tributaries: bool = False,
     tributaries_only: bool = False,
     expand_tributaries=None,
+    kind_of=None,
+    outside: frozenset | set | None = None,
 ) -> tuple[RuleBinding, list[Diagnostic]]:
     """Turn one rule's per-extent resolutions into a binding plus its diagnostics.
 
@@ -87,6 +100,11 @@ def classify(
     could not be resolved at all. `scope_clipped` says the entry's own scope removed
     sections that the extent had resolved — which is a different failure from resolving
     to nothing in the first place.
+
+    `kind_of(section) -> "stream" | "lake" | "wetland"` applies `feature_types` after the walk;
+    `outside` is the set of sections outside B.C., subtracted from every binding
+    (`pipeline.atlas.reach.outside.outside_bc`). Both are optional so a caller with no graph
+    (the unit tests) can still classify; the builder always passes them.
     """
     rid = rule["rule_id"]
     extents = rule.get("extents") or []
@@ -220,8 +238,47 @@ def classify(
                               f"tributaries_only, but the reach has no tributaries "
                               f"({len(direct)} direct sections)")
 
+    # FEATURE TYPES LIMIT THE WHOLE REACH, AFTER THE WALK — the way `within_area` does and for the
+    # same reason: "lakes of the Fraser watershed" names every lake the walk from the Fraser
+    # reaches, and filtering the seed would leave only lakes ON the Fraser. The model says the
+    # kinds on every extent or on none (`CatalogueRule`), so one filter is the rule's.
+    kinds = feature_kinds(per_extent)
+    if kinds and kind_of is not None and FEATURE_TYPES_AFTER_WALK:
+        before = len(sections)
+        sections = {s for s in sections if kind_of(s) in kinds}
+        via_trib = tuple(s for s in via_trib if s in sections)
+        if before != len(sections):
+            diags.append(Diagnostic(entry_id, rid, "feature_types", {
+                "kinds": sorted(kinds), "before": before, "after": len(sections)}))
+        if not sections:
+            return unresolved(Reason.no_sections,
+                              f"feature_types {sorted(kinds)} removed every section")
+
+    # OUTSIDE BRITISH COLUMBIA IS SUBTRACTED LAST, from everything a rule reaches. The book does
+    # not govern water past the border ("BC regs simply don't apply there" — `border.py`), and
+    # the rules reached it two ways: `whole` on an item that crosses the line (the Kootenay, the
+    # Kettle, the Flathead), and tributary walks down into Idaho, Montana, Alberta and the Yukon.
+    # REPORTED, never silent: the count is a diagnostic, and a rule left with nothing is
+    # unresolved for that reason rather than bound to no water.
+    if outside and OUTSIDE_BC_SUBTRACTED:
+        gone = sections & outside
+        if gone:
+            sections = sections - gone
+            via_trib = tuple(s for s in via_trib if s not in gone)
+            diags.append(Diagnostic(entry_id, rid, "outside_bc", {
+                "removed": len(gone), "kept": len(sections)}))
+            if not sections:
+                return unresolved(Reason.outside_bc,
+                                  f"every section it selects ({len(gone)}) is outside B.C.")
+
     return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections)),
                        via_tributary=via_trib), diags
+
+
+def feature_kinds(per_extent: list[dict | None]) -> frozenset[str]:
+    """The feature kinds a rule's reach is limited to — the union of its resolved extents'
+    `feature_types`, or empty when none carries any."""
+    return frozenset(k for got in per_extent if got for k in (got.get("feature_types") or ()))
 
 
 def _why(extents: list[dict], registry, covered_ids: list[str]) -> tuple[Reason, str]:

@@ -653,17 +653,17 @@
       {
        "op": "whole",
        "item_id": "gnis:16605",
-       "includes_tributaries": true
+       "within_area": "area:region:7a"
       },
       {
        "op": "whole",
        "item_id": "gnis:39325",
-       "includes_tributaries": true
+       "within_area": "area:region:7a"
       }
      ],
      "authority": "superior",
      "extent_text": "Upper Fraser and Nechako watersheds",
-     "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply."
+     "review_reason": "Held to Region 7A (the page's heading: 'White Sturgeon in the Omineca Region'). Bound to the whole Fraser and Nechako before, it closed the lower Fraser's catch-and-release sturgeon fishery in Regions 2, 3 and 5 with superior authority. The Upper Fraser population's lower end below Region 7A, and the upper Nechako in Region 6, are for a curator."
     }
    ]
   },

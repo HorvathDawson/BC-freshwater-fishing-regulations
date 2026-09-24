@@ -38,7 +38,8 @@ def _when(r) -> str | None:
     Now the model's own `When` ships whole and in the model's own shape (by alias, as
     `conditions` carried it), and there is no fallback: a rule's season comes from `when` or it
     has none. `unparsed` ships too — a season the parser could not read is NOT all year, and the
-    client must treat such a rule as uncertain (core/status.ts), never as always in force.
+    client must treat such a rule as uncertain, never as always in force (the reader belongs in
+    app/packages/core/src/regulations.ts; the export's `guide.time` says so).
     NULL = no `when` = all year, per the synopsis.
     """
     if r.when is None or r.when.is_empty():
@@ -238,7 +239,7 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
 
 
 def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=None,
-              rules_of=None, unresolved: str | None = None):
+              rules_of=None, unresolved: str | None = None, place_of=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -275,7 +276,10 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
                   and not any(v is e or v == e for e in _EMPTY)
                   and v is not False}
     return (
-        entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r, siblings),
+        entry_id, r.rule_id, r.type.value, r.family, r.dimension,
+        # THE PLACE IS NAMED FROM THE EXTENTS, in the book's words (`place_names`), so two rules
+        # of one entry on different reaches never share a label.
+        rule_label(r, siblings, place_of),
         _specificity(raw),
         _when(r),
         # WHILE, AS A COLUMN, because the client decides an OUTCOME from it: "only non-game fish
@@ -361,6 +365,17 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 
     from pipeline.regs.parsing.io import _holds_entries
 
+    if build_dir is None:
+        raise SystemExit("rules.write needs build_dir to resolve section handles")
+    # THE ATLAS, READ ONCE, for the two things the rows need from it besides section handles:
+    # the names a label gives a rule's place, and the sections B.C. does not govern.
+    from pipeline.atlas.registry import load_registry
+    from pipeline.common.curated import CURATED
+    from pipeline.deliver.bundle.place_names import PlaceNamer, split_labels
+    registry = load_registry(str(Path(build_dir) / "registry.json"))
+    namer = PlaceNamer(registry, split_labels(json.loads(
+        CURATED.waters.splits.read_text(encoding="utf-8"))))
+
     entry_rows, rule_rows = [], []
     ces = []
     docs = []
@@ -409,10 +424,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         # A rule may name another in its entry (`suspended_while`), and its label says what
         # that rule is in words — so each label is built with its siblings to hand.
         siblings = {r.rule_id: r for r in ce.rules}
+        place_of = namer.for_entry(ce.matched)
         for r in e.get("rules") or []:
             k = (e["entry_id"], r.get("rule_id"))
             rule_rows.append(_rule_row(e["entry_id"], r, k in unresolved, siblings, zones,
-                                       rules_of, unresolved=unresolved.get(k)))
+                                       rules_of, unresolved=unresolved.get(k),
+                                       place_of=place_of))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
@@ -463,8 +480,6 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # the same build — which would silently bind rules to the wrong water, so it stops here.
     from pipeline.common.section_handles import read as _read_handles
 
-    if build_dir is None:
-        raise SystemExit("rules.write needs build_dir to resolve section handles")
     _, sid = _read_handles(build_dir)
     _unknown = [s for s in section_set if s not in sid]
     if _unknown:
@@ -490,6 +505,32 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # Licensing: the other half of each entry, placed by the same reach run.
     from pipeline.deliver.bundle import licensing as _licensing
     _licensing.write(db, reaches, ces, cov, sid)
+
+    # WATER B.C. DOES NOT GOVERN, and the proof that nothing binds it. The set is the reach
+    # builder's own (`reach.outside.outside_bc`, from this atlas); it is written here so a reader
+    # can say "outside B.C." instead of "no rules", and checked against the ROWS JUST WRITTEN —
+    # a reach run from before the subtraction binds 181 such sections, and must not ship.
+    from pipeline.atlas.reach.outside import outside_bc
+    from pipeline.common.io.serialize import read_artifact
+    graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
+    outside = sorted(sid[h] for h in outside_bc(registry, graph) if h in sid)
+    del graph
+    db.executemany("INSERT INTO outside_bc (sid) VALUES (?)", [(x,) for x in outside])
+    cov.filled("outside_bc", len(outside))
+    bound_outside = {t: db.execute(f"SELECT COUNT(*) FROM outside_bc o JOIN {t} t "
+                                   f"ON t.sid = o.sid").fetchone()[0]
+                     for t in ("section_ruleset", "section_licensing")}
+    if any(bound_outside.values()):
+        raise SystemExit(
+            f"outside_bc: sections outside British Columbia carry regulation sets "
+            f"({bound_outside}) — the reach run predates the border subtraction, or the atlas "
+            f"changed under it. Re-run the reach builder:\n"
+            f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+    if namer.unnamed:
+        print(f"     labels: {len(namer.unnamed)} cut-point(s) have no book name, so the rules "
+              f"on them name no place:")
+        for s_, why in sorted(namer.unnamed)[:20]:
+            print(f"       {s_}: {why}")
 
     # COUNTED FROM THE SET, NOT FROM A TUPLE INDEX. This read `r[8]` — which is
     # `json.dumps(species)`, a string that is never empty ("[]" at minimum) and therefore

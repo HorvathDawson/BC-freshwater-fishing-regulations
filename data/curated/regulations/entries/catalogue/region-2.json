@@ -144,6 +144,7 @@
      "verbatim": "no powered boats on mainstem",
      "aspect": "propulsion",
      "level": "unpowered",
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -1423,13 +1424,8 @@
      ],
      "take": 0,
      "may_target": false,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "extent_text": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
-     "review_reason": "'the falls' and the point 100 m below it have no bindable split id — extent falls back to whole creek"
+     "review_reason": "UNBOUND, never widened: Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json."
     }
    ]
   },
@@ -1685,7 +1681,8 @@
         "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
        ]
       }
-     ]
+     ],
+     "extent_text": "from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake"
     },
     {
      "rule_id": "chehalis_river.r2",
@@ -1713,7 +1710,8 @@
         "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake"
     }
    ]
   },
@@ -5971,12 +5969,12 @@
        ]
       }
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "mainstem only"
+     ]
     }
    ]
   },
@@ -9257,8 +9255,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Squamish River tributary located upstream of Ashlu Creek"
+     ]
     }
    ]
   },
@@ -9337,8 +9334,33 @@
        "op": "whole"
       }
      ],
-     "extent_text": "tributaries only, except Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
-     "review_reason": "named tributary exceptions (Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, Squamish Powerhouse Channel) cannot be structurally excluded from a tributary-only closure with the available extent ops — flagging for curated tributary exclusion"
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:17155"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12999"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:10716"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12746"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:360219234"
+      },
+      {
+       "op": "whole",
+       "item_id": "wsc:900-105574-416908"
+      }
+     ],
+     "review_reason": "tributaries_only, with the five printed exceptions as tributary_excludes (Ashlu Creek gnis:17155, Cheakamus River gnis:12999, Elaho River gnis:10716, Mamquam River gnis:12746, the Squamish Powerhouse Channel blk:360219234 / wsc:900-105574-416908). Bound as `whole` of the Squamish River it closed the MAINSTEM, which the row does not name."
     }
    ]
   },
@@ -10610,7 +10632,6 @@
        "item_id": "gnis:14589"
       }
      ],
-     "extent_text": "Stave River",
      "review_reason": "BOUND — named water. Water-scoped. Recovered from the chapter — one of 4 of 7 tagging programmes the archive dropped."
     }
    ]

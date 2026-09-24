@@ -5,7 +5,7 @@
    "entry_id": "zp:terminal_tackle",
    "name": "Terminal tackle",
    "display_name": "Everywhere in B.C.",
-   "regs_verbatim": "Your basic fishing licence entitles you to angle with one fishing line to which only one hook, one artificial lure OR one artificial fly is attached. It is unlawful to angle with more than one line, EXCEPT a person who is alone in a boat on a lake may angle with two lines. It is unlawful to angle with a fishing line to which more than one artificial fly is attached. It is unlawful to angle with a fishing line to which more than 1 kg of weight is attached. It is unlawful to use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook. Angle with a fishing line to which more than one artificial fly is attached (i. Angle with a fishing line to which more than 1 kg of weight is attached (this does not apply to downrigger weights).",
+   "regs_verbatim": "Your basic fishing licence entitles you to angle with one fishing line to which only one hook, one artificial lure OR one artificial fly is attached. It is unlawful to angle with more than one line, EXCEPT a person who is alone in a boat on a lake may angle with two lines. It is unlawful to angle with a fishing line to which more than one artificial fly is attached. It is unlawful to angle with a fishing line to which more than 1 kg of weight is attached. It is unlawful to use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook. Angle with a fishing line to which more than one artificial fly is attached (i.e., to use \"dropper flies\"). Angle with a fishing line to which more than 1 kg of weight is attached (this does not apply to downrigger weights).",
    "source_pages": [
     8
    ],
@@ -16,6 +16,25 @@
     }
    ],
    "rules": [
+    {
+     "rule_id": "terminal_tackle.r7",
+     "type": "method_rule",
+     "verbatim": "angle with one fishing line to which only one hook, one artificial lure OR one artificial fly is attached",
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "angling"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
     {
      "rule_id": "terminal_tackle.r1",
      "type": "tackle_restriction",
@@ -34,6 +53,7 @@
        "max": 1.0
       }
      ],
+     "condition_of": "terminal_tackle.r7",
      "extents": [
       {
        "op": "within",
@@ -44,7 +64,7 @@
     {
      "rule_id": "terminal_tackle.r3",
      "type": "tackle_restriction",
-     "verbatim": "Angle with a fishing line to which more than one artificial fly is attached (i.",
+     "verbatim": "Angle with a fishing line to which more than one artificial fly is attached (i.e., to use \"dropper flies\").",
      "gear": [
       {
        "slot": "flies_per_line",
@@ -119,6 +139,7 @@
        "max": 1.0
       }
      ],
+     "condition_of": "terminal_tackle.r7",
      "extents": [
       {
        "op": "within",
@@ -974,7 +995,7 @@
    "entry_id": "zp:no_fishing_buffers",
    "name": "Fishway and facility buffers",
    "display_name": "Everywhere in B.C.",
-   "regs_verbatim": "Most waters in B.C. are open to fishing for some species 24 hours of the day, every day of the year. No fishing within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap. No fishing within a 100 m radius of any government facility operated for counting, passing or rearing fish unless otherwise designated. Not all No Fishing areas are signed in the field. 3. Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap. 4. Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.",
+   "regs_verbatim": "Most waters in B.C. are open to fishing for some species 24 hours of the day, every day of the year. No fishing within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap. No fishing within a 100 m radius of any government facility operated for counting, passing or rearing fish unless otherwise designated. Not all No Fishing areas are signed in the field. 3. Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap. 4. Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
    "source_pages": [
     9
    ],
@@ -1007,7 +1028,7 @@
     {
      "rule_id": "no_fishing_buffers.r2",
      "type": "retention_limit",
-     "verbatim": "4. Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.",
+     "verbatim": "4. Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1232,7 +1253,7 @@
      "extents": [
       {
        "op": "whole",
-       "item_id": "wbk:328974235"
+       "item_id": "wbk:-20"
       }
      ],
      "verbatim": "Required to keep rainbow trout over 50 cm from the main body of Kootenay Lake.",
@@ -1365,14 +1386,14 @@
      ],
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "between",
        "splits": [
         "fraser_river__the_cpr_bridge_at_mission",
         "fraser_river__williams_lake_river_into_fraser_river"
-       ],
-       "includes_tributaries": true
+       ]
       }
      ]
     },
@@ -1922,6 +1943,25 @@
      "verbatim": "ice fish with one line and one lure, artificial fly or other terminal attractor",
      "gear": [
       {
+       "slot": "method",
+       "allow": [
+        "ice_fishing"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "allowable_methods.r2b",
+     "type": "method_rule",
+     "verbatim": "ice fish with one line and one lure, artificial fly or other terminal attractor",
+     "gear": [
+      {
        "slot": "lines_per_angler",
        "max": 1.0
       },
@@ -1935,6 +1975,7 @@
        "max": 1.0
       }
      ],
+     "condition_of": "allowable_methods.r2",
      "while": [
       "ice_fishing"
      ],
@@ -2221,6 +2262,9 @@
      "conduct": [
       "produce_licence_on_request"
      ],
+     "presumes": [
+      "basic_licence"
+     ],
      "who": {
       "age": [
        "16_plus"
@@ -2242,6 +2286,9 @@
      "id": "carry_paper_licence",
      "conduct": [
       "carry_paper_licence"
+     ],
+     "presumes": [
+      "basic_licence"
      ],
      "who": {
       "age": [

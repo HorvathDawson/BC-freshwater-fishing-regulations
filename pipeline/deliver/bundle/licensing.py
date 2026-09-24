@@ -2,8 +2,9 @@
 
 WHAT A LICENSING RECORD IS, AND WHY IT IS NOT A RULE: see `CatalogueEntry.licensing`. It never
 competes and never votes on open/closed; it says what you must hold, as whom, doing what, and
-which waters are Classified. The reader composes the per-angler sentence (`core/`); the bundle
-ships the records, their generated labels, their quotes, and where the placed ones are.
+which waters are Classified. The reader composes the per-angler sentence (in core —
+app/packages/core/src/regulations.ts); the bundle ships the records, their generated labels,
+their quotes, and where the placed ones are.
 
 THIS MODULE CONSUMES, IT DOES NOT DERIVE — the same contract as `rules.py`. Which sections a
 designation covers is decided in `pipeline.atlas.reach` (`licensing_section.jsonl`), by the SAME
@@ -133,6 +134,16 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         if p["kind"] != records[k][1].kind:
             raise SystemExit(f"licensing: {k} is a {records[k][1].kind} in the corpus and a "
                              f"{p['kind']} in the reach run — the run is stale")
+    # A REQUIREMENT WITH A PLACE AND AN `on` THAT NO DESIGNATION REACHES holds nowhere
+    # (`reach.licensing.on_designations`). It is a curation defect — the place and the period it
+    # names never meet — and shipping it as "check" would hide that; the build stops instead.
+    from pipeline.atlas.reach.licensing import NO_DESIGNATION
+    nowhere = sorted(k for k, p in placed.items() if p.get("reason") == NO_DESIGNATION)
+    if nowhere:
+        raise SystemExit(
+            f"licensing: {len(nowhere)} requirement(s) with `extents` and `on` reach no "
+            f"designation that satisfies `on` — they hold nowhere: {nowhere[:5]}. Fix the "
+            f"extents or the `on`.")
 
     # ---- section bindings ------------------------------------------------------------
     by_section: dict[str, set[tuple[str, str, str, str]]] = {}

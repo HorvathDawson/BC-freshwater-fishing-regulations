@@ -195,7 +195,8 @@ def render_boundary_menu(boundaries, owners=None) -> list[str]:
     meaningful for a COMBINED entry, where an `item_id`-scoped extent must bind a cut-point on the
     item it names."""
     if not boundaries:
-        return ["- (none) — this item has no cut-points; only op:whole is bindable."]
+        return ["- (none) — this item has no cut-points; only op:whole is bindable — a rule "
+                "about a PART of this water gets `extent_text` + `review_reason` and NO extents."]
     owner = {bid: iid for iid, ids in (owners or ()) for bid in ids}
     out = []
     for b in boundaries:

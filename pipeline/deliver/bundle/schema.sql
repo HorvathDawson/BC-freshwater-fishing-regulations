@@ -79,7 +79,9 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.
 -- `scope` is WHERE THE RULE WAS WRITTEN, and it drives precedence: a rule written for this
--- water displaces a zone default that contradicts it (see `evaluate` in core/status.ts).
+-- water displaces a zone default that contradicts it. (The client that reads it is not built
+-- yet: app/packages/core/src/regulations.ts is where it plugs in; the export's `guide.ladder`
+-- states the rule.)
 -- Every rule in the corpus today is `section` — all 3,050 name a river or a lake — and `mu`
 -- awaits zone regulations ("in MU 4-5, no bait") being parsed. It is stored rather than
 -- assumed so that when they arrive the precedence rule does not have to be rediscovered.
@@ -134,13 +136,14 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    -- `exempts` (JSON): what this rule LIFTS, resolved at build time to the
                    -- entry it lifts — [{"default_id", "entry_id"}] lifts every rule of that
                    -- zone entry, [{"target", "entry_id"}] one rule. Where this rule is in
-                   -- force on a section, a rule it lifts does not count (core/status.ts).
+                   -- force on a section, a rule it lifts does not count (the reader belongs
+                   -- in app/packages/core/src/regulations.ts; the export's `guide.exempts`).
                    -- NULL = lifts nothing. Never the rule's own entry by `default_id`.
                    exempts TEXT,
                    take INTEGER, may_target INTEGER,        -- see above; both may be NULL
                    conditions TEXT,           -- the rest of the rule's set fields, as JSON
                    -- a rule nobody could place must never vote on an outcome; it can only
-                   -- ever raise "unknown" (core/status.ts)
+                   -- ever raise "unknown" (the reader: app/packages/core/src/regulations.ts)
                    uncertain INTEGER NOT NULL DEFAULT 0,
                    -- WHY it could not be placed: the reach builder's "reason: detail", as the
                    -- licensing tables' `unresolved` column has it. NULL = placed.
@@ -175,6 +178,14 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
 CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
                               set_id INTEGER NOT NULL);
 
+-- WATER B.C. DOES NOT GOVERN. Every section outside the province — past the border (the atlas's
+-- `out_of_bc`) or in no region polygon (border slivers) — by handle. The reach builder subtracts
+-- them from every rule and licensing binding (`pipeline/atlas/reach/outside.py`), and the build
+-- REFUSES a bundle in which any of them carries a rule set or a licensing set. A reader shows
+-- such a section as outside B.C. — no B.C. regulation applies — never as "open under the
+-- general rules", which is what a section with no rule set would otherwise read as.
+CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
+
 -- The sets themselves: 1,905 of them across 6,622 rows.
 --
 -- `via` is WHY this rule reaches this section — `reach` if the rule names this water,
@@ -188,10 +199,10 @@ CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id T
 
 -- licensing -----------------------------------------------------------------------
 -- WHAT YOU MUST HOLD, and which waters are Classified. Not rules: licensing never competes and
--- never votes on open/closed (`evaluate` in core/status.ts never reads these tables). The
--- per-angler sentence ("as a non-resident on Skeena River 2 today you need …") is composed in
--- core/, where a test can pin the whole string; these tables ship the records it is composed
--- from. See pipeline/deliver/bundle/licensing.py.
+-- never votes on open/closed — whatever reads the rules for a water's status must never read
+-- these tables. The per-angler sentence ("as a non-resident on Skeena River 2 today you need …")
+-- belongs in core (app/packages/core/src/regulations.ts), where a test can pin the whole string;
+-- these tables ship the records it is composed from. See pipeline/deliver/bundle/licensing.py.
 --
 -- EVERY RECORD TABLE ends in the same four columns:
 --   label          GENERATED from the structure (catalogue.licensing_label) — never authored

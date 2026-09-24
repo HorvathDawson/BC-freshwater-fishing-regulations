@@ -208,6 +208,14 @@
    "matched": [
     "gnis:9343"
    ],
+   "extents": [
+    {
+     "op": "downstream_of",
+     "splits": [
+      "alexander_creek__easternmost_hwy_3"
+     ]
+    }
+   ],
    "rules": [
     {
      "rule_id": "alexander_creek_lower.r1",
@@ -320,6 +328,14 @@
    ],
    "matched": [
     "gnis:9343"
+   ],
+   "extents": [
+    {
+     "op": "upstream_of",
+     "splits": [
+      "alexander_creek__easternmost_hwy_3"
+     ]
+    }
    ],
    "includes_tributaries": true,
    "rules": [
@@ -1031,11 +1047,8 @@
        "take": 0
       }
      ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
+     "extent_text": "other parts",
+     "review_reason": "UNBOUND, never widened: 'Other parts' is the complement of r1's reaches (Galbraith-Van, Aberfeldie-Tie Mill, Quinn Creek), which no extent op expresses. A curator must also say whether it includes the tributaries (the row is 'Includes Tributaries')."
     },
     {
      "rule_id": "bull_river.r3",
@@ -1948,7 +1961,8 @@
         "columbia_river__cpr_bridge_robson"
        ]
       }
-     ]
+     ],
+     "extent_text": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge"
     },
     {
      "rule_id": "columbia_river.r3",
@@ -2016,7 +2030,8 @@
         "columbia_river__old_robson_ferry_landing_south_bank_sign"
        ]
       }
-     ]
+     ],
+     "extent_text": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank"
     },
     {
      "rule_id": "columbia_river.r7",
@@ -3721,6 +3736,7 @@
      },
      "take": 0,
      "may_target": true,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "between",
@@ -4392,6 +4408,7 @@
      ],
      "take": 0,
      "may_target": true,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -5721,9 +5738,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Lower West Arm of Kootenay Lake",
-     "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_lower_west_arm.r2",
@@ -5738,9 +5753,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Lower West Arm of Kootenay Lake",
-     "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_lower_west_arm.r3",
@@ -5760,9 +5773,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Lower West Arm of Kootenay Lake",
-     "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_lower_west_arm.r4",
@@ -5786,9 +5797,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Lower West Arm of Kootenay Lake",
-     "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_lower_west_arm.r5",
@@ -5802,9 +5811,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Lower West Arm of Kootenay Lake",
-     "review_reason": "Lower West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     }
    ]
   },
@@ -5843,9 +5850,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_main_body.r2",
@@ -5860,9 +5865,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_main_body.r3",
@@ -5876,9 +5879,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_main_body.r4",
@@ -5892,9 +5893,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_main_body.r6",
@@ -5914,9 +5913,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "Main Body of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     }
    ],
    "licensing": [
@@ -6050,9 +6047,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Upper West Arm of Kootenay Lake",
-     "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_upper_west_arm.r2",
@@ -6066,9 +6061,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Upper West Arm of Kootenay Lake",
-     "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_upper_west_arm.r3",
@@ -6083,9 +6076,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Upper West Arm of Kootenay Lake",
-     "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_upper_west_arm.r4",
@@ -6116,9 +6107,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Upper West Arm of Kootenay Lake",
-     "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     },
     {
      "rule_id": "kootenay_lake_upper_west_arm.r5",
@@ -6148,9 +6137,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "Upper West Arm of Kootenay Lake",
-     "review_reason": "Upper West Arm of Kootenay Lake has no split id; bound to the whole lake until arm-level cut-points exist"
+     ]
     }
    ]
   },
@@ -6456,7 +6443,8 @@
         "kootenay_river__white_river_into_kootenay_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of Koocanusa Reservoir to White River"
     },
     {
      "rule_id": "kootenay_river_upper.r6",
@@ -6480,7 +6468,8 @@
         "kootenay_river__white_river_into_kootenay_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of Koocanusa Reservoir to White River"
     },
     {
      "rule_id": "kootenay_river_upper.r7",
@@ -6504,7 +6493,8 @@
         "kootenay_river__white_river_into_kootenay_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of Koocanusa Reservoir to White River"
     },
     {
      "rule_id": "kootenay_river_upper.r8",
@@ -10860,7 +10850,8 @@
         "skookumchuck_creek__buhl_creek_into_skookumchuck_creek"
        ]
       }
-     ]
+     ],
+     "extent_text": "from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek"
     },
     {
      "rule_id": "skookumchuck_creek.r2",
@@ -13755,6 +13746,7 @@
       }
      ],
      "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+     "review_reason": "STRADDLING, marked not cut: a lake is one section and area membership is by intersection, so this permit binds all of Kootenay Lake — Main Body (wbk:-20, 389 km²) though only the lake's south end lies in the WMA. It needs the per-(record, section) 'partial' marker the straddling-sections work plans; never widen further, never cut the lake for it.",
      "kind": "requirement"
     }
    ]
@@ -13828,10 +13820,9 @@
      "extents": [
       {
        "op": "whole",
-       "item_id": "wbk:328974235"
+       "item_id": "wbk:-20"
       }
      ],
-     "extent_text": "main body of Kootenay Lake",
      "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules."
     }
    ]
@@ -13848,7 +13839,15 @@
    "extents": [
     {
      "op": "whole",
-     "item_id": "wbk:328974235"
+     "item_id": "wbk:-20"
+    },
+    {
+     "op": "whole",
+     "item_id": "wbk:-21"
+    },
+    {
+     "op": "whole",
+     "item_id": "wbk:-22"
     }
    ],
    "rules": [
@@ -13856,22 +13855,34 @@
      "rule_id": "kootenay_lake_boundaries.r1",
      "type": "advisory",
      "verbatim": "Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse.",
-     "extent_text": "Main Body of Kootenay Lake",
-     "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:-20"
+      }
+     ]
     },
     {
      "rule_id": "kootenay_lake_boundaries.r3",
      "type": "advisory",
      "verbatim": "Upper West Arm — the area west of that line, to McDonalds Landing (Six Mile).",
-     "extent_text": "Upper West Arm",
-     "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:-21"
+      }
+     ]
     },
     {
      "rule_id": "kootenay_lake_boundaries.r4",
      "type": "advisory",
      "verbatim": "Lower West Arm — the area between McDonalds Landing (Six Mile) and Corra Linn Dam.",
-     "extent_text": "Lower West Arm",
-     "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on."
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:-22"
+      }
+     ]
     },
     {
      "rule_id": "kootenay_lake_boundaries.r2",
@@ -13880,7 +13891,15 @@
      "extents": [
       {
        "op": "whole",
-       "item_id": "wbk:328974235"
+       "item_id": "wbk:-20"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:-21"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:-22"
       }
      ],
      "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true."

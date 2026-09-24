@@ -229,6 +229,13 @@ Combine it freely with an op: `{"op": "upstream_of", "splits": ["x"], "within_ar
 phrase in `unresolved_locators`, and give a `review_reason`. A rule bound to the
 wrong point is far worse than one visibly sent to review.
 
+**A PART of the water is never `whole`.** When a rule names a part of the water — an arm, a bay,
+"west of the signs", "on parts", "mainstem only" of a row that includes tributaries — and the menu
+has no cut-point for it, write the part in `extent_text`, give a `review_reason`, and write NO
+`extents` at all. `{"op": "whole"}` beside an `extent_text` is REFUSED: `whole` says the whole
+water, and the builder would bind the whole lake for a rule about one bay. ("Mainstem only" has a
+field: `includes_tributaries: false` on the rule.)
+
 ## Seasons and times — `when`
 
 One object. Every part is optional; the object itself is omitted when the rule is all year, all

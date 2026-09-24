@@ -261,11 +261,12 @@
        "take": 0
       }
      ],
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:9891",
-       "includes_tributaries": true
+       "within_area": "area:region:7b"
       }
      ],
      "extent_text": "Liard River watershed, or other specified waters",
@@ -355,11 +356,12 @@
      ],
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:14619",
-       "includes_tributaries": true
+       "within_area": "area:region:7b"
       }
      ],
      "extent_text": "Peace River watershed",
@@ -384,11 +386,12 @@
      },
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:9891",
-       "includes_tributaries": true
+       "within_area": "area:region:7b"
       }
      ],
      "extent_text": "Liard River watershed",
@@ -505,11 +508,27 @@
      ],
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
-       "item_id": "wbk:328961697",
-       "includes_tributaries": true
+       "item_id": "wbk:-16",
+       "within_area": "area:region:7b"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:-17",
+       "within_area": "area:region:7b"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:-18",
+       "within_area": "area:region:7b"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:-19",
+       "within_area": "area:region:7b"
       }
      ],
      "extent_text": "Williston Lake and its tributaries",

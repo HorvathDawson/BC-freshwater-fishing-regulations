@@ -1316,7 +1316,8 @@
         "campbell_river__power_line_200m_up_of_quinsam"
        ]
       }
-     ]
+     ],
+     "extent_text": "from John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence"
     },
     {
      "rule_id": "campbell_river.r6",
@@ -1347,7 +1348,8 @@
         "campbell_river__power_line_200m_up_of_quinsam"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of power line crossing approximately 200 m upstream of Quinsam River"
     },
     {
      "rule_id": "campbell_river.r7",
@@ -5256,7 +5258,7 @@
    "name": "HEBER RIVER",
    "display_name": "Heber River",
    "region": "1",
-   "regs_verbatim": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence\nFolpye fnishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when",
+   "regs_verbatim": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence\nFly fishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when open",
    "source_pages": [
     18
    ],
@@ -5299,7 +5301,8 @@
         "heber_river__top_of_lower_canyon_1300_m_upstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence"
     },
     {
      "rule_id": "heber_river.r2",
@@ -5318,12 +5321,12 @@
        ]
       }
      ],
-     "review_reason": "Printed with no date, reading as a year-round closure downstream of the canyon, but the next line ('Folpye fnishing only downstream of Saunders Creek...') implies part of this reach is open under a fly-only rule. The source text appears garbled/incomplete; a curator should confirm against the printed page."
+     "extent_text": "downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence"
     },
     {
      "rule_id": "heber_river.r3",
      "type": "tackle_restriction",
-     "verbatim": "Folpye fnishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when",
+     "verbatim": "Fly fishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when open",
      "gear": [
       {
        "slot": "method",
@@ -5341,7 +5344,7 @@
        ]
       }
      ],
-     "review_reason": "Source text is garbled ('Folpye fnishing' appears to be an OCR error for 'Fly fishing') and truncated ('...when' has no continuation, likely 'when open'). Inferred as fly-fishing-only but wording and season could not be confirmed."
+     "extent_text": "downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence"
     }
    ]
   },
@@ -6554,7 +6557,11 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "between",
+     "splits": [
+      "marble_river__victoria_lake",
+      "marble_river__alice_lake"
+     ]
     }
    ],
    "rules": [
@@ -7561,7 +7568,11 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "between",
+     "splits": [
+      "marble_river__victoria_lake",
+      "marble_river__alice_lake"
+     ]
     }
    ],
    "rules": [
@@ -9362,12 +9373,8 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn."
     },
     {
      "rule_id": "prospect_lake.r3",
@@ -9375,12 +9382,8 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 60.0,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn."
     }
    ]
   },
@@ -9583,7 +9586,8 @@
         "qualicum_river__boundary_signs_qfn"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence"
     },
     {
      "rule_id": "qualicum_river.r2",
@@ -9612,7 +9616,8 @@
         "qualicum_river__boundary_signs_qfn"
        ]
       }
-     ]
+     ],
+     "extent_text": "from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign located approximately 100 m downstream of the hatchery counting fence"
     },
     {
      "rule_id": "qualicum_river.r3",
@@ -9859,12 +9864,8 @@
      "verbatim": "speed restriction on parts (8 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn."
     }
    ]
   },
@@ -9936,7 +9937,8 @@
         "quinsam_river__signs_at_power_line_crossing"
        ]
       }
-     ]
+     ],
+     "extent_text": "from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing (approximately 25 m upstream of the Quinsam hatchery weir)"
     },
     {
      "rule_id": "quinsam_river.r3",
@@ -10564,12 +10566,8 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn."
     },
     {
      "rule_id": "shawnigan_lake.r3",
@@ -10577,12 +10575,8 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 65.0,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the speed limit applies only to parts of the lake, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn."
     }
    ]
   },
@@ -10631,7 +10625,8 @@
         "somass_river__boundary_signs_1km_u_s"
        ]
       }
-     ]
+     ],
+     "extent_text": "between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream"
     },
     {
      "rule_id": "somass_river.r2",
@@ -11155,12 +11150,8 @@
      "aspect": "propulsion",
      "level": "power_capped",
      "max_power_kw": 7.5,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "synopsis states the restriction applies only to parts of the river, but no split ids are bindable for this water to express which reach"
+     "extent_text": "on parts",
+     "review_reason": "UNBOUND, never widened: the book applies this 'on parts' of the river and names none; no cut-point or polygon draws them. Needs the parts drawn."
     }
    ]
   },
@@ -13841,7 +13832,6 @@
        "item_id": "gnis:21875"
       }
      ],
-     "extent_text": "Comox Lake, Cowichan Lake, Horne Lake and Oyster River",
      "review_reason": "BOUND — named water. Water-scoped to four named waters; unbound until they are matched. Recovered from the chapter — the archive dropped 4 of 7 tagging programmes."
     }
    ]

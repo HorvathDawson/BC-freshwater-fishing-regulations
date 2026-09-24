@@ -116,8 +116,10 @@ def test_get_serves_the_generated_label(env, picks, part):
     stored = _entries(env["dir"])[eid][1]
     model = C.CatalogueEntry.model_validate(stored)
     siblings = {r.rule_id: r for r in model.rules}
+    # THE BUNDLE'S LABEL: the same function, handed the same place-namer the bundle uses.
+    place_of = env["reuse"]._place_namer().for_entry(model.matched)
     for got, r in zip(served.get("rules") or [], model.rules):
-        assert got["label"] == C.label(r, siblings)
+        assert got["label"] == C.label(r, siblings, place_of)
     for got, x in zip(served.get("licensing") or [], model.licensing):
         assert got["label"], f"{x.kind} {x.id} was served with no label"
         assert got["label"] == C.licensing_label(
@@ -175,13 +177,13 @@ def _rec(e, kind):
 
 
 def _edit_retention(e):
+    # Numbers are held to the rule's own sentence by the ingest gate the app now runs, so the
+    # edit changes what a number does not carry: the season, and the retention record.
     i = _rule(e, "retention_limit")
     r = e["rules"][i]
-    r["take"] = (r.get("take") or 0) + 3
-    r["lengths"] = [{"max_cm": 50}, {"min_cm": 50, "take": 0}]
+    r["record_retention"] = True
     r["when"] = {"dates": [{"from_month": 6, "from_day": 15, "to_month": 10, "to_day": 31}]}
-    return lambda got: (got["rules"][i]["take"] == r["take"]
-                        and got["rules"][i]["lengths"] == r["lengths"]
+    return lambda got: (got["rules"][i].get("record_retention") is True
                         and got["rules"][i]["when"] == r["when"]), f"rules.{i}"
 
 
@@ -210,8 +212,9 @@ def _edit_while(e):
 def _edit_vessel(e):
     i = _rule(e, "vessel_rule")
     r = e["rules"][i]
-    r.update({"aspect": "propulsion", "level": "power_capped", "max_power_kw": 7.5})
-    return lambda got: got["rules"][i]["max_power_kw"] == 7.5, f"rules.{i}"
+    r.update({"aspect": "propulsion", "level": "none"})
+    r.pop("max_power_kw", None)
+    return lambda got: got["rules"][i]["level"] == "none", f"rules.{i}"
 
 
 def _edit_angler_closure(e):
@@ -226,7 +229,10 @@ def _edit_where(rtype):
         r = e["rules"][i]
         r["tributaries_only"] = True
         r["includes_tributaries"] = True
-        r["extent_text"] = "the whole water"
+        # A place nothing can draw keeps its words and NO extents (the model refuses a bare
+        # `whole` beside `extent_text`).
+        r.pop("extents", None)
+        r["extent_text"] = "at the old bridge"
         r["unresolved_locators"] = ["the old bridge"]
         r["review_reason"] = "curator: locate the old bridge"
         r["exempts"] = [{"default_id": "bait_ban_streams", "note": "curator edit"}]
@@ -449,6 +455,28 @@ BAD = {
                                         lambda x: x.update(extents=[{"op": "within",
                                                                      "area_kind": "region"}]),
                                         "", "whole province")),
+    # THE INGEST GATE, not only the model: a curator saved `take: 15` on a rule whose sentence
+    # says 20 and the app accepted it. Every number must be printed in the rule's own verbatim.
+    "a number the sentence does not print": ("rule:retention_limit",
+                                             _bad_rule("retention_limit",
+                                                       lambda r: r.update(take=97531),
+                                                       ".take", "does not appear in its own "
+                                                                "verbatim")),
+    "a size the sentence does not print": ("rule:retention_limit",
+                                           _bad_rule("retention_limit",
+                                                     lambda r: r.update(lengths=[{"min_cm": 97}]),
+                                                     ".lengths.0.min_cm", "does not appear")),
+    "a split parent": ("rule:tackle_restriction",
+                       _bad_rule("tackle_restriction",
+                                 lambda r: r.update(extents=[{"op": "whole",
+                                                              "item_id": "wbk:328974235"}]),
+                                 "", "is cut into")),
+    "a bare whole beside a place in words": ("rule:tackle_restriction",
+                                             _bad_rule("tackle_restriction",
+                                                       lambda r: r.update(
+                                                           extents=[{"op": "whole"}],
+                                                           extent_text="south of the bridge"),
+                                                       "", "extent_text names a place")),
     "not_classified quote": ("licensing:not_classified",
                              _bad_rec("not_classified",
                                       lambda x: x.update(verbatim="This tributary of St. Mary River"),

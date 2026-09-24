@@ -14,8 +14,12 @@ def test_extent_arity():
     assert Extent(op=Op.WITHIN, area_id="area:park:wells_gray", feature_types=["lake", "wetland"]).feature_types == ["lake", "wetland"]
     with pytest.raises(ValidationError):
         Extent(op=Op.WITHIN, area_id="x", feature_types=["fish"])       # invalid feature kind
+    # feature_types on ANY op: the builder applies it to the rule's reach after the walk
+    # ("lakes of the Fraser watershed"), so the model no longer refuses the shape it reads.
+    assert Extent(op=Op.WHOLE, item_id="gnis:1", feature_types=["lake"]).feature_types == ["lake"]
+    assert Extent(op=Op.UPSTREAM_OF, splits=["a"], feature_types=["stream"]).feature_types
     with pytest.raises(ValidationError):
-        Extent(op=Op.WHOLE, feature_types=["lake"])                  # feature_types only for within
+        Extent(op=Op.WHOLE, feature_types=["fish"])                  # still a real kind
     for bad in (
         dict(op=Op.UPSTREAM_OF, splits=[]),          # needs 1
         dict(op=Op.UPSTREAM_OF, splits=["a", "b"]),  # too many

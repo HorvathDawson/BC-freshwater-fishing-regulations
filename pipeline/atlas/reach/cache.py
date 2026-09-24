@@ -25,7 +25,7 @@ import json
 from typing import Callable
 
 #: Bump whenever `classify.py` changes an OUTCOME. Guarded by a test.
-POLICY_VERSION = "3"
+POLICY_VERSION = "4"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

@@ -1409,7 +1409,8 @@
         "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "in Moricetown Canyon or within 100 m downstream"
     }
    ],
    "licensing": [
@@ -3578,7 +3579,8 @@
        ]
       }
      ],
-     "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension"
+     "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension",
+     "extent_text": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall"
     },
     {
      "rule_id": "kitimat_river.r2",
@@ -8148,7 +8150,8 @@
         "tahltan_river__th_750_m_upstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "from boundary signs located approximately 400 m upstream from the Tahltan River Bridge on the Telegraph Creek Road to the landslide located approximately 750 m upstream from the Tahltan River Bridge"
     },
     {
      "rule_id": "tahltan_river.r2",
@@ -9210,7 +9213,8 @@
         "zymoetz__zymoetz_canyon_upper_entrance"
        ]
       }
-     ]
+     ],
+     "extent_text": "between fishing boundary signs in Zymoetz Canyon"
     },
     {
      "rule_id": "zymoetz_river.r3",
@@ -9238,7 +9242,8 @@
         "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon)"
     },
     {
      "rule_id": "zymoetz_river.r4",
@@ -9471,13 +9476,13 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "iskut_river__downstream_end_of_forrest_kerr_canyon"
        ],
-       "includes_tributaries": true,
        "feature_types": [
         "stream"
        ]
@@ -9505,11 +9510,11 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:39325",
-       "includes_tributaries": true,
        "feature_types": [
         "stream"
        ],
@@ -9721,11 +9726,15 @@
        ]
       }
      ],
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:2936",
-       "includes_tributaries": true
+       "feature_types": [
+        "stream"
+       ],
+       "within_area": "area:region:6"
       }
      ],
      "extent_text": "Skeena River and its tributaries"
@@ -9742,11 +9751,15 @@
        ]
       }
      ],
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:3206",
-       "includes_tributaries": true
+       "feature_types": [
+        "stream"
+       ],
+       "within_area": "area:region:6"
       }
      ],
      "extent_text": "Nass River and its tributaries"
@@ -9790,7 +9803,6 @@
        "splits": [
         "skeena_river__cedarvale"
        ],
-       "includes_tributaries": true,
        "feature_types": [
         "stream"
        ]
@@ -9825,7 +9837,6 @@
        "splits": [
         "nass_river__kitsault_bridge"
        ],
-       "includes_tributaries": true,
        "feature_types": [
         "stream"
        ]
@@ -10319,17 +10330,15 @@
      },
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:39325",
-       "includes_tributaries": true,
-       "feature_types": [
-        "lake"
-       ]
+       "within_area": "area:region:6"
       }
      ],
-     "extent_text": "lakes of the Fraser watershed"
+     "extent_text": "Fraser watershed in Region 6"
     },
     {
      "rule_id": "trout_char_quota.r10",
@@ -10350,17 +10359,15 @@
      },
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:2936",
-       "includes_tributaries": true,
-       "feature_types": [
-        "lake"
-       ]
+       "within_area": "area:region:6"
       }
      ],
-     "extent_text": "lakes of the Skeena watershed"
+     "extent_text": "Skeena watershed"
     },
     {
      "rule_id": "trout_char_quota.r9",

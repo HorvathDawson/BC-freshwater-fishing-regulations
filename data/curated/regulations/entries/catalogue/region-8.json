@@ -3920,16 +3920,11 @@
      "type": "vessel_rule",
      "verbatim": "Speed restriction on parts",
      "aspect": "speed",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "extent_text": "on parts",
      "unresolved_locators": [
       "on parts"
      ],
-     "review_reason": "no km/h value is given in the source text, and 'on parts' does not name which reach; this item has no bindable boundaries besides whole."
+     "review_reason": "UNBOUND, never widened: the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn."
     },
     {
      "rule_id": "osoyoos_lake.r7",
@@ -3937,16 +3932,11 @@
      "verbatim": "no vessels (see definition on page 4) in 5 signed swimming areas",
      "aspect": "propulsion",
      "level": "none",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "extent_text": "in 5 signed swimming areas",
      "unresolved_locators": [
       "5 signed swimming areas"
      ],
-     "review_reason": "the 5 signed swimming areas are not bindable cut-points; this item has no boundary for them besides whole."
+     "review_reason": "UNBOUND, never widened: the 5 signed swimming areas are not polygons in the atlas; Osoyoos Lake has no sub-polygons. Needs them drawn."
     }
    ]
   },
@@ -4219,16 +4209,11 @@
      "verbatim": "No powered boats south of the CPR Bridge",
      "aspect": "propulsion",
      "level": "unpowered",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "extent_text": "south of the CPR Bridge",
      "unresolved_locators": [
       "south of the CPR Bridge"
      ],
-     "review_reason": "'south of the CPR Bridge' names a reach but this item has no bindable boundaries besides op:whole; binding to the whole lake overstates the restriction."
+     "review_reason": "UNBOUND, never widened: Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part."
     }
    ]
   },
@@ -4416,12 +4401,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "netted off portion on the south end of the lake",
-     "unresolved_locators": [
-      "netted off portion on the south end of the lake"
-     ],
-     "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
+     ]
     },
     {
      "rule_id": "shannon_lake_netted_portion.r2",
@@ -4441,12 +4421,7 @@
       {
        "op": "whole"
       }
-     ],
-     "extent_text": "netted off portion on the south end of the lake",
-     "unresolved_locators": [
-      "netted off portion on the south end of the lake"
-     ],
-     "review_reason": "No polygon exists for the netted-off portion of Shannon Lake; only op:whole is bindable for this registry item, which overstates the reach onto the whole lake."
+     ]
     }
    ]
   },
@@ -4907,16 +4882,11 @@
      "type": "vessel_rule",
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
      "extent_text": "various locations (as buoyed and signed)",
      "unresolved_locators": [
       "various locations (as buoyed and signed)"
      ],
-     "review_reason": "The synopsis states the restriction varies by buoyed/signed location and gives no single speed value or bindable reach; this item has no bindable boundaries besides op:whole."
+     "review_reason": "UNBOUND, never widened: the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn."
     }
    ]
   },
@@ -6293,7 +6263,6 @@
        "item_id": "wbk:329459155"
       }
      ],
-     "extent_text": "Garnet Lake",
      "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried."
     }
    ]

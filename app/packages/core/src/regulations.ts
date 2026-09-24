@@ -14,14 +14,18 @@
  *     `rule`, `ruleset`, `section_ruleset` (a section names ONE interned set; sets list their
  *     (entry_id, rule_id, via) members). Licensing: `licence`, `designation`,
  *     `not_classified`, `requirement`, `licence_terms`, `exemption`, `alternative`,
- *     `licensing_set`, `section_licensing`. The dev fixture (`pnpm fixture`) creates these
- *     tables EMPTY; a fixture with regulation rows comes back with the integration.
+ *     `licensing_set`, `section_licensing`. `outside_bc` lists the sections B.C. does not
+ *     govern (past the border): they carry no set, and must read "outside B.C.", never "open
+ *     under the general rules". The dev fixture (`pnpm fixture`) creates these tables EMPTY; a
+ *     fixture with regulation rows comes back with the integration.
  *   · THE EXPORT — `data/generated/regs/ui-rules-export.json`, written by
  *     `pipeline/tools/export_ui_rules.py`. Its `guide` explains every field: rule types and
  *     families, the competition ladder, gear, `lengths`, `when`, species, retention, vessel,
  *     `exempts`, `standing`, `angler_closure`, licensing and placement (`via`: reach / trib /
- *     trib_pending / contested). It settles nothing — "no open/closed verdicts, no colours" —
- *     so every verdict this app shows will have to be derived, once, in core.
+ *     trib_pending / contested). Each water lists its `parts` — the (ruleset, licensing set)
+ *     pairs its sections carry together — and its `outside_bc` count. It settles nothing — "no
+ *     open/closed verdicts, no colours" — so every verdict this app shows will have to be
+ *     derived, once, in core.
  *
  * Rules the integration has to keep (settled with the user, see the licensing brief):
  * licensing never affects open/closed; the angler is always unknown, so answers are

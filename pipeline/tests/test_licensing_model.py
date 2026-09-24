@@ -744,3 +744,43 @@ def test_a_designation_label_reads_as_sentences(corpus):
     assert labels[(skeena, "skeena_river_section_4")] == (
         "Class II Classified Water, Jul 1-Dec 31 (licence unit: Skeena River Section 4). "
         "Steelhead Stamp required whatever you fish for, Jul 1-Dec 31.")
+
+
+# --------------------------------------------------------------------------- presumes
+
+def _duty(**kw):
+    base = {"id": "produce", "doing": {"act": "fishing"}, "conduct": ["produce_licence_on_request"],
+            "presumes": ["basic_licence"], "who": {"age": ["16_plus"]},
+            "verbatim": "When fishing, you must produce your angling licence and photo ID, on "
+                        "request of an officer."}
+    base.update(kw)
+    return Requirement(**base)
+
+
+def test_a_duty_about_a_licence_names_the_licence():
+    """"Produce your angling licence" bound an Indian resident of B.C., whom the book releases from
+    every licence: the duty named no document, so the exemption could not reach it."""
+    assert _duty().presumes
+    with pytest.raises(ValueError, match="duty about a document"):
+        _duty(presumes=[])
+
+
+def test_presumes_is_checked_against_its_own_sentence():
+    with pytest.raises(ValueError, match="does not name"):
+        _duty(presumes=["basic_licence", "steelhead_stamp"])
+
+
+def test_presumes_belongs_to_a_duty():
+    with pytest.raises(ValueError, match="presumes belongs to a conduct duty"):
+        _req(presumes=["basic_licence"])
+
+
+def test_the_corpus_s_licence_duties_presume_the_basic_licence():
+    got = {}
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
+            for x in e.licensing:
+                if isinstance(x, Requirement) and x.conduct:
+                    got[f"{e.entry_id}#{x.id}"] = [d.value for d in x.presumes]
+    assert got["zp:licence_administration#produce_licence"] == ["basic_licence"]
+    assert got["zp:licence_administration#carry_paper_licence"] == ["basic_licence"]

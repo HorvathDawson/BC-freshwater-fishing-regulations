@@ -375,10 +375,13 @@ def test_policy_version_is_bumped_when_classify_changes():
         "ambiguous_cut_is_fatal": classify.AMBIGUOUS_CUT_IS_FATAL,
         "partial_extents_bind": classify.PARTIAL_EXTENTS_BIND,
         "area_carve_outs_unbind": classify.AREA_CARVE_OUTS_UNBIND,
+        "feature_types_after_walk": classify.FEATURE_TYPES_AFTER_WALK,
+        "outside_bc_subtracted": classify.OUTSIDE_BC_SUBTRACTED,
     }
     expected = {"straddlers_included_for": [], "ambiguous_cut_is_fatal": False,
-                "partial_extents_bind": True, "area_carve_outs_unbind": True}
-    assert cache.POLICY_VERSION == "3", "update this pin with the version it was taken at"
+                "partial_extents_bind": True, "area_carve_outs_unbind": True,
+                "feature_types_after_walk": True, "outside_bc_subtracted": True}
+    assert cache.POLICY_VERSION == "4", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

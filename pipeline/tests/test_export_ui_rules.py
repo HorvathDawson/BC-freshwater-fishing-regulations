@@ -150,7 +150,118 @@ def test_membership_is_the_bundles(doc, db):
         assert sum(m["sections"] for m in doc[sets].values()) == \
             db.execute(f"SELECT COUNT(*) FROM {n_table}").fetchone()[0]
     for item, w in doc["waters"].items():
-        assert sum(w["rulesets"].values()) <= w["sections"], item
+        assert sum(p["sections"] for p in w["parts"]) == w["sections"], item
+
+
+# ---------------------------------------------------------------------------------------
+# A water's parts: the (ruleset, licensing set) pairs its sections carry TOGETHER
+# ---------------------------------------------------------------------------------------
+def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
+    """The Dean's eight (ruleset, licensing set) combinations used to read as five rule sets
+    beside four licensing sets; which Class I unit went with which closure was lost."""
+    want: dict = {}
+    for item, rs, ls, n in db.execute(
+            "SELECT i.item_id, r.set_id, l.set_id, COUNT(*) FROM item i "
+            "JOIN item_section s ON s.ord = i.ord "
+            "LEFT JOIN section_ruleset r ON r.sid = s.sid "
+            "LEFT JOIN section_licensing l ON l.sid = s.sid GROUP BY 1, 2, 3"):
+        want.setdefault(item, set()).add((None if rs is None else str(rs),
+                                          None if ls is None else str(ls), n))
+    for item, w in doc["waters"].items():
+        got = {(p["ruleset"], p["licensing_set"], p["sections"]) for p in w["parts"]}
+        assert got == want[item], item
+        pairs = [(p["ruleset"], p["licensing_set"]) for p in w["parts"]]
+        assert len(pairs) == len(set(pairs)), f"{item}: a pair appears twice"
+        assert "rulesets" not in w and "licensing_sets" not in w, "one encoding, not two"
+
+
+def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):
+    n = db.execute("SELECT COUNT(*) FROM section_licensing l LEFT JOIN section_ruleset r "
+                   "ON r.sid = l.sid JOIN item_section s ON s.sid = l.sid "
+                   "WHERE r.sid IS NULL").fetchone()[0]
+    got = sum(p["sections"] for w in doc["waters"].values() for p in w["parts"]
+              if p["ruleset"] is None and p["licensing_set"] is not None)
+    assert got == n
+
+
+# ---------------------------------------------------------------------------------------
+# Water outside B.C.
+# ---------------------------------------------------------------------------------------
+def test_water_outside_bc_is_counted_and_carries_no_set(doc, db):
+    want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
+                           "ON s.ord = i.ord JOIN outside_bc o ON o.sid = s.sid GROUP BY 1"))
+    assert want, "the bundle lists no section outside B.C."
+    for item, w in doc["waters"].items():
+        assert w["outside_bc"] == want.get(item, 0), item
+        free = sum(p["sections"] for p in w["parts"]
+                   if p["ruleset"] is None and p["licensing_set"] is None)
+        assert w["outside_bc"] <= free, f"{item}: a section outside B.C. carries a set"
+    assert db.execute("SELECT COUNT(*) FROM outside_bc o JOIN section_ruleset r "
+                      "ON r.sid = o.sid").fetchone()[0] == 0
+    assert doc["guide"]["placement"]["outside_bc"]
+
+
+# ---------------------------------------------------------------------------------------
+# Where a rule is: never the whole water beside a part in words; labels are not list items
+# ---------------------------------------------------------------------------------------
+def test_no_rule_binds_the_whole_water_beside_a_part_in_words(doc):
+    bad = [i for i, x in doc["rules"].items()
+           if x["fields"].get("extents") == [{"op": "whole"}] and x["fields"].get("extent_text")]
+    assert bad == []
+
+
+def test_no_label_starts_with_a_list_marker(doc):
+    import re
+    marker = re.compile(r"^\s*(\d{1,2}[.)]|\([a-z0-9ivx]{1,3}\)|[•–-]\s)")
+    bad = [i for i, x in {**doc["rules"], **doc["licensing"]}.items()
+           if marker.match(x["label"])]
+    assert bad == []
+
+
+def test_a_bound_rule_on_a_cut_point_names_its_place(doc):
+    """226 labels read exactly "No fishing" when a cut-point never reached the label."""
+    from pipeline.tools.export_ui_rules import _f
+    named = [x for x in doc["rules"].values() if not x["provenance"]["uncertain"]
+             and any(e.get("splits") for e in _f(x).get("extents") or [])]
+    assert named
+    bare = [x["id"] for x in named if " — " not in x["label"] and x["type"] not in (
+        "advisory", "hazard", "program_membership", "facility", "navigation_duty")
+            and not x["label"] == x["verbatim"]]
+    # a cut-point with no book name names no place (logged by the bundle build) — never many
+    assert len(bare) <= 40, bare[:20]
+
+
+# ---------------------------------------------------------------------------------------
+# The guide: `while` is two kinds of token; the methods reading rule; fly only is two laws
+# ---------------------------------------------------------------------------------------
+def test_the_while_groups_partition_the_validator_s_vocabulary(doc):
+    w = doc["guide"]["gear"]["while"]
+    means, devices = set(w["means_of_fishing"]["tokens"]), set(w["devices"]["tokens"])
+    assert means | devices == set(C.WHILE_TOKENS) and not (means & devices)
+    assert "downrigger" in devices and "angling" in means
+
+
+def test_the_province_allows_angling_and_ice_fishing(doc):
+    """The book grants both in its Allowable Fishing Methods; the corpus stored only their counts,
+    so a consumer read angling as a method no rule allows."""
+    m = doc["guide"]["gear"]["methods"]
+    assert {"angling", "ice_fishing", "spear_fishing", "crayfish_trapping"} <= \
+        set(m["allowed_by_the_province"])
+    assert "All other methods of taking fin fish and crayfish are illegal." in m["book"]["text"]
+
+
+def test_the_two_fly_only_laws_each_name_the_other(doc):
+    slots = doc["guide"]["gear"]["slots"]
+    assert slots["lure"]["definitions"]["differs_from"] == "method"
+    assert slots["method"]["definitions"]["differs_from"] == "lure"
+    assert "floats and sinkers may be attached" in slots["lure"]["definitions"]["book"]
+    assert "may not be attached" in slots["method"]["definitions"]["book"]
+
+
+def test_an_exemption_releases_the_duties_that_presume_its_documents(doc):
+    assert any("presumes" in line for line in doc["guide"]["licensing"]["rules_of_reading"])
+    assert doc["licensing"]["zp:licence_administration#produce_licence"]["fields"]["presumes"] \
+        == ["basic_licence"]
 
 
 def test_the_angler_closures_are_all_there(doc, db):
@@ -188,6 +299,12 @@ def test_the_reference_check_catches_a_dangling_id(doc):
     bad = dict(bad, rulesets=dict(doc["rulesets"],
                                   extra={"sections": 1, "reach": ["nowhere::x.r1"]}))
     assert X.dangling(bad) == ["ruleset extra -> nowhere::x.r1"]
+    # a water's part naming a set the file does not have
+    item = next(iter(doc["waters"]))
+    w = dict(doc["waters"][item], parts=[{"ruleset": "99999999", "licensing_set": None,
+                                          "sections": 1}])
+    bad = dict(bad, rulesets=doc["rulesets"], waters=dict(doc["waters"], **{item: w}))
+    assert X.dangling(bad) == [f"water {item} -> ruleset 99999999"]
 
 
 # ---------------------------------------------------------------------------------------
@@ -352,3 +469,36 @@ def test_a_bundle_without_the_exempts_column_is_refused(tmp_path):
     con.close()
     with pytest.raises(SystemExit, match="rule.exempts"):
         X.build(p)
+
+
+def test_no_two_rules_of_an_entry_share_a_label_unless_they_say_the_same(doc):
+    """Eighteen pairs of rules in one entry read the same "No fishing" over different water.
+    A shared label is allowed only where the label IS the printed sentence, or the two rules differ
+    only in which parent quota they count inside (`within`, `condition_of`)."""
+    from collections import defaultdict
+    by = defaultdict(list)
+    for x in doc["rules"].values():
+        by[(x["entry_id"], x["label"])].append(x)
+    ignore = {"within", "condition_of"}
+    bad = []
+    for (eid, lab), xs in by.items():
+        if len(xs) < 2 or all(x["label"] == x["verbatim"] for x in xs):
+            continue
+        shapes = {json.dumps({k: v for k, v in x["fields"].items() if k not in ignore},
+                             sort_keys=True) for x in xs}
+        if len(shapes) > 1:
+            bad.append((eid, lab, [x["rule_id"] for x in xs]))
+    assert bad == [], bad[:10]
+
+
+def test_a_lake_cut_into_parts_is_read_through_its_parts(doc):
+    """Kootenay Lake's own entry is the leftover of the cut (one section, no entry); the guide says
+    so and names every such whole, each with the parts that point at it."""
+    pl = doc["guide"]["placement"]
+    assert "part_of" in pl["part_of"]
+    wholes = pl["lakes_cut_into_parts"]
+    assert wholes
+    for whole in wholes:
+        assert whole in doc["waters"], whole
+        parts = [k for k, w in doc["waters"].items() if w.get("part_of") == whole]
+        assert len(parts) >= 2, (whole, parts)

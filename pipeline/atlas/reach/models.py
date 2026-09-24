@@ -43,6 +43,14 @@ class Reason(str, Enum):
     area_scope = "area_scope"                        # within(area)
     area_id_dangling = "area_id_dangling"            # area_id names nothing
 
+    # --- a limit removed everything ------------------------------------------
+    #: `within_area` or `feature_types` removed every section the reach (and its walk) found.
+    #: (`classify` named this member before it existed; the branch would have raised.)
+    no_sections = "no_sections"
+    #: Every section the rule selects lies OUTSIDE British Columbia — past the provincial border
+    #: (`out_of_bc`) or in no region polygon. B.C. regulations do not apply there.
+    outside_bc = "outside_bc"
+
     # --- deliberately deferred -------------------------------------------------
     tributaries_pending = "tributaries_pending"      # direct part bound; no expander supplied
     no_tributaries = "no_tributaries"                # tributaries_only, but there are none

@@ -570,3 +570,146 @@ def test_angling_from_powered_boats_says_powered():
     with pytest.raises(ValueError, match="level belongs to"):
         CatalogueRule.model_validate({"rule_id": "x.r1", "type": "advisory", "verbatim": "x",
                                       "level": "unpowered"})
+
+
+# --------------------------------------------------------------------------- where a rule is
+
+_CLOSED = dict(type=RuleType.retention_limit, species=["ALL_GAME_FISH"], take=0, may_target=False)
+
+
+def test_a_bare_whole_beside_a_place_in_words_is_refused():
+    """"No Fishing in Salmon Arm Bay" was stored as `whole` with the bay in `extent_text`; the
+    builder reads only `whole`, so the closure bound all of Shuswap Lake. Seventeen part-lake rules
+    were in that shape. A part nothing can draw keeps its words and NO extents."""
+    with pytest.raises(ValueError, match="extent_text names a place"):
+        _r(**_CLOSED, extents=[{"op": "whole"}], extent_text="Salmon Arm Bay")
+    # the unbound shape is the right one
+    assert _r(**_CLOSED, extent_text="Salmon Arm Bay", review_reason="not drawn").extents is None
+
+
+def test_a_qualified_whole_keeps_its_description():
+    """Mutation guard on the refusal: a `whole` that names an item, an area or a kind IS a place,
+    and its `extent_text` only describes it ("lakes of the Fraser watershed")."""
+    for ex in ({"op": "whole", "item_id": "gnis:39325"},
+               {"op": "whole", "within_area": "area:region:5"},
+               {"op": "whole", "item_id": "gnis:2936", "feature_types": ["lake"]}):
+        assert _r(**_CLOSED, extents=[ex], extent_text="the watershed").extent_text
+
+
+def test_extent_text_is_a_place_not_a_list_item():
+    for bad in ("3. Within 23 m", "(b) Chimdemash Creek", "• the outlet"):
+        with pytest.raises(ValueError, match="list marker"):
+            _r(**_CLOSED, extent_text=bad, review_reason="x")
+    assert _r(**_CLOSED, extent_text="(map A) west of the signs", review_reason="x")
+
+
+def test_includes_tributaries_inside_a_rule_extent_is_refused():
+    """The builder reads the flag on the rule, never on an extent: nineteen watershed rules
+    ("Skeena River, including tributaries") bound the mainstem alone that way."""
+    with pytest.raises(ValueError, match="includes_tributaries"):
+        _r(**_CLOSED, extents=[{"op": "whole", "item_id": "gnis:2936",
+                                "includes_tributaries": True}])
+    assert _r(**_CLOSED, extents=[{"op": "whole", "item_id": "gnis:2936"}],
+              includes_tributaries=True).includes_tributaries
+
+
+def test_feature_types_on_some_extents_and_not_others_is_refused():
+    """The builder applies one kind filter to the rule's whole reach, after the walk."""
+    with pytest.raises(ValueError, match="feature_types is set on some extents"):
+        _r(**_CLOSED, extents=[{"op": "whole", "item_id": "a", "feature_types": ["lake"]},
+                               {"op": "whole", "item_id": "b"}])
+
+
+# --------------------------------------------------------------------------- the label's place
+
+_LIST_MARKER = r"^\s*(\d{1,2}[.)]|\([a-z0-9ivx]{1,3}\)|[•–-]\s)"
+
+
+def test_a_label_names_the_place_its_extents_draw():
+    """226 labels read exactly "No fishing": a split or an area never reached the label."""
+    r = _r(**_CLOSED, extents=[{"op": "upstream_of", "splits": ["x__falls"]}])
+    assert label(r) == "No fishing"
+    assert label(r, place_of=lambda ex: "upstream of the falls") == \
+        "No fishing — upstream of the falls"
+
+
+def test_the_book_s_words_win_for_a_whole_it_describes():
+    """"lakes of the Fraser watershed" says it better than an item name."""
+    r = _r(**_CLOSED, extents=[{"op": "whole", "item_id": "gnis:39325", "feature_types": ["lake"]}],
+           extent_text="lakes of the Fraser watershed")
+    assert label(r, place_of=lambda ex: "Fraser River") == \
+        "No fishing — lakes of the Fraser watershed"
+
+
+def test_the_book_s_words_win_over_a_drawn_cut_point():
+    """Kokish r2 read "between log boom (90 m upstream) and signs at the tail of the canyon pool
+    (300 m downstream)" — the curator's offsets, where the book prints "approximately 100 m" and
+    "250 m". A rule that carries the page's phrase is named by it; the atlas names only fill in a
+    rule that has none."""
+    r = _r(**_CLOSED, extents=[{"op": "between", "splits": ["a", "b"]}],
+           extent_text="from the log boom upstream of the IPP intake to signs at the tail of the "
+                       "canyon pool")
+    said = label(r, place_of=lambda ex: "between log boom (90 m upstream) and signs (300 m down)")
+    assert said == ("No fishing — from the log boom upstream of the IPP intake to signs at the "
+                    "tail of the canyon pool")
+
+
+def test_a_place_the_namer_cannot_name_falls_back_to_the_words():
+    r = _r(**_CLOSED, extents=[{"op": "between", "splits": ["a", "b"]}],
+           extent_text="from the CNR Bridge to the CNR Bridge")
+    assert label(r, place_of=lambda ex: None) == "No fishing — from the CNR Bridge to the CNR Bridge"
+
+
+def test_a_label_never_starts_with_a_list_marker():
+    """The verbatim keeps the book's numbering ("3. Within 23 m …"); a generated label is not a
+    list item, and neither is its place. Pinned over every rule in the corpus."""
+    import json
+    import re
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.parsing.catalogue import CatalogueFile
+    bad = []
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
+            sib = {r.rule_id: r for r in e.rules}
+            for r in e.rules:
+                if re.match(_LIST_MARKER, label(r, sib)):
+                    bad.append(f"{e.entry_id}::{r.rule_id}")
+    assert not bad, bad[:10]
+    # mutation: a label built from a marked place would start with one — the check can fail
+    assert re.match(_LIST_MARKER, "3. Within 23 m")
+
+
+def test_a_place_in_words_loses_its_list_marker_in_the_label():
+    from pipeline.regs.parsing.catalogue import strip_list_marker
+    assert strip_list_marker("(b) Chimdemash Creek") == "Chimdemash Creek"
+    assert strip_list_marker("4. Within a 100 m radius") == "Within a 100 m radius"
+    assert strip_list_marker("(map A) west") == "(map A) west"
+
+
+def test_no_verbatim_is_cut_at_an_abbreviation():
+    """"… rearing fish (e." and "… is attached (i." were cut by a sentence splitter at "e.g." and
+    "i.e."; a verbatim must be the book's whole sentence."""
+    import json
+    import re
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.parsing.catalogue import CatalogueFile
+    cut = re.compile(r"(\((e|i)\.|\b(e\.g|i\.e)\.)\s*$")
+    bad = []
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
+            for r in e.rules:
+                if cut.search(r.verbatim):
+                    bad.append(f"{e.entry_id}::{r.rule_id}")
+            for x in e.licensing:
+                if cut.search(x.verbatim):
+                    bad.append(f"{e.entry_id}#{x.id}")
+    assert not bad, bad
+    assert cut.search("operated for counting, passing or rearing fish (e.")
+
+
+def test_no_verbatim_carries_a_known_extraction_garble():
+    """The extractor interleaved a wrapped line into "Folpye fnishing" (Fly fishing + open)."""
+    import json
+    from pipeline.common.curated import CURATED
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        assert "Folpye" not in p.read_text(), p.name

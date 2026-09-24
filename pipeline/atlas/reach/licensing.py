@@ -20,7 +20,9 @@ EVERY PLACED RECORD ENDS IN EXACTLY ONE PLACEMENT, and none of them is "absent":
                   ships with NO section rows — writing a row per section of B.C. for "you need
                   a basic licence" would be most of the bundle saying one sentence
   on_designation  a requirement with no extents of its own and an `on` key: it holds wherever a
-                  designation is in force, which the reader decides per date
+                  designation is in force, which the reader decides per date. One with extents
+                  AND `on` is placed on `sections`, narrowed to where a designation that can
+                  satisfy `on` is placed (`on_designations`) — the Dean's "classified portions"
   unresolved      could not be placed; carries the reach builder's typed reason. The bundle
                   marks the record `uncertain` — for licensing the unsafe direction is
                   UNDER-requiring, so an unplaced requirement must read "check", never "none"
@@ -116,6 +118,64 @@ def place_record(entry: dict, rec: dict, reach) -> tuple[LicensingPlacement, lis
         eid, rid, kind, "sections", sections=binding.sections,
         via_tributary=binding.via_tributary,
         tributaries_pending=binding.tributaries_pending), diags
+
+
+#: Why a requirement with a place and an `on` holds nowhere. The bundle refuses a build that has one.
+NO_DESIGNATION = "no_designation"
+
+
+def on_designations(placements: list[LicensingPlacement], records: dict, designations: dict
+                    ) -> tuple[list[LicensingPlacement], list[Diagnostic]]:
+    """A requirement with BOTH `extents` and `on` holds where both do: on its sections, where a
+    designation that can satisfy `on` is placed.
+
+    "All anglers are required to buy a Classified Waters Licence to fish the classified portions of
+    the Dean River" is the case. `place_record` put it on all 76 Dean sections, and on the 40 of
+    them no designation ever covers it could never fire — a requirement shown where it cannot hold.
+    Dropping `extents` would be wrong the other way: as `on_designation` it would show a Dean-worded
+    restatement on every classified water in the province. The meaning is the intersection.
+
+    Which designation satisfies `on`: any, for `classified_period`; one with a
+    `steelhead_stamp_during`, for `steelhead_period`. A requirement whose intersection is empty is
+    UNRESOLVED (`NO_DESIGNATION`) — it names a place no designation reaches, which is a curation
+    defect — and the bundle refuses to build with one. Every narrowing is a diagnostic.
+
+    `records` maps `(entry_id, id)` to the raw licensing record; `designations` to the validated
+    `Designation`."""
+    holds: dict[str, set[str]] = {"classified_period": set(), "steelhead_period": set()}
+    for p in placements:
+        if p.kind != "designation" or p.placement != "sections":
+            continue
+        d = designations.get((p.entry_id, p.record_id))
+        holds["classified_period"].update(p.sections)
+        if d is not None and d.steelhead_stamp_during is not None:
+            holds["steelhead_period"].update(p.sections)
+    out: list[LicensingPlacement] = []
+    diags: list[Diagnostic] = []
+    for p in placements:
+        rec = records.get((p.entry_id, p.record_id)) or {}
+        on = rec.get("on")
+        if p.kind != "requirement" or not on or rec.get("extents") is None \
+                or p.placement != "sections":
+            out.append(p)
+            continue
+        keep = tuple(s for s in p.sections if s in holds[on])
+        if not keep:
+            diags.append(Diagnostic(p.entry_id, p.record_id, NO_DESIGNATION, {
+                "on": on, "sections": len(p.sections)}))
+            out.append(LicensingPlacement(
+                p.entry_id, p.record_id, p.kind, "unresolved", reason=NO_DESIGNATION,
+                detail=f"its {len(p.sections)} sections carry no designation that satisfies "
+                       f"`on: {on}`", tributaries_pending=p.tributaries_pending))
+            continue
+        if len(keep) != len(p.sections):
+            diags.append(Diagnostic(p.entry_id, p.record_id, "on_narrowed", {
+                "on": on, "before": len(p.sections), "after": len(keep)}))
+        out.append(LicensingPlacement(
+            p.entry_id, p.record_id, p.kind, p.placement, sections=keep,
+            via_tributary=tuple(s for s in p.via_tributary if s in set(keep)),
+            tributaries_pending=p.tributaries_pending, reason=p.reason, detail=p.detail))
+    return out, diags
 
 
 def _year(when) -> frozenset[int] | None:

@@ -91,14 +91,35 @@ def test_a_device_is_not_a_way_of_fishing():
     assert "light" not in {m.value for m in Method}
 
 
-def test_a_circumstance_must_name_a_means_or_a_spec_slot():
-    """`while` draws from method members AND spec-slot names, because a spec slot's name IS a
-    means token. That is what lets `while: ["downrigger"]` have a referent without the device
-    being a way of fishing."""
+def test_a_circumstance_must_name_a_means_or_a_device():
+    """`while` draws from the means (`Method` members) and two devices (`downrigger`, `light`).
+    That is what lets `while: ["downrigger"]` have a referent without the device being a way of
+    fishing."""
     assert CatalogueRule(rule_id="a", **_METHOD_RULE, **{"while": ["downrigger"]}).while_
     assert CatalogueRule(rule_id="b", **_METHOD_RULE, **{"while": ["set_lining"]}).while_
-    with pytest.raises(ValueError, match="not a means of fishing"):
+    with pytest.raises(ValueError, match="neither a means of fishing"):
         CatalogueRule(rule_id="c", **_METHOD_RULE, **{"while": ["trolling"]})
+
+
+@pytest.mark.parametrize("token", ["alone_in_a_boat", "ice_hut"])
+def test_what_is_not_a_means_or_a_device_is_refused(token):
+    """`alone_in_a_boat` was accepted by a literal inside the validator and duplicated
+    `GearWhen.angler`; `ice_hut` was accepted because it is a spec slot, but an ice hut is not
+    something you DO (its slot binds `while: ["ice_fishing"]`). Both are refused."""
+    with pytest.raises(ValueError, match="neither a means of fishing"):
+        CatalogueRule(rule_id="c", **_METHOD_RULE, **{"while": [token]})
+
+
+def test_the_while_vocabulary_is_means_and_devices_and_nothing_else():
+    """The two named groups partition the vocabulary the validator checks: a token in neither is
+    refused, and no token is both. Mutation: a device slipped into `Method` shows up in both."""
+    from pipeline.regs.parsing import catalogue as C
+    assert C.WHILE_TOKENS == C.WHILE_MEANS | C.WHILE_DEVICES
+    assert not (C.WHILE_MEANS & C.WHILE_DEVICES)
+    assert C.WHILE_MEANS == {m.value for m in Method}
+    assert C.WHILE_DEVICES == {"downrigger", "light"}
+    for t in sorted(C.WHILE_TOKENS):
+        assert CatalogueRule(rule_id="t", **_METHOD_RULE, **{"while": [t]}).while_ == [t]
 
 
 def test_an_exemption_must_say_when_it_lifts():

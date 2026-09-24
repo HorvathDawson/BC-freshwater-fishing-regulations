@@ -50,7 +50,8 @@ OUT = GENERATED.base / "regs" / "ui-rules-export.json"
 #: `rule.unresolved` is why a rule could not be placed, and `rule.exempts` is what a rule lifts,
 #: resolved to the entry each lift reaches — it left `conditions` for a column of its own, so a
 #: bundle without the column is one whose lifts this export would silently drop.
-REQUIRED_COLUMNS = {"entry": ("matched",), "rule": ("unresolved", "exempts")}
+REQUIRED_COLUMNS = {"entry": ("matched",), "rule": ("unresolved", "exempts"),
+                    "item": ("part_of",), "outside_bc": ("sid",)}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -84,7 +85,8 @@ def _need(db: sqlite3.Connection) -> None:
             f"export_ui_rules: the bundle has no {', '.join(missing)}. Rebuild it with a "
             f"`pipeline/deliver/bundle/rules.py` that writes `entry.matched` (every matched "
             f"item, JSON), `rule.unresolved` (the reach run's 'reason: detail', NULL when "
-            f"bound) and `rule.exempts` (each lift resolved to its entry, JSON).")
+            f"bound), `rule.exempts` (each lift resolved to its entry, JSON), `item.part_of` "
+            f"and the `outside_bc` table (the sections B.C. does not govern).")
 
 
 # --------------------------------------------------------------------------------------------
@@ -266,18 +268,36 @@ def read(bundle: Path) -> dict:
         for it in e["matched"]:
             by_item[it].append(eid)
     waters = {}
-    for item_id, name, kind, n in db.execute(
-            "SELECT i.item_id, i.name, i.kind, COUNT(*) FROM item i "
+    for item_id, name, kind, part_of, n in db.execute(
+            "SELECT i.item_id, i.name, i.kind, i.part_of, COUNT(*) FROM item i "
             "JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
         waters[item_id] = {"name": name, "kind": kind, "sections": n,
                            "entries": sorted(by_item.get(item_id, [])),
-                           "rulesets": {}, "licensing_sets": {}}
-    for table, key in (("section_ruleset", "rulesets"), ("section_licensing", "licensing_sets")):
-        for item_id, sid, n in db.execute(
-                f"SELECT i.item_id, t.set_id, COUNT(*) FROM item i "
-                f"JOIN item_section s ON s.ord = i.ord JOIN {table} t ON t.sid = s.sid "
-                f"GROUP BY i.item_id, t.set_id ORDER BY i.item_id, t.set_id"):
-            waters[item_id][key][str(sid)] = n
+                           "parts": [], "outside_bc": 0}
+        if part_of:
+            waters[item_id]["part_of"] = part_of
+    # ONE LIST PER WATER: which rule set and which licensing set its sections carry TOGETHER.
+    # This was two per-water histograms — rule sets, licensing sets — and the pairing on each
+    # section, which the bundle holds, was lost: the Dean's eight (ruleset, licensing set)
+    # combinations read as five rule sets beside four licensing sets, and nothing said which Class
+    # I unit went with which closure. A section with no set on one side is `null` there.
+    for item_id, rs, ls, n in db.execute(
+            "SELECT i.item_id, r.set_id, l.set_id, COUNT(*) FROM item i "
+            "JOIN item_section s ON s.ord = i.ord "
+            "LEFT JOIN section_ruleset r ON r.sid = s.sid "
+            "LEFT JOIN section_licensing l ON l.sid = s.sid "
+            "GROUP BY i.item_id, r.set_id, l.set_id "
+            "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id"):
+        waters[item_id]["parts"].append({
+            "ruleset": None if rs is None else str(rs),
+            "licensing_set": None if ls is None else str(ls), "sections": n})
+    # WATER B.C. DOES NOT GOVERN — the sections of each water that lie outside the province. They
+    # carry no set (the build refuses one that does), so they are among the parts with
+    # `ruleset: null`; this count says why they have none.
+    for item_id, n in db.execute(
+            "SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord "
+            "JOIN outside_bc o ON o.sid = s.sid GROUP BY i.item_id"):
+        waters[item_id]["outside_bc"] = n
 
     sections = {
         "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
@@ -286,6 +306,7 @@ def read(bundle: Path) -> dict:
         "with_a_ruleset": db.execute("SELECT COUNT(*) FROM section_ruleset").fetchone()[0],
         "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
         "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
+        "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
     }
     db.close()
     return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
@@ -347,8 +368,11 @@ FAMILY_TEXT = {
 
 SLOT_TEXT = {
     "bait": "what is on the hook: any_bait, fin_fish, roe, invertebrate, dead_fin_fish, …",
-    "lure": "the terminal object: artificial_fly, artificial_lure",
-    "method": "how you fish: fly_fishing, ice_fishing, set_lining, spear_fishing, …",
+    "lure": "the terminal object: artificial_fly, artificial_lure. `only: [artificial_fly]` is "
+            "'artificial fly only' — NOT the same law as fly fishing only (see `definitions`)",
+    "method": "how you fish: angling, fly_fishing, ice_fishing, set_lining, spear_fishing, … "
+              "`only: [fly_fishing]` is 'fly fishing only' — NOT the same law as artificial fly "
+              "only (see `definitions`)",
     "barb": "barbed | barbless — a barbless-hook rule is `only: [barbless]`",
     "set_lining": "how a set line must be built or marked",
     "crayfish_trapping": "how a crayfish trap must be built",
@@ -364,6 +388,28 @@ SLOT_TEXT = {
     "weight_per_line_kg": "weight on one line, in kilograms",
     "bait_possession_kg": "bait you may possess, in kilograms",
     "light_to_hook_mm": "distance from a light to the hook, in millimetres",
+}
+
+#: The book's two fly-only laws, verbatim from its Definitions page, and how each is encoded. They
+#: are DIFFERENT laws — a float or a sinker is lawful under one and not the other — and the corpus
+#: encodes each where the book prints it; a reader must never merge them.
+FLY_DEFINITIONS = {
+    "lure": {
+        "encoded_as": "{slot: lure, only: [artificial_fly]}",
+        "book": "artificial fly: … Where gear is restricted to artificial flies, floats and "
+                "sinkers may be attached to the line.",
+        "means": "only artificial flies as the terminal object; floats and sinkers are allowed",
+        "differs_from": "method",
+    },
+    "method": {
+        "encoded_as": "{slot: method, only: [fly_fishing]}",
+        "book": "fly fishing: angling with a line to which only an artificial fly is attached "
+                "(floats, sinkers, or attracting devices may not be attached to the line when "
+                "fishing is restricted to \"fly fishing only\").",
+        "means": "fly fishing only: nothing but the fly on the line — no float, sinker or "
+                 "attracting device",
+        "differs_from": "lure",
+    },
 }
 
 CLAUSE_TEXT = {
@@ -499,7 +545,9 @@ LICENSING_KIND_TEXT = {
     "licence_terms": "How a document is SOLD — per day or per licence year, day limits, "
                      "draws, fees. Never placed: attach it to the obligation whose document, "
                      "who, unit and class it names.",
-    "exemption": "Anglers in `who` are released from `documents`. Never placed.",
+    "exemption": "Anglers in `who` are released from `documents` AND from every duty whose "
+                 "`presumes` are all among them ('produce your angling licence' means nothing to "
+                 "an angler who need not hold one). Never placed.",
     "alternative": "A place where another document ALSO satisfies a requirement "
                    "(`alternative_to`). It only ever adds a path.",
 }
@@ -542,6 +590,9 @@ LICENSING_FIELD_TEXT = {
     "needs": "what a buyer must supply (angling_guide_number)",
     "fee_cad": "the fee in dollars",
     "documents": "the documents released",
+    "presumes": "a conduct duty ABOUT these documents ('produce your angling licence'): it binds "
+                "only an angler who must hold them, so an exemption releasing all of them "
+                "releases the duty too",
     "alternative_to": "{entry_id, id}: the requirement this adds a path to",
 }
 
@@ -787,6 +838,7 @@ def guide(d: dict) -> dict:
                       "measured": "max / min in the unit in the slot's name",
                       "spec": "must_be and/or requires"}[kind],
             "means": SLOT_TEXT.get(s.value),
+            **({"definitions": FLY_DEFINITIONS[s.value]} if s.value in FLY_DEFINITIONS else {}),
             "rules": len(set(slot_use[s.value])),
             "members_seen": sorted(members[s.value]),
             "examples": pick(lambda x, s=s.value: any(c["slot"] == s for c in _gear(x)),
@@ -802,7 +854,10 @@ def guide(d: dict) -> dict:
                                      "conduct", n=1)
                                 + lpick(lambda x, a=a: a in (x["fields"].get("conduct") or []),
                                         "conduct", n=1))}
-    whiles = sorted({m.value for m in C.Method} | {s.value for s in C._SPEC_SLOTS})
+    methods_page = sorted((d["entries"].get("zp:allowable_methods") or {}).get("pages") or [])
+    allowed = sorted({m for x in rules.values() if x["entry_id"].startswith("zp:")
+                      for c in _gear(x) if c.get("slot") == "method"
+                      for m in (c.get("allow") or []) if not _f(x).get("while")})
     same_slot = lambda x: len([c["slot"] for c in _gear(x)]) > len({c["slot"] for c in _gear(x)})
     gear = {
         "reading": "`gear` is an ORDERED list of clauses. Clauses on DIFFERENT slots are "
@@ -825,9 +880,35 @@ def guide(d: dict) -> dict:
             "means": "The rule binds only WHILE the angler is doing one of these. A `take: 0` "
                      "on every game fish `while: [spear_fishing]` says which fish you may "
                      "spear; it does not close the water. Absent = whatever you are doing.",
-            "tokens": whiles,
+            "means_of_fishing": {
+                "tokens": sorted(C.WHILE_MEANS),
+                "reading": "A WAY OF FISHING. The rule binds while you fish this way.",
+            },
+            "devices": {
+                "tokens": sorted(C.WHILE_DEVICES),
+                "reading": "A DEVICE, used while angling. The rule binds while you use it. It is "
+                           "NOT a way of fishing, and nothing grants or bans it as one: a "
+                           "downrigger or a light never appears in a `method` slot.",
+            },
             "examples": pick(lambda x: bool(_f(x).get("while")), "while", "species", "take",
                              "gear"),
+        },
+        "methods": {
+            "reading": "The ways you may sport fish are those the PROVINCE allows — an `allow` "
+                       "on the `method` slot in a `zp:` rule with no `while` — narrowed here by "
+                       "`only` and `ban`. A way of fishing no rule allows is NOT a lawful way to "
+                       "sport fish anywhere: render an unmentioned method as not permitted, "
+                       "never as 'no rule bans it here'. 'Sport fishing' is defined as angling, "
+                       "spear fishing, set lining and crayfish trapping.",
+            "book": {"text": "Your basic fishing licence entitles you to: angle …; angle with a "
+                             "downrigger …; ice fish …; fish with a set line …; fish with a "
+                             "spear or an arrow …; trap crayfish …. All other methods of taking "
+                             "fin fish and crayfish are illegal.",
+                     "where": "the synopsis's 'Allowable Fishing Methods' list",
+                     "pages": methods_page},
+            "allowed_by_the_province": allowed,
+            "examples": pick(lambda x: x["entry_id"].startswith("zp:") and any(
+                c.get("slot") == "method" and c.get("allow") for c in _gear(x)), "gear", n=3),
         },
         "conduct": {
             "means": "Acts you must do or must not do, as tokens named in the lawful direction "
@@ -1030,8 +1111,14 @@ def guide(d: dict) -> dict:
             "you are a non-resident …'); there is no default angler.",
             "A requirement is met by ANY ONE of its paths; a `hold` path needs ALL of its "
             "documents.",
-            "An `exemption` removes documents for the anglers it names; an `alternative` only "
-            "ever adds a path.",
+            "An `exemption` removes documents for the anglers it names, AND every duty whose "
+            "`presumes` are all among those documents. The angler is unknown, so render such a "
+            "duty conditionally ('unless you are an Indian resident of B.C.'), never drop it. An "
+            "`alternative` only ever adds a path.",
+            "A record with `restates` is the row's own words for a record stated elsewhere (a "
+            "provincial one); read its `who` and `satisfied_by` as that record's — the Dean's "
+            "'All anglers are required to buy a Classified Waters Licence' is 16 and over because "
+            "the provincial requirement it restates is.",
             "A designation obliges nothing on its own; requirements with `on` fire where it is "
             "in force, and the classified-water steelhead stamp runs during "
             "`steelhead_stamp_during`, unless `steelhead_stamp_waived`.",
@@ -1084,10 +1171,28 @@ def guide(d: dict) -> dict:
         "reading": "Where a record applies is exported the way the bundle interns it. Many "
                    "sections carry the same set of records, so each SET is listed once "
                    "(`rulesets`, `licensing_sets`: its members grouped by `via`, and how many "
-                   "sections carry it), and each named water lists the sets its sections carry "
-                   "and on how many sections (`waters`). Set ids are local to this file and "
-                   "change with every build; never store one. Section handles never leave the "
-                   "bundle.",
+                   "sections carry it). Each named water lists its `parts`: every (ruleset, "
+                   "licensing_set) pair its sections carry TOGETHER, and on how many sections — "
+                   "so a licence area joins the rules on the same stretch. `null` on either side "
+                   "is a stretch with no set of that kind. The parts' sections sum to the "
+                   "water's `sections`. Set ids are local to this file and change with every "
+                   "build; never store one. Section handles never leave the bundle.",
+        "outside_bc": "A water's `outside_bc` counts its sections outside British Columbia — "
+                      "past the border, or in no region. No B.C. regulation applies there and "
+                      "the book does not govern them: they carry no set (the build refuses one "
+                      "that does), and must read 'outside B.C.', never 'open under the general "
+                      "rules'.",
+        "waters_with_sections_outside_bc": sum(1 for w in d["waters"].values()
+                                               if w.get("outside_bc")),
+        "part_of": "A lake the atlas cuts into parts (Kootenay Lake's Main Body and West Arms, "
+                   "Williston Lake's arms and zones, Shannon Lake's netted-off portion) lists each "
+                   "part as its own water, with `part_of` naming the whole. No record may name "
+                   "the whole (the reach refuses it), so the whole's own entry here carries only "
+                   "what reaches it by area or province-wide: it is a leftover of the cut, not a "
+                   "stretch an angler fishes apart from its parts. Show a whole through its "
+                   "parts — the waters whose `part_of` is its id — never through its own `parts`.",
+        "lakes_cut_into_parts": sorted({w["part_of"] for w in d["waters"].values()
+                                        if w.get("part_of")}),
         "via": {k: VIA_TEXT[k] for k in VIA_TEXT},
         "via_counts": {"rulesets": dict(sorted(rvia.items())),
                        "licensing_sets": dict(sorted(lvia.items()))},
@@ -1120,7 +1225,7 @@ def guide(d: dict) -> dict:
         "standing": "rules everywhere at places nobody can draw",
         "angler_closure": "closures to one kind of angler",
         "licensing": "kinds, who, doing, paths, designations, and the rules of reading",
-        "placement": "sets, waters, via, placement, uncertain",
+        "placement": "sets, waters and their parts, outside B.C., via, placement, uncertain",
     }
     return {
         "contents": contents,
@@ -1131,7 +1236,9 @@ def guide(d: dict) -> dict:
                 "entries": "every synopsis row; lists its rule and licensing ids",
                 "licences": "the document register",
                 "rulesets / licensing_sets": "the interned sets of records that sections carry",
-                "waters": "every named water (by durable item_id) and the sets on it",
+                "waters": "every named water (by durable item_id): its `parts` (the (ruleset, "
+                          "licensing_set) pairs its sections carry together), its `outside_bc` "
+                          "count, and `part_of` for a lake part",
                 "species": "every fish, and the groups the book writes",
                 "field_dictionary": "every field in the file, and what it means",
                 "index": "ids grouped by type and kind",
@@ -1399,10 +1506,14 @@ def dangling(doc: dict) -> list[str]:
                     continue
                 out += [f"{name} {sid} -> {i}" for i in ids if i not in known]
     for item, w in doc["waters"].items():
-        out += [f"water {item} -> ruleset {s}" for s in w["rulesets"] if s not in doc["rulesets"]]
-        out += [f"water {item} -> licensing_set {s}" for s in w["licensing_sets"]
-                if s not in doc["licensing_sets"]]
+        for p in w["parts"]:
+            if p["ruleset"] is not None and p["ruleset"] not in doc["rulesets"]:
+                out.append(f"water {item} -> ruleset {p['ruleset']}")
+            if p["licensing_set"] is not None and p["licensing_set"] not in doc["licensing_sets"]:
+                out.append(f"water {item} -> licensing_set {p['licensing_set']}")
         out += [f"water {item} -> entry {e}" for e in w["entries"] if e not in E]
+        if w.get("part_of") and w["part_of"] not in doc["waters"]:
+            out.append(f"water {item} -> part_of {w['part_of']}")
     def examples(o):
         if isinstance(o, dict):
             if {"id", "label", "verbatim"} <= set(o):

@@ -355,6 +355,13 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
              "window": None, "waters": _waters(g, _limited(sec))}
         if limit_sections is not None:
             d["within_area"] = sorted(limit_sections)
+        # THE KINDS THE RULE'S REACH IS LIMITED TO, carried forward like `within_area` and for
+        # the same reason: "lakes of the Fraser watershed" is a filter on what the tributary walk
+        # finds, so `classify` applies it after the walk. (On `within` the area's members were
+        # already filtered below; applying it again after a walk is what keeps a walk from one
+        # lake from adding every stream above it.)
+        if ex.get("feature_types"):
+            d["feature_types"] = sorted({str(t).lower() for t in ex["feature_types"]})
         d.update(extra)
         return d
 

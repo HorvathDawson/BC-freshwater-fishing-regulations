@@ -11,9 +11,8 @@ Three things the model does not carry and this module has to say where they come
   * gear member tokens (`bait: ban [any_bait]`) are OPEN strings in the model. The editor offers
     the tokens the corpus already uses as suggestions, labelled as such; any token may be typed.
   * `area_kind` is an open string on an extent too; same treatment.
-  * `while` accepts `alone_in_a_boat` beside the Method and spec-slot tokens — that literal
-    lives inside `CatalogueRule._circumstances_are_real`, not in an enum, so it is probed from
-    the validator rather than copied (see `_while_tokens`).
+  * `while` is `catalogue.WHILE_TOKENS` — the means (`Method` members) and the two devices
+    (`downrigger`, `light`) — read off the model's own named constants (see `_while_tokens`).
 """
 
 from __future__ import annotations
@@ -76,18 +75,11 @@ def _slot_shape(s: C.Slot) -> str:
 
 
 def _while_tokens() -> list[str]:
-    """Every token `CatalogueRule.while` accepts: Method members, spec-slot names, and whatever
-    else the validator lets through. The extra is found by PROBING the validator with the tokens
-    the corpus and the model mention, so a token the validator stops accepting drops out here."""
-    known = [m.value for m in C.Method] + [s.value for s in C._SPEC_SLOTS]
-    probe = ["alone_in_a_boat"] + [a.value for a in C.AnglerState]
-    for tok in probe:
-        try:
-            C.CatalogueRule(rule_id="x.r1", type="advisory", verbatim="x", **{"while": [tok]})
-            known.append(tok)
-        except ValidationError:
-            pass
-    return sorted(dict.fromkeys(known))
+    """Every token `CatalogueRule.while` accepts — `catalogue.WHILE_TOKENS`, the named constant
+    the validator itself checks against. (This used to PROBE the validator, because one token,
+    `alone_in_a_boat`, was a literal known only inside it; that token is gone and the vocabulary
+    is a constant: means, `WHILE_MEANS`, and devices, `WHILE_DEVICES`.)"""
+    return sorted(C.WHILE_TOKENS)
 
 
 def _corpus_tokens(entries: list[dict]) -> dict:
@@ -130,6 +122,8 @@ def vocab(entries: list[dict]) -> dict:
         "slots": [{"slot": s.value, "shape": _slot_shape(s)} for s in C.Slot],
         "methods": [m.value for m in C.Method],
         "while": _while_tokens(),
+        "while_means": sorted(C.WHILE_MEANS),
+        "while_devices": sorted(C.WHILE_DEVICES),
         "conduct": [{"act": k, "words": v} for k, v in C.CONDUCT_ACTS.items()],
         "documents": [{"doc": d.value, "words": C._DOC_WORDS.get(d.value, d.value),
                        "provincial": d.value in C.PROVINCIAL_ANGLER_DOCUMENTS}
@@ -266,9 +260,12 @@ def strip_served(entry: dict) -> dict:
     return data
 
 
-def labels(entry: dict, entries_dir: Path) -> dict:
+def labels(entry: dict, entries_dir: Path, namer=None) -> dict:
     """The generated label of every rule and record that validates ON ITS OWN, and None for one
-    that does not — so a curator sees the other rules' labels while fixing one."""
+    that does not — so a curator sees the other rules' labels while fixing one.
+
+    `namer` is the bundle's own `place_names.PlaceNamer` over the build the app serves, so a rule
+    bound by a cut-point or an area names its place here exactly as the bundle's label does."""
     rules: list = []
     for r in entry.get("rules") or []:
         try:
@@ -278,9 +275,10 @@ def labels(entry: dict, entries_dir: Path) -> dict:
     siblings = {r.rule_id: r for r in rules if r is not None}
     units, refs = corpus_context(entries_dir)
     eid = entry.get("entry_id")
+    place_of = namer.for_entry(entry.get("matched") or []) if namer is not None else None
     out_rules = []
     for r in rules:
-        out_rules.append(C.label(r, siblings) if r is not None else None)
+        out_rules.append(C.label(r, siblings, place_of) if r is not None else None)
     recs = []
     for x in entry.get("licensing") or []:
         try:
@@ -307,8 +305,10 @@ def labels(entry: dict, entries_dir: Path) -> dict:
 
 def warnings_of(entry: dict) -> list[dict]:
     """Extent shapes the model stores as plain dicts, checked against `entry_models.Extent` — the
-    shape the resolver reads. REPORTED, NOT REFUSED: `CatalogueEntry` does not refuse them, and
-    seven rules in the corpus carry `feature_types` beside a non-`within` op today."""
+    shape the resolver reads. REPORTED, NOT REFUSED: `CatalogueEntry` stores extents as dicts and
+    refuses only what it checks itself (a bare `whole` beside `extent_text`, an extent-level
+    `includes_tributaries`, `feature_types` on some extents and not others). `feature_types` on a
+    non-`within` op is valid now — the builder applies it after the walk."""
     out: list[dict] = []
     known = set(Extent.model_fields)
 
@@ -339,13 +339,46 @@ def warnings_of(entry: dict) -> list[dict]:
 
 
 def check(entry: dict) -> tuple[C.CatalogueEntry | None, list[dict]]:
-    """Validate a draft through `CatalogueEntry`. Returns the model or the addressed errors."""
+    """Validate a draft through THE INGEST GATE: `CatalogueEntry`, and then what ingest checks
+    beyond the model (`validate_catalogue`) — every number in its own verbatim, a sub-limit inside
+    its parent, a lift inside what it lifts, no lake that is cut into parts. Returns the model (or
+    None) and the addressed errors; an entry with any error is not saved.
+
+    ONE GATE. The app used to run only the model, so a curator saved `take: 15` on a rule whose
+    sentence says 20 and the save went through; the next ingest would have refused the entry the
+    app had just accepted."""
+    from pipeline.regs.parsing import validate_catalogue as V
+    pre: list[dict] = []
+    if isinstance(entry, dict):
+        pre += [_err([], m) for m in V.exemptions_stay_inside_what_they_lift(entry)]
+        pre += [_err(_split_parent_path(entry, m), m) for m in V.split_parents_named(entry)]
     try:
-        return C.CatalogueEntry.model_validate(entry), []
+        got = C.CatalogueEntry.model_validate(entry)
     except ValidationError as ex:
-        return None, errors_of(ex, entry)
+        return None, pre + errors_of(ex, entry)
     except (TypeError, ValueError) as ex:            # a draft that is not even an object
-        return None, [_err([], str(ex))]
+        return None, pre + [_err([], str(ex))]
+    post = [_err(path, msg) for path, msg in V.post_model_checks(got)]
+    return got, pre + post
+
+
+def _split_parent_path(entry: dict, msg: str) -> list:
+    """Address a split-parent refusal ("<entry>/<rule> …", "<entry>#<record> …", "<entry> matched:
+    …") to the rule, record or field it names."""
+    eid = str(entry.get("entry_id", ""))
+    if msg.startswith(f"{eid} matched:"):
+        return ["matched"]
+    if msg.startswith(f"{eid} extents:"):
+        return ["extents"]
+    for i, r in enumerate(entry.get("rules") or []):
+        if isinstance(r, dict) and msg.startswith((f"{eid}/{r.get('rule_id')}:",
+                                                   f"{eid}/{r.get('rule_id')} ")):
+            return ["rules", i]
+    for j, x in enumerate(entry.get("licensing") or []):
+        if isinstance(x, dict) and msg.startswith((f"{eid}#{x.get('id')}:",
+                                                   f"{eid}#{x.get('id')} ")):
+            return ["licensing", j]
+    return []
 
 
 def pass_through_changes(before: dict, after: dict) -> list[dict]:

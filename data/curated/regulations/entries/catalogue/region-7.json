@@ -192,7 +192,8 @@
                 "anzac_river__within_500_m_upstream"
               ]
             }
-          ]
+          ],
+          "extent_text": "within 500 m radius of the Upper Anzac bridge"
         },
         {
           "rule_id": "anzac_river.r2",
@@ -4928,11 +4929,13 @@
           "may_target": false,
           "extents": [
             {
-              "op": "whole"
+              "op": "downstream_of",
+              "splits": [
+                "kemess_creek__point_500_m_upstream_of_attichka_creek"
+              ]
             }
           ],
-          "extent_text": "from Attichka Creek to a point 500 m upstream",
-          "review_reason": "Kemess Creek's boundary menu has only the point 500 m upstream of Attichka Creek as a split; there is no cut-point for the Attichka Creek confluence itself, so this two-ended reach cannot be bound as `between`"
+          "extent_text": "from Attichka Creek to a point 500 m upstream"
         }
       ]
     },
@@ -6598,7 +6601,8 @@
                 "murray_river__signs_about_2000_m_downstream"
               ]
             }
-          ]
+          ],
+          "extent_text": "from Kinuseo Falls to signs about 2 km downstream"
         }
       ]
     },
@@ -6830,13 +6834,8 @@
           },
           "take": 0,
           "may_target": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
           "extent_text": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road",
-          "review_reason": "Nation Arm has no bindable cut-points, only op:whole; the sign-line ~500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road cannot be expressed as a split"
+          "review_reason": "UNBOUND, never widened: the area west of the sign line approximately 500 m downstream (east) of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson)."
         },
         {
           "rule_id": "nation_arm.r2",
@@ -6847,13 +6846,8 @@
           ],
           "take": 0,
           "may_target": true,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
           "extent_text": "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road",
-          "review_reason": "Nation Arm has no bindable cut-points, only op:whole; the sign-line ~500 m downstream of the Nation River Bridge on the Finlay Forest Service Road cannot be expressed as a split"
+          "review_reason": "UNBOUND, never widened: the area west of the sign line approximately 500 m downstream of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson)."
         }
       ]
     },
@@ -9132,11 +9126,13 @@
           "may_target": false,
           "extents": [
             {
-              "op": "whole"
+              "op": "downstream_of",
+              "splits": [
+                "thorn_creek__point"
+              ]
             }
           ],
-          "extent_text": "from Attichika Creek to a point 500 m upstream",
-          "review_reason": "Thorn Creek's boundary menu has only one point split; there is no cut-point for the Attichika Creek confluence, so this two-ended reach cannot be bound as `between`"
+          "extent_text": "from Attichika Creek to a point 500 m upstream"
         }
       ]
     },
@@ -9510,7 +9506,8 @@
                 "tupper_river__within_100_m_downstream"
               ]
             }
-          ]
+          ],
+          "extent_text": "within 100 m downstream of outlet weir at Swan Lake"
         },
         {
           "rule_id": "tupper_river.r2",

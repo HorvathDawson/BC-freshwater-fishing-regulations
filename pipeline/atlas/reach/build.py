@@ -21,10 +21,11 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.atlas.reach.outside import outside_bc, region_limit
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
-    own_beats_inherited, place_record,
+    on_designations, own_beats_inherited, place_record,
 )
 
 
@@ -62,21 +63,31 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     carved: dict[tuple[str, str], tuple[set[str], set[str]]] = {}
     designations: dict = {}
     report = BuildReport(build=build, handles=handles)
+    ents = sorted(iter_entries(entries), key=lambda x: x["entry_id"])
+    # A LAKE CUT INTO PARTS IS NOT A PLACE A RECORD MAY NAME. Refused here as well as at ingest
+    # (`validate_catalogue.split_parent_refs`): an entry edited in the review app or a registry
+    # rebuilt under the corpus must not bind the ghost of a lake whose water now belongs to its
+    # parts.
+    bad = split_parent_refs(ents, registry, graph)
+    if bad:
+        raise SystemExit("reach: records bind a lake that is cut into parts — name the part(s):\n  "
+                         + "\n  ".join(bad))
+    outside = outside_bc(registry, graph)
 
-    for e in sorted(iter_entries(entries), key=lambda x: x["entry_id"]):
+    for e in ents:
         report.n_entries += 1
         entry_id = e["entry_id"]
         covered = (covered_fn(e, registry) if covered_fn
                    else _covered_ids(e, registry))
 
-        clip, scope_failed = _scope_sections(e, covered, registry, graph)
+        clip, scope_failed = entry_scope(e, covered, registry, graph)
         if scope_failed:
             report.scope_unresolved.append(entry_id)
 
         for rule in e.get("rules") or []:
             report.n_rules += 1
             binding, diags = build_reach(e, rule, registry, graph,
-                                         covered=covered, clip=clip)
+                                         covered=covered, clip=clip, outside=outside)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -88,8 +99,10 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         for rec in e.get("licensing") or []:
             if rec.get("kind") not in PLACED_KINDS:
                 continue
+            # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
-                e, r, registry, graph, covered=covered, clip=clip))
+                e, r, registry, graph, covered=covered, clip=clip, outside=outside,
+                regional=False))
             placed, diags = place_record(e, rec, reach)
             licensing.append(placed)
             if rec.get("kind") == "designation":
@@ -124,6 +137,15 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     if orphans:
         report.licensing["designation:carve_out_orphans"] = sum(
             len(d.payload["orphans"]) for d in orphans)
+    # A REQUIREMENT WITH A PLACE AND AN `on` holds where both do: its sections, where a
+    # designation that can satisfy `on` is placed. Last, because it reads the final designations.
+    rec_of = {(e["entry_id"], x.get("id")): x for e in ents
+              for x in (e.get("licensing") or []) if isinstance(x, dict)}
+    licensing, narrowed = on_designations(licensing, rec_of, designations)
+    lic_diags.extend(narrowed)
+    for d in narrowed:
+        k = f"requirement:{d.kind}"
+        report.licensing[k] = report.licensing.get(k, 0) + 1
 
     for p in licensing:
         key = f"{p.kind}:{p.placement}"
@@ -154,7 +176,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
-                clip=None) -> tuple[RuleBinding, list[Diagnostic]]:
+                clip=None, outside=None,
+                regional: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
     One call, so no caller has to remember the order, or that tributaries need expanding.
@@ -164,33 +187,68 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
 
     The layers underneath stay separately testable — `extent.resolve_extent`,
     `tributaries.expand`, `classify.classify`. This only removes the chance to skip one.
+
+    Two limits apply to every binding, computed here when the caller does not pass them, so the
+    review app gets them by the same call (`pipeline.atlas.reach.outside`): water outside B.C.
+    is subtracted (`outside`), and a regional row's reach is held to its region(s) after the walk.
+
+    `regional=False` skips the region limit — for LICENSING (`build_reaches` places every licensing
+    record with it). A regional row's RULES are exceptions to that region's regulations and stop at
+    its line; a CLASSIFIED WATER is one water, designated whole ("Class II water, including
+    tributaries"), whichever region's table prints it. Held to the row's region, the Sustut's
+    Class I tributaries in Region 7A, the Horsefly's in Region 3 and the West Road's in 6 and 7A
+    lost their designation with no other row to give it back — and for licensing the unsafe
+    direction is requiring too little (decision 2: licensing never opens or closes water, so
+    reaching past a region line cannot change a water's status). The border still applies.
     """
     if covered is None:
         covered = _covered_ids(entry, registry)
+    if outside is None:
+        outside = outside_bc(registry, graph)
+    region = region_limit(entry, registry) if regional else None
 
     per: list[dict | None] = []
     clipped = False
     window = None
+    out_of_region = 0
     for ex in rule.get("extents") or []:
         got = _resolve.resolve_extent(registry, graph, covered, ex)
         if got is not None:
             # The measure window the extent actually resolved to, handed straight to the
             # tributary walk so it never has to re-derive where the reach starts.
             window = window or got.get("window")
+            if region is not None and _row_water(ex, entry.get("matched") or ()):
+                before = len(got.get("sections") or ())
+                got = _clip(got, region)
+                out_of_region += before - len(got["sections"])
+                clipped = clipped or len(got["sections"]) < before
             if clip is not None:
                 before = len(got.get("sections") or ())
                 got = _clip(got, clip)
                 clipped = clipped or len(got["sections"]) < before
         per.append(got)
 
-    return classify(
+    expander = _expander(
+        graph, registry, covered, rule, entry, window=window,
+        region=region if any(_row_water(ex, entry.get("matched") or ())
+                             for ex in rule.get("extents") or []) else None)
+    binding, diags = classify(
         entry["entry_id"], rule, per,
         registry=registry, covered_ids=covered,
         scope_clipped=clipped, entry_has_registry=bool(covered),
         tributaries=wants_tributaries(rule, entry),
         tributaries_only=bool(rule.get("tributaries_only")),
-        expand_tributaries=_expander(graph, registry, covered, rule, entry, window=window),
+        expand_tributaries=expander,
+        kind_of=lambda s: _resolve._kind_of(graph, s),
+        outside=outside,
     )
+    walked_out = getattr(expander, "out_of_region", 0)
+    if out_of_region or walked_out:
+        # REPORTED, never silent: what the row's own region(s) took away, before the walk and
+        # from what the walk found.
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "region_clip", {
+            "removed": out_of_region, "removed_from_walk": walked_out}))
+    return binding, diags
 
 
 def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
@@ -225,39 +283,88 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
     return detail, blocked
 
 
-def _expander(graph, registry, covered, rule, entry, *, window=None):
+def _expander(graph, registry, covered, rule, entry, *, window=None, region=None):
     """A closure that expands one rule's reach to its tributaries.
 
     The rule's `tributary_excludes` are resolved to sections and passed as BLOCKED, so each
     removes the named stream *and everything above it*. Blocking during the walk rather than
     subtracting afterwards also stops the walk descending through excluded water into
     catchments that drain only through it.
+
+    `region` holds a REGIONAL ROW's walk to its region(s), applied to what the walk returns — the
+    walk is what leaves the region, as it is what leaves a `within_area` (`outside.region_limit`).
     """
     _, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
 
     def expand(reach, *, only=False):
-        return _tribs.expand(graph, reach, only=only, excluded=excluded, window=window)
+        got = _tribs.expand(graph, reach, only=only, excluded=excluded, window=window)
+        if region is None:
+            return got
+        kept = {s for s in got if s in region}
+        expand.out_of_region += len(got) - len(kept)
+        return kept
 
+    expand.out_of_region = 0
     return expand
 
 
-def _scope_sections(e: dict, covered: list[str], registry, graph):
-    """The stretch the ENTRY is about, or (None, False) when it is about the whole water.
+def entry_scope(e: dict, covered: list[str], registry, graph):
+    """The stretch the ENTRY is about, or (None, []) when it is about the whole water.
 
     The synopsis qualifies a row in its NAME — "FRASER RIVER (upstream of the CPR Bridge
     at Mission)" — and the rules inside almost never restate it. Returns
-    ``(sections, failed)``; a scope that cannot be resolved is REPORTED, never treated as
-    "do not clip", which would silently widen a regional row to the entire river.
+    ``(sections, failed)``, `failed` the scope extents that did not resolve; a scope that cannot
+    be resolved is REPORTED, never treated as "do not clip", which would silently widen a
+    regional row to the entire river.
+
+    A REGIONAL ROW'S REGION is applied by `build_reach`, not here: to the extents that mean "this
+    row's water" (`_row_water`), whether or not the row states a scope. The Fraser's four regional
+    rows each bound all 251 Fraser sections before it.
+
+    Public because the review app clips with it: two copies of "which stretch is this row" is
+    how the app and the bundle came to disagree once already (AGENTS 16).
     """
     out: set[str] = set()
-    failed = False
+    failed: list[dict] = []
     for sc in e.get("extents") or []:
         got = _resolve.resolve_extent(registry, graph, covered, sc)
         if got is None:
-            failed = True
+            failed.append(sc)
             continue
         out |= set(got.get("sections") or ())
     return (out or None), failed
+
+
+def _row_water(ex: dict, matched=()) -> bool:
+    """Does this extent reach as far as "the row's own water" goes — so that a regional row's
+    region (`outside.region_limit`) must say where it stops?
+
+    Two shapes do: a `whole` of the row's own water (no item, or only items the row matched —
+    Region 2's "No Fishing for steelhead, Fraser River mainstem" names the Fraser it matched), and a
+    one-sided cut (`upstream_of`, `downstream_of`), which runs to the end of the water. The Fraser's regional rows are matched to
+    the whole river: Region 5's `whole` must mean the Region 5 stretch, and Region 3's "exempt from
+    spring closure upstream of the Thompson River" must stop where Region 3 does, not run up the
+    Fraser through Regions 5 and 7.
+
+    A reach the book bounds at BOTH ends (`between`), a `whole` of ANOTHER item, and an area are
+    where the book put them, even across a region line: the Region 7 Stellako row's fly-only reach
+    lies between two signs below the François Lake bridge, inside Region 6's polygon, and holding
+    it to Region 7 erased it. A `within_area` already says where it stops.
+    """
+    if not isinstance(ex, dict) or ex.get("within_area"):
+        return False
+    op = ex.get("op")
+    if op == "whole":
+        named = ([ex["item_id"]] if ex.get("item_id") else []) + list(ex.get("item_ids") or [])
+        return all(i in set(matched or ()) for i in named)
+    return op in ("upstream_of", "downstream_of")
+
+
+def split_parent_refs(entries, registry, graph) -> list[str]:
+    """Every place a record names a lake that is cut into parts, in this build (see
+    `pipeline.atlas.waters.added_lakes.split_parents`). Empty = clean."""
+    from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
+    return refs_to_parents(entries, split_parents(registry))
 
 
 def _clip(got: dict, clip: set[str]) -> dict:

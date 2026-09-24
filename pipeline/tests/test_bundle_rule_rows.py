@@ -305,3 +305,19 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     assert lifted >= 80
     # the z6 steelhead self-lift, and nothing else
     assert silent == [("z6:steelhead_stream_closure", "steelhead_stream_closure.r1")]
+
+
+def test_widened_is_exactly_the_shape_the_model_refuses():
+    """`build_section_data._widened` marked rules the book restricts to a part and the atlas bound
+    whole. The model now refuses that shape (`whole` + `extent_text`), so on a current bundle it is
+    empty; a `whole` qualified by an item is a place of its own and was never widened."""
+    import sqlite3
+    from pipeline.tools.build_section_data import _widened
+    db = sqlite3.connect(":memory:")
+    db.execute("CREATE TABLE rule (entry_id, rule_id, extent_text, conditions, uncertain)")
+    db.executemany("INSERT INTO rule VALUES (?,?,?,?,?)", [
+        ("e", "bare", "Salmon Arm Bay", json.dumps({"extents": [{"op": "whole"}]}), 0),
+        ("e", "qual", "lakes of the Fraser watershed",
+         json.dumps({"extents": [{"op": "whole", "item_id": "gnis:39325"}]}), 0),
+        ("e", "unbound", "on parts", "{}", 1)])
+    assert _widened(db) == {("e", "bare")}

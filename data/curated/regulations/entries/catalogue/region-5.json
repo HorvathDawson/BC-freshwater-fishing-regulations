@@ -487,6 +487,7 @@
        "take": 0
       }
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole",
@@ -514,6 +515,7 @@
      },
      "take": 1,
      "within": "atnarko_bella_coola_rivers.r5",
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole",
@@ -545,6 +547,7 @@
        "take": 0
       }
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole",
@@ -576,6 +579,7 @@
        "take": 0
       }
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole",
@@ -645,6 +649,7 @@
      "type": "angling_from_vessel_prohibited",
      "verbatim": "No angling from powered boats on mainstems of Atnarko River and Bella Coola River",
      "level": "unpowered",
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole",
@@ -3922,7 +3927,8 @@
         "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon"
     },
     {
      "rule_id": "dean_river.r4",
@@ -3941,7 +3947,8 @@
         "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon"
     },
     {
      "rule_id": "dean_river.r5",
@@ -3969,7 +3976,8 @@
         "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary"
     },
     {
      "rule_id": "dean_river.r6",
@@ -4075,7 +4083,8 @@
         "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "Crag Creek to fishing boundary signs approximately 500 m upstream of canyon"
     },
     {
      "rule_id": "dean_river.r10",
@@ -4101,7 +4110,8 @@
         "dean_river__signs_3_5_km_above_the_canyon_3500_m_upstream"
        ]
       }
-     ]
+     ],
+     "extent_text": "between signs 0.5 km and 3.5 km upstream of canyon"
     }
    ],
    "licensing": [
@@ -8702,7 +8712,8 @@
         "mitchell_river__mitchell_lake"
        ]
       }
-     ]
+     ],
+     "extent_text": "within 100 m radius of the weir at the outlet of Michell Lake"
     },
     {
      "rule_id": "mitchell_river.r2",
@@ -8842,7 +8853,8 @@
         "moffat_creek__falls_8_10_km_above_horsefly"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of falls 8 km from Horsefly River"
     },
     {
      "rule_id": "moffat_creek.r2",
@@ -8863,7 +8875,8 @@
         "moffat_creek__falls_8_10_km_above_horsefly"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of falls 8 km from Horsefly River"
     }
    ]
   },
@@ -13238,7 +13251,6 @@
       {
        "op": "whole",
        "item_id": "gnis:39325",
-       "includes_tributaries": true,
        "feature_types": [
         "stream"
        ],
@@ -13263,11 +13275,11 @@
      "rule_id": "steelhead_management.r1",
      "type": "advisory",
      "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole",
-       "item_id": "gnis:13744",
-       "includes_tributaries": true
+       "item_id": "gnis:13744"
       }
      ],
      "extent_text": "Chilcotin River watershed",
@@ -13468,13 +13480,13 @@
      ],
      "take": 0,
      "may_target": false,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "fraser_river__williams_lake_river_into_fraser_river"
-       ],
-       "includes_tributaries": true
+       ]
       }
      ],
      "extent_text": "Fraser watershed upstream of Williams Lake River",
@@ -13489,13 +13501,13 @@
      ],
      "take": 0,
      "may_target": true,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "downstream_of",
        "splits": [
         "fraser_river__williams_lake_river_into_fraser_river"
-       ],
-       "includes_tributaries": true
+       ]
       }
      ],
      "extent_text": "Fraser watershed downstream of and including Williams Lake River",

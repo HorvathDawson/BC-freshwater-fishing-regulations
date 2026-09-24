@@ -32,6 +32,7 @@ import model_api
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
+from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.utils.wsc import trim_wsc
@@ -65,6 +66,16 @@ ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row
 @lru_cache(maxsize=1)
 def _registry() -> dict:
     return load_registry(REGISTRY_PATH)
+
+
+@lru_cache(maxsize=1)
+def _place_namer():
+    """The bundle's own place-namer over the registry this app serves — so a label names a rule's
+    place (a cut-point's curated label, an area's name) exactly as the bundle's label does."""
+    from pipeline.common.curated import CURATED
+    from pipeline.deliver.bundle.place_names import PlaceNamer, split_labels
+    return PlaceNamer(_registry(), split_labels(json.loads(
+        CURATED.waters.splits.read_text(encoding="utf-8"))))
 
 
 @lru_cache(maxsize=1)
@@ -556,17 +567,11 @@ def _scope_sections(e: dict, covered: list[str]) -> set[str] | None:
     would then silently widen from its region to the entire river — fail-open, in the direction that
     tells someone a rule applies where it does not. All ten scoped entries resolve today, so this is
     a latent path, which is exactly when it is cheap to close."""
-    out: set[str] = set()
-    failed: list[dict] = []
-    # The entry's `extents` — a catalogue entry has no `scope`, and reading that name left every
-    # regional row unclipped in the review app while the builder clipped it (AGENTS 16).
-    for sc in e.get("extents") or []:
-        got = resolve_extent(covered, sc)
-        if got is None:
-            failed.append(sc)
-            continue
-        out |= set(got["sections"])
-    return (out or None), failed
+    # THE BUILDER'S OWN FUNCTION, not a copy of it. This body used to re-implement the scope
+    # (the entry's `extents`, unioned), and when the builder began holding a regional row to its
+    # own region(s) — the Fraser's four regional rows each bound all 251 Fraser sections — a copy
+    # would have left the app clipping one way and the bundle another (AGENTS 16).
+    return _entry_scope(e, covered, _registry(), _graph())
 
 
 def _json_safe(obj):
@@ -780,7 +785,7 @@ def entry_detail(entry_id: str) -> dict | None:
         if e["entry_id"] != entry_id:
             continue
         item = _item_for_entry(e)
-        lab = model_api.labels(e, ENTRIES_DIR)
+        lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
         e = dict(e,
                  rules=[dict(r, label=lab["rules"][i] or r.get("verbatim", ""))
                         for i, r in enumerate(e.get("rules") or [])],
@@ -1478,7 +1483,7 @@ def check_entry(entry_dict: dict, region: str | None = None) -> dict:
     will say while the curator types. `{ok, errors, warnings, labels}`; each error is
     `{path, msg}` with `path` in the entry's own JSON keys (`rules.2.gear.0.max`)."""
     data = model_api.strip_served(entry_dict)
-    labels = model_api.labels(data, ENTRIES_DIR)
+    labels = model_api.labels(data, ENTRIES_DIR, _place_namer())
     entry, errs = model_api.check(data)
     found = _find(str(data.get("entry_id", "")))
     if found is None:

@@ -281,10 +281,27 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "licensing_section.jsonl").write_text("")
     build = tmp / "atlas"
     build.mkdir()
-    (build / "section_handles.txt").write_text("s:1\ns:2\n")
+    (build / "section_handles.txt").write_text("s:1\ns:2\ns:3\n")
+    _atlas(build, inside=("s:1", "s:2"), out_of_bc=())
     db = sqlite3.connect(":memory:")
     db.executescript(SCHEMA.read_text())
     return db, run, entries, build
+
+
+def _atlas(build: Path, *, inside=("s:1", "s:2"), out_of_bc=()):
+    """A three-section atlas: `inside` lie in Region 1's polygon, `out_of_bc` are marked past the
+    border, and `s:3` is in no region — the border-sliver case."""
+    from pipeline.common.io.serialize import write_artifact
+    from pipeline.common.models.enums import NodeKind
+    from pipeline.common.models.graph import StreamGraph, StreamNode
+    items = [{"id": "gnis:1", "name": "X", "kind": "stream", "section_ids": ["s:1", "s:2"]},
+             {"id": "area:region:1", "name": "area:region:1", "kind": "area",
+              "section_ids": list(inside)}]
+    (build / "registry.json").write_text(json.dumps({"items": items}))
+    g = StreamGraph(nodes={s: StreamNode(node_id=s, kind=NodeKind.stream,
+                                         out_of_bc=s in out_of_bc)
+                           for s in ("s:1", "s:2", "s:3")})
+    write_artifact(g, str(build / "graph.pkl"))
 
 
 def test_a_stale_reach_run_cannot_ship_a_ruleset_naming_a_rule_that_is_gone(tmp_path):
@@ -491,3 +508,32 @@ def test_an_unplaced_rule_ships_its_reason_and_an_entry_ships_every_water_it_mat
     db, run, entries, build = _rules_fixture(tmp_path / "b", [("r1:x@1-1", "x.r1", "s:2")], [])
     bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
     assert db.execute("SELECT uncertain, unresolved FROM rule").fetchall() == [(0, None)]
+
+
+# ------------------------------------------------------------------ water B.C. does not govern
+
+def test_the_bundle_lists_every_section_outside_bc(tmp_path, monkeypatch):
+    """`s:3` is in no region polygon (a border sliver): outside B.C., and listed so a reader can
+    say so instead of "no rules here"."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT sid FROM outside_bc").fetchall() == [(3,)]
+
+
+def test_a_rule_set_on_water_outside_bc_stops_the_build(tmp_path, monkeypatch):
+    """Checked against the rows WRITTEN: a reach run from before the subtraction bound 181
+    sections past the border, and a bundle built from it must not ship."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    _atlas(build, inside=("s:1", "s:2"), out_of_bc=("s:2",))
+    with pytest.raises(SystemExit, match="outside British Columbia carry regulation sets"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def test_a_requirement_whose_place_and_on_never_meet_stops_the_build(tmp_path, monkeypatch):
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    placements = PLACED[:2] + [("z4:cv", "permit", "requirement", "unresolved",
+                                reach_lic.NO_DESIGNATION)]
+    with pytest.raises(SystemExit, match="hold nowhere"):
+        _write(tmp_path, [], placements=placements)

@@ -15,8 +15,9 @@ with an empty `matched` re-matched to nothing (measured 2026-09-23). A fallback 
 a second, unreviewed answer to "which water is this rule about", so it is gone. An entry that
 should bind gets its `matched` stamped (`backfill_matched`, or the review app), never guessed.
 
-`make_matcher` stays: `reparse_candidates` and the DFO matcher use it to FIND entries worth
-curating, which is a report, not a binding.
+`make_matcher` stays: `reparse_candidates` uses it to FIND entries worth curating, which is a
+report, not a binding. (The DFO matcher does not: it builds its own indices and reads only this
+module's `DEFAULT_OVERRIDES`.)
 """
 
 from __future__ import annotations

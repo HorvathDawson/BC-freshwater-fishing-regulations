@@ -270,6 +270,102 @@ def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
     return out
 
 
+def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
+    """THE GATE AFTER THE MODEL: what `CatalogueEntry` cannot see from one field, run on a
+    validated entry. Returns `(path, message)` pairs, `path` in the entry's own JSON keys
+    (`["rules", 2, "take"]`), so the review app can address each one to its field.
+
+    ONE implementation, called by ingest (`check_entry`) and by the review app's check and save
+    (`curation-review/backend`). A curator saved `take: 15` on a rule whose sentence says 20, and
+    the app accepted it, because only ingest ran this gate; the next re-ingest would have refused
+    the entry it had just signed off on."""
+    out: list[tuple[list, str]] = []
+    idx = {r.rule_id: i for i, r in enumerate(entry.rules)}
+    for rule in entry.rules:
+        i = idx[rule.rule_id]
+        # Every number must be in the rule's OWN sentence. This is what stops a limit being
+        # attributed to a rule whose text never stated it.
+        numbers = [(f, getattr(rule, f)) for f in
+                   ("take", "max_kmh", "max_power_kw", "per_daily")]
+        # THE SIZES ARE INSIDE `lengths` NOW, and they are exactly the numbers this check exists
+        # for: a bound the sentence never stated is a size limit invented by the parser.
+        for j, b in enumerate(rule.lengths or []):
+            numbers += [(f"lengths[{j}].min_cm", b.min_cm), (f"lengths[{j}].max_cm", b.max_cm)]
+        # A MEASURED gear bound is a printed number too. It is stored in the unit its slot names,
+        # and the book may print it in another ("3 cm" is `hook_gap_mm: 30`, "1 m" is 1000), so
+        # any of the unit's spellings will do. Counts are not checked: "single" is a 1 in words.
+        spell = {}
+        for j, c in enumerate(rule.gear):
+            for k in ("max", "min"):
+                v = getattr(c, k)
+                if v is not None and c.slot.value.endswith(("_mm", "_kg")):
+                    f = f"gear[{j}].{k}"
+                    numbers.append((f, v))
+                    spell[f] = [v, v / 10, v / 1000] if c.slot.value.endswith("_mm") else [v]
+        for field, value in numbers:
+            if value in (None, 0):
+                continue
+            printed = f"{value:g}" if isinstance(value, float) else str(value)
+            if field in spell and any(f"{x:g}" in rule.verbatim for x in spell[field]):
+                continue
+            if printed not in rule.verbatim:
+                out.append((["rules", i] + _field_path(field),
+                            f"{rule.rule_id}: {field}={printed} does not appear in its own "
+                            f"verbatim ({rule.verbatim[:70]!r})"))
+
+        if rule.within and rule.within not in idx:
+            out.append((["rules", i, "within"],
+                        f"{rule.rule_id}: within={rule.within!r} names no rule in this entry"))
+
+        if not label(rule).strip():
+            out.append((["rules", i], f"{rule.rule_id}: generates an empty label"))
+
+    # A SIZE ON A LICENCE is a printed number like any other: "to keep rainbow trout over 50 cm".
+    for k, x in enumerate(entry.licensing):
+        doing = getattr(x, "doing", None)
+        for j, b in enumerate((doing.lengths if doing else None) or []):
+            for f, v in (("min_cm", b.min_cm), ("max_cm", b.max_cm)):
+                if v and str(v) not in x.verbatim:
+                    out.append((["licensing", k, "doing", "lengths", j, f],
+                                f"licensing {x.id}: doing.lengths[{j}].{f}={v} does not appear "
+                                f"in its own verbatim ({x.verbatim[:70]!r})"))
+        if not licensing_label(x).strip():
+            out.append((["licensing", k], f"licensing {x.id}: generates an empty label"))
+
+    by_id = {r.rule_id: r for r in entry.rules}
+    for rule in entry.rules:
+        if rule.within and rule.take is not None:
+            parent = by_id.get(rule.within)
+            if parent and parent.take is not None and not parent.unlimited \
+                    and rule.take > parent.take:
+                out.append((["rules", idx[rule.rule_id], "take"],
+                    f"{rule.rule_id}: takes {rule.take} inside a parent of {parent.take} — a "
+                    f"sub-limit cannot exceed what it sits in. If it genuinely does, it REPLACES "
+                    f"the parent for its species and is not a sub-limit."))
+    return out
+
+
+def _field_path(field: str) -> list:
+    """`lengths[0].min_cm` -> ["lengths", 0, "min_cm"]."""
+    out: list = []
+    for part in field.split("."):
+        if "[" in part:
+            name, n = part[:-1].split("[")
+            out += [name, int(n)]
+        else:
+            out.append(part)
+    return out
+
+
+def split_parents_named(entry_data: dict) -> list[str]:
+    """A LAKE CUT INTO PARTS IS NOT A PLACE A RECORD MAY NAME — `matched`, or an extent's
+    `item_id`/`item_ids`, naming Kootenay, Williston or Shannon Lake rather than its parts binds a
+    ghost section (`pipeline.atlas.waters.added_lakes.split_parents`). Refused here, at ingest and
+    in the review app, and again by the reach builder."""
+    from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
+    return refs_to_parents([entry_data], split_parents())
+
+
 def check_entry(entry_data: dict, source_text: str,
                 item: dict | None = None) -> tuple[CatalogueEntry | None, list[str]]:
     """Returns (entry, errors). `source_text` is the printed row the agent was given.
@@ -285,6 +381,7 @@ def check_entry(entry_data: dict, source_text: str,
     # An exemption that names a zone entry by the BOOK's wording lifts nothing.
     resolve_exempt_ids(entry_data)
     errors += exemptions_stay_inside_what_they_lift(entry_data)
+    errors += split_parents_named(entry_data)
     default_extents(entry_data)
     if item is not None:
         # Before model validation: this rewrites aliases, and the rewritten value is what the
@@ -305,64 +402,7 @@ def check_entry(entry_data: dict, source_text: str,
                 "regs_verbatim is not a contiguous run of the source row — it has been reworded, "
                 "reordered or stitched. Quote the printed text.")
 
-    for rule in entry.rules:
-        # Every number must be in the rule's OWN sentence. This is what stops a limit being
-        # attributed to a rule whose text never stated it.
-        numbers = [(f, getattr(rule, f)) for f in
-                   ("take", "max_kmh", "max_power_kw", "per_daily")]
-        # THE SIZES ARE INSIDE `lengths` NOW, and they are exactly the numbers this check exists
-        # for: a bound the sentence never stated is a size limit invented by the parser.
-        for i, b in enumerate(rule.lengths or []):
-            numbers += [(f"lengths[{i}].min_cm", b.min_cm), (f"lengths[{i}].max_cm", b.max_cm)]
-        # A MEASURED gear bound is a printed number too. It is stored in the unit its slot names,
-        # and the book may print it in another ("3 cm" is `hook_gap_mm: 30`, "1 m" is 1000), so
-        # any of the unit's spellings will do. Counts are not checked: "single" is a 1 in words.
-        spell = {}
-        for i, c in enumerate(rule.gear):
-            for k in ("max", "min"):
-                v = getattr(c, k)
-                if v is not None and c.slot.value.endswith(("_mm", "_kg")):
-                    f = f"gear[{i}].{k}"
-                    numbers.append((f, v))
-                    spell[f] = [v, v / 10, v / 1000] if c.slot.value.endswith("_mm") else [v]
-        for field, value in numbers:
-            if value in (None, 0):
-                continue
-            printed = f"{value:g}" if isinstance(value, float) else str(value)
-            if field in spell and any(f"{x:g}" in rule.verbatim for x in spell[field]):
-                continue
-            if printed not in rule.verbatim:
-                errors.append(
-                    f"{rule.rule_id}: {field}={printed} does not appear in its own verbatim "
-                    f"({rule.verbatim[:70]!r})")
-
-        if rule.within and rule.within not in {r.rule_id for r in entry.rules}:
-            errors.append(f"{rule.rule_id}: within={rule.within!r} names no rule in this entry")
-
-        if not label(rule).strip():
-            errors.append(f"{rule.rule_id}: generates an empty label")
-
-    # A SIZE ON A LICENCE is a printed number like any other: "to keep rainbow trout over 50 cm".
-    for x in entry.licensing:
-        doing = getattr(x, "doing", None)
-        for i, b in enumerate((doing.lengths if doing else None) or []):
-            for f, v in (("min_cm", b.min_cm), ("max_cm", b.max_cm)):
-                if v and str(v) not in x.verbatim:
-                    errors.append(f"licensing {x.id}: doing.lengths[{i}].{f}={v} does not appear "
-                                  f"in its own verbatim ({x.verbatim[:70]!r})")
-        if not licensing_label(x).strip():
-            errors.append(f"licensing {x.id}: generates an empty label")
-
-    by_id = {r.rule_id: r for r in entry.rules}
-    for rule in entry.rules:
-        if rule.within and rule.take is not None:
-            parent = by_id.get(rule.within)
-            if parent and parent.take is not None and not parent.unlimited \
-                    and rule.take > parent.take:
-                errors.append(
-                    f"{rule.rule_id}: takes {rule.take} inside a parent of {parent.take} — a "
-                    f"sub-limit cannot exceed what it sits in. If it genuinely does, it REPLACES "
-                    f"the parent for its species and is not a sub-limit.")
+    errors += [msg for _path, msg in post_model_checks(entry)]
 
     # A row whose printed text is long but which produced one short rule has almost certainly
     # dropped something. Advisory, not fatal — some rows really are one sentence.
