@@ -874,6 +874,63 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "arctic_grayling.r1",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "arctic_grayling.r3",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r1",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r2",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r3",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r4",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r6",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r7",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r8",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r9",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r12",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            }
           ]
         },
         {
@@ -2000,6 +2057,53 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "species_quotas.r1",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r2",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r3",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r4",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r6",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r7",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r8",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r9",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r12",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            }
           ]
         }
       ]
@@ -2069,6 +2173,53 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "species_quotas.r1",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r2",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r3",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r4",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r6",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r7",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r8",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r9",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r12",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
           ]
         }
@@ -7864,6 +8015,73 @@
               "splits": [
                 "pine_river__hasler_road_bridge"
               ]
+            }
+          ],
+          "exempts": [
+            {
+              "target": "species_quotas.r2",
+              "entry_id": "z7a:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r3",
+              "entry_id": "z7a:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "arctic_grayling.r1",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "arctic_grayling.r3",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r1",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r2",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r3",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r4",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r6",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r7",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r8",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r9",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "species_quotas.r12",
+              "entry_id": "z7b:species_quotas",
+              "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
           ]
         }

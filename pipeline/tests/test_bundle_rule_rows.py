@@ -382,6 +382,11 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         (kit, "kitimat_river.r5", "trout_char_quota.r2"),
         (kit, "kitimat_river.r5", "trout_char_quota.r4"),
         (kit, "kitimat_river.r5", "trout_char_quota.r7"),
+        # CLEARWATER LAKE's "Catch and release, May 1-Oct 31" lifts Zone B's species quotas only
+        # on its own days (the naming ruling: the zone's "Burbot: 5" names the fish, so without
+        # the lift it would outrank the lake's release; the other days the lake is closed).
+        *[("r7:clearwater_lake@7-31", "clearwater_lake.r2", f"species_quotas.r{k}")
+          for k in (1, 12, 2, 3, 4, 6, 7, 8, 9)],
         ("r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31", "peace_river.r4",
          "trout_char_quota.r3"),
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
@@ -390,3 +395,19 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     # nothing lifts itself: the z6 steelhead exemption is its own rule, placed on the five
     # mainstems (steelhead_stream_closure.r2), so no lift is dropped
     assert silent == []
+
+
+def test_all_fish_lifts_every_fish_the_lifted_rule_names_but_crayfish():
+    """`ALL_FIN_FISH` does not expand (it is an open complement), so as a set it met no fish and
+    Pine River's "Catch and release all fish" lifted nothing. It covers every fish the lifted rule
+    names — wholly — except crayfish, which the book keeps apart from fin fish."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    all_fish = CatalogueRule(rule_id="p.r1", type="retention_limit", species=["ALL_FIN_FISH"],
+                             take=0, may_target=True, verbatim="Catch and release all fish",
+                             extents=[{"op": "whole"}])
+    burbot = CatalogueRule(rule_id="s.r1", type="retention_limit", species=["BB"], take=5,
+                           verbatim="Burbot: 5", extents=[{"op": "whole"}])
+    crayfish = CatalogueRule(rule_id="s.r3", type="retention_limit", species=["CRA"], take=25,
+                             verbatim="Crayfish: 25", extents=[{"op": "whole"}])
+    assert rules_mod._lift_terms(all_fish, burbot) == {}
+    assert rules_mod._lift_terms(all_fish, crayfish) is None

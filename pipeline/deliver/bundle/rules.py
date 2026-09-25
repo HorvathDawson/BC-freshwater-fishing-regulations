@@ -165,6 +165,12 @@ def _lift_terms(by, lifted) -> dict | None:
     see `_exempts`. The client lifts a rule outright only on an item with no qualifier."""
     terms: dict = {}
     mine, theirs = _species_of(by), _species_of(lifted)
+    # "ALL FISH" IS EVERY FIN FISH. `ALL_FIN_FISH` does not expand (it is an open complement), so
+    # read as a set it met no fish and Pine River's "Catch and release all fish" could lift no
+    # zone quota. It covers every fish the lifted rule names, crayfish excepted — "fin fish and
+    # crayfish" are two things to the book.
+    if mine is not None and "ALL_FIN_FISH" in mine and theirs is not None:
+        mine = mine | (theirs - {"CRA"})
     if mine is not None:
         if theirs is None:
             terms["species"] = sorted(mine)

@@ -17,6 +17,7 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from enum import Enum
+from functools import lru_cache
 from typing import FrozenSet, List
 
 from pipeline.common.curated import GENERATED
@@ -200,3 +201,217 @@ def source_of(rule: dict) -> Source:
     if auth is Authority.province and regions and "region" not in kinds:
         return Source(auth, Scope.region, region, place, regions)
     return Source(auth, Scope.region, region, place)
+
+
+# --------------------------------------------------------------------------------------------
+# Who speaks — the ladder, executable
+# --------------------------------------------------------------------------------------------
+#
+# THE REFERENCE SEMANTICS THE APP MUST MATCH. The app has no rules engine yet; the export's
+# `guide.ladder` states the ruling in words and this states it in code, so the words can be
+# tested on real sections. It is deliberately small and reads the bundle only. When
+# app/packages/core/src/regulations.ts grows its reader, it answers these same questions the same
+# way, and `pipeline/tests/test_competition.py` is the list of cases it must reproduce.
+
+
+def _day(on) -> int:
+    """`datetime.date` or `(month, day)` -> the catalogue's day index (1..366)."""
+    from pipeline.regs.parsing.catalogue import _day_index
+    m, d = (on.month, on.day) if hasattr(on, "month") else on
+    return _day_index(m, d)
+
+
+@lru_cache(maxsize=None)
+def _days_of(dates_json: str):
+    from pipeline.regs.parsing.catalogue import DateRange, _days
+    dates = [DateRange.model_validate(d) for d in json.loads(dates_json)]
+    return frozenset(_days(dates)) if dates else None
+
+
+def in_force(when: dict | None, on) -> str:
+    """Whether a `when` (the bundle's JSON) holds on a day: "yes" all of it, "no", or "part" —
+    it holds on that day only at some hours or weekdays, or its season could not be read
+    (`unparsed`). A "part" rule is shown BESIDE what it would displace and displaces nothing."""
+    if not when:
+        return "yes"
+    days = _days_of(json.dumps(when.get("dates") or [], sort_keys=True))
+    if days is not None and _day(on) not in days:
+        return "no"
+    if when.get("hours") or when.get("weekdays") or when.get("unparsed"):
+        return "part"
+    return "yes"
+
+
+def speaks_for(rule: dict, fish: str) -> bool:
+    """Whether a rule says anything about ONE fish (a leaf code, "BT"). A rule that names no
+    species binds whatever you catch; `ALL_FIN_FISH` is every fish; `NON_GAME_FISH` every fish
+    off the game-fish list and not a salmon; otherwise the fish must be in the expansion of
+    `species` and not of `species_except`. A bait or tackle rule for a TARGET speaks only when
+    the fish asked about is that target."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS, expand_species
+    tgt = rule.get("when_targeting") or []
+    if tgt and fish not in expand_species(list(tgt)):
+        return False
+    sp = list(rule.get("species") or [])
+    if not sp:
+        return True
+    if fish in expand_species(list(rule.get("species_except") or [])):
+        return False
+    if "ALL_FIN_FISH" in sp:
+        # "Fin fish" is not crayfish: "release all fin fish caught in your trap" keeps the
+        # crayfish, and `rules._lift_terms` leaves a crayfish quota standing under "all fish".
+        return fish != "CRA"
+    if "NON_GAME_FISH" in sp and fish not in SPECIES_GROUPS["ALL_GAME_FISH"] \
+            and fish not in SPECIES_GROUPS["SALMON"]:
+        return True
+    return fish in expand_species(sp)
+
+
+def names_fish(rule: dict, fish: str) -> bool:
+    """Whether a rule NAMES this fish rather than a group holding it. "Bull trout … release" names
+    bull trout; "Trout/char daily quota = 2" names a group. A code that is one fish as the book
+    speaks of it ("cutthroat", which the table splits into westslope and coastal) names each."""
+    from pipeline.regs.parsing.catalogue import _ONE_FISH_GROUPS, SPECIES_GROUPS
+    return any(c == fish or (c in _ONE_FISH_GROUPS and fish in SPECIES_GROUPS[c])
+               for c in rule.get("species") or [])
+
+
+_RULES_BY_PATH: dict = {}
+
+
+def _rules_of(path: str) -> dict:
+    """Every rule of a bundle by `(entry, rule)`, each with its ladder rank (`source_of`) worked
+    out once — read once per bundle path."""
+    got = _RULES_BY_PATH.get(path)
+    if got is None:
+        got = _RULES_BY_PATH[path] = {(x["entry"], x["rule"]): x for x in rules(path)}
+        for x in got.values():
+            x["_rank"] = source_of(x).rank
+    return got
+
+
+def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
+                    by_naming: bool = True) -> List[dict]:
+    """THE RULES THAT SPEAK FOR ONE FISH, ON ONE SECTION, ON ONE DAY — the ladder as code.
+
+    `section` is a bundle `sid`, `on` a `datetime.date` or `(month, day)`, `fish` a leaf species
+    code. Returns the rules bound to the section that say something about that fish on that day,
+    each a `rules()` dict with `state` added: "speaks", or "beside" (in force only some hours or
+    weekdays, or of unreadable season: shown, never displacing). Sorted by `rid`.
+
+      1. IN FORCE ON THE DAY. A rule whose `when` excludes the day is out, and so is one dormant
+         under `suspended_while` while its named closure is in force here.
+      2. ABOUT THIS FISH (`speaks_for`). Competition is PER FISH: two rules compete only for the
+         fish both speak for, so Zone B's "Bull trout … release" never touches what "Trout/char:
+         5" says about a rainbow.
+      3. LIFTS. A lift from a rule in force here removes the lifted rule for this fish — outright,
+         or when its `species` holds the fish and its `when` holds the day. A lift that holds only
+         while fishing FOR something (`when_targeting`) or while doing something (`while`), or
+         only some hours, leaves the rule standing (the angler is unknown).
+      4. COMPETITION, on `(type, dimension)`. Among competitors, for this fish:
+           a SUPERIOR authority first (nothing below it opens what it closed); then
+           NAMING — a rule that names the fish beats one naming a group that holds it (Zone B's
+           bull trout release beats Kakwa Lake's "Trout/char daily quota = 2" for bull trout,
+           although the lake row is the more specific place); then
+           (a `within` clause is named at its parent quota's level — "Trout/char: 5, but not more
+           than 1 bull trout" is a trout/char quota, and does not name bull trout over a water's
+           "Trout/char catch and release"); then
+           PLACE — `source_of(rule).rank`: this water, then inherited by the tributary walk (a
+           water rule reaching this section `via: trib`), then an area, the region, the province.
+         So a water row that itself names the fish ("Bull trout daily quota = 1") beats the
+         zone's bull trout rule: both name it, and the water is more specific.
+         A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
+         its parent quota are one statement ("Trout/char: 5, but not more than 3 lake trout")
+         and never displace each other. Ties all speak.
+         A CLOSURE ("No fishing": take 0, may not fish for it) is never displaced — "this water
+         overrides regional always, except closures unless they are lifted in this water's regs".
+         Only a lift removes it; it still displaces what ranks below it — and it speaks for every
+         fish it covers AS IF IT NAMED IT, so a water's "No Fishing, Nov 1-Apr 30" silences the
+         zone's "Burbot: 5" on its dates (read as a group rule, it let the 5 speak beside it).
+      Rules that never compete pass through with state "shown": `standing`, the information
+      family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
+      `lift`) state nothing and are not returned.
+
+    `by_naming=False` ranks by place alone — the ladder before the naming ruling — and exists
+    only so an audit can list what the ruling changed."""
+    from pipeline.regs.parsing.catalogue import expand_species
+    if expand_species([fish]) != [fish]:
+        raise ValueError(f"effective_rules: {fish!r} is a group, not one fish — ask about a leaf "
+                         f"code ({', '.join(expand_species([fish]))})")
+    db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        bound = db.execute("SELECT r.entry_id, r.rule_id, r.via FROM section_ruleset s JOIN ruleset r "
+                           "ON r.set_id = s.set_id WHERE s.sid = ?", (section,)).fetchall()
+    finally:
+        db.close()
+    every = _rules_of(path)
+    here = {(e, r): via for e, r, via in bound if (e, r) in every}
+    state = {k: in_force(every[k].get("when"), on) for k in here}
+    for k in here:                                          # 1. dormant under its closure
+        sw = every[k].get("suspended_while")
+        if sw and state.get((k[0], sw)) == "yes":
+            state[k] = "no"
+    live = {k for k, s in state.items() if s != "no"}
+    lifted, partly = set(), set()
+    for k in sorted(live):                                   # 3. lifts
+        if state[k] != "yes":
+            continue
+        for x in every[k].get("exempts") or []:
+            t = (x["entry_id"], x["rule_id"])
+            # the lift's fish, read as a rule's species ("ALL_FIN_FISH" is every fin fish)
+            if t not in live or ("species" in x
+                                 and not speaks_for({"species": x["species"]}, fish)):
+                continue
+            if x.get("when_targeting") or x.get("while"):
+                partly.add(t)
+                continue
+            got = in_force(x.get("when"), on) if "when" in x else "yes"
+            if got == "yes":
+                lifted.add(t)
+            elif got == "part":
+                partly.add(t)
+    cand = {k for k in live - lifted
+            if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
+
+    def competes(k) -> bool:
+        x = every[k]
+        return state[k] == "yes" and not x.get("standing") and x.get("family") != "information"
+
+    def closure(k) -> bool:
+        x = every[k]
+        return x.get("take") == 0 and x.get("may_target") == 0
+
+    def order(k) -> tuple:
+        x = every[k]
+        rank = x["_rank"]
+        if here[k] == "trib" and rank == 0:
+            rank = 1
+        # A `within` clause is named at its PARENT's level: "Trout/char: 5, but not more than 1
+        # bull trout" is a trout/char quota with a sub-limit, not a bull trout rule — read as one,
+        # it would reopen bull trout at a water printing "Trout/char catch and release".
+        parent = every.get((k[0], x["within"])) if x.get("within") else None
+        named = 0 if (not by_naming or closure(k) or names_fish(parent or x, fish)) else 1
+        return (0 if rank < 0 else 1, named, rank)
+
+    def family(k) -> tuple:
+        x = every[k]
+        return (k[0], x.get("within") or x.get("condition_of") or k[1])
+
+    keyed: dict = {}
+    for k in cand:
+        if competes(k):
+            keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
+
+    out_ = set(cand)
+    for group in keyed.values():
+        for k in group:
+            if not closure(k) and any(order(o) < order(k) and family(o) != family(k)
+                                      for o in group):
+                out_.discard(k)
+
+    def said(k) -> str:
+        return "speaks" if competes(k) else "beside" if state[k] == "part" else "shown"
+
+    return [dict({a: b for a, b in every[k].items() if a != "_rank"}, state=said(k),
+                 **({"partly_lifted": True} if k in partly else {}))
+            for k in sorted(out_, key=lambda k: f"{k[0]}::{k[1]}")]

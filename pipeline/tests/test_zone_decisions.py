@@ -456,13 +456,22 @@ def test_a_water_quota_never_sits_under_a_smaller_conditioned_zone_count(db, cor
     — Duncan River's "rainbow trout daily quota = 5" on a stream under Region 4's "2 from
     streams" — the two cannot both hold: the water row must lift the zone count, or the angler
     gets two limits where the book prints one (review 2026-09-24; 10 such rows were missed).
-    Size gates and releases are not checked here; only counts."""
+    Size gates and releases are not checked here; only counts.
+
+    SPECIES-AWARE (2026-09-24): asked PER FISH, on a day both rules are in force, through the
+    reference ladder (`read.effective_rules`) — so a lift counts only for the fish and the days it
+    holds, and a zone count that another rule already outranks for that fish is not a conflict."""
+    from pipeline.deliver.bundle import read as R
+    path = str(BUNDLE)
+    every = R._rules_of(path)
     rules = {(eid, r.rule_id): r for eid, ce in corpus.items() for r in ce.rules}
     sets: dict = {}
     for s, e, r in db.execute("select set_id, entry_id, rule_id from ruleset"):
         sets.setdefault(s, []).append((e, r))
-    bad = set()
-    for rows in sets.values():
+    rep = dict(db.execute("select set_id, min(sid) from section_ruleset group by set_id"))
+    days = [(m, d) for m in range(1, 13) for d in (1, 15)]
+    bad, asked = set(), 0
+    for s, rows in sets.items():
         zs = [k for k in rows if k[0].startswith("z") and k in rules]
         ws = [k for k in rows if k[0].startswith("r") and k in rules]
         for z in zs:
@@ -475,10 +484,18 @@ def test_a_water_quota_never_sits_under_a_smaller_conditioned_zone_count(db, cor
                 rw = rules[w]
                 if (rw.type is not C.RuleType.retention_limit or not rw.take or rw.lift_only
                         or rw.within or rw.clock != rz.clock or rw.dimension == rz.dimension
-                        or not fish & set(C.expand_species(list(rw.species)))
-                        or (rz.origin and rw.origin and rz.origin != rw.origin)):
+                        or (rz.origin and rw.origin and rz.origin != rw.origin)
+                        or rw.take <= rz.take):
                     continue
-                if rw.take > rz.take and not any(x.entry_id == z[0] and x.target == z[1]
-                                                 for x in rw.exempts):
-                    bad.add((w, z))
+                for f in sorted(fish & set(C.expand_species(list(rw.species)))):
+                    on = next((d for d in days if R.in_force(every[z].get("when"), d) == "yes"
+                               and R.in_force(every[w].get("when"), d) == "yes"), None)
+                    if on is None:
+                        continue
+                    asked += 1
+                    got = {(x["entry"], x["rule"]) for x in R.effective_rules(rep[s], on, f, path)
+                           if x["state"] == "speaks"}
+                    if z in got and w in got:
+                        bad.add((w, z, f))
+    assert asked > 0
     assert not bad, sorted(bad)

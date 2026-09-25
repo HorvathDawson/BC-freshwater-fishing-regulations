@@ -1350,6 +1350,214 @@ def _dates_are_printed(when: Optional[When], verbatim: str, where: str) -> Optio
     return None
 
 
+#: "all year", "year-round", "year round" — a sentence that prints a window for one place and ALL
+#: YEAR for another ("Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace
+#: River watershed all year") may carry no `when`: an absent `when` IS all year.
+_ALL_YEAR_SAID = re.compile(r"\ball year\b|\byear[- ]round\b")
+
+
+#: A MONTH WITH NO DAY AT THE END OF A QUOTE: a date cut off. Coquihalla River's last line wraps
+#: "…, Nov" / "1-Mar 31" onto the next printed line, and extraction kept only "Nov" — the row, a
+#: rule's verbatim and both rules' seasons were lost. "May" is also a verb, so it is left out.
+_CUT_DATE = re.compile(r"\b(jan|feb|mar|apr|jun|june|jul|july|aug|sep|sept|oct|nov|dec)\.?\s*$")
+
+
+def _year_days() -> set:
+    return _days([DateRange(from_month=1, from_day=1, to_month=12, to_day=31)])
+
+
+def _own_dates_carried(rule: "CatalogueRule") -> Optional[str]:
+    """A RULE WHOSE OWN SENTENCE PRINTS DATES CARRIES THEM. An absent `when` is ALL YEAR, so a rule
+    quoting "…, May 1-Oct 31" with no `when` binds 365 days where the book printed 184 — the
+    shape of all six `within` clauses the model now refuses, and of any quota, bait ban or closure
+    split off a dated sentence without its season.
+
+    The `when` must be one of three things, each a reading of the printed words:
+      * a non-empty SUBSET of the printed ranges — a sentence naming two places with two windows
+        is two rules, each carrying its own ("downstream of Hell's Gate Sept 1-Nov 15, …");
+      * exactly their COMPLEMENT on the year — "Open June 16-Apr 30" is a closure on May 1-June 15,
+        "catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2" a release on every other day
+        (`When` has no `excepts` flag, so the complement is what is written);
+      * ABSENT, when the sentence also prints "all year" — the other half is another rule.
+    A LIFT-ONLY rule names the window of the rule it lifts ("Exempt from July 15-Aug 31 summer
+    closure"); that is the lifted rule's season, not its own, and it is exempt."""
+    if _CUT_DATE.search(squash(rule.verbatim)):
+        return (f"its sentence ends in a month with no day ({squash(rule.verbatim)[-12:]!r}) — a "
+                f"date cut off; restore it from the page")
+    if rule.lift_only:
+        return None
+    printed = printed_ranges(rule.verbatim)
+    if not printed:
+        return None
+    mine = list(rule.when.dates) if rule.when else []
+    said = ", ".join(d.words() for d in printed)
+    if not mine:
+        if _ALL_YEAR_SAID.search(squash(rule.verbatim)):
+            return None
+        return (f"its sentence prints {said} but it has no `when` — an absent `when` is ALL YEAR; "
+                f"give it the printed dates")
+    if all(d in printed for d in mine):
+        return None
+    if _days(mine) == _year_days() - _days(printed):
+        return None
+    return (f"its `when` ({', '.join(d.words() for d in mine)}) is neither the dates its sentence "
+            f"prints ({said}), some of them, nor their complement")
+
+
+#: PRINTED WINDOWS NO RULE OF THEIR ROW CARRIES, BECAUSE THE BOOK'S MEANING IS HELD ELSEWHERE —
+#: `(entry_id, range words)` -> where. Every other printed range must be carried by some `when`
+#: in its entry (`_printed_windows_carried`); an entry listed here that no longer needs it is
+#: refused too, so the list cannot go stale.
+WINDOWS_HELD_ELSEWHERE: dict = {
+    ("z7b:trout_char_quota", "Oct 16-Aug 14"):
+        "the NOTE's retention window for bull trout. Retention is allowed only in the Liard River "
+        "watershed, whose row prints its own 'Oct 16-Aug 14' quota; everywhere else in Zone B "
+        "r10 releases bull trout all year (user ruling 2026-09-24)",
+    ("z7b:trout_char_quota", "Aug 15-Oct 15"):
+        "the Liard half of r9's sentence. Outside the Liard row's Oct 16-Aug 14 its quota is not "
+        "in force and r10's all-year release speaks there — which is Aug 15-Oct 15",
+}
+
+
+def _whens_in(obj, out: list) -> None:
+    """Every `When` a model holds, at any depth — a rule's, a licensing record's, a stamp
+    period's. Walks the model's own fields, so a new place a season can live is found."""
+    if isinstance(obj, When):
+        out.append(obj)
+    elif isinstance(obj, BaseModel):
+        for k in type(obj).model_fields:
+            _whens_in(getattr(obj, k), out)
+    elif isinstance(obj, (list, tuple)):
+        for x in obj:
+            _whens_in(x, out)
+
+
+def _unique_span(hay: str, needle: str) -> Optional[tuple]:
+    """Where `needle` sits in `hay`, when it sits there ONCE — two rules quoting the same words
+    at two places ("no trout under 30 cm", twice on the Kootenay) cannot be told apart by text."""
+    i = hay.find(needle)
+    if i < 0 or not needle or hay.find(needle, i + 1) >= 0:
+        return None
+    return i, i + len(needle)
+
+
+_JOIN_NEXT = re.compile(r"[\s,)\]]*(?:\band\b\s*|\(\s*)?")
+_BARE_GAP = re.compile(r"[\s,:)\]]*(?:from\s+)?")
+
+
+def _dates_lost(entry: "CatalogueEntry") -> List[str]:
+    """THE SEASONS OF A ROW, AGAINST ITS RULES. Four ways a printed date has been lost, each a shape
+    the corpus once held; the first is on the rule (`_own_dates_carried`), these three need the
+    row and the rule's siblings.
+
+      1. A PRINTED WINDOW NO `when` CARRIES. Every range in `regs_verbatim` is some rule's or
+         licensing record's `when` (or its complement, or the window a lift names), unless
+         `WINDOWS_HELD_ELSEWHERE` says where it is held.
+      2. A QUOTE INSIDE A DATED SIBLING'S. "Trout daily quota = 2 (none under 30 cm), May 1-Oct 31"
+         split into the quota (dated) and "none under 30 cm" (a rule of its own, undated): the
+         clause's words overlap the dated rule's, so it is the same sentence and the same season.
+      3. THE DATE STRAIGHT AFTER THE QUOTE. "…quota = 2 (none under 30 cm), May 1-Oct 31" with
+         the verbatim cut before the date and no `when`: nothing but punctuation separates the
+         rule's words from the window, so the window is the rule's.
+      4. "A AND B, <dates>". "Trout/char catch and release and bait ban, June 15-Aug 31" governs
+         both; the book repeats a date per clause when it means them apart (Findlay Creek:
+         "…, June 15-Oct 31; bait ban, June 15-Oct 31"). A `;` or a list comma is not this shape.
+    A lift-only rule is exempt from 2-4 (its dates are the lifted rule's), and so is a rule whose
+    own sentence prints "all year" (`_own_dates_carried`)."""
+    e: List[str] = []
+    # THE ROW, SQUASHED LINE BY LINE, so a line break is still visible: `breaks` are the offsets
+    # in `hay` where one printed line ends and the next begins.
+    hay, breaks = "", []
+    for line in entry.regs_verbatim.split("\n"):
+        got = squash(line)
+        if got:
+            if hay:
+                breaks.append(len(hay))
+                hay += " "
+            hay += got
+    if _CUT_DATE.search(hay):
+        e.append(f"the row ends in a month with no day ({hay[-12:]!r}) — a date cut off; restore "
+                 f"it from the page")
+    whens: list = []
+    _whens_in(list(entry.rules) + list(entry.licensing), whens)
+    carried = [d for w in whens for d in w.dates]
+    year = _year_days()
+    lifts = [printed_ranges(r.verbatim) for r in entry.rules if r.lift_only]
+    for d in printed_ranges(entry.regs_verbatim):
+        key = (entry.entry_id, d.words())
+        if d in carried or any(d in x for x in lifts) or key in WINDOWS_HELD_ELSEWHERE:
+            continue
+        if any(w.dates and _days(list(w.dates)) == year - _days([d]) for w in whens):
+            continue
+        e.append(f"the row prints {d.words()} and no rule or licensing record carries it — a "
+                 f"season that reaches no `when` is lost, and the rule it governed reads all year")
+    for k, why in WINDOWS_HELD_ELSEWHERE.items():
+        if k[0] == entry.entry_id and any(d.words() == k[1] for d in carried):
+            e.append(f"WINDOWS_HELD_ELSEWHERE lists {k[1]} for this row, but a rule now carries "
+                     f"it — take it off the list")
+
+    def dated(r) -> bool:
+        # PRINTED DAYS, not any `when`: an hours- or weekday-only `when` is not a season a
+        # sibling can have lost ("Youth/Disabled Accompanied Water" is one quote for two rules).
+        return r.when is not None and bool(r.when.dates)
+
+    spans = {r.rule_id: _unique_span(hay, squash(r.verbatim)) for r in entry.rules}
+    for r in entry.rules:
+        if dated(r) or r.lift_only or _ALL_YEAR_SAID.search(squash(r.verbatim)):
+            continue
+        mine = spans[r.rule_id]
+        if mine is None:
+            continue
+        for s in entry.rules:
+            other = spans[s.rule_id]
+            if s is r or other is None or not dated(s):
+                continue
+            if mine[0] < other[1] and other[0] < mine[1]:
+                e.append(f"{r.rule_id}: its words are part of {s.rule_id}'s sentence, which holds "
+                         f"on {s.when.words()} — it has no `when`, so it reads all year")
+        after = hay[mine[1]:]
+        gap = _BARE_GAP.match(after)
+        if gap and gap.end() < len(after) and printed_ranges(after[gap.end():gap.end() + 25]) \
+                and _RANGE.match(after[gap.end():]):
+            e.append(f"{r.rule_id}: the row prints a date straight after its words "
+                     f"({after[gap.end():gap.end() + 20]!r}) and it has no `when`")
+            continue
+        # A CHAIN OF CLAUSES ENDING IN ONE DATE: walk the siblings that follow on the same
+        # printed line, joined by "and", ",", "(" / ")" or nothing, to the first text that is not
+        # a sibling. The chain's date is the one standing AFTER it — or, when the last clause was
+        # joined by "and", the one closing that clause's own words ("trout/char catch and release
+        # and bait ban, June 15-Aug 31"). If a sibling in the chain carries that date, the date
+        # governs the whole chain and this rule has lost it. A date that closes a clause joined by
+        # a COMMA is that clause's own: "ALL STEELHEAD, Bull trout from streams, Aug 1-Oct 31" is
+        # a list of releases, and the date is the bull trout's. A `;` ends the chain, as does a
+        # line break (the next printed line is the next regulation).
+        at, chain, via_and = mine[1], [], False
+        while True:
+            joined = _JOIN_NEXT.match(hay, at)
+            if any(at <= b < joined.end() for b in breaks):
+                break
+            nxt = next((s for s in entry.rules if s is not r and s not in chain
+                        and spans[s.rule_id] is not None
+                        and spans[s.rule_id][0] == joined.end()), None)
+            if nxt is None:
+                break
+            chain.append(nxt)
+            via_and = " and" in f" {joined.group(0)}"
+            at = spans[nxt.rule_id][1]
+        if not chain:
+            continue
+        g = _BARE_GAP.match(hay, at)
+        m = _RANGE.match(hay, g.end())
+        final = printed_ranges(m.group(0)) if m else []
+        if not final and via_and:
+            final = printed_ranges(hay[spans[chain[-1].rule_id][0]:at][-25:])[-1:]
+        if final and any(dated(s) and final[0] in s.when.dates for s in chain):
+            e.append(f"{r.rule_id}: '{squash(r.verbatim)[:30]}… {squash(chain[-1].verbatim)[:30]}"
+                     f"…, {final[0].words()}' — the date governs every clause before it, and "
+                     f"{r.rule_id} has no `when`")
+    return e
+
+
 def _extents_the_resolver_reads(extents: Optional[List[dict]]) -> List[str]:
     """A rule's or a licensing record's extent may not carry a flag the reach builder never reads.
 
@@ -2457,6 +2665,10 @@ class CatalogueRule(BaseModel):
             e.append(f"period belongs to {' and '.join(x.value for x in _COUNTED_TYPES)}, "
                      f"not {t.value} — a clock with no number on it says nothing")
         e += _extents_the_resolver_reads(self.extents)
+        # THE DATES ITS OWN SENTENCE PRINTS — see `_own_dates_carried`.
+        err = _own_dates_carried(self)
+        if err:
+            e.append(err)
         # FEATURE TYPES ARE APPLIED TO THE RULE'S WHOLE REACH, after any tributary walk
         # (`reach.classify`), so they must be said on every extent or on none — a union of
         # "lakes of this watershed" with "that river, every kind" has no one filter.
@@ -3499,6 +3711,8 @@ class CatalogueEntry(BaseModel):
                          f"parent's `when`")
             elif mine.dates and p.when.dates and not _days(mine.dates) <= _days(p.when.dates):
                 e.append(f"{r.rule_id}: its `when` holds on days its parent {p.rule_id} does not")
+        # EVERY SEASON THE ROW PRINTS REACHES A RULE — see `_dates_lost`.
+        e += _dates_lost(self)
         # EVERY QUOTE A LICENSING RECORD CARRIES is chain of custody too — per printed clause, so
         # a stamp period or a suspension note cannot be paraphrased under a real designation.
         lic_ids: set = set()

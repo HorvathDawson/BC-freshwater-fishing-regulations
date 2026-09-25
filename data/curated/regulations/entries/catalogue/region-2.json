@@ -2304,7 +2304,7 @@
    "name": "COQUIHALLA RIVER",
    "display_name": "Coquihalla River",
    "region": "2",
-   "regs_verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
+   "regs_verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31",
    "source_pages": [
     22
    ],
@@ -2475,12 +2475,21 @@
        ]
       }
      ],
-     "review_reason": "the printed date window is cut off after 'Nov' in the source row — could not bind an end date without inventing one"
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ]
+     }
     },
     {
      "rule_id": "coquihalla_river.r7",
      "type": "bait_restriction",
-     "verbatim": "bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
+     "verbatim": "bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31",
      "gear": [
       {
        "slot": "bait",
@@ -2497,7 +2506,16 @@
        ]
       }
      ],
-     "review_reason": "the printed date window is cut off after 'Nov' in the source row — could not bind an end date without inventing one"
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 3,
+        "to_day": 31
+       }
+      ]
+     }
     }
    ]
   },
