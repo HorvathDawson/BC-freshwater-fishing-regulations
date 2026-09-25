@@ -13412,15 +13412,17 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
-     "tributaries_only": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:39325",
+       "op": "within",
+       "area_id": "area:basin:100-",
+       "within_area": "area:region:5",
        "feature_types": [
         "stream"
        ],
-       "within_area": "area:region:5"
+       "outside_items": [
+        "gnis:39325"
+       ]
       }
      ],
      "extent_text": "Fraser and Thompson watersheds in Region 5, except the Fraser mainstem"
@@ -13441,15 +13443,15 @@
      "rule_id": "steelhead_management.r1",
      "type": "advisory",
      "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:13744"
+       "op": "within",
+       "area_id": "area:basin:100-342455-",
+       "within_area": "area:region:5"
       }
      ],
      "extent_text": "Chilcotin River watershed",
-     "review_reason": "BOUND — watershed: the named water plus its tributary walk. Conditional ('may be closed') and watershed-scoped. RECOVERED — absent from the corpus."
+     "review_reason": "BOUND — watershed: the FWA basin of the Chilcotin (code 100-342455-) in Region 5. Conditional ('may be closed'). RECOVERED — absent from the corpus."
     }
    ]
   },

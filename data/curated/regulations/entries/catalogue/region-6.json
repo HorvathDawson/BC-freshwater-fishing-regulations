@@ -6137,6 +6137,16 @@
      "species": [
       "LT"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ]
+     },
      "take": 1,
      "within": "murray_lake.r2",
      "lengths": [
@@ -9849,15 +9859,14 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:39325",
+       "op": "within",
+       "area_id": "area:basin:100-",
+       "within_area": "area:region:6",
        "feature_types": [
         "stream"
-       ],
-       "within_area": "area:region:6"
+       ]
       }
      ],
      "extent_text": "Fraser watershed within Region 6"
@@ -10068,15 +10077,14 @@
        ]
       }
      ],
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:2936",
+       "op": "within",
+       "area_id": "area:basin:400-",
+       "within_area": "area:region:6",
        "feature_types": [
         "stream"
-       ],
-       "within_area": "area:region:6"
+       ]
       }
      ],
      "extent_text": "Skeena River and its tributaries"
@@ -10093,15 +10101,14 @@
        ]
       }
      ],
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:3206",
+       "op": "within",
+       "area_id": "area:basin:500-",
+       "within_area": "area:region:6",
        "feature_types": [
         "stream"
-       ],
-       "within_area": "area:region:6"
+       ]
       }
      ],
      "extent_text": "Nass River and its tributaries"
@@ -10704,16 +10711,15 @@
      },
      "take": 0,
      "may_target": true,
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:39325",
+       "op": "within",
+       "area_id": "area:basin:100-",
        "within_area": "area:region:6"
       },
       {
-       "op": "whole",
-       "item_id": "gnis:2936",
+       "op": "within",
+       "area_id": "area:basin:400-",
        "within_area": "area:region:6"
       }
      ],

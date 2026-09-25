@@ -718,6 +718,9 @@ LIFT_TEXT = {
     "when_targeting": "the lift holds only when fishing FOR these. The angler is unknown, so the "
                       "lifted rule stays and the lift is a condition on it",
     "while": "the lift holds only while doing these; the lifted rule binds everyone else",
+    "when": "the lift holds only on these days/hours (the lifter's own `when`, shape as in "
+            "`time`); on every other day the lifted rule binds. Absent = the lifter is in force "
+            "every day the lifted rule is. A lift is never in force while its lifter is not",
 }
 
 LENGTH_TEXT = {
@@ -881,7 +884,19 @@ def guide(d: dict) -> dict:
         "competition": "Two rules COMPETE only when they share (type, dimension). A water's "
                        "daily trout quota competes with its region's daily trout quota; a "
                        "fly-only rule and a barbless rule have different dimensions and BOTH "
-                       "apply. Rules that do not compete all apply.",
+                       "apply. Rules that do not compete all apply. Competition is decided "
+                       "among the rules IN FORCE at the moment asked about (`when`): a rule "
+                       "whose dates, weekdays or hours exclude that moment displaces nothing, and "
+                       "the rules it would have displaced speak — the book's own reading "
+                       "('Lake trout catch and release EXCEPT during months of February and July "
+                       "(when regional quotas apply)'). So a water's dated quota gives way to its "
+                       "region's outside its dates, and a stream's 'No fishing, Jan 1-Jun 15' "
+                       "does not silence its region's lake trout release on Oct 1. A rule "
+                       "dormant under `suspended_while` is not in force. A rule uncertain in time "
+                       "(`when.unparsed`), or asked about for a date when it holds only some "
+                       "hours, is shown BESIDE what it would displace, each with its own `when`, "
+                       "never in place of it. A lift is in force only while its lifter is "
+                       "(`exempts[].when`).",
         "who_speaks": "Among competitors the smaller rank speaks: a rule bound to "
                       "this water beats one bound to an area, which beats the region's "
                       "standing table, which beats the province. `binds_to` decides before "
@@ -1169,13 +1184,13 @@ def guide(d: dict) -> dict:
                      for a in _enum(C.VesselAspect)},
     }
     def part(e):
-        return any(k in e for k in ("species", "when_targeting", "while"))
+        return any(k in e for k in ("species", "when_targeting", "while", "when"))
     exempts = {
         "reading": "A rule with `exempts` LIFTS the rules it names, where and while it binds. "
                    "Every item is RESOLVED to one rule, `entry_id::rule_id`: match on those "
                    "exact ids, never on a bare name. An item with no `species`, "
-                   "`when_targeting` or `while` lifts that rule outright. One with any of them "
-                   "lifts it only for those anglers — the rule stays in force for everyone "
+                   "`when_targeting`, `while` or `when` lifts that rule outright. One with any "
+                   "of them lifts it only for those anglers, or only on those days — the rule stays in force for everyone "
                    "else, and since the angler is unknown the lift is a condition beside it, "
                    "never a removal. A lift is never wider than its lifter. A lift whose place "
                    "cannot be drawn is not applied, and a rule never lifts itself.",

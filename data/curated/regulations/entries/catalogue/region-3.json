@@ -413,6 +413,22 @@
       "BT",
       "DV"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 30
+       },
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ]
+     },
      "within": "adams_river_upstream.r4",
      "lengths": [
       {

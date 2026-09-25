@@ -137,7 +137,12 @@ def region_words(regions) -> str:
 
 
 def _area_words(area_id: str) -> str:
-    """`area:mu_group:management_units_1_1_to_1_6` -> "MUs 1-1 to 1-6"."""
+    """`area:mu_group:management_units_1_1_to_1_6` -> "MUs 1-1 to 1-6"; a watershed by FWA code
+    (`area:basin:100-`) -> the river it drains to, "Fraser River watershed" (`registry.basins`)."""
+    from pipeline.atlas.registry.basins import basin_name
+    named = basin_name(area_id)
+    if named:
+        return named
     kind, _, slug = area_id.partition(":")[2].partition(":")
     words = slug.replace("_", " ")
     words = re.sub(r"management units (\d+) (\d+)(?: (?:and|to) (\d+) (\d+))?",

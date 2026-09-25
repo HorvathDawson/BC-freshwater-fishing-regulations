@@ -107,9 +107,9 @@ def _zone_region(entry_id: str) -> str:
 
 
 #: The keys of one resolved lift in the `exempts` column — and nothing else. Two name the lifted
-#: rule; `note` is the book's words; the other three, when present, say the lift holds only IN
+#: rule; `note` is the book's words; the other four, when present, say the lift holds only IN
 #: PART (see `_lift_terms`). The client refuses any other key.
-LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while")
+LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when")
 
 
 def _species_of(r) -> frozenset[str] | None:
@@ -154,6 +154,11 @@ def _lift_terms(by, lifted) -> dict | None:
       while           a lift that holds only WHILE doing something (set lining, spearing) leaves
                       the rule standing for everyone else, unless the lifted rule binds only while
                       doing the same thing (`while`).
+      when            A LIFT IS IN FORCE ONLY WHILE ITS LIFTER IS. The item carried no time, and
+                      the guide read an item with no qualifier as "lifted outright" — so a lifter
+                      printed for Jul 1-Apr 30 (Chilliwack/Vedder's hatchery rainbow quota) lifted
+                      Region 2's "2 from streams" in May and June too, when its own quota was not
+                      in force. See `_when_term`.
 
     `water` is not a qualifier: it is enforced where the lifter is PLACED (its extents carry
     `feature_types`), and a lifter whose `water` its placement does not enforce stops the build —
@@ -169,6 +174,10 @@ def _lift_terms(by, lifted) -> dict | None:
                 return None                     # it speaks about other fish: nothing is lifted
             if not theirs <= mine:
                 terms["species"] = sorted(both)
+    when = _when_term(by, lifted)
+    if when is None:
+        return None                             # never in force on a day the lifted rule is
+    terms.update(when)
     want, have = _targets(by), _targets(lifted)
     if want:
         if not (have and have <= want):
@@ -178,6 +187,32 @@ def _lift_terms(by, lifted) -> dict | None:
         if not (lifted.while_ and frozenset(lifted.while_) <= acts):
             terms["while"] = sorted(acts)
     return terms
+
+
+def _when_term(by, lifted) -> dict | None:
+    """The lift's TIME: `{}` when the lifter is in force every day the lifted rule is, `None` when
+    it is in force on none of them, else `{"when": <the lifter's own When>}`.
+
+    Only the calendar decides the two ends. A lifter with hours, weekdays or an unparsed season
+    is in force only on part of a day it names, so its lift always carries its `when` — unless
+    its days miss the lifted rule's altogether, which the calendar can prove. `None` lifts
+    nothing, exactly as a lifter about other fish does (`_lift_terms`): the two rules speak on
+    different days and neither needs the other lifted."""
+    from pipeline.regs.parsing.catalogue import DateRange, _days
+    mine, theirs = by.when, lifted.when
+    if mine is None or mine.is_empty():
+        return {}
+    if theirs is not None and mine == theirs:
+        return {}
+    year = _days([DateRange(from_month=1, from_day=1, to_month=12, to_day=31)])
+    my_days = _days(mine.dates) if mine.dates else year
+    their_days = _days(theirs.dates) if theirs is not None and theirs.dates else year
+    if not my_days & their_days:
+        return None
+    whole_days = not (mine.hours or mine.weekdays or mine.unparsed)
+    if whole_days and their_days <= my_days:
+        return {}
+    return {"when": mine.model_dump(mode="json", by_alias=True, exclude_none=True)}
 
 
 def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, dict]):
@@ -199,8 +234,8 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
       `target`      one rule by id, in `entry_id` when the exemption says so, else in this entry.
 
     Each lifted rule is one item, `{"entry_id", "rule_id"}` (+ the authored `note`), carrying the
-    qualifiers `_lift_terms` found — `species`, `when_targeting`, `while` — when the lift holds only
-    in part. An item with no qualifier lifts its rule outright; one with any lifts it only for those
+    qualifiers `_lift_terms` found — `species`, `when_targeting`, `while`, `when` — when the lift
+    holds only in part. An item with no qualifier lifts its rule outright; one with any lifts it only for those
     anglers, so the rule stays in force and the client marks it partly lifted. (This replaced items
     naming a whole zone entry by `default_id`, which the client lifted wholesale: that shape is what
     let a bull-trout exemption lift the whole trout/char release.)

@@ -747,3 +747,31 @@ def test_no_verbatim_carries_a_known_extraction_garble():
     from pipeline.common.curated import CURATED
     for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
         assert "Folpye" not in p.read_text(), p.name
+
+
+def test_a_clause_of_a_dated_quota_carries_the_quotas_dates():
+    """ADAMS RIVER: "Bull trout (Dolly Varden) daily quota = 1 (none under 80 cm), July 1-30 and
+    Nov 1-Dec 31". The quota carried the dates and its `within` clause did not, so the clause read
+    as all year and "none under 80 cm" showed on Aug 15 beside the stream release. A clause of a
+    dated quota must carry a `when` inside its parent's (review 2026-09-24; 6 clauses were fixed)."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    v = "Bull trout daily quota = 1 (none under 80 cm), July 1-30 and Nov 1-Dec 31"
+    d = lambda fm, fd, tm, td: {"from_month": fm, "from_day": fd, "to_month": tm, "to_day": td}
+    quota = {"dates": [d(7, 1, 7, 30), d(11, 1, 12, 31)]}
+
+    def entry(child_when):
+        child = {"rule_id": "a.r2", "type": "retention_limit", "verbatim": "none under 80 cm",
+                 "species": ["BT"], "within": "a.r1", "lengths": [{"max_cm": 80, "take": 0}],
+                 "extents": [{"op": "whole"}]}
+        if child_when is not None:
+            child["when"] = child_when
+        return {"entry_id": "r3:a@3-1", "name": "A", "regs_verbatim": v, "rules": [
+            {"rule_id": "a.r1", "type": "retention_limit", "verbatim": v, "species": ["BT"],
+             "take": 1, "when": quota, "extents": [{"op": "whole"}]}, child]}
+
+    CatalogueEntry.model_validate(entry(quota))
+    CatalogueEntry.model_validate(entry({"dates": [d(7, 1, 7, 15)]}))   # narrower is fine
+    with pytest.raises(ValueError, match="would read as all year"):
+        CatalogueEntry.model_validate(entry(None))
+    with pytest.raises(ValueError, match="days its parent"):
+        CatalogueEntry.model_validate(entry({"dates": [d(8, 1, 8, 31)]}))

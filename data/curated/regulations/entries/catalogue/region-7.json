@@ -7608,6 +7608,13 @@
             "peace_river__hwy_29_bridge",
             "peace_river__site_c_dam"
           ]
+        },
+        {
+          "op": "between",
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
         }
       ],
       "rules": [
@@ -7621,7 +7628,11 @@
           "take": 10,
           "extents": [
             {
-              "op": "whole"
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ]
             }
           ],
           "exempts": [
@@ -7644,7 +7655,11 @@
           "includes_tributaries": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ]
             }
           ]
         },
@@ -7660,7 +7675,11 @@
           "includes_tributaries": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ]
             }
           ]
         },
@@ -7674,7 +7693,11 @@
           "take": 3,
           "extents": [
             {
-              "op": "whole"
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ]
             }
           ],
           "exempts": [

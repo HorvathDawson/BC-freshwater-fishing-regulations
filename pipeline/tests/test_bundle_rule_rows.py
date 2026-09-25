@@ -242,6 +242,55 @@ def test_a_lift_is_never_wider_than_its_lifter():
         {"entry_id": "zp:bait", "rule_id": "bait.r1", "while": ["set_lining"]}]
 
 
+def test_a_lift_is_in_force_only_while_its_lifter_is():
+    """A LIFT CARRIED NO TIME, and an item with no qualifier lifts its rule outright — so a lifter
+    printed for some days lifted on every day. Chilliwack/Vedder's hatchery rainbow quota (Jul 1-Apr
+    30) lifted Region 2's "2 from streams" in May and June too. The lift now carries the lifter's
+    `when` wherever the lifter is not in force every day the lifted rule is, and lifts NOTHING when
+    the two never share a day (Adams River's bull trout quota, Jul 1-30 and Nov 1-Dec 31, against
+    Region 3's Aug 1-Oct 31 stream release: they speak on different days)."""
+    import pytest
+    from pipeline.deliver.bundle.rules import _exempts
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+
+    def rule(rid, when=None, **kw):
+        return CatalogueRule.model_validate({
+            "rule_id": rid, "type": "retention_limit", "verbatim": "x", "species": ["BT"],
+            "take": 1, **({"when": {"dates": when}} if when else {}), **kw})
+
+    d = lambda fm, fd, tm, td: {"from_month": fm, "from_day": fd, "to_month": tm, "to_day": td}
+    release = rule("z.r6", [d(8, 1, 10, 31)], take=0, may_target=True)
+    allyear = rule("z.r1", take=0, may_target=True)
+    rules_of = {"z3:q": {"z.r6": release, "z.r1": allyear}}
+
+    def lifts(target, when):
+        r = rule("a.r4", when, exempts=[{"target": target, "entry_id": "z3:q"}])
+        got = _exempts("r3:a@3-1", r, {}, rules_of)
+        return json.loads(got) if got else None
+
+    # a dated lifter against an all-year rule: in force only on the lifter's days
+    assert lifts("z.r1", [d(7, 1, 4, 30)]) == [
+        {"entry_id": "z3:q", "rule_id": "z.r1",
+         "when": {"dates": [d(7, 1, 4, 30)]}}]
+    # the lifter covers every day the lifted rule binds: lifted outright, no qualifier
+    assert lifts("z.r6", [d(7, 1, 11, 30)]) == [{"entry_id": "z3:q", "rule_id": "z.r6"}]
+    assert lifts("z.r6", None) == [{"entry_id": "z3:q", "rule_id": "z.r6"}]
+    # they overlap in part: the lift names the lifter's days
+    assert lifts("z.r6", [d(10, 1, 12, 31)]) == [
+        {"entry_id": "z3:q", "rule_id": "z.r6", "when": {"dates": [d(10, 1, 12, 31)]}}]
+    # ADAMS: never on the same day — nothing is lifted, and the build refuses the empty lift
+    with pytest.raises(SystemExit, match="lifts no rule"):
+        lifts("z.r6", [d(7, 1, 7, 30), d(11, 1, 12, 31)])
+    # hours never cover a whole day, so a lifter with hours always carries its `when`
+    r = CatalogueRule.model_validate({
+        "rule_id": "a.r5", "type": "retention_limit", "verbatim": "x", "species": ["BT"],
+        "take": 1, "exempts": [{"target": "z.r1", "entry_id": "z3:q"}],
+        "when": {"hours": {"start": {"at": "06:00"}, "end": {"at": "18:00"}}}})
+    from pipeline.deliver.bundle.rules import _when
+    # the lifter's `when` exactly as its own `when_` column ships it
+    assert json.loads(_exempts("r3:a@3-1", r, {}, rules_of))[0]["when"] == json.loads(_when(r))
+
+
 def test_a_lifter_whose_water_its_placement_does_not_enforce_stops_the_build():
     """`water: lake` on a lifter is enforced where it is PLACED (`feature_types`), because the
     client has no water kind to check it by. A lake-only lift placed on every water is refused."""
@@ -293,7 +342,7 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
                     assert set(x) <= set(rules_mod.LIFT_KEYS), x
                     assert x["rule_id"] in rules_of[x["entry_id"]]
                     assert (x["entry_id"], x["rule_id"]) != (ce.entry_id, r.rule_id)
-                    if {"species", "when_targeting", "while"} & set(x):
+                    if {"species", "when_targeting", "while", "when"} & set(x):
                         partial.append((ce.entry_id, r.rule_id, x["rule_id"]))
             else:
                 silent.append((ce.entry_id, r.rule_id))
@@ -312,6 +361,12 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),
         ("r2:coquitlam_river@2-8", "coquitlam_river.r3", "trout_char_quota.r8"),
         ("r4:beaver_creek@4-8", "beaver_creek.r1", "trout_char_quota.r3"),
+        # DUCK LAKE: two dated rules (Jun 16-May 14, May 15-Jun 15) each lift the bass closure
+        # only on their own days — together, the year.
+        ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r1",
+         "species_quotas.r1"),
+        ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r3",
+         "species_quotas.r1"),
         ("r4:duncan_river@4-19", "duncan_river.r2", "trout_char_winter_release.r1"),
         ("r4:duncan_river@4-19", "duncan_river.r4", "trout_char_quota.r3"),
         ("r4:duncan_river@4-19", "duncan_river.r5", "trout_char_quota.r3"),

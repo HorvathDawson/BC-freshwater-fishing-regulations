@@ -28,7 +28,11 @@ from typing import Callable
 #: 6: the tributary walk lets a lake into a walk through its MAIN outlet even when the lake's
 #:    aggregate order runs ahead of the outlet's (Dester Lake / Meldrum Creek) —
 #:    `graph.tributaries._is_main_outlet`. It changes which sections a walk reaches.
-POLICY_VERSION = "6"
+#: 7: a DETACHED braid piece (touching no section of its water, only unnamed lakes on its own
+#:    blue line) is placed by its own line's nearest placed pieces (`extent._bracket`), and a
+#:    watershed the registry did not mint (`area:basin:100-342455-`) resolves from the graph
+#:    (`extent.area_sections`) where it used to fail.
+POLICY_VERSION = "7"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

@@ -27,7 +27,29 @@ its own.
 
 from __future__ import annotations
 
+from pipeline.atlas.registry.basins import basin_code, basin_members
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
+
+#: Basins answered from the graph, per graph object — a sub-basin is a full scan of the graph. The
+#: graph is held beside its answer and checked by identity, so a recycled `id()` never serves
+#: another graph's basin.
+_BASIN_CACHE: dict[tuple[int, str], tuple[object, frozenset]] = {}
+
+
+def area_sections(reg, g, key: str) -> set[str] | None:
+    """The sections of an `area:` id: the registry's item, or — for a watershed the registry did
+    not mint (`area:basin:100-342455-`, the Chilcotin) — every graph node whose FWA code lies in
+    that basin (`registry.basins`). None = no such area (the caller fails, naming it)."""
+    if key in reg:
+        return set(reg[key].section_ids)
+    code = basin_code(key)
+    if code is None or g is None or not hasattr(g, "nodes"):
+        return None
+    ck = (id(g), code)
+    hit = _BASIN_CACHE.get(ck)
+    if hit is None or hit[0] is not g:
+        hit = _BASIN_CACHE[ck] = (g, frozenset(basin_members(g.nodes.values(), code)))
+    return set(hit[1]) if hit[1] else None
 
 
 def _cut_at(g, refs: set[str], universe: set[str]):
@@ -127,6 +149,7 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
         pending -= settled
 
     straddling: set[str] = set()
+    detached: list[set[str]] = []
     seen: set[str] = set()
     for start in pending:
         if start in seen:
@@ -145,9 +168,51 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
             inside |= comp
         elif ext and ext <= outside:
             outside |= comp
+        elif not ext:
+            detached.append(comp)                          # touches nothing in the water: below
         else:
-            straddling |= comp                             # touches both sides (or nothing): unplaceable
+            straddling |= comp                             # touches both sides: unplaceable
+
+    # DETACHED PIECES, PLACED BY THEIR OWN BLUE LINE. A side channel threading a chain of little
+    # unnamed lakes (the Peace below Site C: blk 359004080 runs piece, lake, piece, lake…) touches
+    # no section of the water at all — its neighbours are the lakes, which belong to no named item
+    # — so it was reported as straddling and every row on the river dropped it. It is still ON a
+    # blue line whose other pieces ARE placed, and route measure on that line says where it is:
+    # the nearest placed piece of the same line below it and above it. Both inside → inside; both
+    # outside → outside; only one side placed, or the two disagree → it stays unplaceable. Judged
+    # against the placements made above and never against each other, so the order is irrelevant.
+    verdicts = [(comp, _bracket(g, comp, inside, outside, universe)) for comp in detached]
+    for comp, side in verdicts:
+        if side == "in":
+            inside |= comp
+        elif side != "out":
+            straddling |= comp
     return inside, straddling
+
+
+def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: set[str]) -> str:
+    """"in" / "out" / "" for a detached component: the side its members' nearest PLACED neighbours
+    on their own blue line (by route measure, below and above) agree on."""
+    sides: set[str] = set()
+    for nid in comp:
+        n = g.nodes.get(nid)
+        if n is None or not n.blk:
+            return ""
+        below = above = None
+        for o in universe:
+            if o in comp or (o not in inside and o not in outside):
+                continue
+            on = g.nodes.get(o)
+            if on is None or on.blk != n.blk:
+                continue
+            if on.up_m <= n.down_m + 0.001 and (below is None or on.up_m > g.nodes[below].up_m):
+                below = o
+            elif on.down_m >= n.up_m - 0.001 and (above is None or on.down_m < g.nodes[above].down_m):
+                above = o
+        if below is None or above is None:
+            return ""
+        sides |= {"in" if x in inside else "out" for x in (below, above)}
+    return sides.pop() if len(sides) == 1 else ""
 
 
 def _kind_of(g, section_id: str) -> str:
@@ -318,10 +383,10 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     limit_id = str(ex.get("within_area") or "")
     if limit_id:
         key = limit_id if limit_id.startswith("area:") else f"area:{limit_id}"
-        if key not in reg:
+        limit_sections = area_sections(reg, g, key)
+        if limit_sections is None:
             _fail("within_area_not_in_registry", limit_id)
             return None
-        limit_sections = set(reg[key].section_ids)
 
     # `outside_area` SUBTRACTS a polygon — the mirror of `within_area`, and the shape a
     # regulation needs when its own header carves one out. The synopsis prints "Region 1 Daily
@@ -341,10 +406,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         drop_ids.append(str(ex["outside_area"]))
     for drop_id in drop_ids:
         key = drop_id if drop_id.startswith("area:") else f"area:{drop_id}"
-        if key not in reg:
+        got_area = area_sections(reg, g, key)
+        if got_area is None:
             _fail("outside_area_not_in_registry", drop_id)
             return None
-        drop_sections |= set(reg[key].section_ids)
+        drop_sections |= got_area
     # `outside_area_kind` SUBTRACTS A WHOLE FAMILY of areas, the mirror of `area_kind` on
     # `within`. "Basic and supplementary licences and stamps are not valid in National Parks" is
     # about all seven parks, and as `outside_areas` it would be a hand list that goes stale when
@@ -427,13 +493,13 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             if not members:
                 _fail("area_kind_matches_nothing", kind_of_area)
                 return None
-            area_sections = {s for i in members for s in i.section_ids}
+            in_area = {s for i in members for s in i.section_ids}
         else:
             key = aid if aid.startswith("area:") else f"area:{aid}"
-            if key not in reg:
+            in_area = area_sections(reg, g, key)
+            if in_area is None:
                 _fail("area_id_not_in_registry", aid)
                 return None
-            area_sections = set(reg[key].section_ids)
         # FEATURE TYPES ARE APPLIED HERE, and were not applied anywhere at all.
         #
         # `Extent.feature_types` has been in the model, documented and validated, since the
@@ -447,12 +513,12 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # "streams only" quietly covering something the atlas could not classify.
         kinds = {str(t).lower() for t in (ex.get("feature_types") or [])}
         if kinds:
-            area_sections = {s for s in area_sections if _kind_of(g, s) in kinds}
-            if not area_sections:
+            in_area = {s for s in in_area if _kind_of(g, s) in kinds}
+            if not in_area:
                 _fail("area_has_no_features_of_type",
                       f"{aid or kind_of_area} / {sorted(kinds)}")
                 return None
-        sec = (universe & area_sections) if universe else area_sections
+        sec = (universe & in_area) if universe else in_area
         if not sec:
             # The water and the area do not meet. Real curation signal, not a resolver failure: it
             # means the rule paired a water with an area it never enters.

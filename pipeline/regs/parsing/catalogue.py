@@ -3482,6 +3482,23 @@ class CatalogueEntry(BaseModel):
                                       or r.suspended_while == r.rule_id):
                 e.append(f"{r.rule_id}: suspended_while={r.suspended_while!r} names no other rule "
                          f"in this entry")
+        # A CLAUSE IS IN FORCE ONLY WHILE ITS QUOTA IS. "Bull trout daily quota = 1 (none under
+        # 80 cm), Jul 1-30 and Nov 1-Dec 31" is one sentence; stored as a quota with the dates
+        # and a `within` clause without them, the clause read as ALL YEAR (an absent `when` is all
+        # year) and showed "none under 80 cm" on Aug 15 beside the release. A readers' `within`
+        # does not carry time, so the clause states it: its days must lie inside its parent's.
+        parents = {r.rule_id: r for r in self.rules}
+        for r in self.rules:
+            p = parents.get(r.within) if r.within else None
+            if p is None or p.when is None or p.when.is_empty():
+                continue
+            mine = r.when
+            if mine is None or mine.is_empty():
+                e.append(f"{r.rule_id}: a clause `within` {p.rule_id}, which holds only on its "
+                         f"own `when`, has none — it would read as all year; give it the "
+                         f"parent's `when`")
+            elif mine.dates and p.when.dates and not _days(mine.dates) <= _days(p.when.dates):
+                e.append(f"{r.rule_id}: its `when` holds on days its parent {p.rule_id} does not")
         # EVERY QUOTE A LICENSING RECORD CARRIES is chain of custody too — per printed clause, so
         # a stamp period or a suspension note cannot be paraphrased under a real designation.
         lic_ids: set = set()

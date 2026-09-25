@@ -83,6 +83,15 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         clip, scope_failed = entry_scope(e, covered, registry, graph)
         if scope_failed:
             report.scope_unresolved.append(entry_id)
+        # PIECES THE ROW'S OWN SCOPE COULD NOT PLACE. `entry_scope` keeps only what its extents
+        # place, so a braid straddling the row's cut left EVERY rule of the row with no word said
+        # — the Peace's side channels across the Site C reach were covered by none of its three
+        # rows. Reported per entry (rule_id ""), never placed: the curator decides (AGENTS 12).
+        lost = scope_unclassified(e, covered, registry, graph, clip)
+        if lost:
+            diagnostics.append(Diagnostic(entry_id, "", "scope_unclassified", {
+                "pieces": lost, "why": "the entry's scope straddles or cannot place these; "
+                                       "no rule of the entry binds them"}))
 
         for rule in e.get("rules") or []:
             report.n_rules += 1
@@ -333,6 +342,19 @@ def entry_scope(e: dict, covered: list[str], registry, graph):
             continue
         out |= set(got.get("sections") or ())
     return (out or None), failed
+
+
+def scope_unclassified(e: dict, covered: list[str], registry, graph, clip) -> list[str]:
+    """The pieces the entry's scope extents report as unplaceable (straddling), minus any its
+    scope placed anyway — what `entry_scope` silently leaves out of every rule of the row."""
+    out: set[str] = set()
+    for sc in e.get("extents") or []:
+        if not isinstance(sc, dict) or sc.get("op") in ("whole", "within"):
+            continue
+        got = _resolve.resolve_extent(registry, graph, covered, sc)
+        if got is not None:
+            out |= set(got.get("unclassified") or ())
+    return sorted(out - set(clip or ()))
 
 
 def _row_water(ex: dict, matched=()) -> bool:

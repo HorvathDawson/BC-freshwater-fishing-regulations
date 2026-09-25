@@ -7066,6 +7066,16 @@
      "species": [
       "TROUT"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
      "within": "kootenay_river_upper.r5",
      "lengths": [
       {
@@ -7091,6 +7101,16 @@
      "species": [
       "BT"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
      "within": "kootenay_river_upper.r5",
      "lengths": [
       {
@@ -7143,6 +7163,16 @@
      "species": [
       "TROUT"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
      "within": "kootenay_river_upper.r8",
      "lengths": [
       {
@@ -7166,6 +7196,16 @@
      "species": [
       "BT"
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 15,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
      "within": "kootenay_river_upper.r8",
      "lengths": [
       {
