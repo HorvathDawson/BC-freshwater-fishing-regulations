@@ -1210,83 +1210,12 @@
    "source_pages": [
     43
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "basalt_lake.r1",
-     "type": "method_rule",
-     "verbatim": "No Ice Fishing",
-     "gear": [
-      {
-       "slot": "method",
-       "ban": [
-        "ice_fishing"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:basalt_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "basalt_lake.r2",
-     "type": "retention_limit",
-     "verbatim": "trout catch and release",
-     "species": [
-      "TROUT"
-     ],
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:basalt_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "basalt_lake.r3",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:basalt_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "basalt_lake.r4",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:basalt_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:basalt_lake@6-1"
+     ]
     }
    ]
   },
@@ -1379,15 +1308,11 @@
    "matched": [
     "gnis:11611"
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "bella_coola_river.r1",
-     "type": "advisory",
      "verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
     }
    ]
@@ -1608,15 +1533,11 @@
    "matched": [
     "gnis:26104"
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "blackwater_river.r1",
-     "type": "advisory",
      "verbatim": "See West Road River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r5:west_road_blackwater_river@5-12+5-13"
      ]
     }
    ]
@@ -2159,15 +2080,11 @@
    "matched": [
     "wbk:329430941"
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "brown_lake.r1",
-     "type": "advisory",
      "verbatim": "See Bishop Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r5:bishop_brown_lake@5-13"
      ]
     }
    ]
@@ -2256,19 +2173,6 @@
        ]
       }
      ]
-    },
-    {
-     "rule_id": "burnt_bridge_creek.r4",
-     "type": "advisory",
-     "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "burnt_bridge_creek__sitkatapa_confluence"
-       ]
-      }
-     ]
     }
    ],
    "licensing": [
@@ -2312,6 +2216,14 @@
      "verbatim": "Class II water Mar 1-May 31",
      "review_reason": "the classified-water stamp period on reopening is implied by the note, not printed — unknown until an in-season notice states it",
      "kind": "designation"
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "entry_ids": [
+      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
+     ]
     }
    ]
   },
@@ -3226,63 +3138,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "chipmunk_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:chipmunk_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "chipmunk_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:chipmunk_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "chipmunk_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:chipmunk_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:chipmunk_lake@6-1"
+     ]
     }
    ]
   },
@@ -5884,63 +5745,12 @@
    "source_pages": [
     45
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "gatcho_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:gatcho_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "gatcho_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:gatcho_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "gatcho_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:gatcho_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:gatcho_lake@6-1"
+     ]
     }
    ]
   },
@@ -7014,18 +6824,13 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "see": [
     {
-     "rule_id": "hunlen_creek.r3",
-     "type": "advisory",
      "verbatim": "Downstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "hunlen_creek__hunlen_falls"
-       ]
-      }
+     "entry_ids": [
+      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
     }
    ]
@@ -9039,63 +8844,12 @@
    "source_pages": [
     46
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "naglico_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:naglico_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "naglico_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:naglico_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "naglico_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:naglico_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:naglico_lake@6-1"
+     ]
     }
    ]
   },
@@ -9544,63 +9298,12 @@
    "source_pages": [
     46
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "pettry_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:pettry_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "pettry_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:pettry_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "pettry_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:pettry_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:pettry_lake@6-1"
+     ]
     }
    ]
   },
@@ -10993,63 +10696,12 @@
    "source_pages": [
     47
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "squirrel_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
-    },
-    {
-     "rule_id": "squirrel_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
-    },
-    {
-     "rule_id": "squirrel_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — cross-listed with the Region 6 MU 6-1 entry; attach an item and bind extents"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:squirrel_lake@6-1"
+     ]
     }
    ]
   },
@@ -11661,63 +11313,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "toms_lake.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout daily quota = 2",
-     "species": [
-      "TROUT"
-     ],
-     "take": 2,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:toms_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "toms_lake.r2",
-     "type": "bait_restriction",
-     "verbatim": "bait ban",
-     "gear": [
-      {
-       "slot": "bait",
-       "ban": [
-        "any_bait"
-       ]
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:toms_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
-    },
-    {
-     "rule_id": "toms_lake.r3",
-     "type": "tackle_restriction",
-     "verbatim": "single barbless hook",
-     "gear": [
-      {
-       "slot": "barb",
-       "only": [
-        "barbless"
-       ]
-      },
-      {
-       "slot": "points_per_hook",
-       "max": 1.0
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "duplicate of r6:toms_lake@6-1: the same MU 6-1 lake is printed in both the Region 5 and Region 6 chapters; the Region 6 row places these rules, this copy deliberately binds nothing"
+     "verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+     "entry_ids": [
+      "r6:toms_lake@6-1"
+     ]
     }
    ]
   },
@@ -12975,6 +12576,14 @@
         "young_creek__young_hwy20"
        ]
       }
+     ]
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "Downstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "entry_ids": [
+      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
     }
    ]

@@ -259,6 +259,14 @@
       }
      ]
     }
+   ],
+   "see": [
+    {
+     "verbatim": "see Babine River regulations below (paragraphs 3 and 4)",
+     "entry_ids": [
+      "r6:babine_river@6-8"
+     ]
+    }
    ]
   },
   {
@@ -1507,6 +1515,15 @@
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
     }
+   ],
+   "see": [
+    {
+     "verbatim": "See Suskwa River and Telkwa River",
+     "entry_ids": [
+      "r6:suskwa_bear_river@6-8",
+      "r6:telkwa_river@6-9"
+     ]
+    }
    ]
   },
   {
@@ -1881,15 +1898,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "copper_river.r1",
-     "type": "advisory",
      "verbatim": "See Zymoetz River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r6:zymoetz_copper_river@6-9"
      ]
     }
    ]
@@ -2247,6 +2260,14 @@
       {
        "op": "whole"
       }
+     ]
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "Also see Prudhomme Lake (south of the Hwy 16 bridge)",
+     "entry_ids": [
+      "r6:prudhomme_lake_south_of_the_hwy_16_bridge@6-14"
      ]
     }
    ]
@@ -3253,16 +3274,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "ishkheenickh_river.r1",
-     "type": "advisory",
      "verbatim": "See Ksi Hlginx River",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r6:ksi_hlginx_river_formerly_ishkheenickh_river@6-14"
      ]
     }
    ]
@@ -3595,17 +3611,6 @@
        "op": "whole"
       }
      ]
-    },
-    {
-     "rule_id": "kispiox_river.r7",
-     "type": "advisory",
-     "verbatim": "See Skeena River/Kispiox River confluence",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ]
     }
    ],
    "licensing": [
@@ -3644,6 +3649,14 @@
      },
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "See Skeena River/Kispiox River confluence",
+     "entry_ids": [
+      "r6:skeena_river_kispiox_river_confluence@6-8"
+     ]
     }
    ]
   },
@@ -4876,16 +4889,11 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "see": [
     {
-     "rule_id": "kwinamass_river.r1",
-     "type": "advisory",
      "verbatim": "See Ksi X'anmas River",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r6:ksi_x_anmas_river_formerly_kwinamass_river@6-14"
      ]
     }
    ]
@@ -5494,17 +5502,12 @@
     }
    ],
    "includes_tributaries": true,
-   "rules": [
+   "see": [
     {
-     "rule_id": "mcqueen_creek.r1",
-     "type": "advisory",
      "verbatim": "See Hevenor Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "this row is a redirect; the actual regulations are recorded under Hevenor Creek's own entry and should be reconciled with it"
+     "entry_ids": [
+      "r6:hevenor_mcqueen_creek@6-30"
+     ]
     }
    ]
   },
@@ -6690,17 +6693,14 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "see": [
     {
-     "rule_id": "oldfield_creek.r2",
-     "type": "advisory",
      "verbatim": "see Hays Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "redirect — confirm this closure matches Hays Creek's own entry"
+     "entry_ids": [
+      "r6:hays_creek_in_prince_rupert@6-14"
+     ]
     }
    ]
   },
@@ -7111,17 +7111,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "seaskinnish_creek.r1",
-     "type": "advisory",
      "verbatim": "See Ksi Sgasginist Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "this row is a redirect; the actual regulations are recorded under Ksi Sgasginist Creek's own entry"
+     "entry_ids": [
+      "r6:ksi_sgasginist_creek_formerly_seaskinnish_creek@6-15"
+     ]
     }
    ]
   },
@@ -7801,17 +7796,6 @@
        ]
       }
      ]
-    },
-    {
-     "rule_id": "stellako_river.r6",
-     "type": "advisory",
-     "verbatim": "See restrictions for François Lake's outlet area",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "cross-reference to François Lake's outlet regulations — not resolved to a specific rule"
     }
    ],
    "licensing": [
@@ -7831,6 +7815,14 @@
      "verbatim": "Class II water[Includes Tributaries] when open",
      "kind": "designation",
      "includes_tributaries": true
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "See restrictions for François Lake's outlet area",
+     "entry_ids": [
+      "r6:fran_ois_lake@6-4"
+     ]
     }
    ]
   },
@@ -9182,17 +9174,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "tseax_river.r1",
-     "type": "advisory",
      "verbatim": "See Ksi Sii Aks River",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "alias entry — this row points to the Ksi Sii Aks River entry for its regulations; no rules are stated under this name"
+     "entry_ids": [
+      "r6:ksi_sii_aks_river_formerly_tseax_river@6-14"
+     ]
     }
    ]
   },
@@ -9473,6 +9460,14 @@
        "op": "whole",
        "within_area": "area:region:6"
       }
+     ]
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "For regulations on the mainstem of the West Road River, see Region 5",
+     "entry_ids": [
+      "r5:west_road_blackwater_river@5-12+5-13"
      ]
     }
    ]

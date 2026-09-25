@@ -72,9 +72,15 @@ CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 -- `matched` is EVERY water the entry matched, as a JSON list (`[]` = none). `item_id` is only the
 -- first, and deriving the rest from the bindings gets 52 entries wrong — the Kootenay River's
 -- co-waters bind through other entries' rules, and a water a row names may carry none of its own.
+-- `see` is the row's POINTERS ("See Lonzo Creek") as a JSON list, NULL when it has none: each
+-- `{verbatim, entry_ids, relation}` (or `{verbatim, unresolved}` when it names no entry).
+-- `relation` is `see` (another water, governed by the named rows), `alias` (this row's water IS
+-- the named row's: one lake under two names) or `twin` (the same row printed in two region
+-- tables). A pointer binds nothing; a row whose only content is a pointer has no rules, and
+-- the reader follows `entry_ids` ("see Lonzo Creek") instead.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
-                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]');
+                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT);
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.

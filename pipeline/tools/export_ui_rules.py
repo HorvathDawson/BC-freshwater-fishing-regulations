@@ -50,7 +50,7 @@ OUT = GENERATED.base / "regs" / "ui-rules-export.json"
 #: `rule.unresolved` is why a rule could not be placed, and `rule.exempts` is what a rule lifts,
 #: resolved to the entry each lift reaches — it left `conditions` for a column of its own, so a
 #: bundle without the column is one whose lifts this export would silently drop.
-REQUIRED_COLUMNS = {"entry": ("matched",),
+REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "rule": ("unresolved", "exempts", "undrawn_part", "parts"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},
@@ -252,6 +252,8 @@ def read(bundle: Path) -> dict:
             "symbols": _j(e["symbols"], []), "scope_note": e["scope_note"],
             "extents": extents, "printed": e["verbatim"],
             "rules": [], "licensing": [],
+            # POINTERS ("See Lonzo Creek") — only on a row that prints one (see `guide.entries`).
+            **({"see": _j(e["see"], [])} if e["see"] else {}),
         }
 
     rules = {}
@@ -780,6 +782,8 @@ ENTRY_TEXT = {
     "scope_note": "the curated sentence on which part of the water the entry covers",
     "extents": "the entry's own reach", "printed": "the whole printed passage",
     "rules": "its rule ids", "licensing": "its licensing record ids",
+    "see": "its pointers, when it prints any: [{verbatim, entry_ids, relation}] or "
+           "[{verbatim, unresolved}] — see `entries.pointers`",
 }
 
 
@@ -945,6 +949,37 @@ def guide(d: dict) -> dict:
                     "In NAMING it counts as naming every fish it covers, so it displaces what "
                     "ranks below it by place: Clearwater Lake's 'No Fishing Nov 1-Apr 30' "
                     "silences Zone B's 'Burbot: 5' on those dates.",
+        "water_release": "A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH, whatever the zone "
+                         "rule's conditions. Competition keys on (type, dimension), and a zone "
+                         "quota's conditions (origin, water kind, while, size-only) are part of "
+                         "its dimension, so on its own the ladder never set Coquihalla River's "
+                         "'Trout/char (including steelhead) catch and release' against Region "
+                         "2's '2 hatchery steelhead over 50 cm allowed'. So, after the ladder: "
+                         "an OUTRIGHT RELEASE in force for the fish (a retention_limit with take "
+                         "0 at every length — no `lengths`, no `while`, no `when_targeting`, not "
+                         "a `within` clause; a closure is one) that is written for this water, "
+                         "or reaches it by the tributary walk, displaces every zone, area or "
+                         "provincial retention_limit that would let the angler keep that fish "
+                         "(take above 0, unlimited, or sizes only), provided every origin that "
+                         "quota could keep is released here — by the water row or by the zone's "
+                         "own releases. Chilliwack River's 'hatchery cutthroat catch and "
+                         "release' (May) beside Region 2's 'Wild trout/char from streams' "
+                         "releases every cutthroat, so 'Trout/char: 4' does not speak for one; "
+                         "Morris Lake's 'Wild trout/char catch and release' leaves Region 2's 4 "
+                         "speaking for hatchery trout. A release of a size class ('No wild trout "
+                         "over 50 cm') releases only that class and silences nothing. The "
+                         "water's release counts even when the ladder put it behind a zone "
+                         "release NAMING the fish (Pine River's 'Catch and release all fish' "
+                         "under Zone B's bull trout release still silences Zone B's '2 from "
+                         "streams' for a bull trout), and a zone rule that names the fish but "
+                         "lets it be kept never beats the water's release (Adams River's "
+                         "'Rainbow trout and char catch and release' speaks for a lake trout "
+                         "over Region 3's 'none under 60 cm'): naming lets only a STRICTER zone "
+                         "rule beat a water's group. A release put behind a superior authority "
+                         "that lets the fish be kept releases nothing. A rule "
+                         "about another fish never takes part (per fish). The zone's own "
+                         "releases, record-keeping duties and the possession multiplier stand "
+                         "beside the water's release.",
         "never_compete": "`standing` rules, the information family (hazard, advisory, "
                          "program_membership, facility), and LIFT-ONLY rules (dimension `lift`: "
                          "an `exempts` and no number, bound, gear, duty or angler of their own — "
@@ -1381,8 +1416,10 @@ def guide(d: dict) -> dict:
             "reading": "An uncertain record binds nowhere: it can only ever raise 'unknown', "
                        "never 'no rules here'. `provenance.why` says why.",
         },
+        # A row that is only a pointer binds nothing, so it has nothing to place.
         "unplaced_entries": [e for e, v in d["entries"].items() if not v["matched"]
-                             and v["kind"] == "water"],
+                             and v["kind"] == "water"
+                             and (v["rules"] or v["licensing"] or not v.get("see"))],
     }
 
     labels = {
@@ -1480,6 +1517,28 @@ def guide(d: dict) -> dict:
             },
             "counts": dict(sorted(Counter(e["kind"] for e in d["entries"].values()).items())),
             "fields": ENTRY_TEXT,
+            "pointers": {
+                "reading": "`see` is a POINTER the row prints — 'See Lonzo Creek', 'A tributary "
+                           "of Slocan River. See Slocan River' — and never a rule: it binds "
+                           "nothing. Show it as a link to each of `entry_ids` ('see Lonzo "
+                           "Creek'). A row whose only content is a pointer has no rules and no "
+                           "licensing: it is SKIPPED as a regulation and read as the link. "
+                           "`unresolved` (no `entry_ids`) is a pointer that names no row — show "
+                           "its words, it cannot be followed.",
+                "relation": {
+                    "see": "a different water, governed by the named rows' regulations",
+                    "alias": "this row's water IS the named row's (one water printed under two "
+                             "names — 'JONES LAKE: See Wahleach Lake'); the named row's rules "
+                             "already cover it",
+                    "twin": "the same row printed under two region tables (a MU 6-1 lake in "
+                            "both Region 5 and Region 6); the named row is the one that binds",
+                },
+                "counts": dict(sorted(Counter(
+                    s.get("relation", "unresolved") for e in d["entries"].values()
+                    for s in e.get("see") or []).items())),
+                "pointer_only": sorted(e for e, v in d["entries"].items() if v.get("see")
+                                       and not v["rules"] and not v["licensing"]),
+            },
         },
         "labels": labels,
         "rule_types": rule_types,
@@ -1717,6 +1776,8 @@ def dangling(doc: dict) -> list[str]:
     out = []
     for eid, e in E.items():
         out += [f"entry {eid} -> rule {r}" for r in e["rules"] if r not in R]
+        out += [f"entry {eid} -> see {t}" for s in e.get("see") or []
+                for t in s.get("entry_ids") or [] if t not in E]
         out += [f"entry {eid} -> licensing {r}" for r in e["licensing"] if r not in L]
     for name, table, known in (("ruleset", doc["rulesets"], R),
                                ("licensing_set", doc["licensing_sets"], L)):

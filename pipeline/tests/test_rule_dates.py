@@ -236,9 +236,59 @@ def test_stripping_any_real_rules_dates_is_nearly_always_caught(raw):
                 pass
     assert n >= 560
     assert sorted(missed) == sorted([
-        ("r2:coquihalla_river", "coquihalla_river.r2"),
+        # (coquihalla_river.r2 was here: its season was the bait ban's across a `;`, and it
+        # carries none now — the 2026-09-25 ruling)
         ("r2:coquihalla_river", "coquihalla_river.r6"),
         *[("r3:mahood_lake_see_map_on_page_28_for_area_closure", f"mahood_lake.r{k}")
           for k in (2, 3, 4, 6, 7, 8)],
         ("r6:tchesinkut_lake", "tchesinkut_lake.r1"),
         ("r7:crooked_river", "crooked_river.r2")]), json.dumps(missed)
+
+
+# --------------------------------------------------------------------------- ruling of 2026-09-25
+def test_a_date_after_a_semicolon_is_only_its_own_clauses():
+    """USER RULING (2026-09-25): in "catch and release; bait ban, June 15-Oct 31" the date is the
+    bait ban's. A clause on the other side of a `;` carries no date the line prints only across
+    it — in either direction."""
+    w = {"dates": [{"from_month": 6, "from_day": 15, "to_month": 10, "to_day": 31}]}
+    text = "Trout/char catch and release; bait ban, June 15-Oct 31"
+    cr = _r(rule_id="s.r1", type="retention_limit", verbatim="Trout/char catch and release",
+            species=["TROUT_CHAR"], take=0, may_target=True)
+    bait = _r(rule_id="s.r2", type="bait_restriction", verbatim="bait ban, June 15-Oct 31",
+              gear=[{"slot": "bait", "ban": ["any_bait"]}], when=w)
+    CatalogueEntry.model_validate(_entry(text, cr, bait))
+    with pytest.raises(ValueError, match="printed in another clause of its line, across a `;`"):
+        CatalogueEntry.model_validate(_entry(text, dict(cr, when=w), bait))
+    # the other direction: "No Fishing Aug 1-Oct 31; bait ban" (Diana Creek)
+    aug = {"dates": [{"from_month": 8, "from_day": 1, "to_month": 10, "to_day": 31}]}
+    text = "No Fishing Aug 1-Oct 31; bait ban"
+    shut = _r(rule_id="d.r1", type="retention_limit", verbatim="No Fishing Aug 1-Oct 31",
+              species=["ALL_GAME_FISH"], take=0, may_target=False, when=aug)
+    ban = _r(rule_id="d.r2", type="bait_restriction", verbatim="bait ban",
+             gear=[{"slot": "bait", "ban": ["any_bait"]}])
+    CatalogueEntry.model_validate(_entry(text, shut, ban))
+    with pytest.raises(ValueError, match="across a `;`"):
+        CatalogueEntry.model_validate(_entry(text, shut, dict(ban, when=aug)))
+    # "A and B, date" is still one clause: the date governs both (no `;` between them)
+    text = "Trout/char catch and release and bait ban, June 15-Aug 31"
+    w2 = {"dates": [{"from_month": 6, "from_day": 15, "to_month": 8, "to_day": 31}]}
+    CatalogueEntry.model_validate(_entry(text, dict(cr, when=w2), dict(
+        bait, verbatim="bait ban, June 15-Aug 31", when=w2)))
+
+
+def test_coquihallas_fly_only_is_not_dated_by_the_bait_bans_season(raw):
+    """p.22, COQUIHALLA RIVER, printed line 2: "Fly fishing only; bait ban upstream of the northern
+    entrance to the upper most railway tunnel, Jul 1-Oct 31". The date is the bait ban's."""
+    ce = CatalogueEntry.model_validate(raw["r2:coquihalla_river@2-17"])
+    rules = {r.rule_id: r for r in ce.rules}
+    assert rules["coquihalla_river.r2"].verbatim == "Fly fishing only"
+    assert rules["coquihalla_river.r2"].when is None
+    assert rules["coquihalla_river.r3"].when.words() == "Jul 1-Oct 31"
+    # MUTATION: spread the date back across the `;` and the model refuses the row
+    broken = copy.deepcopy(raw["r2:coquihalla_river@2-17"])
+    for r in broken["rules"]:
+        if r["rule_id"] == "coquihalla_river.r2":
+            r["when"] = {"dates": [{"from_month": 7, "from_day": 1, "to_month": 10,
+                                    "to_day": 31}]}
+    with pytest.raises(ValueError, match="coquihalla_river.r2: its `when` .* across a `;`"):
+        CatalogueEntry.model_validate(broken)

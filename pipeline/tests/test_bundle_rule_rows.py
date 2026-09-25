@@ -407,7 +407,7 @@ def test_all_fish_lifts_every_fish_the_lifted_rule_names_but_crayfish():
     names — wholly — except crayfish, which the book keeps apart from fin fish."""
     from pipeline.regs.parsing.catalogue import CatalogueRule
     all_fish = CatalogueRule(rule_id="p.r1", type="retention_limit", species=["ALL_FIN_FISH"],
-                             take=0, may_target=True, verbatim="Catch and release all fish",
+                             take=0, may_target=True, verbatim="Release all fin fish",
                              extents=[{"op": "whole"}])
     burbot = CatalogueRule(rule_id="s.r1", type="retention_limit", species=["BB"], take=5,
                            verbatim="Burbot: 5", extents=[{"op": "whole"}])

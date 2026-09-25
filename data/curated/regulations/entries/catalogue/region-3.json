@@ -2037,19 +2037,14 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "coldwater_rivers_tributaries.r1",
-     "type": "advisory",
      "verbatim": "See Juliet, July, and Mine Creeks",
-     "obligation": "should",
-     "tributaries_only": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "Row is a pointer to other creek entries (Juliet, July, Mine Creeks) rather than a standalone regulation; no independent rule content to encode against this water."
+     "entry_ids": [
+      "r3:juliet_creek@3-13",
+      "r3:july_creek@3-13",
+      "r3:mine_creek@3-13"
+     ]
     }
    ]
   },
@@ -6166,15 +6161,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "mara_lake.r1",
-     "type": "advisory",
      "verbatim": "See Shuswap Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
      ]
     }
    ]
@@ -9223,6 +9214,14 @@
       {
        "op": "whole"
       }
+     ]
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "See Shuswap Lake for part between Shuswap Lake and Little Shuswap Lake",
+     "entry_ids": [
+      "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
      ]
     }
    ]

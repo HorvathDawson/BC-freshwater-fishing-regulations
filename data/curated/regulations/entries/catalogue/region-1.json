@@ -659,15 +659,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "bear_lake.r1",
-     "type": "advisory",
      "verbatim": "See Cowichan Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:cowichan_lake_including_bear_lake@1-4"
      ]
     }
    ]
@@ -689,15 +685,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "bear_river.r1",
-     "type": "advisory",
      "verbatim": "See Amor de Cosmos Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:amor_de_cosmos_creek@1-10"
      ]
     }
    ]
@@ -824,15 +816,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "big_qualicum_river.r1",
-     "type": "advisory",
      "verbatim": "See Qualicum River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:qualicum_river@1-6"
      ]
     }
    ]
@@ -6674,15 +6662,11 @@
      ]
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "link_river.r1",
-     "type": "advisory",
      "verbatim": "See Marble River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13"
      ]
     }
    ]
@@ -9270,15 +9254,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "panther_lake.r1",
-     "type": "advisory",
      "verbatim": "See Healy Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:healy_panther_lake@1-5"
      ]
     }
    ]
@@ -13420,15 +13400,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "weston_lake.r1",
-     "type": "advisory",
      "verbatim": "See Lake Weston",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r1:lake_weston_weston_lake@1-1"
      ]
     }
    ]

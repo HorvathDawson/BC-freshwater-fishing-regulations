@@ -290,6 +290,16 @@ export interface Entry {
   includes_tributaries?: boolean | null;
   rules?: Rule[];
   licensing?: LicensingRecord[];
+  /** POINTERS ("See Lonzo Creek") — not rules; they bind nothing (catalogue.See). A row whose
+   *  only content is a pointer has no rules and no licensing. */
+  see?: See[];
+}
+
+/** catalogue.See: the printed pointer, and the entries it names — OR why it names none. */
+export interface See {
+  verbatim: string;
+  entry_ids?: string[];
+  unresolved?: string;
 }
 
 // ---- Model vocabulary (GET /api/vocab — read off catalogue.py) ----------

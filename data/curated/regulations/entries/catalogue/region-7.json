@@ -627,17 +627,12 @@
           "op": "whole"
         }
       ],
-      "rules": [
+      "see": [
         {
-          "rule_id": "blackwater_river.r1",
-          "type": "advisory",
           "verbatim": "See West Road River",
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "review_reason": "row is a cross-reference pointer to the West Road River entry (same water, printed under both names) — verify content against that entry's rules; no independent regulation text is printed here"
+          "entry_ids": [
+            "r5:west_road_blackwater_river@5-12+5-13"
+          ]
         }
       ]
     },
@@ -1044,15 +1039,12 @@
           "op": "whole"
         }
       ],
-      "rules": [
+      "see": [
         {
-          "rule_id": "cameron_lakes.r1",
-          "type": "advisory",
           "verbatim": "See North and South Cameron lakes",
-          "extents": [
-            {
-              "op": "whole"
-            }
+          "entry_ids": [
+            "r7:north_cameron_lake@7-31",
+            "r7:south_cameron_lake@7-31"
           ]
         }
       ]
@@ -1740,15 +1732,11 @@
           "op": "whole"
         }
       ],
-      "rules": [
+      "see": [
         {
-          "rule_id": "chinaman_lake.r1",
-          "type": "advisory",
           "verbatim": "See Chunamun Lake",
-          "extents": [
-            {
-              "op": "whole"
-            }
+          "entry_ids": [
+            "r7:chunamun_lake@7-35"
           ]
         }
       ]
@@ -2548,6 +2536,14 @@
           ],
           "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point available for a 500 m radius closure — item has no bindable boundaries beyond op:whole",
           "undrawn_part": "within a 500 m radius of the Davis Forest Service Road Bridge"
+        }
+      ],
+      "see": [
+        {
+          "verbatim": "See Davis River",
+          "entry_ids": [
+            "r7:davis_river@7-37"
+          ]
         }
       ]
     },
@@ -7190,17 +7186,12 @@
           "op": "whole"
         }
       ],
-      "rules": [
+      "see": [
         {
-          "rule_id": "nation_river.r1",
-          "type": "advisory",
           "verbatim": "See Nation Arm (Williston Lake)",
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "review_reason": "cross-reference only; the water's rules live on the Nation Arm (Williston Lake) entry, not bound here"
+          "entry_ids": [
+            "r7:nation_arm_williston_lake@7-30"
+          ]
         }
       ]
     },
@@ -8015,7 +8006,7 @@
           "type": "retention_limit",
           "verbatim": "Catch and release all fish upstream of the Hasler Road Bridge",
           "species": [
-            "ALL_FIN_FISH"
+            "ALL_GAME_FISH"
           ],
           "take": 0,
           "may_target": true,
@@ -8093,6 +8084,9 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
+          ],
+          "species_except": [
+            "CRA"
           ]
         }
       ]
@@ -8928,17 +8922,6 @@
               ]
             }
           ]
-        },
-        {
-          "rule_id": "stellako_river.r7",
-          "type": "advisory",
-          "verbatim": "See Region 6 tables for restrictions applying to François Lake's outlet area",
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "review_reason": "cross-reference; Region 6 governs François Lake's outlet area, not bound here"
         }
       ],
       "licensing": [
@@ -8958,6 +8941,14 @@
           },
           "verbatim": "Class II water[Includes Tributaries] when open",
           "kind": "designation"
+        }
+      ],
+      "see": [
+        {
+          "verbatim": "See Region 6 tables for restrictions applying to François Lake's outlet area",
+          "entry_ids": [
+            "r6:fran_ois_lake@6-4"
+          ]
         }
       ]
     },
@@ -10297,17 +10288,13 @@
               "within_area": "area:region:7a"
             }
           ]
-        },
+        }
+      ],
+      "see": [
         {
-          "rule_id": "west_road_blackwater_rivers_tributaries.r3",
-          "type": "advisory",
           "verbatim": "For regulations on the mainstem of the West Road River, see Region 5",
-          "tributaries_only": true,
-          "extents": [
-            {
-              "op": "whole",
-              "within_area": "area:region:7a"
-            }
+          "entry_ids": [
+            "r5:west_road_blackwater_river@5-12+5-13"
           ]
         }
       ]
@@ -10610,16 +10597,6 @@
           "undrawn_part": "500 m upstream and downstream of Causeway Road"
         },
         {
-          "rule_id": "williston_lake.r3",
-          "type": "advisory",
-          "verbatim": "See Nation Arm",
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ]
-        },
-        {
           "rule_id": "williston_lake.r4",
           "type": "retention_limit",
           "verbatim": "REMINDER: Arctic grayling catch and release from tributaries",
@@ -10643,6 +10620,14 @@
             {
               "op": "whole"
             }
+          ]
+        }
+      ],
+      "see": [
+        {
+          "verbatim": "See Nation Arm",
+          "entry_ids": [
+            "r7:nation_arm_williston_lake@7-30"
           ]
         }
       ]

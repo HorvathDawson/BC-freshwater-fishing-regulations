@@ -288,6 +288,10 @@ def test_the_guide_states_the_ruling(db):
     assert "counts as naming every fish it covers" in g["closures"]
     assert "IN FORCE" in g["competition"] and "A lift is in force only while its lifter is" in \
         g["competition"]
+    # the water-release ruling (2026-09-25)
+    for said in ("WATER'S RELEASE SILENCES THE ZONE", "Coquihalla", "Chilliwack",
+                 "every origin", "another fish"):
+        assert said in g["water_release"], said
 
 
 # --------------------------------------------------------------------------- corpus-wide guards
@@ -354,3 +358,186 @@ def test_no_zone_rule_naming_a_fish_reopens_what_a_water_row_withheld(db):
                                 allows(Z) > allows(W):
                             bad.add((f"{w[0]}::{w[1]}", f"{z[0]}::{z[1]}", f))
     assert not bad, sorted(bad)
+
+
+# --------------------------------------------------------------------------- ruling of 2026-09-25
+#: A water's outright release, and Region 2's conditioned quotas it must silence.
+def _release_case(tmp_path, water: dict, extra: list | None = None) -> str:
+    return _tiny(tmp_path, [
+        dict({"entry": "r9:w", "rule": "w.r1", "take": 0, "may_target": 1, "_rank": 0}, **water),
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 4, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r3", "species": ["ST"], "take": 2, "origin": "hatchery",
+         "dimension": "daily@origin=hatchery", "_rank": 3, "within": "q.r1"},
+        {"entry": "z9:q", "rule": "q.r4", "species": ["TROUT_CHAR"], "take": 2,
+         "origin": "hatchery", "water": "stream", "dimension": "daily@origin=hatchery&water=stream",
+         "_rank": 3, "within": "q.r1"},
+        {"entry": "z9:q", "rule": "q.r6", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "origin": "wild", "water": "stream", "dimension": "daily@origin=wild&water=stream",
+         "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r8", "species": ["TROUT_CHAR"], "origin": "hatchery",
+         "lengths": [{"max_cm": 30, "take": 0}], "dimension": "daily/size@origin=hatchery",
+         "_rank": 3},
+        {"entry": "zp:s", "rule": "s.r1", "species": ["ST"], "take": 10, "origin": "hatchery",
+         "period": "annual", "dimension": "annual@origin=hatchery", "_rank": 4},
+        {"entry": "zp:s", "rule": "s.r4", "species": ["ST"], "origin": "hatchery",
+         "record_retention": True, "dimension": "daily@origin=hatchery&record", "_rank": 4},
+    ] + (extra or []))
+
+
+def _kept(sid, on, fish) -> set:
+    """Every retention rule that speaks for the fish, whatever its key."""
+    return {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, on, fish, BUNDLE)
+            if x["state"] == "speaks" and x["type"] == "retention_limit"}
+
+
+def _speak(path, fish, on=(12, 1)) -> set:
+    return {x["rule"] for x in R.effective_rules(1, on, fish, path) if x["state"] == "speaks"}
+
+
+def test_a_water_release_silences_the_zones_conditioned_quotas_for_that_fish(tmp_path):
+    """USER RULING (2026-09-25). Coquihalla's "Trout/char (including steelhead) catch and release"
+    never met Region 2's "2 hatchery steelhead" — the zone quota's conditions are in its key — so
+    both spoke. A water's outright release displaces every zone/provincial quota that would keep
+    the fish, whatever its conditions; the zone's own release and its record duty stand beside."""
+    path = _release_case(tmp_path, {"species": ["TROUT_CHAR"]})
+    assert _speak(path, "ST") == {"w.r1", "q.r6", "s.r4"}
+    assert _speak(path, "RB") == {"w.r1", "q.r6"}
+
+
+def test_a_water_release_for_another_fish_displaces_nothing(tmp_path):
+    """Per fish: a water's bull trout release says nothing about a rainbow or a steelhead."""
+    path = _release_case(tmp_path, {"species": ["BT"]})
+    assert _speak(path, "ST") == {"q.r1", "q.r3", "q.r4", "q.r6", "q.r8", "s.r1", "s.r4"}
+    assert _speak(path, "RB") == {"q.r1", "q.r4", "q.r6", "q.r8"}
+    assert _speak(path, "BT") == {"w.r1", "q.r6"}
+
+
+def test_a_release_of_one_origin_silences_a_quota_only_when_every_origin_is_released(tmp_path):
+    """Chilliwack's "hatchery cutthroat catch and release" + the zone's "wild trout/char from
+    streams" release every cutthroat: "Trout/char: 4" is silent. Morris Lake's "Wild trout/char
+    catch and release" on a lake (no zone release of hatchery fish there) leaves the 4 speaking
+    for hatchery trout — and never touches a hatchery-only quota."""
+    path = _release_case(tmp_path, {"species": ["CT"], "origin": "hatchery",
+                                    "dimension": "daily@origin=hatchery"})
+    assert _speak(path, "WCT") == {"w.r1", "q.r6"}
+    (tmp_path / "lake").mkdir()
+    lake = _tiny(tmp_path / "lake", [
+        {"entry": "r9:m", "rule": "m.r1", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "origin": "wild", "dimension": "daily@origin=wild", "_rank": 0},
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 4, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r9", "species": ["TROUT_CHAR"], "take": 2,
+         "origin": "hatchery", "dimension": "daily@origin=hatchery", "_rank": 3}])
+    assert _speak(lake, "RB") == {"m.r1", "q.r1", "q.r9"}
+
+
+def test_a_size_class_release_silences_nothing(tmp_path):
+    """"No wild trout over 50 cm" releases a size class; the zone's 4 still speaks for the rest."""
+    path = _release_case(tmp_path, {"species": ["TROUT"], "origin": "wild",
+                                    "lengths": [{"min_cm": 50, "take": 0}],
+                                    "dimension": "daily@origin=wild"})
+    assert "q.r1" in _speak(path, "RB") and "q.r4" in _speak(path, "RB")
+
+
+def test_a_zone_release_does_not_silence_the_zone(tmp_path):
+    """Only a release written for the WATER (or reaching it by the tributary walk) speaks over the
+    zone; a zone release beside a zone quota is the ladder's business, as before."""
+    path = _tiny(tmp_path, [
+        {"entry": "z9:a", "rule": "a.r1", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "_rank": 2},
+        {"entry": "z9:q", "rule": "q.r4", "species": ["TROUT_CHAR"], "take": 2,
+         "origin": "hatchery", "dimension": "daily@origin=hatchery", "_rank": 3}])
+    assert _speak(path, "RB") == {"a.r1", "q.r4"}
+
+
+def test_the_release_guard_is_what_silences_them(tmp_path, monkeypatch):
+    """MUTATION: with the guard's predicate broken the conditioned quotas speak again — the
+    tests above fail against the ladder without step 5."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    path = _release_case(tmp_path, {"species": ["TROUT_CHAR"]})
+    monkeypatch.setattr(rules_mod, "release_origins", lambda x: None)
+    assert {"q.r3", "q.r4", "s.r1"} <= _speak(path, "ST")
+    monkeypatch.undo()
+    monkeypatch.setattr(rules_mod, "yields_to_release", lambda x: None)
+    assert {"q.r3", "q.r4", "s.r1"} <= _speak(path, "ST")
+
+
+def test_coquihalla_releases_every_trout_and_steelhead_below_the_tunnels_in_winter(db):
+    """p.22: "Trout/char (including steelhead) catch and release, bait ban, downstream of the
+    southern entrance to the lower most railway tunnel, Nov 1-Mar 31". Region 2's "2 hatchery
+    steelhead over 50 cm", "2 from streams (must be hatchery)", "hatchery trout/char under 30 cm
+    from streams" and the province's annual 10 hatchery steelhead no longer speak there."""
+    eid = "r2:coquihalla_river@2-17"
+    sid = _sid(db, eid, "coquihalla_river.r6")
+    for fish in ("ST", "RB", "WCT", "BT"):
+        got = _kept(sid, (12, 1), fish)
+        assert f"{eid}::coquihalla_river.r6" in got, fish
+        assert not {x for x in got if x.startswith(("z2:trout_char_quota::", "zp:steelhead::"))
+                    and x.split("::")[1] in ("trout_char_quota.r1", "trout_char_quota.r2",
+                                             "trout_char_quota.r3", "trout_char_quota.r4",
+                                             "trout_char_quota.r5", "trout_char_quota.r5b",
+                                             "trout_char_quota.r8", "steelhead.r1")}, (fish, got)
+
+
+def test_chilliwack_releases_every_cutthroat_in_may(db):
+    """p.22, Chilliwack/Vedder downstream of Vedder Crossing, (a) May 1-31: "hatchery cutthroat
+    catch and release". With the zone's release of wild trout/char from streams, every cutthroat is
+    released: the zone's cutthroat quotas are silent in May and speak again in August."""
+    eid = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
+    sid = _sid(db, eid, "chilliwack_vedder_rivers.r7")
+    may = _kept(sid, (5, 15), "WCT")
+    assert f"{eid}::chilliwack_vedder_rivers.r7" in may
+    assert "z2:trout_char_quota::trout_char_quota.r6" in may
+    for rid in ("trout_char_quota.r1", "trout_char_quota.r2", "trout_char_quota.r4",
+                "trout_char_quota.r8"):
+        assert f"z2:trout_char_quota::{rid}" not in may, rid
+    assert "z2:trout_char_quota::trout_char_quota.r1" in _kept(sid, (8, 1), "WCT")
+
+
+def test_a_looser_zone_rule_naming_the_fish_never_beats_a_waters_release(tmp_path):
+    """REVIEW FIX (2026-09-25). Adams River's "Rainbow trout and char catch and release" lost step 4
+    to Region 3's "Lake trout: none under 60 cm" (it NAMES lake trout; the water row names a
+    group), so for a lake trout the size rule spoke and the release did not. Naming lets a
+    STRICTER zone rule beat a water's group (Kakwa); a looser one never reopens what the water
+    released: the release speaks again and the zone's keeping rule is silenced."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r1", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "_rank": 0},
+        {"entry": "z9:q", "rule": "q.r4", "species": ["LT"], "take": 1, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r4b", "species": ["LT"], "lengths": [{"max_cm": 60, "take": 0}],
+         "dimension": "daily/size", "_rank": 3, "within": "q.r4"}])
+    assert _speak(path, "LT") == {"w.r1"}
+
+
+def test_a_water_release_beaten_by_a_named_zone_release_still_silences_the_zone(tmp_path):
+    """REVIEW FIX. Pine River's "Catch and release all fish" loses step 4 to Zone B's "Bull trout …
+    release" (both releases; the zone names the fish) — and Zone B's "2 from streams" kept
+    speaking for bull trout on 6,818 sections, because step 5 read only step 4's survivors. The
+    water still released the fish."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r1", "species": ["ALL_GAME_FISH"], "take": 0,
+         "may_target": 1, "_rank": 0},
+        {"entry": "z9:q", "rule": "q.r9", "species": ["BT"], "take": 0, "may_target": 1,
+         "_rank": 2},
+        {"entry": "z9:q", "rule": "q.r3", "species": ["TROUT_CHAR"], "take": 2, "water": "stream",
+         "dimension": "daily@water=stream", "_rank": 3}])
+    assert _speak(path, "BT") == {"q.r9"}
+
+
+def test_a_release_beaten_by_a_superior_quota_releases_nothing(tmp_path):
+    """A release displaced by a SUPERIOR authority that keeps the fish stays displaced and silences
+    nothing; one displaced by a superior closure (a national park) still silences the region's
+    conditioned quota — nothing the region keeps survives a park closure."""
+    rows = [
+        {"entry": "r9:w", "rule": "w.r1", "species": ["BT"], "take": 0, "may_target": 1,
+         "_rank": 0},
+        {"entry": "z9:q", "rule": "q.r3", "species": ["TROUT_CHAR"], "take": 2, "water": "stream",
+         "dimension": "daily@water=stream", "_rank": 3}]
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    keeps = _tiny(tmp_path / "a", rows + [
+        {"entry": "zp:x", "rule": "x.r1", "species": ["BT"], "take": 1, "_rank": -1}])
+    assert _speak(keeps, "BT") == {"x.r1", "q.r3"}
+    park = _tiny(tmp_path / "b", rows + [
+        {"entry": "zp:x", "rule": "x.r1", "species": ["ALL_GAME_FISH"], "take": 0,
+         "may_target": 0, "_rank": -1}])
+    assert _speak(park, "BT") == {"x.r1"}

@@ -180,15 +180,11 @@
    "matched": [
     "wbk:329247797"
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "alces_lake.r1",
-     "type": "advisory",
      "verbatim": "See Moose Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:moose_alces_lake@4-24"
      ]
     }
    ]
@@ -509,17 +505,12 @@
    "source_pages": [
     35
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "arrow_lakes.r1",
-     "type": "advisory",
      "verbatim": "See Upper Arrow Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "entry_ids": [
+      "r4:upper_arrow_lake_drawdown_area@4-31+4-32"
+     ]
     }
    ]
   },
@@ -531,17 +522,13 @@
    "source_pages": [
     35
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "arrow_lakes_tributaries.r1",
-     "type": "advisory",
      "verbatim": "See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "entry_ids": [
+      "r4:lower_arrow_lake_s_tributaries@4-14",
+      "r4:upper_arrow_lake_s_tributaries@4-31"
+     ]
     }
    ]
   },
@@ -895,15 +882,12 @@
     "gnis:12449"
    ],
    "includes_tributaries": true,
-   "rules": [
+   "see": [
     {
-     "rule_id": "bighorn_ram_creek.r1",
-     "type": "advisory",
      "verbatim": "A tributary of Wigwam River; see Wigwam River[Includes Tributaries]",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:wigwam_river_downstream_of_the_access_road_adjacent_to_km_42@4-2",
+      "r4:wigwam_river_upstream_of_the_forest_service_recreation_site@4-2"
      ]
     }
    ]
@@ -1358,17 +1342,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "cameron_slough.r1",
-     "type": "advisory",
      "verbatim": "See Lewis Slough",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row is a redirect to the Lewis Slough entry — not parsed independently"
+     "entry_ids": [
+      "r4:lewis_cameron_slough@4-21"
+     ]
     }
    ]
   },
@@ -2355,16 +2334,13 @@
        ]
       }
      ]
-    },
+    }
+   ],
+   "see": [
     {
-     "rule_id": "columbia_river.r15",
-     "type": "advisory",
      "verbatim": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:upper_arrow_lake_drawdown_area@4-31+4-32"
      ]
     }
    ]
@@ -3777,18 +3753,6 @@
        "op": "whole"
       }
      ]
-    },
-    {
-     "rule_id": "elk_river_s_tributaries.r5",
-     "type": "advisory",
-     "verbatim": "**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River",
-     "tributaries_only": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "lists tributaries carried on their own separate rows and excluded from these tributary-wide defaults — not parsed independently"
     }
    ],
    "licensing": [
@@ -3801,6 +3765,26 @@
      "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
      "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out",
      "kind": "designation"
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River",
+     "entry_ids": [
+      "r4:abruzzi_creek@4-23",
+      "r4:alexander_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23",
+      "r4:bighorn_ram_creek@4-2",
+      "r4:cadorna_creek@4-23",
+      "r4:fording_river_downstream_of_josephine_falls@4-23",
+      "r4:forsyth_creek@4-23",
+      "r4:line_creek@4-23",
+      "r4:grave_creek@4-23",
+      "r4:michel_creek_downstream_of_the_easternmost_hwy_3_bridge@4-23",
+      "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23",
+      "r4:morrissey_creek@4-2",
+      "r4:wigwam_river_downstream_of_the_access_road_adjacent_to_km_42@4-2",
+      "r4:wigwam_river_upstream_of_the_forest_service_recreation_site@4-2"
+     ]
     }
    ]
   },
@@ -4212,17 +4196,14 @@
        "op": "whole"
       }
      ]
-    },
+    }
+   ],
+   "see": [
     {
-     "rule_id": "findlay_creek.r5",
-     "type": "advisory",
      "verbatim": "See Lavington Creek, a tributary",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row redirects to a separate listing for Lavington Creek, a tributary — not parsed independently"
+     "entry_ids": [
+      "r4:lavington_creek@4-26"
+     ]
     }
    ]
   },
@@ -4689,17 +4670,6 @@
       }
      ],
      "extent_text": "from Connor Lake downstream 3 km"
-    },
-    {
-     "rule_id": "forsyth_creek.r2",
-     "type": "advisory",
-     "verbatim": "For remainder, see Elk River's tributaries",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row redirects the remainder of this creek to the Elk River's tributaries entry — not parsed independently"
     }
    ],
    "licensing": [
@@ -4716,6 +4686,14 @@
      "includes_tributaries": true,
      "verbatim": "**Class II water when/where open, including tributaries**",
      "kind": "designation"
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "For remainder, see Elk River's tributaries",
+     "entry_ids": [
+      "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23"
+     ]
     }
    ]
   },
@@ -4808,17 +4786,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "garbutt_lake.r1",
-     "type": "advisory",
      "verbatim": "See Norbury Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row is a redirect to the Norbury Lake entry — not parsed independently"
+     "entry_ids": [
+      "r4:norbury_garbutt_lake@4-22"
+     ]
     }
    ]
   },
@@ -6073,16 +6046,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "koch_creek.r1",
-     "type": "advisory",
      "verbatim": "A tributary of Slocan River. See Slocan River [Includes Tributaries]",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:slocan_river@4-17"
      ]
     }
    ]
@@ -8190,16 +8158,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "little_slocan_river.r1",
-     "type": "advisory",
      "verbatim": "A tributary of Slocan River. See Slocan River[Includes Tributaries]",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:slocan_river@4-17"
      ]
     }
    ]
@@ -9179,17 +9142,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "mcnaughton_lake.r1",
-     "type": "advisory",
      "verbatim": "See Kinbasket Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row is a redirect to the Kinbasket Lake entry — not parsed independently"
+     "entry_ids": [
+      "r4:kinbasket_mcnaughton_lake@4-36"
+     ]
     }
    ]
   },
@@ -11023,17 +10981,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "revelstoke_lake.r1",
-     "type": "advisory",
      "verbatim": "See Lake Revelstoke",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row is a redirect to the Lake Revelstoke entry — not parsed independently"
+     "entry_ids": [
+      "r4:lake_revelstoke@4-38+4-39"
+     ]
     }
    ]
   },
@@ -11054,18 +11007,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "revelstoke_lake_s_tributaries.r1",
-     "type": "advisory",
      "verbatim": "See Lake Revelstoke's tributaries",
-     "tributaries_only": true,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "row is a redirect to the Lake Revelstoke's Tributaries entry — not parsed independently"
+     "entry_ids": [
+      "r4:lake_revelstoke_s_tributaries@4-38"
+     ]
     }
    ]
   },
@@ -11629,17 +11576,12 @@
    "source_pages": [
     39
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "seven_mile_reservoir.r1",
-     "type": "advisory",
      "verbatim": "See Pend d'Oreille River",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents; this row points to Pend d'Oreille River's regulations for the dammed portion of the reservoir"
+     "entry_ids": [
+      "r4:pend_d_oreille_river_includes_the_reservoirs_behind_waneta_d@4-8"
+     ]
     }
    ]
   },
@@ -11651,17 +11593,12 @@
    "source_pages": [
     39
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "seven_mile_reservoir_s_tributaries.r1",
-     "type": "advisory",
      "verbatim": "See Pend d'Oreille River's tributaries",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     "entry_ids": [
+      "r4:pend_d_oreille_river_s_tributaries_except_salmo_river_includ@4-8"
+     ]
     }
    ]
   },
@@ -13444,15 +13381,11 @@
    "matched": [
     "wbk:329262640"
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "waneta_reservoir.r1",
-     "type": "advisory",
      "verbatim": "See Pend d'Oreille River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r4:pend_d_oreille_river_includes_the_reservoirs_behind_waneta_d@4-8"
      ]
     }
    ]
@@ -13465,17 +13398,12 @@
    "source_pages": [
     40
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "waneta_reservoir_s_tributaries.r1",
-     "type": "advisory",
      "verbatim": "See Pend d'Oreille River's tributaries",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents; this row points to Pend d'Oreille River's tributaries regulations"
+     "entry_ids": [
+      "r4:pend_d_oreille_river_s_tributaries_except_salmo_river_includ@4-8"
+     ]
     }
    ]
   },
@@ -13916,7 +13844,8 @@
       "ALL_GAME_FISH"
      ],
      "species_except": [
-      "RB"
+      "RB",
+      "CRA"
      ],
      "take": 0,
      "may_target": true,
@@ -13932,11 +13861,6 @@
      "exempts": [
       {
        "target": "species_quotas.r2",
-       "entry_id": "z4:species_quotas",
-       "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
-      },
-      {
-       "target": "species_quotas.r3",
        "entry_id": "z4:species_quotas",
        "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
       },

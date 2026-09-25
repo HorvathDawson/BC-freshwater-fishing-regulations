@@ -1390,15 +1390,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "cedar_lake.r1",
-     "type": "advisory",
      "verbatim": "See Sumallo River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:sumallo_river_includes_cedar_lake_at_sunshine_valley@2-2"
      ]
     }
    ]
@@ -2361,16 +2357,6 @@
        ]
       }
      ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ]
-     },
      "extents": [
       {
        "op": "upstream_of",
@@ -4951,16 +4937,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "jones_lake.r1",
-     "type": "advisory",
      "verbatim": "See Wahleach Lake",
-     "obligation": "should",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:wahleach_jones_lake@2-3"
      ]
     }
    ]
@@ -5599,15 +5580,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "little_campbell_river.r1",
-     "type": "advisory",
      "verbatim": "See Campbell River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:campbell_river@2-4"
      ]
     }
    ]
@@ -6270,15 +6247,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "marshall_creek.r1",
-     "type": "advisory",
      "verbatim": "See Lonzo Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:lonzo_marshall_creek@2-4"
      ]
     }
    ]
@@ -7558,17 +7531,12 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "paq_lake.r1",
-     "type": "advisory",
      "verbatim": "See Lily Lake",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "review_reason": "cross-reference only — this entry carries no rule text of its own; regulations are printed under Lily Lake and need curation to bind or merge"
+     "entry_ids": [
+      "r2:lily_paq_lake@2-5"
+     ]
     }
    ]
   },
@@ -9472,15 +9440,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "south_alouette_river.r1",
-     "type": "advisory",
      "verbatim": "See Alouette River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:alouette_river@2-8"
      ]
     }
    ]
@@ -10179,15 +10143,11 @@
      "op": "whole"
     }
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "vedder_river.r1",
-     "type": "advisory",
      "verbatim": "See Chilliwack River",
-     "extents": [
-      {
-       "op": "whole"
-      }
+     "entry_ids": [
+      "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
      ]
     }
    ]

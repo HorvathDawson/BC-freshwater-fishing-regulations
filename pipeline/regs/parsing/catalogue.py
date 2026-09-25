@@ -231,12 +231,15 @@ SPECIES_GROUPS["NON_GAME_FISH"] = ()
 
 #: ALL FIN FISH — everything with fins, which is wider than the game-fish list.
 #:
-#: Three rules in the corpus say a set the vocabulary could not name, and all three were written
+#: Two rules in the corpus say a set the vocabulary could not name, and both were written
 #: down as `ALL_GAME_FISH` because the menu said to use it for "everything":
 #:
 #:   "any fish willfully or accidentally snagged must be released immediately"  (snagging)
 #:   "You must release all fin fish caught in your trap."                       (crayfish traps)
-#:   "Catch and release all fish upstream of the Hasler Road Bridge"            (Pine River)
+#:
+#: (Pine River's "Catch and release all fish upstream of the Hasler Road Bridge" was a third. A
+#: WATER ROW's "all fish" / "all other species" is GAME FISH, never crayfish — user ruling
+#: 2026-09-25, `_all_species_is_game_fish` — so it is `ALL_GAME_FISH` less `CRA` now.)
 #:
 #: `ALL_GAME_FISH` is the provincial closed list. It excludes salmon, which are federal, and every
 #: non-game fish. So each of those sentences came out of the pipeline narrower than it was
@@ -1325,6 +1328,76 @@ class Suspension(_Terse):
     verbatim: str = Field(..., min_length=1)
 
 
+class See(_Terse):
+    """A POINTER, NOT A RULE: "See Lonzo Creek", "A tributary of Slocan River. See Slocan River",
+    "For regulations on the mainstem of the West Road River, see Region 5".
+
+    Such a row (or clause) states no regulation of its own; it names the row whose regulations
+    govern. It was an `advisory` rule quoting the pointer, which bound to the water and showed the
+    words as a rule — 57 of them — and the reader could not follow it anywhere. As an edge it
+    binds nothing and links to the entry it names (`entry_ids`, every one of which must exist:
+    the bundle build refuses a dangling one, and `test_see_pointers` checks the corpus).
+
+    A pointer whose target is NOT an entry (prose on another page, a sign at a trailhead) cannot
+    be followed; it says so in `unresolved` instead — flagged, never guessed at.
+
+    `verbatim` is the printed pointer, a contiguous run of the row. A row printed IN FULL in two
+    region tables (MU 6-1 lakes in both Region 5 and Region 6) points at its twin with the whole
+    row as `verbatim`: the book cross-lists it, and the copy under the other region's heading
+    binds nothing (`see_relation` names it a `twin`).
+
+    WHAT THE POINTER IS TO THE READER is derived, never stored (`see_relation`): an `alias` when
+    this row's water IS the target's (Jones Lake -> Wahleach Lake, one lake under two names), a
+    `twin` when the target prints the same row, else `see` (a different water governed by the
+    target's rules)."""
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+    verbatim: str = Field(..., min_length=1)
+    entry_ids: List[str] = Field(default_factory=list)
+    unresolved: str = ""
+
+    @model_validator(mode="after")
+    def _one_way(self) -> "See":
+        if bool(self.entry_ids) == bool(self.unresolved.strip()):
+            raise ValueError("a `see` names the entries it points at (`entry_ids`) OR says why it "
+                             "points at none (`unresolved`) — exactly one")
+        if len(set(self.entry_ids)) != len(self.entry_ids):
+            raise ValueError(f"see.entry_ids repeats an entry: {self.entry_ids}")
+        return self
+
+
+#: THE WORDS OF A POINTER: "see X" / "also see X" / "see X regulations". Checked on `advisory`
+#: rules only — a pointer written as one is refused (`CatalogueEntry`).
+_POINTER_WORDS = re.compile(r"\bsee\s+(?!page\b|sign\b|note\b|tables\b|ice hut|mercury|the definition)\w")
+#: ...unless what it points at is not a row: prose on another page, a sign, a warning, a
+#: definition. Those stay information (a page pointer cannot be followed to an entry).
+_NOT_A_WATER = re.compile(r"\bpage\b|\bsign\b|warning|definition")
+
+
+def _letters(text: str) -> str:
+    """Only the letters and digits of a row — two printings of one row differ in punctuation
+    ("quota = 2; bait ban" / "quota = 2 Bait ban") and emphasis, never in words."""
+    return re.sub(r"[^a-z0-9]", "", squash(text))
+
+
+def see_relation(entry: "CatalogueEntry", targets: List["CatalogueEntry"]) -> str:
+    """What a pointer IS, from the two rows — `alias`, `twin` or `see` (see `See`).
+
+      twin   every target prints this row's words (a row cross-listed under two regions);
+      alias  a row that is ONLY the pointer, whose water is among its targets' (the row is
+             another name for it) — the book's "See Wahleach Lake" under JONES LAKE, which the
+             alias table already holds. A row with rules of its own is never an alias: West
+             Road River's tributaries row matches the river and points at the mainstem's row,
+             and it is the tributaries' own rules that make it a row;
+      see    otherwise: a different water (or part), governed by the target's rules."""
+    if targets and all(_letters(t.regs_verbatim) == _letters(entry.regs_verbatim)
+                       for t in targets):
+        return "twin"
+    theirs = {m for t in targets for m in t.matched}
+    if entry.pointer_only and entry.matched and set(entry.matched) <= theirs:
+        return "alias"
+    return "see"
+
+
 #: "Nov 1-Apr 30", "Jul 24 - Dec 31", "May 1-31" — the ranges a sentence prints.
 _RANGE = re.compile(r"([a-z]+\.?\s*\d{1,2})\s*-\s*([a-z]+\.?\s*\d{1,2}|\d{1,2})\b")
 
@@ -1402,6 +1475,31 @@ def _own_dates_carried(rule: "CatalogueRule") -> Optional[str]:
         return None
     return (f"its `when` ({', '.join(d.words() for d in mine)}) is neither the dates its sentence "
             f"prints ({said}), some of them, nor their complement")
+
+
+#: "catch and release ALL OTHER SPECIES", "… all species", "… all fish" — a water row's release
+#: of everything it has not named. NOT "Whitefish: 15 (all species combined)", which is a quota
+#: over the whitefish, and not "No Fishing … applies to all species" (a note about closures).
+_ALL_SPECIES_SAID = re.compile(r"\ball (?:other )?(?:species|fish)\b(?! combined)")
+
+
+def _all_species_is_game_fish(rule: "CatalogueRule") -> Optional[str]:
+    """"ALL OTHER SPECIES" MEANS GAME FISH, AND NEVER CRAYFISH (user ruling, 2026-09-25).
+
+    Whiteswan Lake's inlet and outlet print "rainbow trout daily quota = 5 (catch and release all
+    other species)": the release is about the game fish an angler catches there. Written as
+    `ALL_GAME_FISH` it reached crayfish (the closed list names them) and released a crayfish
+    trapper's catch; written as `ALL_FIN_FISH` (Pine River's "all fish") it reached every sucker
+    and carp. So a retention rule saying "all (other) species / all fish" is `ALL_GAME_FISH` with
+    crayfish in `species_except` — game fish, less crayfish, less whatever the row names itself."""
+    if rule.type is not RuleType.retention_limit or not _ALL_SPECIES_SAID.search(
+            squash(rule.verbatim)):
+        return None
+    if list(rule.species) != ["ALL_GAME_FISH"] or "CRA" not in rule.species_except:
+        return (f"its sentence says 'all (other) species / all fish', which is GAME FISH and "
+                f"never crayfish — species ['ALL_GAME_FISH'] with 'CRA' in species_except (it "
+                f"has species {list(rule.species)}, except {list(rule.species_except)})")
+    return None
 
 
 #: PRINTED WINDOWS NO RULE OF THEIR ROW CARRIES, BECAUSE THE BOOK'S MEANING IS HELD ELSEWHERE —
@@ -1502,6 +1600,31 @@ def _dates_lost(entry: "CatalogueEntry") -> List[str]:
         return r.when is not None and bool(r.when.dates)
 
     spans = {r.rule_id: _unique_span(hay, squash(r.verbatim)) for r in entry.rules}
+    # 5. A DATE DOES NOT CROSS A SEMICOLON (user ruling, 2026-09-25). "Fly fishing only; bait ban
+    #    upstream of …, Jul 1-Oct 31" dates the bait ban; "catch and release; bait ban, June 15-Oct
+    #    31" dates the bait ban. The clause on the other side of the `;` is its own, so a rule
+    #    whose clause (from the `;` before it to the `;` after it, on its printed line) prints no
+    #    date may not carry dates that line prints only in ANOTHER clause.
+    for r in entry.rules:
+        mine = spans[r.rule_id]
+        if not dated(r) or r.lift_only or mine is None or printed_ranges(squash(r.verbatim)):
+            continue
+        start = max([b for b in breaks if b <= mine[0]] + [0])
+        end = min([b for b in breaks if b >= mine[1]] + [len(hay)])
+        line = hay[start:end]
+        if ";" not in line:
+            continue
+        a, b = mine[0] - start, mine[1] - start
+        lo = line.rfind(";", 0, a) + 1
+        hi = line.find(";", b)
+        hi = len(line) if hi < 0 else hi
+        if printed_ranges(line[lo:hi]):
+            continue
+        others = printed_ranges(line[:lo] + " " + line[hi:])
+        if others and all(d in others for d in r.when.dates):
+            e.append(f"{r.rule_id}: its `when` ({r.when.words()}) is printed in another clause of "
+                     f"its line, across a `;` — a date after a `;` belongs to its own clause, not "
+                     f"to '{squash(r.verbatim)[:30]}'")
     for r in entry.rules:
         if dated(r) or r.lift_only or _ALL_YEAR_SAID.search(squash(r.verbatim)):
             continue
@@ -2669,6 +2792,10 @@ class CatalogueRule(BaseModel):
         err = _own_dates_carried(self)
         if err:
             e.append(err)
+        # "ALL OTHER SPECIES" IS GAME FISH — see `_all_species_is_game_fish`.
+        err = _all_species_is_game_fish(self)
+        if err:
+            e.append(err)
         # FEATURE TYPES ARE APPLIED TO THE RULE'S WHOLE REACH, after any tributary walk
         # (`reach.classify`), so they must be said on every extent or on none — a union of
         # "lakes of this watershed" with "that river, every kind" has no one filter.
@@ -3708,12 +3835,35 @@ class CatalogueEntry(BaseModel):
     #: licensing never competes and never votes on open/closed, and it depends on who the angler
     #: is and what they are doing, which no rule takes.
     licensing: List[LicensingRecord] = Field(default_factory=list)
+    #: POINTERS — "See Lonzo Creek" (see `See`). Not rules: they bind nothing. A row whose ONLY
+    #: content is a pointer has no rules at all, and says so by having only this.
+    see: List[See] = Field(default_factory=list)
+
+    @property
+    def pointer_only(self) -> bool:
+        """A row that states no regulation of its own — only where to look (`see`)."""
+        return bool(self.see) and not self.rules and not self.licensing
 
     @model_validator(mode="after")
     def _chain_of_custody(self) -> "CatalogueEntry":
         e: List[str] = []
         seen: set[str] = set()
         haystack = squash(self.regs_verbatim)
+        # A POINTER QUOTES THE ROW and never points at the row itself. Whether its targets exist
+        # is a question about the corpus (the bundle build and `test_see_pointers` ask it).
+        for s in self.see:
+            if squash(s.verbatim) not in haystack:
+                e.append(f"see {s.verbatim[:40]!r}: not a contiguous substring of regs_verbatim")
+            if self.entry_id in s.entry_ids:
+                e.append(f"see {s.verbatim[:40]!r}: points at its own entry")
+        # A POINTER IS NOT A RULE. An information rule whose words only say where else to look
+        # ("See Lonzo Creek", "A tributary of Slocan River. See Slocan River") is a `see` edge;
+        # written as an advisory it binds the water and shows the pointer as a regulation.
+        for r in self.rules:
+            if r.type is RuleType.advisory and _POINTER_WORDS.search(squash(r.verbatim)) \
+                    and not _NOT_A_WATER.search(squash(r.verbatim)):
+                e.append(f"{r.rule_id}: {squash(r.verbatim)[:50]!r} is a pointer to another "
+                         f"row — write it as `see` (with the entry it names), not as a rule")
         for r in self.rules:
             if r.rule_id in seen:
                 e.append(f"duplicate rule_id {r.rule_id!r}")
@@ -3812,8 +3962,8 @@ class CatalogueEntry(BaseModel):
                 e.append(f"{r.rule_id}: says nothing about where it applies — give it `extents` "
                          f"(the entry's reach, written out, if it covers the whole row), or name "
                          f"the place it cannot bind in `extent_text` / `unresolved_locators`")
-        if not self.rules and not self.licensing:
-            e.append("an entry with no rules and no licensing says nothing")
+        if not self.rules and not self.licensing and not self.see:
+            e.append("an entry with no rules, no licensing and no `see` says nothing")
         if e:
             raise ValueError(f"{self.entry_id}: " + "; ".join(e))
         return self

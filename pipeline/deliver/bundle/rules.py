@@ -116,6 +116,46 @@ def _zone_region(entry_id: str) -> str:
 LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when")
 
 
+#: The two origins a fish can have. A rule with no `origin` holds for both.
+ORIGINS = frozenset({"wild", "hatchery"})
+
+
+def release_origins(x: dict) -> frozenset[str] | None:
+    """THE ORIGINS A RULE RELEASES OUTRIGHT — `None` when it is not an outright release.
+
+    A bundle rule (`read.rules` shape) releases a fish outright when it is a `retention_limit`
+    with `take: 0` that holds at every length (no `lengths`: "No wild trout over 50 cm" releases a
+    size class, and the 4 under it still stand), whatever the means (no `while`), whatever is
+    targeted (no `when_targeting`), and as a statement of its own (not a `within` clause, not a
+    record-keeping duty). A closure is one. What it releases is its `origin`, or both.
+
+    Shared by the competition (`read.effective_rules`) and anything that reasons about what a
+    water row withholds, so the two cannot disagree on what "catch and release" is."""
+    if x.get("type") != "retention_limit" or x.get("take") != 0:
+        return None
+    if x.get("lengths") or x.get("while") or x.get("when_targeting") or x.get("within") \
+            or x.get("record_retention") or x.get("dimension") == "lift":
+        return None
+    return frozenset({x["origin"]}) if x.get("origin") else ORIGINS
+
+
+def yields_to_release(x: dict) -> frozenset[str] | None:
+    """THE ORIGINS A RULE LETS AN ANGLER KEEP, when an outright release must silence it: a
+    `retention_limit` that allows something (`take` above 0, `unlimited`) or states only sizes
+    (`take` absent) — whatever conditions it holds under (origin, water, while, size). `None` for
+    a rule that keeps nothing (another release: equally strict, it stands beside), for a rule that
+    is no count of fish (a record-keeping duty; the possession multiplier "twice the daily quota",
+    which has no number of its own to keep), and for a lift."""
+    if x.get("type") != "retention_limit" or x.get("record_retention") \
+            or x.get("dimension") == "lift":
+        return None
+    take = x.get("take")
+    if not (x.get("unlimited") or (take is not None and take > 0)
+            or (take is None and x.get("lengths"))):
+        return None
+    return frozenset({x["origin"]}) if x.get("origin") else ORIGINS
+
+
 def _species_of(r) -> frozenset[str] | None:
     """The fish a rule speaks about, as leaves — `None` when it names none (it binds every angler
     whatever they catch). `species_except` is subtracted."""
@@ -379,6 +419,37 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
     )
 
 
+def _see_column(entries: dict) -> dict[str, str]:
+    """`entry_id -> the `see` column`: each pointer with the RELATION it bears (`see_relation`).
+
+    A POINTER MUST LAND. A `see` naming an entry the corpus does not hold would render as a link to
+    nothing — the reader is told "see X" and X is not there — so the build stops, as it does for an
+    `exempts` that lifts no rule. A pointer that names no entry says why in `unresolved`."""
+    from pipeline.regs.parsing.catalogue import see_relation
+    out: dict[str, str] = {}
+    dangling = []
+    for eid, ce in sorted(entries.items()):
+        if not ce.see:
+            continue
+        items = []
+        for s in ce.see:
+            missing = [t for t in s.entry_ids if t not in entries]
+            if missing:
+                dangling.append(f"{eid} -> {missing}")
+                continue
+            if s.entry_ids:
+                items.append({"verbatim": s.verbatim, "entry_ids": list(s.entry_ids),
+                              "relation": see_relation(ce, [entries[t] for t in s.entry_ids])})
+            else:
+                items.append({"verbatim": s.verbatim, "unresolved": s.unresolved})
+        out[eid] = json.dumps(items, separators=(",", ":"), ensure_ascii=False)
+    if dangling:
+        raise SystemExit(f"see: {len(dangling)} pointer(s) name an entry the corpus does not hold "
+                         f"(e.g. {dangling[:3]}) — point at an existing entry_id, or say why it "
+                         f"names none in `unresolved`")
+    return out
+
+
 def _jsonl(path: Path):
     with path.open(encoding="utf-8") as fh:
         for line in fh:
@@ -473,6 +544,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         if ce.entry_id.startswith("z"):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
     entries_by_id = {ce.entry_id: ce for _, ce in docs}
+    see_of = _see_column(entries_by_id)
     for e, ce in docs:
         ces.append(ce)
         matched = list(ce.matched)
@@ -493,6 +565,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             json.dumps(e.get("extents") or [], separators=(",", ":")),
             # EVERY water matched; `item_id` above is only the first.
             json.dumps(matched, separators=(",", ":")),
+            see_of.get(ce.entry_id),
         ))
         # A rule may name another in its entry (`suspended_while`), and its label says what
         # that rule is in words — so each label is built with its siblings to hand.
@@ -509,8 +582,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # — which then wrote a 42 MB bundle with zero entries in it. Naming the columns makes that
     # failure impossible rather than merely tested.
     db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
-                   "                   mus, pages, scope_note, extents, matched)"
-                   " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                   "                   mus, pages, scope_note, extents, matched, see)"
+                   " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                    entry_rows)
     cov.filled("entry", len(entry_rows))
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional

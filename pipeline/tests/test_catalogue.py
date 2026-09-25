@@ -418,14 +418,15 @@ def test_all_fin_fish_is_wider_than_the_game_list():
     assert "`ALL_FIN_FISH`" in species_menu()
 
 
-def test_the_three_wider_than_game_rules_say_so():
-    """The curated entries for those three sentences must not claim the narrower set."""
+def test_the_two_wider_than_game_rules_say_so():
+    """The curated entries for the snagging and trap sentences must not claim the narrower set.
+    (Pine River's "all fish" was the third; a water row's "all fish" is game fish, never crayfish
+    — user ruling 2026-09-25, pinned in `test_all_other_species_is_game_fish`.)"""
     import json
     from pathlib import Path
 
     want = {("zp:crayfish_trapping", "crayfish_trapping.r2"),
-            ("zp:prohibited_methods", "prohibited_methods.r3"),
-            ("r7:pine_river@7-32", "pine_river.r1")}
+            ("zp:prohibited_methods", "prohibited_methods.r3")}
     root = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
     seen = set()
     for f in root.glob("*.json"):
@@ -775,3 +776,41 @@ def test_a_clause_of_a_dated_quota_carries_the_quotas_dates():
         CatalogueEntry.model_validate(entry(None))
     with pytest.raises(ValueError, match="days its parent"):
         CatalogueEntry.model_validate(entry({"dates": [d(8, 1, 8, 31)]}))
+
+
+# --------------------------------------------------------------------------- ruling of 2026-09-25
+def test_all_other_species_is_game_fish():
+    """USER RULING (2026-09-25): "catch and release all other species" (Whiteswan Lake's inlet and
+    outlet streams) and the like — "all species", "all fish" (Pine River) — mean GAME FISH only:
+    never crayfish, never a non-game fish. Written as `ALL_GAME_FISH` less `CRA` (the closed list
+    names crayfish, so `ALL_GAME_FISH` alone reaches them); `ALL_FIN_FISH` reaches every sucker."""
+    import pytest
+
+    from pipeline.deliver.bundle import read as R
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    from pipeline.regs.parsing.io import read_all_entries
+
+    base = dict(rule_id="w.r4", type="retention_limit", take=0, may_target=True,
+                verbatim="catch and release all other species", extents=[{"op": "whole"}])
+    CatalogueRule.model_validate(dict(base, species=["ALL_GAME_FISH"], species_except=["RB", "CRA"]))
+    for sp, ex in ((["ALL_GAME_FISH"], ["RB"]), (["ALL_FIN_FISH"], []), (["TROUT_CHAR"], ["CRA"])):
+        with pytest.raises(ValueError, match="GAME FISH and never crayfish"):
+            CatalogueRule.model_validate(dict(base, species=sp, species_except=ex))
+    # "(all species combined)" is a whitefish quota, not this
+    CatalogueRule.model_validate(dict(base, verbatim="Whitefish: 15 (all species combined)",
+                                      species=["WHITEFISH"], take=15, may_target=None))
+
+    raw = read_all_entries()
+    got = {}
+    for eid, rid in (("r4:whiteswan_lake_s_inlet_outlet_streams@4-24",
+                      "whiteswan_lakes_inlet_outlet_streams.r4"),
+                     ("r7:pine_river@7-32", "pine_river.r1")):
+        r = next(x for x in raw[eid]["rules"] if x["rule_id"] == rid)
+        got[rid] = r
+        assert r["species"] == ["ALL_GAME_FISH"] and "CRA" in r["species_except"], rid
+        # read as the ladder reads it: a game fish yes, crayfish and a sucker (non-game) no
+        assert R.speaks_for(r, "BT") and R.speaks_for(r, "BB")
+        assert not R.speaks_for(r, "CRA") and not R.speaks_for(r, "SSU")
+    assert not R.speaks_for(got["whiteswan_lakes_inlet_outlet_streams.r4"], "RB")
+    # consistent with the earlier ruling: "all fin fish" (the trap duty) never reaches crayfish
+    assert not R.speaks_for({"species": ["ALL_FIN_FISH"]}, "CRA")

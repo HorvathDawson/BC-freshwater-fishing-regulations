@@ -270,6 +270,15 @@ the reader's to work out and not yours.
 guessing or dropping: an unparsed season and an ABSENT one are opposite facts, and the second
 reads as "open all year".
 
+### Which clause a date belongs to
+
+A date printed at the end of a run of clauses joined by "and" or commas governs the whole run:
+*"Trout/char catch and release and bait ban, June 15-Aug 31"* dates both rules. **A `;` ends the
+run.** *"Trout/char catch and release; bait ban, June 15-Oct 31"* dates ONLY the bait ban — the
+release before the `;` carries no `when`; *"Fly fishing only; bait ban upstream of …, Jul 1-Oct
+31"* dates only the bait ban; *"No Fishing Aug 1-Oct 31; bait ban"* dates only the closure. The
+validator refuses a `when` that crosses a `;`.
+
 ### "EXCEPT these dates" — WRITE THE DAYS THE RULE HOLDS
 
 `dates` is always the days the rule DOES hold. When the page prints the days it does not,
@@ -401,6 +410,18 @@ number of rods"* is `{"slot": "lines_per_angler", "unlimited": true, "when": {"a
 * **An asterisk in the first column** means every rule reaches tributaries → `includes_tributaries`
   on the ENTRY. **An asterisk after one regulation** means only that one does → on the RULE.
 * **(CW)** is a symbol on the entry, not a rule. The licence obligation is provincial.
+* **"Catch and release all other species" / "all species" / "all fish" on a water row is GAME
+  FISH, never crayfish:** `species: ["ALL_GAME_FISH"]`, `species_except: ["CRA", …the fish the
+  row names itself]`. Not `ALL_FIN_FISH` (that reaches every non-game fish). The validator
+  refuses anything else.
+* **A POINTER IS NOT A RULE.** *"See Lonzo Creek"*, *"A tributary of Slocan River. See Slocan
+  River"*, *"For regulations on the mainstem of the West Road River, see Region 5"* state no
+  regulation: write them in the ENTRY's `see` list, never as an `advisory` rule —
+  `"see": [{"verbatim": "See Lonzo Creek", "entry_ids": ["r2:lonzo_marshall_creek@2-4"]}]`.
+  `entry_ids` are the entries the pointer names (look them up; every one must exist). A row
+  whose only content is a pointer has NO rules. A pointer at something that is not a row
+  ("see page 63", "see sign at trailhead") is information: keep it an `advisory`, or give the
+  `see` an `unresolved` reason instead of `entry_ids`.
 
 ---
 

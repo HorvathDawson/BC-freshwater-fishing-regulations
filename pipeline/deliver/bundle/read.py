@@ -328,6 +328,13 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
          fish it covers AS IF IT NAMED IT, so a water's "No Fishing, Nov 1-Apr 30" silences the
          zone's "Burbot: 5" on its dates (read as a group rule, it let the 5 speak beside it).
+      5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25): an outright
+         release in force here, written for this water or reached by the tributary walk,
+         displaces every zone/area/provincial quota that would keep the fish, WHATEVER its
+         conditions, when every origin that quota keeps is released here (see step 5 below,
+         `rules.release_origins`, `rules.yields_to_release`). Such a release counts even when
+         step 4 put it behind a zone release naming the fish, and one step 4 put behind a
+         looser zone rule naming the fish (one that lets it be kept) speaks again.
       Rules that never compete pass through with state "shown": `standing`, the information
       family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
       `lift`) state nothing and are not returned.
@@ -407,6 +414,58 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         for k in group:
             if not closure(k) and any(order(o) < order(k) and family(o) != family(k)
                                       for o in group):
+                out_.discard(k)
+
+    # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
+    #    keys on (type, dimension), and a zone quota's conditions are part of its dimension, so
+    #    Coquihalla's "Trout/char (including steelhead) catch and release" never met Region 2's
+    #    "2 hatchery steelhead" (`daily@origin=hatchery`) and both spoke. An outright release in
+    #    force here (`release_origins`) that is written for this water (or reaches it by the
+    #    tributary walk) displaces every zone or provincial quota that would let the angler keep
+    #    that fish (`yields_to_release`), whatever conditions the quota holds under — provided
+    #    every origin the quota could keep is released here (by the water row or by the zone's
+    #    own releases: Chilliwack's "hatchery cutthroat catch and release" beside Region 2's
+    #    "wild trout/char from streams" releases every cutthroat, so "Trout/char: 4" is silent;
+    #    Morris Lake's "Wild trout/char catch and release" leaves the region's 4 for hatchery
+    #    trout). A rule about another fish never gets here (`speaks_for`), and a closure is never
+    #    displaced (a closure keeps nothing).
+    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
+
+    def place(k) -> int:
+        return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
+
+    #    The releases are read from EVERY competitor in force, not only step 4's survivors: a
+    #    water release that lost step 4 to a release NAMING the fish (Pine River's "Catch and
+    #    release all fish" under Zone B's "Bull trout … release") still releases it, and one that
+    #    lost to a looser zone rule naming the fish (Adams River's "Rainbow trout and char catch
+    #    and release" under Region 3's "Lake trout: none under 60 cm") is the stricter water rule
+    #    and speaks again — naming only lets a STRICTER zone rule beat a water row's group. A
+    #    release displaced by a superior authority that lets the fish be kept stays displaced and
+    #    releases nothing here (one displaced by a superior CLOSURE — a national park — still
+    #    releases: nothing the region keeps survives either).
+    def beaten_by(k) -> list:
+        g = keyed.get((every[k]["type"], every[k]["dimension"]), [])
+        return [o for o in g if order(o) < order(k) and family(o) != family(k)]
+
+    rel = {}
+    for k in cand:
+        o = release_origins(every[k]) if competes(k) else None
+        if not o:
+            continue
+        by = beaten_by(k)
+        if any(every[b]["_rank"] < 0 and yields_to_release(every[b]) for b in by):
+            continue
+        rel[k] = o
+        if k not in out_ and 0 <= place(k) <= 1 and by \
+                and all(place(b) >= 2 and yields_to_release(every[b]) for b in by):
+            out_.add(k)
+    water_rel = frozenset().union(*[o for k, o in rel.items() if 0 <= place(k) <= 1])
+    released = frozenset().union(*rel.values())
+    if water_rel:
+        for k in sorted(out_):
+            keeps = yields_to_release(every[k])
+            if keeps and competes(k) and place(k) >= 2 and keeps <= released \
+                    and keeps & water_rel:
                 out_.discard(k)
 
     def said(k) -> str:
