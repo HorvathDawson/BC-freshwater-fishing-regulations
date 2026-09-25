@@ -257,3 +257,35 @@ def test_a_designation_is_not_held_to_the_region_that_prints_it():
     # mutation: hold licensing to the region too, and the designation shrinks to the row's region
     b, _ = build_reach(e, rec | {"rule_id": "d", "type": "advisory"}, REG, G, regional=True)
     assert set(b.sections) == {"s3"}
+
+
+# ------------------------------------------------------------------ a Region 7 row's zone (6a)
+
+def _zoned():
+    from dataclasses import replace as _r
+    return {"area:region:7a": _r(_item("area:region:7a", ["a"]), mus=("7-30", "7-37", "7-38")),
+            "area:region:7b": _r(_item("area:region:7b", ["b"]), mus=("7-31", "7-36")),
+            "area:region:6": _item("area:region:6", ["c"])}
+
+
+@pytest.mark.parametrize("eid,want", [
+    ("r7:williston_lake_in_zone_a@7-30+7-37+7-38", ("7a",)),
+    ("r7:williston_lake_zone_b@7-31+7-36", ("7b",)),
+    ("r7:somewhere@7-30+7-31", ("7a", "7b")),
+    ("r7:unknown_unit@7-99", ("7",)),          # an MU no zone holds: the whole region, never a guess
+    ("r7:no_units", ("7",)),
+    ("r5:toms_lake@6-1", ("5", "6")),          # a region printed whole is untouched
+])
+def test_a_region_7_rows_mus_name_its_zone(eid, want):
+    assert O.entry_regions(eid, _zoned()) == want
+
+
+def test_the_zone_a_row_binds_only_zone_a():
+    reg = _zoned()
+    assert O.region_sections(O.entry_regions("r7:w@7-30", reg), reg) == {"a"}
+    assert O.region_limit({"entry_id": "r7:w@7-31"}, reg) == {"b"}
+
+
+def test_mutation_zones_from_units(monkeypatch):
+    monkeypatch.setattr(O, "ZONES_FROM_UNITS", False)
+    assert O.entry_regions("r7:williston_lake_in_zone_a@7-30+7-37+7-38", _zoned()) == ("7",)

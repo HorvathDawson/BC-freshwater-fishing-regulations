@@ -141,6 +141,12 @@ class PlaceNamer:
         key = aid if aid.startswith("area:") else f"area:{aid}"
         if key.startswith("area:region:"):
             return None
+        if key.startswith("area:basin:"):
+            # A WATERSHED BY FWA CODE is named for its river ("Williams Lake River watershed"),
+            # from the one table that names basins; an unnamed one names no place.
+            from pipeline.atlas.registry.basins import basin_name
+            name = basin_name(key)
+            return _title(name) if name else None
         it = self.registry.get(key)
         name = getattr(it, "name", "") if it is not None else ""
         if not name or name == key:
@@ -176,7 +182,10 @@ class PlaceNamer:
                 area = self._area(aid)
                 if area is None:
                     return None
-                place = (f"{on}, " if on else "") + f"within {area}"
+                # a watershed IS a place ("Williams Lake River watershed"); anything else is
+                # a place the water is within
+                area = area if aid.startswith("area:basin:") else f"within {area}"
+                place = (f"{on}, " if on else "") + area
             elif x.get("area_kind"):
                 words = _AREA_KIND_WORDS.get(str(x["area_kind"]))
                 if x["area_kind"] == "region":
@@ -200,6 +209,14 @@ class PlaceNamer:
             if not on and not matched:
                 # A zone rule names no water of its own; say which water the cut is on.
                 on = " and ".join(sorted({n for _, i in pts if i for n in [self._item(i)] if n}))
+            if x.get("watershed"):
+                # A PART OF A WATERSHED (`Extent.watershed`) is the river's watershed on that side,
+                # not the river: "Fraser River watershed, upstream of Williams Lake River".
+                river = on or " and ".join(n for n in (self._item(i) for i in (scope or matched))
+                                           if n)
+                if not river:
+                    return None
+                on = f"{river} watershed"
             place = f"{on}, {where}" if on else where
         else:
             return None

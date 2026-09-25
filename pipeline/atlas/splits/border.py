@@ -185,6 +185,55 @@ def mark_inside_area(graph: StreamGraph, geoms: dict, poly, area_label: str, blk
 
 _AREA_MIN_OVERLAP_M = 1.0   # a piece merely TOUCHING the polygon at a cut point overlaps by 0
 
+#: A WATERBODY is tested by its OUTLINE, and an outline drawn along a boundary leaves a sliver on
+#: the far side: Williston's Zone A part lies 91.7 m² in Region 7B, its Zone B part 312 m² in 7A,
+#: against 1,415 and 305 km². A share of a lake counts when it is real water — at least 0.1 ha, or
+#: a tenth of the lake (so half of a 0.06 ha pond counts). Measured on the promoted build (2026-09-25)
+#: over the 303,940 noded lakes: the outline keeps 418,001 of the route's 418,047 flags, drops 46
+#: shoreline slivers (the two Williston zones; Intata Reach in Tweedsmuir by 933 m², Pitt Lake in
+#: Pinecone Burke by 374 m²) and adds 110 where the lake reaches into an area its route does not
+#: (Shuswap Lake into Cinnemousun Narrows Park by 130 ha, Stuart Lake's marine park by 106 ha).
+_WATERBODY_MIN_OVERLAP_M2 = 1_000.0
+_WATERBODY_MIN_SHARE = 0.10
+
+
+def _waterbody_overlap_counts(part_area: float, poly_area: float) -> bool:
+    """Is `part_area` of a waterbody of `poly_area` inside an area real water, not a sliver?"""
+    return part_area > 0 and part_area >= min(_WATERBODY_MIN_OVERLAP_M2,
+                                              _WATERBODY_MIN_SHARE * poly_area)
+
+
+def _membership_geoms(graph: StreamGraph, geoms: dict, extra: dict) -> tuple[list, list, set]:
+    """(node ids, geometries, indexes that are waterbody OUTLINES) for a membership pass.
+
+    A LAKE OR WETLAND is tested by its outline whenever `extra` has it, noded or not. A noded lake's
+    sidecar geometry is its under-lake ROUTE, and a route can wander across a line the lake itself
+    does not cross: the Peace's route under Williston ran along the 7A/7B line near Finlay Forks, so
+    both parts were in both zones and every Zone B rule bound the Zone A lake (user ruling
+    2026-09-24: a noded lake's region and area membership is its polygon's). A stream piece keeps its
+    line; a waterbody with no outline keeps its route."""
+    from pipeline.common.models import NodeKind
+
+    nids: list = []
+    gs: list = []
+    outline: set = set()
+    for nid, node in graph.nodes.items():
+        g = None
+        if node.kind in (NodeKind.lake, NodeKind.wetland):
+            g = extra.get(nid)
+            if g is not None and not g.is_empty:
+                outline.add(len(nids))
+            else:
+                g = geoms.get(nid)
+        else:
+            g = geoms.get(nid)
+            if g is None:
+                g = extra.get(nid)
+        if g is not None and not g.is_empty:
+            nids.append(nid)
+            gs.append(g)
+    return nids, gs, outline
+
 
 def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
                       extra: dict | None = None) -> int:
@@ -220,15 +269,7 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
     from shapely.strtree import STRtree
 
     extra = extra or {}
-    nids: list = []
-    gs: list = []
-    for nid, node in graph.nodes.items():
-        g = geoms.get(nid)
-        if g is None:
-            g = extra.get(nid)          # a minted waterbody: its own FWA polygon stands in
-        if g is not None and not g.is_empty:
-            nids.append(nid)
-            gs.append(g)
+    nids, gs, outline = _membership_geoms(graph, geoms, extra)
     if not gs or not polys_by_name:
         return 0
     tree = STRtree(gs)
@@ -251,7 +292,12 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
             if i in inside:
                 continue
             part = poly.intersection(gs[i])
-            if not part.is_empty and (part.length > _AREA_MIN_OVERLAP_M or part.area > 0):
+            if part.is_empty:
+                continue
+            if i in outline:
+                if _waterbody_overlap_counts(part.area, gs[i].area):
+                    n += _flag(nids[i], name)
+            elif part.length > _AREA_MIN_OVERLAP_M or part.area > 0:
                 n += _flag(nids[i], name)
     return n
 

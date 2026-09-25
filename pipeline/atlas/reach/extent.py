@@ -52,6 +52,170 @@ def area_sections(reg, g, key: str) -> set[str] | None:
     return set(hit[1]) if hit[1] else None
 
 
+#: A tributary whose mouth lies within this many metres of a watershed cut sits AT the cut, and is on
+#: neither side (`Extent.watershed`). A curated confluence split lands on the confluence itself; this
+#: only absorbs the rounding of FWA's millionths (1.4 m a unit on the Fraser).
+WATERSHED_AT_CUT_M = 5.0
+
+#: {(id(graph), river code): (graph, ((node id, first group or None), ...))} — a basin's members
+#: with the position each joins the river at. The graph is held and checked by identity (a recycled
+#: id() never serves another graph).
+_WS_MEMBERS: dict[tuple[int, str], tuple[object, tuple]] = {}
+#: {(id(graph), blk): (graph, length)} — a blue line's FWA length, for code positions.
+_LINE_LEN: dict[tuple[int, str], tuple[object, float]] = {}
+
+
+def _first_group(code: str, river: str) -> int | None:
+    """The position (in millionths of `river`'s length, from its mouth) at which the water coded
+    `code` joins `river` — the group after the river's code. None when `code` IS the river's."""
+    if code == river:
+        return None
+    head = code[len(river) + 1:].split("-", 1)[0]
+    return int(head) if head.isdigit() else None
+
+
+def _basin_members(g, river: str) -> tuple:
+    """Every node of `river`'s basin (its code or `basin_wsc` at or below `river`), with the group
+    it joins the river at (`_first_group`)."""
+    from pipeline.atlas.registry.basins import node_basin_code
+    ck = (id(g), river)
+    hit = _WS_MEMBERS.get(ck)
+    if hit is None or hit[0] is not g:
+        out = []
+        pre = river + "-"
+        for nid in sorted(g.nodes):
+            c = node_basin_code(g.nodes[nid])
+            if c == river or c.startswith(pre):
+                out.append((nid, _first_group(c, river)))
+        hit = _WS_MEMBERS[ck] = (g, tuple(out))
+    return hit[1]
+
+
+def _line_length(g, blk: str, river: str) -> float:
+    """The FWA length of blue line `blk`, which carries `river`'s code — the denominator of every
+    group on it. Read from the tributaries that join the line directly (group = measure / length ×
+    1e6, rounded down; on the Fraser the median of 3,362 agrees with the line's own length to 1 in
+    10^6), because a line whose head lies inside a lake has no graph node at its top and its
+    largest `up_m` falls short. With fewer than five direct confluences, the largest `up_m`."""
+    ck = (id(g), blk)
+    hit = _LINE_LEN.get(ck)
+    if hit is not None and hit[0] is g:
+        return hit[1]
+    from pipeline.atlas.registry.basins import node_basin_code
+    ups, ratios = [], []
+    for nid, n in g.nodes.items():
+        if n.blk != blk:
+            continue
+        ups.append(n.up_m)
+        for ei in g.up_adj.get(nid, []):
+            e = g.edges[ei]
+            s = g.nodes.get(e.from_node)
+            grp = _first_group(node_basin_code(s), river) if s is not None else None
+            if grp and grp >= 1000 and e.at_measure > 0 and \
+                    node_basin_code(s).startswith(river + "-"):
+                ratios.append(e.at_measure * 1e6 / (grp + 0.5))
+    if len(ratios) >= 5:
+        ratios.sort()
+        length = ratios[len(ratios) // 2]
+    else:
+        length = max(ups) if ups else 0.0
+    _LINE_LEN[ck] = (g, length)
+    return length
+
+
+def _watershed_part(g, universe: set[str], river_in: set[str], river_amb: set[str],
+                    cuts: list[tuple[str, float]], op: str) -> dict | str:
+    """`Extent.watershed`: the river's basin on the op's side of the cut(s), by code position.
+
+    `universe` is the scoped river's own sections; `river_in` / `river_amb` what the measure cut
+    already gave for them (inside / straddling). Returns ``{"sections", "unplaced", "at_cut"}`` or a
+    failure code.
+
+    A member whose code joins the river at group `p` is placed by `p` against each cut's position
+    `P` (= cut measure / line length × 1e6): above, below, or AT the cut (its mouth within
+    `WATERSHED_AT_CUT_M`), which is neither side. A member coded to the river itself (`p` is None) is
+    the river: a piece of the scoped item goes where the measure cut put it; any other (a floodplain
+    lake, an unnamed side channel, a pond FWA placed only in the river's own named watershed) goes
+    where the water it touches goes — when all of it agrees — and is otherwise UNPLACED: reported,
+    never guessed onto a side."""
+    from pipeline.atlas.registry.basins import node_basin_code
+    codes = {node_basin_code(g.nodes[s]) for s in universe
+             if s in g.nodes and str(getattr(g.nodes[s].kind, "value", g.nodes[s].kind)) == "stream"}
+    codes.discard("")
+    if len(codes) != 1:
+        return "watershed_river_code_ambiguous"
+    river = codes.pop()
+    pos: list[tuple[float, float]] = []                      # (P, tolerance in units)
+    for blk, m in cuts:
+        on = [s for s in universe if s in g.nodes and g.nodes[s].blk == blk]
+        if not on or node_basin_code(g.nodes[on[0]]) != river:
+            return "watershed_cut_off_the_river"
+        length = _line_length(g, blk, river)
+        if length <= 0:
+            return "watershed_line_has_no_length"
+        pos.append((m / length * 1e6, WATERSHED_AT_CUT_M * 1e6 / length))
+
+    def side(p: int) -> str:
+        """"in" / "out" / "at" for a tributary group at position `p`."""
+        rel = []
+        for P, tol in pos:
+            d = (p + 0.5) - P
+            if abs(d) <= 0.5 + tol:
+                return "at"
+            rel.append("above" if d > 0 else "below")
+        if op == "upstream_of":
+            return "in" if rel[0] == "above" else "out"
+        if op == "downstream_of":
+            return "in" if rel[0] == "below" else "out"
+        return "in" if sorted(rel) == ["above", "below"] else "out"     # between the two cuts
+
+    members = _basin_members(g, river)
+    verdict: dict[str, str] = {}
+    riverish: list[str] = []
+    at_cut: set[int] = set()
+    for nid, p in members:
+        if p is None:
+            if nid in universe and nid not in river_amb:
+                verdict[nid] = "in" if nid in river_in else "out"
+            else:
+                # Off the item, or a piece of it the measure cut could not place (a braid that
+                # touches no other piece of the river — the Fraser's side channels behind
+                # Nicomen and Maria sloughs): placed with its group, by what the group touches.
+                riverish.append(nid)
+            continue
+        s = side(p)
+        if s == "at":
+            at_cut.add(p)
+        verdict[nid] = s
+    # THE RIVER'S OWN CODE OFF THE ITEM: placed by what it touches, as one connected group.
+    pending = set(riverish)
+    seen: set[str] = set()
+    for start in sorted(riverish):
+        if start in seen:
+            continue
+        comp, stack, votes = set(), [start], set()
+        seen.add(start)
+        while stack:
+            nid = stack.pop()
+            comp.add(nid)
+            nb = {g.edges[i].to_node for i in g.down_adj.get(nid, [])} | \
+                 {g.edges[i].from_node for i in g.up_adj.get(nid, [])}
+            for x in nb:
+                if x in pending:
+                    if x not in seen:
+                        seen.add(x)
+                        stack.append(x)
+                elif x in verdict:
+                    votes.add(verdict[x])
+        v = votes.pop() if len(votes) == 1 and votes <= {"in", "out"} else "?"
+        for nid in comp:
+            verdict[nid] = v
+    return {"sections": {n for n, v in verdict.items() if v == "in"},
+            "unplaced": sorted(n for n, v in verdict.items() if v == "?"),
+            "at_cut": sorted(f"{river}-{p:06d}" for p in at_cut),
+            "river_code": river}
+
+
 def _cut_at(g, refs: set[str], universe: set[str]):
     """(blk, measure, alternatives) of the cut, from the node bounds that carry it, or None if it is
     not in `universe`. `alternatives` are the OTHER measures the same cut lands at on that blue line.
@@ -606,4 +770,22 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     else:
         _fail("unsupported_op", str(op))
         return None
+    if ex.get("watershed"):
+        # A PART OF THE RIVER'S WATERSHED, cut by FWA code (`Extent.watershed`). The river's own
+        # pieces keep the measure cut just made; everything else in its basin is placed by the
+        # position its code joins the river at. No `seed` and no `window`: a watershed is not
+        # walked (`classify` keeps it out of the tributary walk).
+        cuts = [(at[0], at[1])] if op in ("upstream_of", "downstream_of") else \
+            [(a[0], a[1]), (b[0], b[1])]
+        part = _watershed_part(g, universe, set(sec), set(braided), cuts, op)
+        if isinstance(part, str):
+            _fail(part, ",".join(scope))
+            return None
+        d = _out(part["sections"], ambiguous_cut=ambiguous, window=None,
+                 unclassified=sorted(braided))
+        d.pop("seed", None)
+        d.update(watershed=True, river=sorted(universe),
+                 unplaced=[s for s in part["unplaced"] if s not in braided],
+                 at_cut=part["at_cut"], river_code=part["river_code"])
+        return d
     return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window)

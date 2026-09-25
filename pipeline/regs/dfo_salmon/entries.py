@@ -323,13 +323,13 @@ def bind_whole(ef: EntryFile) -> tuple[list, list]:
 #:
 #: TWO THINGS THIS TABLE ENCODES, both measured rather than assumed:
 #:
-#: 1. **A WATERSHED IS A WALK, NOT A POLYGON.** `{op: whole, item_id: <mainstem>}` with
-#:    tributaries on IS the watershed — the walk follows the flow graph, so it is exact where a
-#:    drainage polygon is an approximation. Measured: Skeena 84,624 sections, Nass 39,097,
-#:    Fraser 325,602, and the three basins share EXACTLY ZERO sections with one another. No
-#:    `areas.json` row and no atlas rebuild are needed, and `item_id` supplies the universe a
-#:    cascade default lacks (it has no water record of its own).
-#:
+#: 1. **A WATERSHED IS ITS BASIN, NOT A WALK.** "All waters in the Skeena River Watershed" is every
+#:    lake and stream whose FWA code lies under the Skeena's (`area:basin:400-`, lakes FWA leaves
+#:    uncoded placed by their named watershed, `basin_wsc`). It was once bound as a walk from the
+#:    mainstem; the walk now collects streams only (the book's "tributaries", 2026-09-24) and cannot
+#:    see an unconnected pond, so section B lost every lake to section A. A PART of a watershed
+#:    (B(i)/B(ii), above and below a bridge) is `Extent.watershed`: the same basin, cut by code
+#:    position.
 #: 2. **DFO REGION 6 IS NOT PROVINCIAL REGION 6.** DFO puts Haida Gwaii in Region 6 section D;
 #:    the province puts it in Region 1, and `area:region:6` contains none of it (measured: the
 #:    islands are 100% inside `area:region:1`). Neither authority is wrong and neither region may
@@ -348,22 +348,22 @@ CNR_BRIDGE = "skeena_river__cnr_railway_bridge_terrace"
 SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
     ("6", "A"): [{"op": "within", "area_id": "area:region:6"},
                  {"op": "within", "area_id": HAIDA_GWAII}],
-    # A WATERSHED IS A PREFIX OF THE FWA CODE, so the registry can hold it as an area rather than
-    # every consumer repeating a walk. Cross-checked: of the 84,624 sections `build_reach` reaches
-    # walking the Skeena, 84,617 carry prefix `400-` — 99.99%. `area:basin:400-` is minted by
-    # `pipeline.atlas.registry.build`.
-    # Bound by WALK, not by `area:basin:`, because the walk resolves against the atlas that exists
-    # today while a basin area is minted only by the next registry build. The two agree to 99.99%,
-    # so switching later is safe — but not at the cost of unbinding something that works now.
-    ("6", "B"): [{"op": "whole", "item_id": "gnis:2936"}],            # Skeena watershed
-    ("6", "C"): [{"op": "whole", "item_id": "gnis:3206"}],            # Nass watershed
+    # A WATERSHED IS A PREFIX OF THE FWA CODE, and "All waters in the Skeena River Watershed" is
+    # every lake and stream of it — so it binds the BASIN (`area:basin:400-`, minted by
+    # `pipeline.atlas.registry.build`), not a walk. The walk collects streams only (the book's
+    # "tributaries", user ruling 2026-09-24) and stops where it cannot climb, so a walk-bound
+    # section B left every lake of the Skeena to section A: the cascade tiled 96.34% of Region 6.
+    ("6", "B"): [{"op": "within", "area_id": "area:basin:400-"}],     # Skeena watershed
+    ("6", "C"): [{"op": "within", "area_id": "area:basin:500-"}],     # Nass watershed
     ("6", "D"): [{"op": "within", "area_id": HAIDA_GWAII}],
     # B(i)/B(ii) — ONE CUT, TWO SCOPES. The bridge divides the Skeena WATERSHED, not just the
-    # mainstem, so the directional op is scoped to the Skeena item and the tributary walk does the
-    # rest: `build_reach` hands the resolved measure window to the walk, which is what makes this
-    # "everything above the bridge" rather than "the mainstem above it plus every tributary".
-    ("6", "B(i)"): [{"op": "upstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936"}],
-    ("6", "B(ii)"): [{"op": "downstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936"}],
+    # mainstem: `watershed` cuts the basin at the bridge by FWA code position (the river by route
+    # measure, everything else by where its code joins the Skeena), lakes and streams, so the two
+    # halves are complementary by construction. Never walked (`Extent.watershed`).
+    ("6", "B(i)"): [{"op": "upstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936",
+                     "watershed": True}],
+    ("6", "B(ii)"): [{"op": "downstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936",
+                      "watershed": True}],
     # F is "the portions of the FRASER watershed IN REGION 6" — a watershed meeting an
     # administrative area, which no op expresses because every op only ever ADDS water.
     # `within_area` is exactly that intersection.
@@ -460,8 +460,10 @@ def bind_scopes(ef: EntryFile) -> tuple[list, list]:
             continue
         loc.binding.extents = [Extent(**e) for e in exts]
         if loc.binding.tributaries is None:
-            # A watershed scope reaches its tributaries by definition; that IS the watershed.
-            loc.binding.tributaries = any(e.get("item_id") for e in exts)
+            # A scope on a named river reaches its tributaries; a basin or a watershed PART
+            # already holds them, and walking a part would climb into the other side.
+            loc.binding.tributaries = any(e.get("item_id") and not e.get("watershed")
+                                          for e in exts)
         wrote.append(loc.location_id)
     return wrote, held
 

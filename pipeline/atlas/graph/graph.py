@@ -120,8 +120,19 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
                        lake_kind: Optional[dict[str, str]] = None,
                        lake_names: Optional[dict] = None,
                        lake_overrides: Optional[dict[str, str]] = None,
-                       apply_wsc_filter: bool = True) -> StreamGraph:
+                       apply_wsc_filter: bool = True,
+                       lake_wsc: Optional[dict[str, str]] = None) -> StreamGraph:
+    """The stream graph: a node per stream piece and per lake, an edge per flow junction.
+
+    ``lake_wsc`` is ``{wbk: trimmed FWA_WATERSHED_CODE}`` of each lake's OWN polygon (`999` codes
+    left out). A lake's code is its polygon's, never the code of whichever member fid happens to
+    come first: that fid can be a tributary's connector — Seven Mile Lake (South Hawks Creek,
+    `100-394295-295494`) was stamped with Dewar Lake's side channel's code (`100-382626-…-061403`)
+    because an 86 m connector of the channel was its first fid, and 11,797 lake nodes differed, 42
+    of them on a different branch. Only a lake whose polygon carries no code falls back to the fid.
+    """
     lake_kind = lake_kind or {}
+    lake_wsc = lake_wsc or {}
     lake_names = lake_names or {}
     lake_overrides = lake_overrides or {}
     chain_by_blk = {c.blk: c for c in chains}
@@ -174,7 +185,8 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             order = _max_opt(order, r.stream_order)
             mag = _max_opt(mag, r.stream_magnitude)
         nodes[owner] = StreamNode(
-            node_id=owner, kind=NodeKind.lake, wbk=wbk, wsc=frs[0].wsc, gnis_id=lake_gnis,
+            node_id=owner, kind=NodeKind.lake, wbk=wbk, wsc=lake_wsc.get(wbk) or frs[0].wsc,
+            gnis_id=lake_gnis,
             display_name=display, name_tuples=name_tuples, through_names=through,
             stream_order=order, stream_magnitude=mag,
             member_fids=tuple(r.fid for r in frs), edge_types=_edge_types(frs),

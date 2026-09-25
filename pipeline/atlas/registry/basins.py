@@ -33,6 +33,7 @@ _CODE = re.compile(r"^\d{3}-(?:\d{6}-)*$")
 BASIN_NAMES = {
     "100-": "Fraser River watershed",
     "100-342455-": "Chilcotin River watershed",
+    "100-382626-": "Williams Lake River watershed",
     "200-948755-": "Peace River watershed",
     "400-": "Skeena River watershed",
     "500-": "Nass River watershed",
@@ -42,6 +43,7 @@ BASIN_NAMES = {
 BASIN_RIVERS = {
     "100-": "gnis:39325",
     "100-342455-": "gnis:13744",
+    "100-382626-": "gnis:27764",
     "200-948755-": "gnis:14619",
     "400-": "gnis:2936",
     "500-": "gnis:3206",
@@ -64,9 +66,66 @@ def in_basin(wsc: str | None, code: str) -> bool:
     return wsc == code[:-1] or wsc.startswith(code)
 
 
+def node_basin_code(n) -> str:
+    """The code a node's WATERSHED membership is read from: its own FWA code, or — for a lake FWA
+    gives none (`999`) — the code of the named watershed containing it (`derive_basin_wsc`)."""
+    return (getattr(n, "wsc", "") or "") or (getattr(n, "basin_wsc", "") or "")
+
+
 def basin_members(nodes, code: str) -> list[str]:
     """The node ids of `nodes` (StreamNode-likes with `wsc` and `node_id`) inside basin `code`."""
-    return [n.node_id for n in nodes if in_basin(getattr(n, "wsc", "") or "", code)]
+    return [n.node_id for n in nodes if in_basin(node_basin_code(n), code)]
+
+
+def derive_basin_wsc(graph, polys: dict, watersheds) -> dict[str, int]:
+    """Give every LAKE node with no FWA code the code of the smallest FWA named-watershed polygon
+    containing it. Mutates `graph.nodes`; returns counts.
+
+    WHY. FWA codes a waterbody its 1:20k network does not connect to anything `999-…` — kettle
+    ponds, dugouts, closed depressions, ponds whose outlet channel is too small to map (83,853 lake
+    nodes; province-wide the largest is 24 ha, the median 0.11 ha). With no code, no watershed rule
+    could see them: Four Lakes (2.2 ha, in the Babine) got every Region 6 trout rule except "release
+    lake trout from the Fraser and Skeena watersheds", because `in_basin 400-` had nothing to match.
+
+    HOW, and not otherwise. The book's watershed is "all the streams and lakes that drain the land
+    into a named waterbody" (p86); FWA's named-watershed polygon IS that land for its named water,
+    so the pond is in the watershed whose land it sits on. The test is the polygon's REPRESENTATIVE
+    POINT (always inside it) against the named watersheds, and the smallest container wins — the
+    deepest named basin. NOT the nearest coded water: it disagrees with the polygon across divides
+    (lake:329027507 is 1 km from a Nechako stream but inside the Skeena's Big Loon Creek watershed)
+    and the user rejected it. A lake on no named watershed (the coastal fronts, ~10,900) keeps none.
+
+    `polys` is {wbk: polygon}; `watersheds` an iterable of (trimmed code, area, polygon). Kept in
+    `basin_wsc`, never `wsc`: the graph's hydrology is not touched, only membership.
+    """
+    import shapely
+    from pipeline.common.models import NodeKind
+
+    ws = [(c, a, g) for c, a, g in watersheds if c and g is not None and not g.is_empty]
+    todo = [nid for nid, n in graph.nodes.items()
+            if n.kind == NodeKind.lake and not (n.wsc or "") and n.wbk in polys
+            and polys[n.wbk] is not None and not polys[n.wbk].is_empty]
+    counts = {"codeless_lakes": sum(1 for n in graph.nodes.values()
+                                    if n.kind == NodeKind.lake and not (n.wsc or "")),
+              "given": 0}
+    if not ws or not todo:
+        return counts
+    tree = shapely.STRtree([g for _c, _a, g in ws])
+    pts = shapely.points([shapely.get_coordinates(polys[graph.nodes[nid].wbk]
+                                                  .representative_point())[0] for nid in todo])
+    pi, wi = tree.query(pts, predicate="within")
+    best: dict[int, tuple[float, str]] = {}
+    for p, w in zip(pi.tolist(), wi.tolist()):
+        code, area = ws[w][0], float(ws[w][1] or 0.0)
+        cur = best.get(p)
+        if cur is None or (area, code) < cur:
+            best[p] = (area, code)
+    from dataclasses import replace
+    for p, (_area, code) in sorted(best.items()):
+        nid = todo[p]
+        graph.nodes[nid] = replace(graph.nodes[nid], basin_wsc=code)
+        counts["given"] += 1
+    return counts
 
 
 def basin_name(area_id: str) -> str | None:

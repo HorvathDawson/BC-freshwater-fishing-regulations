@@ -7723,7 +7723,6 @@
      "op": "whole"
     }
    ],
-   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "stellako_river.r1",
@@ -7830,7 +7829,8 @@
       "verbatim": "Steelhead Stamp not required"
      },
      "verbatim": "Class II water[Includes Tributaries] when open",
-     "kind": "designation"
+     "kind": "designation",
+     "includes_tributaries": true
     }
    ]
   },
@@ -8554,7 +8554,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "tatsatua_creek__tatsamenie_lake"
+       ]
       }
      ]
     }
@@ -9824,17 +9827,18 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "upstream_of",
        "splits": [
         "iskut_river__downstream_end_of_forrest_kerr_canyon"
        ],
+       "item_id": "gnis:10765",
        "feature_types": [
         "stream"
        ],
-       "item_id": "gnis:10765"
+       "within_area": "area:region:6",
+       "watershed": true
       }
      ],
      "extent_text": "Iskut watershed above Forest Kerr Canyon"
@@ -10152,11 +10156,12 @@
        "splits": [
         "skeena_river__cedarvale"
        ],
+       "item_id": "gnis:2936",
        "feature_types": [
         "stream"
        ],
-       "item_id": "gnis:2936",
-       "within_area": "area:region:6"
+       "within_area": "area:region:6",
+       "watershed": true
       }
      ],
      "extent_text": "streams of the Skeena watershed above Cedarvale, excluding the mainstem"
@@ -10188,10 +10193,12 @@
        "splits": [
         "nass_river__kitsault_bridge"
        ],
+       "item_id": "gnis:3206",
        "feature_types": [
         "stream"
        ],
-       "item_id": "gnis:3206"
+       "within_area": "area:region:6",
+       "watershed": true
       }
      ],
      "extent_text": "streams of the Nass watershed above Kitsault Bridge, mainstem exempt"

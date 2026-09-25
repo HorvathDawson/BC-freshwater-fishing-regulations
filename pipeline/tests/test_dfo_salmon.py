@@ -2511,17 +2511,19 @@ def test_the_queue_hides_no_unbound_locator():
     assert not missing, f"unbound locators the queue never shows: {missing[:5]}"
 
 
-def test_a_watershed_scope_reaches_its_lakes():
-    """**A watershed is a walk, and the walk must pass lakes.**
+def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
+    """**The walk passes lakes; it does not collect them** (user ruling 2026-09-24).
 
-    Section B is "All waters in the Skeena River Watershed" — waters, not streams. If the
-    tributary walk followed only streams, every lake in the basin would silently fall out of the
-    section default and inherit section A's much more generous limits instead. Measured: 15,073 of
-    the Skeena walk's 84,624 sections are lakes, and every major named lake in the system is
-    reached through its outlet.
+    "Tributaries" in the book are STREAMS (p86: "all streams that contribute to a larger stream
+    or to a lake"), so a tributary walk collects no lake. It must still climb THROUGH every lake:
+    a creek feeding Babine Lake is a stream contributing to a lake, and a walk that stopped at the
+    lake would drop the whole basin above it. Section B is "All waters in the Skeena River
+    Watershed" — waters, lakes included — and a WATERSHED is bound as the basin
+    (`area:basin:400-`), not as this walk; the DFO scopes that still bind by walk are reported for
+    a data fix, never widened here.
 
     The second half is the property that makes the section E residual safe: two adjacent basins
-    must not share a lake, or subtracting one would remove water belonging to the other.
+    must not share water, or subtracting one would remove water belonging to the other.
     """
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
@@ -2543,28 +2545,31 @@ def test_a_watershed_scope_reaches_its_lakes():
 
     skeena, nass = walk("gnis:2936"), walk("gnis:3206")
     assert skeena and nass
+    item = set(reg["gnis:2936"].section_ids)
 
-    lakes = sum(1 for s in skeena
-                if getattr(g.nodes.get(s), "kind", None) is not None
-                and str(getattr(g.nodes[s], "kind")).endswith("lake"))
-    assert lakes > 10_000, f"the Skeena walk reached only {lakes} lake sections — it is dropping lakes"
+    lakes = {s for s in skeena - item
+             if str(getattr(g.nodes.get(s), "kind", "")).endswith("lake")}
+    assert not lakes, f"the Skeena walk collected {len(lakes)} lake sections"
 
-    # every major lake in the system, reached through its outlet
+    # every major lake in the system is PASSED: a stream flowing into it is in the walk
     for name in ("Babine Lake", "Lakelse Lake", "Kitsumkalum Lake", "Morice Lake", "Sustut Lake"):
         ids = [k for k, v in reg.items()
                if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
         assert ids, f"no registry lake named {name}"
         secs = set(reg[ids[0]].section_ids)
-        assert secs <= skeena, f"{name} is not in the Skeena watershed walk"
+        feeders = {g.edges[ei].from_node for s in secs for ei in g.up_adj.get(s, [])
+                   if str(g.nodes[g.edges[ei].from_node].kind).endswith("stream")}
+        assert feeders & skeena, f"the walk stopped at {name}: none of its inflows is in it"
 
-    # and a neighbouring basin's lakes are NOT in it
+    # and a neighbouring basin's water is NOT in it
     for name in ("Meziadin Lake", "Bowser Lake"):
         ids = [k for k, v in reg.items()
                if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
         if not ids:
             continue
         secs = set(reg[ids[0]].section_ids)
-        assert secs <= nass, f"{name} should be in the Nass walk"
+        feeders = {g.edges[ei].from_node for s in secs for ei in g.up_adj.get(s, [])}
+        assert not (feeders & skeena), f"{name}'s inflows leaked into the Skeena walk"
         assert not (secs & skeena), f"{name} leaked into the Skeena walk — the basins are not disjoint"
 
 

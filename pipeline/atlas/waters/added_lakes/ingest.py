@@ -134,16 +134,97 @@ def apply_to_fids(fids: list, lakes: list[dict]) -> dict:
                 row.wbk = wbk
                 claimed.setdefault(wbk, []).append(row.fid)
                 break
+    parent_of = {l["wbk"]: str((l.get("props", {}).get("part_of") or {}).get("wbk") or "")
+                 for l in lakes}
+    if any(parent_of.values()):
+        _parts_follow_the_route(fids, parent_of, claimed)
     return claimed
 
 
+def _parts_follow_the_route(fids: list, parent_of: dict[str, str],
+                            claimed: dict[str, list[str]]) -> int:
+    """Make each PART of a split lake one run along every blue line routed under it.
+
+    Majority overlap decides fid by fid, and where a route runs ALONG the line between two parts it
+    can go back and forth. The Peace's under-lake route (blk 359572348) near Finlay Forks crosses the
+    Zone A / Zone B line three times in 1.6 km, so its fids went -18, -19, -18 (fid 166061648, 144 m),
+    -19 — and that one fid made Zone B an INFLOW of Zone A: `lake:-19 -> lake:-18` beside the real
+    `lake:-18 -> lake:-19`. A walk from Zone A then climbed every Zone B tributary as "a tributary
+    lake" (7,707 sections), and Zone B's walk took the whole Zone A half (98,634).
+
+    The parts must follow the river's route in order. Along each blue line, a run of measure-
+    contiguous fids claimed by parts of ONE parent is cut into same-part runs; while a run has the
+    SAME part on both sides, the shortest such run is handed to that part. The Peace's 144 m of -18
+    goes to -19; an unnamed route under Zone A that crosses 10 km of the Nation Arm polygon
+    (blk 359001899: -18, -16, -18) stays Zone A's, so Nation Arm is not both above and below Zone
+    A. Handing a run to a NEIGHBOUR that is not on both sides would move a whole reach: 70 km of
+    that same route went to Nation Arm under that rule. Only parts of the same parent trade fids:
+    a separate lake is never absorbed.
+    Returns the number of fids re-stamped.
+    """
+    by_blk: dict[str, list] = {}
+    for r in fids:
+        if parent_of.get(getattr(r, "wbk", "") or ""):
+            by_blk.setdefault(str(r.blk), []).append(r)
+    moved = 0
+    for blk in sorted(by_blk):
+        rows = sorted(by_blk[blk], key=lambda r: (r.down_m, r.up_m, str(r.fid)))
+        chains: list[list] = []
+        for r in rows:
+            prev = chains[-1][-1] if chains else None
+            if (prev is not None and abs(prev.up_m - r.down_m) < 1.0
+                    and parent_of[prev.wbk] == parent_of[r.wbk]):
+                chains[-1].append(r)
+            else:
+                chains.append([r])
+        for chain in chains:
+            while True:
+                runs: list[list] = []
+                for r in chain:
+                    if runs and runs[-1][-1].wbk == r.wbk:
+                        runs[-1].append(r)
+                    else:
+                        runs.append([r])
+                length = [sum(x.up_m - x.down_m for x in run) for run in runs]
+                # SANDWICHED: a run with the same part on both sides is a detour of that part's
+                # route; the shortest goes first, so a 144 m wiggle yields before the run it
+                # interrupts.
+                cands = [(length[i], i) for i in range(1, len(runs) - 1)
+                         if runs[i - 1][0].wbk == runs[i + 1][0].wbk]
+                if not cands:
+                    break
+                _ln, i = min(cands)
+                to = i - 1
+                new = runs[to][0].wbk
+                for r in runs[i]:
+                    old = r.wbk
+                    claimed[old].remove(r.fid)
+                    if not claimed[old]:
+                        del claimed[old]
+                    r.wbk = new
+                    claimed.setdefault(new, []).append(r.fid)
+                    moved += 1
+                    print(f"    part run: fid {r.fid} (blk {blk}, {r.down_m:.0f}-{r.up_m:.0f} m) "
+                          f"lake {old} -> {new}, so the parts follow the route in order")
+    return moved
+
+
 def merge(fids: list, lake_kind: dict, lake_names: dict, wbk_polys: dict,
-          path: str | Path | None = None) -> dict:
-    """Ingest the curated lakes into a build's four inputs. Returns a report dict."""
+          path: str | Path | None = None, lake_wsc: dict | None = None) -> dict:
+    """Ingest the curated lakes into a build's inputs. Returns a report dict.
+
+    `lake_wsc` ({wbk: polygon code}) gains each PART's code: its parent's (`part_of`). A part is a
+    piece of an FWA lake, so it sits where FWA puts that lake; a curated lake that is no part has no
+    polygon code and falls back as any lake does."""
     lakes = load(path)
     if not lakes:
         return {"lakes": 0, "claimed": {}}
     by_wbk = {l["wbk"]: l for l in lakes}
+    if lake_wsc is not None:
+        for l in lakes:
+            parent = str((l["props"].get("part_of") or {}).get("wbk") or "")
+            if parent and lake_wsc.get(parent):
+                lake_wsc[l["wbk"]] = lake_wsc[parent]
     for wbk, kind, name, poly in _shapes(lakes):
         lake_kind[wbk] = kind
         if name:

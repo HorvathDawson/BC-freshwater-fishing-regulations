@@ -65,6 +65,13 @@ class StreamNode:
     # regulation ("X from lake A to lake C") selects pieces by measure. See location_identifier.
     lower_bound: Optional["SectionBoundary"] = None   # toward the mouth
     upper_bound: Optional["SectionBoundary"] = None   # toward the source
+    # A lake with NO FWA code of its own (`999`, "not on the network": kettle ponds, dugouts, ponds
+    # whose outlet is too small to map — 83,853 of them) is given the code of the smallest FWA NAMED
+    # WATERSHED polygon containing it, at build (`registry.basins.derive_basin_wsc`). DERIVED, and
+    # kept apart from `wsc` so the graph's hydrology is never touched: only watershed membership
+    # (`registry.basins.node_basin_code`) reads it. The book's own definition of a watershed is
+    # "all the streams and lakes that drain the land into a named waterbody" (p86).
+    basin_wsc: str = ""
 
     @property
     def is_barrier(self) -> bool:

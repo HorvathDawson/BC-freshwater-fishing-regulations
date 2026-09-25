@@ -3084,7 +3084,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
       }
      ],
      "exempts": [
@@ -3102,7 +3105,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
       }
      ],
      "exempts": [
@@ -3125,7 +3131,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
       }
      ]
     },
@@ -3139,7 +3148,10 @@
      "take": 5,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
       }
      ],
      "exempts": [
@@ -3160,7 +3172,10 @@
      "take": 2,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
       }
      ],
      "exempts": [

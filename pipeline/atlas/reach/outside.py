@@ -38,6 +38,10 @@ REGION_PREFIX = "area:region:"
 
 _ENTRY_REGION = re.compile(r"^r(\d+[a-z]?):")
 
+#: POLICY (user ruling 2026-09-24): a regional row's MUs name its ZONE where the book prints a
+#: region as zones (Region 7: 7A and 7B) — `entry_regions`.
+ZONES_FROM_UNITS = True
+
 
 #: Caches keyed by the registry object's id — each value HOLDS the registry, so the id cannot be
 #: reused by another object while its entry lives (a freed test fixture's id handed to the next
@@ -82,19 +86,51 @@ def outside_bc(registry, graph) -> frozenset[str]:
     return got
 
 
-def entry_regions(entry_id: str) -> tuple[str, ...] | None:
+def entry_regions(entry_id: str, registry=None) -> tuple[str, ...] | None:
     """The regions a regional row may bind in: its own, and those its MUs name. `None` for an
-    entry that is not a regional row (`zp:`, `z<n>:`, or any other source)."""
+    entry that is not a regional row (`zp:`, `z<n>:`, or any other source).
+
+    A REGION PRINTED AS ZONES. Region 7 is two, 7A and 7B, and a row's id says only "7" — but its
+    MUs say which zone it was printed in. With a `registry` whose `area:region:7a`/`7b` items carry
+    their MUs (`registry.build.add_region_units`), each of the row's MUs is resolved to its zone:
+    `r7:williston_lake_in_zone_a@7-30+7-37+7-38` is 7A only, and `@7-31+7-36` 7B only. Read as
+    "7", the Zone A row's tributary walk bound 7,707 Zone B sections. A row whose MUs do not all
+    resolve (or that names none) keeps the whole region, as before — never narrowed on a guess."""
     m = _ENTRY_REGION.match(entry_id or "")
     if not m:
         return None
     got = {m.group(1)}
+    mus: list[str] = []
     if "@" in entry_id:
         for mu in entry_id.split("@", 1)[1].split("+"):
-            head = mu.split("-", 1)[0].strip()
+            mu = mu.strip()
+            head = mu.split("-", 1)[0]
             if head:
                 got.add(head)
+                mus.append(mu)
+    if registry is not None and ZONES_FROM_UNITS:
+        for r in sorted(got):
+            zones = _zones_of(registry, r)
+            mine = [mu for mu in mus if mu.split("-", 1)[0] == r]
+            if not zones or not mine:
+                continue
+            hit = [{z for z, units in zones.items() if mu in units} for mu in mine]
+            if all(hit):
+                got.discard(r)
+                got |= set().union(*hit)
     return tuple(sorted(got))
+
+
+def _zones_of(registry, region: str) -> dict[str, frozenset[str]]:
+    """{"7a": MUs, "7b": MUs} for a region the registry holds as lettered zones; {} otherwise."""
+    out: dict[str, frozenset[str]] = {}
+    for k in _region_items(registry):
+        z = k[len(REGION_PREFIX):]
+        if z.startswith(region) and z[len(region):].isalpha() and z != region:
+            units = frozenset(getattr(registry[k], "mus", ()) or ())
+            if units:
+                out[z] = units
+    return out
 
 
 def region_sections(regions: tuple[str, ...], registry) -> frozenset[str] | None:
@@ -122,7 +158,7 @@ def region_sections(regions: tuple[str, ...], registry) -> frozenset[str] | None
 
 def region_limit(entry: dict, registry) -> frozenset[str] | None:
     """The sections a regional row may bind, or `None` when it is not limited."""
-    regions = entry_regions(str(entry.get("entry_id") or ""))
+    regions = entry_regions(str(entry.get("entry_id") or ""), registry)
     if not regions:
         return None
     return region_sections(regions, registry)

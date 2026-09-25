@@ -8887,7 +8887,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "nitinat_river__nitinat_lake"
+       ]
       }
      ],
      "exempts": [
@@ -9612,7 +9615,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "puntledge_river__comox_lake"
+       ]
       }
      ],
      "exempts": [
@@ -9690,7 +9696,10 @@
      "tributaries_only": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "puntledge_river__comox_lake"
+       ]
       }
      ]
     },
@@ -9709,9 +9718,10 @@
      "includes_tributaries": true,
      "extents": [
       {
-       "op": "upstream_of",
+       "op": "between",
        "splits": [
-        "puntledge_river__bc_hydro_diversion_dam"
+        "puntledge_river__bc_hydro_diversion_dam",
+        "puntledge_river__comox_lake"
        ]
       }
      ]

@@ -61,9 +61,14 @@ class Extent(BaseModel):
     scope and the reach cannot be resolved at all. Set one or the other, never both.
     Without either, a directional op follows the water across every covered item; see `Op`.
     `area_id`/`area_kind` carry a `within(area)`.
+
+    `watershed` turns a directional op on ONE river into that river's WATERSHED on that side of the
+    cut, decided by FWA code position rather than by the tributary walk — see the field.
     """
 
-    model_config = ConfigDict(frozen=True)
+    # FORBID, not ignore: `within_area` was silently dropped for years because an unknown key was
+    # ignored, and `watershed` misspelt would bind the river alone while reading like a watershed.
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     op: Op
     splits: List[str] = Field(default_factory=list, description="curated split ids this extent binds to")
@@ -108,6 +113,24 @@ class Extent(BaseModel):
         "without this the book's own exclusion is unsayable, both tables bind the Yakoun River, "
         "and the screen states Trout 4 and Trout/char 5 with no way to choose. Applied AFTER any "
         "tributary walk, for the same reason `within_area` is.",
+    )
+
+    watershed: bool = Field(
+        default=False,
+        description="A PART OF A WATERSHED, cut by FWA code. On `upstream_of` / `downstream_of` / "
+        "`between` scoped to one river, select the river's WATERSHED on that side of the cut(s) — "
+        "every lake and stream whose FWA code (or `basin_wsc`) lies in the river's basin and whose "
+        "tributary group joins the river on that side — instead of the river alone. 'CLOSED in the "
+        "Fraser River Watershed upstream of Williams Lake River' is `upstream_of` the WLR split on "
+        "the Fraser with `watershed: true`. The side is read from the code position (the group "
+        "number after the river's code is the confluence's distance along it, in millionths), not "
+        "from a walk: the walk follows real bifurcations across a divide (Dewar Lake drains to both "
+        "the WLR and Hawks Creek) and stops where a lake is mid-reach. A tributary whose mouth IS "
+        "the cut is on NEITHER side — the book names it when it is meant ('downstream of AND "
+        "INCLUDING Williams Lake River' adds `within area:basin:100-382626-`). The river's own "
+        "pieces are cut by route measure exactly as without the flag. A watershed already holds "
+        "its tributaries, so the rule must not walk (`includes_tributaries` is refused); "
+        "`tributaries_only` means the part without the river, and `feature_types` still limit it.",
     )
 
     @property
@@ -165,6 +188,14 @@ class Extent(BaseModel):
             raise ValueError("outside_items names waters; an area is subtracted by outside_area(s)")
         if set(self.outside_items) & set(self.scope_ids):
             raise ValueError("an extent cannot subtract the water it is scoped to")
+        if self.watershed:
+            if self.op not in (Op.UPSTREAM_OF, Op.DOWNSTREAM_OF, Op.BETWEEN):
+                raise ValueError(f"watershed cuts a river's basin at a split — op {self.op.value} "
+                                 f"has no cut (a whole watershed is `within area:basin:<code>-`)")
+            if self.item_ids:
+                raise ValueError("watershed is the basin of ONE river — scope it with item_id")
+            if self.area_id or self.area_kind:
+                raise ValueError("watershed takes its basin from the river's code, not an area_id")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:

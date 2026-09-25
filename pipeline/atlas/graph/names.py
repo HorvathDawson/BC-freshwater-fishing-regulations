@@ -268,7 +268,8 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
 
 
 def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: NameSource,
-                         kind: NodeKind = NodeKind.lake, allow_unnamed: bool = False) -> int:
+                         kind: NodeKind = NodeKind.lake, allow_unnamed: bool = False,
+                         wsc_of: dict[str, str] | None = None) -> int:
     """Mint an edgeless ``lake:{wbk}`` node for every NAMED waterbody in ``names`` that the graph does
     not already node. Returns the count minted.
 
@@ -302,8 +303,15 @@ def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: Na
 
     Minting them here rather than stamping them in a side artifact keeps ONE source: membership
     is a property of a node, and every waterbody is a node.
+
+    ``wsc_of`` is ``{wbk: trimmed FWA_WATERSHED_CODE}`` of the waterbody's own polygon (the same
+    map `build_stream_graph` reads). A minted node used to carry NO code whatever its polygon said —
+    11 of them: the split-lake leftovers (Williston `200-948755`, Kootenay, Shannon), Big Horn
+    Reservoir and seven small lakes — so no watershed rule could see them.
     """
     from pipeline.common.models import StreamNode
+
+    wsc_of = wsc_of or {}
 
     minted = 0
     for wbk, pairs in names.items():
@@ -315,7 +323,7 @@ def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: Na
         if not nms and not allow_unnamed:
             continue
         graph.nodes[nid] = StreamNode(
-            node_id=nid, kind=kind, wbk=wbk,
+            node_id=nid, kind=kind, wbk=wbk, wsc=wsc_of.get(wbk, ""),
             display_name=max(nms, key=len) if nms else "",
             name_tuples=tuple(NameTuple(nm, source, "", gid or "") for nm, gid in pairs if nm),
         )

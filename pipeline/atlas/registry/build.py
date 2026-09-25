@@ -408,9 +408,12 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
     # handful, they are the ones regulations name as watersheds, and minting all 15,720 coastal
     # basins would add more registry items than there are waters.
     with prof.phase("basin areas"):
+        from pipeline.atlas.registry.basins import node_basin_code
         basin_nodes: dict[str, list[StreamNode]] = defaultdict(list)
         for n in graph.nodes.values():
-            code = getattr(n, "wsc", "") or ""
+            # `wsc`, or for a lake FWA codes `999` the named watershed containing it (`basin_wsc`) —
+            # the SAME reading `basins.basin_members` gives a sub-basin, so the two agree.
+            code = node_basin_code(n)
             head = code.split("-")[0] if code else ""
             if head and not head.startswith("9") and head != "999":
                 basin_nodes[f"area:basin:{head}-"].append(n)
@@ -513,4 +516,35 @@ def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
         hits = {mu_ids[i] for i in tree.query(g) if g.intersects(polys[i])}
         if hits:
             registry[iid] = replace(it, mus=tuple(sorted(hits)))
+    return registry
+
+
+def add_region_units(registry: dict[str, RegistryItem], region_polys: dict,
+                     mu_polys: dict) -> dict[str, RegistryItem]:
+    """Give each `area:region:*` item the management units that lie in it (majority of the MU's
+    area), as its `mus`. Mutates + returns.
+
+    WHY. Region 7 is printed as two zones, 7A (Omineca) and 7B (Peace), but a regional row's id
+    carries only "7" and the MUs it was printed under — `r7:williston_lake_in_zone_a@7-30+7-37+7-38`.
+    Read as "7", the row may bind anywhere in 7A and 7B together, and the Zone A Williston row's
+    tributary walk bound 7,707 Zone B sections. The MUs say which zone: every 7-xx unit lies wholly
+    in one (7-30, 7-37, 7-38 in 7A; 7-31, 7-36 in 7B). `reach.outside.entry_regions` reads this to
+    resolve each MU to its zone. Majority, not intersection: MU and region lines are drawn from the
+    same units, so a neighbour touches along the whole shared edge.
+    """
+    if not region_polys or not mu_polys:
+        return registry
+    for rid in sorted(region_polys):
+        if rid not in registry:
+            continue
+        rp = region_polys[rid]
+        if rp is None or rp.is_empty:
+            continue
+        units = []
+        for mu, mp in sorted(mu_polys.items()):
+            if mp is None or mp.is_empty or not mp.intersects(rp):
+                continue
+            if mp.intersection(rp).area > 0.5 * mp.area:
+                units.append(mu)
+        registry[rid] = replace(registry[rid], mus=tuple(units))
     return registry

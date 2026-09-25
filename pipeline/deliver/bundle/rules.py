@@ -75,6 +75,10 @@ def _specificity(rule: dict) -> str:
         # regulation it is supposed to sit under.
         if ex.get("area_id") or ex.get("area_kind"):
             return "area"
+        # A PART OF A WATERSHED (`Extent.watershed`) is an area cut by code, like the whole
+        # watershed (`area:basin:`) it is part of — not the river the cut sits on.
+        if ex.get("watershed"):
+            return "area"
     return "section"
 
 

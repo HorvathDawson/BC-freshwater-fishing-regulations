@@ -3639,6 +3639,49 @@ def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dic
 # Entries
 # --------------------------------------------------------------------------------------- #
 
+def _extent_errors(entry: "CatalogueEntry") -> List[str]:
+    """Every extent the entry, its rules and its licensing records carry, read through `Extent`.
+
+    The catalogue stores extents as plain dicts, and nothing read them through the model: an arity
+    error or a misspelt key reached the reach builder, which ignores what it does not know. Now
+    every one is validated (4,900 passed unchanged when this was added).
+
+    A WATERSHED PART MAY NOT WALK. `Extent.watershed` already selects every lake and stream of the
+    river's basin on its side of the cut; a tributary walk from it would climb out of the
+    downstream part into the upstream one — the side the book excluded. So a rule or record with
+    one is refused `includes_tributaries: true`, its own or its entry's. `tributaries_only` stays:
+    on a watershed it means the part without the river itself."""
+    from pipeline.regs.parsing.entry_models import Extent
+
+    e: List[str] = []
+
+    def check(where: str, extents) -> bool:
+        wet = False
+        for i, x in enumerate(extents or []):
+            if not isinstance(x, dict):
+                e.append(f"{where}: extent {i} is not an object")
+                continue
+            try:
+                wet = Extent.model_validate(x).watershed or wet
+            except ValueError as err:
+                e.append(f"{where}: extent {i}: {squash(str(err))[:200]}")
+        return wet
+
+    check("entry extents", entry.extents)
+    holders = [(f"{r.rule_id}", r) for r in entry.rules] + \
+              [(f"{x.kind} {x.id}", x) for x in entry.licensing]
+    for where, h in holders:
+        wet = check(where, getattr(h, "extents", None))
+        check(f"{where} tributary_excludes", getattr(h, "tributary_excludes", None))
+        own = getattr(h, "includes_tributaries", None)
+        walks = own if own is not None else entry.includes_tributaries
+        if wet and walks:
+            e.append(f"{where}: a `watershed` extent already holds the tributaries of its part — "
+                     f"includes_tributaries{' (inherited from the entry)' if own is None else ''} "
+                     f"would walk out of it into the other side; drop it")
+    return e
+
+
 class CatalogueEntry(BaseModel):
     """One row of the synopsis — a water, a zone, or the province — and its typed rules.
 
@@ -3760,6 +3803,7 @@ class CatalogueEntry(BaseModel):
                 e.append(f"designation {x.id}: no steelhead_stamp_during or _waived in "
                          f"steelhead country — record the printed clause, or say why in "
                          f"review_reason")
+        e += _extent_errors(self)
         # EVERY RULE SAYS WHERE IT IS. Nothing inherits the entry's extents (see
         # `CatalogueRule.extents`), so a rule with none and no words for its place would have a
         # reach nobody stated — which a reader could only fill by guessing.

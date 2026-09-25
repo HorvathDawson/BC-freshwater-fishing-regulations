@@ -5716,7 +5716,8 @@
        "op": "upstream_of",
        "splits": [
         "fraser_river__williams_lake_river_into_fraser_river"
-       ]
+       ],
+       "watershed": true
       }
      ]
     },
@@ -13654,7 +13655,6 @@
      ],
      "take": 0,
      "may_target": false,
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "upstream_of",
@@ -13662,7 +13662,8 @@
         "fraser_river__williams_lake_river_into_fraser_river"
        ],
        "item_id": "gnis:39325",
-       "within_area": "area:region:5"
+       "within_area": "area:region:5",
+       "watershed": true
       }
      ],
      "tributary_excludes": [
@@ -13682,7 +13683,6 @@
      ],
      "take": 0,
      "may_target": true,
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "downstream_of",
@@ -13690,20 +13690,16 @@
         "fraser_river__williams_lake_river_into_fraser_river"
        ],
        "item_id": "gnis:39325",
-       "within_area": "area:region:5"
+       "within_area": "area:region:5",
+       "watershed": true
       },
       {
-       "op": "whole",
-       "item_id": "gnis:27764",
-       "within_area": "area:region:5"
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329494714",
+       "op": "within",
+       "area_id": "area:basin:100-382626-",
        "within_area": "area:region:5"
       }
      ],
-     "extent_text": "Fraser watershed downstream of and including Williams Lake River and Williams Lake"
+     "extent_text": "Fraser watershed downstream of and including Williams Lake River"
     },
     {
      "rule_id": "white_sturgeon.r3",

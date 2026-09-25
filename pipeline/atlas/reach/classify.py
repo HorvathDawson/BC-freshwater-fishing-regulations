@@ -163,11 +163,37 @@ def classify(
     #: limited by `within_area` — the walk runs from the whole water and the area is applied to
     #: what it finds, `WALK_BEFORE_AREA`), else its sections.
     seeds: set[str] = set()
+    #: A WATERSHED PART (`Extent.watershed`) is kept apart: it already holds its tributaries,
+    #: lakes and streams, cut by FWA code, so it is never walked — a walk from the part below a cut
+    #: would climb into the part above it — and is joined after the walk.
+    ws_sections: set[str] = set()
+    ws_river: set[str] = set()
     resolved_any = False
     for i, got in enumerate(per_extent):
         if got is None:
             continue
         resolved_any = True
+        if got.get("watershed"):
+            ws_sections |= set(got.get("sections") or ())
+            ws_river |= set(got.get("river") or ())
+            diags.append(Diagnostic(entry_id, rid, "watershed", {
+                "extent": i, "river_code": got.get("river_code"),
+                "sections": len(got.get("sections") or ()),
+                "at_cut": list(got.get("at_cut") or ()),
+                "unplaced": len(got.get("unplaced") or ()),
+                "unplaced_sample": list(got.get("unplaced") or ())[:20],
+                "why": "placed by FWA code position; a tributary AT the cut is on neither side, "
+                       "and a water coded to the river itself that touches nothing placed stays "
+                       "unplaced — reported, never guessed",
+            }))
+            if got.get("unclassified"):
+                diags.append(Diagnostic(entry_id, rid, "unclassified", {
+                    "extent": i, "pieces": sorted(got["unclassified"]), "included": False,
+                    "why": "reported for curation; the builder never places these itself",
+                }))
+            for amb in got.get("ambiguous_cut") or []:
+                diags.append(Diagnostic(entry_id, rid, "ambiguous_cut", dict(amb, extent=i)))
+            continue
         sections |= set(got.get("sections") or ())
         seeds |= set(got.get("seed") if (WALK_BEFORE_AREA and "seed" in got)
                      else (got.get("sections") or ()))
@@ -198,7 +224,8 @@ def classify(
     # --- resolved, but selects nothing ----------------------------------------
     # A walk whose seed lies wholly outside its area still selects something: its tributaries
     # inside the area ("the Fraser River watershed in Region 6"). The area decides after the walk.
-    if not sections and not (tributaries and seeds and expand_tributaries is not None):
+    if not sections and not ws_sections \
+            and not (tributaries and seeds and expand_tributaries is not None):
         if scope_clipped:
             # The Peace case: the rule describes a reach OUTSIDE the row it sits in.
             # The resolver is right; the curation is inconsistent. A real signal.
@@ -207,7 +234,8 @@ def classify(
         return unresolved(*_why(extents, registry, covered_ids))
 
     via_trib: tuple[str, ...] = ()
-    if tributaries:
+    direct = set(sections) | ws_river
+    if tributaries and (seeds or not ws_sections):
         if expand_tributaries is None:
             # No graph available (unit tests, or a caller that only wants direct extents).
             # Flag structurally so this can never be mistaken for a complete answer.
@@ -215,10 +243,10 @@ def classify(
                 "direct_sections": len(sections),
                 "why": "rule extends to tributaries but no expander was supplied",
             }))
-            return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections)),
+            return RuleBinding(entry_id, rid, Outcome.bound,
+                               tuple(sorted(sections | ws_sections)),
                                tributaries_pending=True), diags
 
-        direct = set(sections)
         sections = set(expand_tributaries(seeds, only=tributaries_only))
         # THE INTERSECTION IS APPLIED HERE, after the walk, because the walk is what leaves the
         # area. "Any stream in the Fraser River Watershed OF REGION 5" is a watershed limited to an
@@ -226,7 +254,7 @@ def classify(
         # is already inside the region; it is the tributaries that wander out of it.
         limit: set[str] = set()
         for got in per_extent:
-            if got and got.get("within_area"):
+            if got and got.get("within_area") and not got.get("watershed"):
                 limit |= set(got["within_area"])
         if limit:
             before = len(sections)
@@ -246,6 +274,12 @@ def classify(
             "direct": len(direct), "total": len(sections),
             "added": len(sections - direct), "only": tributaries_only,
         }))
+    # THE WATERSHED PARTS JOIN HERE, after the walk and never through it. "Tributaries only" on
+    # one is the part without the river itself ("any stream in the watershed of the Skeena
+    # upstream of Cedarvale" with the mainstem exempt).
+    if ws_sections:
+        sections |= (ws_sections - ws_river) if tributaries_only else ws_sections
+    if tributaries:
         if tributaries_only and not sections:
             # "tributaries only" that finds no tributary selects NOTHING. Shipping that as
             # a bound rule covering zero water would be a silent drop.

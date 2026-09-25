@@ -2313,11 +2313,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:2936"
+            "op": "within",
+            "area_id": "area:basin:400-"
           }
         ],
-        "tributaries": true,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2374,11 +2374,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:3206"
+            "op": "within",
+            "area_id": "area:basin:500-"
           }
         ],
-        "tributaries": true,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5648,11 +5648,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:2936"
+            "op": "within",
+            "area_id": "area:basin:400-"
           }
         ],
-        "tributaries": true,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5983,10 +5983,11 @@
             "splits": [
               "skeena_river__cnr_railway_bridge_terrace"
             ],
-            "item_id": "gnis:2936"
+            "item_id": "gnis:2936",
+            "watershed": true
           }
         ],
-        "tributaries": true,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6052,10 +6053,11 @@
             "splits": [
               "skeena_river__cnr_railway_bridge_terrace"
             ],
-            "item_id": "gnis:2936"
+            "item_id": "gnis:2936",
+            "watershed": true
           }
         ],
-        "tributaries": true,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

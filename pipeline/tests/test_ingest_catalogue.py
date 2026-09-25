@@ -158,7 +158,7 @@ def test_an_invented_split_id_is_refused():
 def test_a_no_registry_row_is_not_split_checked():
     from pipeline.regs.parsing.ingest_catalogue import ingest
     item = _batch_item(no_registry=True, bindable_ids=[], boundaries=[])
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand["rules"][0]["extents"] = []
     cand["rules"][0]["review_reason"] = "no registry match — attach an item and bind extents"
     accepted, problems = ingest([cand], {"e1": item})
@@ -171,7 +171,7 @@ def test_within_area_survives_ingest():
     it resolves province-wide instead of bounded. entry_models.Extent DOES drop it — the catalogue
     stores extents as dicts precisely so it cannot."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand["rules"][0]["extents"] = [{"op": "whole", "within_area": "area:region:5"}]
     accepted, problems = ingest([cand], {"e1": _batch_item()})
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
@@ -180,7 +180,7 @@ def test_within_area_survives_ingest():
 
 def test_within_area_survives_alongside_a_bound_reach():
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand["rules"][0]["extents"] = [{"op": "downstream_of",
                                     "splits": ["okanagan_river__mcintyre_dam"],
                                     "within_area": "area:region:8"}]
@@ -210,7 +210,7 @@ def test_entry_id_comes_from_the_batch_not_the_model():
     truncated id, `--skip-existing` stops recognising the row: a resume re-parses waters already
     done and writes each one twice, under two ids that name one water."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand["entry_id"] = "e1"                       # model drops the qualifier
     item = _batch_item(entry_id="e1@8-9", index=7)
     cand["_batch_index"] = 7                      # what run() attaches when it unwraps the envelope
@@ -226,7 +226,7 @@ def test_a_rule_that_says_nothing_about_location_gets_the_whole_water():
     water at all. Written at ingest so the corpus states its own reach, rather than defaulted
     at resolution time where it would be a second answer to the same question."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     del cand["rules"][0]["extents"]
     accepted, problems = ingest([cand], {"e1": _batch_item()})
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
@@ -251,7 +251,7 @@ def test_identity_comes_from_the_batch_not_the_model():
     from pipeline.regs.parsing.ingest_catalogue import ingest
     item = _batch_item()
     item.update(name="ATNARKO RIVER", display_name="Atnarko River", region="5")
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand.update(name="Marble River", display_name="x", region="9")
     accepted, problems = ingest([cand], {cand["entry_id"]: item})
     e = accepted[cand["entry_id"]]
@@ -265,7 +265,7 @@ def test_every_row_fact_is_the_batchs_and_none_is_the_models():
     from pipeline.regs.parsing.ingest_catalogue import ingest
     item = _batch_item(symbols=["Classified", "Stocked"], pages=[54], display_name="",
                        also_item_ids=["gnis:2"])
-    cand = _candidate([])
+    cand = _candidate(["gauge__08NM247"])
     cand.update(symbols=["Includes Tributaries", "Classified"], source_pages=[9],
                 display_name="Invented", matched=["gnis:999"])
     accepted, _ = ingest([cand], {cand["entry_id"]: item})

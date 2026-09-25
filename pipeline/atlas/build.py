@@ -72,6 +72,32 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
     return kind
 
 
+def get_lake_wsc(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
+    """wbk -> the trimmed FWA_WATERSHED_CODE of the lake's OWN polygon (lakes + manmade).
+
+    A lake's code is where FWA puts the lake, and it is not always the code of the streams routed
+    through it: Seven Mile Lake is South Hawks Creek's (`100-394295-295494`) though a side channel of
+    Dewar Lake's (`100-382626-…-061403`) is routed into it. `999-…` (FWA's "not on the network") is
+    left out, so a lake with no code of its own falls back to its fids (`build_stream_graph`) or, if
+    it has none, to its containing watershed (`basin_wsc`). A wbk spanning several polygon rows takes
+    the code of the largest row that has one (2 of the 9 multi-row lakes disagree, each against a
+    null on a sliver)."""
+    from pipeline.common.utils.wsc import trim_wsc
+    best: dict[str, tuple[float, str]] = {}
+    for layer in ("lakes", "manmade"):
+        if layer not in fwa.layer_names:
+            continue
+        gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY", "FWA_WATERSHED_CODE", "AREA_HA"],
+                            bbox=bbox, geometry=False)
+        for wbk, code, area in zip(gdf["WATERBODY_KEY"], gdf["FWA_WATERSHED_CODE"], gdf["AREA_HA"]):
+            if not wbk or not code or str(code).startswith("999"):
+                continue
+            w, a = str(wbk), float(area or 0.0)
+            if w not in best or a > best[w][0]:
+                best[w] = (a, trim_wsc(str(code)))
+    return {w: c for w, (_a, c) in best.items() if c}
+
+
 def _gnis_name_pairs(fwa: FWADataAccessor, layers, bbox=None) -> dict[str, tuple]:
     """wbk -> tuple of a waterbody's gazette ``(name, gnis_id)`` pairs across ``layers`` (GNIS_NAME/
     ID_1/2/3, non-null, positionally paired so NAME_i keeps its ID_i). GNIS_NAME_1/2 are accessor-
@@ -375,6 +401,7 @@ def main() -> None:
     print("loading lake/manmade waterbody keys ...")
     lake_kind = get_lake_wbk_kind(fwa, bbox)
     lake_names = get_lake_names(fwa, bbox)
+    lake_wsc = get_lake_wsc(fwa, bbox)
     print(f"  {len(lake_kind)} lake/manmade wbks ({len(lake_names)} named)")
 
     print("loading stream fids ...")
@@ -390,7 +417,8 @@ def main() -> None:
     if not args.no_added_lakes:
         from pipeline.atlas.waters.added_lakes.ingest import merge as _merge_lakes
         _alp = Path(args.added_lakes) if args.added_lakes else _ADDED_LAKES_GEOJSON
-        _rep = _merge_lakes(fids, lake_kind, lake_names, added_lake_polys, _alp)
+        _rep = _merge_lakes(fids, lake_kind, lake_names, added_lake_polys, _alp,
+                            lake_wsc=lake_wsc)
         if _rep["lakes"]:
             print(f"  + {_rep['lakes']} curated lake polygon(s) from {_alp.name}: "
                   + ", ".join(f"{n!r} (wbk {w}, {len(_rep['claimed'].get(w, []))} fid(s) claimed)"
@@ -419,7 +447,7 @@ def main() -> None:
     chains = resolve_names(build_blk_chains(fids, lake_kind))
 
     print("building stream graph (lakes as nodes) ...")
-    graph = build_stream_graph(chains, fids, lake_kind, lake_names)
+    graph = build_stream_graph(chains, fids, lake_kind, lake_names, lake_wsc=lake_wsc)
     print("building geometry sidecar ...")
     geoms = build_section_geometries(chains, fids, lake_kind)
     if add_specs:                                   # wire each added stream to its receiver at the confluence
@@ -477,9 +505,9 @@ def main() -> None:
             elif _w in _wet_wbks:
                 _curated_wet.setdefault(_w, ((_nm, ""),))
     from pipeline.common.models import NodeKind as _NK
-    _iso = (mint_waterbody_nodes(graph, lake_names, NameSource.gazette)
+    _iso = (mint_waterbody_nodes(graph, lake_names, NameSource.gazette, wsc_of=lake_wsc)
             + mint_waterbody_nodes(graph, wetland_names, NameSource.gazette, _NK.wetland)
-            + mint_waterbody_nodes(graph, _curated, NameSource.override)
+            + mint_waterbody_nodes(graph, _curated, NameSource.override, wsc_of=lake_wsc)
             + mint_waterbody_nodes(graph, _curated_wet, NameSource.override, _NK.wetland))
     if _iso:
         print(f"  minted {_iso} named waterbody node(s) — no stream runs through them")
@@ -512,9 +540,23 @@ def main() -> None:
             if _pl is None or _pl.is_empty:
                 continue
             _kind = _NK.wetland if _w in _wet else _NK.lake
-            mint_waterbody_nodes(graph, {_w: ()}, NameSource.gazette, _kind, allow_unnamed=True)
+            mint_waterbody_nodes(graph, {_w: ()}, NameSource.gazette, _kind, allow_unnamed=True,
+                                 wsc_of=lake_wsc)
             _n += 1
         print(f"  minted {_n} unnamed waterbody node(s) so zone rules can reach them")
+    # A LAKE FWA CODES `999` (not on its network) sits on the land of a named watershed all the
+    # same, and "watershed" in the book is that land (p86). Give each the code of the smallest FWA
+    # named watershed containing it, as `basin_wsc` — membership only, never hydrology. See
+    # `registry.basins.derive_basin_wsc`.
+    if "watersheds" in fwa.layer_names:
+        from pipeline.atlas.registry.basins import derive_basin_wsc
+        from pipeline.common.utils.wsc import trim_wsc as _trim
+        _ws = fwa.get_layer("watersheds", columns=["FWA_WATERSHED_CODE", "AREA_HA"], bbox=bbox)
+        _bc = derive_basin_wsc(graph, wb_polys, (
+            (_trim(str(c or "")) if c and not str(c).startswith("999") else "", a, g)
+            for c, a, g in zip(_ws["FWA_WATERSHED_CODE"], _ws["AREA_HA"], _ws.geometry)))
+        print(f"  basin_wsc: {_bc['given']:,} of {_bc['codeless_lakes']:,} lakes with no FWA code "
+              f"lie in a named watershed")
     _tick("name variants (whole-feature)")
 
     _moved_tribs: list = []
@@ -902,7 +944,18 @@ def main() -> None:
         wbk_polys = {**wbk_polys, **get_waterbody_polys(fwa, _missing, bbox)}
     print(f"  {len(wbk_polys)} isolated waterbody polygon(s) for MU calc ({len(nogeom_wbks)} needed, "
           f"{len(_missing)} newly loaded)")
-    registry = add_mu_sets(registry, geoms, get_mu_polys(fwa), wbk_polys)
+    _mu_all = get_mu_polys(fwa)
+    registry = add_mu_sets(registry, geoms, _mu_all, wbk_polys)
+    # Each region item carries the MUs lying in it, so a Region 7 row's MUs name its ZONE
+    # (`reach.outside.entry_regions`): `@7-30+7-37+7-38` is 7A, `@7-31+7-36` is 7B.
+    from pipeline.atlas.registry.build import add_region_units
+    from pipeline.atlas.splits.area_catalog import area_id as _rid
+    _reg_polys = {_rid("region", nm): pl
+                  for ad in (area_defs or []) if ad.get("kind") == "region"
+                  for nm, pl in (catalog_polys.get(ad["id"], {}) or {}).items()}
+    registry = add_region_units(registry, _reg_polys, _mu_all)
+    print("  region units: " + ", ".join(
+        f"{rid.split(':')[-1]} {len(registry[rid].mus)}" for rid in sorted(_reg_polys) if rid in registry))
     _tick("add_mu_sets")
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")

@@ -1492,7 +1492,6 @@
      ],
      "take": 0,
      "may_target": true,
-     "includes_tributaries": true,
      "extents": [
       {
        "op": "between",
@@ -1500,11 +1499,12 @@
         "fraser_river__the_cpr_bridge_at_mission",
         "fraser_river__williams_lake_river_into_fraser_river"
        ],
-       "item_id": "gnis:39325"
+       "item_id": "gnis:39325",
+       "watershed": true
       },
       {
-       "op": "whole",
-       "item_id": "gnis:27764"
+       "op": "within",
+       "area_id": "area:basin:100-382626-"
       }
      ]
     },
@@ -1545,18 +1545,18 @@
      "extents": [
       {
        "op": "between",
-       "item_id": "gnis:39325",
        "splits": [
         "fraser_river__the_cpr_bridge_at_mission",
         "fraser_river__williams_lake_river_into_fraser_river"
-       ]
+       ],
+       "item_id": "gnis:39325",
+       "watershed": true
       },
       {
-       "op": "whole",
-       "item_id": "gnis:27764"
+       "op": "within",
+       "area_id": "area:basin:100-382626-"
       }
      ],
-     "includes_tributaries": true,
      "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo.",
      "kind": "requirement"
     }

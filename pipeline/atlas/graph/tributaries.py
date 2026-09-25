@@ -38,6 +38,19 @@ from pipeline.common.models import NodeKind, StreamGraph
 # Imported, not redeclared — see pipeline/common/models/graph.py.
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
 
+#: POLICY (user rulings 2026-09-24), named so a test can switch each off and watch it go red:
+#: a rule's walk collects STREAMS only (the book, p86: "tributaries: all streams that contribute
+#: to a larger stream or to a lake") — `expand`;
+STREAMS_ONLY = True
+#: a lake in the middle of the reach is the river passing through, its inflows tributaries —
+#: `_lake_mid_reach`;
+LAKE_MID_REACH_IS_THE_RIVER = True
+#: a lake's outlet that carries its code across a divide goes with the lake — `code_runs`.
+BIFURCATIONS_FOLLOW_THE_CODE = True
+#: a lake the row names BESIDE its river, on one of that river's tributaries, does not stop the
+#: walk up that tributary — `_on_a_tributary_of_the_reach`.
+NAMED_LAKE_ON_A_TRIBUTARY_IS_CLIMBED = True
+
 
 def lake_inlets(graph: StreamGraph, lake_id: str) -> frozenset[str]:
     """Streams flowing INTO a lake node (its incoming edges)."""
@@ -93,6 +106,43 @@ def _through_blks(graph: StreamGraph, node_id: str) -> frozenset[str]:
     return frozenset(out)
 
 
+def _on_a_tributary_of_the_reach(graph: StreamGraph, lake_id: str, through: frozenset[str],
+                                 reach: frozenset[str], reach_blks: frozenset[str]) -> bool:
+    """Is the reach lake `lake_id` a lake ON A TRIBUTARY of the reach's own river?
+
+    A row may name a lake beside its river: "SUMALLO RIVER (includes "Cedar" Lake)" matches the
+    Sumallo and Cedar Lake. Cedar Lake sits on Ferguson Creek, a tributary of the Sumallo. As a
+    reach lake its through line (Ferguson) was skipped as "the reach's own flow continuing" — true
+    of a lake row (Koocanusa must not take the Kootenay above it) and false here: Ferguson above
+    the lake, and the 67 streams feeding it, are tributaries of the Sumallo, and were bound only
+    while the walk reached the lake as a tributary lake (69 sections lost when the lake was added).
+
+    The test: the lake's through line is not a line any reach STREAM lies on, and following the
+    flow down from the lake reaches a reach STREAM. Reaching a reach LAKE instead (Kootenay Lake's
+    main body draining into its own West Arm) is still one water, and the river threading it is
+    still that water's own flow."""
+    if not through or (through & reach_blks):
+        return False
+    seen = {lake_id}
+    stack = [lake_id]
+    while stack and len(seen) < 5_000:
+        cur = stack.pop()
+        for ei in sorted(graph.down_adj.get(cur, [])):
+            to = graph.edges[ei].to_node
+            if to in seen:
+                continue
+            seen.add(to)
+            d = graph.nodes.get(to)
+            if d is None:
+                continue
+            if to in reach:
+                if d.kind == NodeKind.stream:
+                    return True
+                continue                        # another part of the same lake water
+            stack.append(to)
+    return False
+
+
 def _lake_on_line(graph: StreamGraph, lake_id: str, blks: frozenset[str]) -> bool:
     """Is the upstream LAKE `lake_id` on the flow line `blks` — the river running through it?
 
@@ -122,6 +172,134 @@ def _lake_on_line(graph: StreamGraph, lake_id: str, blks: frozenset[str]) -> boo
     return False
 
 
+def _lake_mid_reach(graph: StreamGraph, lake_id: str, reach: frozenset[str], below: str) -> bool:
+    """Does the REACH carry on above the lake `lake_id` — is it a lake in the middle of it?
+
+    A named river's registry item leaves out the lakes on its line (the Iskut's Tatogga,
+    Eddontenajon and Kinaskan; the Williams Lake River's Williams Lake). Standing on the piece
+    below such a lake, its `lake_out` edge is the river continuing — but the river continues
+    INSIDE the reach, so the lake is the river passing through, and the streams entering it are
+    tributaries (ruling 2026-09-24: 10,848 sections in 16 rules were lost, 2,155 of them the
+    Iskut's).
+
+    `below` is the reach piece the walk arrived from. The lake is mid-reach when a reach piece on
+    THE SAME BLUE LINE flows into it (directly, or through further lakes above — two reservoirs back
+    to back) from FURTHER UP that line: the river enters above and leaves below. Anything looser is
+    wrong. A lake at the reach's TOP has no reach piece above it ("X River downstream of Y Lake"
+    does not take Y Lake's inflows); and a lake at the reach's MOUTH that a braid of the river both
+    enters and leaves is not in its middle — the Stellako's last braid runs out of Fraser Lake and
+    back, and a looser test handed the Stellako every stream feeding Fraser Lake (2,393 sections).
+    """
+    b = graph.nodes.get(below)
+    if b is None or not b.blk:
+        return False
+    seen = {lake_id}
+    stack = [lake_id]
+    while stack:
+        cur = stack.pop()
+        for ei in sorted(graph.up_adj.get(cur, [])):
+            src = graph.edges[ei].from_node
+            s = graph.nodes.get(src)
+            if s is None:
+                continue
+            if src in reach and (src == below
+                                 or (s.blk == b.blk and s.down_m >= b.up_m - 1.0)):
+                return True                    # (one piece both entering and leaving: through it)
+            if s.kind == NodeKind.lake and src not in seen and src not in reach:
+                seen.add(src)
+                stack.append(src)
+    return False
+
+
+def _wsc_below(code: str, parent: str) -> bool:
+    """Is watershed code `code` at or below `parent` in the FWA hierarchy?"""
+    return code == parent or code.startswith(parent + "-")
+
+
+def code_runs(graph: StreamGraph) -> tuple[dict[str, tuple[str, ...]], frozenset[tuple[str, str]]]:
+    """Bifurcations where the FLOW leaves the watershed the CODE puts the water in.
+
+    Dewar Lake drains both ways: its main outlet south to the Williams Lake River, and a secondary
+    channel north through a pond into Seven Mile Lake (South Hawks Creek, Hawks Creek). FWA codes
+    the channel with Dewar Lake's own code — it is FWA's membership call that the channel belongs
+    with the lake it leaves. By flow, a walk from the Hawks side climbed it (closed to sturgeon);
+    by code it is the Williams Lake River's (catch and release). The user's ruling (2026-09-24):
+    follow the code.
+
+    A RUN starts at an outlet of a lake with two or more outlets and follows the flow down, one
+    node at a time, until it reaches a node whose code the run's code does not descend from — the
+    code divide. The run's pieces are the lake's; the edge that crosses the divide is a CUT.
+    Returns `({lake: run node ids}, {(run tail, node below the divide)})`. A distributary that
+    rejoins its own watershed crosses no divide and is not a run.
+
+    Computed once per graph object and kept on it.
+    """
+    cached = getattr(graph, "_code_runs_cache", None)
+    if cached is not None and cached[0] is graph.edges:
+        return cached[1]
+    runs: dict[str, tuple[str, ...]] = {}
+    cuts: set[tuple[str, str]] = set()
+    for nid in sorted(graph.down_adj):
+        n = graph.nodes.get(nid)
+        if n is None or n.kind != NodeKind.lake:
+            continue
+        outs = sorted({graph.edges[ei].to_node for ei in graph.down_adj.get(nid, [])} - {nid})
+        if len(outs) < 2:
+            continue
+        main = _main_outlets(graph, outs)
+        mine: list[str] = []
+        for head in outs:
+            if head in main:
+                continue                       # the lake's own river: never moved by code
+            run = [head]
+            seen = {nid, head}
+            cur = head
+            while True:
+                dn = sorted({graph.edges[ei].to_node for ei in graph.down_adj.get(cur, [])})
+                if len(dn) != 1 or dn[0] in seen:
+                    break
+                nxt = dn[0]
+                a = (graph.nodes[cur].wsc or "") if cur in graph.nodes else ""
+                b = (graph.nodes[nxt].wsc or "") if nxt in graph.nodes else ""
+                if a and b and not _wsc_below(a, b):
+                    mine.extend(run)
+                    cuts.add((cur, nxt))
+                    break
+                seen.add(nxt)
+                run.append(nxt)
+                cur = nxt
+        if mine:
+            runs[nid] = tuple(dict.fromkeys(mine))
+    got = (runs, frozenset(cuts))
+    try:
+        setattr(graph, "_code_runs_cache", (graph.edges, got))
+    except (AttributeError, TypeError):
+        pass
+    return got
+
+
+#: FWA EDGE_TYPEs of MAIN flow (single line, in a wetland, construction lines of a double-line
+#: river). An outlet carrying one of these is the lake's river, not a distributary.
+_MAIN_FLOW_TYPES = frozenset({"1000", "1050", "1200", "1250"})
+
+
+def _main_outlets(graph: StreamGraph, outs: list[str]) -> frozenset[str]:
+    """The outlet(s) that are a lake's own river: the largest by Strahler order, and among equals
+    those FWA draws as main flow. Only the OTHER outlets can be a code run.
+
+    Without this the run followed a lake's main river too: Nanika Lake's outlet (the Nanika River,
+    order 6) met a lake whose code the river does not descend from, and every walk from below lost
+    the lake and all 491 sections above it; the white sturgeon rules lost 4,400. A bifurcation is a
+    lake's SECONDARY outlet (Dewar Lake's side channel is FWA secondary flow, 1100/1150)."""
+    def order(o):
+        return (graph.nodes[o].stream_order or 0) if o in graph.nodes else 0
+    top = max(order(o) for o in outs)
+    best = [o for o in outs if order(o) == top]
+    flow = [o for o in best
+            if set(getattr(graph.nodes.get(o), "edge_types", ()) or ()) & _MAIN_FLOW_TYPES]
+    return frozenset(flow or best)
+
+
 def tributaries_of_reach(
     graph: StreamGraph,
     reach: set[str] | frozenset[str],
@@ -138,11 +316,23 @@ def tributaries_of_reach(
 
     `guarded=False` drops the 2300 barrier stop; it exists only so tests can show the guard
     is doing something.
+
+    This is the TOPOLOGICAL answer: lakes that drain in are in it (a carve-out blocks them with
+    everything else above). What a RULE collects is `expand`, which keeps the streams only.
+
+    A lake on the river's line with the reach carrying on above it (`_lake_mid_reach`) is walked
+    as the river passing through: its other inflows are tributaries, it is not one itself, and
+    its inflow on the river's own line is still the river. A lake's secondary outlet that carries
+    the lake's code across a divide (`code_runs`) goes with the lake, not with the flow.
     """
     reach = frozenset(reach)
     out: set[str] = set()
     seen: set[str] = set(reach)
     stack: list[str] = sorted(reach)          # sorted: determinism, not correctness
+    online: dict[str, str] = {}               # lakes mid-reach -> the reach piece below them
+    reach_blks = frozenset(n.blk for r in reach if (n := graph.nodes.get(r)) is not None
+                           and n.kind == NodeKind.stream and n.blk)
+    runs, cuts = code_runs(graph) if BIFURCATIONS_FOLLOW_THE_CODE else ({}, frozenset())
 
     # A stream joining EXACTLY at the reach's lower cut belongs to the reach. When a
     # curator anchors a cut on a confluence — "upstream of the confluence with Slesse
@@ -160,13 +350,30 @@ def tributaries_of_reach(
 
     while stack:
         node = stack.pop()
-        at_boundary = node in reach
+        at_boundary = node in reach or node in online
         node_n = graph.nodes.get(node)
         is_lake = at_boundary and node_n is not None and node_n.kind == NodeKind.lake
         through = _through_blks(graph, node) if is_lake else frozenset()
+        if through and node in reach and NAMED_LAKE_ON_A_TRIBUTARY_IS_CLIMBED \
+                and _on_a_tributary_of_the_reach(graph, node, through, reach, reach_blks):
+            through = frozenset()             # its inflow on that line is a tributary too
+        # A lake the walk reached (not the reach's own water, not the river passing through)
+        # brings the runs FWA codes to it, with whatever joins them.
+        if not at_boundary:
+            for r in runs.get(node, ()):
+                if r in seen or r in blocked:
+                    continue
+                rn = graph.nodes.get(r)
+                if rn is None or (guarded and rn.is_barrier):
+                    continue
+                seen.add(r)
+                out.add(r)
+                stack.append(r)
         for ei in graph.up_adj.get(node, []):
             e = graph.edges[ei]
             src = e.from_node
+            if (src, node) in cuts:
+                continue                       # the code divide: that run is another basin's
 
             # Leaving the reach through its own top. "The reach's own flow continuing"
             # takes two forms, and which one applies depends on what you are standing on:
@@ -180,14 +387,26 @@ def tributaries_of_reach(
             # Applied ONLY at the boundary: the same edge kind inside a tributary is that
             # tributary's own continuation and must be followed.
             if at_boundary and src not in reach:
+                sn = graph.nodes.get(src)
+                src_is_lake = sn is not None and sn.kind == NodeKind.lake
                 if is_lake:
-                    sn = graph.nodes.get(src)
                     if sn is not None and sn.blk and sn.blk in through:
                         continue
-                    if (sn is not None and sn.kind == NodeKind.lake
-                            and _lake_on_line(graph, src, through)):
+                    if src_is_lake and _lake_on_line(graph, src, through):
+                        if src not in seen and src not in blocked and LAKE_MID_REACH_IS_THE_RIVER \
+                                and node in online \
+                                and _lake_mid_reach(graph, src, reach, online[node]):
+                            seen.add(src)              # the next lake of a chain, mid-reach
+                            online[src] = online[node]
+                            stack.append(src)
                         continue
                 elif e.kind in MAINSTEM_EDGE_KINDS:
+                    if src_is_lake and src not in seen and src not in blocked \
+                            and LAKE_MID_REACH_IS_THE_RIVER \
+                            and _lake_mid_reach(graph, src, reach, node):
+                        seen.add(src)                  # the river passing through a lake
+                        online[src] = node
+                        stack.append(src)
                     continue
             if src in seen or src in blocked:
                 continue
@@ -340,11 +559,21 @@ def expand(
     `only=True` is `tributaries_only` — the tributaries WITHOUT the mainstem, which is a real
     regulation shape ("no fishing in tributaries above Holt Creek", 44 rules). The reach is
     still what defines *which* tributaries; it is just not itself in the answer.
+
+    TRIBUTARIES ARE STREAMS. The book's glossary (p86): "tributaries: all streams that contribute
+    to a larger stream or to a lake". So the walk's lakes are climbed through — a creek feeding a
+    tributary lake is still a tributary — but never collected (user ruling 2026-09-24; 433 rules
+    bound ~232,000 lake sections this way before it). The reach itself is kept whole: a row that
+    names a lake binds it through its own extents. A WATERSHED is an area (`area:basin:`), not a
+    walk, and keeps its lakes.
     """
     reach = frozenset(reach)
     excluded = frozenset(excluded)
-    tribs = tributaries_of_reach(graph, reach, blocked=excluded, guarded=guarded,
-                                 window=window)
+    tribs = frozenset(
+        s for s in tributaries_of_reach(graph, reach, blocked=excluded, guarded=guarded,
+                                        window=window)
+        if not STREAMS_ONLY or ((n := graph.nodes.get(s)) is not None
+                                and n.kind == NodeKind.stream))
     base = frozenset() if only else (reach - excluded)
     return base | tribs
 

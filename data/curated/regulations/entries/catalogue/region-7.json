@@ -2220,6 +2220,16 @@
               "target": "species_quotas.r12",
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
+            },
+            {
+              "target": "arctic_grayling.r1",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
+            },
+            {
+              "target": "arctic_grayling.r3",
+              "entry_id": "z7b:arctic_grayling",
+              "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
             }
           ]
         }

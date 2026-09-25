@@ -385,6 +385,10 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         # CLEARWATER LAKE's "Catch and release, May 1-Oct 31" lifts Zone B's species quotas only
         # on its own days (the naming ruling: the zone's "Burbot: 5" names the fish, so without
         # the lift it would outrank the lake's release; the other days the lake is closed).
+        # Its grayling quota too, since "tributaries" became streams and the lake left the
+        # Williston "release all … and its tributaries" rule (2026-09-25).
+        ("r7:clearwater_lake@7-31", "clearwater_lake.r2", "arctic_grayling.r1"),
+        ("r7:clearwater_lake@7-31", "clearwater_lake.r2", "arctic_grayling.r3"),
         *[("r7:clearwater_lake@7-31", "clearwater_lake.r2", f"species_quotas.r{k}")
           for k in (1, 12, 2, 3, 4, 6, 7, 8, 9)],
         ("r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31", "peace_river.r4",

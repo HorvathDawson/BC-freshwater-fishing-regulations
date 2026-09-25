@@ -32,7 +32,12 @@ from typing import Callable
 #:    blue line) is placed by its own line's nearest placed pieces (`extent._bracket`), and a
 #:    watershed the registry did not mint (`area:basin:100-342455-`) resolves from the graph
 #:    (`extent.area_sections`) where it used to fail.
-POLICY_VERSION = "7"
+#: 8: (2026-09-24 rulings) the walk collects streams only; a lake in the middle of the reach is
+#:    the river passing through and its inflows are tributaries; a bifurcation's run follows its
+#:    FWA code; a Region 7 row's MUs resolve it to its zone (`outside.entry_regions`).
+#: 9: `Extent.watershed` — a part of a river's watershed is cut by FWA code position
+#:    (`extent._watershed_part`) and joined after the walk, never walked (`classify`).
+POLICY_VERSION = "9"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
