@@ -41,6 +41,8 @@ export interface Extent {
   outside_areas?: string[];
   /** registry item ids (waters) subtracted — e.g. a lake that only reaches into the area */
   outside_items?: string[];
+  /** an admin-area FAMILY subtracted, e.g. national_parks (the mirror of `area_kind`) */
+  outside_area_kind?: string | null;
   [key: string]: unknown;
 }
 
@@ -126,6 +128,8 @@ export interface Who {
   age?: string[];
   guidance?: string[];
   status?: string[];
+  /** the angler's role — `companion` of an authorized angler (Youth/Disabled Accompanied Waters) */
+  role?: string[];
 }
 
 export interface Rule {
@@ -138,6 +142,8 @@ export interface Rule {
   species?: string[];
   species_except?: string[];
   closed_to?: Who | null;
+  /** the anglers inside `closed_to` the water stays open to */
+  closed_to_except?: Who[];
   gear?: GearClause[];
   derived_from?: string | null;
   condition_of?: string | null;

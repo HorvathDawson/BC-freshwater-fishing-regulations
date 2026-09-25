@@ -94,7 +94,7 @@ def _days(when) -> set[int]:
 
 
 def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
-          sid: dict[str, int]) -> None:
+          sid: dict[str, int], registry: dict | None = None) -> None:
     """Write every licensing table. `entries` is the validated `CatalogueEntry` list the rule
     writer read — one pass over the corpus, so the two halves can never read different files."""
     from pipeline.regs.parsing.catalogue import (
@@ -267,6 +267,27 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
                    [(d.value, _DOC_WORDS.get(d.value, d.value.replace("_", " ")),
                      1 if d.value in PROVINCIAL_ANGLER_DOCUMENTS else 0) for d in Document])
     cov.filled("licence", len(Document))
+
+    # ---- where a province-wide requirement does not hold ------------------------------
+    # A `province` placement carries no rows; one whose extent subtracts an area FAMILY names it
+    # in its record, and the family's sections are listed once (`province_except`).
+    kinds = sorted({str(ex.get("outside_area_kind")) for k, p in placed.items()
+                    if p["placement"] == "province"
+                    for ex in (records[k][1].extents or []) if ex.get("outside_area_kind")})
+    except_rows: set[tuple[str, int]] = set()
+    for kind in kinds:
+        if registry is None:
+            raise SystemExit(f"licensing: a province-wide record subtracts {kind!r} and no "
+                             f"registry was handed in to say which sections that is")
+        prefix = f"area:{kind}:"
+        got = {sid[s] for k, it in registry.items() if k.startswith(prefix)
+               for s in it.section_ids if s in sid}
+        if not got:
+            raise SystemExit(f"licensing: outside_area_kind {kind!r} has no sections in this atlas")
+        except_rows |= {(kind, s) for s in got}
+    db.executemany("INSERT INTO province_except (area_kind, sid) VALUES (?,?)",
+                   sorted(except_rows))
+    cov.filled("province_except", len(except_rows))
 
     # ---- the interned sets, exactly as rules.intern_sets does it ----------------------
     intern: dict[frozenset, int] = {}

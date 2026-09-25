@@ -345,6 +345,18 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             _fail("outside_area_not_in_registry", drop_id)
             return None
         drop_sections |= set(reg[key].section_ids)
+    # `outside_area_kind` SUBTRACTS A WHOLE FAMILY of areas, the mirror of `area_kind` on
+    # `within`. "Basic and supplementary licences and stamps are not valid in National Parks" is
+    # about all seven parks, and as `outside_areas` it would be a hand list that goes stale when
+    # a park is gazetted. An empty family is a failure, never a no-op that leaves the parks in.
+    drop_kind = str(ex.get("outside_area_kind") or "")
+    if drop_kind:
+        prefix = f"area:{drop_kind}:"
+        members = [i for k, i in reg.items() if k.startswith(prefix)]
+        if not members:
+            _fail("outside_area_kind_matches_nothing", drop_kind)
+            return None
+        drop_sections |= {s for i in members for s in i.section_ids}
     # `outside_items` SUBTRACTS WATERS by registry id, at the same point. A `within(area)` holds
     # every lake the polygon merely reaches into (lakes are never cut), so an area row needs a way
     # to take such a lake back out — and a water it names but does not have is a failure, never a

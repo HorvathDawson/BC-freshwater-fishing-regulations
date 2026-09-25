@@ -2259,6 +2259,28 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "crazy_creek.r2",
+     "type": "retention_limit",
+     "verbatim": "open all year upstream of the falls",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "crazy_creek__the_falls"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "open all year"
+      }
+     ]
     }
    ]
   },
@@ -3742,6 +3764,46 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "hamilton_lake.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -4280,6 +4342,46 @@
      "rule_id": "isobel_lake.r2",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water Apr 1-Sept 30 (see page 4)",
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "isobel_lake.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water Apr 1-Sept 30 (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
      "when": {
       "dates": [
        {
@@ -7228,6 +7330,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "paul_creek.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -8087,6 +8219,46 @@
      "rule_id": "rose_lake.r2",
      "type": "hazard",
      "verbatim": "WARNING! Dangerous thin ice due to aeration!",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "rose_lake.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ]
+     },
      "extents": [
       {
        "op": "whole"
@@ -9924,6 +10096,46 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "tulip_lake.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water April 1-Sept 30",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -10505,8 +10717,7 @@
        "op": "whole",
        "item_id": "wbk:329518145"
       }
-     ],
-     "review_reason": "BOUND — named water. Water-scoped to Shuswap Lake; unbound until matched. 'over 50 cm' is a FLOOR on the fish counted, not a cap."
+     ]
     },
     {
      "rule_id": "shuswap_annual.r2",
@@ -10529,8 +10740,7 @@
        "op": "whole",
        "item_id": "wbk:329518145"
       }
-     ],
-     "review_reason": "BOUND — named water. Water-scoped to Shuswap Lake; unbound until matched."
+     ]
     }
    ]
   },

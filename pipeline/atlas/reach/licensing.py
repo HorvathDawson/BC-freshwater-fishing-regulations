@@ -18,7 +18,9 @@ EVERY PLACED RECORD ENDS IN EXACTLY ONE PLACEMENT, and none of them is "absent":
                   tributary walk was not done carries `trib_pending` instead
   province        a requirement written for the whole province (`within` every region). It
                   ships with NO section rows — writing a row per section of B.C. for "you need
-                  a basic licence" would be most of the bundle saying one sentence
+                  a basic licence" would be most of the bundle saying one sentence. One whose
+                  extent subtracts an area FAMILY (`outside_area_kind: national_parks`) is still
+                  `province`; the bundle lists that family's sections once (`province_except`)
   on_designation  a requirement with no extents of its own and an `on` key: it holds wherever a
                   designation is in force, which the reader decides per date. One with extents
                   AND `on` is placed on `sections`, narrowed to where a designation that can
@@ -76,10 +78,15 @@ class LicensingPlacement:
 
 def is_province_wide(extents: list[dict] | None) -> bool:
     """`within` every region and nothing else — the whole province, said the one way the corpus
-    says it. Anything narrower (an area id, a feature type, a watershed limit) is a place."""
+    says it. Anything narrower (an area id, a feature type, a watershed limit) is a place.
+
+    ONE SUBTRACTION IS STILL THE PROVINCE: `outside_area_kind` — "Basic and supplementary
+    licences and stamps are not valid in National Parks". Placed as sections it would be a row
+    per section of B.C. minus seven parks, most of the bundle saying one sentence; so it stays
+    `province`, and the bundle ships the family's sections once (`province_except`)."""
     return bool(extents) and all(
         x.get("op") == "within" and x.get("area_kind") == "region"
-        and set(x) <= {"op", "area_kind"} for x in extents)
+        and set(x) <= {"op", "area_kind", "outside_area_kind"} for x in extents)
 
 
 def as_rule(rec: dict, extents: list[dict]) -> dict:

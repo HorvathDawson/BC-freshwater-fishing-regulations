@@ -26,8 +26,8 @@ Your basic fishing licence entitles you to:
   Region 6 and Region 7A**. You are allowed to use only one line with one hook (no smaller than
   3 cm from point to shank). **Any game fish that you catch other than burbot must be released.**
   Set lines must be marked with angler's name, address, and telephone number.
-* fish with a **spear or an arrow** propelled by a spring, an elastic band, compressed air, a
-  bow, or by hand. **Only non-game fish (such as carp) may be speared, except burbot, which may
+* fish with a **spear or an arrow** that is propelled by a spring, an elastic band, compressed
+  air, a bow, or by hand. **Only non-game fish (such as carp) may be speared, except burbot, which may
   also be speared in Regions 3, 5, 6, 7 and 8.** No spear fishing of any other game fish, Pacific
   salmon or protected species is permitted anywhere in B.C. **No spear fishing of any kind is
   permitted in Region 1, 2, and 4.**
@@ -80,7 +80,8 @@ in your possession the freshly dressed fish from which the roe in excess of 1 kg
 
 **Aquatic invertebrates** — you may use freshwater invertebrates (e.g., aquatic insects and
 crayfish) **in streams** as bait unless a bait ban applies. **No person shall use as bait or
-possess for that purpose any freshwater invertebrate at a lake.**
+possess for that purpose any freshwater invertebrate (this includes the aquatic stage of any
+insect, such as dragonfly nymphs or caddisfly larvae) at a lake.**
 
 **Chumming** — attempting to attract fish by depositing any substance in the water, **is
 prohibited**.
@@ -197,17 +198,30 @@ and Gulf Islands National Park Reserve are closed to fishing.**
 
 ## Transporting and Exporting Fish
 
-If you caught the fish yourself you must keep your angling licence handy while travelling,
-transport no more than your legal limit, and ensure your fish can be identified, counted and
-measured.
+In order to enforce quotas and size limits, our officers must be able to count, measure and
+identify your catch.
 
-If you are **transporting fish for someone else**, obtain and carry a signed letter with: the
-angler's name, address, telephone number and fishing licence number; when and where the fish were
-caught; the date and place at which you were given the fish; the number, species and size of the
-fish; and the name and address of the person to whom the fish are to be delivered.
+If you caught the fish yourself you must:
 
-If **someone else caught the fish and gave it to you** for personal consumption, keep a signed
-letter from the angler until you have eaten the fish.
+* Keep your angling licence handy while travelling.
+* Transport or possess no more than your legal limit.
+* Ensure your fish can be identified, counted and measured if necessary (see “Wrap it Right”).
+
+If you are transporting fish for someone else:
+
+* Obtain and carry a signed letter from that person with the following details: the angler’s
+  name, address, telephone number and fishing licence number; when and where the fish were
+  caught; the date and place at which you were given the fish; the number, species and size of
+  the fish that you have been given and the name and address of the person to whom the fish are
+  to be delivered.
+* If you will be exporting the fish from B.C., carry the letter and ensure that it is available
+  for inspection by fishery enforcement and/or customs officers if requested to do so.
+
+If someone else caught the fish and gave it to you for your personal consumption:
+
+* Keep in your possession a signed letter from the angler until you have eaten the fish.
+* The letter should list the name, address and telephone number of the angler who gave you the
+  fish; the number, species and size of the fish; and when and where the fish were caught.
 
 ## Angling Guides
 

@@ -341,8 +341,11 @@
     },
     {
      "rule_id": "babine_river.r3",
-     "type": "advisory",
+     "type": "retention_limit",
      "verbatim": "Open all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
      "extents": [
       {
        "op": "between",
@@ -350,6 +353,13 @@
         "babine_river__babine_lake",
         "babine_river__nilkitkwa_lake"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "open all year"
       }
      ]
     },
@@ -3094,6 +3104,33 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r6",
+       "entry_id": "z6:trout_char_quota",
+       "note": "no minimum size"
+      }
+     ]
+    },
+    {
+     "rule_id": "hevenor_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "open all year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "open all year"
+      }
      ]
     }
    ]
@@ -3683,8 +3720,8 @@
        ]
       }
      ],
-     "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension",
-     "extent_text": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall"
+     "extent_text": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
+     "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension"
     },
     {
      "rule_id": "kitimat_river.r2",
@@ -3754,6 +3791,23 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r6",
+       "entry_id": "z6:trout_char_quota",
+       "note": "no minimum size"
+      },
+      {
+       "target": "trout_char_quota.r7",
+       "entry_id": "z6:trout_char_quota",
+       "note": "all year"
+      },
+      {
+       "target": "trout_char_quota.r4",
+       "entry_id": "z6:trout_char_quota",
+       "note": "hatchery rainbow trout quota = 5, all year"
+      }
      ]
     },
     {
@@ -3777,6 +3831,23 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "hatchery steelhead quota = 2 (over 50 cm)"
+      },
+      {
+       "target": "trout_char_quota.r4",
+       "entry_id": "z6:trout_char_quota",
+       "note": "hatchery steelhead quota = 2"
+      },
+      {
+       "target": "trout_char_quota.r7",
+       "entry_id": "z6:trout_char_quota",
+       "note": "hatchery steelhead quota = 2"
       }
      ]
     },
@@ -7074,6 +7145,46 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "seeley_creek.r2",
+     "type": "retention_limit",
+     "verbatim": "open all year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "open all year"
+      }
+     ]
+    },
+    {
+     "rule_id": "seeley_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "no minimum size for trout",
+     "species": [
+      "TROUT"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r6",
+       "entry_id": "z6:trout_char_quota",
+       "note": "no minimum size"
+      }
+     ]
     }
    ]
   },
@@ -7550,6 +7661,33 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r6",
+       "entry_id": "z6:trout_char_quota",
+       "note": "no minimum size"
+      }
+     ]
+    },
+    {
+     "rule_id": "station_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "open all year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "open all year"
       }
      ]
     }
@@ -9093,6 +9231,33 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r6",
+       "entry_id": "z6:trout_char_quota",
+       "note": "no minimum size"
+      }
+     ]
+    },
+    {
+     "rule_id": "two_mile_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "open all year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "open all year"
+      }
      ]
     }
    ]
@@ -9562,7 +9727,7 @@
    "name": "First Nations notices",
    "display_name": "Region 6",
    "region": "6",
-   "regs_verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations. not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
+   "regs_verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations.",
    "source_pages": [
     49
    ],
@@ -9577,6 +9742,39 @@
      "rule_id": "first_nations_notice.r1",
      "type": "advisory",
      "verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations.",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z6:hatchery_steelhead_stop",
+   "name": "Hatchery steelhead: stop fishing after the daily quota",
+   "display_name": "Region 6",
+   "region": "6",
+   "regs_verbatim": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+   "source_pages": [
+    49
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:6"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "hatchery_steelhead_stop.r1",
+     "type": "stop_fishing_after_quota",
+     "verbatim": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+     "species": [
+      "ST"
+     ],
+     "origin": "hatchery",
      "extents": [
       {
        "op": "within",
@@ -9671,7 +9869,10 @@
    "name": "Possession quota",
    "display_name": "Region 6",
    "region": "6",
-   "regs_verbatim": "Possession quotas = 2 daily quotas. Annual quota for all B.C.: 10 hatchery steelhead per licence",
+   "regs_verbatim": "Possession quotas = 2 daily quotas. (See tables for exceptions)",
+   "source_pages": [
+    49
+   ],
    "extents": [
     {
      "op": "within",
@@ -9682,7 +9883,7 @@
     {
      "rule_id": "possession_quota.r1",
      "type": "retention_limit",
-     "verbatim": "Possession quotas = 2 daily quotas. Annual quota for all B.C.: 10 hatchery steelhead per licence",
+     "verbatim": "Possession quotas = 2 daily quotas.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9695,9 +9896,6 @@
       }
      ]
     }
-   ],
-   "source_pages": [
-    49
    ]
   },
   {
@@ -10032,7 +10230,7 @@
    "name": "Skeena Quality Waters Strategy",
    "display_name": "Region 6",
    "region": "6",
-   "regs_verbatim": "Skeena Quality Waters Strategy. For more information visit www.env.gov.bc.ca/skeena/qws/ Skeena Quality Waters Strategy · Skeena Fisheries Management · High reward ($100) tagging programs (any species anywhere in the Skeena Region; sockeye, chinook, pink, chum and coho are not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
+   "regs_verbatim": "Skeena Quality Waters Strategy. For more information visit www.env.gov.bc.ca/skeena/qws/",
    "source_pages": [
     49
    ],
@@ -10277,7 +10475,8 @@
        "target": "steelhead_stream_closure.r1",
        "note": "the mainstems of the Skeena, Nass, Iskut, Stikine and Taku"
       }
-     ]
+     ],
+     "extent_text": "the mainstems of the Skeena, Nass, Iskut, Stikine and Taku Rivers"
     }
    ]
   },
@@ -10439,8 +10638,6 @@
      "species": [
       "TROUT"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,
@@ -10523,35 +10720,6 @@
      "extent_text": "Fraser and Skeena watersheds in Region 6"
     },
     {
-     "rule_id": "trout_char_quota.r10",
-     "type": "retention_limit",
-     "verbatim": "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30",
-     "species": [
-      "LT"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 9,
-        "from_day": 15,
-        "to_month": 11,
-        "to_day": 30
-       }
-      ]
-     },
-     "take": 0,
-     "may_target": true,
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:2936",
-       "within_area": "area:region:6"
-      }
-     ],
-     "extent_text": "Skeena watershed"
-    },
-    {
      "rule_id": "trout_char_quota.r9",
      "type": "retention_limit",
      "verbatim": "all wild steelhead",
@@ -10561,28 +10729,6 @@
      "take": 0,
      "may_target": true,
      "origin": "wild",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:6"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r11",
-     "type": "retention_limit",
-     "verbatim": "1 over 50 cm (quota includes hatchery steelhead)",
-     "species": [
-      "ST"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r2",
-     "lengths": [
-      {
-       "min_cm": 50
-      }
-     ],
-     "origin": "hatchery",
      "extents": [
       {
        "op": "within",

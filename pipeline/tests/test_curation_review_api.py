@@ -87,6 +87,16 @@ def picks(env):
     got = _smallest(env["dir"])
     missing = [k for k in ALL_PARTS if k not in got]
     assert not missing, f"the corpus carries no entry of {missing} — nothing to curate them on"
+    # the smallest entry whose FIRST angler_closure names a residency in its own sentence
+    best = None
+    for eid, (_, e) in _entries(env["dir"]).items():
+        first = next((r for r in e.get("rules") or [] if r["type"] == "angler_closure"), None)
+        if first and C.residency_said(first["verbatim"]):
+            size = len(json.dumps(e))
+            if best is None or size < best[0]:
+                best = (size, eid)
+    assert best, "no angler_closure names a residency"
+    got["rule:angler_closure:residency"] = best[1]
     return got
 
 
@@ -422,7 +432,10 @@ BAD = {
                                 lambda r: r.update(when={"dates": [{"from_month": 2, "from_day": 30,
                                                                     "to_month": 3, "to_day": 1}]}),
                                 ".when.dates.0", "does not exist")),
-    "closed_to wider than the sentence": ("rule:angler_closure",
+    # ON A CLOSURE WHOSE SENTENCE NAMES A RESIDENCY. The smallest angler_closure is now a
+    # Youth/Disabled Accompanied Water row, whose sentence names none, so the check has nothing to
+    # hold the `who` to there; the non-guided-alien closures are what it exists for.
+    "closed_to wider than the sentence": ("rule:angler_closure:residency",
                                           _bad_rule("angler_closure",
                                                     lambda r: r.update(closed_to={"guidance": ["non_guided"]}),
                                                     "", "residency")),

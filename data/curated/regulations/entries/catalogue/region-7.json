@@ -6050,6 +6050,36 @@
               "default_id": "bait_ban_streams"
             }
           ]
+        },
+        {
+          "rule_id": "mcmillan_creek.r4",
+          "type": "angler_closure",
+          "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "closed_to": {
+            "age": [
+              "16_plus"
+            ]
+          },
+          "closed_to_except": [
+            {
+              "residency": [
+                "resident"
+              ],
+              "status": [
+                "disabled"
+              ]
+            },
+            {
+              "role": [
+                "companion"
+              ]
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -6559,6 +6589,36 @@
           "rule_id": "mugaha_creek.r2",
           "type": "program_membership",
           "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
+          "rule_id": "mugaha_creek.r3",
+          "type": "angler_closure",
+          "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "closed_to": {
+            "age": [
+              "16_plus"
+            ]
+          },
+          "closed_to_except": [
+            {
+              "residency": [
+                "resident"
+              ],
+              "status": [
+                "disabled"
+              ]
+            },
+            {
+              "role": [
+                "companion"
+              ]
+            }
+          ],
           "extents": [
             {
               "op": "whole"
@@ -7518,6 +7578,13 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "species_quotas.r5",
+              "entry_id": "z7b:species_quotas",
+              "note": "none from streams, except Peace River"
+            }
           ]
         }
       ]
@@ -7555,6 +7622,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "species_quotas.r5",
+              "entry_id": "z7b:species_quotas",
+              "note": "none from streams, except Peace River"
             }
           ]
         },
@@ -7601,6 +7675,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r3",
+              "entry_id": "z7b:trout_char_quota",
+              "note": "the river's own lake trout quota replaces '2 from streams'"
             }
           ]
         },

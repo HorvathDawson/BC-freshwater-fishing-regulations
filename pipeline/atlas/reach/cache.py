@@ -25,7 +25,10 @@ import json
 from typing import Callable
 
 #: Bump whenever `classify.py` changes an OUTCOME. Guarded by a test.
-POLICY_VERSION = "5"
+#: 6: the tributary walk lets a lake into a walk through its MAIN outlet even when the lake's
+#:    aggregate order runs ahead of the outlet's (Dester Lake / Meldrum Creek) —
+#:    `graph.tributaries._is_main_outlet`. It changes which sections a walk reaches.
+POLICY_VERSION = "6"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

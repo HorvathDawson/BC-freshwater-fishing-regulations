@@ -81,7 +81,7 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
       </F>
 
       <Group title="who / what" path={path} open
-        keys={["species", "species_except", "when_targeting", "closed_to", "water", "origin"]}>
+        keys={["species", "species_except", "when_targeting", "closed_to", "closed_to_except", "water", "origin"]}>
         <F path={`${path}.species`} deep>
           <SpeciesPicker values={r.species} options={v.species} label="species"
             onChange={(x) => set({ species: x })} />
@@ -99,6 +99,24 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
         {(r.type === "angler_closure" || r.closed_to != null) && (
           <F path={`${path}.closed_to`} deep hint="WHO the water is closed to — must match the sentence's residency/guidance words">
             <WhoEditor value={r.closed_to} onChange={(x) => set({ closed_to: x })} />
+          </F>
+        )}
+        {(r.type === "angler_closure" || (r.closed_to_except ?? []).length > 0) && (
+          <F path={`${path}.closed_to_except`} deep hint="the anglers INSIDE closed_to the water stays open to — each must meet closed_to">
+            <div className="who-list">
+              {(r.closed_to_except ?? []).map((w, k) => (
+                <div key={k} className="who-item">
+                  <WhoEditor value={w} onChange={(x) => {
+                    const next = [...(r.closed_to_except ?? [])];
+                    if (x) next[k] = x; else next.splice(k, 1);
+                    set({ closed_to_except: next.length ? next : undefined });
+                  }} />
+                </div>
+              ))}
+              <button type="button" onClick={() => set({ closed_to_except: [...(r.closed_to_except ?? []), { age: ["16_plus"] }] })}>
+                + except
+              </button>
+            </div>
           </F>
         )}
         <div className="grid2">

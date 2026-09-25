@@ -609,6 +609,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "bainbridge_lake.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -7862,6 +7892,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "mayo_lake.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -13982,7 +14042,7 @@
        "item_id": "gnis:21875"
       }
      ],
-     "review_reason": "BOUND — named water. Water-scoped to four named waters; unbound until they are matched. Recovered from the chapter — the archive dropped 4 of 7 tagging programmes."
+     "review_reason": "Placed on the four named waters (13 sections). Recovered from the chapter — the archive dropped 4 of 7 tagging programmes."
     }
    ]
   },
@@ -14138,8 +14198,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,
@@ -14508,6 +14566,9 @@
      "verbatim": "1 over 50 cm",
      "species": [
       "TROUT"
+     ],
+     "species_except": [
+      "ST"
      ],
      "take": 1,
      "within": "trout_quota.r1",

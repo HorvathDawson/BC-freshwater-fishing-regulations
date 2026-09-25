@@ -40,7 +40,7 @@ White Sturgeon:
   • CATCH AND RELEASE in the Fraser River Watershed DOWNSTREAM of and including
     Williams Lake River.
   • CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams
-    Lake River, Sept 15-July 15.
+    Lake River Sept 15-July 15.
 ```
 
 ## Possession Quotas

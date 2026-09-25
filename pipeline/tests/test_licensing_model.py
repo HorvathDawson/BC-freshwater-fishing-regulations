@@ -476,8 +476,12 @@ def test_until_reopened_sleeps_under_the_steelhead_closure(corpus):
 def test_the_under_16_non_resident_is_an_accompaniment_path(corpus):
     r = _rec(corpus, "zp:basic_licence", "under_16_non_resident")
     assert r.who == Who(age=["under_16"], residency=["non_resident", "non_resident_alien"])
-    (p,) = r.satisfied_by
-    assert p.accompanied_by.who == Who(age=["16_plus"]) and p.quota == "counts_to_companion"
+    # TWO WAYS (decision 10, 2026-09-24): be accompanied, and the catch counts to the companion;
+    # or buy your own licence and stamps, and keep your own quota (printed p.6).
+    acc, own = r.satisfied_by
+    assert acc.accompanied_by.who == Who(age=["16_plus"]) and acc.quota == "counts_to_companion"
+    assert own.as_ == Who(residency=["non_resident", "non_resident_alien"], age=["16_plus"])
+    assert own.quota == "own"
     assert not r.conduct and "be_accompanied_by_licensed_adult" not in CONDUCT_ACTS
 
 

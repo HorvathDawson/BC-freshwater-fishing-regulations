@@ -54,7 +54,8 @@ REQUIRED_COLUMNS = {"entry": ("matched",),
                     "rule": ("unresolved", "exempts", "undrawn_part", "parts"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},
-                    "item": ("part_of",), "outside_bc": ("sid",)}
+                    "item": ("part_of",), "outside_bc": ("sid",),
+                    "province_except": ("area_kind", "sid")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -326,6 +327,12 @@ def read(bundle: Path) -> dict:
             "SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord "
             "JOIN outside_bc o ON o.sid = s.sid GROUP BY i.item_id"):
         waters[item_id]["outside_bc"] = n
+    # WHERE A PROVINCE-WIDE REQUIREMENT STOPS: per water, the sections in each subtracted family.
+    for item_id, kind, n in db.execute(
+            "SELECT i.item_id, p.area_kind, COUNT(*) FROM item i JOIN item_section s "
+            "ON s.ord = i.ord JOIN province_except p ON p.sid = s.sid "
+            "GROUP BY i.item_id, p.area_kind ORDER BY 1, 2"):
+        waters[item_id].setdefault("province_except", {})[kind] = n
 
     sections = {
         "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
@@ -335,6 +342,8 @@ def read(bundle: Path) -> dict:
         "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
         "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
         "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
+        "province_except": dict(db.execute("SELECT area_kind, COUNT(*) FROM province_except "
+                                           "GROUP BY 1 ORDER BY 1").fetchall()),
     }
     db.close()
     return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
@@ -483,6 +492,10 @@ RULE_FIELD_TEXT = {
                "expand with `species.groups`)",
     "species_except": "species carved out of `species`",
     "closed_to": "angler_closure only: WHO the water is closed to (a `Who`)",
+    "closed_to_except": "angler_closure only: the anglers INSIDE `closed_to` the water stays "
+                        "open to, each a `Who` — a Youth/Disabled Accompanied Water is closed to "
+                        "anglers 16 and over except disabled B.C. residents and the companions of "
+                        "an authorized angler",
     "gear": "ordered list of gear clauses — see `gear`",
     "derived_from": "the rule id (same entry) whose sentence implies this one",
     "condition_of": "the rule id (same entry) this rule is the proviso of",
@@ -719,6 +732,8 @@ WHO_TEXT = {
     "age": "under_16 | 16_plus",
     "guidance": "guided | non_guided",
     "status": "indian_bc_resident | metis | disabled",
+    "role": "companion — fishing as the companion of an authorized angler on a Youth/Disabled "
+            "Accompanied Water (printed p.4); not a partition: most anglers are no one's companion",
 }
 
 PATH_TEXT = {
@@ -740,7 +755,10 @@ VIA_TEXT = {
 
 PLACEMENT_TEXT = {
     "sections": "bound to sections; find them through `licensing_sets`",
-    "province": "applies everywhere; no section rows",
+    "province": "applies everywhere; no section rows — EXCEPT, when its extent names "
+                "`outside_area_kind`, on the sections that kind covers (bundle table "
+                "`province_except`; per water, `waters[].province_except`). The basic licence and "
+                "the stamps do not hold inside National Parks, whose own permit does",
     "on_designation": "applies wherever a designation is in force (`on`); no section rows",
     "unresolved": "could not be placed: `provenance.uncertain` is true and `why` says why. For "
                   "licensing the unsafe direction is under-requiring, so render 'check', never "
@@ -877,19 +895,36 @@ def guide(d: dict) -> dict:
                     "provincial (except full closure), and this water overrides regional "
                     "always (except closures unless they are lifted in this water's regs).' A "
                     "closure is lifted by an `exempts`, never by a competing quota.",
-        "never_compete": "`standing` rules, and the information family (hazard, advisory, "
-                         "program_membership, facility).",
+        "never_compete": "`standing` rules, the information family (hazard, advisory, "
+                         "program_membership, facility), and LIFT-ONLY rules (dimension `lift`: "
+                         "an `exempts` and no number, bound, gear, duty or angler of their own — "
+                         "'Exempt from spring closure'). A lift-only rule only removes what it "
+                         "lifts; it never displaces a rule that shares its type.",
         "ranks": ranks,
         "dimension_by_type": {
-            "retention_limit": "the period, plus '/size' when the rule is sizes with no take",
+            "retention_limit": "the period, plus '/size' when the rule is sizes with no count of "
+                               "its own, plus '@' and the conditions it holds under — origin, "
+                               "water kind, while (the means) and record (a record-keeping duty): "
+                               "'daily@origin=wild' (release all wild steelhead) never shares a "
+                               "key with a region's 'Trout/char: 5' ('daily'), so the number "
+                               "cannot silence the release",
             "vessel_rule": "the aspect",
-            "angler_closure": "closed_to:<who>",
+            "angler_closure": "closed_to:<who>, plus -except:<who> for each `closed_to_except`",
             "method_rule": "the methods it names, each with its clause's condition: 'no angling "
                            "from boats' is method:angling@angler=in_boat, so it never displaces "
                            "the province's unconditional angling allow (method:angling)",
             "tackle_restriction": "the set of slots it constrains",
-            "bait_restriction": "bait:<the bait members it names>[/<targeted species>]",
+            "bait_restriction": "ONE DOMAIN, ranked by where it applies: a permission (allow / "
+                                "only) and a TOTAL ban (any_bait) share the key 'bait', so a "
+                                "region's or water's bait ban speaks over the province's "
+                                "'invertebrates may be used in streams unless a bait ban "
+                                "applies'; a PARTIAL ban keeps the bait it names "
+                                "('bait:fin_fish', 'bait:live_fin_fish', 'bait:invertebrate') so "
+                                "it never displaces a ban on other bait. Plus '/<targeted "
+                                "species>' and '@while=<means>' when the rule has them. The roe "
+                                "possession cap is its own key, 'bait_possession:roe'",
             "every other type": "the type itself",
+            "any type, lift-only": "'lift' — never competes (see never_compete)",
         },
         "examples": (
             pick(lambda x: x["type"] == "retention_limit" and (_f(x).get("take") or 0) > 0
@@ -1164,9 +1199,12 @@ def guide(d: dict) -> dict:
     }
     angler_closure = {
         "reading": "The water is closed to the anglers in `closed_to` (a `Who`) on the days in "
-                   "`when`. It never competes with a quota. Because the angler is unknown, the "
-                   "answer is conditional: 'if you are a non-guided non-resident alien, you may "
-                   "not angle here on Saturdays'.",
+                   "`when`, except the anglers in any `closed_to_except` (each a `Who`). It never "
+                   "competes with a quota. Because the angler is unknown, the answer is "
+                   "conditional: 'if you are a non-guided non-resident alien, you may not angle "
+                   "here on Saturdays'; on a Youth/Disabled Accompanied Water, 'if you are 16 or "
+                   "over you may angle here only as a disabled B.C. resident or as the companion "
+                   "of an authorized angler'.",
         "rules": [x["id"] for x in rules.values() if x["type"] == "angler_closure"],
         "examples": pick(lambda x: x["type"] == "angler_closure", "closed_to", "when"),
     }

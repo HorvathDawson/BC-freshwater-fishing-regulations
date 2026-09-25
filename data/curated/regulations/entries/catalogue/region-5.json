@@ -996,6 +996,39 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "baker_creek.r4",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "baker_creek__pinnacles_park_upstream_boundary"
+       ]
+      }
+     ]
     }
    ]
   },
@@ -1976,7 +2009,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:bowron_lake_park"
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
       }
      ]
     },
@@ -2006,7 +2042,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:bowron_lake_park"
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
       }
      ]
     },
@@ -2025,13 +2064,12 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:bowron_lake_park"
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
       }
-     ],
-     "unresolved_locators": [
-      "other than Bowron Lake"
-     ],
-     "review_reason": "Placed within area:park:bowron_lake_park, but the printed exception (other than Bowron Lake) cannot be subtracted from a `within` and Bowron Lake's own row prints no rule of this kind to override it; kept as unresolved_locators so the rule stays UNBOUND (AREA_CARVE_OUTS_UNBIND) rather than widen onto the excepted water. Needs an item subtraction on area extents."
+     ]
     },
     {
      "rule_id": "bowron_lake_park_waters.r4",
@@ -2052,13 +2090,12 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:bowron_lake_park"
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
       }
-     ],
-     "unresolved_locators": [
-      "other than Bowron Lake"
-     ],
-     "review_reason": "Placed within area:park:bowron_lake_park, but the printed exception (other than Bowron Lake) cannot be subtracted from a `within` and Bowron Lake's own row prints no rule of this kind to override it; kept as unresolved_locators so the rule stays UNBOUND (AREA_CARVE_OUTS_UNBIND) rather than widen onto the excepted water. Needs an item subtraction on area extents."
+     ]
     },
     {
      "rule_id": "bowron_lake_park_waters.r5",
@@ -2069,13 +2106,12 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:bowron_lake_park"
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
       }
-     ],
-     "unresolved_locators": [
-      "other than Bowron Lake"
-     ],
-     "review_reason": "Placed within area:park:bowron_lake_park, but the printed exception (other than Bowron Lake) cannot be subtracted from a `within` and Bowron Lake's own row prints no rule of this kind to override it; kept as unresolved_locators so the rule stays UNBOUND (AREA_CARVE_OUTS_UNBIND) rather than widen onto the excepted water. Needs an item subtraction on area extents."
+     ]
     }
    ]
   },
@@ -3154,8 +3190,11 @@
    "rules": [
     {
      "rule_id": "chimney_creek.r1",
-     "type": "advisory",
+     "type": "retention_limit",
      "verbatim": "Open all year downstream of Brunson Lake",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
      "extents": [
       {
        "op": "downstream_of",
@@ -3164,7 +3203,12 @@
        ]
       }
      ],
-     "review_reason": "'open all year' implies an exemption from some other closure, but the rule it lifts is not identified in this row's text"
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "open all year"
+      }
+     ]
     }
    ]
   },
@@ -12371,6 +12415,26 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "west_road_blackwater_river.r6",
+     "type": "retention_limit",
+     "verbatim": "No Fishing in mainstem (only) Nov 1-June 14; tributaries subject to spring closure",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "the mainstem is closed Nov 1-June 14 by its own row; the regional spring closure (Apr 1-June 30) does not add June 15-30 to it"
+      }
+     ]
     }
    ],
    "licensing": [
@@ -12749,11 +12813,20 @@
    "rules": [
     {
      "rule_id": "williams_lake_river.r1",
-     "type": "advisory",
+     "type": "retention_limit",
      "verbatim": "Open all year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "open all year"
       }
      ]
     }
@@ -13565,7 +13638,7 @@
    "name": "White sturgeon",
    "display_name": "Fraser watershed",
    "region": "5",
-   "regs_verbatim": "White Sturgeon: CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River. CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River. CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15. • CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River, Sept 15-July 15.",
+   "regs_verbatim": "White Sturgeon: CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River. CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River. CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15.",
    "source_pages": [
     42
    ],
@@ -13590,13 +13663,13 @@
        "within_area": "area:region:5"
       }
      ],
-     "extent_text": "Fraser watershed upstream of Williams Lake River",
      "tributary_excludes": [
       {
        "op": "whole",
        "item_id": "gnis:27764"
       }
-     ]
+     ],
+     "extent_text": "Fraser watershed upstream of Williams Lake River"
     },
     {
      "rule_id": "white_sturgeon.r2",
@@ -13621,14 +13694,19 @@
        "op": "whole",
        "item_id": "gnis:27764",
        "within_area": "area:region:5"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329494714",
+       "within_area": "area:region:5"
       }
      ],
-     "extent_text": "Fraser watershed downstream of and including Williams Lake River"
+     "extent_text": "Fraser watershed downstream of and including Williams Lake River and Williams Lake"
     },
     {
      "rule_id": "white_sturgeon.r3",
      "type": "retention_limit",
-     "verbatim": "• CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River, Sept 15-July 15.",
+     "verbatim": "CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15.",
      "species": [
       "WSG"
      ],

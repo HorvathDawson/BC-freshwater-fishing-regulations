@@ -1681,6 +1681,46 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "hall_road_mission_pond.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -4491,6 +4531,46 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "shannon_lake_netted_portion.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 5,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 15
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -6331,7 +6411,7 @@
    "name": "Okanagan Lake Dam fish passage",
    "display_name": "Okanagan Lake Dam",
    "region": "8",
-   "regs_verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200. OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+   "regs_verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam, monitor fish navigation of the ladder, and upstream habitat utilization of sockeye and Chinook slamon. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200.",
    "source_pages": [
     68
    ],
@@ -6339,7 +6419,7 @@
     {
      "rule_id": "okanagan_dam_tagging.r1",
      "type": "advisory",
-     "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+     "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam, monitor fish navigation of the ladder, and upstream habitat utilization of sockeye and Chinook slamon. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200.",
      "obligation": "should",
      "extents": [
       {
@@ -6600,7 +6680,7 @@
    "name": "Spring stream closure",
    "display_name": "Every stream in Region 8",
    "region": "8",
-   "regs_verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions). No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
+   "regs_verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions).",
    "source_pages": [
     68
    ],
@@ -6617,7 +6697,7 @@
     {
      "rule_id": "spring_stream_closure.r1",
      "type": "retention_limit",
-     "verbatim": "No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
+     "verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions).",
      "species": [
       "ALL_GAME_FISH"
      ],

@@ -265,7 +265,8 @@ def test_all_game_fish_is_the_closed_list_and_excludes_salmon():
 
 def test_group_expansion_is_recoverable():
     from pipeline.regs.parsing.catalogue import expand_species
-    assert expand_species(["TROUT_CHAR"])[:3] == ["RB", "ST", "CT"]
+    # CT is a group (decision 11): "cutthroat" is westslope and coastal cutthroat
+    assert expand_species(["TROUT_CHAR"])[:4] == ["RB", "ST", "WCT", "CCT"]
     assert expand_species(["BT"]) == ["BT"]                       # non-group passes through
     assert expand_species(["TROUT", "RB"]).count("RB") == 1       # de-duplicated
 

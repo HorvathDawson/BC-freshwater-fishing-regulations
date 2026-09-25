@@ -193,12 +193,26 @@ SPECIES_GROUPS: dict[str, tuple[str, ...]] = {
     # heading on any of the 22 tables. The one anadromous form the book actually regulates is
     # the steelhead, which has its own code and its own rules.
     "CHAR":       ("DV", "BT", "LT", "EB", "AC", "SPK"),
+    #: THE CLOSED LIST'S WHITEFISH, and only those. `reference/definitions.md` ("Freshwater game
+    #: fish — the closed list") names Lake and Mountain Whitefish; pygmy (PW) and round (RW)
+    #: whitefish are nameable fish (`_MENU_FAMILIES` lists them under "Whitefish" for display) but
+    #: they are NOT game fish, so "Whitefish: 15 (all species combined)" and ALL_GAME_FISH do not
+    #: reach them. Pinned by a test so a later "complete the family" edit is a decision, not a drift.
     "WHITEFISH":  ("LW", "MW"),
     "BASS":       ("LMB", "SMB"),
+    #: "CUTTHROAT" IS THE BOOK'S WORD FOR BOTH SUBSPECIES. The official table carries westslope
+    #: (WCT) and coastal (CCT) cutthroat as sub-species of CT, and the Kootenay's cutthroat are
+    #: westslope — so "not more than 1 rainbow trout or cutthroat trout over 50 cm" held as a leaf
+    #: `CT` never reached a single fish in Region 4. The anadromous form (ACT) is left out for the
+    #: reason given under TROUT: no rule names it, and it is a form of the coastal cutthroat.
+    "CT":         ("WCT", "CCT"),
 }
 #: "Trout rules apply to char unless char are excluded" (definitions.md). The synopsis prints one
 #: quota line for both, and it is the single commonest species value in the corpus.
 SPECIES_GROUPS["TROUT_CHAR"] = SPECIES_GROUPS["TROUT"] + SPECIES_GROUPS["CHAR"]
+#: Groups that are ONE fish as the book speaks of it — a species the table splits into
+#: sub-species. A number on one of these is not "all species combined".
+_ONE_FISH_GROUPS = frozenset({"CT"})
 #: The closed list. A rule that applies to "everything" applies to THIS set, never the empty set.
 SPECIES_GROUPS["ALL_GAME_FISH"] = SPECIES_GROUPS["TROUT_CHAR"] + SPECIES_GROUPS["WHITEFISH"] + \
     SPECIES_GROUPS["BASS"] + ("KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA")
@@ -1019,6 +1033,16 @@ CONDUCT_ACTS = {
     "produce_licence_on_request":
         "Produce your angling licence and photo ID when an officer asks",
     "carry_paper_licence": "Carry your paper licence",
+    # Printed p. 10, "Transporting and Exporting Fish": what you must do when you move fish.
+    "keep_licence_handy_while_travelling": "Have your angling licence at hand when you travel with fish",
+    "transport_no_more_than_legal_limit": "Do not transport or possess more than your legal limit",
+    "keep_catch_identifiable": "Make sure your fish can be identified, counted and measured",
+    "carry_signed_letter_when_transporting_for_another":
+        "Carry a signed letter from the angler when you transport fish for someone else",
+    "show_letter_when_exporting":
+        "Carry the letter and show it on request when you export the fish from B.C.",
+    "keep_signed_letter_for_gifted_fish":
+        "Keep a signed letter from the angler until you have eaten fish given to you",
     "do_not_enter_land_without_permission":
         "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, "
         "without permission",
@@ -1032,7 +1056,8 @@ DOCUMENT_ACTS = frozenset({"produce_licence_on_request", "carry_paper_licence"})
 #: HOW A SENTENCE NAMES A DOCUMENT A DUTY PRESUMES, on the squashed (lower-cased) text. A document
 #: missing here cannot be presumed at all — adding one is a reviewed change, like an act.
 _PRESUMED_SAID = {
-    "basic_licence": r"\b(?:angling|paper|basic(?: \w+)?|fishing) licen[cs]e\b",
+    #: plural too: "paper licences are required when retaining hatchery steelhead, chinook, …"
+    "basic_licence": r"\b(?:angling|paper|basic(?: \w+)?|fishing) licen[cs]es?\b",
     "classified_waters_licence": r"\bclassified waters? licen[cs]e\b",
     "steelhead_stamp": r"\bsteelhead (?:conservation surcharge )?stamp\b",
     "salmon_stamp": r"\bsalmon (?:conservation surcharge )?stamp\b",
@@ -1103,6 +1128,12 @@ WHO_AXES: dict[str, tuple[str, ...]] = {
     "age": ("under_16", "16_plus"),
     "guidance": ("guided", "non_guided"),
     "status": ("indian_bc_resident", "metis", "disabled"),
+    #: WHAT THE ANGLER IS DOING FOR SOMEONE ELSE. A Youth/Disabled Accompanied Water (printed
+    #: p.4) is closed to every angler who is not an "authorized angler" (under 16, or a disabled
+    #: resident) or "a companion to an authorized angler" — and a companion is not a residency,
+    #: an age or a status: it is the role of the adult standing beside the child. Not a
+    #: partition (most anglers are no one's companion), like `status`.
+    "role": ("companion",),
 }
 #: The axes every angler sits on exactly one member of. Naming all of them is "everyone", which
 #: has one spelling: say nothing. `status` is not a partition — most anglers hold none of the
@@ -1113,6 +1144,7 @@ Residency = Literal["resident", "non_resident", "non_resident_alien"]
 Age = Literal["under_16", "16_plus"]
 Guidance = Literal["guided", "non_guided"]
 Status = Literal["indian_bc_resident", "metis", "disabled"]
+Role = Literal["companion"]
 
 
 class Who(_Terse):
@@ -1130,6 +1162,7 @@ class Who(_Terse):
     age: List[Age] = Field(default_factory=list)
     guidance: List[Guidance] = Field(default_factory=list)
     status: List[Status] = Field(default_factory=list)
+    role: List[Role] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _one_spelling(self) -> "Who":
@@ -1174,6 +1207,9 @@ class Who(_Terse):
                 noun = " or ".join(st_adj[s] for s in self.status) + " " + noun
         elif self.status:
             noun = " or ".join(st_noun[s] for s in self.status)
+        elif self.role:
+            noun = " or ".join({"companion": "companions of an authorized angler"}[r]
+                               for r in self.role)
         else:
             noun = "anglers"
         age = " or ".join({"under_16": "under 16", "16_plus": "16 and over"}[a]
@@ -1889,6 +1925,12 @@ class CatalogueRule(BaseModel):
     #: does in gear — there is no `permitted` bit. `angler_class` (one residency, a `guided`
     #: polarity bit) is gone and refused; see `Who`.
     closed_to: Optional[Who] = None
+    #: angler_closure only: the anglers INSIDE `closed_to` the water stays open to. A Youth/Disabled
+    #: Accompanied Water is closed to anglers 16 and over EXCEPT disabled B.C. residents and the
+    #: companions of an authorized angler — two exceptions no single `Who` can subtract, because a
+    #: `Who` is a conjunction of axes. The direction is in the key, as `closed_to`'s is; each
+    #: exception must meet `closed_to`, or it subtracts nothing.
+    closed_to_except: List[Who] = Field(default_factory=list)
     #: HOW YOU MAY FISH. Clauses on DIFFERENT slots are unordered and all apply — they constrain
     #: different things and never compete. Clauses on the SAME slot are ORDERED and FIRST MATCH
     #: WINS, which is the one place an exception can live inside the rule it modifies.
@@ -2142,22 +2184,65 @@ class CatalogueRule(BaseModel):
         return _FAMILY[self.type]
 
     @property
+    def lift_only(self) -> bool:
+        """A RULE WHOSE ONLY CONTENT IS LIFTING ANOTHER — `exempts`, and no number, bound, gear,
+        duty or angler of its own. "Exempt from spring closure"; "Exemptions include mainstem
+        portions of the Skeena, Nass, Iskut, Stikine and Taku" (z6 steelhead r2).
+
+        Such a rule says nothing a reader could weigh against another rule, so it never COMPETES
+        (`dimension` is `lift`, which the ladder never ranks): it only removes what it lifts.
+        Keyed by its type, it was a daily steelhead `retention_limit` bound at the water's rank,
+        and on the five mainstems it displaced the province's and the region's "release all wild
+        steelhead" — a lift with no take silenced a release."""
+        return bool(self.exempts) and not (
+            self.gear or self.conduct or self.take is not None or self.unlimited
+            or self.may_target is not None or self.per_daily is not None or self.lengths
+            or self.record_retention or self.closed_to is not None or self.aspect is not None
+            or self.level is not None or self.max_kmh is not None
+            or self.max_power_kw is not None)
+
+    def _condition_key(self) -> str:
+        """The CONDITIONS a retention rule holds under, as a key — the way a method rule's clause
+        carries its `when`. A rule that holds only for wild fish, only in streams, only while
+        spear fishing, or that is a record-keeping duty is a different subject from the plain
+        quota beside it: Region 6's "Trout/char: 5" must not share a key with the province's
+        "release all wild steelhead", or the region's number silences the release."""
+        bits = []
+        if self.origin is not None:
+            bits.append(f"origin={self.origin.value}")
+        if self.water is not None:
+            bits.append(f"water={self.water.value}")
+        if self.while_:
+            bits.append("while=" + "+".join(sorted(self.while_)))
+        if self.record_retention:
+            bits.append("record")
+        return ("@" + "&".join(bits)) if bits else ""
+
+    @property
     def dimension(self) -> str:
         """WHAT THIS RULE CONTROLS — the second half of the comparison key.
 
         Without one, every rule of a type on a water shares a single key and they collide. Tackle
         is the sharpest case: a fly-only rule and a barbless rule are ADDITIVE (a fly must be
-        barbless), so their dimension is the FACET each constrains, not the type."""
+        barbless), so their dimension is the FACET each constrains, not the type.
+
+        A LIFT-ONLY rule (`lift_only`) is `lift` whatever its type, and never competes."""
         t = self.type
+        if self.lift_only:
+            return "lift"
         if t is RuleType.retention_limit:
-            return f"{self.clock.value}{'/size' if self.lengths and self.take is None else ''}"
+            # THE CLOCK, '/size' WHEN THE RULE IS SIZES WITH NO COUNT OF ITS OWN ("none under 30
+            # cm"), AND THE CONDITIONS IT HOLDS UNDER (`_condition_key`).
+            return (f"{self.clock.value}{'/size' if self.lengths and self.take is None else ''}"
+                    + self._condition_key())
         if t is RuleType.vessel_rule:
             return self.aspect.value if self.aspect else "unspecified"
         if t is RuleType.angler_closure:
             # WHO it closes the water to. Two closures for the same anglers compete (a water's
             # displaces a zone's); a closure for aliens never competes with one for everyone,
             # and — being its own type — never with a quota.
-            return "closed_to:" + (self.closed_to.key() if self.closed_to else "unspecified")
+            return ("closed_to:" + (self.closed_to.key() if self.closed_to else "unspecified")
+                    + "".join(f"-except:{w.key()}" for w in self.closed_to_except))
         if t is RuleType.method_rule:
             # THE METHODS NAMED, not just the slot: every method rule constrains `method`, so the
             # slot alone would let a water's "no ice fishing" displace the zone's "no set lining".
@@ -2178,13 +2263,39 @@ class CatalogueRule(BaseModel):
             # drop the zone's one-point cap, which the water never lifted.
             return ",".join(sorted({c.slot.value for c in self.gear})) or "unspecified"
         if t is RuleType.bait_restriction:
-            # A salmon bait ban and a general bait ban are different subjects, not two values of
-            # one — a stream can carry both. The TARGET is part of what the rule controls, and so
-            # is WHICH bait: a water's "dead fin fish may be used" displaces nothing about roe.
+            # BAIT IS ONE DOMAIN, ranked by where a rule applies (province < region < water).
+            # Invertebrates are a kind of bait, and the province's "you may use freshwater
+            # invertebrates in streams as bait UNLESS A BAIT BAN APPLIES" is a PERMISSION: keyed by
+            # the bait it names (`bait:invertebrate`) it never met the 412 bait bans
+            # (`bait:any_bait`), so every bait-ban stream showed both "Bait ban" and
+            # "Invertebrates may be used". So a permission (`allow` / `only`) and a TOTAL ban (one
+            # that bans `any_bait`) share ONE key, `bait`: a region's or a water's bait ban speaks
+            # over the province's permission, and a water's "EXEMPT from bait ban" meets the
+            # region's ban.
+            #
+            # A PARTIAL BAN KEEPS THE BAIT IT NAMES (`bait:fin_fish`, `bait:live_fin_fish`,
+            # `bait:invertebrate`): Zone B's "fin fish may not be used as bait" must not displace the
+            # province's ban on invertebrates at a lake, and a water's "EXEMPT from bait ban"
+            # (an allow) must not lift the province's live-fish ban. The one printed exemption
+            # from a partial ban (dead fin fish for sturgeon) is a lift.
+            #
+            # Two things still make a different subject. The TARGET: a salmon bait ban and a
+            # general bait ban coexist on one stream. And the MEANS (`while`): bait when set
+            # lining is not bait when angling ("bait ban … for all angling"). The ROE POSSESSION
+            # CAP is not a rule about using bait at all — it is how much you may hold — and has
+            # its own key, so no water's bait rule displaces it.
             tgt = ("/" + ",".join(sorted(self.when_targeting))) if self.when_targeting else ""
-            named = sorted({m for c in self.gear if c.slot is Slot.bait
-                            for m in (c.of or (c.allow or []) + (c.only or []) + (c.ban or []))})
-            return f"bait:{','.join(named) or 'any_bait'}{tgt}"
+            means = ("@while=" + "+".join(sorted(self.while_))) if self.while_ else ""
+            bait = [c for c in self.gear if c.slot is Slot.bait]
+            if self.gear and not bait and all(c.slot is Slot.bait_possession_kg for c in self.gear):
+                held = sorted({m for c in self.gear for m in c.of}) or ["any_bait"]
+                return f"bait_possession:{','.join(held)}{tgt}{means}"
+            whole = any("any_bait" in (c.ban or []) or c.allow is not None or c.only is not None
+                        for c in bait)
+            if whole or not bait:
+                return f"bait{tgt}{means}"
+            named = sorted({m for c in bait for m in (c.of or c.ban or [])})
+            return f"bait:{','.join(named)}{tgt}{means}"
         return t.value
 
     @model_validator(mode="after")
@@ -2280,6 +2391,14 @@ class CatalogueRule(BaseModel):
                 e.append(err)
         elif self.closed_to is not None:
             e.append("closed_to belongs to angler_closure")
+        if self.closed_to_except:
+            if t is not RuleType.angler_closure or self.closed_to is None:
+                e.append("closed_to_except carves anglers out of an angler_closure's closed_to")
+            else:
+                idle = [w.key() for w in self.closed_to_except if not w.overlaps(self.closed_to)]
+                if idle:
+                    e.append(f"closed_to_except {idle} does not meet closed_to — it subtracts "
+                             f"nothing")
         # A GEAR RULE SAYS WHAT IT CONSTRAINS IN `gear` OR `conduct`. The direction lives inside
         # the clause that carries the subject; with neither, the rule states nothing a reader
         # can act on. An exemption is the one other thing such a rule may be — it lifts a clause
@@ -2514,8 +2633,26 @@ def _gear_words(r: CatalogueRule) -> str:
         gear = [c for c in gear if c is not barb and c is not one]
     for c in gear:
         name = c.slot.value.replace("_", " ")
+        # WHO THE CLAUSE IS ABOUT, when it is only about some fish: "no spear fishing FOR GAME
+        # FISH", "spear fishing FOR BURBOT allowed". Without it the clause read as a total ban.
+        fish = ""
+        if c.when is not None and c.when.targeting:
+            fish = species_words(list(c.when.targeting)).lower()
+            fish = {"all game fish": "game fish"}.get(fish, fish)
         if c.slot is Slot.bait and c.ban == ["any_bait"] and plain(c):
             bits.append("bait ban")
+        elif c.slot is Slot.method and fish and c.ban is not None:
+            bits.append(f"no {', '.join(c.ban).replace('_', ' ')} for {fish}")
+        elif c.slot is Slot.method and fish and c.allow is not None:
+            bits.append(f"{', '.join(c.allow).replace('_', ' ')} for {fish} allowed")
+        elif c.slot is Slot.bait_possession_kg and c.max is not None and c.min is None:
+            # "you must not have more than 1 kg of ROE … for use as bait" — the cap is on what the
+            # clause names (`of`), never on bait in general.
+            what = ", ".join(c.of).replace("_", " ") if c.of else "bait"
+            bits.append(f"no more than {c.max:g} kg of {what} in possession for use as bait")
+        elif c.slot is Slot.light_to_hook_mm and c.max is not None and c.min is None:
+            # The book prints METRES ("within 1 m of the hook"); the slot stores millimetres.
+            bits.append(f"light within {c.max / 1000:g} m of the hook")
         elif c.slot is Slot.hook_gap_mm and c.max is not None and c.min is None and plain(c):
             bits.append(f"no hook more than {c.max:g} mm from point to shank")
         elif c.allow is not None:
@@ -2551,6 +2688,11 @@ def _gear_words(r: CatalogueRule) -> str:
             if w:
                 bits[-1] += " (" + ", ".join(_ANGLER_WORDS.get(x, x.replace("_", " "))
                                              for x in w) + ")"
+        # WHAT LIFTS THE CLAUSE, said: "at most 1kg weight per line (not downrigger weights)".
+        # Dropped, the label stated a limit the book exempts downriggers from.
+        esc = [u.gear_in_use.replace("_", " ") + "s" for u in c.unless if u.gear_in_use]
+        if esc:
+            bits[-1] += f" (not {' or '.join(esc)})"
     for act in r.conduct:
         bits.append(CONDUCT_ACTS.get(act, act.replace("_", " ")))
     out = "; ".join(bits)
@@ -2702,27 +2844,91 @@ def _suspended(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None)
 _EMPHASIS = re.compile(r"\*\*|__")
 
 
-def _lifts(r: CatalogueRule) -> str:
-    """"lifts <what>": what an `exempts` names, from the fields — a zone default by its slug, a
-    rule by its entry's slug (or, in the same entry, by its id). One printed sentence can lift two
-    defaults and is then two rules (Kootenay River's "EXEMPT from Apr 1-June 14 closure AND from
-    Nov 1-Mar 31 trout/char catch and release"); this part is what tells them apart."""
-    said = []
-    for x in r.exempts:
-        name = x.default_id or ((x.entry_id or "").split(":", 1)[-1].split("@", 1)[0]
-                                if x.entry_id else "") or (x.target or "").split(".", 1)[0]
-        if x.target and not x.default_id and not x.entry_id:
-            name += f" ({x.target.split('.', 1)[1]})"
-        if name:
-            said.append(name.replace("_", " "))
+def _is_closure(t: CatalogueRule) -> bool:
+    return t.type is RuleType.retention_limit and t.take == 0 and t.may_target is False
+
+
+def _lifted_rule_words(t: CatalogueRule, siblings: Optional[dict] = None) -> str:
+    """A LIFTED RULE BY ITS OWN GENERATED LINE — what, size, conditions, when; never its place,
+    which is the lifter's. Empty when the rule has no generated `what` (an advisory)."""
+    p = label_parts(t, siblings)
+    if not p.get("what"):
+        return ""
+    return compose({k: p.get(k, "") for k in ("what", "size", "conditions", "when")})
+
+
+def _lift_name(x: "Exempts", siblings: Optional[dict] = None,
+               entries: Optional[dict] = None) -> str:
+    """THE NAME OF WHAT ONE `exempts` LIFTS, in words a reader knows — never a slug.
+
+      a zone default     its zone entry's name: "Spring stream closure", "Bait ban"
+      a zone rule        by the rule's own generated line, quoted ("“No fishing for bass”");
+                         a blanket closure, or a rule with no line, by its entry's name
+                         ("Skeena and Nass winter closures")
+      another water's    that water's display name and the rule's kind: "Columbia Lake's
+                         tributaries closure", "Slocan River's trout and char release"
+
+    `entries` is {entry_id: CatalogueEntry} for the whole corpus (the bundle hands it in). Without
+    it, or when the lifted rule cannot be found, the slug is the fallback — still true, less kind:
+    "Columbia lake s tributaries lifted" is what that fallback read like."""
+    entries = entries or {}
+    if x.default_id:
+        # A ZONE ENTRY'S `name` is what it is ("Spring stream closure"); its `display_name` is
+        # where it is ("Every stream in Region 3"), which is not what was lifted.
+        for eid, ce in entries.items():
+            if eid.startswith("z") and eid.split(":", 1)[1] == x.default_id:
+                return ce.name
+        return x.default_id.replace("_", " ")
+    owner = entries.get(x.entry_id) if x.entry_id else None
+    if x.entry_id:
+        t = next((q for q in owner.rules if q.rule_id == x.target), None) if owner else None
+        sib = {q.rule_id: q for q in owner.rules} if owner else None
+    else:
+        t, sib = (siblings or {}).get(x.target), siblings
+    slug = ((x.entry_id or "").split(":", 1)[-1].split("@", 1)[0] if x.entry_id
+            else (x.target or "").split(".", 1)[0]).replace("_", " ")
+    if t is None:
+        return slug
+    if owner is not None and not x.entry_id.startswith("z"):
+        # ANOTHER WATER'S RULE is named by that water: the lifter's reader knows the water.
+        disp = owner.display_name or owner.name
+        if _is_closure(t):
+            kind = "tributaries closure" if t.tributaries_only else "closure"
+        elif t.type is RuleType.retention_limit and t.take == 0:
+            kind = f"{species_words(t.species, t.species_except).lower()} release"
+        else:
+            kind = _lifted_rule_words(t, sib).lower() or "rule"
+        return f"{disp}'s {kind}"
+    words = _lifted_rule_words(t, sib)
+    if owner is not None and (not words or (_is_closure(t) and list(t.species) == ["ALL_GAME_FISH"]
+                                            and not t.species_except)):
+        # "No fishing, in streams, Jan 1-Jun 15" says less than "Skeena and Nass winter
+        # closures"; a notice has no generated line at all.
+        return owner.name
+    return f"“{words}”" if words else slug
+
+
+def _lifted_names(r: CatalogueRule, siblings: Optional[dict] = None,
+                  entries: Optional[dict] = None) -> list:
+    """The names of what `r` lifts (`_lift_name`), each once."""
+    return list(dict.fromkeys(n for n in (_lift_name(x, siblings, entries) for x in r.exempts)
+                              if n))
+
+
+def _lifts(r: CatalogueRule, siblings: Optional[dict] = None,
+           entries: Optional[dict] = None) -> str:
+    """"lifts <what>": what an `exempts` names, in words (`_lift_name`). One printed sentence can
+    lift two defaults and is then two rules (Kootenay River's "EXEMPT from Apr 1-June 14 closure
+    AND from Nov 1-Mar 31 trout/char catch and release"); this part is what tells them apart."""
+    said = _lifted_names(r, siblings, entries)
     if not said:
         return ""
     # A LIFT IS NEVER WIDER THAN ITS LIFTER: a rule that names fish lifts only for them —
     # "except burbot, which may also be speared" lifts the spear closure for burbot, not for all.
     every = list(r.species) == ["ALL_GAME_FISH"] and not r.species_except
-    fish = (f" for {species_words(r.species, r.species_except).lower()}"
-            if r.species and not every else "")
-    return f"lifts {', '.join(dict.fromkeys(said))}{fish}"
+    fish = species_words(r.species, r.species_except).lower() if r.species and not every else ""
+    tail = f" for {fish}" if fish and not any(fish in n.lower() for n in said) else ""
+    return f"lifts {', '.join(said)}{tail}"
 
 
 #: THE PARTS A RULE'S LINE IS MADE OF, and the order a reader composes them in (`compose`). Each
@@ -2752,7 +2958,8 @@ LABEL_PARTS = ("what", "size", "conditions", "when", "where", "in_part", "lifts"
                "suspended", "notice")
 
 
-def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> dict:
+def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None,
+                entries: Optional[dict] = None) -> dict:
     """The line a reader sees, as PARTS — see `LABEL_PARTS`. `compose` joins them.
 
     `siblings` is {rule_id: CatalogueRule} for the rule's entry, so a rule that points at another
@@ -2761,10 +2968,14 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     `place_of(extents) -> str | None` names WHERE a bound rule applies, in the book's words, from
     its structured extents — a split's curated label, a lake's name, an area's name. It is handed
     in because the names live in the atlas, which this module never reads; without it only
-    `extent_text` can name a place (see `_where`)."""
+    `extent_text` can name a place (see `_where`).
+
+    `entries` is {entry_id: CatalogueEntry} for the corpus, so a rule that lifts another entry's
+    rule names it in words (`_lift_name`); without it the lifted entry's slug is said."""
     p: dict = {"when": _when_words(r), "where": _where(r, place_of),
                "in_part": strip_list_marker(r.undrawn_part),
-               "lifts": _lifts(r), "suspended": _suspended(r, siblings, place_of),
+               "lifts": _lifts(r, siblings, entries),
+               "suspended": _suspended(r, siblings, place_of),
                "notice": f"fishery notice {r.notice}" if r.notice else ""}
     cond: list = []
     duty: list = []
@@ -2781,14 +2992,28 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     # carries the subject; wired into one type's branch instead, every OTHER type fell through to
     # its bare verbatim, and a "You must not:" fragment then read as a permission.
     said = _gear_words(r) if (r.gear or r.conduct) else ""
-    if said:
+    if r.lift_only:
+        # A RULE THAT ONLY LIFTS says so in its own words — "Spring stream closure lifted",
+        # "Steelhead stream closure lifted" — never by falling back to the book's sentence. The
+        # `lifts` part would repeat it, so it is the `what` instead.
+        names = _lifted_names(r, siblings, entries)
+        head = " and ".join(names) + " lifted"
+        every = list(r.species) == ["ALL_GAME_FISH"] and not r.species_except
+        fish = species_words(r.species, r.species_except).lower() if r.species else ""
+        if fish and not every and not any(fish in n.lower() for n in names):
+            head += f" for {fish}"
+        p["what"] = head[:1].upper() + head[1:]
+        p["lifts"] = ""
+        cond += _scope(r, taking=False)
+    elif said:
         p["what"] = said
         if r.when_targeting:
             cond.append(f"when fishing for {species_words(r.when_targeting).lower()}")
         if r.while_:
             cond.append("while " + " or ".join(w.replace("_", " ") for w in r.while_))
-        # the `while` is said above; the scope must not say it again as "taken on a set line"
-        cond += _scope(r.model_copy(update={"while_": []}))
+        # the `while` is said above; the scope must not say it again as "taken on a set line".
+        # A gear rule holds IN streams; "from streams" is how a quota counts fish.
+        cond += _scope(r.model_copy(update={"while_": []}), taking=not gear_type)
     elif t is RuleType.retention_limit:
         # BRANCH ON may_target FIRST. take=0 alone is ambiguous, and reading it as "release all"
         # turns all 605 "No fishing" rules into a catch-and-release PERMISSION.
@@ -2832,13 +3057,18 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
                         cond.append(noun)
                 else:
                     head = f"{sp} — {r.take} {noun}"
-                    if len(expand_species(list(r.species or []))) > 1:
+                    # ONE FISH IN THE BOOK'S WORDS IS NOT "COMBINED": cutthroat is a group only
+                    # because the table splits it into westslope and coastal.
+                    if len(expand_species(list(r.species or []))) > 1 \
+                            and not set(r.species) <= _ONE_FISH_GROUPS:
                         head += ", all species combined"
             elif r.per_daily is not None:
                 head = (f"{sp or 'All game fish'} — possession quota is {r.per_daily} daily "
                         f"quota" + ("s" if r.per_daily != 1 else ""))
             elif r.lengths:
                 head = sp                  # a size gate with no count: the region supplies it
+            elif r.record_retention:
+                head = sp                  # a duty about these fish: "record your retention"
             if head:
                 p["what"] = head
                 p["size"] = _size(r).strip()
@@ -2868,7 +3098,15 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
         # non-resident aliens". `taking=False`: a closure is "in", never "from".
         who = r.closed_to.words() if r.closed_to else "some anglers"
         p["what"] = f"Angling closed to {who}"
+        if r.closed_to_except:
+            p["what"] += ", except " + " and ".join(w.words() for w in r.closed_to_except)
         cond += _scope(r, taking=False)
+    elif t is RuleType.stop_fishing_after_quota:
+        fish = sp.lower() if sp else "fish"
+        if r.origin is not None:
+            fish = f"{r.origin.value} {fish}"
+        p["what"] = (f"Stop fishing the water for the rest of the day once you have kept your "
+                     f"daily quota of {fish}")
     # Everything else — navigation_duty, handling_rule without gear, hazard, advisory,
     # program_membership, facility, and a bare exemption — has no `what`: its sentence IS the
     # rule, and the reader shows the verbatim.
@@ -2914,10 +3152,11 @@ def compose(parts: dict, verbatim: str = "") -> str:
     return out
 
 
-def label(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> str:
+def label(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None,
+          entries: Optional[dict] = None) -> str:
     """The composed line — `compose(label_parts(...))`. A convenience preview for tools and the
     review app; a reader composes its own from the parts."""
-    return compose(label_parts(r, siblings, place_of), r.verbatim)
+    return compose(label_parts(r, siblings, place_of, entries), r.verbatim)
 
 
 

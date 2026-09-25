@@ -6,7 +6,8 @@ Transcribed verbatim from the 2025-2027 synopsis Region 8 chapter. **Source text
 
 ## General Regulations
 
-**No fishing (spring closure):** in any stream in Region 8 from Apr 1 – June 30.
+**No fishing:** (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for
+exceptions). See definition of “streams” on page 80.
 **Single barbless hook:** must be used in all streams of Region 8, all year.
 
 ## Region 8 Daily Quotas
@@ -34,8 +35,10 @@ Possession quotas = 2 daily quotas.
 **GARNET LAKE ANGLING CLOSURE** — due to the illegal introduction of largemouth bass, Garnet Lake
 has been closed to all angling. Garnet Valley Reservoir will be used as a research lake.
 
-**OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE** — controlled testing of fish passage options; report
-tagged fish to Penticton 250-490-8200.
+**OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE** Controlled testing is underway to investigate fish
+passage options at Okanagan Lake Dam, monitor fish navigation of the ladder, and upstream habitat
+utilization of sockeye and Chinook slamon. If you catch a tagged fish, please report it to the
+Okanagan Fish & Wildlife office in Penticton at 250-490-8200.
 
 **Syilx OKANAGAN NATION.** The Okanagan is the traditional territory of the Syilx people. The Syilx
 people of the Okanagan Nation are a trans-boundary tribe between Canada and the United States. The

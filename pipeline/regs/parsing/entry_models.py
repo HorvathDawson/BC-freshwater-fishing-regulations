@@ -126,6 +126,13 @@ class Extent(BaseModel):
         "with only a single-valued field it cannot be said at all. The two fields are unioned, so "
         "`outside_area` keeps working and needs no migration.",
     )
+    outside_area_kind: Optional[str] = Field(
+        default=None,
+        description="SUBTRACT A WHOLE FAMILY of areas — the mirror of `area_kind` on `within`. "
+        "'Basic and supplementary licences and stamps are not valid in National Parks' is about "
+        "all seven parks: `outside_area_kind: national_parks` takes every `area:national_parks:*` "
+        "item out of what this extent selects, after any walk, like `outside_area`.",
+    )
     outside_items: List[str] = Field(
         default_factory=list,
         description="SUBTRACT WATERS — registry item ids (`wbk:…`, `gnis:…`) — from whatever this "

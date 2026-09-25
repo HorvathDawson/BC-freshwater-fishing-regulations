@@ -163,9 +163,52 @@ def test_one_sentence_lifting_two_defaults_reads_as_two_rules():
                                       "extents": [{"op": "whole"}]})
     sib = {"k.r2": a, "k.r3": b}
     assert label(a, sib) != label(b, sib)
-    assert label(a, sib) == said + " — lifts spring stream closure"
-    # the sentence is the rule: no `what`, and no part carries the sentence
-    assert label_parts(a) == {"lifts": "lifts spring stream closure"}
+    # A RULE THAT ONLY LIFTS says so in generated words (decision 2, 2026-09-24): its line was the
+    # book's sentence plus "— lifts …". No part carries the sentence, and `lifts` is not repeated.
+    assert label_parts(a) == {"what": "Spring stream closure lifted"}
+    assert label(a, sib) == "Spring stream closure lifted"
+    assert label(b, sib) == "Trout char winter release lifted for trout and char"
+
+
+def test_a_lift_names_what_it_lifts_in_words_never_by_slug():
+    """"Columbia lake s tributaries lifted" was the lifted ENTRY's slug. With the corpus to hand a
+    lift names a zone default by its zone entry's name (not its place), another water's rule by
+    that water and the rule's kind, and a zone rule by its own generated line."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+
+    def entry(eid, name, display, rules):
+        return CatalogueEntry.model_validate({
+            "entry_id": eid, "name": name, "display_name": display, "region": eid[1],
+            "regs_verbatim": " ".join(r["verbatim"] for r in rules), "rules": rules})
+    zone = entry("z4:trout_char_winter_release", "Trout and char winter release",
+                 "Every stream in Region 4", [
+                     {"rule_id": "trout_char_winter_release.r1", "type": "retention_limit",
+                      "verbatim": "release", "species": ["TROUT_CHAR"], "take": 0,
+                      "may_target": True, "extents": [{"op": "whole"}]}])
+    quota = entry("z4:species_quotas", "Other daily quotas", "Region 4", [
+        {"rule_id": "species_quotas.r1", "type": "retention_limit", "verbatim": "Bass: 0",
+         "species": ["BASS"], "take": 0, "may_target": False, "extents": [{"op": "whole"}]}])
+    lake = entry("r4:columbia_lake_s_tributaries@4-25", "COLUMBIA LAKE'S TRIBUTARIES",
+                 "Columbia Lake", [
+                     {"rule_id": "columbia_lake_tributaries.r1", "type": "retention_limit",
+                      "verbatim": "No fishing", "species": ["ALL_GAME_FISH"], "take": 0,
+                      "may_target": False, "tributaries_only": True,
+                      "extents": [{"op": "whole"}]}])
+    entries = {e.entry_id: e for e in (zone, quota, lake)}
+
+    def lifter(exempts, species=("ALL_GAME_FISH",), take=None):
+        return CatalogueRule.model_validate({
+            "rule_id": "w.r1", "type": "retention_limit", "verbatim": "EXEMPT", "take": take,
+            "species": list(species), "exempts": exempts, "extents": [{"op": "whole"}]})
+    dutch = lifter([{"target": "columbia_lake_tributaries.r1",
+                     "entry_id": "r4:columbia_lake_s_tributaries@4-25"}])
+    assert label(dutch, entries=entries) == "Columbia Lake's tributaries closure lifted"
+    assert label(dutch) == "Columbia lake s tributaries lifted"      # the slug, with nothing
+    duncan = lifter([{"default_id": "trout_char_winter_release"}], species=["BT"])
+    assert label(duncan, entries=entries) == "Trout and char winter release lifted for bull trout"
+    bass = lifter([{"target": "species_quotas.r1", "entry_id": "z4:species_quotas"}],
+                  species=["BASS"], take=5)
+    assert label_parts(bass, entries=entries)["lifts"] == "lifts “No fishing for bass”"
 
 
 # ---------------------------------------------------------------------------------------
@@ -229,10 +272,34 @@ def test_a_species_closure_by_one_way_of_fishing_names_both():
 
 
 def test_a_lift_names_the_fish_it_lifts_for():
-    """spear_fishing.r2 "except burbot, which may also be speared" lifts r1 for burbot only."""
+    """A lift-only rule about some fish says which: the Duncan's "exempt from the regional bull
+    trout catch and release" lifts the winter release for bull trout, not for all trout/char."""
     r = CatalogueRule.model_validate({
-        "rule_id": "spear_fishing.r2", "type": "retention_limit",
-        "verbatim": "except burbot, which may also be speared", "species": ["BB"],
-        "while": ["spear_fishing"], "exempts": [{"target": "spear_fishing.r1"}],
+        "rule_id": "duncan_river.r3", "type": "retention_limit",
+        "verbatim": "exempt from regional Nov 1-Mar 31 bull trout catch and release",
+        "species": ["BT"], "exempts": [{"default_id": "trout_char_winter_release"}],
+        "extents": [{"op": "whole"}]})
+    assert label_parts(r) == {"what": "Trout char winter release lifted for bull trout"}
+
+
+def test_spear_fishing_is_a_method_and_its_parts_read_naturally():
+    """Decision 3 (2026-09-24): spear fishing is a METHOD, not a quota. "Only non-game fish may be
+    speared" is a ban on spearing WHEN FISHING FOR game fish; "except burbot, which may also be
+    speared in Regions 3, 5, 6, 7 and 8" is the same method allowed for burbot, lifting that ban."""
+    ban = CatalogueRule.model_validate({
+        "rule_id": "spear_fishing.r1", "type": "method_rule",
+        "verbatim": "Only non-game fish (such as carp) may be speared",
+        "gear": [{"slot": "method", "ban": ["spear_fishing"],
+                  "when": {"targeting": ["ALL_GAME_FISH"]}}],
+        "extents": [{"op": "within", "area_kind": "region"}]})
+    burbot = CatalogueRule.model_validate({
+        "rule_id": "spear_fishing.r2", "type": "method_rule",
+        "verbatim": "except burbot, which may also be speared",
+        "gear": [{"slot": "method", "allow": ["spear_fishing"], "when": {"targeting": ["BB"]}}],
+        "exempts": [{"target": "spear_fishing.r1"}],
         "extents": [{"op": "within", "area_id": "area:region:3"}]})
-    assert label_parts(r)["lifts"] == "lifts spear fishing (r1) for burbot"
+    assert label_parts(ban) == {"what": "No spear fishing for game fish"}
+    assert label_parts(burbot)["what"] == "Spear fishing for burbot allowed"
+    # neither displaces the province's unconditional allow, nor each other
+    assert ban.dimension == "method:spear_fishing@targeting=ALL_GAME_FISH"
+    assert burbot.dimension == "method:spear_fishing@targeting=BB"

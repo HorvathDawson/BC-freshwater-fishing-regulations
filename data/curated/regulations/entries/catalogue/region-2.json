@@ -2108,6 +2108,18 @@
         "chilliwack_vedder_rivers__vedder_crossing_bridge"
        ]
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r4",
+       "entry_id": "z2:trout_char_quota",
+       "note": "hatchery rainbow trout quota = 4 replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r8",
+       "entry_id": "z2:trout_char_quota",
+       "note": "of any length 50 cm or less"
+      }
      ]
     }
    ]
@@ -2589,6 +2601,13 @@
         "coquitlam_river__lougheed_highway_bridge",
         "coquitlam_river__mary_hill_bypass_bridge"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r8",
+       "entry_id": "z2:trout_char_quota",
+       "note": "20-30 cm only"
       }
      ],
      "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
@@ -5949,6 +5968,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "lonzo_creek.r4",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -8540,6 +8589,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "sardis_park_pond.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -10557,6 +10636,39 @@
    ]
   },
   {
+   "entry_id": "z2:hatchery_steelhead_stop",
+   "name": "Hatchery steelhead: stop fishing after the daily quota",
+   "display_name": "Region 2",
+   "region": "2",
+   "regs_verbatim": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+   "source_pages": [
+    21
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:2"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "hatchery_steelhead_stop.r1",
+     "type": "stop_fishing_after_quota",
+     "verbatim": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+     "species": [
+      "ST"
+     ],
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z2:malcolm_knapp_research_forest",
    "name": "UBC Malcolm Knapp Research Forest",
    "display_name": "Lakes in the UBC Malcolm Knapp Research Forest",
@@ -10608,7 +10720,7 @@
    "name": "Protected species in Region 2",
    "display_name": "Region 2",
    "region": "2",
-   "regs_verbatim": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace, Salish sucker, Green sturgeon, Cultus Lake sculpin. Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
+   "regs_verbatim": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
    "source_pages": [
     21
    ],
@@ -10744,8 +10856,7 @@
        "op": "within",
        "area_id": "area:region:2"
       }
-     ],
-     "extent_text": "excluding Mill Lake"
+     ]
     },
     {
      "rule_id": "species_quotas.r2",
@@ -10866,7 +10977,7 @@
        "item_id": "gnis:14589"
       }
      ],
-     "review_reason": "BOUND — named water. Water-scoped. Recovered from the chapter — one of 4 of 7 tagging programmes the archive dropped."
+     "review_reason": "OVER-BROAD, KNOWN: placed on the whole Stave River (27 sections), including the reaches above the Ruskin and Stave Falls dams where no steelhead run. No cut-point exists at Ruskin Dam in splits.json; a `downstream_of` that cut is the fix once a curator draws it."
     }
    ]
   },
@@ -10907,6 +11018,9 @@
      "verbatim": "1 over 50 cm",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "ST"
      ],
      "take": 1,
      "within": "trout_char_quota.r1",
@@ -11050,8 +11164,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,

@@ -99,7 +99,9 @@ def test_both_fields_survive_the_model():
 # --------------------------------------------------------------------------------------
 
 import collections
+import os
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -110,11 +112,15 @@ HG_QUOTA = {"z1:hg_quota"}
 REGION_1_QUOTAS = {"z1:trout_quota", "z1:species_quotas"}
 #: Written for every stream of Region 1, Haida Gwaii included — the book's own preamble says
 #: "all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)".
-BOTH = {"z1:bait_ban_streams", "z1:single_barbless_hook"}
+BOTH = {"z1:single_barbless_hook"}
+#: SETTLED 2026-09-24 (zone-rules-are-the-base): Region 1's stream bait ban is Region 1 MINUS
+#: Haida Gwaii; Haida Gwaii's streams carry only the Haida Gwaii line. The two never meet.
+R1_BAIT, HG_BAIT = "z1:bait_ban_streams", "z1:hg_bait_ban_streams"
 
 
 def _region1_waters():
-    bundle = GENERATED.bundle / "bundle.sqlite"
+    # `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
+    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
     if not bundle.exists():
         pytest.skip("no bundle built")
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
@@ -165,8 +171,8 @@ def test_the_island_keeps_region_1s_quotas_and_never_haida_gwaiis():
 
 @pytest.mark.slow
 def test_the_rules_written_for_both_reach_both():
-    """The bait ban and the barbless-hook rule are written for every stream of Region 1 AND
-    Haida Gwaii. Subtracting the quota tables must not subtract these with them."""
+    """The barbless-hook rule is written for every stream of Region 1 AND Haida Gwaii.
+    Subtracting the quota tables must not subtract it with them."""
     got, names, kinds, mus = _region1_waters()
     hg_streams = [i for i in got if kinds[i] == "stream" and mus[i] and mus[i] <= HG_MUS]
     assert hg_streams, "no Haida Gwaii stream in the bundle"
@@ -174,6 +180,21 @@ def test_the_rules_written_for_both_reach_both():
         assert BOTH <= got[iid], (
             f"{names[iid]} lost a rule written for Region 1 including Haida Gwaii: "
             f"{sorted(BOTH - got[iid])}")
+
+
+@pytest.mark.slow
+def test_each_side_of_the_strait_gets_its_own_bait_ban_and_only_that():
+    """Region 1's stream bait ban excludes Haida Gwaii (settled 2026-09-24): a Haida Gwaii stream
+    carries the Haida Gwaii line and never Region 1's; a stream on the Island or the mainland
+    carries Region 1's and never Haida Gwaii's."""
+    got, names, kinds, mus = _region1_waters()
+    streams = [i for i in got if kinds[i] == "stream" and mus[i]]
+    hg = [i for i in streams if mus[i] <= HG_MUS]
+    rest = [i for i in streams if not mus[i] & HG_MUS]
+    assert hg and rest, "the fixture has no stream on one side of the strait"
+    assert not [names[i] for i in hg if R1_BAIT in got[i]], "Region 1's bait ban reached HG"
+    assert not [names[i] for i in hg if HG_BAIT not in got[i]], "an HG stream lost its bait ban"
+    assert not [names[i] for i in rest if HG_BAIT in got[i]], "HG's bait ban left Haida Gwaii"
 
 
 def test_outside_areas_subtracts_several():

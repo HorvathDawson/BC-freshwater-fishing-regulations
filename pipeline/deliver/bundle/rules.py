@@ -122,6 +122,19 @@ def _species_of(r) -> frozenset[str] | None:
         expand_species(list(r.species_except)))
 
 
+def _targets(r) -> frozenset[str]:
+    """What a rule is about when fishing FOR something: its `when_targeting`, or — on a method
+    rule, where the condition sits on the clause — every clause's `when.targeting`, when every
+    clause has one. "Spear fishing for burbot allowed" lifts "no spear fishing for game fish" only
+    WHEN FISHING FOR BURBOT; read without its clause's target it lifted the ban for every fish."""
+    if r.when_targeting:
+        return frozenset(r.when_targeting)
+    clauses = [c for c in r.gear if c.when is not None]
+    if r.gear and len(clauses) == len(r.gear) and all(c.when.targeting for c in clauses):
+        return frozenset(t for c in clauses for t in c.when.targeting)
+    return frozenset()
+
+
 def _lift_terms(by, lifted) -> dict | None:
     """HOW FAR `by` LIFTS `lifted`: `{}` wholly, a dict of qualifiers partly, `None` not at all.
 
@@ -156,9 +169,9 @@ def _lift_terms(by, lifted) -> dict | None:
                 return None                     # it speaks about other fish: nothing is lifted
             if not theirs <= mine:
                 terms["species"] = sorted(both)
-    if by.when_targeting:
-        want = frozenset(by.when_targeting)
-        if not (lifted.when_targeting and frozenset(lifted.when_targeting) <= want):
+    want, have = _targets(by), _targets(lifted)
+    if want:
+        if not (have and have <= want):
             terms["when_targeting"] = sorted(want)
     if by.while_:
         acts = frozenset(by.while_)
@@ -239,7 +252,7 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
 
 
 def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=None,
-              rules_of=None, unresolved: str | None = None, place_of=None):
+              rules_of=None, unresolved: str | None = None, place_of=None, entries=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -285,7 +298,8 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
     # on all 3,348 rules as "must", a key a reader had to learn to ignore.
     if conditions.get("obligation") == Obligation.must.value:
         del conditions["obligation"]
-    parts = label_parts(r, siblings, place_of)
+    # `entries`: what a rule lifts in ANOTHER entry is named in words, not by that entry's slug.
+    parts = label_parts(r, siblings, place_of, entries)
     return (
         entry_id, r.rule_id, r.type.value, r.family, r.dimension,
         # THE LINE, AS PARTS, and the one preview composed from them (`catalogue.compose`). The
@@ -413,6 +427,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         rules_of[ce.entry_id] = {r.rule_id: r for r in ce.rules}
         if ce.entry_id.startswith("z"):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
+    entries_by_id = {ce.entry_id: ce for _, ce in docs}
     for e, ce in docs:
         ces.append(ce)
         matched = list(ce.matched)
@@ -442,7 +457,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             k = (e["entry_id"], r.get("rule_id"))
             rule_rows.append(_rule_row(e["entry_id"], r, k in unresolved, siblings, zones,
                                        rules_of, unresolved=unresolved.get(k),
-                                       place_of=place_of))
+                                       place_of=place_of, entries=entries_by_id))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
@@ -517,7 +532,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 
     # Licensing: the other half of each entry, placed by the same reach run.
     from pipeline.deliver.bundle import licensing as _licensing
-    _licensing.write(db, reaches, ces, cov, sid)
+    _licensing.write(db, reaches, ces, cov, sid, registry)
 
     # WATER B.C. DOES NOT GOVERN, and the proof that nothing binds it. The set is the reach
     # builder's own (`reach.outside.outside_bc`, from this atlas); it is written here so a reader

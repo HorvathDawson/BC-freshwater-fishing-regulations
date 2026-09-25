@@ -23,7 +23,7 @@
     {
      "rule_id": "single_barbless_hook.r1",
      "type": "tackle_restriction",
-     "verbatim": "all streams of Zone B, all year.",
+     "verbatim": "Single barbless hook: must be used in all streams of Zone B, all year.",
      "gear": [
       {
        "slot": "barb",
@@ -54,7 +54,7 @@
    "name": "Bait",
    "display_name": "Zone B",
    "region": "7b",
-   "regs_verbatim": "Bait ban: applies to all streams of Zone B, all year. Fin fish may not be used as bait in any waters of Zone B.",
+   "regs_verbatim": "Bait ban: applies to all streams of Zone B, all year. Fin fish: (as defined on page 8 under “Rules on Bait Usage”) may not be used as bait in any waters of Zone B.",
    "source_pages": [
     64
    ],
@@ -68,7 +68,7 @@
     {
      "rule_id": "bait.r1",
      "type": "bait_restriction",
-     "verbatim": "all streams of Zone B, all year.",
+     "verbatim": "Bait ban: applies to all streams of Zone B, all year.",
      "gear": [
       {
        "slot": "bait",
@@ -91,7 +91,7 @@
     {
      "rule_id": "bait.r2",
      "type": "bait_restriction",
-     "verbatim": "Fin fish may not be used as bait in any waters of Zone B.",
+     "verbatim": "Fin fish: (as defined on page 8 under “Rules on Bait Usage”) may not be used as bait in any waters of Zone B.",
      "gear": [
       {
        "slot": "bait",
@@ -114,7 +114,7 @@
    "name": "Set lining",
    "display_name": "Zone B",
    "region": "7b",
-   "regs_verbatim": "Set lining: is not permitted in Zone B. year. Fin fish may not be used as bait in any waters of Zone B. Set lining: not permitted in Zone B.",
+   "regs_verbatim": "Set lining: is not permitted in Zone B.",
    "source_pages": [
     64
    ],
@@ -128,7 +128,7 @@
     {
      "rule_id": "set_lining.r1",
      "type": "method_rule",
-     "verbatim": "Set lining: not permitted in Zone B.",
+     "verbatim": "Set lining: is not permitted in Zone B.",
      "gear": [
       {
        "slot": "method",
@@ -235,50 +235,6 @@
      ]
     },
     {
-     "rule_id": "trout_char_quota.r5",
-     "type": "retention_limit",
-     "verbatim": "NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length.",
-     "species": [
-      "BT"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 10,
-        "from_day": 16,
-        "to_month": 8,
-        "to_day": 14
-       }
-      ]
-     },
-     "take": 1,
-     "within": "trout_char_quota.r1",
-     "lengths": [
-      {
-       "min_cm": 30,
-       "max_cm": 50
-      },
-      {
-       "max_cm": 30,
-       "take": 0
-      },
-      {
-       "min_cm": 50,
-       "take": 0
-      }
-     ],
-     "includes_tributaries": true,
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "gnis:9891",
-       "within_area": "area:region:7b"
-      }
-     ],
-     "extent_text": "Liard River watershed, or other specified waters",
-     "review_reason": "Bound to the Liard watershed, where the chapter says bull trout may be retained. The operative quota is stated water-specifically by `r7:liard_river_watershed…@7-53` ('daily and possession quotas = 1 (none under 30 cm or over 50 cm), Oct 16-Aug 14'), which outranks this. Kept because it is the REGION's statement that bull trout may be kept nowhere else in Zone B — '(or other specified waters)' is the carve-out and it is not enumerated."
-    },
-    {
      "rule_id": "trout_char_quota.r6",
      "type": "retention_limit",
      "verbatim": "Rainbow trout of any size from streams, May 1-June 15",
@@ -315,8 +271,6 @@
      "species": [
       "LT"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,
@@ -377,34 +331,21 @@
      "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b."
     },
     {
-     "rule_id": "trout_char_quota.r9b",
+     "rule_id": "trout_char_quota.r10",
      "type": "retention_limit",
-     "verbatim": "Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year",
+     "verbatim": "These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length.",
      "species": [
       "BT"
      ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 8,
-        "from_day": 15,
-        "to_month": 10,
-        "to_day": 15
-       }
-      ]
-     },
      "take": 0,
      "may_target": true,
-     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole",
-       "item_id": "gnis:9891",
-       "within_area": "area:region:7b"
+       "op": "within",
+       "area_id": "area:region:7b"
       }
      ],
-     "extent_text": "Liard River watershed",
-     "review_reason": "The LIARD half, with its own window. `r7:liard_river_watershed…@7-53` states it water-specifically and outranks this, but the zone rule is what renders where the water rule does not reach."
+     "review_reason": "THE NOTE'S IMPLICATION, as the user settled it (2026-09-24): bull trout may be kept only from the Liard River watershed or other specified waters, so across Zone B they are catch and release. The Liard row (r7:liard_river_watershed…@7-53) and every row printing its own bull trout limit speak over it at the water's rank."
     }
    ]
   },
@@ -446,8 +387,6 @@
      "species": [
       "GR"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,
@@ -862,7 +801,7 @@
    "name": "Peace River navigation",
    "display_name": "Peace River",
    "region": "7b",
-   "regs_verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
+   "regs_verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site (warning signs are on shore) and the downstream construction bridge. See https://www.sitecproject.com/boating for details.",
    "source_pages": [
     64
    ],
@@ -870,15 +809,15 @@
     {
      "rule_id": "peace_river_navigation.r1",
      "type": "hazard",
-     "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
+     "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site (warning signs are on shore) and the downstream construction bridge.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:14619"
       }
      ],
-     "extent_text": "Peace River at the Site C site",
-     "review_reason": "BOUND — named water. Water-scoped safety notice. RECOVERED — absent from the corpus."
+     "review_reason": "Shown on the Peace River as a note, never colouring it: the reach it names (2 km upstream of the Site C dam site to the downstream construction bridge) has no cut-point at either end — only `peace_river__site_c_dam` exists.",
+     "undrawn_part": "between 2 km upstream of the Site C dam site and the downstream construction bridge"
     }
    ]
   },
@@ -1026,7 +965,7 @@
    "name": "Site C telemetry",
    "display_name": "Zone B",
    "region": "7b",
-   "regs_verbatim": "NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace River and its tributaries using acoustic and radio telemetry. BC Hydro telemetry in the Site C Reservoir, Peace River and tributaries.",
+   "regs_verbatim": "NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace River and its tributaries using acoustic and radio telemetry to gather valuable data on the potential effects of the Site C project on fish. Anglers who catch tagged fish are encouraged to return them to the water if possible, or return the tag by e-mailing tagreturns@golder.com or calling (250) 785-9281. If tags come from anywhere other than the Site C Reservoir, Peace River and its tributaries, please call the regional Ministry office in Fort St. John at (250) 787-3415.",
    "source_pages": [
     64
    ],
@@ -1040,7 +979,7 @@
     {
      "rule_id": "site_c_tagging.r1",
      "type": "advisory",
-     "verbatim": "BC Hydro telemetry in the Site C Reservoir, Peace River and tributaries.",
+     "verbatim": "NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace River and its tributaries using acoustic and radio telemetry to gather valuable data on the potential effects of the Site C project on fish. Anglers who catch tagged fish are encouraged to return them to the water if possible, or return the tag by e-mailing tagreturns@golder.com or calling (250) 785-9281. If tags come from anywhere other than the Site C Reservoir, Peace River and its tributaries, please call the regional Ministry office in Fort St. John at (250) 787-3415.",
      "obligation": "should",
      "extents": [
       {

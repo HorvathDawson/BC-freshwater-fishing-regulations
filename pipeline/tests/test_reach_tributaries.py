@@ -22,6 +22,8 @@ marked `slow`.
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from pipeline.common.models import (
@@ -610,3 +612,108 @@ def test_the_reservoir_chain_walks_stop_at_the_next_dam(real):
     kin = tributaries_of_reach(g, {kinbasket})
     assert not kin & columbia, "Columbia River upstream of Kinbasket Reservoir"
     assert kin, "and it keeps its own tributaries"
+
+
+# --------------------------------------------------------------------------- #
+# A lake draining into its own, smaller-ORDER outlet — the lake-chain cut
+# --------------------------------------------------------------------------- #
+#
+# A lake node's Strahler order aggregates every inflow, so it can run AHEAD of the first piece
+# of its own outlet: Dester Lake is order 4 and Meldrum Creek below it is order 2, with EQUAL
+# watershed codes (100-378118). Equal codes are where the order guard decides, so it read the
+# lake as "a bigger river flowing into a smaller one" and refused the edge — and everything
+# above the lake (upper Meldrum Creek, 40 of its 51 sections, and all its tributaries) fell out
+# of every watershed walk that reached it from below: 155 sections of the Region 5 spring
+# closure and 289 of the white sturgeon rules.
+#
+# The fix is NOT "lakes are exempt". 386 lake-source edges are refused province-wide and ~360
+# of them are a lake's SECONDARY outlet (a distributary: the lake has two or more outlets and
+# this one is the smaller). Climbing a secondary outlet into the lake would hand a small creek
+# the lake's whole catchment — the McLennan failure again. Only the lake's MAIN outlet (the one
+# carrying the lake's own watershed code, larger than any other outlet) is the lake's river.
+
+@pytest.fixture
+def dester():
+    """
+        trib_up (order 1, code W-1)
+          | confluence
+        meldrum_up (order 4, blk M, code W)
+          | lake_in
+        lake:dester (order 4, code W)        <- the lake runs ahead of its outlet's order
+          | lake_out
+        meldrum_low (order 2, blk M, code W)
+          | confluence
+        fraser (order 8, blk F, code 100)    <- the reach
+    """
+    L = NodeKind.lake
+    g = _g([_n("fraser", order=8, blk="F"), _n("meldrum_low", order=2, blk="M"),
+            _n("lake:dester", order=4, blk="", kind=L), _n("meldrum_up", order=4, blk="M"),
+            _n("trib_up", order=1, blk="T")],
+           [("meldrum_low", "fraser", "confluence"),
+            ("lake:dester", "meldrum_low", "lake_out"),
+            ("meldrum_up", "lake:dester", "lake_in"),
+            ("trib_up", "meldrum_up", "confluence")])
+    for nid, wsc in (("fraser", "100"), ("meldrum_low", "100-378118"),
+                     ("lake:dester", "100-378118"), ("meldrum_up", "100-378118"),
+                     ("trib_up", "100-378118-301646")):
+        g.nodes[nid] = dataclasses.replace(g.nodes[nid], **{"wsc": wsc})
+    return g
+
+
+def test_a_lake_is_a_tributary_of_its_own_smaller_order_outlet(dester):
+    """The walk from the Fraser climbs Meldrum Creek, through Dester Lake, to the creek and the
+    tributaries above it. Refusing the lake cut off everything above it."""
+    got = tributaries_of_reach(dester, {"fraser"})
+    assert got == {"meldrum_low", "lake:dester", "meldrum_up", "trib_up"}
+
+
+def test_a_secondary_outlet_still_does_not_climb_into_its_lake(dester):
+    """The narrowness of the fix. Give the lake a second, BIGGER outlet: meldrum_low is now a
+    distributary, and the order guard keeps the lake — and its catchment — out of a walk that
+    arrives up the small channel."""
+    g = dester
+    g.nodes["main_out"] = dataclasses.replace(_n("main_out", order=5, blk="X"), wsc="100-378118")
+    g.edges.append(FlowEdge(from_node="lake:dester", to_node="main_out", kind="lake_out",
+                            at_measure=0.0))
+    g.down_adj.setdefault("lake:dester", []).append(len(g.edges) - 1)
+    got = tributaries_of_reach(g, {"fraser"})
+    assert got == {"meldrum_low"}
+
+
+def test_an_outlet_with_another_watershed_code_is_not_the_lakes_river(dester):
+    """Burnaby Lake 'drains' into Still Creek in FWA with a code that is not the lake's
+    (100-019698-999999 against 100-019698). The code says it is not the lake's line, so the
+    order guard stands."""
+    g = dester
+    g.nodes["meldrum_low"] = dataclasses.replace(g.nodes["meldrum_low"], **{"wsc": "100-378118-9"})
+    assert tributaries_of_reach(g, {"fraser"}) == {"meldrum_low"}
+
+
+def test_a_bigger_river_still_cannot_be_a_tributary_of_a_creek(dester):
+    """The McLennan guard is untouched for streams: only a LAKE's main outlet is exempt."""
+    g = _g([_n("creek", order=4, blk="C"), _n("bigriver", order=10, blk="B")],
+           [("bigriver", "creek", "confluence")])
+    for nid in ("creek", "bigriver"):
+        g.nodes[nid] = dataclasses.replace(g.nodes[nid], **{"wsc": "100"})
+    assert tributaries_of_reach(g, {"creek"}) == frozenset()
+
+
+@pytest.mark.slow
+def test_dester_lake_and_upper_meldrum_creek_are_in_the_fraser_walk(real):
+    """The real case: Meldrum Creek (blk 380887762) drains Dester Lake (lake:329370943, order 4)
+    by a first piece of order 2, then joins the Fraser. A walk from the river Meldrum Creek
+    joins must reach the lake and the creek above it."""
+    g, _reg = real
+    lake, below, above = "lake:329370943", "380887762:18262", "380887762:20554"
+    assert g.nodes[lake].stream_order > g.nodes[below].stream_order
+    # follow Meldrum Creek down to the first piece of another river: that is the receiving river
+    cur, seen = below, set()
+    while g.nodes[cur].blk in ("380887762", ""):       # the creek, and any lake on it
+        seen.add(cur)
+        nxt = [g.edges[ei].to_node for ei in g.down_adj.get(cur, [])]
+        assert nxt, f"{cur}: Meldrum Creek ends before it joins anything"
+        cur = nxt[0]
+    got = tributaries_of_reach(g, {cur})
+    assert below in got
+    assert lake in got, "Dester Lake is cut off from the walk"
+    assert above in got, "upper Meldrum Creek is cut off from the walk"

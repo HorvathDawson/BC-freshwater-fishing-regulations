@@ -462,8 +462,6 @@
      "species": [
       "LT"
      ],
-     "take": 0,
-     "may_target": true,
      "lengths": [
       {
        "max_cm": 30,

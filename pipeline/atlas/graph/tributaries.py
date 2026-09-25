@@ -196,7 +196,8 @@ def tributaries_of_reach(
                 continue
             if guarded and n.is_barrier:
                 continue                       # the canal, and everything above it
-            if guarded and _breaks_strahler(n, graph.nodes.get(node)):
+            if guarded and _breaks_strahler(n, graph.nodes.get(node)) \
+                    and not _is_main_outlet(graph, src, node):
                 continue                       # a bigger river cannot be a tributary
             seen.add(src)
             out.add(src)
@@ -263,6 +264,40 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
                     and not _breaks_strahler(src, n)):
                 out.add(f.from_node)
     return out
+
+
+def _is_main_outlet(graph: StreamGraph, lake_id: str, out_id: str) -> bool:
+    """Is `out_id` the MAIN outlet of the lake `lake_id` — the lake's own river leaving it?
+
+    A lake node's order aggregates every inflow, so it can run ahead of the first piece of its
+    own outlet: Dester Lake is order 4 and Meldrum Creek below it order 2, with EQUAL watershed
+    codes, and the order guard read "a bigger river into a smaller one" and cut off the lake and
+    everything above it (upper Meldrum Creek and its tributaries) from every walk that reached
+    it from below.
+
+    Only the main outlet is exempt, never a lake as such. Of the 386 lake-source edges the guard
+    refuses in the province, ~360 are a SECONDARY outlet — the lake drains by two or more
+    streams and this is the smaller — and climbing a distributary into its lake would hand a
+    small creek the lake's whole catchment. The main outlet is the one that carries the lake's
+    own watershed code and is larger than every other stream the lake drains into (or the only
+    one). An outlet whose code differs (Burnaby Lake "draining" into Still Creek, 100-019698 vs
+    100-019698-999999) is not the lake's line, and the guard stands.
+    """
+    lake = graph.nodes.get(lake_id)
+    out = graph.nodes.get(out_id)
+    if lake is None or out is None or lake.kind != NodeKind.lake or out.kind == NodeKind.lake:
+        return False
+    if not lake.wsc or lake.wsc != out.wsc:
+        return False
+    others = {graph.edges[ei].to_node for ei in graph.down_adj.get(lake_id, [])} - {out_id}
+    mine = out.stream_order or 0
+    for o in others:
+        on = graph.nodes.get(o)
+        if on is None or on.kind == NodeKind.lake:
+            continue
+        if (on.stream_order or 0) >= mine:
+            return False                        # not larger than every other outlet
+    return True
 
 
 def _breaks_strahler(upstream, downstream) -> bool:

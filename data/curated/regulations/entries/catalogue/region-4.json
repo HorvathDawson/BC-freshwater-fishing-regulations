@@ -459,6 +459,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -472,6 +484,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -622,6 +646,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -635,6 +671,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -676,6 +724,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     }
@@ -736,6 +791,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -749,6 +816,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -1757,6 +1836,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "coal_creek.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ],
    "licensing": [
@@ -1855,6 +1964,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -2026,6 +2147,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -2043,6 +2176,13 @@
         "columbia_river__keenleyside_dam",
         "columbia_river__old_robson_ferry_landing_south_bank_sign"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r5",
+       "entry_id": "z4:species_quotas",
+       "note": "kokanee may be kept on this reach of the river"
       }
      ],
      "extent_text": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank"
@@ -2063,6 +2203,18 @@
         "columbia_river__washington_state_border"
        ]
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r8",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -2080,6 +2232,18 @@
         "columbia_river__keenleyside_dam",
         "columbia_river__washington_state_border"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r7",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ],
      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
@@ -2100,6 +2264,18 @@
         "columbia_river__keenleyside_dam",
         "columbia_river__washington_state_border"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ],
      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
@@ -2427,6 +2603,18 @@
        ]
       }
      ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
+     ],
      "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)"
     },
     {
@@ -2445,6 +2633,18 @@
         "wbk:-20",
         "wbk:328974235"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ],
      "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)"
@@ -2620,6 +2820,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "dorothy_lake.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -2667,6 +2897,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -2723,6 +2965,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -2736,6 +2990,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -2875,6 +3141,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
+      }
      ]
     },
     {
@@ -2888,6 +3161,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     },
@@ -3722,6 +4002,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -3735,6 +4027,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -3932,6 +4236,36 @@
      "rule_id": "fisher_maiden_lake.r1",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "fisher_maiden_lake.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -4400,6 +4734,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -4413,6 +4759,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -4690,6 +5048,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -4703,6 +5073,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -4865,6 +5247,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ]
@@ -4982,6 +5376,36 @@
      "rule_id": "idlewild_lake.r2",
      "type": "program_membership",
      "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "idlewild_lake.r3",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -5131,6 +5555,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -5144,6 +5580,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -5430,6 +5878,18 @@
        "feature_types": [
         "lake"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -5777,6 +6237,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -5790,6 +6262,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -6366,6 +6850,18 @@
        ],
        "item_id": "gnis:14097"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r8",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -6384,6 +6880,18 @@
        ],
        "item_id": "gnis:14097"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r7",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -6401,6 +6909,18 @@
         "kootenay_river__brilliant_dam"
        ],
        "item_id": "gnis:14097"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -6988,6 +7508,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
+      }
      ]
     },
     {
@@ -7001,6 +7528,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     }
@@ -7074,6 +7608,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     },
@@ -7255,6 +7796,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -7268,6 +7821,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -7870,6 +8435,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ]
@@ -8022,6 +8599,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -8229,6 +8818,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -8242,6 +8843,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -8805,6 +9418,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -9454,6 +10079,36 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "norbury_little_bull_creek.r2",
+     "type": "angler_closure",
+     "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+     "closed_to": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "closed_to_except": [
+      {
+       "residency": [
+        "resident"
+       ],
+       "status": [
+        "disabled"
+       ]
+      },
+      {
+       "role": [
+        "companion"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -9718,6 +10373,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r8",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -9731,6 +10398,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r7",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     },
@@ -9746,6 +10425,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -9759,6 +10450,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -9926,6 +10629,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     }
@@ -10418,6 +11128,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ],
@@ -10792,6 +11514,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -11487,6 +12221,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ]
@@ -11989,6 +12735,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ]
@@ -12023,6 +12781,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -12036,6 +12806,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -12672,6 +13454,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     },
     {
@@ -12685,6 +13479,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -13036,6 +13842,13 @@
        "splits": [
         "whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z4:trout_char_quota",
+       "note": "the stream's own quota replaces '2 from streams'"
       }
      ],
      "extent_text": "the outlet stream downstream of the falls"
@@ -13572,6 +14385,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r11",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
+      }
      ]
     }
    ]
@@ -13693,6 +14518,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "species_quotas.r1",
+       "entry_id": "z4:species_quotas",
+       "note": "reopened on this water"
+      },
+      {
+       "target": "invasive_species_notice.r1",
+       "entry_id": "z4:invasive_species_notice",
+       "note": "one of the waters listed in the tables"
       }
      ]
     }
@@ -13824,7 +14661,7 @@
    "name": "Classified Waters Licence",
    "display_name": "Classified waters in Region 4",
    "region": "4",
-   "regs_verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence. Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
+   "regs_verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (see pages 35-40).",
    "source_pages": [
     34
    ],
@@ -13851,7 +14688,7 @@
       "entry_id": "zp:classified_waters_licence",
       "id": "classified_waters_licence"
      },
-     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
+     "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (see pages 35-40).",
      "kind": "requirement"
     }
    ]
@@ -14052,7 +14889,7 @@
    "name": "Report your lake trout catch",
    "display_name": "Region 4",
    "region": "4",
-   "regs_verbatim": "Report your Lake Trout Catch. Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays. Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
+   "regs_verbatim": "Report your Lake Trout Catch Please report any lake trout you catch in the Kootenay Region to a Ministry office (or see page 75). Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
    "source_pages": [
     34
    ],
@@ -14066,7 +14903,7 @@
     {
      "rule_id": "report_lake_trout.r1",
      "type": "advisory",
-     "verbatim": "Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
+     "verbatim": "Please report any lake trout you catch in the Kootenay Region to a Ministry office (or see page 75). Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
      "obligation": "should",
      "species": [
       "LT"
@@ -14383,7 +15220,7 @@
    "name": "Tributaries of lakes",
    "display_name": "Region 4",
    "region": "4",
-   "regs_verbatim": "Tributaries of Lakes. When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake: Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan, Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan. When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as \"Columbia Lake's tributaries\"):",
+   "regs_verbatim": "Tributaries of Lakes When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as “Columbia Lake’s tributaries”): Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan, Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan.",
    "source_pages": [
     34
    ],
@@ -14397,7 +15234,7 @@
     {
      "rule_id": "tributaries_of_lakes.r1",
      "type": "advisory",
-     "verbatim": "When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as \"Columbia Lake's tributaries\"):",
+     "verbatim": "When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as “Columbia Lake’s tributaries”): Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan, Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan.",
      "obligation": "should",
      "extents": [
       {

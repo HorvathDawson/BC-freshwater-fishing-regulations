@@ -52,16 +52,15 @@ Possession quotas = 2 daily quotas (See tables for exceptions)
 
 > When fishing the tributaries of the following lakes, check for special regulations in the tables
 > under **both** the name of the tributary **and** the name of the lake (such as "Columbia Lake's
-> tributaries"):
-
-Columbia · Connor · Duncan · Kinbasket · Kootenay · Lake Revelstoke · Little Slocan ·
-Lower Arrow · Premier · Slocan · Trout · Upper Arrow · Waneta Reservoir · Whiteswan
+> tributaries"): Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan,
+> Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan.
 
 ## Report your Lake Trout Catch
 
-> Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout
-> are not a native fish species in the Kootenays and could impact other native fish populations if
-> they colonize. It is unlawful to transplant fish into any waters in B.C.
+> Please report any lake trout you catch in the Kootenay Region to a Ministry office (or see page
+> 75). Lake trout are not a native fish species in the Kootenays and could impact other native fish
+> populations if they colonize. It is unlawful to transplant fish into any waters in B.C. (see page
+> 8).
 
 ## Creston Valley Wildlife Management Area
 

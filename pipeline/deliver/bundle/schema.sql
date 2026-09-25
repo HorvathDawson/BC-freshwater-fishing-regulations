@@ -198,6 +198,16 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 -- general rules", which is what a section with no rule set would otherwise read as.
 CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 
+-- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;
+-- one whose extent carries `outside_area_kind` (its `record`) holds everywhere EXCEPT the
+-- sections listed here under that kind. "Basic and supplementary licences and stamps are not
+-- valid in National Parks": the basic licence, the stamps and the licence duties are placed
+-- `province` minus `national_parks` — the park is Parks Canada's, and its own permit (a
+-- superior requirement, placed on the parks) is what an angler there needs. Only the kinds some
+-- record subtracts are listed; the build refuses a kind with no sections.
+CREATE TABLE province_except (area_kind TEXT NOT NULL, sid INTEGER NOT NULL,
+                              PRIMARY KEY (area_kind, sid)) WITHOUT ROWID;
+
 -- The sets themselves: 1,905 of them across 6,622 rows.
 --
 -- `via` is WHY this rule reaches this section — `reach` if the rule names this water,

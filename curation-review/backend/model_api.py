@@ -250,6 +250,24 @@ def corpus_context(entries_dir: Path) -> tuple[dict, dict]:
     return _corpus_context(_files_key(entries_dir), str(entries_dir))
 
 
+@lru_cache(maxsize=4)
+def _corpus_entries(key: tuple, entries_dir: str) -> dict:
+    """{entry_id: CatalogueEntry} for every entry that validates — what a rule's `exempts` names,
+    so the label says what it lifts in words, as the bundle's does. Cached on the files' mtimes."""
+    out: dict = {}
+    for p in sorted(Path(entries_dir).glob("region-*.json")):
+        for e in json.loads(p.read_text(encoding="utf-8")).get("entries", []):
+            try:
+                out[e["entry_id"]] = C.CatalogueEntry.model_validate(e)
+            except (ValidationError, KeyError, TypeError):
+                continue
+    return out
+
+
+def corpus_entries(entries_dir: Path) -> dict:
+    return _corpus_entries(_files_key(entries_dir), str(entries_dir))
+
+
 def strip_served(entry: dict) -> dict:
     """The entry without the fields the app stamps on it."""
     data = dict(entry)
@@ -276,9 +294,10 @@ def labels(entry: dict, entries_dir: Path, namer=None) -> dict:
     units, refs = corpus_context(entries_dir)
     eid = entry.get("entry_id")
     place_of = namer.for_entry(entry.get("matched") or []) if namer is not None else None
+    entries = corpus_entries(entries_dir)
     out_rules = []
     for r in rules:
-        out_rules.append(C.label(r, siblings, place_of) if r is not None else None)
+        out_rules.append(C.label(r, siblings, place_of, entries) if r is not None else None)
     recs = []
     for x in entry.get("licensing") or []:
         try:

@@ -7,7 +7,8 @@ Transcribed verbatim from the 2025-2027 synopsis Region 7 Zone B chapter. **Sour
 ## Notices
 
 **PEACE RIVER** The Peace River is no longer navigable past the Site C construction site. Avoid
-boat travel between 2 km upstream of the dam site and the downstream construction bridge.
+boat travel between 2 km upstream of the dam site (warning signs are on shore) and the downstream
+construction bridge. See https://www.sitecproject.com/boating for details.
 
 **ICE FISHING HUTS** should have the owner's contact information displayed in a prominent location
 when left unoccupied. Failure to remove ice fishing huts before spring breakup is an offence under
@@ -17,13 +18,24 @@ the Environmental Management Act.
 on **Inga and Sundance lakes**. **It is prohibited to enter within the fenced area surrounding the
 aerator.**
 
-**BC Hydro telemetry** in the Site C Reservoir, Peace River and tributaries.
+NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace
+River and its tributaries using acoustic and radio telemetry to gather valuable data on the
+potential effects of the Site C project on fish. Anglers who catch tagged fish are encouraged to
+return them to the water if possible, or return the tag by e-mailing tagreturns@golder.com or
+calling (250) 785-9281. If tags come from anywhere other than the Site C Reservoir, Peace River
+and its tributaries, please call the regional Ministry office in Fort St. John at (250) 787-3415.
 
 ## General Zone B Regulations
 
-**Single barbless hook:** all streams of Zone B, all year. **Bait ban:** all streams of Zone B, all
-year. **Fin fish** may not be used as bait in any waters of Zone B. **Set lining:** not permitted
-in Zone B.
+**Single barbless hook:** must be used in all streams of Zone B, all year. See definition of
+“streams” on page 80.
+
+**Bait ban:** applies to all streams of Zone B, all year.
+
+**Fin fish:** (as defined on page 8 under “Rules on Bait Usage”) may not be used as bait in any
+waters of Zone B.
+
+**Set lining:** is not permitted in Zone B.
 
 ## Zone B Daily Quotas
 

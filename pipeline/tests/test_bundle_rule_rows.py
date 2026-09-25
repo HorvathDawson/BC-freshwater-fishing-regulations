@@ -297,9 +297,38 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
                         partial.append((ce.entry_id, r.rule_id, x["rule_id"]))
             else:
                 silent.append((ce.entry_id, r.rule_id))
-    # the four that lift in part, and only those
-    assert sorted(partial) == [
+    # THE ONES THAT LIFT IN PART, and only those. Region 4's reopened bass/perch/pike/walleye
+    # (decision 6, 2026-09-24) each lift the four-species invasive notice for their own fish
+    # only — 52 rules on 29 waters; the rest are named.
+    notice = [p for p in partial if p[2] == "invasive_species_notice.r1"]
+    assert len(notice) == 52 and all(e.startswith("r4:") for e, _, _ in notice)
+    # A water's quota that must still replace a CONDITIONED zone line ("2 from streams", "hatchery
+    # under 30 cm from streams", "1 over 50 cm") lifts it for the water's own fish (review
+    # 2026-09-24: conditions in the key stopped these competing, and the angler got two limits).
+    chw = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
+    kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
+    assert sorted(p for p in partial if p[2] != "invasive_species_notice.r1") == [
+        (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r4"),
+        (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),
+        ("r2:coquitlam_river@2-8", "coquitlam_river.r3", "trout_char_quota.r8"),
+        ("r4:beaver_creek@4-8", "beaver_creek.r1", "trout_char_quota.r3"),
         ("r4:duncan_river@4-19", "duncan_river.r2", "trout_char_winter_release.r1"),
+        ("r4:duncan_river@4-19", "duncan_river.r4", "trout_char_quota.r3"),
+        ("r4:duncan_river@4-19", "duncan_river.r5", "trout_char_quota.r3"),
+        ("r4:lardeau_river@4-29+4-30", "lardeau_river.r4", "trout_char_quota.r3"),
+        ("r4:lardeau_river@4-29+4-30", "lardeau_river.r5", "trout_char_quota.r3"),
+        ("r4:lavington_creek@4-26", "lavington_creek.r1", "trout_char_quota.r3"),
+        ("r4:perry_creek@4-20", "perry_creek.r3", "trout_char_quota.r3"),
+        ("r4:whiteswan_lake_s_inlet_outlet_streams@4-24",
+         "whiteswan_lakes_inlet_outlet_streams.r3", "trout_char_quota.r3"),
+        (kit, "kitimat_river.r4", "trout_char_quota.r4"),
+        (kit, "kitimat_river.r4", "trout_char_quota.r6"),
+        (kit, "kitimat_river.r4", "trout_char_quota.r7"),
+        (kit, "kitimat_river.r5", "trout_char_quota.r2"),
+        (kit, "kitimat_river.r5", "trout_char_quota.r4"),
+        (kit, "kitimat_river.r5", "trout_char_quota.r7"),
+        ("r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31", "peace_river.r4",
+         "trout_char_quota.r3"),
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
         ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")]
     assert lifted >= 80

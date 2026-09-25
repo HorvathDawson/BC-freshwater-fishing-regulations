@@ -108,25 +108,32 @@ You must immediately record your retention of hatchery steelhead on your basic a
 
 ### 2. Non-Tidal Salmon
 
-Required to keep a salmon of any legal size or species **(other than kokanee)** from non-tidal
-waters. **A stamp is not required if you release all salmon caught.** You must immediately record
-your retention of adult chinook salmon.
+Your basic licence must be validated with a Conservation Surcharge Stamp to keep a salmon of any
+legal size or species **(other than kokanee)** from non-tidal waters. **A stamp is not required if
+you release all salmon caught.** You must immediately record your retention of adult chinook
+salmon on your basic angling licence. For definition of adult chinook see page 77.
 
 ### 3. Kootenay Lake Rainbow Trout
 
-Required to keep rainbow trout **over 50 cm** from the **main body of Kootenay Lake**. No stamp is
-required if you release all Kootenay Lake rainbow trout over 50 cm.
+Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout
+**over 50 cm** from the **main body of Kootenay Lake**. You must immediately record your retention
+on your basic angling licence. No Conservation Surcharge Stamp is required if you release all
+Kootenay Lake rainbow trout over 50 cm.
 
 ### 4. Shuswap Lake Char
 
-Required to keep char **over 60 cm** (Lake trout and Bull trout) caught in **Shuswap Lake**. No
-stamp is required if you release all such char.
+Your basic licence must be validated with a Conservation Surcharge Stamp to keep char **over 60
+cm** (Lake trout and Bull trout) caught in **Shuswap Lake**. You must immediately record your
+retention on your basic angling licence. No Conservation Surcharge Stamp is required if you release
+all Shuswap Lake char over 60 cm (Lake trout and Bull trout).
 
 ### 5. Shuswap Lake Rainbow Trout
 
-Required to keep rainbow trout **over 50 cm** from **Shuswap Lake, Little Shuswap Lake, South
-Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and
-Mara Lake**. No stamp is required if you release all such rainbow trout.
+Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout
+**over 50 cm** from **Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake
+and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake**. You must immediately
+record your retention on your basic angling licence. No Conservation Surcharge Stamp is required
+if you release all Shuswap Lake rainbow trout over 50 cm.
 
 ### White Sturgeon Conservation Licence
 
