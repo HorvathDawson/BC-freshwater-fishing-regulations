@@ -236,6 +236,119 @@ def test_a_printed_lift_of_a_spring_closure_reaches_the_same_closure_in_the_wate
     assert rules_mod._equivalent_closures("z6:steelhead", st, {"7a"}, blankets) == []
 
 
+def _kinded(rid, frm, to, kind, verbatim="No fishing in any stream"):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    return CatalogueRule.model_validate({
+        **_blanket(rid, frm, to).model_dump(by_alias=True, exclude_none=True),
+        "verbatim": verbatim, "closure_kind": kind})
+
+
+def _kinded_blankets():
+    from pipeline.deliver.bundle import rules as rules_mod
+    z5 = _kinded("spring_stream_closure.r1", (4, 1), (6, 30), "spring",
+                 "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5")
+    winter = _kinded("skeena_nass_winter_closure.r1", (1, 1), (6, 15), "winter")
+    spring6 = _kinded("iskut_fraser_closure.r2", (4, 1), (6, 30), "spring")
+    z7 = _kinded("spring_stream_closure.r1", (4, 1), (6, 30), "spring",
+                 "No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.")
+    z1 = _kinded("summer_stream_closure.r1", (7, 15), (8, 31), "summer",
+                 "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6")
+    blankets = rules_mod.blanket_closures([
+        type("E", (), {"entry_id": "z5:spring_stream_closure", "rules": [z5]}),
+        type("E", (), {"entry_id": "z6:skeena_nass_winter_closure", "rules": [winter]}),
+        type("E", (), {"entry_id": "z6:iskut_fraser_closure", "rules": [spring6]}),
+        type("E", (), {"entry_id": "z7a:spring_stream_closure", "rules": [z7]}),
+        type("E", (), {"entry_id": "z1:summer_stream_closure", "rules": [z1]})])
+    return z5, blankets
+
+
+def test_a_spring_exemption_lifts_the_other_regions_spring_closure_never_its_winter_one():
+    """USER RULING 2026-09-26: an `equivalent` lift matches the KIND of closure the row names.
+    The Nechako's "Exempt from spring closure" reaches Region 6's spring closure (Apr 1-June 30)
+    and never its Skeena/Nass WINTER closure (Jan 1-June 15), though the dates overlap; nor a
+    summer one. MUTATION: comparing seasons instead of `closure_kind` in `_equivalent_closures`
+    (the old rule) adds the winter closure and fails the first assert."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    z5, blankets = _kinded_blankets()
+    got = rules_mod._equivalent_closures("z5:spring_stream_closure", z5, {"1", "5", "6", "7a"},
+                                         blankets, "Exempt from spring closure.")
+    assert [(e, z.rule_id) for e, z in got] == [
+        ("z6:iskut_fraser_closure", "iskut_fraser_closure.r2"),
+        ("z7a:spring_stream_closure", "spring_stream_closure.r1")]
+    # The row's words name no kind ("Mainstem open all year"): the closure it names says which.
+    got = rules_mod._equivalent_closures("z5:spring_stream_closure", z5, {"6"}, blankets,
+                                         "Mainstem open all year")
+    assert [e for e, _ in got] == ["z6:iskut_fraser_closure"]
+
+
+def test_a_lift_of_a_closure_of_unknown_kind_is_refused_or_falls_back_never_guessed():
+    """A lift of known kind meeting a closure of NO known kind stops the build — the dates would
+    have to guess. A contradiction (the row says spring, names a winter closure) and a row naming
+    two kinds stop it too. Only where NOTHING names a kind does the season overlap decide.
+    MUTATION: skipping an unkinded closure instead of refusing fails the first `raises`."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    z5, blankets = _kinded_blankets()
+    unkinded = _blanket("spring_stream_closure.r1", (4, 1), (6, 14))
+    blankets4 = {**blankets, **rules_mod.blanket_closures([
+        type("E", (), {"entry_id": "z4:spring_stream_closure", "rules": [unkinded]})])}
+    with pytest.raises(SystemExit, match="no known kind"):
+        rules_mod._equivalent_closures("z5:spring_stream_closure", z5, {"4"}, blankets4,
+                                       "Exempt from spring closure")
+    winter = blankets["6"][0][1]
+    with pytest.raises(SystemExit, match="names the winter one"):
+        rules_mod._equivalent_closures("z6:skeena_nass_winter_closure", winter, {"7a"},
+                                       blankets, "Exempt from spring closure")
+    with pytest.raises(SystemExit, match="spring/winter"):
+        rules_mod._equivalent_closures("z5:spring_stream_closure", z5, {"7a"}, blankets,
+                                       "not closed under the winter/spring closure regulation")
+    # No kind anywhere: the old rule, the same water over an overlapping season.
+    got = rules_mod._equivalent_closures("z4:spring_stream_closure", unkinded, {"5", "1"},
+                                         blankets, "EXEMPT from the Apr 1-June 14 closure")
+    assert [e for e, _ in got] == ["z5:spring_stream_closure"]
+
+
+def test_closure_kind_names_a_closure_and_agrees_with_its_own_words():
+    """MUTATION: dropping the `closure_kind` block from `CatalogueRule._check` fails both."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    with pytest.raises(ValueError, match="the sentence names the summer closure"):
+        _kinded("summer_stream_closure.r1", (7, 15), (8, 31), "spring",
+                "Summer closure: No Fishing in any stream")
+    raw = _blanket("x.r1", (4, 1), (6, 30)).model_dump(by_alias=True, exclude_none=True)
+    with pytest.raises(ValueError, match="closure_kind names a closure"):
+        CatalogueRule.model_validate({**raw, "take": 2, "may_target": True,
+                                      "closure_kind": "spring"})
+
+
+def test_every_blanket_closure_in_the_corpus_says_its_kind():
+    """Each region's blanket stream closure carries `closure_kind`, so no lift reaching it has to
+    guess: z1 summer; z3, z4, z5, z7a, z8 and z6's Iskut/Fraser spring; z6's Skeena/Nass winter."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    from pipeline.common.curated import CURATED
+    docs = [CatalogueEntry.model_validate(e)
+            for p in sorted(Path(CURATED.regulations.entries.catalogue).glob("region-*.json"))
+            for e in json.loads(p.read_text(encoding="utf-8"))["entries"]]
+    got = {(eid, r.rule_id): (r.closure_kind.value if r.closure_kind else None)
+           for reg in rules_mod.blanket_closures(docs).values() for eid, r in reg}
+    assert None not in got.values(), [k for k, v in got.items() if v is None]
+    assert got[("z6:skeena_nass_winter_closure", "skeena_nass_winter_closure.r1")] == "winter"
+    assert got[("z6:iskut_fraser_closure", "iskut_fraser_closure.r2")] == "spring"
+    assert got[("z1:summer_stream_closure", "summer_stream_closure.r1")] == "summer"
+    assert len(got) == 11
+
+
+def test_the_nechako_and_west_road_lift_region_6s_spring_closure_not_its_winter_one(db):
+    """In the bundle: the rows' printed spring exemptions name Region 6's Fraser-watershed spring
+    closure as `equivalent`, and no Skeena/Nass winter closure — which by dates they did."""
+    for eid, rid in (("r7:nechako_river@7-12", "nechako_river.r1"),
+                     ("r5:west_road_blackwater_river@5-12+5-13", "west_road_blackwater_river.r6")):
+        (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
+                           (eid, rid)).fetchone()
+        lifted = {(x["entry_id"], x["rule_id"]) for x in json.loads(ex) if "equivalent" in x}
+        assert ("z6:iskut_fraser_closure", "iskut_fraser_closure.r2") in lifted
+        assert not any(e == "z6:skeena_nass_winter_closure" for e, _ in lifted), eid
+
+
 def test_west_road_7a_mainstem_piece_takes_zone_7as_table_and_its_own_row(db):
     """356364550:15264 is 54 % Zone 7A by length: it takes Zone 7A's spring closure, and the
     Region 5 row (p.47) binds it, lifting that closure ("the regional spring closure does not add

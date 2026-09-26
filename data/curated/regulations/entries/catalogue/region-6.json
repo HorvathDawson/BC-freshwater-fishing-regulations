@@ -9822,6 +9822,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "spring",
      "extents": [
       {
        "op": "upstream_of",
@@ -9858,6 +9859,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "spring",
      "extents": [
       {
        "op": "within",
@@ -10144,6 +10146,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "winter",
      "tributaries_only": true,
      "extents": [
       {
@@ -10181,6 +10184,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "winter",
      "tributaries_only": true,
      "extents": [
       {
@@ -10218,6 +10222,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "winter",
      "extents": [
       {
        "op": "upstream_of",

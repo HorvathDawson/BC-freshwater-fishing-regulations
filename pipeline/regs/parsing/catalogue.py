@@ -99,6 +99,31 @@ class WaterKind(str, Enum):
     lake = "lake"
 
 
+class ClosureKind(str, Enum):
+    """The season a region's blanket closure is NAMED for — "Spring closure", "Summer closure",
+    "the existing winter/spring closure regulation". A name, not a date range: see
+    `CatalogueRule.closure_kind`."""
+    spring = "spring"
+    summer = "summer"
+    winter = "winter"
+
+
+#: "spring closure", "Summer closure:", "(spring closure)", "spring stream closure",
+#: "winter/spring closure" (both).
+_PRINTED_CLOSURE_KIND = re.compile(
+    r"\b(spring|summer|winter)(?:\s*/\s*(spring|summer|winter))?\s+(?:stream\s+)?closure\b", re.I)
+
+
+def printed_closure_kinds(text: str) -> frozenset:
+    """The kinds of closure a sentence NAMES by their season word ("Exempt from spring closure",
+    "Summer closure: No Fishing …"). Empty when it names none — "EXEMPT from the Apr 1-June 14
+    closure" names dates, not a kind, and "Mainstem open all year" names nothing."""
+    out = set()
+    for m in _PRINTED_CLOSURE_KIND.finditer(text or ""):
+        out.update(g.lower() for g in m.groups() if g)
+    return frozenset(out)
+
+
 class Origin(str, Enum):
     hatchery = "hatchery"
     wild = "wild"
@@ -2403,6 +2428,15 @@ class CatalogueRule(BaseModel):
     # --- shared scoping ----------------------------------------------------
     water: Optional[WaterKind] = None
     origin: Optional[Origin] = None
+    #: WHICH SEASONAL CLOSURE THIS IS, BY NAME — a region's blanket stream closure only
+    #: ("Spring closure: No Fishing in any stream in Region 3", "Summer closure: …"). A water row
+    #: printed "Exempt from spring closure" lifts its own region's spring closure, and — where the
+    #: water runs into another region — THAT region's spring closure, never its winter or summer
+    #: one (user ruling 2026-09-26; the bundle's `_equivalent_closures`). Dates cannot say which:
+    #: Region 6's Skeena/Nass winter closure (Jan 1-June 15) overlaps every spring closure in
+    #: the province. Authored where the rule's own sentence does not print it (Region 4's and
+    #: Region 6's print only dates); where it does, the two must agree (`_check`).
+    closure_kind: Optional[ClosureKind] = None
 
     # --- gear / tackle / bait: see `gear` -----------------------------------
     #: The species a bait or tackle rule is ABOUT — "no natural bait when fishing for salmon".
@@ -2817,6 +2851,17 @@ class CatalogueRule(BaseModel):
         if any(kinds) and not all(kinds):
             e.append("feature_types is set on some extents and not others — the builder applies "
                      "one filter to the rule's reach; split the rule")
+        # A CLOSURE'S NAME IS A CLOSURE'S. On anything but "no fishing" it names nothing, and
+        # where the sentence prints the name itself the field may only repeat it.
+        if self.closure_kind is not None:
+            if not (t is RuleType.retention_limit and self.take == 0
+                    and self.may_target is False):
+                e.append("closure_kind names a closure — a retention_limit with take 0 and "
+                         "may_target false")
+            printed = printed_closure_kinds(self.verbatim)
+            if printed and self.closure_kind.value not in printed:
+                e.append(f"closure_kind {self.closure_kind.value!r}, but the sentence names "
+                         f"the {'/'.join(sorted(printed))} closure")
 
         if e:
             raise ValueError(f"{self.rule_id}: " + "; ".join(e))

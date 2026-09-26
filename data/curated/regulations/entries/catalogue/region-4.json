@@ -15204,6 +15204,7 @@
      "take": 0,
      "may_target": false,
      "water": "stream",
+     "closure_kind": "spring",
      "extents": [
       {
        "op": "within",

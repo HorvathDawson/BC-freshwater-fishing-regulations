@@ -103,6 +103,9 @@ _NOT_CONDITIONS = frozenset({
     "tributary_excludes",
     # A column of its own, RESOLVED: see `_exempts`.
     "exempts",
+    # Build-time only: which closure a lift reaches in another region (`_equivalent_closures`).
+    # What it decided ships RESOLVED, as `exempts[].equivalent`.
+    "closure_kind",
 })
 
 
@@ -479,8 +482,34 @@ def blanket_closures(docs) -> dict[str, list[tuple[str, object]]]:
     return out
 
 
-def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, list]) -> list:
-    """THE SAME CLOSURE IN THE OTHER REGIONS THE ROW'S WATER LIES IN (user ruling 2026-09-25).
+def lift_kind(lifter_text: str, lifted_eid: str, lifted) -> str | None:
+    """WHICH CLOSURE A ROW'S LIFT NAMES, by kind — "spring", "summer", "winter" — or None.
+
+    The row's own words first ("Exempt from spring closure", "tributaries subject to spring
+    closure": `lifter_text` is the lifter's `verbatim` and the exemption's `note`), else the
+    closure it names by id (`closure_kind` on the lifted rule: "Mainstem open all year" lifts
+    Region 5's "Spring closure"). Two kinds in the row's words, or words that contradict the
+    closure named, is a question the build does not answer — it stops."""
+    from pipeline.regs.parsing.catalogue import printed_closure_kinds
+    printed = printed_closure_kinds(lifter_text)
+    if len(printed) > 1:
+        raise SystemExit(
+            f"lift of {lifted_eid}/{lifted.rule_id}: the row names the "
+            f"{'/'.join(sorted(printed))} closures ({lifter_text[:80]!r}) — which one it lifts "
+            f"in another region cannot be told; split the exemption")
+    named = lifted.closure_kind.value if lifted.closure_kind is not None else None
+    if printed and named is not None and printed != {named}:
+        raise SystemExit(
+            f"lift of {lifted_eid}/{lifted.rule_id}: the row says the {next(iter(printed))} "
+            f"closure ({lifter_text[:80]!r}) but names the {named} one — fix the exemption or "
+            f"the closure's `closure_kind`")
+    return next(iter(printed), named)
+
+
+def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, list],
+                         lifter_text: str = "") -> list:
+    """THE SAME CLOSURE IN THE OTHER REGIONS THE ROW'S WATER LIES IN (user rulings 2026-09-25,
+    2026-09-26).
 
     A water's own row applies along its whole length, whichever region each piece lies in, and so
     do the exemptions it prints; but each piece takes the ZONE rules of its own region. West Road
@@ -488,12 +517,20 @@ def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, l
     closure; a mainstem piece lying mostly in Zone 7A carries Zone 7A's "No fishing (spring
     closure): in any stream of Zone A, Apr 1 – June 30", not Region 5's, and the row's exemption
     must reach it there. So a lift of a BLANKET closure (`is_blanket_closure`) also lifts every
-    blanket closure of the same kind in each other region of `regions`: the same kind of water
-    (`water`) over an overlapping season — a spring stream closure, never a summer one. A species
-    closure is never lifted by analogy: only what the row itself names."""
+    blanket closure of the same water (`water`) in each other region of `regions` that is THE
+    SAME KIND OF CLOSURE THE ROW NAMES (`lift_kind`): "Exempt from spring closure" lifts another
+    region's spring closure and never its winter or summer one, whatever the dates — Region 6's
+    Skeena/Nass winter closure (Jan 1-June 15) overlaps every spring closure in the province, and
+    by dates alone the Nechako's "Exempt from spring closure" lifted it.
+
+    A closure of unknown kind in the way of a lift of known kind is refused: the build does not
+    guess whether it is the one. Only a lift of NO known kind (the row's words name none, and
+    neither does the closure it names) falls back to the same water over an overlapping season.
+    A species closure is never lifted by analogy: only what the row itself names."""
     if not is_blanket_closure(lifted):
         return []
     from pipeline.regs.parsing.catalogue import _days
+    kind = lift_kind(lifter_text, lifted_eid, lifted)
     mine = frozenset(_days(lifted.when.dates))
     home = _zone_region(lifted_eid)
     out = []
@@ -501,7 +538,19 @@ def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, l
         if reg == home:
             continue
         for eid, z in blankets.get(reg, ()):
-            if z.water == lifted.water and mine & frozenset(_days(z.when.dates)):
+            if z.water != lifted.water:
+                continue
+            if kind is None:
+                if mine & frozenset(_days(z.when.dates)):
+                    out.append((eid, z))
+                continue
+            if z.closure_kind is None:
+                raise SystemExit(
+                    f"{eid}/{z.rule_id}: a blanket closure of no known kind, where a lift of "
+                    f"{lifted_eid}/{lifted.rule_id} (the {kind} closure) reaches Region {reg} — "
+                    f"say which closure it is (`closure_kind`); the build does not guess it from "
+                    f"its dates")
+            if z.closure_kind.value == kind:
                 out.append((eid, z))
     return out
 
@@ -573,7 +622,8 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
         # regions the row's own water lies in; see `_equivalent_closures`).
         have = {(e, rid) for e, rid in named} | {(y["entry_id"], y["rule_id"]) for y in out}
         for e, rid in named:
-            for ee, z in _equivalent_closures(e, rules_of[e][rid], regions, blankets or {}):
+            for ee, z in _equivalent_closures(e, rules_of[e][rid], regions, blankets or {},
+                                              f"{r.verbatim} {x.note or ''}"):
                 if (ee, z.rule_id) in have or ee == entry_id:
                     continue
                 have.add((ee, z.rule_id))

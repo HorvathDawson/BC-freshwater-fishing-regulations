@@ -160,6 +160,8 @@ export interface Rule {
   record_retention?: boolean;
   water?: string | null;
   origin?: string | null;
+  /** a region's blanket closure only: which seasonal closure it is by name (spring | summer | winter) */
+  closure_kind?: string | null;
   when_targeting?: string[];
   aspect?: string | null;
   level?: string | null;

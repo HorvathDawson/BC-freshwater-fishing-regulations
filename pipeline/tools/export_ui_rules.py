@@ -754,11 +754,17 @@ LIFT_TEXT = {
              "Absent = the lifter's own printed exemption",
     "equivalent": "'<entry_id>::<rule_id>' — the lifter's printed exemption names that blanket "
                   "closure of its own region, and this item is the SAME KIND of closure in "
-                  "another region the lifter's water lies in (the same kind of water, an "
-                  "overlapping season): West Road River's Region 5 row, 'the regional spring "
-                  "closure does not add to its own mainstem closure', lifts Zone 7A's spring "
-                  "closure on its Zone 7A pieces. It holds only where the lifter is bound. A "
-                  "species closure is never lifted this way. Absent = the book names this rule",
+                  "another region the lifter's water lies in: the same kind of water, and the "
+                  "same closure BY NAME — spring, summer or winter, as the lifter's own words "
+                  "say it ('Exempt from spring closure') or, where they name none ('Mainstem "
+                  "open all year'), as the closure it names is called. Dates never decide it: "
+                  "the Nechako's 'Exempt from spring closure' lifts Region 6's Fraser-watershed "
+                  "spring closure (Apr 1-June 30) and never its Skeena/Nass winter closure (Jan "
+                  "1-June 15), though the two overlap. West Road River's Region 5 row, 'the "
+                  "regional spring closure does not add to its own mainstem closure', lifts Zone "
+                  "7A's spring closure on its Zone 7A pieces. It holds only where the lifter is "
+                  "bound. A species closure is never lifted this way. Absent = the book names "
+                  "this rule",
 }
 
 LENGTH_TEXT = {
