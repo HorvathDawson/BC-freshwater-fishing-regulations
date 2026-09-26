@@ -18,6 +18,8 @@ import { fileURLToPath } from "node:url";
 const repo = fileURLToPath(new URL("../..", import.meta.url));
 const ARCHIVES = {
   "/atlas.pmtiles": `${repo}data/generated/tiles/atlas.pmtiles`,
+  // The vintage sidecar: useVintage compares its section_handles with the bundle's.
+  "/atlas.meta.json": `${repo}data/generated/tiles/atlas.meta.json`,
   "/basemap.pmtiles": `${repo}data/generated/tiles/basemap.pmtiles`,
   // The bundle rides along on the same server. In production it sits beside the tiles on
   // R2 for the same reason: one origin, one set of CORS rules, one thing to make fast.

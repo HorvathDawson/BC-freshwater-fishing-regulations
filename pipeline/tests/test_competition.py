@@ -14,6 +14,7 @@ species ignored, dates ignored, families competing, closures displaceable) and f
 """
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from pathlib import Path
@@ -149,7 +150,9 @@ def test_kakwa_and_cecilia_bull_trout_are_released_other_trout_keep_the_lakes_tw
     """The lake prints "Trout/char daily quota = 2 (none under 40 cm)"; Zone B prints bull trout
     release in the Peace River watershed all year. For a bull trout — 40 cm and over included —
     the zone's release NAMES the fish and speaks: none may be kept. For every other trout or char
-    the lake's 2 speaks, over the zone's "Trout/char: 5"."""
+    the lake's 2 speaks — and, since 2026-09-25, BESIDE the zone's "Trout/char: 5" and its "1 over
+    50 cm" (quotas sit beside: the lake's 2 with its 40 cm floor is not the zone's statement, and the
+    zone's 5 is a day's total over every water of Zone B)."""
     slug = eid.split(":")[1].split("@")[0]
     sid = _sid(db, eid, f"{slug}.r2")
     assert _speaks(sid, (7, 1), "BT") == {f"{ZB}::trout_char_quota.r9"}
@@ -157,7 +160,9 @@ def test_kakwa_and_cecilia_bull_trout_are_released_other_trout_keep_the_lakes_tw
     bt = [x for x in got if x["state"] == "speaks" and (x["type"], x["dimension"]) == DAILY]
     assert [(x["take"], x["may_target"]) for x in bt] == [(0, 1)]
     for fish in ("RB", "LT", "EB"):
-        assert _speaks(sid, (7, 1), fish) == {f"{eid}::{slug}.r2"}, fish
+        assert _speaks(sid, (7, 1), fish) == {f"{eid}::{slug}.r2", f"{ZB}::trout_char_quota.r1",
+                                              f"{ZB}::trout_char_quota.r2"} | (
+            {f"{ZB}::trout_char_quota.r4"} if fish == "LT" else set()), fish      # "2 lake trout"
     # the lake's own closure is never displaced, whatever names the fish
     assert f"{eid}::{slug}.r1" in _speaks(sid, (12, 1), "BT")
 
@@ -541,3 +546,392 @@ def test_a_release_beaten_by_a_superior_quota_releases_nothing(tmp_path):
         {"entry": "zp:x", "rule": "x.r1", "species": ["ALL_GAME_FISH"], "take": 0,
          "may_target": 0, "_rank": -1}])
     assert _speak(park, "BT") == {"x.r1"}
+
+
+# --------------------------------------------------------------------------- rulings of 2026-09-25 (R2)
+# C. QUOTAS SIT BESIDE. A water's quota and the zone's both speak unless they state EXACTLY the
+#    same thing; only then does the water's number displace the zone's.
+def _quota_case(tmp_path, water: dict) -> str:
+    return _tiny(tmp_path, [
+        dict({"entry": "r9:w", "rule": "w.r1", "_rank": 0}, **water),
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z9:k", "rule": "k.r1", "species": ["KO"], "take": 5, "_rank": 3}])
+
+
+def test_a_water_quota_sits_beside_the_zones_total(tmp_path):
+    """"Rainbow trout daily quota = 2" at a lake and the region's "Trout/char: 5": the 5 is a day's
+    total over every water of the region, so both hold — never the lake's 2 alone."""
+    path = _quota_case(tmp_path, {"species": ["RB"], "take": 2})
+    assert _speak(path, "RB", (7, 1)) == {"w.r1", "q.r1"}
+
+
+def test_a_size_bound_or_an_origin_is_a_different_statement(tmp_path):
+    """Kakwa Lake's "Trout/char daily quota = 2 (none under 40 cm)" and Dodd Lake's "Wild trout/char
+    daily quota = 2" are not the zone's "Trout/char: 5": each sits beside it."""
+    for i, water in enumerate(({"species": ["TROUT_CHAR"], "take": 2,
+                                "lengths": [{"min_cm": 40}, {"max_cm": 40, "take": 0}]},
+                               {"species": ["TROUT_CHAR"], "take": 2, "origin": "wild"})):
+        (tmp_path / str(i)).mkdir()
+        path = _quota_case(tmp_path / str(i), water)
+        assert _speak(path, "RB", (7, 1)) == {"w.r1", "q.r1"}, water
+
+
+def test_the_same_statement_with_another_number_displaces_the_zones(tmp_path):
+    """A lake's "Kokanee daily quota = 10" states exactly what the region's "Kokanee: 5" states: the
+    water's number replaces the zone's. MUTATION: with `same_statement` always false the zone's 5
+    speaks beside it."""
+    path = _quota_case(tmp_path, {"species": ["KO"], "take": 10})
+    assert _speak(path, "KO", (7, 1)) == {"w.r1"}
+    import pipeline.deliver.bundle.rules as rules_mod
+    real = rules_mod.same_statement
+    try:
+        rules_mod.same_statement = lambda a, b: False
+        assert _speak(path, "KO", (7, 1)) == {"w.r1", "k.r1"}
+    finally:
+        rules_mod.same_statement = real
+
+
+def test_the_sit_beside_rule_is_what_keeps_the_zone_speaking(tmp_path):
+    """MUTATION: with `same_statement` always true (the ladder before the ruling) the water's
+    rainbow quota silences the zone's 5 — the test above fails against it."""
+    import pipeline.deliver.bundle.rules as rules_mod
+    path = _quota_case(tmp_path, {"species": ["RB"], "take": 2})
+    real = rules_mod.same_statement
+    try:
+        rules_mod.same_statement = lambda a, b: True
+        assert _speak(path, "RB", (7, 1)) == {"w.r1"}
+    finally:
+        rules_mod.same_statement = real
+
+
+def test_kitimat_dodd_and_morris_quotas_sit_beside_the_regions(db):
+    """The reviewer's pairs: Kitimat's "Hatchery steelhead … daily quota = 2" beside Region 6's
+    "Trout/char: 5"; Dodd Lake's "Wild trout/char daily quota = 2" beside Region 2's 4; Morris
+    Lake's "hatchery trout/char daily quota = 2 (none under 30 cm)" beside the 4."""
+    kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
+    sid = _sid(db, kit, "kitimat_river.r5")
+    got = _kept(sid, (8, 1), "ST")
+    assert {f"{kit}::kitimat_river.r5", "z6:trout_char_quota::trout_char_quota.r1"} <= got
+    for eid, rid in (("r2:dodd_lake@2-12", "dodd_lake.r1"), ("r2:morris_lake@2-19", "morris_lake.r2")):
+        sid = _sid(db, eid, rid)
+        got = _kept(sid, (8, 1), "RB")
+        assert {f"{eid}::{rid}", "z2:trout_char_quota::trout_char_quota.r1"} <= got, eid
+
+
+# G. A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH.
+def test_a_water_row_naming_the_closed_fish_lifts_the_closure(db):
+    """Okanagan River prints "bass daily quota = 8" under Region 8's "Bass: 0 quota, CLOSED TO
+    FISHING (see tables for exceptions)" — the row is the exception. The lift is in the data
+    (`basis: names_the_fish`), not inferred."""
+    eid = "r8:okanagan_river@8-1"
+    sid = _sid(db, eid, "okanagan_river.r2")
+    for fish in ("LMB", "SMB"):
+        got = _kept(sid, (7, 15), fish)
+        assert f"{eid}::okanagan_river.r2" in got and \
+            "z8:species_quotas::species_quotas.r1" not in got, fish
+    (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
+                       (eid, "okanagan_river.r2")).fetchone()
+    lift = [x for x in json.loads(ex) if x["rule_id"] == "species_quotas.r1"]
+    assert lift and lift[0]["basis"] == "names_the_fish" and lift[0]["entry_id"] == "z8:species_quotas"
+
+
+def test_a_group_row_never_reopens_a_named_closure(db):
+    """West Road's tributaries print "Trout daily quota = 1": "trout" names no steelhead, so Region
+    6's "No fishing: in all rivers and streams for steelhead, May 15 – June 15" stands there."""
+    eid = "r6:west_road_blackwater_river_s_tributaries@6-1"
+    sid = _sid(db, eid, "west_road_river_tributaries.r1")
+    got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (6, 1), "ST", BUNDLE)
+           if x["state"] == "speaks"}
+    assert "z6:steelhead_stream_closure::steelhead_stream_closure.r1" in got
+    (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
+                       (eid, "west_road_river_tributaries.r1")).fetchone()
+    assert "steelhead_stream_closure" not in (ex or "")
+
+
+def test_named_lifts_need_both_rules_to_name_the_fish():
+    """The derivation itself: a water's "Bass: 8" lifts a zone's "Bass: CLOSED"; its "Trout: 1"
+    never lifts a steelhead closure; a group closure ("No fishing in any stream") is never lifted
+    by naming. MUTATION: `named_leaves` reading an aggregate as naming its members lifts the
+    steelhead closure."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+
+    def rule(**kw):
+        return CatalogueRule.model_validate(dict({"type": "retention_limit",
+                                                  "extents": [{"op": "whole"}]}, **kw))
+    bass_closed = rule(rule_id="s.r1", verbatim="Bass: 0 quota, CLOSED", species=["BASS"], take=0,
+                       may_target=False)
+    st_closed = rule(rule_id="c.r1", verbatim="No fishing for steelhead", species=["ST"], take=0,
+                     may_target=False)
+    streams = rule(rule_id="k.r1", verbatim="No fishing in any stream", species=["ALL_GAME_FISH"],
+                   take=0, may_target=False)
+    closures = rules_mod.zone_closures([type("E", (), {"entry_id": "z8:s", "rules": [bass_closed]}),
+                                        type("E", (), {"entry_id": "z8:c", "rules": [st_closed]}),
+                                        type("E", (), {"entry_id": "z8:k", "rules": [streams]})])
+    assert sorted(eid for rows in closures.values() for eid, _ in rows) == ["z8:c", "z8:s"]
+    bass = rule(rule_id="w.r1", verbatim="bass daily quota = 8", species=["BASS"], take=8)
+    trout = rule(rule_id="w.r2", verbatim="Trout daily quota = 1", species=["TROUT"], take=1)
+    got = rules_mod._named_lifts("r8:w", bass, closures)
+    assert [(x["entry_id"], x["rule_id"], x.get("species")) for x in got] == [("z8:s", "s.r1", None)]
+    assert rules_mod._named_lifts("r8:w", trout, closures) == []
+    real = rules_mod.AGGREGATE_GROUPS
+    try:
+        rules_mod.AGGREGATE_GROUPS = frozenset()
+        assert [x["entry_id"] for x in rules_mod._named_lifts("r8:w", trout, closures)] == ["z8:c"]
+    finally:
+        rules_mod.AGGREGATE_GROUPS = real
+
+
+# H. REGION 8's BROOK TROUT FROM STREAMS ARE COUNTED APART FROM THE TROUT/CHAR QUOTA.
+def test_region_8_brook_trout_from_streams_are_counted_apart(db):
+    """p.68: "Trout/char: 5, but not more than … 4 from streams … And you may retain: 20 brook trout
+    from streams". On a stream a brook trout answers to its 20 only; on a lake (where the 20 does
+    not bind) to the trout/char 5."""
+    tc = "z8:trout_char_quota"
+    sid = _sid(db, tc, "trout_char_quota.r5")
+    got = _kept(sid, (8, 1), "EB")
+    assert f"{tc}::trout_char_quota.r5" in got
+    assert not {f"{tc}::trout_char_quota.r{k}" for k in (1, 2, 3, 4)} & got, got
+    # a rainbow on the same stream is still under the 5 and the 4 from streams
+    assert {f"{tc}::trout_char_quota.r1", f"{tc}::trout_char_quota.r3"} <= _kept(sid, (8, 1), "RB")
+    lake = _sid(db, tc, "trout_char_quota.r1", without=((tc, "trout_char_quota.r5"),))
+    assert f"{tc}::trout_char_quota.r1" in _kept(lake, (8, 1), "EB")
+
+
+# E. CHILLIWACK: A RAINBOW OVER 50 CM IS A STEELHEAD (p.86).
+def test_as_rainbow_reads_a_rule_over_rainbow_of_50_cm_or_less():
+    assert R.as_rainbow({"take": 1, "lengths": [{"min_cm": 50}]}) is None          # "1 over 50 cm"
+    assert R.as_rainbow({"take": 0, "lengths": [{"max_cm": 50, "take": 0}]}) == {"take": 0}
+    assert R.as_rainbow({"take": 4, "lengths": [{"max_cm": 50}]}) == {"take": 4}
+    x = {"take": 2, "lengths": [{"min_cm": 30, "max_cm": 50}, {"max_cm": 30, "take": 0}]}
+    assert R.as_rainbow(x) == x
+    assert R.as_rainbow({"take": 2}) == {"take": 2}
+    assert R.as_rainbow({"lengths": [{"max_cm": 30, "take": 0}, {"min_cm": 60, "take": 0}]}) == \
+        {"lengths": [{"max_cm": 30, "take": 0}]}
+
+
+def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
+    """Chilliwack/Vedder downstream of Vedder Crossing. May: "hatchery rainbow trout catch and
+    release (50 cm or less)" releases every hatchery rainbow there (every rainbow is 50 cm or less),
+    so Region 2's "Trout/char: 4" keeps no rainbow — and its "1 over 50 cm" speaks for no rainbow.
+    A fish over 50 cm is a steelhead: "2 hatchery steelhead over 50 cm allowed", "All wild steelhead"
+    released. July-April: the row's "hatchery rainbow trout … 50 cm or less: daily quota = 4" beside
+    the region's 4."""
+    eid = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
+    tc = "z2:trout_char_quota"
+    sid = _sid(db, eid, "chilliwack_vedder_rivers.r6")
+    assert db.execute("select 1 from steelhead_water where sid = ?", (sid,)).fetchone()
+    may = _kept(sid, (5, 15), "RB")
+    assert f"{eid}::chilliwack_vedder_rivers.r6" in may
+    assert f"{tc}::trout_char_quota.r1" not in may and f"{tc}::trout_char_quota.r2" not in may
+    st = _kept(sid, (5, 15), "ST")
+    assert {f"{tc}::trout_char_quota.r3", f"{tc}::trout_char_quota.r7"} <= st
+    jul = _kept(sid, (7, 15), "RB")
+    assert {f"{eid}::chilliwack_vedder_rivers.r9", f"{tc}::trout_char_quota.r1"} <= jul
+    assert f"{tc}::trout_char_quota.r2" not in jul
+    # elsewhere in Region 2 a rainbow of any size is a rainbow: "1 over 50 cm" speaks for it
+    other = _sid(db, tc, "trout_char_quota.r2",
+                 without=(("r2:chilliwack_vedder%", None),))
+    assert not db.execute("select 1 from steelhead_water where sid = ?", (other,)).fetchone()
+    assert f"{tc}::trout_char_quota.r2" in _kept(other, (7, 15), "RB")
+
+
+def test_the_guide_states_the_rulings_of_the_second_round(db):
+    from pipeline.tools import export_ui_rules as X
+    g = X.build(Path(BUNDLE))["guide"]
+    lad = g["ladder"]
+    assert "SITS BESIDE" in lad["quotas_sit_beside"] and "EXACTLY" in lad["quotas_sit_beside"]
+    assert "NAMES THE" in lad["closures"] and "West Road" in lad["closures"]
+    assert "20 brook trout from streams" in lad["counted_apart"]
+    assert "p.86" in lad["steelhead_definition"] and "Chilliwack" in lad["steelhead_definition"]
+    assert "Mara Lake" in lad["region"]
+    assert "BINDS NOTHING" in g["entries"]["pointers"]["reading"]
+    assert g["exempts"]["derived_lifts"] > 0
+
+
+# --------------------------------------------------------------------------- round R4 (2026-09-25)
+# 1. A WATER QUOTA CAN NEVER MAKE THE NUMBER BIGGER: the zone total caps it.
+def test_a_larger_water_quota_sits_beside_the_zone_total_that_caps_it(tmp_path):
+    """Perry Creek's "Brook trout daily quota = 20" beside Region 4's "Trout/char: 5": both speak,
+    so the angler keeps at most 5. MUTATION: `same_statement` answering True lets the 20 displace
+    the 5 — the number grows — and this fails."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    path = _tiny(tmp_path, [
+        {"entry": "z4:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "r4:perry", "rule": "p.r3", "species": ["EB"], "take": 20, "_rank": 0}])
+    assert _speak(path, "EB", (8, 1)) == {"q.r1", "p.r3"}
+    real = rules_mod.same_statement
+    try:
+        rules_mod.same_statement = lambda a, b: True
+        assert _speak(path, "EB", (8, 1)) == {"p.r3"}
+    finally:
+        rules_mod.same_statement = real
+
+
+def test_perry_creek_brook_trout_20_is_capped_by_the_zone_5(db):
+    eid = "r4:perry_creek@4-20"
+    sid = _sid(db, eid, "perry_creek.r3")
+    got = _kept(sid, (8, 1), "EB")
+    assert {f"{eid}::perry_creek.r3", "z4:trout_char_quota::trout_char_quota.r1"} <= got
+
+
+def test_the_guide_says_a_larger_water_quota_is_capped(db):
+    from pipeline.tools import export_ui_rules as X
+    lad = X.build(Path(BUNDLE))["guide"]["ladder"]
+    assert "CAN NEVER MAKE THE NUMBER BIGGER" in lad["quotas_sit_beside"]
+    assert "capped" in lad["quotas_sit_beside"] and "counted apart" in lad["quotas_sit_beside"]
+    assert "MOST STRICT" in lad["two_regions"] and "LOWER" in lad["two_regions"]
+    assert "whole length" in lad["region"] and "PER-REGION" in lad["region"]
+    assert "PRINTS ITS OWN EXEMPTION LIST" in lad["closures"]
+
+
+# 2. A DERIVED LIFT NEVER REOPENS MORE THAN ITS LIFTER COVERS (Kitimat).
+def _crule(**kw):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    return CatalogueRule.model_validate(dict({"type": "retention_limit",
+                                              "extents": [{"op": "whole"}]}, **kw))
+
+
+def _E(eid, rules):
+    return type("E", (), {"entry_id": eid, "rules": rules})
+
+
+def test_a_closure_printing_its_own_exemptions_takes_no_derived_lift():
+    """Region 6 (p.49): "No fishing: in all rivers and streams for steelhead, May 15 – June 15.
+    Exemptions include mainstem portions of the Skeena, Nass, …" — the entry's own rule exempts the
+    mainstems, so no water row adds to the list by naming steelhead. "(No exceptions)" refuses too.
+    Region 8's "(see tables for exceptions)" does neither. MUTATION: `prints_its_exemptions`
+    answering False lets Kitimat's hatchery quota lift the steelhead closure again."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    st = _crule(rule_id="c.r1", verbatim="No fishing for steelhead", species=["ST"], take=0,
+                may_target=False)
+    mains = _crule(rule_id="c.r2", verbatim="Exemptions include mainstems", species=["ST"],
+                   exempts=[{"target": "c.r1"}])
+    wsg = _crule(rule_id="s.r9", verbatim="White Sturgeon: 0 quota, CLOSED TO FISHING (No "
+                 "exceptions)", species=["WSG"], take=0, may_target=False)
+    bass = _crule(rule_id="s.r1", verbatim="Bass: 0 quota, CLOSED TO FISHING", species=["BASS"],
+                  take=0, may_target=False)
+    docs = [_E("z6:c", [st, mains]), _E("z6:s", [wsg, bass])]
+    got = {(e, r.rule_id) for rows in rules_mod.zone_closures(docs).values() for e, r in rows}
+    assert got == {("z6:s", "s.r1")}
+    kit = _crule(rule_id="k.r5", verbatim="Hatchery steelhead daily quota = 2", species=["ST"],
+                 take=2, origin="hatchery", lengths=[{"min_cm": 50}, {"max_cm": 50, "take": 0}])
+    assert rules_mod._named_lifts("r6:kit", kit, rules_mod.zone_closures(docs)) == []
+    real = rules_mod.prints_its_exemptions
+    try:
+        rules_mod.prints_its_exemptions = lambda ce, r: False
+        assert rules_mod._named_lifts("r6:kit", kit, rules_mod.zone_closures(docs))
+    finally:
+        rules_mod.prints_its_exemptions = real
+
+
+def test_a_derived_lift_carries_the_lifters_origin_and_sizes():
+    """A hatchery lifter lifts for hatchery fish only; a band restating the fish's definition (a
+    steelhead is over 50 cm) is not a size term, a real size limit is. MUTATION: dropping the
+    `origin` term makes a hatchery quota reopen the closure for wild fish."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    closed = _crule(rule_id="c.r1", verbatim="No fishing for steelhead", species=["ST"], take=0,
+                    may_target=False)
+    closures = {"9": [("z9:c", closed)]}
+    hatch = _crule(rule_id="w.r1", verbatim="Hatchery steelhead (>50 cm) daily quota = 2",
+                   species=["ST"], take=2, origin="hatchery",
+                   lengths=[{"min_cm": 50}, {"max_cm": 50, "take": 0}])
+    (x,) = rules_mod._named_lifts("r9:w", hatch, closures)
+    assert x["origin"] == "hatchery" and "lengths" not in x
+    big = _crule(rule_id="w.r2", verbatim="Steelhead daily quota = 1 (none under 80 cm)",
+                 species=["ST"], take=1, lengths=[{"min_cm": 80}, {"max_cm": 80, "take": 0}])
+    (y,) = rules_mod._named_lifts("r9:w", big, closures)
+    assert y["lengths"] == [{"min_cm": 80}] and "origin" not in y
+
+
+def test_a_lift_for_some_fish_leaves_the_closure_standing_partly_lifted(tmp_path):
+    """An `origin` or `lengths` term is known only once the fish is caught: the closure stays,
+    marked partly lifted. MUTATION: reading such an item as outright reopens the closure."""
+    for i, term in enumerate(({"origin": "hatchery"}, {"lengths": [{"min_cm": 80}]})):
+        (tmp_path / str(i)).mkdir()
+        path = _tiny(tmp_path / str(i), [
+            {"entry": "z9:c", "rule": "c.r1", "species": ["ST"], "take": 0, "may_target": 0,
+             "_rank": 3},
+            {"entry": "r9:w", "rule": "w.r1", "species": ["ST"], "take": 2, "_rank": 0,
+             "exempts": [dict({"entry_id": "z9:c", "rule_id": "c.r1",
+                               "basis": "names_the_fish"}, **term)]}])
+        got = {x["rule"]: x for x in R.effective_rules(1, (5, 20), "ST", path)}
+        assert "c.r1" in got and got["c.r1"].get("partly_lifted"), term
+
+
+def test_kitimat_steelhead_closure_stands_for_wild_and_hatchery(db):
+    """p.49 + p.51: Region 6's steelhead stream closure (May 15 – June 15) prints its own exemption
+    list, and the Kitimat is not on it. On the Kitimat mainstem and its tributaries, May 20, the
+    closure speaks for steelhead; the row's own hatchery quota stands beside it. No lift of the
+    closure ships on the Kitimat's rules."""
+    kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
+    for rid in ("kitimat_river.r5", "kitimat_river.r6"):
+        (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
+                           (kit, rid)).fetchone()
+        assert "steelhead_stream_closure" not in (ex or ""), rid
+    for via in ("reach", "trib"):
+        sid = db.execute("select min(sr.sid) from ruleset r join section_ruleset sr on "
+                         "sr.set_id = r.set_id where r.entry_id = ? and r.rule_id = ? and "
+                         "r.via = ?", (kit, "kitimat_river.r5", via)).fetchone()[0]
+        assert sid is not None, via
+        got = {f"{x['entry']}::{x['rule']}": x for x in
+               R.effective_rules(sid, (5, 20), "ST", BUNDLE) if x["state"] == "speaks"}
+        close = got.get("z6:steelhead_stream_closure::steelhead_stream_closure.r1")
+        assert close is not None and not close.get("partly_lifted"), via
+
+
+def test_every_derived_lift_is_region_8s_bass_or_perch(db):
+    """After the fix, the derived lifts are Region 8's "(see tables for exceptions)" closures
+    only — bass (species_quotas.r1) and yellow perch (species_quotas.r9)."""
+    n = 0
+    for eid, rid, ex in db.execute("select entry_id, rule_id, exempts from rule "
+                                   "where exempts like '%names_the_fish%'"):
+        for x in json.loads(ex):
+            if x.get("basis") == "names_the_fish":
+                n += 1
+                assert (x["entry_id"], x["rule_id"]) in {
+                    ("z8:species_quotas", "species_quotas.r1"),
+                    ("z8:species_quotas", "species_quotas.r9")}, (eid, rid, x)
+    assert n == 34
+
+
+# 3(c). TWO REGIONS' BASES ON ONE LAKE: THE MOST STRICT APPLIES.
+def test_stricter_decides_between_two_regions_rules():
+    closed = {"type": "retention_limit", "species": ["BASS"], "take": 0, "may_target": 0}
+    quota = {"type": "retention_limit", "species": ["BASS"], "take": 8}
+    release = {"type": "retention_limit", "species": ["TROUT_CHAR"], "take": 0}
+    tc5 = {"type": "retention_limit", "species": ["TROUT_CHAR"], "take": 5}
+    tc4 = {"type": "retention_limit", "species": ["TROUT_CHAR"], "take": 4}
+    wild = {"type": "retention_limit", "species": ["TROUT_CHAR"], "take": 2, "origin": "wild"}
+    gear = {"type": "gear_restriction", "species": []}
+    assert R.stricter(closed, quota) and not R.stricter(quota, closed)
+    assert not R.stricter(closed, dict(closed))
+    assert R.stricter(release, tc5) and not R.stricter(tc5, release)
+    assert R.stricter(tc4, tc5) and not R.stricter(tc5, tc4) and not R.stricter(tc4, dict(tc4))
+    assert not R.stricter(tc4, wild) and not R.stricter(wild, tc4)     # different statements
+    assert not R.stricter(closed, gear)                                # gear both apply
+
+
+def test_two_regions_on_one_lake_the_most_strict_speaks(tmp_path):
+    """Region 3's "Bass: CLOSED" beside Region 8's (made-up) "Bass: 8" on a straddling lake: the
+    closure speaks. "Trout/char: 4" beats "Trout/char: 5" even when the 5 is an area rule. MUTATION:
+    removing step 6 lets Region 8's 8 and 5 speak; letting step 4 rank two regions' rules by place
+    (`peers` ignored) lets the area's 5 displace the 4."""
+    path = _tiny(tmp_path, [
+        {"entry": "z3:s", "rule": "s.r1", "species": ["BASS"], "take": 0, "may_target": 0,
+         "_rank": 3},
+        {"entry": "z8:s", "rule": "s.r1", "species": ["BASS"], "take": 8, "_rank": 3},
+        {"entry": "z3:t", "rule": "t.r1", "species": ["TROUT_CHAR"], "take": 4, "_rank": 3},
+        # an AREA rule of Region 8 (rank 2) does not outrank Region 3's table by place here
+        {"entry": "z8:t", "rule": "t.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 2},
+        {"entry": "z8:g", "rule": "g.r1", "type": "gear_restriction", "dimension": "hook",
+         "species": [], "_rank": 3},
+        {"entry": "z3:g", "rule": "g.r1", "type": "gear_restriction", "dimension": "hook",
+         "species": [], "_rank": 3}])
+    got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(1, (7, 1), "SMB", path)
+           if x["state"] == "speaks"}
+    assert "z3:s::s.r1" in got and "z8:s::s.r1" not in got
+    assert {"z3:g::g.r1", "z8:g::g.r1"} <= got
+    rb = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(1, (7, 1), "RB", path)
+          if x["state"] == "speaks"}
+    assert "z3:t::t.r1" in rb and "z8:t::t.r1" not in rb

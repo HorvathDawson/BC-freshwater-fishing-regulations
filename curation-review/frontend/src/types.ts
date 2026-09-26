@@ -293,6 +293,9 @@ export interface Entry {
   /** POINTERS ("See Lonzo Creek") — not rules; they bind nothing (catalogue.See). A row whose
    *  only content is a pointer has no rules and no licensing. */
   see?: See[];
+  /** anadromous rainbow trout are found here: a rainbow over 50 cm IS a steelhead (p.86;
+   *  catalogue.CatalogueEntry.anadromous_rainbow). Set per row where known, never inferred. */
+  anadromous_rainbow?: boolean;
 }
 
 /** catalogue.See: the printed pointer, and the entries it names — OR why it names none. */

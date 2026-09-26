@@ -276,6 +276,46 @@ def names_fish(rule: dict, fish: str) -> bool:
                for c in rule.get("species") or [])
 
 
+#: A rainbow longer than this is a steelhead where anadromous rainbow are found (p.86).
+def _steelhead_min_cm() -> int:
+    from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
+    return int(DEFINITIONAL_SIZE["ST"]["min_cm"])
+
+
+def steelhead_water(db, section: int) -> bool:
+    """Whether the book's steelhead definition holds on this section (`steelhead_water`): a
+    rainbow over 50 cm here is a steelhead. A bundle without the table is refused."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'steelhead_water'").fetchone():
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
+            raise SystemExit("read: the bundle has no `steelhead_water` table — rebuild it "
+                             "(`python -m pipeline.deliver.bundle`)")
+        return False                                    # a hand-made test bundle of rule sets
+    return db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (section,)).fetchone() \
+        is not None
+
+
+def as_rainbow(x: dict) -> dict | None:
+    """A rule READ FOR A RAINBOW WHERE A RAINBOW OVER 50 CM IS A STEELHEAD: its length bands over
+    that range (every rainbow here is 50 cm or less). `None` when it speaks only of rainbow over 50
+    cm; the rule unchanged when it has no bands or none lies outside; with the bands outside dropped
+    otherwise — and with no bands at all when the one left covers every rainbow ("hatchery rainbow
+    trout catch and release (50 cm or less)" is then an outright release of hatchery rainbow)."""
+    bands = x.get("lengths") or []
+    if not bands:
+        return x
+    top = _steelhead_min_cm()
+    inside = [b for b in bands if b.get("min_cm") is None or b["min_cm"] < top]
+    if not inside:
+        return None
+    if len(inside) == 1 and inside[0].get("min_cm") is None \
+            and (inside[0].get("max_cm") is None or inside[0]["max_cm"] >= top):
+        y = {k: v for k, v in x.items() if k != "lengths"}
+        if inside[0].get("take") is not None:
+            y["take"] = inside[0]["take"]
+        return y
+    return x if len(inside) == len(bands) else dict(x, lengths=inside)
+
+
 _RULES_BY_PATH: dict = {}
 
 
@@ -290,6 +330,51 @@ def _rules_of(path: str) -> dict:
     return got
 
 
+def base_region(entry_id: str) -> str | None:
+    """`z3:…` -> "3", `z7a:…` -> "7a"; `None` for the province's table (`zp:`) and every row."""
+    head = str(entry_id).split(":", 1)[0]
+    if head.startswith("z") and head != "zp":
+        return head[1:]
+    return None
+
+
+def _count(x: dict) -> float:
+    return float("inf") if x.get("unlimited") else float(x["take"])
+
+
+def stricter(a: dict, b: dict) -> bool:
+    """Is rule `a` STRICTER than rule `b` about the same fish — so that, between two regions'
+    zone rules on one lake, `a` applies and `b` does not (`effective_rules` step 6)?
+
+      a closure (take 0, may not fish for it; at every size, whatever the means) beats a retention
+        rule that is not a closure;
+      an outright release (`rules.release_origins`) beats a quota keeping only origins it releases
+        (`rules.yields_to_release`);
+      of two quotas stating the same thing (`rules.same_statement`), the lower beats the higher.
+
+    Anything else is not stricter: two statements sit beside each other, and a gear or method rule
+    is never displaced by one of another region (both apply)."""
+    from pipeline.deliver.bundle.rules import (release_origins, same_statement,
+                                               yields_to_release)
+    if b.get("type") != "retention_limit" or a.get("type") != "retention_limit":
+        return False
+    shut = lambda x: x.get("take") == 0 and x.get("may_target") == 0 and not (
+        x.get("lengths") or x.get("while") or x.get("when_targeting") or x.get("within"))
+    if shut(a):
+        return not shut(b)
+    if shut(b):
+        return False
+    rel, keeps = release_origins(a), yields_to_release(b)
+    if rel and keeps and keeps <= rel:
+        return True
+    ka = yields_to_release(a)
+    if ka and keeps and a.get("take") is not None and (b.get("take") is not None
+                                                        or b.get("unlimited")) \
+            and same_statement(a, b):
+        return _count(a) < _count(b)
+    return False
+
+
 def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                     by_naming: bool = True) -> List[dict]:
     """THE RULES THAT SPEAK FOR ONE FISH, ON ONE SECTION, ON ONE DAY — the ladder as code.
@@ -299,6 +384,11 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     each a `rules()` dict with `state` added: "speaks", or "beside" (in force only some hours or
     weekdays, or of unreadable season: shown, never displacing). Sorted by `rid`.
 
+      0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
+         (`steelhead_water`, p.86): asked about "RB" there, every rule is read over rainbow of 50
+         cm or less (`as_rainbow`) — one speaking only of rainbow over 50 cm speaks for no
+         rainbow, and a rainbow release "(50 cm or less)" is an outright release. The larger
+         fish is asked about as "ST".
       1. IN FORCE ON THE DAY. A rule whose `when` excludes the day is out, and so is one dormant
          under `suspended_while` while its named closure is in force here.
       2. ABOUT THIS FISH (`speaks_for`). Competition is PER FISH: two rules compete only for the
@@ -307,7 +397,12 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
       3. LIFTS. A lift from a rule in force here removes the lifted rule for this fish — outright,
          or when its `species` holds the fish and its `when` holds the day. A lift that holds only
          while fishing FOR something (`when_targeting`) or while doing something (`while`), or
-         only some hours, leaves the rule standing (the angler is unknown).
+         only some hours, or only for a fish of some origin or size (`origin`, `lengths`: known
+         only once it is caught), leaves the rule standing (the angler is unknown). Lifts are
+         printed exemptions, or DERIVED at build (`basis: names_the_fish`, `rules._named_lifts`): a
+         water row naming a fish its region closes lifts that closure for the fish both name — the
+         only way a closure leaves (step 4 never displaces one) — never further than the lifter
+         covers, and never a closure that prints its own exemption list.
       4. COMPETITION, on `(type, dimension)`. Among competitors, for this fish:
            a SUPERIOR authority first (nothing below it opens what it closed); then
            NAMING — a rule that names the fish beats one naming a group that holds it (Zone B's
@@ -323,6 +418,13 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
          its parent quota are one statement ("Trout/char: 5, but not more than 3 lake trout")
          and never displace each other. Ties all speak.
+         QUOTAS SIT BESIDE (user ruling 2026-09-25): a quota written for this water (or reaching
+         it by the walk) and a zone, area or provincial quota, both keeping fish, displace each
+         other only when they state EXACTLY the same thing (`rules.same_statement`: the same fish
+         or group, size bounds, origin, water kind, means and target) — Kokanee: 10 at a lake
+         replaces the region's Kokanee: 5. Otherwise both speak: the zone's number is a day's
+         total over every water of the region, so a lake's "Rainbow trout: 2" or "Hatchery
+         steelhead: 2" is how many of that total may come from here.
          A CLOSURE ("No fishing": take 0, may not fish for it) is never displaced — "this water
          overrides regional always, except closures unless they are lifted in this water's regs".
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
@@ -335,6 +437,12 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          `rules.release_origins`, `rules.yields_to_release`). Such a release counts even when
          step 4 put it behind a zone release naming the fish, and one step 4 put behind a
          looser zone rule naming the fish (one that lets it be kept) speaks again.
+      6. TWO REGIONS' BASES — THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake straddling
+         a region line binds both regions' zone rules; neither outranks the other (step 4 does not
+         set them against each other). Per fish, a zone rule of one region is displaced by a
+         `stricter` zone rule of the other: a closure beats open, a release beats a quota, the
+         lower of two quotas stating the same thing beats the higher; different statements sit
+         beside; gear and method rules of both apply.
       Rules that never compete pass through with state "shown": `standing`, the information
       family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
       `lift`) state nothing and are not returned.
@@ -349,10 +457,26 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     try:
         bound = db.execute("SELECT r.entry_id, r.rule_id, r.via FROM section_ruleset s JOIN ruleset r "
                            "ON r.set_id = s.set_id WHERE s.sid = ?", (section,)).fetchall()
+        steelhead_here = fish == "RB" and steelhead_water(db, section)
     finally:
         db.close()
-    every = _rules_of(path)
+    orig = _rules_of(path)
+    every = orig
     here = {(e, r): via for e, r, via in bound if (e, r) in every}
+    # 0. WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.86), a rainbow rule speaks only for rainbow
+    #    of 50 cm or less: each rule is read over that range (`as_rainbow`), and one that speaks
+    #    only of rainbow over 50 cm ("1 over 50 cm") speaks for no rainbow here — the fish is a
+    #    steelhead, asked about as "ST".
+    no_rainbow: set = set()
+    if steelhead_here:
+        every = dict(orig)
+        for k in here:
+            if speaks_for(orig[k], fish):
+                v = as_rainbow(orig[k])
+                if v is None:
+                    no_rainbow.add(k)
+                else:
+                    every[k] = v
     state = {k: in_force(every[k].get("when"), on) for k in here}
     for k in here:                                          # 1. dormant under its closure
         sw = every[k].get("suspended_while")
@@ -369,7 +493,9 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
             if t not in live or ("species" in x
                                  and not speaks_for({"species": x["species"]}, fish)):
                 continue
-            if x.get("when_targeting") or x.get("while"):
+            # A lift for some anglers (a target, a means) or some fish (an origin, a size — which
+            # the angler learns only once it is caught) leaves the rule standing, partly lifted.
+            if x.get("when_targeting") or x.get("while") or x.get("origin") or x.get("lengths"):
                 partly.add(t)
                 continue
             got = in_force(x.get("when"), on) if "when" in x else "yes"
@@ -377,7 +503,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                 lifted.add(t)
             elif got == "part":
                 partly.add(t)
-    cand = {k for k in live - lifted
+    cand = {k for k in live - lifted - no_rainbow
             if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
 
     def competes(k) -> bool:
@@ -409,11 +535,38 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         if competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
 
+    from pipeline.deliver.bundle.rules import (release_origins, same_statement,
+                                               yields_to_release)
+
+    def place(k) -> int:
+        return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
+
+    def displaces(o, k) -> bool:
+        """QUOTAS SIT BESIDE (user ruling 2026-09-25): between a quota written for this water
+        (or reaching it by the walk) and a zone, area or provincial quota — both keeping fish —
+        the better displaces the other only when both state EXACTLY the same thing
+        (`rules.same_statement`); otherwise both speak, the zone's number being a day's total
+        over every water of the region."""
+        a, b = every[o], every[k]
+        if yields_to_release(a) and yields_to_release(b) \
+                and min(place(o), place(k)) in (0, 1) and max(place(o), place(k)) >= 2:
+            return same_statement(a, b)
+        return True
+
+    def base(k) -> str | None:
+        """The region whose OWN table (`z<region>:`, not the province's) wrote the rule."""
+        return base_region(k[0]) if every[k]["_rank"] >= 2 else None
+
+    def peers(o, k) -> bool:
+        """Two regions' zone rules on one section — a lake straddling their line (step 6)."""
+        a, b = base(o), base(k)
+        return a is not None and b is not None and a != b
+
     out_ = set(cand)
     for group in keyed.values():
         for k in group:
             if not closure(k) and any(order(o) < order(k) and family(o) != family(k)
-                                      for o in group):
+                                      and not peers(o, k) and displaces(o, k) for o in group):
                 out_.discard(k)
 
     # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
@@ -429,11 +582,6 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     #    Morris Lake's "Wild trout/char catch and release" leaves the region's 4 for hatchery
     #    trout). A rule about another fish never gets here (`speaks_for`), and a closure is never
     #    displaced (a closure keeps nothing).
-    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
-
-    def place(k) -> int:
-        return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
-
     #    The releases are read from EVERY competitor in force, not only step 4's survivors: a
     #    water release that lost step 4 to a release NAMING the fish (Pine River's "Catch and
     #    release all fish" under Zone B's "Bull trout … release") still releases it, and one that
@@ -445,7 +593,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     #    releases: nothing the region keeps survives either).
     def beaten_by(k) -> list:
         g = keyed.get((every[k]["type"], every[k]["dimension"]), [])
-        return [o for o in g if order(o) < order(k) and family(o) != family(k)]
+        return [o for o in g if order(o) < order(k) and family(o) != family(k)
+                and not peers(o, k)]
 
     rel = {}
     for k in cand:
@@ -468,9 +617,26 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                     and keeps & water_rel:
                 out_.discard(k)
 
+    # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake drawn across
+    #    a region line binds both regions' zone rules (`registry.regions.in_region`) — Ahbau Lake
+    #    (51 % Region 5, 49 % Zone 7A), Mara Lake (61 % Region 3, 39 % Region 8). Neither table
+    #    outranks the other by place, so step 4 set them against each other not at all (`peers`);
+    #    here, per fish, a rule of one region is displaced by a STRICTER rule of the other:
+    #      a closure beats a retention rule that is not one (closed beats open);
+    #      an outright release beats a quota keeping only origins it releases;
+    #      the lower of two quotas stating the same thing (`rules.same_statement`) beats the
+    #      higher — "Kokanee: 5" over "Kokanee: 10".
+    #    Quotas stating different things sit beside each other (the stricter binds by itself), and
+    #    gear and method rules are never displaced here: both regions' restrictions apply.
+    mine = [k for k in out_ if competes(k) and base(k) is not None]
+    if len({base(k) for k in mine}) > 1:
+        gone = {k for k in mine
+                if any(peers(o, k) and stricter(every[o], every[k]) for o in mine)}
+        out_ -= gone
+
     def said(k) -> str:
         return "speaks" if competes(k) else "beside" if state[k] == "part" else "shown"
 
-    return [dict({a: b for a, b in every[k].items() if a != "_rank"}, state=said(k),
+    return [dict({a: b for a, b in orig[k].items() if a != "_rank"}, state=said(k),
                  **({"partly_lifted": True} if k in partly else {}))
             for k in sorted(out_, key=lambda k: f"{k[0]}::{k[1]}")]

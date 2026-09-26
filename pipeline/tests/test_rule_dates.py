@@ -283,6 +283,11 @@ def test_coquihallas_fly_only_is_not_dated_by_the_bait_bans_season(raw):
     rules = {r.rule_id: r for r in ce.rules}
     assert rules["coquihalla_river.r2"].verbatim == "Fly fishing only"
     assert rules["coquihalla_river.r2"].when is None
+    # ...and the place is the bait ban's too: fly fishing only is the WHOLE river (user ruling
+    # 2026-09-25) — it reads the upstream-of-tunnel words, like the date, as the bait ban's
+    assert [x.model_dump(exclude_none=True) if hasattr(x, "model_dump") else x
+            for x in rules["coquihalla_river.r2"].extents] == [{"op": "whole"}]
+    assert rules["coquihalla_river.r3"].extents[0]["op"] == "upstream_of"
     assert rules["coquihalla_river.r3"].when.words() == "Jul 1-Oct 31"
     # MUTATION: spread the date back across the `;` and the model refuses the row
     broken = copy.deepcopy(raw["r2:coquihalla_river@2-17"])

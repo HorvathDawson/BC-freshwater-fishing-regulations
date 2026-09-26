@@ -2090,10 +2090,6 @@
      "lengths": [
       {
        "max_cm": 50
-      },
-      {
-       "min_cm": 50,
-       "take": 0
       }
      ],
      "origin": "hatchery",
@@ -2118,7 +2114,8 @@
       }
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r2:chilqua_slough@2-8",
@@ -2359,10 +2356,7 @@
      ],
      "extents": [
       {
-       "op": "upstream_of",
-       "splits": [
-        "coquihalla_river__coquihalla_othello_upper_tunnel"
-       ]
+       "op": "whole"
       }
      ]
     },

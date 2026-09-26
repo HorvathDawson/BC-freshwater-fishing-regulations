@@ -1492,13 +1492,25 @@ def _all_species_is_game_fish(rule: "CatalogueRule") -> Optional[str]:
     trapper's catch; written as `ALL_FIN_FISH` (Pine River's "all fish") it reached every sucker
     and carp. So a retention rule saying "all (other) species / all fish" is `ALL_GAME_FISH` with
     crayfish in `species_except` — game fish, less crayfish, less whatever the row names itself."""
-    if rule.type is not RuleType.retention_limit or not _ALL_SPECIES_SAID.search(
-            squash(rule.verbatim)):
+    if rule.type is not RuleType.retention_limit:
         return None
-    if list(rule.species) != ["ALL_GAME_FISH"] or "CRA" not in rule.species_except:
-        return (f"its sentence says 'all (other) species / all fish', which is GAME FISH and "
-                f"never crayfish — species ['ALL_GAME_FISH'] with 'CRA' in species_except (it "
-                f"has species {list(rule.species)}, except {list(rule.species_except)})")
+    if _ALL_SPECIES_SAID.search(squash(rule.verbatim)):
+        if list(rule.species) != ["ALL_GAME_FISH"] or "CRA" not in rule.species_except:
+            return (f"its sentence says 'all (other) species / all fish', which is GAME FISH and "
+                    f"never crayfish — species ['ALL_GAME_FISH'] with 'CRA' in species_except (it "
+                    f"has species {list(rule.species)}, except {list(rule.species_except)})")
+        return None
+    # A BARE "CATCH AND RELEASE" IS THE SAME RELEASE (user ruling 2026-09-25): Burnt River's and
+    # Clearwater Creek's "Catch and release" name no fish, so they release every GAME fish — and
+    # crayfish may still be kept. Held structurally, not by the words: a release (take 0, may fish)
+    # over ALL_GAME_FISH, under no means of its own, excepts crayfish. (A release WHILE set lining
+    # is the book's "any game fish … other than burbot" about what the set line takes, and a
+    # closure — `may_target: false` — is not a release.)
+    if list(rule.species) == ["ALL_GAME_FISH"] and rule.take == 0 and rule.may_target \
+            and not rule.while_ and "CRA" not in rule.species_except:
+        return ("a catch and release over every game fish releases GAME FISH and never crayfish — "
+                "add 'CRA' to species_except (crayfish may be kept; the zone's crayfish quota "
+                "stands)")
     return None
 
 
@@ -1695,8 +1707,10 @@ def _extents_the_resolver_reads(extents: Optional[List[dict]]) -> List[str]:
 
 
 #: A LIST MARKER at the head of a phrase — "3.", "4)", "(b)", "(iv)", "• ", "– ". The book prints
-#: them on its numbered lists, so a VERBATIM may start with one; a generated label, and a place
-#: named in `extent_text`, may not — "No fishing — (b) Chimdemash Creek" is a list item, not a place.
+#: them on its numbered lists, but they are layout, never the regulation: no VERBATIM may start
+#: with one (user ruling 2026-09-25 — the two standing no-fishing buffers read "3. Within 23 m …"
+#: on every water; `CatalogueEntry._chain_of_custody`), nor a generated label, nor a place named in
+#: `extent_text` — "No fishing — (b) Chimdemash Creek" is a list item, not a place.
 LIST_MARKER = re.compile(r"^\s*(\d{1,2}[.)]\s|\([a-z0-9ivx]{1,3}\)\s*|[•–-]\s)")
 
 
@@ -3838,6 +3852,14 @@ class CatalogueEntry(BaseModel):
     #: POINTERS — "See Lonzo Creek" (see `See`). Not rules: they bind nothing. A row whose ONLY
     #: content is a pointer has no rules at all, and says so by having only this.
     see: List[See] = Field(default_factory=list)
+    #: ANADROMOUS RAINBOW TROUT ARE FOUND IN THIS ROW'S WATER, so the book's definition holds here
+    #: (p.86: "steelhead: a rainbow trout longer than 50 cm in waters where anadromous rainbow trout
+    #: are found" — `DEFINITIONAL_SIZE`): a rainbow over 50 cm IS a steelhead, governed by the
+    #: steelhead rules, and a rainbow rule speaks only for rainbow of 50 cm or less. The book states
+    #: the definition for every such water but lists none, so it is set per row where the fact is
+    #: known (Chilliwack/Vedder, user ruling 2026-09-25), never inferred. The bundle marks the row's
+    #: waters (`steelhead_water`); `read.effective_rules` reads a rainbow there by it.
+    anadromous_rainbow: bool = False
 
     @property
     def pointer_only(self) -> bool:
@@ -3871,6 +3893,17 @@ class CatalogueEntry(BaseModel):
             needle = squash(r.verbatim)
             if needle not in haystack:
                 e.append(f"{r.rule_id}: verbatim is not a contiguous substring of regs_verbatim")
+        # A LIST NUMBER IS LAYOUT, NOT THE SENTENCE. "3. Within 23 m downstream of …" is item 3 of
+        # the book's list of no-fishing places; quoted with its number the rule reads "3. Within
+        # 23 m …" on every water in the province. A verbatim starts at the sentence.
+        quoted = [(r.rule_id, r.verbatim) for r in self.rules] + \
+            [(f"licensing {x.id}", x.verbatim) for x in self.licensing] + \
+            [("see", s.verbatim) for s in self.see]
+        for who, v in quoted:
+            m = LIST_MARKER.match(v or "")
+            if m:
+                e.append(f"{who}: verbatim starts with the list marker {m.group(0).strip()!r} — "
+                         f"quote the sentence, not its number")
         ids = {r.rule_id for r in self.rules}
         for r in self.rules:
             # A TARGET NAMES A RULE THAT EXISTS. One in this entry is checked here; one in another

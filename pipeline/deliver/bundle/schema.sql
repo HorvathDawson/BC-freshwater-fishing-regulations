@@ -145,12 +145,16 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    -- decides a water's outcome and never takes part in the override contest.
                    standing INTEGER NOT NULL DEFAULT 0,
                    species TEXT, species_except TEXT,
-                   -- `exempts` (JSON): what this rule LIFTS, resolved at build time to the
-                   -- entry it lifts — [{"default_id", "entry_id"}] lifts every rule of that
-                   -- zone entry, [{"target", "entry_id"}] one rule. Where this rule is in
-                   -- force on a section, a rule it lifts does not count (the reader belongs
-                   -- in app/packages/core/src/regulations.ts; the export's `guide.exempts`).
-                   -- NULL = lifts nothing. Never the rule's own entry by `default_id`.
+                   -- `exempts` (JSON): what this rule LIFTS, resolved at build time to exact
+                   -- rules — [{"entry_id", "rule_id", …}], one item per lifted rule
+                   -- (rules.LIFT_KEYS): `species` / `when_targeting` / `while` / `when` when it
+                   -- lifts only in part (and `origin` / `lengths` on a derived lift for some
+                   -- fish), `basis: names_the_fish` when the book prints no exemption and the
+                   -- water row NAMES a fish its region closes (rules._named_lifts), `equivalent`
+                   -- when it is another region's closure of the same kind as the one the row
+                   -- names, reached because the row's water lies there (rules._equivalent_closures).
+                   -- Where this rule is in force on a section, a rule it lifts does not count
+                   -- (the export's `guide.exempts`). NULL = lifts nothing. Never itself.
                    exempts TEXT,
                    take INTEGER, may_target INTEGER,        -- see above; both may be NULL
                    conditions TEXT,           -- the rest of the rule's set fields, as JSON
@@ -203,6 +207,15 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 -- such a section as outside B.C. — no B.C. regulation applies — never as "open under the
 -- general rules", which is what a section with no rule set would otherwise read as.
 CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
+
+-- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.86: "steelhead: a rainbow
+-- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on the waters
+-- of every row that says anadromous rainbow are found there (`CatalogueEntry.anadromous_rainbow`),
+-- by the sections of the row's matched waters. There a rainbow over 50 cm is asked about as a
+-- steelhead, and a rainbow rule speaks only for rainbow of 50 cm or less
+-- (`read.effective_rules`). Absent = the definition is not known to hold (landlocked rainbow).
+CREATE TABLE steelhead_water (sid INTEGER NOT NULL, entry_id TEXT NOT NULL,
+                              PRIMARY KEY (sid, entry_id)) WITHOUT ROWID;
 
 -- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;
 -- one whose extent carries `outside_area_kind` (its `record`) holds everywhere EXCEPT the

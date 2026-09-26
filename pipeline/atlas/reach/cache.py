@@ -37,7 +37,13 @@ from typing import Callable
 #:    FWA code; a Region 7 row's MUs resolve it to its zone (`outside.entry_regions`).
 #: 9: `Extent.watershed` — a part of a river's watershed is cut by FWA code position
 #:    (`extent._watershed_part`) and joined after the walk, never walked (`classify`).
-POLICY_VERSION = "9"
+#: 10: a section touching two region polygons resolves `area:region:*` to its HOME region only —
+#:    the one holding most of its area (a waterbody) or length (a line), `registry.regions`
+#:    (user ruling 2026-09-25, Mara Lake). It changes which sections a zone rule binds.
+#: 11: a LAKE touching two region polygons resolves `area:region:*` to BOTH (stream pieces keep
+#:    their home), and a regional row not printed by another region applies along its water's
+#:    whole length (`outside.region_limit`, user ruling 2026-09-25, second half).
+POLICY_VERSION = "11"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

@@ -7638,8 +7638,7 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole",
-       "within_area": "area:region:5"
+       "op": "whole"
       }
      ]
     }

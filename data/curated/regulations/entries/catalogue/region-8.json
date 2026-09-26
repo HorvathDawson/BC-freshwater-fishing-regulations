@@ -6363,10 +6363,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     }
@@ -6452,10 +6449,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     }
@@ -6541,10 +6535,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6559,10 +6550,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6577,10 +6565,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6595,10 +6580,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6613,10 +6595,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6651,10 +6630,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6669,10 +6645,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6688,10 +6661,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     }
@@ -6771,10 +6741,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     }
@@ -6808,10 +6775,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6832,10 +6796,7 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:8",
-       "outside_items": [
-        "wbk:329518146"
-       ]
+       "area_id": "area:region:8"
       }
      ]
     },
@@ -6900,6 +6861,24 @@
        "feature_types": [
         "stream"
        ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r3",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r4",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
       }
      ]
     },

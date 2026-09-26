@@ -187,6 +187,14 @@ def _all_entries() -> list[tuple[str, dict]]:
     return out
 
 
+def _shared_waters() -> frozenset[str]:
+    """The waters more than one region prints a row for — read from the corpus as it is NOW, the
+    same derivation the reach CLI makes (`outside.shared_waters`), so a row the curator reviews is
+    held to the same regions as what ships."""
+    from pipeline.atlas.reach.outside import shared_waters
+    return shared_waters([e for _, e in _all_entries()])
+
+
 @lru_cache(maxsize=1)
 def _row_image_index() -> dict:
     """raw_regs -> [(water_lower, image)]. Keyed on the verbatim regs (exact, near-unique); the parser
@@ -473,7 +481,12 @@ def _graph():
     """The built StreamGraph — node bounds + flow adjacency. Big (~0.7 GB) but loaded once per
     process and only when a reach is actually requested."""
     from pipeline.common.io.serialize import read_artifact
-    return read_artifact(str(GRAPH_PKL_PATH))
+    from pipeline.atlas.registry import regions
+    g = read_artifact(str(GRAPH_PKL_PATH))
+    # The region each straddling section lies in, exactly as the reach CLI attaches it — so a zone
+    # rule the curator reviews binds what ships (`registry.regions`).
+    regions.attach(g, regions.homes(_BUILD, _registry()))
+    return g
 
 
 def resolve_extent(covered_ids: list[str], ex: dict) -> dict | None:
@@ -610,6 +623,7 @@ def entry_reaches(entry_id: str) -> dict:
             continue
         covered = _covered_ids(e)
         clip, scope_failed = _scope_sections(e, covered)
+        shared = _shared_waters()
 
         out: dict = {}
         per_rule: dict[str, list] = {}
@@ -622,7 +636,8 @@ def entry_reaches(entry_id: str) -> dict:
         # app cannot resolve, clip, classify or expand differently from what ships.
         verdict: dict = {}
         for r in e.get("rules") or []:
-            binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip)
+            binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip,
+                                          shared=shared)
             verdict[r["rule_id"]] = {
                 "outcome": binding.outcome.value,
                 "reason": binding.reason.value if binding.reason else None,
@@ -917,7 +932,8 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
         if got:
             direct |= set(got.get("sections") or ())
 
-    binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip)
+    binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
+                                   shared=_shared_waters())
     total = set(binding.sections)
     added = sorted(total - direct)
 

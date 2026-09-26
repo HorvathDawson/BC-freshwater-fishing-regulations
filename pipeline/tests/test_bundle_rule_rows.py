@@ -393,6 +393,11 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
           for k in (1, 12, 2, 3, 4, 6, 7, 8, 9)],
         ("r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31", "peace_river.r4",
          "trout_char_quota.r3"),
+        # REGION 8's "And you may retain: 20 brook trout from streams" (p.68) is counted APART
+        # from the trout/char quota: it lifts the quota and its clauses for brook trout only
+        # (user ruling 2026-09-25).
+        *[("z8:trout_char_quota", "trout_char_quota.r5", f"trout_char_quota.r{k}")
+          for k in (1, 2, 3, 4)],
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
         ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")]
     assert lifted >= 80

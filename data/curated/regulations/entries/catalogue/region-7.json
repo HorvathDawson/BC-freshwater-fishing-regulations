@@ -926,6 +926,9 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
+          ],
+          "species_except": [
+            "CRA"
           ]
         },
         {
@@ -2092,6 +2095,9 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
+          ],
+          "species_except": [
+            "CRA"
           ]
         }
       ]
@@ -2219,6 +2225,9 @@
               "entry_id": "z7b:arctic_grayling",
               "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
             }
+          ],
+          "species_except": [
+            "CRA"
           ]
         }
       ]

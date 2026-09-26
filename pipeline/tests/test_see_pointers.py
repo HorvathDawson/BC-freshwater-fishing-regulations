@@ -192,23 +192,22 @@ MARA = "wbk:329518146"
 def test_mara_lake_takes_region_3s_base(corpus):
     """MARA LAKE is printed in Region 3 (MU 3-26, "See Shuswap Lake") and in Region 8 (MU 8-26,
     "See Shuswap Lake in Region 3"). One lake, never cut, touching both region polygons, so both
-    regions' region-wide tables bound it and tied. Region 8's region-wide rules that can reach a
-    lake take it back out; Region 8's own Mara Lake row still binds."""
-    n = 0
+    regions' region-wide tables bound it and tied. USER RULING (2026-09-25): a water takes the zone
+    rules of the region it LIES IN — Mara Lake is 61 % Region 3 by area — decided for every
+    straddling water by `registry.regions` (see test_region_homes), and the pointer row never moves
+    it. So no Region 8 rule takes the lake out by hand (the last round's `outside_items` inference
+    is reverted), and Region 8's own Mara Lake row still binds."""
     for eid, ce in corpus.items():
-        if not eid.startswith("z8:"):
-            continue
         for r in ce.rules:
-            ex = r.extents or []
-            if ex and all(x.get("area_id") == "area:region:8" for x in ex) and not any(
-                    (x.get("feature_types") or []) == ["stream"] for x in ex):
-                n += 1
-                assert all(MARA in (x.get("outside_items") or []) for x in ex), (eid, r.rule_id)
-    assert n == 13
+            for x in r.extents or []:
+                assert MARA not in (x.get("outside_items") or []), (eid, r.rule_id)
     assert corpus["r8:mara_lake@8-26"].rules and corpus["r8:mara_lake@8-26"].see
 
 
-def test_mara_lake_carries_one_regions_base_in_the_bundle(db):
+def test_mara_lake_carries_both_regions_bases_in_the_bundle(db):
+    """Mara Lake straddles the Region 3 / Region 8 line (61/39 by area) and is never cut: it takes
+    BOTH regions' zone rules, the most strict applying (user ruling 2026-09-25, second half) — and
+    a pointer row still never moves it."""
     sids = [r[0] for r in db.execute("select s.sid from item i join item_section s on s.ord = "
                                      "i.ord where i.item_id = ?", (MARA,))]
     assert sids
@@ -216,7 +215,7 @@ def test_mara_lake_carries_one_regions_base_in_the_bundle(db):
         zones = {r[0].split(":")[0] for r in db.execute(
             "select rs.entry_id from section_ruleset sr join ruleset rs on rs.set_id = sr.set_id "
             "where sr.sid = ? and rs.entry_id like 'z%' and rs.entry_id not like 'zp:%'", (sid,))}
-        assert zones == {"z3"}, (sid, zones)
+        assert zones == {"z3", "z8"}, (sid, zones)
         rows = {r[0] for r in db.execute(
             "select rs.entry_id from section_ruleset sr join ruleset rs on rs.set_id = sr.set_id "
             "where sr.sid = ? and rs.entry_id like 'r%'", (sid,))}

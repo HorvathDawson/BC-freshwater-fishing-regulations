@@ -802,7 +802,7 @@
     {
      "rule_id": "bait.r3",
      "type": "bait_restriction",
-     "verbatim": "(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
+     "verbatim": "when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake)",
      "gear": [
       {
        "slot": "bait",
@@ -1034,7 +1034,7 @@
     {
      "rule_id": "no_fishing_buffers.r1",
      "type": "retention_limit",
-     "verbatim": "3. Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+     "verbatim": "Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1053,7 +1053,7 @@
     {
      "rule_id": "no_fishing_buffers.r2",
      "type": "retention_limit",
-     "verbatim": "4. Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+     "verbatim": "Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
      "species": [
       "ALL_GAME_FISH"
      ],

@@ -696,8 +696,8 @@ def test_a_place_the_namer_cannot_name_falls_back_to_the_words():
 
 
 def test_a_label_never_starts_with_a_list_marker():
-    """The verbatim keeps the book's numbering ("3. Within 23 m …"); a generated label is not a
-    list item, and neither is its place. Pinned over every rule in the corpus."""
+    """A generated label is not a list item, and neither is its place (nor, since 2026-09-25, a
+    verbatim — see `test_no_verbatim_starts_with_a_list_marker`). Pinned over every rule."""
     import json
     import re
     from pipeline.common.curated import CURATED
@@ -814,3 +814,61 @@ def test_all_other_species_is_game_fish():
     assert not R.speaks_for(got["whiteswan_lakes_inlet_outlet_streams.r4"], "RB")
     # consistent with the earlier ruling: "all fin fish" (the trap duty) never reaches crayfish
     assert not R.speaks_for({"species": ["ALL_FIN_FISH"]}, "CRA")
+
+
+def test_no_verbatim_starts_with_a_list_marker():
+    """USER RULING (2026-09-25, asked twice): the book's list numbers are layout. The two standing
+    no-fishing buffers read "3. Within 23 m downstream …" and "4. Within a 100 m radius …" on every
+    water in the province. No rule, licensing record or pointer may quote one — the entry refuses it
+    (mutation: the corpus check below and the refusal both fail without the guard)."""
+    import json
+
+    import pytest
+
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.parsing.catalogue import LIST_MARKER, CatalogueEntry, CatalogueFile
+
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
+            quoted = [r.verbatim for r in e.rules] + [x.verbatim for x in e.licensing] + \
+                [x.verbatim for x in e.see]
+            assert not [v for v in quoted if LIST_MARKER.match(v)], e.entry_id
+    text = "No fishing: 3. Within 23 m downstream of the lower entrance to any fishway."
+    entry = dict(entry_id="zp:x", name="X", regs_verbatim=text,
+                 rules=[dict(rule_id="x.r1", type="advisory",
+                             verbatim="3. Within 23 m downstream of the lower entrance to any "
+                                      "fishway.", extents=[{"op": "whole"}])])
+    with pytest.raises(ValueError, match="list marker '3.'"):
+        CatalogueEntry.model_validate(entry)
+    entry["rules"][0]["verbatim"] = "Within 23 m downstream of the lower entrance to any fishway."
+    CatalogueEntry.model_validate(entry)
+
+
+def test_a_bare_catch_and_release_is_game_fish_and_crayfish_may_be_kept():
+    """USER RULING (2026-09-25): Burnt River's and Clearwater Creek's "Catch and release" and
+    Clearwater Lake's "Catch and release, May 1-Oct 31" (Region 7B) name no fish: every GAME fish
+    is released, and crayfish may be kept. Held structurally — a release (take 0, may fish) over
+    ALL_GAME_FISH under no means of its own must except CRA; a closure and a release while set
+    lining are not this."""
+    import pytest
+
+    from pipeline.deliver.bundle import read as R
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    from pipeline.regs.parsing.io import read_all_entries
+
+    base = dict(rule_id="w.r1", type="retention_limit", take=0, may_target=True,
+                verbatim="Catch and release", species=["ALL_GAME_FISH"], extents=[{"op": "whole"}])
+    with pytest.raises(ValueError, match="never crayfish"):
+        CatalogueRule.model_validate(base)
+    CatalogueRule.model_validate(dict(base, species_except=["CRA"]))
+    CatalogueRule.model_validate(dict(base, may_target=False, verbatim="No Fishing"))
+    CatalogueRule.model_validate(dict(base, species_except=["BB"], **{"while": ["set_lining"]},
+                                      verbatim="Any game fish that you catch other than burbot "
+                                               "must be released."))
+    raw = read_all_entries()
+    for eid, rid in (("r7:burnt_river@7-22", "burnt_river.r1"),
+                     ("r7:clearwater_creek@7-31", "clearwater_creek.r1"),
+                     ("r7:clearwater_lake@7-31", "clearwater_lake.r2")):
+        r = next(x for x in raw[eid]["rules"] if x["rule_id"] == rid)
+        assert r["species"] == ["ALL_GAME_FISH"] and r["species_except"] == ["CRA"], rid
+        assert R.speaks_for(r, "RB") and R.speaks_for(r, "BB") and not R.speaks_for(r, "CRA")

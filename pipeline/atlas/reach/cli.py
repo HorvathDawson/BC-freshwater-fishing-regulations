@@ -32,6 +32,15 @@ def main() -> int:
     build = Path(args.build)
     registry = load_registry(str(build / "registry.json"))
     graph = read_artifact(str(build / "graph.pkl"))
+    # THE REGION EACH STRADDLING SECTION LIES IN, for the zone rules (`registry.regions`): a stream
+    # piece drawn across a region line takes its home region's standing table; a lake takes both
+    # (the most strict applies where the rules are read).
+    from pipeline.atlas.registry import regions
+    home = regions.homes(build, registry)
+    regions.attach(graph, home)
+    lakes = sum(1 for s in home if s.startswith(regions.LAKE_PREFIX))
+    print(f"  region homes: {len(home) - lakes:,} straddling stream piece(s) held to the region "
+          f"they lie in; {lakes:,} straddling lake(s) in every region they touch")
     # EVERY SOURCE, not just the synopsis. The reach builder is a CONSUMER of the corpus:
     # zone regulations, park closures and the salmon entries are the same kind of thing to
     # it as a river row, and a rule that binds to an area binds through the same resolver.

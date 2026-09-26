@@ -250,8 +250,11 @@ def test_a_designation_is_not_held_to_the_region_that_prints_it():
     rec = {"kind": "designation", "id": "d", "classified": "II", "unit": "u", "unit_name": "U",
            "verbatim": "Class II water", "extents": [{"op": "whole"}]}
     e = _entry("r3:fraser_river@3-17", [rule], extents=[{"op": "whole"}], licensing=[rec])
-    got = build_reaches([e], REG, G)
-    assert set(next(b for b in got.bindings).sections) == {"s3"}
+    # the Fraser is printed per region (a Region 5 row too), so its Region 3 row's rules stop at
+    # the line (`outside.shared_waters`)
+    r5 = _entry("r5:fraser_river@5-2", [dict(rule)], extents=[{"op": "whole"}])
+    got = build_reaches([e, r5], REG, G)
+    assert set(next(b for b in got.bindings if b.entry_id == e["entry_id"]).sections) == {"s3"}
     lic = next(p for p in got.licensing if p.record_id == "d")
     assert set(lic.sections) == {"s5", "s3", "lk"}          # every B.C. section of the water
     # mutation: hold licensing to the region too, and the designation shrinks to the row's region
@@ -289,3 +292,14 @@ def test_the_zone_a_row_binds_only_zone_a():
 def test_mutation_zones_from_units(monkeypatch):
     monkeypatch.setattr(O, "ZONES_FROM_UNITS", False)
     assert O.entry_regions("r7:williston_lake_in_zone_a@7-30+7-37+7-38", _zoned()) == ("7",)
+
+
+def test_a_row_its_water_alone_prints_applies_along_the_whole_water():
+    """USER RULING (2026-09-25): a water's own row applies along its whole length, in every region
+    — unless another region prints a row for the same water (then each is about its own stretch).
+    The same Region 3 row, alone: its rule binds the Fraser in Region 5 too (never outside B.C.)."""
+    from pipeline.atlas.reach.build import build_reaches
+    rule = {"rule_id": "r1", "type": "bait_restriction", "extents": [{"op": "whole"}]}
+    e = _entry("r3:fraser_river@3-17", [rule], extents=[{"op": "whole"}])
+    got = build_reaches([e], REG, G)
+    assert set(got.bindings[0].sections) == {"s3", "s5", "lk"}

@@ -156,9 +156,74 @@ def region_sections(regions: tuple[str, ...], registry) -> frozenset[str] | None
     return got
 
 
-def region_limit(entry: dict, registry) -> frozenset[str] | None:
-    """The sections a regional row may bind, or `None` when it is not limited."""
+def shared_waters(entries) -> frozenset[str]:
+    """THE WATERS THE BOOK PRINTS A ROW FOR IN MORE THAN ONE REGION — each such row is about the
+    stretch in its own region (a PER-REGION row).
+
+    The Fraser has a row in Regions 2, 3, 5 and 7; the Stellako in 6 and 7; the Canim in 3 and 5.
+    A water is shared when rows of two or more regions carry a rule about the water ITSELF — a row
+    whose every rule is `tributaries_only` does not count: "West Road River's tributaries" is
+    printed in Regions 6 and 7 ("For regulations on the mainstem of the West Road River, see Region
+    5", p.54, p.61), and the mainstem's row is Region 5's alone. Pointer rows carry no rules and do
+    not count either."""
+    by: dict[str, set[str]] = {}
+    for e in entries:
+        m = _ENTRY_REGION.match(str(e.get("entry_id") or ""))
+        rules = [r for r in e.get("rules") or [] if isinstance(r, dict)]
+        if not m or not rules or all(r.get("tributaries_only") for r in rules):
+            continue
+        region = re.sub(r"[a-z]$", "", m.group(1))
+        for i in e.get("matched") or ():
+            by.setdefault(i, set()).add(region)
+    return frozenset(i for i, rs in by.items() if len(rs) > 1)
+
+
+_WATER_CACHE: dict = {}
+
+
+def _membership(registry) -> dict[str, frozenset[str]]:
+    """`{section: regions}` for this registry, built once (cached like `_region_items`)."""
+    hit = _WATER_CACHE.get(("m", id(registry)))
+    if hit is not None and hit[0] is registry:
+        return hit[1]
+    got: dict[str, set[str]] = {}
+    for k in _region_items(registry):
+        for sec in registry[k].section_ids:
+            got.setdefault(sec, set()).add(k[len(REGION_PREFIX):])
+    frozen = {sec: frozenset(r) for sec, r in got.items()}
+    if len(_WATER_CACHE) > 16:
+        _WATER_CACHE.clear()
+    _WATER_CACHE[("m", id(registry))] = (registry, frozen)
+    return frozen
+
+
+def water_regions(entry: dict, registry) -> tuple[str, ...]:
+    """The regions (zones, where the registry holds them) the row's own waters touch."""
+    member = _membership(registry)
+    out: set[str] = set()
+    for i in entry.get("matched") or ():
+        if i in registry:
+            for sec in registry[i].section_ids:
+                out |= member.get(sec, frozenset())
+    return tuple(sorted(out))
+
+
+def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
+    """The sections a regional row may bind, or `None` when it is not limited.
+
+    A WATER'S OWN ROW APPLIES ALONG ITS WHOLE LENGTH, IN EVERY REGION (user ruling 2026-09-25) —
+    West Road River's Region 5 row on its Zone 7A pieces, the Nechako's Region 7 row on its Region
+    6 pieces, the Similkameen's Region 8 row on its Region 2 pieces. Only a PER-REGION row — its
+    water printed by another region too (`shared`, from `shared_waters`) — is held to the regions
+    its id names, as before. A whole-water row is held to the regions its own waters lie in (and
+    its id names): the row reaches wherever its water does, and a tributary walk from it stops
+    where the water's regions do.
+
+    `shared=None` (a caller that did not compute it) holds every row to its id's regions — the
+    narrower answer, never a widening."""
     regions = entry_regions(str(entry.get("entry_id") or ""), registry)
     if not regions:
         return None
+    if shared is not None and not (set(entry.get("matched") or ()) & set(shared)):
+        regions = tuple(sorted(set(regions) | set(water_regions(entry, registry))))
     return region_sections(regions, registry)

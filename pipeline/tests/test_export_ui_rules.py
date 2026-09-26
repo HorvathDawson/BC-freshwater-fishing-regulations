@@ -164,19 +164,37 @@ def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
     """The Dean's eight (ruleset, licensing set) combinations used to read as five rule sets
     beside four licensing sets; which Class I unit went with which closure was lost."""
     want: dict = {}
-    for item, rs, ls, n in db.execute(
-            "SELECT i.item_id, r.set_id, l.set_id, COUNT(*) FROM item i "
+    for item, rs, ls, pe, sw, n in db.execute(
+            "SELECT i.item_id, r.set_id, l.set_id, "
+            "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
+            " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
+            "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), COUNT(*) FROM item i "
             "JOIN item_section s ON s.ord = i.ord "
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-            "LEFT JOIN section_licensing l ON l.sid = s.sid GROUP BY 1, 2, 3"):
+            "LEFT JOIN section_licensing l ON l.sid = s.sid GROUP BY 1, 2, 3, 4, 5"):
         want.setdefault(item, set()).add((None if rs is None else str(rs),
-                                          None if ls is None else str(ls), n))
+                                          None if ls is None else str(ls),
+                                          tuple(pe.split(",")) if pe else (), bool(sw), n))
     for item, w in doc["waters"].items():
-        got = {(p["ruleset"], p["licensing_set"], p["sections"]) for p in w["parts"]}
+        got = {(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
+                bool(p.get("anadromous_rainbow")), p["sections"]) for p in w["parts"]}
         assert got == want[item], item
-        pairs = [(p["ruleset"], p["licensing_set"]) for p in w["parts"]]
-        assert len(pairs) == len(set(pairs)), f"{item}: a pair appears twice"
+        keys = [(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
+                 bool(p.get("anadromous_rainbow"))) for p in w["parts"]]
+        assert len(keys) == len(set(keys)), f"{item}: a part appears twice"
         assert "rulesets" not in w and "licensing_sets" not in w, "one encoding, not two"
+        # PER PART, never per water: the page must not infer which stretch is the park's
+        assert "province_except" not in w, f"{item}: province_except is a per-part fact"
+
+
+def test_a_national_park_part_is_marked_on_the_part(doc, db):
+    """The park's sections of a water are their own part, carrying `province_except` — so a page
+    shows the park stretch without inferring it from the permit (consumer review, 2026-09-25)."""
+    n = db.execute("SELECT COUNT(*) FROM province_except p JOIN item_section s ON s.sid = p.sid "
+                   "WHERE p.area_kind = 'national_parks'").fetchone()[0]
+    got = sum(p["sections"] for w in doc["waters"].values() for p in w["parts"]
+              if "national_parks" in (p.get("province_except") or []))
+    assert n and got == n
 
 
 def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):

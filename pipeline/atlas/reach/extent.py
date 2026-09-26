@@ -27,6 +27,7 @@ its own.
 
 from __future__ import annotations
 
+from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
 
@@ -41,7 +42,13 @@ def area_sections(reg, g, key: str) -> set[str] | None:
     not mint (`area:basin:100-342455-`, the Chilcotin) — every graph node whose FWA code lies in
     that basin (`registry.basins`). None = no such area (the caller fails, naming it)."""
     if key in reg:
-        return set(reg[key].section_ids)
+        got = set(reg[key].section_ids)
+        if key.startswith(_regions.REGION_PREFIX):
+            # A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN: a lake (or a straddling
+            # stream piece) touching two region polygons is its home region's only
+            # (`registry.regions`, user ruling 2026-09-25 — Mara Lake).
+            got = _regions.in_region(g, key[len(_regions.REGION_PREFIX):], got)
+        return got
     code = basin_code(key)
     if code is None or g is None or not hasattr(g, "nodes"):
         return None

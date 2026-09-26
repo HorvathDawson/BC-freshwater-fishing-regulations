@@ -20,6 +20,7 @@ The flags are read here for ONE thing (`uncertain`) and that is not a re-derivat
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from pathlib import Path
 
@@ -111,9 +112,25 @@ def _zone_region(entry_id: str) -> str:
 
 
 #: The keys of one resolved lift in the `exempts` column — and nothing else. Two name the lifted
-#: rule; `note` is the book's words; the other four, when present, say the lift holds only IN
-#: PART (see `_lift_terms`). The client refuses any other key.
-LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when")
+#: rule; `note` is the book's words; `species`, `when_targeting`, `while` and `when`, when present,
+#: say the lift holds only IN PART (see `_lift_terms`); so do `origin` and `lengths`, which only a
+#: derived lift carries (the lifter keeps only hatchery fish, or only some sizes — `_named_lifts`);
+#: `basis` marks a lift derived from the lifter NAMING the fish (`_named_lifts`) and `equivalent`
+#: one resolved to ANOTHER region's closure of the same kind (`_equivalent_closures`). The client
+#: refuses any other key.
+LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when",
+             "origin", "lengths", "basis", "equivalent")
+
+#: `basis` on a lift the book does not print as an exemption but states by NAMING THE FISH (see
+#: `_named_lifts`). Absent = the rule's own printed `exempts`.
+NAMES_THE_FISH = "names_the_fish"
+
+#: Groups that are NOT the name of a fish: an aggregate the book counts or closes as a class
+#: ("Trout/char: 5", "No fishing in any stream"). A rule naming one of these names no single fish,
+#: so it never takes part in a lift by naming (`_named_lifts`). "Bass", "cutthroat", "whitefish"
+#: and "salmon" are the book's names for fish and count as naming each of theirs.
+AGGREGATE_GROUPS = frozenset({"ALL_GAME_FISH", "ALL_FIN_FISH", "NON_GAME_FISH", "TROUT_CHAR",
+                              "TROUT", "CHAR", "PROTECTED_SPECIES"})
 
 
 #: The two origins a fish can have. A rule with no `origin` holds for both.
@@ -154,6 +171,37 @@ def yields_to_release(x: dict) -> frozenset[str] | None:
             or (take is None and x.get("lengths"))):
         return None
     return frozenset({x["origin"]}) if x.get("origin") else ORIGINS
+
+
+def _leaves(codes) -> frozenset[str]:
+    from pipeline.regs.parsing.catalogue import expand_species
+    return frozenset(expand_species(list(codes or [])))
+
+
+def statement(x: dict) -> tuple:
+    """WHAT A QUOTA IS ABOUT, without its number: the fish (leaves, less `species_except`), its
+    size bounds (each band's ends, and whether the band keeps none), its origin, its water kind,
+    the means it holds under (`while`), what must be targeted (`when_targeting`), and its clock.
+
+    Two quotas with the same statement say the same thing with different numbers — Kokanee: 10 at
+    a lake beside the region's Kokanee: 5 — and only then does the water's number replace the
+    zone's (`same_statement`)."""
+    bands = tuple((b.get("min_cm"), b.get("max_cm"), b.get("take") == 0)
+                  for b in (x.get("lengths") or []))
+    return (_leaves(x.get("species")) - _leaves(x.get("species_except")),
+            bands, x.get("origin"), x.get("water"),
+            tuple(sorted(x.get("while") or [])), tuple(sorted(x.get("when_targeting") or [])),
+            x.get("period") or "daily", bool(x.get("record_retention")))
+
+
+def same_statement(a: dict, b: dict) -> bool:
+    """QUOTAS SIT BESIDE (user ruling 2026-09-25): a water's quota sits beside a zone's, because
+    the zone's spans waters — "Trout/char: 5" is a day's total over every water of the region, and
+    a lake's "Rainbow trout: 2" or "Wild trout/char: 2" says how many of those may come from the
+    lake. The ONE exception is a water quota that states EXACTLY what the zone's states (same fish
+    or group, same size bounds, origin, water kind, means and target — `statement`): then the
+    water's number displaces the zone's. Both must be keeping quotas (`yields_to_release`)."""
+    return statement(a) == statement(b)
 
 
 def _species_of(r) -> frozenset[str] | None:
@@ -265,7 +313,202 @@ def _when_term(by, lifted) -> dict | None:
     return {"when": mine.model_dump(mode="json", by_alias=True, exclude_none=True)}
 
 
-def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, dict]):
+def named_leaves(r) -> frozenset[str]:
+    """The fish a rule NAMES — its species codes, each group that is the name of a fish expanded to
+    its members, less `species_except`. An aggregate (`AGGREGATE_GROUPS`) names none: "Trout daily
+    quota = 1" does not name the steelhead it holds."""
+    from pipeline.regs.parsing.catalogue import expand_species
+    got = set()
+    for c in r.species:
+        if c not in AGGREGATE_GROUPS:
+            got |= set(expand_species([c]))
+    return frozenset(got) - frozenset(expand_species(list(r.species_except)))
+
+
+def _is_species_closure(r) -> bool:
+    """A zone rule closing named fish: `take: 0`, `may_target: false`, no means (`while`), not a
+    standing rule, not a superior authority's (nothing below a superior authority opens what it
+    closed), and naming at least one fish (`named_leaves`) — "Bass: 0 quota, CLOSED TO FISHING",
+    never "No fishing in any stream" (ALL_GAME_FISH names no fish)."""
+    return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
+            and not r.while_ and not r.standing and r.authority != "superior"
+            and bool(named_leaves(r)))
+
+
+#: "(No exceptions)" — Region 4's "White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions)".
+_NO_EXCEPTIONS = re.compile(r"\bno exceptions?\b", re.I)
+
+
+def prints_its_exemptions(ce, r) -> bool:
+    """Does the closure's OWN entry say what is exempt from it — so no water row may add to the
+    list by naming the fish (`_named_lifts`)?
+
+    Two shapes, both printed. A sibling rule lifts it: Region 6's "No fishing: in all rivers and
+    streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena,
+    Nass, Iskut, Stikine and Taku Rivers …" (p.49) is followed, in the same entry, by the rule that
+    exempts those mainstems. Or its words refuse any: "(No exceptions)". Region 8's "Bass: 0 quota,
+    CLOSED TO FISHING (see tables for exceptions)" (p.68) does neither — it sends the reader to the
+    water rows, and a row naming bass IS one of those exceptions."""
+    if _NO_EXCEPTIONS.search(r.verbatim or ""):
+        return True
+    return any(x.target == r.rule_id and (not x.entry_id or x.entry_id == ce.entry_id)
+               for s in ce.rules if s.rule_id != r.rule_id for x in s.exempts)
+
+
+def zone_closures(docs) -> dict[str, list[tuple[str, object]]]:
+    """`{region: [(entry_id, rule), …]}` — every species closure of a region's own table
+    (`z<region>:`, never the province's `zp:`) that a water row may lift by naming the fish, for
+    `_named_lifts`. A closure that prints its own exemptions (`prints_its_exemptions`) is not one:
+    Kitimat River's "Hatchery steelhead daily quota = 2" lifted Region 6's steelhead stream closure
+    on 4,733 sections — wild steelhead and every tributary included — though the closure's own
+    exemption list does not name the Kitimat (user ruling 2026-09-25)."""
+    out: dict[str, list] = {}
+    for ce in docs:
+        eid = ce.entry_id
+        if not eid.startswith("z") or eid.startswith("zp:"):
+            continue
+        for r in ce.rules:
+            if _is_species_closure(r) and not prints_its_exemptions(ce, r):
+                out.setdefault(_zone_region(eid), []).append((eid, r))
+    return out
+
+
+def _kept_lengths(r, fish: frozenset[str]) -> list[dict] | None:
+    """THE SIZES A LIFTER KEEPS, as a lift term — `None` when it keeps every size of `fish` the
+    book counts as that fish. The bands with a `take` of 0 are what it releases; a band that only
+    restates the fish's definition ("Hatchery steelhead (>50 cm)" — a steelhead IS a rainbow over
+    50 cm, p.86) narrows nothing."""
+    from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
+    keep = [b.model_dump(mode="json", exclude_none=True)
+            for b in (r.lengths or []) if b.take != 0]
+    keep = [{k: v for k, v in b.items() if k in ("min_cm", "max_cm")} for b in keep]
+    if not r.lengths or not keep:
+        return None
+    if all(not b for b in keep):
+        return None
+    defs = [DEFINITIONAL_SIZE.get(f) for f in sorted(fish)]
+    if len(keep) == 1 and all(d is not None for d in defs) and all(
+            keep[0].get("min_cm") == d.get("min_cm") and keep[0].get("max_cm") == d.get("max_cm")
+            for d in defs):
+        return None
+    return keep
+
+
+def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
+    """A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH (user ruling
+    2026-09-25). "Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)" is Region 8's; the
+    Okanagan River's row prints "bass daily quota = 8" and no exemption, and the ladder never
+    displaces a closure — so 5,063 sections showed a water quota under a closure of the same fish,
+    and the page had to infer that the row is one of the "exceptions". The book's reading is the
+    water row's: it overrides the region-wide rule, but ONLY for a fish BOTH NAME. West Road's
+    "Trout daily quota = 1" names no steelhead ("trout" is an aggregate), so Region 6's steelhead
+    stream closure stands there.
+
+    Derived HERE, once, into the same `exempts` column as a printed lift, with `basis:
+    names_the_fish` — the client never infers it. The lifter is a water row's retention rule that
+    lets the fish be fished for (`may_target` not false; a quota, a size limit or a catch and
+    release), and not a clause of another (`within`: its parent lifts). How far it lifts is
+    `_lift_terms` (its dates, means and target), narrowed to the fish both name.
+
+    A DERIVED LIFT NEVER REOPENS MORE THAN ITS LIFTER COVERS (user ruling 2026-09-25, Kitimat):
+      origin   a lifter about HATCHERY fish ("Hatchery steelhead … daily quota = 2") lifts only for
+               them (`origin`): the closure stands for wild fish;
+      size     a lifter keeping only some sizes lifts only for them (`lengths`, the kept bands); a
+               band that restates the fish's own definition narrows nothing (`_kept_lengths`);
+      dates    its `when` (`_when_term`);
+      place    the lift is in force only where the lifter is bound — never further (the reader
+               lifts on a section only while the lifter speaks there).
+    An origin or size term lifts IN PART: the angler and the fish are unknown until it is caught,
+    so the closure stays and the reader marks it partly lifted. And a closure that prints its own
+    exemption list accepts no derived lift at all (`zone_closures`)."""
+    if not entry_id.startswith("r") or r.type.value != "retention_limit" or r.may_target is False \
+            or r.within or r.standing or r.lift_only or r.record_retention:
+        return []
+    mine = named_leaves(r)
+    if not mine:
+        return []
+    region = _zone_region(entry_id)
+    out: list[dict] = []
+    for zr in sorted(closures):
+        if not (zr == region or (zr[:-1] == region and zr[-1:] in ("a", "b"))):
+            continue
+        for eid, z in closures[zr]:
+            both = mine & named_leaves(z)
+            if not both:
+                continue
+            terms = _lift_terms(r, z)
+            if terms is None:
+                continue
+            theirs = _species_of(z) or frozenset()
+            terms.pop("species", None)
+            if both != theirs:
+                terms["species"] = sorted(both)
+            if r.origin is not None and r.origin != z.origin:
+                terms["origin"] = r.origin.value
+            sizes = _kept_lengths(r, both)
+            if sizes:
+                terms["lengths"] = sizes
+            out.append({"entry_id": eid, "rule_id": z.rule_id, **terms, "basis": NAMES_THE_FISH})
+    return out
+
+
+def is_blanket_closure(r) -> bool:
+    """A region's BLANKET closure of a kind of water: "No fishing in any stream in Region 8, Apr
+    1-June 30". `take: 0`, `may_target: false`, over every game fish (no species, or the aggregate
+    of all game or fin fish — never a named fish: `_is_species_closure` is the other kind), on one
+    kind of water (`water`), over a season (`when.dates`), with no means (`while`), not standing and
+    not a superior authority's."""
+    sp = set(r.species or ())
+    return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
+            and sp <= {"ALL_GAME_FISH", "ALL_FIN_FISH"} and not r.species_except
+            and r.water is not None and r.when is not None and bool(r.when.dates)
+            and not r.while_ and not r.standing and r.authority != "superior")
+
+
+def blanket_closures(docs) -> dict[str, list[tuple[str, object]]]:
+    """`{region: [(entry_id, rule), …]}` — every blanket closure of a region's own table
+    (`z<region>:`, never the province's), for `_equivalent_closures`."""
+    out: dict[str, list] = {}
+    for ce in docs:
+        eid = ce.entry_id
+        if not eid.startswith("z") or eid.startswith("zp:"):
+            continue
+        for r in ce.rules:
+            if is_blanket_closure(r):
+                out.setdefault(_zone_region(eid), []).append((eid, r))
+    return out
+
+
+def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, list]) -> list:
+    """THE SAME CLOSURE IN THE OTHER REGIONS THE ROW'S WATER LIES IN (user ruling 2026-09-25).
+
+    A water's own row applies along its whole length, whichever region each piece lies in, and so
+    do the exemptions it prints; but each piece takes the ZONE rules of its own region. West Road
+    River's row (Region 5, p.47) says the regional spring closure does not add to its own mainstem
+    closure; a mainstem piece lying mostly in Zone 7A carries Zone 7A's "No fishing (spring
+    closure): in any stream of Zone A, Apr 1 – June 30", not Region 5's, and the row's exemption
+    must reach it there. So a lift of a BLANKET closure (`is_blanket_closure`) also lifts every
+    blanket closure of the same kind in each other region of `regions`: the same kind of water
+    (`water`) over an overlapping season — a spring stream closure, never a summer one. A species
+    closure is never lifted by analogy: only what the row itself names."""
+    if not is_blanket_closure(lifted):
+        return []
+    from pipeline.regs.parsing.catalogue import _days
+    mine = frozenset(_days(lifted.when.dates))
+    home = _zone_region(lifted_eid)
+    out = []
+    for reg in sorted(regions or ()):
+        if reg == home:
+            continue
+        for eid, z in blankets.get(reg, ()):
+            if z.water == lifted.water and mine & frozenset(_days(z.when.dates)):
+                out.append((eid, z))
+    return out
+
+
+def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, dict],
+             closures: dict[str, list] | None = None, regions=None,
+             blankets: dict[str, list] | None = None):
     """The rule's `exempts`, RESOLVED to the rules it lifts and how far — the `exempts` column.
 
     EXEMPTIONS WERE APPLIED NOWHERE. 88 rules carry one, 63 of them "Exempt from spring
@@ -326,6 +569,20 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
                 continue
             got.append({"entry_id": e, "rule_id": rid, **terms,
                         **({"note": x.note} if x.note else {})})
+        # The row's water in another region: the same blanket closure there (`regions` — the
+        # regions the row's own water lies in; see `_equivalent_closures`).
+        have = {(e, rid) for e, rid in named} | {(y["entry_id"], y["rule_id"]) for y in out}
+        for e, rid in named:
+            for ee, z in _equivalent_closures(e, rules_of[e][rid], regions, blankets or {}):
+                if (ee, z.rule_id) in have or ee == entry_id:
+                    continue
+                have.add((ee, z.rule_id))
+                terms = _lift_terms(r, z)
+                if terms is None:
+                    continue
+                got.append({"entry_id": ee, "rule_id": z.rule_id, **terms,
+                            "equivalent": f"{e}::{rid}",
+                            **({"note": x.note} if x.note else {})})
         if not got and not r.review_reason:
             raise SystemExit(
                 f"{entry_id}/{r.rule_id}: exempts {x.model_dump(exclude_none=True)} lifts no "
@@ -333,11 +590,24 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
                 f"`review_reason` — a lift that silently resolves to nothing leaves the "
                 f"closure standing where the book lifted it")
         out += got
+    printed = {(x["entry_id"], x["rule_id"]) for x in out}
+    derived = [x for x in _named_lifts(entry_id, r, closures or {})
+               if (x["entry_id"], x["rule_id"]) not in printed]
+    if derived and r.water is not None:
+        own = r.extents or []
+        if not own or any([str(t).lower() for t in (x.get("feature_types") or [])]
+                          != [r.water.value] for x in own):
+            raise SystemExit(
+                f"{entry_id}/{r.rule_id}: names a fish its region closes, so it lifts that "
+                f"closure (`_named_lifts`), but it binds only on {r.water.value}s (`water`) and its "
+                f"extents do not place it only there — give every extent `feature_types`")
+    out += derived
     return json.dumps(out, separators=(",", ":"), sort_keys=True) if out else None
 
 
 def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=None,
-              rules_of=None, unresolved: str | None = None, place_of=None, entries=None):
+              rules_of=None, unresolved: str | None = None, place_of=None, entries=None,
+              closures=None, regions=None, blankets=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -408,7 +678,7 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
         1 if r.standing else 0,
         json.dumps(list(r.species), separators=(",", ":")),
         json.dumps(list(r.species_except), separators=(",", ":")),
-        _exempts(entry_id, r, zones or {}, rules_of or {}),
+        _exempts(entry_id, r, zones or {}, rules_of or {}, closures, regions, blankets),
         r.take,
         None if r.may_target is None else int(r.may_target),
         json.dumps(conditions, separators=(",", ":"), sort_keys=True) or None,
@@ -447,6 +717,25 @@ def _see_column(entries: dict) -> dict[str, str]:
         raise SystemExit(f"see: {len(dangling)} pointer(s) name an entry the corpus does not hold "
                          f"(e.g. {dangling[:3]}) — point at an existing entry_id, or say why it "
                          f"names none in `unresolved`")
+    return out
+
+
+def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
+    """`{entry_id: regions}` — the regions each row's OWN waters (`matched`) lie in, by the
+    registry's `area:region:*` membership (a section touching a region polygon is in it). What a
+    row's printed lift of a blanket closure reaches in the other regions (`_equivalent_closures`)."""
+    prefix = "area:region:"
+    members = {str(k)[len(prefix):]: frozenset(registry[k].section_ids)
+               for k in sorted(registry.keys()) if str(k).startswith(prefix)}
+    out: dict[str, frozenset[str]] = {}
+    for ce in docs:
+        if not ce.entry_id.startswith("r") or not ce.matched:
+            continue
+        secs = set()
+        for i in ce.matched:
+            if i in registry:
+                secs.update(registry[i].section_ids)
+        out[ce.entry_id] = frozenset(r for r, m in members.items() if not m.isdisjoint(secs))
     return out
 
 
@@ -544,6 +833,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         if ce.entry_id.startswith("z"):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
     entries_by_id = {ce.entry_id: ce for _, ce in docs}
+    closures = zone_closures([ce for _, ce in docs])
+    blankets = blanket_closures([ce for _, ce in docs])
+    water_regions = regions_of_waters(registry, [ce for _, ce in docs])
     see_of = _see_column(entries_by_id)
     for e, ce in docs:
         ces.append(ce)
@@ -575,7 +867,10 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             k = (e["entry_id"], r.get("rule_id"))
             rule_rows.append(_rule_row(e["entry_id"], r, k in unresolved, siblings, zones,
                                        rules_of, unresolved=unresolved.get(k),
-                                       place_of=place_of, entries=entries_by_id))
+                                       place_of=place_of, entries=entries_by_id,
+                                       closures=closures,
+                                       regions=water_regions.get(e["entry_id"]),
+                                       blankets=blankets))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
@@ -672,6 +967,21 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"({bound_outside}) — the reach run predates the border subtraction, or the atlas "
             f"changed under it. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+    # WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.86): the sections of the matched waters of
+    # every row saying anadromous rainbow are found there. A flagged row whose waters place no
+    # section would state the definition nowhere, so it stops the build.
+    sw_rows = []
+    for ce in ces:
+        if not ce.anadromous_rainbow:
+            continue
+        got = sorted({sid[h] for it in ce.matched if it in registry
+                      for h in registry[it].section_ids if h in sid})
+        if not got:
+            raise SystemExit(f"steelhead_water: {ce.entry_id} says anadromous rainbow are found "
+                             f"there, but its matched waters {list(ce.matched)} place no section")
+        sw_rows += [(s, ce.entry_id) for s in got]
+    db.executemany("INSERT INTO steelhead_water (sid, entry_id) VALUES (?,?)", sw_rows)
+    cov.filled("steelhead_water", len(sw_rows))
     if namer.unnamed:
         print(f"     labels: {len(namer.unnamed)} cut-point(s) have no book name, so the rules "
               f"on them name no place:")

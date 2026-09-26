@@ -21,7 +21,7 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.atlas.reach.outside import outside_bc, region_limit
+from pipeline.atlas.reach.outside import outside_bc, region_limit, shared_waters
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
@@ -73,6 +73,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         raise SystemExit("reach: records bind a lake that is cut into parts — name the part(s):\n  "
                          + "\n  ".join(bad))
     outside = outside_bc(registry, graph)
+    # The waters more than one region prints a row for: those rows stay in their own region; every
+    # other row applies along its water's whole length (`outside.region_limit`).
+    shared = shared_waters(ents)
 
     for e in ents:
         report.n_entries += 1
@@ -96,7 +99,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         for rule in e.get("rules") or []:
             report.n_rules += 1
             binding, diags = build_reach(e, rule, registry, graph,
-                                         covered=covered, clip=clip, outside=outside)
+                                         covered=covered, clip=clip, outside=outside,
+                                         shared=shared)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -185,7 +189,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
-                clip=None, outside=None,
+                clip=None, outside=None, shared=None,
                 regional: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
@@ -199,7 +203,9 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
 
     Two limits apply to every binding, computed here when the caller does not pass them, so the
     review app gets them by the same call (`pipeline.atlas.reach.outside`): water outside B.C.
-    is subtracted (`outside`), and a regional row's reach is held to its region(s) after the walk.
+    is subtracted (`outside`), and a regional row's reach is held to its region(s) after the walk
+    — a PER-REGION row's to the regions its id names, any other row's to the regions its own
+    water lies in (`shared`, the corpus's `outside.shared_waters`; the review app passes the same).
 
     `regional=False` skips the region limit — for LICENSING (`build_reaches` places every licensing
     record with it). A regional row's RULES are exceptions to that region's regulations and stop at
@@ -214,7 +220,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         covered = _covered_ids(entry, registry)
     if outside is None:
         outside = outside_bc(registry, graph)
-    region = region_limit(entry, registry) if regional else None
+    region = region_limit(entry, registry, shared) if regional else None
 
     per: list[dict | None] = []
     clipped = False

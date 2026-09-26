@@ -55,7 +55,8 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},
                     "item": ("part_of",), "outside_bc": ("sid",),
-                    "province_except": ("area_kind", "sid")}
+                    "province_except": ("area_kind", "sid"),
+                    "steelhead_water": ("sid", "entry_id")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -312,16 +313,27 @@ def read(bundle: Path) -> dict:
     # section, which the bundle holds, was lost: the Dean's eight (ruleset, licensing set)
     # combinations read as five rule sets beside four licensing sets, and nothing said which Class
     # I unit went with which closure. A section with no set on one side is `null` there.
-    for item_id, rs, ls, n in db.execute(
-            "SELECT i.item_id, r.set_id, l.set_id, COUNT(*) FROM item i "
-            "JOIN item_section s ON s.ord = i.ord "
+    #
+    # A PART ALSO SAYS WHERE A PROVINCE-WIDE REQUIREMENT STOPS (`province_except`: the families of
+    # areas its sections lie in — a national park) and WHERE A RAINBOW OVER 50 CM IS A STEELHEAD
+    # (`anadromous_rainbow`). Both were per water, or absent: a count of park sections on the
+    # water left the page to infer WHICH stretch was the park's from the permit.
+    for item_id, rs, ls, pe, sw, n in db.execute(
+            "SELECT i.item_id, r.set_id, l.set_id, "
+            "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
+            " WHERE p.sid = s.sid ORDER BY p.area_kind)) AS pe, "
+            "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid) AS sw, COUNT(*) "
+            "FROM item i JOIN item_section s ON s.ord = i.ord "
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
             "LEFT JOIN section_licensing l ON l.sid = s.sid "
-            "GROUP BY i.item_id, r.set_id, l.set_id "
-            "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id"):
+            "GROUP BY i.item_id, r.set_id, l.set_id, pe, sw "
+            "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id, "
+            "pe IS NOT NULL, pe, sw"):
         waters[item_id]["parts"].append({
             "ruleset": None if rs is None else str(rs),
-            "licensing_set": None if ls is None else str(ls), "sections": n})
+            "licensing_set": None if ls is None else str(ls), "sections": n,
+            **({"province_except": pe.split(",")} if pe else {}),
+            **({"anadromous_rainbow": True} if sw else {})})
     # WATER B.C. DOES NOT GOVERN — the sections of each water that lie outside the province. They
     # carry no set (the build refuses one that does), so they are among the parts with
     # `ruleset: null`; this count says why they have none.
@@ -329,12 +341,6 @@ def read(bundle: Path) -> dict:
             "SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord "
             "JOIN outside_bc o ON o.sid = s.sid GROUP BY i.item_id"):
         waters[item_id]["outside_bc"] = n
-    # WHERE A PROVINCE-WIDE REQUIREMENT STOPS: per water, the sections in each subtracted family.
-    for item_id, kind, n in db.execute(
-            "SELECT i.item_id, p.area_kind, COUNT(*) FROM item i JOIN item_section s "
-            "ON s.ord = i.ord JOIN province_except p ON p.sid = s.sid "
-            "GROUP BY i.item_id, p.area_kind ORDER BY 1, 2"):
-        waters[item_id].setdefault("province_except", {})[kind] = n
 
     sections = {
         "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
@@ -346,6 +352,8 @@ def read(bundle: Path) -> dict:
         "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
         "province_except": dict(db.execute("SELECT area_kind, COUNT(*) FROM province_except "
                                            "GROUP BY 1 ORDER BY 1").fetchall()),
+        "anadromous_rainbow": db.execute("SELECT COUNT(DISTINCT sid) FROM steelhead_water")
+                                .fetchone()[0],
     }
     db.close()
     return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
@@ -363,8 +371,11 @@ TYPE_TEXT = {
     "retention_limit": "How many of a fish you may keep, on which clock, of which sizes. A "
                        "quota, a catch-and-release, a size limit and a closure to a species are "
                        "all this one type; `take`, `may_target` and `lengths` tell them apart.",
-    "stop_fishing_after_quota": "Once your quota of this fish is taken you must stop fishing "
-                                "for it.",
+    "stop_fishing_after_quota": "Once you have caught and kept your quota of this fish (on the "
+                                "clock in `period` — the book: 'your DAILY quota of hatchery "
+                                "steelhead') you must stop fishing THAT WATER for the rest of "
+                                "that period ('for the remainder of that day'), whatever you "
+                                "fish for. It counts nothing itself.",
     "bait_restriction": "What may be on the hook — bait bans and the bait that is allowed "
                         "anyway. Carries `gear` clauses on the `bait` slot.",
     "tackle_restriction": "The rig: hooks, points, barbs, lures, flies, lines, weights. Carries "
@@ -507,9 +518,11 @@ RULE_FIELD_TEXT = {
     "take": "how many you may keep",
     "unlimited": "there is no number",
     "may_target": "false = you may not fish for it; true = fish for it and release",
-    "period": "daily | possession | annual | monthly — the clock the number runs on. Carried "
-              "by every retention_limit and stop_fishing_after_quota, and by nothing else: no "
-              "other type counts fish.",
+    "period": "daily | possession | annual | monthly — the clock a quota runs on. Carried by "
+              "every retention_limit (the clock its own number runs on) and every "
+              "stop_fishing_after_quota (the clock of the quota whose filling stops you: the book "
+              "prints 'your daily quota … for the remainder of that day', pp.21/49/51), and by "
+              "nothing else.",
     "per_daily": "a possession limit as a multiple of the daily one",
     "within": "the rule id (same entry) this is a clause of; it counts inside its parent",
     "lengths": "ordered length ranges, each with its own take — see `sizes`",
@@ -723,6 +736,29 @@ LIFT_TEXT = {
     "when": "the lift holds only on these days/hours (the lifter's own `when`, shape as in "
             "`time`); on every other day the lifted rule binds. Absent = the lifter is in force "
             "every day the lifted rule is. A lift is never in force while its lifter is not",
+    "origin": "the lift holds only for fish of this origin (hatchery | wild): the lifter keeps "
+              "only those. Which a fish is shows only once it is caught, so the lifted rule stays "
+              "and the lift is a condition on it (Kitimat River's 'Hatchery steelhead … daily "
+              "quota = 2' could never reopen a closure for WILD steelhead). Only a derived lift "
+              "(`basis`) carries it",
+    "lengths": "[{min_cm, max_cm}] — the lift holds only for fish of these sizes (the sizes the "
+               "lifter keeps). The lifted rule stays and the lift is a condition on it. A band "
+               "that only restates a fish's own definition (a steelhead is a rainbow over 50 cm) "
+               "is not carried. Only a derived lift (`basis`) carries it",
+    "basis": "names_the_fish: the book prints no exemption; the lifter is a water row that NAMES "
+             "a fish its region closes ('bass daily quota = 8' under Region 8's 'Bass: 0 quota, "
+             "CLOSED TO FISHING (see tables for exceptions)'), and so lifts that closure for the "
+             "fish both name — never further than the lifter covers (its dates, `origin`, "
+             "`lengths`, and only where the lifter itself is bound), and never a closure whose "
+             "own entry prints its exemptions. Derived when the bundle is built — never infer it. "
+             "Absent = the lifter's own printed exemption",
+    "equivalent": "'<entry_id>::<rule_id>' — the lifter's printed exemption names that blanket "
+                  "closure of its own region, and this item is the SAME KIND of closure in "
+                  "another region the lifter's water lies in (the same kind of water, an "
+                  "overlapping season): West Road River's Region 5 row, 'the regional spring "
+                  "closure does not add to its own mainstem closure', lifts Zone 7A's spring "
+                  "closure on its Zone 7A pieces. It holds only where the lifter is bound. A "
+                  "species closure is never lifted this way. Absent = the book names this rule",
 }
 
 LENGTH_TEXT = {
@@ -762,7 +798,8 @@ PLACEMENT_TEXT = {
     "sections": "bound to sections; find them through `licensing_sets`",
     "province": "applies everywhere; no section rows — EXCEPT, when its extent names "
                 "`outside_area_kind`, on the sections that kind covers (bundle table "
-                "`province_except`; per water, `waters[].province_except`). The basic licence and "
+                "`province_except`; on a water, each of its `parts` lists the families its "
+                "sections lie in as `province_except`). The basic licence and "
                 "the stamps do not hold inside National Parks, whose own permit does",
     "on_designation": "applies wherever a designation is in force (`on`); no section rows",
     "unresolved": "could not be placed: `provenance.uncertain` is true and `why` says why. For "
@@ -937,7 +974,10 @@ def guide(d: dict) -> dict:
                       "water rule speaks at the `inherited` rung instead. A rule is displaced "
                       "only by a better rule of ANOTHER quota: a quota and its `within` clauses "
                       "are one statement ('Trout/char: 5, but not more than 3 lake trout') and "
-                      "never displace each other. Rules that tie all speak. Where a water row's "
+                      "never displace each other. Rules that tie all speak. Between two quotas "
+                      "that let the fish be kept — one of this water, one of the zone — naming and "
+                      "place decide only when both state the same thing; otherwise both speak "
+                      "(`quotas_sit_beside`). Where a water row's "
                       "group rule must still speak over a zone rule that names a fish (a "
                       "'Catch and release' row under the zone's 'Burbot: 5'), the row LIFTS the "
                       "zone rule (`exempts`) — it does not rely on the ladder.",
@@ -948,7 +988,25 @@ def guide(d: dict) -> dict:
                     "displaced by a competing rule — whatever it names or wherever it is written. "
                     "In NAMING it counts as naming every fish it covers, so it displaces what "
                     "ranks below it by place: Clearwater Lake's 'No Fishing Nov 1-Apr 30' "
-                    "silences Zone B's 'Burbot: 5' on those dates.",
+                    "silences Zone B's 'Burbot: 5' on those dates. A WATER ROW THAT NAMES THE "
+                    "FISH a region-wide closure names lifts that closure for that fish (the "
+                    "book's '(see tables for exceptions)'): Okanagan River's 'bass daily quota = "
+                    "8' lifts Region 8's 'Bass: 0 quota, CLOSED TO FISHING' there. It must NAME "
+                    "the same fish — 'Trout daily quota = 1' names no steelhead, so West Road's "
+                    "row never reopens Region 6's steelhead stream closure — and a group closure "
+                    "('No fishing in any stream') names no fish and is lifted only by a printed "
+                    "exemption. These lifts are in the data (`exempts[].basis: names_the_fish`); "
+                    "the ladder removes a closure only by a lift, printed or derived, and never "
+                    "infers one. A DERIVED LIFT NEVER REOPENS MORE THAN ITS LIFTER COVERS: it "
+                    "carries the lifter's dates (`when`), origin (`origin`) and kept sizes "
+                    "(`lengths`), and holds only where the lifter is bound. And a closure that "
+                    "PRINTS ITS OWN EXEMPTION LIST takes none: Region 6's 'No fishing: in all "
+                    "rivers and streams for steelhead, May 15 – June 15. Exemptions include "
+                    "mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers' "
+                    "(p.49) names its exceptions, so Kitimat River's 'Hatchery steelhead daily "
+                    "quota = 2' does not reopen it; nor does a closure printed '(No "
+                    "exceptions)'. Region 8's '(see tables for exceptions)' sends the reader to "
+                    "the rows, which is what a derived lift reads.",
         "water_release": "A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH, whatever the zone "
                          "rule's conditions. Competition keys on (type, dimension), and a zone "
                          "quota's conditions (origin, water kind, while, size-only) are part of "
@@ -980,6 +1038,87 @@ def guide(d: dict) -> dict:
                          "about another fish never takes part (per fish). The zone's own "
                          "releases, record-keeping duties and the possession multiplier stand "
                          "beside the water's release.",
+        "quotas_sit_beside": "A WATER'S QUOTA SITS BESIDE THE ZONE'S (user ruling 2026-09-25). The "
+                             "zone's quota is a day's TOTAL over every water of the region: you "
+                             "may keep 2 at one lake and more elsewhere, up to the zone's number. "
+                             "So a quota written for this water (or reaching it by the tributary "
+                             "walk) and a zone, area or provincial quota BOTH SPEAK, and an angler "
+                             "is held by both — Kitimat River's 'Hatchery steelhead daily quota = "
+                             "2' beside Region 6's 'Trout/char: 5'; Dodd Lake's 'Wild trout/char "
+                             "daily quota = 2' beside Region 2's 'Trout/char: 4'. The ONE "
+                             "exception: the water's quota states EXACTLY what the zone's states — "
+                             "the same fish or group, the same size bounds, the same origin, water "
+                             "kind, means (`while`) and target (`when_targeting`), on the same "
+                             "clock — and differs only in its number; then the water's number "
+                             "REPLACES the zone's (a lake's 'Kokanee daily quota = 10' replaces the "
+                             "region's 'Kokanee: 5'). This is between quotas that let a fish be "
+                             "kept; releases and closures follow `closures` and `water_release`. "
+                             "A WATER QUOTA CAN NEVER MAKE THE NUMBER BIGGER (user ruling "
+                             "2026-09-25): a water quota LARGER than the zone's total is capped "
+                             "by it. Perry Creek's 'Brook trout daily quota = 20' speaks beside "
+                             "Region 4's 'Trout/char: 5', and an angler there keeps at most 5 "
+                             "brook trout a day; Polley Lake's 'Trout daily quota = 8' beside "
+                             "Region 5's 'Trout/char: 5' keeps at most 5. Both rules speak and "
+                             "BOTH bind: show the water's number and the zone's total, and the "
+                             "smaller is what the angler may keep. (Region 8's '20 brook trout "
+                             "from streams' is not a water quota: it is the zone's own allowance, "
+                             "counted apart — `counted_apart`.)",
+        "counted_apart": "A QUOTA COUNTED APART FROM THE AGGREGATE. Region 8 prints 'Trout/char: "
+                         "5, but not more than … 4 from streams … And you may retain: 20 brook "
+                         "trout from streams' (p.68): brook trout from streams are retained "
+                         "BESIDE the trout/char quota, not inside it. The data says so with a "
+                         "lift: the brook trout rule (bound to streams only) lifts the trout/char "
+                         "quota and its clauses FOR BROOK TROUT (`exempts[].species: [EB]`), so on "
+                         "a stream a brook trout is counted only against its 20, and on a lake "
+                         "(where the 20 does not bind) against the trout/char 5. No other "
+                         "region's table prints a separate brook trout retention. A water row's "
+                         "own 'Brook trout daily quota = 20' is a quota that sits beside the "
+                         "zone's trout/char quota (`quotas_sit_beside`).",
+        "steelhead_definition": "WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book defines "
+                                "(p.86): 'steelhead: a rainbow trout longer than 50 cm in waters "
+                                "where anadromous rainbow trout are found.' It lists no such "
+                                "waters, so a row states it (`CatalogueEntry.anadromous_rainbow`; "
+                                "Chilliwack/Vedder Rivers today) and each water part it covers "
+                                "carries `anadromous_rainbow: true`. There a rainbow over 50 cm "
+                                "IS a steelhead: ask about it as ST, and it is governed by the "
+                                "steelhead rules. A rainbow rule there speaks only for rainbow "
+                                "of 50 cm or less: its length bands over 50 cm speak for no "
+                                "rainbow, and one that speaks only of rainbow over 50 cm "
+                                "(Region 2's '1 over 50 cm') speaks for no rainbow at all. So "
+                                "Chilliwack's 'hatchery rainbow trout catch and release (50 cm "
+                                "or less)' releases every hatchery rainbow in May, and Region "
+                                "2's 'Trout/char: 4' keeps no rainbow over 50 cm there — that "
+                                "fish is a steelhead ('2 hatchery steelhead over 50 cm allowed', "
+                                "'All wild steelhead' released). Elsewhere a rainbow of any "
+                                "size is a rainbow.",
+        "region": "A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN (user rulings "
+                  "2026-09-25). A STREAM PIECE that wanders across a region line binds only "
+                  "its home region's zone rules: the region holding most of its length (a West "
+                  "Road River mainstem piece 54% in Zone 7A takes Zone 7A's table). A LAKE drawn "
+                  "across a region line (never cut) binds BOTH regions' zone rules, and the MOST "
+                  "STRICT applies (`two_regions`): Ahbau Lake (51% Region 5, 49% Zone 7A), Mara "
+                  "Lake (61% Region 3, 39% Region 8). A WATER'S OWN ROW applies along the water's "
+                  "whole length, in every region it lies in — West Road River's Region 5 row on "
+                  "its Zone 7A and Region 6 pieces, the Nechako's Region 7 row on its Region 6 "
+                  "pieces, the Similkameen's Region 8 row on its Region 2 pieces — and so do the "
+                  "exemptions it prints: a row 'exempt from spring closure' lifts the spring "
+                  "closure of whichever region each piece lies in (`exempts[].equivalent`). The "
+                  "exception is a PER-REGION row: a water the book prints a row for in more than "
+                  "one region (the Fraser in Regions 2, 3, 5 and 7; the Stellako in 6 and 7; the "
+                  "West Road's tributaries in 6 and 7) — each such row is about the stretch in its "
+                  "own region. A pointer row ('See Shuswap Lake in Region 3') never moves a water "
+                  "to another region.",
+        "two_regions": "TWO REGIONS' BASES ON ONE LAKE — THE MOST STRICT APPLIES. Where a lake "
+                       "carries two regions' zone rules (`region`), neither table outranks the "
+                       "other by place. Per fish, a zone rule of one region gives way to a "
+                       "STRICTER zone rule of the other: a closure beats any retention rule "
+                       "that is not a closure (closed beats open); an outright release beats a "
+                       "quota keeping only fish it releases; of two quotas stating exactly the "
+                       "same thing (`quotas_sit_beside`) the LOWER number beats the higher. "
+                       "Quotas stating different things sit beside each other (the stricter "
+                       "binds by itself), equal rules both speak, and gear and method "
+                       "restrictions are never displaced — both regions' apply. A rule written "
+                       "for the lake itself still outranks both tables.",
         "never_compete": "`standing` rules, the information family (hazard, advisory, "
                          "program_membership, facility), and LIFT-ONLY rules (dimension `lift`: "
                          "an `exempts` and no number, bound, gear, duty or angler of their own — "
@@ -1263,7 +1402,10 @@ def guide(d: dict) -> dict:
                    "of them lifts it only for those anglers, or only on those days — the rule stays in force for everyone "
                    "else, and since the angler is unknown the lift is a condition beside it, "
                    "never a removal. A lift is never wider than its lifter. A lift whose place "
-                   "cannot be drawn is not applied, and a rule never lifts itself.",
+                   "cannot be drawn is not applied, and a rule never lifts itself. Some lifts "
+                   "are not printed as exemptions but DERIVED at build (`basis`): a water row "
+                   "naming a fish its region closes lifts that closure for that fish (see "
+                   "`ladder.closures`). Read them exactly like printed ones.",
         "fields": dict(LIFT_TEXT),
         "examples": {
             "whole": pick(lambda x: any(not part(e) for e in F(x, "exempts") or []),
@@ -1272,8 +1414,12 @@ def guide(d: dict) -> dict:
                             "exempts", "species", "when_targeting", "while", n=1),
             "with the book's note": pick(
                 lambda x: any(e.get("note") for e in F(x, "exempts") or []), "exempts", n=1),
+            "derived — the water names the fish": pick(
+                lambda x: any(e.get("basis") for e in F(x, "exempts") or []), "exempts", n=1),
         },
         "rules": sum(bool(F(x, "exempts")) for x in rules.values()),
+        "derived_lifts": sum(1 for x in rules.values() for e in F(x, "exempts") or []
+                             if e.get("basis")),
     }
     standing = {
         "reading": "`standing: true` — the rule holds everywhere at places no dataset can draw "
@@ -1376,7 +1522,11 @@ def guide(d: dict) -> dict:
                    "(`rulesets`, `licensing_sets`: its members grouped by `via`, and how many "
                    "sections carry it). Each named water lists its `parts`: every (ruleset, "
                    "licensing_set) pair its sections carry TOGETHER, and on how many sections — "
-                   "so a licence area joins the rules on the same stretch. `null` on either side "
+                   "so a licence area joins the rules on the same stretch — and, on a part, "
+                   "`province_except` (the families of areas its sections lie in where a "
+                   "province-wide requirement stops: a national park) and `anadromous_rainbow` "
+                   "(a rainbow over 50 cm is a steelhead there; `ladder.steelhead_definition`). "
+                   "`null` on either side "
                    "is a stretch with no set of that kind. The parts' sections sum to the "
                    "water's `sections`. Set ids are local to this file and change with every "
                    "build; never store one. Section handles never leave the bundle.",
@@ -1489,7 +1639,9 @@ def guide(d: dict) -> dict:
                 "licences": "the document register",
                 "rulesets / licensing_sets": "the interned sets of records that sections carry",
                 "waters": "every named water (by durable item_id): its `parts` (the (ruleset, "
-                          "licensing_set) pairs its sections carry together), its `outside_bc` "
+                          "licensing_set) pairs its sections carry together, with "
+                          "`province_except` and `anadromous_rainbow` where they hold), its "
+                          "`outside_bc` "
                           "count, and `part_of` for a lake part",
                 "species": "every fish, and the groups the book writes",
                 "field_dictionary": "every field in the file, and what it means",
@@ -1522,7 +1674,14 @@ def guide(d: dict) -> dict:
                            "of Slocan River. See Slocan River' — and never a rule: it binds "
                            "nothing. Show it as a link to each of `entry_ids` ('see Lonzo "
                            "Creek'). A row whose only content is a pointer has no rules and no "
-                           "licensing: it is SKIPPED as a regulation and read as the link. "
+                           "licensing: it is SKIPPED as a regulation and read as the link. A "
+                           "pointer row BINDS NOTHING and moves nothing: the TARGET row carries "
+                           "the regulations, on the waters it matches, in the region those "
+                           "waters lie in ('MARA LAKE — See Shuswap Lake in Region 3': Shuswap "
+                           "Lake's row covers Mara Lake). Where the target does not cover the "
+                           "pointer's water (Panther Lake, Bighorn Creek, Nation River, the Arrow "
+                           "Lakes rows) that water carries only what else binds it — a gap in "
+                           "the target's reach, never something the pointer supplies. "
                            "`unresolved` (no `entry_ids`) is a pointer that names no row — show "
                            "its words, it cannot be followed.",
                 "relation": {
