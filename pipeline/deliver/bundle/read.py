@@ -243,12 +243,12 @@ def in_force(when: dict | None, on) -> str:
 
 
 def speaks_for(rule: dict, fish: str) -> bool:
-    """Whether a rule says anything about ONE fish (a leaf code, "BT"). A rule that names no
-    species binds whatever you catch; `ALL_FIN_FISH` is every fish; `NON_GAME_FISH` every fish
-    off the game-fish list and not a salmon; otherwise the fish must be in the expansion of
-    `species` and not of `species_except`. A bait or tackle rule for a TARGET speaks only when
-    the fish asked about is that target."""
-    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS, expand_species
+    """Whether a rule says anything about ONE fish (a leaf code of the book's list, "DV"). A rule
+    that names no species binds whatever you catch; `ALL_FIN_FISH` is every fish but crayfish;
+    the other open subjects (`PROTECTED_SPECIES`, `SALMON`) hold no game fish and so speak for
+    none; otherwise the fish must be in the expansion of `species` and not of `species_except`. A
+    bait or tackle rule for a TARGET speaks only when the fish asked about is that target."""
+    from pipeline.regs.parsing.catalogue import expand_species
     tgt = rule.get("when_targeting") or []
     if tgt and fish not in expand_species(list(tgt)):
         return False
@@ -261,19 +261,26 @@ def speaks_for(rule: dict, fish: str) -> bool:
         # "Fin fish" is not crayfish: "release all fin fish caught in your trap" keeps the
         # crayfish, and `rules._lift_terms` leaves a crayfish quota standing under "all fish".
         return fish != "CRA"
-    if "NON_GAME_FISH" in sp and fish not in SPECIES_GROUPS["ALL_GAME_FISH"] \
-            and fish not in SPECIES_GROUPS["SALMON"]:
-        return True
     return fish in expand_species(sp)
 
 
 def names_fish(rule: dict, fish: str) -> bool:
     """Whether a rule NAMES this fish rather than a group holding it. "Bull trout … release" names
-    bull trout; "Trout/char daily quota = 2" names a group. A code that is one fish as the book
-    speaks of it ("cutthroat", which the table splits into westslope and coastal) names each."""
-    from pipeline.regs.parsing.catalogue import _ONE_FISH_GROUPS, SPECIES_GROUPS
-    return any(c == fish or (c in _ONE_FISH_GROUPS and fish in SPECIES_GROUPS[c])
+    the Dolly Varden/bull trout; "Trout/char daily quota = 2" names a group. "Char" names each char
+    (`catalogue.NAMING_GROUPS`): once trout include char (p.86) it is the book's only way to name
+    char apart from trout — Region 1's "you must release: All char (includes Dolly Varden)" names
+    the char a lake's "Trout daily quota = 2" (a trout/char quota) would otherwise let be kept."""
+    from pipeline.regs.parsing.catalogue import NAMING_GROUPS, SPECIES_GROUPS
+    return any(c == fish or (c in NAMING_GROUPS and fish in SPECIES_GROUPS[c])
                for c in rule.get("species") or [])
+
+
+def not_yet_mapped(rule: dict) -> bool:
+    """A rule held on its water as a note because the part it names is not drawn (`undrawn_part`:
+    Kinbasket Lake's "No Fishing within 200 m of Bush-Sullivan Bridge"). It is bound to the whole
+    water only so it can be SHOWN there; it NEVER governs the whole water — it never competes,
+    never displaces, never lifts, and never holds a record dormant (`effective_rules`)."""
+    return bool(str(rule.get("undrawn_part") or "").strip())
 
 
 #: A rainbow longer than this is a steelhead where anadromous rainbow are found (p.86).
@@ -381,8 +388,9 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
 
     `section` is a bundle `sid`, `on` a `datetime.date` or `(month, day)`, `fish` a leaf species
     code. Returns the rules bound to the section that say something about that fish on that day,
-    each a `rules()` dict with `state` added: "speaks", or "beside" (in force only some hours or
-    weekdays, or of unreadable season: shown, never displacing). Sorted by `rid`.
+    each a `rules()` dict with `state` added: "speaks", "beside" (in force only some hours or
+    weekdays, or of unreadable season: shown, never displacing), "shown" (never competes), or
+    "not_yet_mapped" (holds only in a part nothing draws). Sorted by `rid`.
 
       0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
          (`steelhead_water`, p.86): asked about "RB" there, every rule is read over rainbow of 50
@@ -451,6 +459,11 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
       Rules that never compete pass through with state "shown": `standing`, the information
       family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
       `lift`) state nothing and are not returned.
+      A RULE IN A PART NOBODY HAS DRAWN (`not_yet_mapped`: `undrawn_part` — "No Fishing within 200
+      m of Bush-Sullivan Bridge" held on the whole of Kinbasket Lake) is returned with state
+      "not_yet_mapped" when it is in force and about the fish, and takes no part in anything
+      above: it displaces nothing, lifts nothing, silences nothing and suspends nothing (user
+      ruling 2026-09-26). It is a place on the water the map cannot show yet, never the water.
 
     `by_naming=False` ranks by place alone — the ladder before the naming ruling — and exists
     only so an audit can list what the ruling changed."""
@@ -483,14 +496,15 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                 else:
                     every[k] = v
     state = {k: in_force(every[k].get("when"), on) for k in here}
+    undrawn = {k for k in here if not_yet_mapped(every[k])}
     for k in here:                                          # 1. dormant under its closure
         sw = every[k].get("suspended_while")
-        if sw and state.get((k[0], sw)) == "yes":
+        if sw and state.get((k[0], sw)) == "yes" and (k[0], sw) not in undrawn:
             state[k] = "no"
     live = {k for k, s in state.items() if s != "no"}
     lifted, partly = set(), set()
     for k in sorted(live):                                   # 3. lifts
-        if state[k] != "yes":
+        if state[k] != "yes" or k in undrawn:
             continue
         for x in every[k].get("exempts") or []:
             t = (x["entry_id"], x["rule_id"])
@@ -513,7 +527,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
 
     def competes(k) -> bool:
         x = every[k]
-        return state[k] == "yes" and not x.get("standing") and x.get("family") != "information"
+        return state[k] == "yes" and not x.get("standing") and x.get("family") != "information" \
+            and k not in undrawn
 
     def closure(k) -> bool:
         x = every[k]
@@ -653,6 +668,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         out_ -= gone
 
     def said(k) -> str:
+        if k in undrawn:
+            return "not_yet_mapped"
         return "speaks" if competes(k) else "beside" if state[k] == "part" else "shown"
 
     return [dict({a: b for a, b in orig[k].items() if a != "_rank"}, state=said(k),

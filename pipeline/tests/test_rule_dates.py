@@ -56,7 +56,7 @@ def test_the_complement_and_the_other_half_are_readings_of_the_words():
         when={"dates": [{"from_month": 5, "from_day": 1, "to_month": 6, "to_day": 15}]}))
     # a sentence with a window for one place and "all year" for another: this rule is the other
     CatalogueRule.model_validate(_r(
-        rule_id="p.r1", type="retention_limit", species=["BT"], take=0, may_target=True,
+        rule_id="p.r1", type="retention_limit", species=["DV"], take=0, may_target=True,
         verbatim="Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace "
                  "River watershed all year"))
     # a lift names the window of the rule it lifts, not its own
@@ -86,7 +86,7 @@ def test_a_printed_window_no_rule_carries_is_lost():
                  _r(rule_id="t.r1", type="retention_limit", verbatim="No Fishing",
                     species=["ALL_GAME_FISH"], take=0, may_target=False),
                  _r(rule_id="t.r2", type="retention_limit", verbatim="Trout daily quota = 2",
-                    species=["TROUT"], take=2))
+                    species=["TROUT_CHAR"], take=2))
     with pytest.raises(ValueError, match="prints Dec 1-Mar 31 and no rule"):
         CatalogueEntry.model_validate(row)
     row["rules"][0]["when"] = {"dates": [{"from_month": 12, "from_day": 1, "to_month": 3,
@@ -96,10 +96,10 @@ def test_a_printed_window_no_rule_carries_is_lost():
 
 def test_a_clause_inside_a_dated_siblings_sentence_is_dated():
     text = "Trout daily quota = 2 (none under 30 cm), May 1-Oct 31"
-    quota = _r(rule_id="t.r1", type="retention_limit", verbatim=text, species=["TROUT"], take=2,
+    quota = _r(rule_id="t.r1", type="retention_limit", verbatim=text, species=["TROUT_CHAR"], take=2,
                when=D)
     size = _r(rule_id="t.r2", type="retention_limit", verbatim="none under 30 cm",
-              species=["TROUT"], lengths=[{"max_cm": 30, "take": 0}])
+              species=["TROUT_CHAR"], lengths=[{"max_cm": 30, "take": 0}])
     with pytest.raises(ValueError, match="part of t.r1's sentence"):
         CatalogueEntry.model_validate(_entry(text, quota, size))
     CatalogueEntry.model_validate(_entry(text, quota, dict(size, when=D)))
@@ -108,7 +108,7 @@ def test_a_clause_inside_a_dated_siblings_sentence_is_dated():
 def test_the_date_straight_after_a_quote_is_its_date():
     text = "Trout daily quota = 2 (none under 30 cm), May 1-Oct 31"
     cut = _r(rule_id="t.r1", type="retention_limit", verbatim="Trout daily quota = 2 (none under "
-             "30 cm)", species=["TROUT"], take=2)
+             "30 cm)", species=["TROUT_CHAR"], take=2)
     with pytest.raises(ValueError, match="date straight after its words"):
         CatalogueEntry.model_validate(_entry(text, cut))
     CatalogueEntry.model_validate(_entry(text, dict(cut, when=D)))
@@ -145,7 +145,7 @@ def test_a_semicolon_or_a_list_comma_is_not_the_shape():
         _r(rule_id="z.r5", type="retention_limit", verbatim="ALL STEELHEAD", species=["ST"],
            take=0, may_target=True),
         _r(rule_id="z.r6", type="retention_limit", verbatim="Bull trout from streams, Aug 1-Oct 31",
-           species=["BT"], take=0, may_target=True,
+           species=["DV"], take=0, may_target=True,
            when={"dates": [{"from_month": 8, "from_day": 1, "to_month": 10, "to_day": 31}]})))
 
 
@@ -156,7 +156,7 @@ def test_a_window_held_elsewhere_must_still_need_the_exemption():
                                              ("z7b:trout_char_quota", "Aug 15-Oct 15")}
     text = "NOTE: Bull trout may only be retained from Oct 16-Aug 14."
     row = dict(_entry(text, _r(
-        rule_id="n.r1", type="retention_limit", species=["BT"], take=1, verbatim=text,
+        rule_id="n.r1", type="retention_limit", species=["DV"], take=1, verbatim=text,
         when={"dates": [{"from_month": 10, "from_day": 16, "to_month": 8, "to_day": 14}]})),
         entry_id="z7b:trout_char_quota")
     with pytest.raises(ValueError, match="take it off the list"):

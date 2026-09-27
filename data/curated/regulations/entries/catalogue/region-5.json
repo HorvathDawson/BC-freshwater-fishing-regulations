@@ -170,7 +170,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -244,7 +244,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -782,7 +782,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -856,7 +856,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1076,7 +1076,7 @@
      "type": "retention_limit",
      "verbatim": "trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1151,7 +1151,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1338,7 +1338,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1470,7 +1470,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1581,7 +1581,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -1763,7 +1763,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -1847,6 +1847,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
     }
@@ -2444,7 +2451,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -2757,7 +2764,7 @@
      "type": "retention_limit",
      "verbatim": "only 1 bull trout and it may not be under 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "within": "chilko_lake.r1",
@@ -2884,8 +2891,7 @@
      "type": "retention_limit",
      "verbatim": "Dolly Varden (bull trout) catch and release",
      "species": [
-      "DV",
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -3170,7 +3176,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3310,7 +3316,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3511,7 +3517,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3585,7 +3591,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3733,7 +3739,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -4207,7 +4213,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -4302,7 +4308,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4503,7 +4509,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -4619,7 +4625,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -4714,7 +4720,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -4769,7 +4775,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -4843,7 +4849,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -4930,7 +4936,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -4985,7 +4991,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -5083,7 +5089,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -5169,7 +5175,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -5222,6 +5228,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -5249,7 +5262,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -5376,7 +5389,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -5468,7 +5481,7 @@
      "type": "retention_limit",
      "verbatim": "No Fishing **for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -5683,7 +5696,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -5795,7 +5808,7 @@
      "type": "retention_limit",
      "verbatim": "trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5944,7 +5957,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -6064,7 +6077,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -6351,7 +6364,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -6470,7 +6483,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -7109,6 +7122,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -7326,6 +7346,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -7374,7 +7401,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -7720,7 +7747,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -7826,7 +7853,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -7900,7 +7927,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -8048,7 +8075,7 @@
      "type": "retention_limit",
      "verbatim": "trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -8123,7 +8150,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -8198,7 +8225,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -8831,6 +8858,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -8938,6 +8972,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -8981,7 +9022,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -9162,7 +9203,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -9332,7 +9373,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -9373,6 +9414,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
      ]
     }
    ]
@@ -9400,7 +9448,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -9533,7 +9581,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -9756,7 +9804,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -9967,7 +10015,7 @@
      "type": "retention_limit",
      "verbatim": "trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -10138,7 +10186,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -10268,7 +10316,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -10352,7 +10400,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -10434,7 +10482,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -10529,7 +10577,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -10615,7 +10663,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -10640,7 +10688,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -11093,7 +11141,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 30 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -11253,7 +11301,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -11575,7 +11623,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -11812,7 +11860,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -11846,7 +11894,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -11958,7 +12006,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 30 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -12096,7 +12144,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily and possession quotas = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -12110,7 +12158,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily and possession quotas = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "period": "possession",
@@ -12201,7 +12249,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none less than 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -13149,8 +13197,7 @@
      "type": "retention_limit",
      "verbatim": "1 Dolly Varden/bull trout",
      "species": [
-      "DV",
-      "BT"
+      "DV"
      ],
      "take": 1,
      "within": "trout_char_quota.r1",
@@ -13224,7 +13271,6 @@
      "type": "retention_limit",
      "verbatim": "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31",
      "species": [
-      "BT",
       "DV"
      ],
      "when": {

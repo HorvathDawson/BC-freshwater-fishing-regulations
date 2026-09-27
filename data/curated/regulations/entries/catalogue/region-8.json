@@ -583,7 +583,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1653,7 +1653,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -1941,7 +1941,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -2149,6 +2149,11 @@
        "target": "trout_char_quota.r1",
        "entry_id": "z8:trout_char_quota",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z8:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
     },
@@ -3007,7 +3012,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3235,7 +3240,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout (Dolly Varden) daily quota = 1 (none under 50 cm)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -3345,7 +3350,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -4504,7 +4509,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -5243,7 +5248,6 @@
      "type": "retention_limit",
      "verbatim": "Bull trout/Dolly Varden daily quota = 1 (none under 50 cm)",
      "species": [
-      "BT",
       "DV"
      ],
      "take": 1,
@@ -6895,7 +6899,6 @@
      "type": "retention_limit",
      "verbatim": "Bull trout (Dolly Varden) from streams",
      "species": [
-      "BT",
       "DV"
      ],
      "take": 0,

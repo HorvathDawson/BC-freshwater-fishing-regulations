@@ -315,7 +315,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -334,7 +334,7 @@
      "type": "retention_limit",
      "verbatim": "These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length.",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -766,7 +766,7 @@
      "type": "retention_limit",
      "verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
      "species": [
-      "BT"
+      "DV"
      ],
      "period": "possession",
      "per_daily": 1,

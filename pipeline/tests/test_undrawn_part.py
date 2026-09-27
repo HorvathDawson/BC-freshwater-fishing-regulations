@@ -204,8 +204,8 @@ def test_a_lift_names_what_it_lifts_in_words_never_by_slug():
                      "entry_id": "r4:columbia_lake_s_tributaries@4-25"}])
     assert label(dutch, entries=entries) == "Columbia Lake's tributaries closure lifted"
     assert label(dutch) == "Columbia lake s tributaries lifted"      # the slug, with nothing
-    duncan = lifter([{"default_id": "trout_char_winter_release"}], species=["BT"])
-    assert label(duncan, entries=entries) == "Trout and char winter release lifted for bull trout"
+    duncan = lifter([{"default_id": "trout_char_winter_release"}], species=["DV"])
+    assert label(duncan, entries=entries) == "Trout and char winter release lifted for dolly varden/bull trout"
     bass = lifter([{"target": "species_quotas.r1", "entry_id": "z4:species_quotas"}],
                   species=["BASS"], take=5)
     assert label_parts(bass, entries=entries)["lifts"] == "lifts “No fishing for bass”"
@@ -277,9 +277,9 @@ def test_a_lift_names_the_fish_it_lifts_for():
     r = CatalogueRule.model_validate({
         "rule_id": "duncan_river.r3", "type": "retention_limit",
         "verbatim": "exempt from regional Nov 1-Mar 31 bull trout catch and release",
-        "species": ["BT"], "exempts": [{"default_id": "trout_char_winter_release"}],
+        "species": ["DV"], "exempts": [{"default_id": "trout_char_winter_release"}],
         "extents": [{"op": "whole"}]})
-    assert label_parts(r) == {"what": "Trout char winter release lifted for bull trout"}
+    assert label_parts(r) == {"what": "Trout char winter release lifted for dolly varden/bull trout"}
 
 
 def test_spear_fishing_is_a_method_and_its_parts_read_naturally():

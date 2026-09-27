@@ -3045,7 +3045,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -3103,7 +3103,7 @@
      "type": "retention_limit",
      "verbatim": "exempt from regional Nov 1-Mar 31 bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "extents": [
       {
@@ -3174,7 +3174,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout daily quota = 2 (any size)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 2,
      "extents": [
@@ -3575,7 +3575,7 @@
      "type": "retention_limit",
      "verbatim": "no bull trout under 75 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -3774,7 +3774,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -3961,7 +3961,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -4172,7 +4172,7 @@
      "type": "retention_limit",
      "verbatim": "only 1 bull trout",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -4324,7 +4324,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -4339,7 +4339,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 30 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -4447,7 +4447,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -4463,7 +4463,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none under 30 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -5810,7 +5810,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout daily quota = 2 (any size)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 2,
      "extents": [
@@ -5862,7 +5862,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout daily quota = 2 (any size)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 2,
      "extents": [
@@ -5993,7 +5993,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -6109,7 +6109,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release Nov 1-Mar 31",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -6134,7 +6134,7 @@
      "type": "retention_limit",
      "verbatim": "no bull trout under 75 cm when open",
      "species": [
-      "BT"
+      "DV"
      ],
      "lengths": [
       {
@@ -6330,7 +6330,7 @@
      "type": "retention_limit",
      "verbatim": "only 1 bull trout",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "within": "kootenay_lake_lower_west_arm.r1",
@@ -6457,7 +6457,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout daily quota = 1",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "extents": [
@@ -6579,7 +6579,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -6671,7 +6671,7 @@
      "type": "retention_limit",
      "verbatim": "only 1 bull trout",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "within": "kootenay_lake_upper_west_arm.r2",
@@ -7090,7 +7090,7 @@
      "type": "retention_limit",
      "verbatim": "no trout under 30 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -7125,7 +7125,7 @@
      "type": "retention_limit",
      "verbatim": "no bull trout under 75 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -7187,7 +7187,7 @@
      "type": "retention_limit",
      "verbatim": "no trout under 30 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -7220,7 +7220,7 @@
      "type": "retention_limit",
      "verbatim": "no bull trout under 75 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -7357,7 +7357,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -7593,7 +7593,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout daily quota = 2 (any size)",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 2,
      "extents": [
@@ -7700,7 +7700,7 @@
      "verbatim": "cutthroat and bull trout catch and release",
      "species": [
       "CT",
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -8710,7 +8710,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -9754,7 +9754,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -9821,7 +9821,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout and cutthroat trout catch and release",
      "species": [
-      "BT",
+      "DV",
       "CT"
      ],
      "take": 0,
@@ -10424,7 +10424,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -10580,7 +10580,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -10681,7 +10681,7 @@
      "verbatim": "Cutthroat trout and bull trout catch and release",
      "species": [
       "CT",
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -10758,7 +10758,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -11264,7 +11264,7 @@
      "verbatim": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout",
      "species": [
       "RB",
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -11325,7 +11325,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout catch and release year-round",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -11388,7 +11388,7 @@
      "type": "retention_limit",
      "verbatim": "Regional quotas apply, EXCEPT bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -11876,7 +11876,7 @@
      "type": "retention_limit",
      "verbatim": "No bull trout under 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "lengths": [
       {
@@ -11915,7 +11915,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -12717,7 +12717,7 @@
      "type": "retention_limit",
      "verbatim": "bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -13021,7 +13021,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -13123,7 +13123,7 @@
      "type": "retention_limit",
      "verbatim": "no bull trout under 60 cm and only 1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "within": "upper_arrow_lake_drawdown_area.r1",
@@ -13240,7 +13240,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -13581,7 +13581,7 @@
      "type": "retention_limit",
      "verbatim": "No bull trout under 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "lengths": [
       {
@@ -13680,7 +13680,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout catch and release on all parts, Sept 1-Oct 31",
      "species": [
-      "BT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -14867,28 +14867,12 @@
    "source_pages": [
     34
    ],
-   "rules": [
+   "see": [
     {
-     "rule_id": "kootenay_annual.r1",
-     "type": "retention_limit",
      "verbatim": "Rainbow trout over 50 cm from the main body of Kootenay Lake: 20 per licence year.",
-     "species": [
-      "RB"
-     ],
-     "take": 20,
-     "period": "annual",
-     "lengths": [
-      {
-       "min_cm": 50
-      }
-     ],
-     "extents": [
-      {
-       "op": "whole",
-       "item_id": "wbk:-20"
-      }
-     ],
-     "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules."
+     "entry_ids": [
+      "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+     ]
     }
    ]
   },
@@ -15411,7 +15395,6 @@
      "type": "retention_limit",
      "verbatim": "1 bull trout (Dolly Varden) of any size",
      "species": [
-      "BT",
       "DV"
      ],
      "take": 1,

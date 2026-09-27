@@ -44,7 +44,7 @@ def test_gear_rules_refuse_species():
 def test_a_bait_rule_may_be_scoped_to_what_you_are_FISHING_FOR():
     """A stream can carry a salmon bait ban and no other. That is not a species the ban protects —
     it is the fishery the ban applies to, which is why it is a separate field."""
-    r = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}], when_targeting=["SA"])
+    r = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}], when_targeting=["SALMON"])
     assert label(r) == "Bait ban, when fishing for salmon"
     general = _r(type=RuleType.bait_restriction, gear=[{"slot": "bait", "ban": ["any_bait"]}])
     assert r.dimension != general.dimension    # they coexist; neither displaces the other
@@ -136,8 +136,8 @@ def test_vessel_aspects_are_separate_dimensions():
 def test_take_zero_branches_on_may_target():
     """THE defect this catalogue exists to stop. Unbranched, take=0 -> "release all" turns all
     605 rules whose label begins "No fishing" into a catch-and-release PERMISSION."""
-    closed = _r(type=RuleType.retention_limit, species=["BS"], take=0, may_target=False)
-    release = _r(type=RuleType.retention_limit, species=["BS"], take=0, may_target=True)
+    closed = _r(type=RuleType.retention_limit, species=["BASS"], take=0, may_target=False)
+    release = _r(type=RuleType.retention_limit, species=["BASS"], take=0, may_target=True)
     assert label(closed) == "No fishing for bass"
     assert label(release) == "Bass — release all"
     assert label(closed) != label(release)
@@ -187,31 +187,31 @@ def test_verbatim_is_required():
 def test_size_polarity_on_a_sub_limit():
     """`r2:cultus_lake` — "1 bull trout over 60 cm": the fish you keep must BE over 60.
     Rendered as "no more than 1 under 60 cm" it inverts the rule on the fish it protects."""
-    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, within="parent",
+    r = _r(type=RuleType.retention_limit, species=["DV"], take=1, within="parent",
            lengths=[{"min_cm": 60}, {"max_cm": 60, "take": 0}])
-    assert label(r) == "Bull trout (no more than 1, none under 60 cm)"
+    assert label(r) == "Dolly Varden/bull trout (no more than 1, none under 60 cm)"
 
 
 def test_a_counted_size_class_on_a_sub_limit_allows_the_big_fish():
     """"not more than 1 over 50 cm" ALLOWS one big fish; "none over 50 cm" forbids them."""
-    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=1, within="parent",
+    r = _r(type=RuleType.retention_limit, species=["TROUT_CHAR"], take=1, within="parent",
            lengths=[{"min_cm": 50}])
-    assert label(r) == "Trout (no more than 1 over 50 cm)"
+    assert label(r) == "Trout and char (no more than 1 over 50 cm)"
 
 
 def test_a_flat_size_prohibition_still_reads_as_one():
-    r = _r(type=RuleType.retention_limit, species=["TROUT"], take=0, may_target=True,
+    r = _r(type=RuleType.retention_limit, species=["TROUT_CHAR"], take=0, may_target=True,
            lengths=[{"min_cm": 50, "take": 0}])
-    assert label(r) == "Trout — release all over 50 cm"
+    assert label(r) == "Trout and char — release all over 50 cm"
 
 
 def test_a_slot_sub_limit_keeps_its_count():
     """`z7a` — "not more than 1 bull trout (Dolly Varden) ... only 30-50 cm in length".
     Dropping the 1 turns a one-fish allowance into an unlimited one inside the slot."""
-    r = _r(type=RuleType.retention_limit, species=["BT"], take=1, within="parent",
+    r = _r(type=RuleType.retention_limit, species=["DV"], take=1, within="parent",
            lengths=[{"min_cm": 30, "max_cm": 50}, {"max_cm": 30, "take": 0},
                     {"min_cm": 50, "take": 0}])
-    assert label(r) == "Bull trout (no more than 1, 30–50 cm only)"
+    assert label(r) == "Dolly Varden/bull trout (no more than 1, 30–50 cm only)"
 
 
 # --- the species menu is a PROMISE ------------------------------------------------------------
@@ -240,8 +240,10 @@ def test_every_accepted_code_can_render_a_label():
 def test_the_menu_offers_the_groups_the_synopsis_prints():
     from pipeline.regs.parsing.catalogue import species_menu
     m = species_menu()
-    for g in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS"):
+    for g in ("ALL_GAME_FISH", "TROUT_CHAR", "CHAR", "WHITEFISH", "BASS"):
         assert f"`{g}`" in m, f"the menu never offers {g}"
+    # and it states the two facts of p.86 the parser most needs
+    assert "TROUT INCLUDES CHAR" in m and "A BULL TROUT IS A DOLLY VARDEN" in m
 
 
 def test_labels_match_the_official_table_not_a_strain_name():
@@ -259,26 +261,67 @@ def test_all_game_fish_is_the_closed_list_and_excludes_salmon():
     from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
     agf = set(SPECIES_GROUPS["ALL_GAME_FISH"])
     assert not (agf & set(SPECIES_GROUPS["SALMON"]))
-    for c in ("RB", "BT", "KO", "WSG", "CRA", "LMB", "MW"):
+    assert SPECIES_GROUPS["SALMON"] == ()
+    for c in ("RB", "DV", "KO", "WSG", "CRA", "LMB", "MW"):
         assert c in agf, f"{c} is on the printed closed list but not in ALL_GAME_FISH"
 
 
 def test_group_expansion_is_recoverable():
     from pipeline.regs.parsing.catalogue import expand_species
-    # CT is a group (decision 11): "cutthroat" is westslope and coastal cutthroat
-    assert expand_species(["TROUT_CHAR"])[:4] == ["RB", "ST", "WCT", "CCT"]
-    assert expand_species(["BT"]) == ["BT"]                       # non-group passes through
-    assert expand_species(["TROUT", "RB"]).count("RB") == 1       # de-duplicated
+    # trout include char (p.86): the trout/char group is the book's four trout and three char
+    assert expand_species(["TROUT_CHAR"]) == ["RB", "ST", "CT", "GB", "DV", "LT", "EB"]
+    assert expand_species(["DV"]) == ["DV"]                       # non-group passes through
+    assert expand_species(["TROUT_CHAR", "RB"]).count("RB") == 1  # de-duplicated
 
 
-def test_non_game_fish_is_nameable_and_not_expanded_away():
-    """"Only non-game fish (such as carp) may be speared, except burbot" is a rule ABOUT this set.
-    It is the COMPLEMENT of the game-fish list, so it has no fixed membership — and expanding it to
-    an empty list would erase the rule rather than state it."""
-    from pipeline.regs.parsing.catalogue import expand_species, KNOWN_SPECIES, species_menu
-    assert "NON_GAME_FISH" in KNOWN_SPECIES and "CP" in KNOWN_SPECIES
-    assert expand_species(["NON_GAME_FISH"]) == ["NON_GAME_FISH"]
-    assert "`NON_GAME_FISH`" in species_menu()
+def test_the_species_are_the_book_s_list_and_nothing_else():
+    """User ruling 2026-09-26: the fish a rule may name are p.86's list, exactly — 'Freshwater
+    game fish are defined as follows' — with bull trout and Dolly Varden ONE fish (the footnote:
+    'Any bull trout that you catch and keep must be counted as part of your Dolly Varden quota').
+    MUTATION: adding a fish the book does not list (golden trout, arctic char, BT) to BOOK_SPECIES
+    fails the first assert."""
+    from pipeline.regs.parsing import catalogue as C
+    book = ["RB", "ST", "CT", "GB",                       # TROUT
+            "DV", "LT", "EB",                             # CHAR (bull trout is DV)
+            "LW", "MW",                                   # WHITEFISH
+            "LMB", "SMB",                                 # BASS
+            "KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA"]   # OTHER
+    assert list(C.BOOK_SPECIES) == book
+    assert set(C.KNOWN_SPECIES) - set(C.SPECIES_GROUPS) == set(book)
+    assert set(C.SPECIES_GROUPS) == {"TROUT_CHAR", "CHAR", "WHITEFISH", "BASS", "ALL_GAME_FISH",
+                                     "ALL_FIN_FISH", "PROTECTED_SPECIES", "SALMON"}
+    assert list(C.SPECIES_GROUPS["ALL_GAME_FISH"]) == book
+    for gone in ("BT", "TROUT", "WCT", "CCT", "GT", "AC", "SPK", "PW", "RW", "BG", "PMB", "CP",
+                 "NON_GAME_FISH", "SA", "CH", "NDC", "GSG", "SLV", "WF", "BS", "SG", "P"):
+        assert gone not in C.KNOWN_SPECIES, gone
+
+
+def test_a_bad_species_or_group_is_refused_with_what_to_write():
+    """`BT` and `TROUT` were the corpus's commonest codes; each is refused with the book's reason
+    and the code to write. MUTATION: dropping `species_problems` from `CatalogueRule._check` lets
+    both through, and the asserts fail."""
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    for bad, says in (("BT", "write DV"), ("TROUT", "write TROUT_CHAR"),
+                      ("GT", "not on the book's species list")):
+        with pytest.raises(ValueError, match=says):
+            _r(type=RuleType.retention_limit, species=[bad], take=1)
+    # a group code in a gear clause's target is checked the same way
+    with pytest.raises(ValueError, match="write DV"):
+        _r(type=RuleType.tackle_restriction,
+           gear=[{"slot": "hook_points", "only": ["single"], "when": {"targeting": ["BT"]}}])
+    # the federal salmon the DFO feed types are a bare rule's, never a synopsis row's
+    ok = _r(type=RuleType.retention_limit, species=["CH"], take=1)
+    with pytest.raises(ValueError, match="'CH' — not on the book's species list"):
+        CatalogueEntry(entry_id="r9:x", name="X", regs_verbatim=ok.verbatim, rules=[ok])
+
+
+def test_the_subjects_that_are_not_game_fish_are_open():
+    """'Any fish', the protected list and salmon are words the book prints for fish that are not
+    game fish: no code under them, and expanding them to [] would erase the rule."""
+    from pipeline.regs.parsing.catalogue import OPEN_SUBJECTS, SPECIES_GROUPS, expand_species
+    assert OPEN_SUBJECTS == ("ALL_FIN_FISH", "PROTECTED_SPECIES", "SALMON")
+    for s in OPEN_SUBJECTS:
+        assert SPECIES_GROUPS[s] == () and expand_species([s]) == [s]
 
 
 def test_every_collective_word_the_source_uses_has_a_code():
@@ -286,10 +329,10 @@ def test_every_collective_word_the_source_uses_has_a_code():
     species"), "shellfish" appears only inside the definition of "fish", and "all species combined"
     is the `combined` quota field — none of the three is a species set."""
     from pipeline.regs.parsing.catalogue import KNOWN_SPECIES
-    for word, code in (("game fish", "ALL_GAME_FISH"), ("non-game fish", "NON_GAME_FISH"),
-                       ("trout/char", "TROUT_CHAR"), ("whitefish", "WHITEFISH"),
-                       ("bass", "BASS"), ("salmon", "SALMON"), ("crayfish", "CRA"),
-                       ("sturgeon", "SG"), ("perch", "P")):
+    for word, code in (("game fish", "ALL_GAME_FISH"), ("any fish", "ALL_FIN_FISH"),
+                       ("trout/char", "TROUT_CHAR"), ("trout", "TROUT_CHAR"),
+                       ("whitefish", "WHITEFISH"), ("bass", "BASS"), ("salmon", "SALMON"),
+                       ("crayfish", "CRA"), ("protected species", "PROTECTED_SPECIES")):
         assert code in KNOWN_SPECIES, f"the source says {word!r} and there is no code for it"
 
 
@@ -410,7 +453,7 @@ def test_all_fin_fish_is_wider_than_the_game_list():
         KNOWN_SPECIES, SPECIES_GROUPS, expand_species, species_menu, species_words)
 
     assert "ALL_FIN_FISH" in KNOWN_SPECIES
-    # Open, like NON_GAME_FISH: the non-game half is a complement that would go stale if listed.
+    # Open: the non-game half is a complement that would go stale if listed.
     assert SPECIES_GROUPS["ALL_FIN_FISH"] == ()
     assert expand_species(["ALL_FIN_FISH"]) == ["ALL_FIN_FISH"]
     assert species_words(["ALL_FIN_FISH"]) == "All fish"
@@ -762,12 +805,12 @@ def test_a_clause_of_a_dated_quota_carries_the_quotas_dates():
 
     def entry(child_when):
         child = {"rule_id": "a.r2", "type": "retention_limit", "verbatim": "none under 80 cm",
-                 "species": ["BT"], "within": "a.r1", "lengths": [{"max_cm": 80, "take": 0}],
+                 "species": ["DV"], "within": "a.r1", "lengths": [{"max_cm": 80, "take": 0}],
                  "extents": [{"op": "whole"}]}
         if child_when is not None:
             child["when"] = child_when
         return {"entry_id": "r3:a@3-1", "name": "A", "regs_verbatim": v, "rules": [
-            {"rule_id": "a.r1", "type": "retention_limit", "verbatim": v, "species": ["BT"],
+            {"rule_id": "a.r1", "type": "retention_limit", "verbatim": v, "species": ["DV"],
              "take": 1, "when": quota, "extents": [{"op": "whole"}]}, child]}
 
     CatalogueEntry.model_validate(entry(quota))
@@ -809,7 +852,7 @@ def test_all_other_species_is_game_fish():
         got[rid] = r
         assert r["species"] == ["ALL_GAME_FISH"] and "CRA" in r["species_except"], rid
         # read as the ladder reads it: a game fish yes, crayfish and a sucker (non-game) no
-        assert R.speaks_for(r, "BT") and R.speaks_for(r, "BB")
+        assert R.speaks_for(r, "DV") and R.speaks_for(r, "BB")
         assert not R.speaks_for(r, "CRA") and not R.speaks_for(r, "SSU")
     assert not R.speaks_for(got["whiteswan_lakes_inlet_outlet_streams.r4"], "RB")
     # consistent with the earlier ruling: "all fin fish" (the trap duty) never reaches crayfish
@@ -872,3 +915,53 @@ def test_a_bare_catch_and_release_is_game_fish_and_crayfish_may_be_kept():
         r = next(x for x in raw[eid]["rules"] if x["rule_id"] == rid)
         assert r["species"] == ["ALL_GAME_FISH"] and r["species_except"] == ["CRA"], rid
         assert R.speaks_for(r, "RB") and R.speaks_for(r, "BB") and not R.speaks_for(r, "CRA")
+
+
+def _row_cancels_its_own_char_limit(e) -> list[str]:
+    """The rules of ONE row whose trout size release takes a char the same row lets you keep over a
+    larger size — "No wild trout over 50 cm, 1 bull trout over 60 cm" read as TROUT_CHAR."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS, expand_species
+    char = set(SPECIES_GROUPS["CHAR"])
+    out = []
+    for rel in e.rules:
+        if "TROUT_CHAR" not in rel.species:
+            continue
+        caps = [b.min_cm for b in rel.lengths or [] if b.min_cm is not None and b.take == 0]
+        if not caps:
+            continue
+        took = set(expand_species(list(rel.species))) - set(expand_species(list(rel.species_except)))
+        for keep in e.rules:
+            if keep is rel or keep.type.value != "retention_limit" or not keep.take:
+                continue
+            mine = set(expand_species(list(keep.species))) & char
+            floors = [b.min_cm for b in keep.lengths or []
+                      if b.min_cm is not None and b.take != 0]
+            if mine & took and floors and min(floors) >= min(caps):
+                out.append(f"{e.entry_id}::{rel.rule_id} takes {sorted(mine & took)} that "
+                           f"{keep.rule_id} keeps over {min(floors):g} cm")
+    return out
+
+
+def test_no_row_releases_the_char_it_gives_its_own_limit():
+    """R10 (review of the species ruling, 2026-09-27). "Trout" includes char "unless char are
+    specifically excluded" (p.86). A row that prints a char ITS OWN limit beside a trout size
+    release — "No wild trout over 50 cm, 1 bull trout over 60 cm" (six Region 2 lakes), "no trout
+    over 40cm; no more than 1 char (none under 60 cm)" (Alta) — excludes that char from the
+    release; read as TROUT_CHAR the release took every bull trout the row lets you keep. Proved on
+    the curated rows (the output), and MUTATED: the Chilliwack row without its `species_except`
+    fails the check."""
+    import json
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
+    bad, chilliwack = [], None
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
+            bad += _row_cancels_its_own_char_limit(e)
+            if e.entry_id == "r2:chilliwack_lake@2-4":
+                chilliwack = e
+    assert not bad, bad
+    assert chilliwack is not None
+    raw = json.loads(chilliwack.model_dump_json(by_alias=True, exclude_none=True))
+    for r in raw["rules"]:
+        r.pop("species_except", None)
+    assert _row_cancels_its_own_char_limit(CatalogueEntry.model_validate(raw))

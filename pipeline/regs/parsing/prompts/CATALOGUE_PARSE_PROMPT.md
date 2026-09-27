@@ -122,11 +122,47 @@ A whole-water closure is `species=ALL_GAME_FISH, take=0, may_target=false`.
 
 ---
 
+## The species — the book's list, and nothing else
+
+Page 86 (*"Freshwater game fish are defined as follows"*) is the whole list. A code that is not on
+it is refused.
+
+| book heading | fish (code) |
+|---|---|
+| TROUT | Rainbow Trout `RB` · Steelhead `ST` · Cutthroat Trout `CT` · Brown Trout `GB` |
+| CHAR | Dolly Varden `DV` · Bull Trout* `DV` · Lake Trout `LT` · Brook Trout `EB` |
+| WHITEFISH | Lake Whitefish `LW` · Mountain Whitefish `MW` |
+| BASS | Largemouth Bass `LMB` · Smallmouth Bass `SMB` |
+| OTHER | Kokanee `KO` · Arctic Grayling `GR` · Burbot (Ling) `BB` · White Sturgeon `WSG` · Black Crappie `BCB` · Northern Pike `NP` · Yellow Perch `YP` · Walleye `WP` · Goldeye `GE` · Inconnu `IN` · Crayfish `CRA` |
+
+* **\*A BULL TROUT IS A DOLLY VARDEN.** The page's footnote: *"\*Any bull trout that you catch and
+  keep must be counted as part of your Dolly Varden quota."* In the regulations they are ONE fish:
+  *"Bull trout catch and release"* is `species: ["DV"]`. There is no bull trout code — `BT` is
+  refused.
+* **TROUT INCLUDES CHAR unless char are specifically excluded.** Page 86: *"trout/char: all
+  regulations that apply to trout (as a group) also apply to char unless char are specifically
+  excluded."* *"Trout daily quota = 2"*, *"No trout over 50 cm"*, *"Trout/char: 5"* are all
+  `TROUT_CHAR`. There is no trout-only code — `TROUT` is refused. `CHAR` is for a line that says
+  *char* (*"char catch and release"*, *"All char (includes Dolly Varden)"*).
+  A ROW THAT GIVES A CHAR ITS OWN LIMIT EXCLUDES IT from the row's trout size rule — that is the
+  "specifically excluded": *"No wild trout over 50 cm, 1 bull trout over 60 cm"* is the release
+  `species: ["TROUT_CHAR"], species_except: ["DV"]` beside the bull trout's own quota; otherwise
+  the release would take every bull trout the row lets you keep.
+* Groups: `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH` (the whole list). Words the
+  book uses for fish that are NOT on the list, with no codes under them: `ALL_FIN_FISH` (*"any
+  fish"*, *"fin fish"* — never crayfish), `PROTECTED_SPECIES` (the protected list; Region 2 adds
+  green sturgeon), `SALMON` (Pacific salmon; kokanee is `KO`). Chinook, coho, sculpins,
+  sticklebacks, splake, golden trout, arctic char and the like have NO code: name the group the
+  sentence belongs to and keep the fish's name in the verbatim.
+
+---
+
 ## Conditions you will reach for
 
 ```
-species        REQUIRED on retention_limit. Use a group (TROUT, CHAR, TROUT_CHAR, WHITEFISH,
-               BASS, ALL_GAME_FISH) when the page names a group; leaf codes when it names fish.
+species        REQUIRED on retention_limit. Use a group (TROUT_CHAR, CHAR, WHITEFISH, BASS,
+               ALL_GAME_FISH) when the page names a group — "trout" is TROUT_CHAR (p.86) —
+               and leaf codes when it names fish ("bull trout" is DV). See "The species".
                species=[] is an ERROR. "all other species" is species_except.
 take           int | null. null = a size limit whose COUNT comes from the region. NOT zero.
 unlimited      separate from take

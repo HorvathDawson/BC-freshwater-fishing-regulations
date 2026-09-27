@@ -305,7 +305,7 @@ def test_an_except_that_subtracts_nothing_is_refused():
     """`zp:salmon_stamp`: SALMON except KO — kokanee is not in SALMON."""
     with pytest.raises(ValueError, match="subtracts nothing"):
         Doing(act="retaining", species=["SALMON"], species_except=["KO"])
-    assert Doing(act="retaining", species=["SALMON"], species_except=["CH"])
+    assert Doing(act="retaining", species=["TROUT_CHAR"], species_except=["ST"])
 
 
 def test_a_path_is_one_way_and_says_whose_quota():
@@ -488,7 +488,7 @@ def test_the_under_16_non_resident_is_an_accompaniment_path(corpus):
 def test_keep_only_stamps_name_the_fish_and_the_size(corpus):
     want = {("zp:kootenay_rainbow_stamp", "kootenay_rainbow_stamp"): (["RB"], 50),
             ("zp:shuswap_rainbow_stamp", "shuswap_rainbow_stamp"): (["RB"], 50),
-            ("zp:shuswap_char_stamp", "shuswap_char_stamp"): (["LT", "BT"], 60)}
+            ("zp:shuswap_char_stamp", "shuswap_char_stamp"): (["LT", "DV"], 60)}
     for (eid, rid), (sp, cm) in want.items():
         r = _rec(corpus, eid, rid)
         assert r.doing.act == "retaining" and r.doing.species == sp

@@ -91,12 +91,14 @@ def test_every_pointer_lands(corpus):
             assert s.entry_ids, (eid, s.verbatim)
             for t in s.entry_ids:
                 assert t in corpus, (eid, t)
-    assert n == 72    # + South Thompson River, Young Creek (review, 2026-09-25)
+    # + South Thompson River, Young Creek (review, 2026-09-25); + Region 4's Kootenay Lake annual
+    # quota line, now a pointer to the Main Body row that states it (ruling G, 2026-09-26)
+    assert n == 73
 
 
 def test_no_pointer_row_binds_a_rule(corpus):
     only = sorted(e for e, ce in corpus.items() if ce.pointer_only)
-    assert len(only) == 52
+    assert len(only) == 53    # + z4:kootenay_annual (ruling G)
     for e in only:
         assert not corpus[e].rules and not corpus[e].licensing
 
@@ -122,7 +124,7 @@ def test_aliases_and_twins_are_counted(corpus):
     from collections import Counter
     got = Counter(see_relation(ce, [corpus[t] for t in s.entry_ids])
                   for ce in corpus.values() for s in ce.see)
-    assert got == {"alias": 34, "see": 31, "twin": 7}
+    assert got == {"alias": 34, "see": 32, "twin": 7}    # + z4:kootenay_annual (G)
 
 
 def test_a_region_5_copy_of_a_region_6_lake_binds_nothing(corpus):

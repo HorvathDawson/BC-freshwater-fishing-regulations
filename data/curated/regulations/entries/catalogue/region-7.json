@@ -427,7 +427,7 @@
           "type": "retention_limit",
           "verbatim": "Trout daily quota = 1 (none over 50 cm)",
           "species": [
-            "TROUT"
+            "TROUT_CHAR"
           ],
           "take": 1,
           "lengths": [
@@ -780,6 +780,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         }
@@ -997,6 +1002,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         }
@@ -1105,6 +1115,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         },
@@ -3056,7 +3071,7 @@
           "type": "retention_limit",
           "verbatim": "bull trout catch and release",
           "species": [
-            "BT"
+            "DV"
           ],
           "take": 0,
           "may_target": true,
@@ -5148,6 +5163,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         }
@@ -5468,7 +5488,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -5499,7 +5519,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -5543,7 +5563,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -5891,7 +5911,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -6496,7 +6516,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -6534,7 +6554,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [
@@ -7193,12 +7213,12 @@
           },
           "take": 0,
           "may_target": false,
-          "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the area west of the sign line approximately 500 m downstream (east) of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson).",
           "extents": [
             {
               "op": "whole"
             }
           ],
+          "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the area west of the sign line approximately 500 m downstream (east) of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson).",
           "undrawn_part": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road"
         },
         {
@@ -7206,16 +7226,16 @@
           "type": "retention_limit",
           "verbatim": "Bull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
           "species": [
-            "BT"
+            "DV"
           ],
           "take": 0,
           "may_target": true,
-          "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the area west of the sign line approximately 500 m downstream of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson).",
           "extents": [
             {
               "op": "whole"
             }
           ],
+          "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the area west of the sign line approximately 500 m downstream of the Nation River Bridge is a part of Nation Arm (wbk:-16) that the atlas does not draw — Nation Arm has no cut-point or sub-polygon for it. Needs a curated part (added_lakes.geojson).",
           "undrawn_part": "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road"
         }
       ]
@@ -8499,7 +8519,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily quota = 1 (any size)",
           "species": [
-            "BT"
+            "DV"
           ],
           "take": 1,
           "extents": [
@@ -10086,6 +10106,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         }
@@ -10128,6 +10153,11 @@
               "target": "trout_char_quota.r1",
               "entry_id": "z7a:trout_char_quota",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            },
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
         }
@@ -10314,7 +10344,7 @@
           "type": "retention_limit",
           "verbatim": "Trout daily quota = 1 (none under 30 cm)",
           "species": [
-            "TROUT"
+            "TROUT_CHAR"
           ],
           "take": 1,
           "lengths": [
@@ -10765,7 +10795,7 @@
           "type": "retention_limit",
           "verbatim": "Bull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14",
           "species": [
-            "BT"
+            "DV"
           ],
           "when": {
             "dates": [

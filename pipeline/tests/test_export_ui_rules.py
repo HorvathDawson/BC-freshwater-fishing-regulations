@@ -719,3 +719,77 @@ def test_the_cases_show_their_mechanisms(doc):
     assert not any(w.get("part_of") == two["water"]["item_id"] for w in doc["waters"].values())
     assert len({i.split(":")[0] for i in speaks(two) if i.startswith("z") and not
                 i.startswith("zp:")}) == 2, two["water"]
+
+
+# ---------------------------------------------------------------------------------------
+# 2026-09-26 rulings: the book's species, the size-clause caution, places not yet mapped
+# ---------------------------------------------------------------------------------------
+def test_the_species_section_is_the_book_s_list(doc):
+    """`species.fish` is p.86's list and nothing else, under the book's headings; bull trout is
+    the Dolly Varden; 'trout' is TROUT_CHAR and TROUT is refused."""
+    sp = doc["species"]
+    assert list(sp["fish"]) == list(C.BOOK_SPECIES)
+    assert {f: v["members"] for f, v in sp["families"].items()} == {
+        f: list(cs) for f, cs in C.BOOK_FAMILIES.items()}
+    assert "bull trout" in sp["fish"]["DV"]["includes"]
+    assert "BT" not in sp["fish"] and "TROUT" not in sp["groups"] and "TROUT" in sp["refused"]
+    assert sp["groups"]["TROUT_CHAR"]["members"] == ["RB", "ST", "CT", "GB", "DV", "LT", "EB"]
+    assert all(sp["groups"][g].get("open") for g in C.OPEN_SUBJECTS)
+    used = {c for x in doc["rules"].values() for k in ("species", "species_except")
+            for c in x["fields"].get(k) or []}
+    assert used <= set(sp["fish"]) | set(sp["groups"]), used - set(sp["fish"]) - set(sp["groups"])
+
+
+def test_a_rule_in_an_undrawn_part_is_flagged_prominent(doc):
+    """Every rule held on its water only as a note (`binds: sections_in_part`) carries
+    `not_yet_mapped` — display prominent, its part in words, the sentence to show — and no other
+    rule does. MUTATION: dropping the key in `_rule_record` fails the first assert."""
+    part = [x for x in doc["rules"].values() if x["binds"] == "sections_in_part"]
+    assert part and all(x.get("not_yet_mapped", {}).get("display") == "prominent" for x in part)
+    for x in part:
+        n = x["not_yet_mapped"]
+        assert n["part"] == x["fields"]["undrawn_part"]
+        assert n["says"].startswith("Not yet mapped: this applies only in one part of this "
+                                    "water — " + n["part"] + " — ")
+    assert not [x for x in doc["rules"].values()
+                if x.get("not_yet_mapped") and x["binds"] != "sections_in_part"]
+    g = doc["guide"]["placement"]["not_yet_mapped"]
+    assert g["rules"] == len(part) and g["closures"]
+    assert "not_yet_mapped" in doc["guide"]["ladder"]
+
+
+def test_the_gotchas_carry_the_size_clause_caution(doc):
+    """The guide's gotchas say what to show beside a lift of a region's size clause, and count
+    the lifts that carry the caution from the data."""
+    g = doc["guide"]["gotchas"]
+    cautions = [(x["id"], e) for x in doc["rules"].values()
+                for e in x["fields"].get("exempts") or [] if e.get("caution")]
+    assert g["size_clause_override"]["lifts"] == len(cautions) > 0
+    assert all(e["caution"]["kind"] == "size_clause_override" and
+               "the book's intent here is hard to read" in e["caution"]["says"]
+               for _, e in cautions)
+    assert "gotchas" in doc["guide"]["contents"]
+    assert "caution" in doc["field_dictionary"]["rule.fields.exempts[]"]
+
+
+def test_every_case_asks_about_a_fish_of_the_book(doc):
+    """A case's `fish` is a leaf of p.86's list — what an angler catches — never a group or an
+    open subject (the superior-authority case once asked about "PROTECTED_SPECIES")."""
+    bad = [(c["mechanism"], c["fish"]) for c in doc["guide"]["cases"]["cases"]
+           if c["fish"] not in C.BOOK_SPECIES]
+    assert not bad, bad
+
+
+def test_every_case_says_what_to_show(doc):
+    """guide.cases are sample waters for the page builder: each carries a plain line saying what
+    to show, filled with its water. The kinds added 2026-09-26 are all there."""
+    cs = doc["guide"]["cases"]["cases"]
+    assert all(c["what_to_show"] and "{" not in c["what_to_show"] for c in cs)
+    have = {c["mechanism"] for c in cs}
+    assert {"clause_only_lift", "dated_lift", "same_statement_smaller",
+            "streams_only_zone_clause", "two_regions_closure", "two_regions_release",
+            "keep_beside_release", "undrawn_closure", "size_clause_caution",
+            "kootenay_rainbow_10", "dean_beside", "straddling_named_lake"} <= have
+    und = next(c for c in cs if c["mechanism"] == "undrawn_closure")
+    assert any(x["state"] == "not_yet_mapped" for x in und["expect"])
+    assert any(x["state"] == "speaks" and x["id"].startswith("z") for x in und["expect"])

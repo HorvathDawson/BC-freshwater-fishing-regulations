@@ -59,7 +59,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout (char) catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -285,7 +285,10 @@
      "type": "retention_limit",
      "verbatim": "no trout over 40cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -300,7 +303,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints char its own limit ('no more than 1 char (none under 60 cm)'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every char the row lets you keep."
     },
     {
      "rule_id": "alta_lake.r4",
@@ -651,7 +655,7 @@
      "type": "retention_limit",
      "verbatim": "Bull trout (char) catch and release",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -1596,7 +1600,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -1611,14 +1618,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "chehalis_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -1770,7 +1778,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -1785,14 +1796,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "chilliwack_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -2564,7 +2576,7 @@
      "type": "retention_limit",
      "verbatim": "Hatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -2762,7 +2774,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -2777,14 +2792,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "cultus_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -3023,7 +3039,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -3986,7 +4002,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -4001,14 +4020,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "harrison_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -4372,7 +4392,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4726,7 +4746,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5101,7 +5121,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout 40 cm or more",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5179,6 +5199,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z2:trout_char_quota",
        "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
     }
@@ -5404,7 +5429,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -5419,14 +5447,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "lillooet_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -5802,7 +5831,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout 40 cm or more",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5859,6 +5888,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z2:trout_char_quota",
        "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ],
      "review_reason": "Steelhead in this aggregate are hatchery-origin per the printed text, but rainbow trout's origin is not stated in the same clause; a single `origin` field cannot capture that asymmetry, and how this aggregate relates to the 'hatchery rainbow trout = 6' figure in the line above is not fully clear from the text alone."
@@ -6973,7 +7007,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -7655,7 +7689,10 @@
      "type": "retention_limit",
      "verbatim": "No wild trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -7670,14 +7707,15 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
     },
     {
      "rule_id": "pitt_lake.r2",
      "type": "retention_limit",
      "verbatim": "1 bull trout over 60 cm",
      "species": [
-      "BT"
+      "DV"
      ],
      "take": 1,
      "lengths": [
@@ -8167,7 +8205,6 @@
      "type": "retention_limit",
      "verbatim": "Native char catch and release (bull trout and Dolly Varden)",
      "species": [
-      "BT",
       "DV"
      ],
      "take": 0,
@@ -8183,7 +8220,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (none under 40 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -8219,6 +8256,11 @@
        "target": "trout_char_quota.r1",
        "entry_id": "z2:trout_char_quota",
        "note": "counted apart from the regional trout/char quota: the row's 5 replaces the region's number for brook trout"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
     },
@@ -10238,7 +10280,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 4",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 4,
      "extents": [
@@ -10252,7 +10294,7 @@
      "type": "retention_limit",
      "verbatim": "one over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "within": "wahleach_jones_lake.r1",
@@ -10567,7 +10609,7 @@
      "type": "retention_limit",
      "verbatim": "no wild trout over 40 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "within": "windsor_lake.r1",
      "lengths": [
@@ -10740,10 +10782,7 @@
      "type": "retention_limit",
      "verbatim": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
      "species": [
-      "NDC",
-      "SSU",
-      "GSG",
-      "CCL"
+      "PROTECTED_SPECIES"
      ],
      "take": 0,
      "may_target": false,
@@ -10754,7 +10793,7 @@
       }
      ],
      "authority": "superior",
-     "review_reason": "Region 2 ADDS Green sturgeon to the provincial list, so zp:protected_species is a floor, not the complete set. The four taxa are not game-fish codes."
+     "review_reason": "Region 2 ADDS Green sturgeon to the provincial list, so zp:protected_species is a floor, not the complete set. The four taxa are not game-fish codes. SPECIES (2026-09-26): Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin are not on the book's species list (p.86), so the rule names PROTECTED_SPECIES; which taxa Region 2 protects is in the verbatim."
     }
    ]
   },
@@ -11088,7 +11127,6 @@
      "type": "retention_limit",
      "verbatim": "1 char (bull trout, Dolly Varden, or lake trout)",
      "species": [
-      "BT",
       "DV",
       "LT"
      ],
@@ -11106,7 +11144,6 @@
      "type": "retention_limit",
      "verbatim": "none under 60 cm",
      "species": [
-      "BT",
       "DV",
       "LT"
      ],

@@ -220,7 +220,7 @@ def test_region_4_reopened_species_lift_the_closure_and_the_notice(corpus):
 def test_zone_b_bull_trout_are_catch_and_release_and_the_liard_row_speaks(corpus):
     z = {r.rule_id: r for r in corpus["z7b:trout_char_quota"].rules}
     bt = z["trout_char_quota.r10"]
-    assert bt.species == ["BT"] and bt.take == 0 and bt.may_target is True
+    assert bt.species == ["DV"] and bt.take == 0 and bt.may_target is True
     assert bt.extents == [{"op": "within", "area_id": "area:region:7b"}]
     assert "trout_char_quota.r5" not in z and "trout_char_quota.r9b" not in z
     liard = {r.rule_id: r for r in
@@ -302,9 +302,10 @@ def test_an_exception_must_meet_the_closure():
 
 
 def test_the_four_record_duties_sit_beside_their_stamps(corpus):
-    want = {("zp:salmon_stamp", "salmon_stamp.r1"): (["CH"], None),
+    # chinook is not on the book's list (p.86): the duty names SALMON, its verbatim the chinook
+    want = {("zp:salmon_stamp", "salmon_stamp.r1"): (["SALMON"], None),
             ("zp:kootenay_rainbow_stamp", "kootenay_rainbow_stamp.r1"): (["RB"], 50),
-            ("zp:shuswap_char_stamp", "shuswap_char_stamp.r1"): (["LT", "BT"], 60),
+            ("zp:shuswap_char_stamp", "shuswap_char_stamp.r1"): (["LT", "DV"], 60),
             ("zp:shuswap_rainbow_stamp", "shuswap_rainbow_stamp.r1"): (["RB"], 50)}
     for (eid, rid), (sp, cm) in want.items():
         r = _rule(corpus, eid, rid)
@@ -325,10 +326,12 @@ def test_the_transport_duties_are_registered_acts(corpus):
 
 
 # ============================================================================ decision 11
-def test_cutthroat_is_both_cutthroats(corpus):
-    assert C.expand_species(["CT"]) == ["WCT", "CCT"]
+def test_cutthroat_is_one_fish(corpus):
+    """The book lists 'Cutthroat Trout' (p.86); the official table's westslope and coastal
+    sub-species are not on it, so CT is a fish, not a group (user ruling 2026-09-26)."""
+    assert C.expand_species(["CT"]) == ["CT"]
     r4 = _rule(corpus, "z4:trout_char_quota", "trout_char_quota.r2")
-    assert "WCT" in C.expand_species(list(r4.species))
+    assert "CT" in C.expand_species(list(r4.species))
     # one fish in the book's words: a cutthroat quota is not "all species combined"
     assert label(_rule(corpus, "r1:cowichan_lake_including_bear_lake@1-4", "cowichan_lake.r1")) \
         == "Cutthroat trout — 2 per day (none over 50 cm)"
@@ -493,8 +496,13 @@ def test_a_water_quota_never_sits_under_a_smaller_conditioned_zone_count(db, cor
                     if on is None:
                         continue
                     asked += 1
+                    # A zone count the water lifts only for ONE ORIGIN stays for the other
+                    # (`partly_lifted`): Kitimat's hatchery rainbow 5 lifts Region 6's "1 trout
+                    # from streams" for hatchery fish; a wild rainbow still answers to it.
                     got = {(x["entry"], x["rule"]) for x in R.effective_rules(rep[s], on, f, path)
-                           if x["state"] == "speaks"}
+                           if x["state"] == "speaks" and not (
+                               (x["entry"], x["rule"]) == z and x.get("partly_lifted")
+                               and rw.origin is not None)}
                     if z in got and w in got:
                         bad.add((w, z, f))
     assert asked > 0

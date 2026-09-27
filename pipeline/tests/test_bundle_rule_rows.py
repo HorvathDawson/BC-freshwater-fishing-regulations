@@ -15,7 +15,7 @@ from pipeline.deliver.bundle.rules import _rule_row
 RULE = {
     "rule_id": "x.r1",
     "type": "retention_limit",
-    "species": ["BT"],
+    "species": ["DV"],
     "take": 2,
     "verbatim": "Trout daily quota 2",
 }
@@ -63,7 +63,7 @@ def test_the_row_is_the_length_the_insert_expects():
 
 def test_species_survive_as_json_not_python_repr():
     # By NAME — an index here moved when `when_`/`while_` became columns.
-    assert json.loads(_named(dict(RULE))["species"]) == ["BT"]
+    assert json.loads(_named(dict(RULE))["species"]) == ["DV"]
 
 
 def _cols():
@@ -216,9 +216,9 @@ def test_a_lift_is_never_wider_than_its_lifter():
     """Duncan River (bull trout) lifted the whole trout/char release; the sturgeon bait lift lifted
     the fin-fish ban for every angler. Each lift now carries what it holds for."""
     duncan = _lifts("r4:duncan_river@4-19", [{"default_id": "trout_char_winter_release"}],
-                    species=["BT"])
+                    species=["DV"])
     assert duncan == [{"entry_id": "z4:trout_char_winter_release",
-                       "rule_id": "trout_char_winter_release.r1", "species": ["BT"]}]
+                       "rule_id": "trout_char_winter_release.r1", "species": ["DV"]}]
     whole = _lifts("r4:columbia@4-15", [{"default_id": "trout_char_winter_release"}],
                    species=["TROUT_CHAR"])
     assert whole == [{"entry_id": "z4:trout_char_winter_release",
@@ -255,7 +255,7 @@ def test_a_lift_is_in_force_only_while_its_lifter_is():
 
     def rule(rid, when=None, **kw):
         return CatalogueRule.model_validate({
-            "rule_id": rid, "type": "retention_limit", "verbatim": "x", "species": ["BT"],
+            "rule_id": rid, "type": "retention_limit", "verbatim": "x", "species": ["DV"],
             "take": 1, **({"when": {"dates": when}} if when else {}), **kw})
 
     d = lambda fm, fd, tm, td: {"from_month": fm, "from_day": fd, "to_month": tm, "to_day": td}
@@ -283,7 +283,7 @@ def test_a_lift_is_in_force_only_while_its_lifter_is():
         lifts("z.r6", [d(7, 1, 7, 30), d(11, 1, 12, 31)])
     # hours never cover a whole day, so a lifter with hours always carries its `when`
     r = CatalogueRule.model_validate({
-        "rule_id": "a.r5", "type": "retention_limit", "verbatim": "x", "species": ["BT"],
+        "rule_id": "a.r5", "type": "retention_limit", "verbatim": "x", "species": ["DV"],
         "take": 1, "exempts": [{"target": "z.r1", "entry_id": "z3:q"}],
         "when": {"hours": {"start": {"at": "06:00"}, "end": {"at": "18:00"}}}})
     from pipeline.deliver.bundle.rules import _when
@@ -357,18 +357,19 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     chw = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
     kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
     # RULING 1 (2026-09-26): a water row printing a LARGER number for a fish lifts the zone's
-    # trout/char quota (and the clauses of it the row outnumbers) for THAT fish only. A bare row
-    # keeps the zone's "1 over 50 cm" (the book prints "(any size)" where it means otherwise);
-    # a lake printing its OWN lake trout sizes lifts only that clause. The Region 5 "Trout daily
+    # trout/char quota (and the clauses of it the row outnumbers) for THAT fish only. The larger
+    # number overrides the zone's "1 over 50 cm" too, "(any size)" or not (user ruling
+    # 2026-09-26, reversing R8), and that lift carries a caution; a lake printing its OWN lake
+    # trout sizes lifts only that clause. The Region 5 "Trout daily
     # quota = 8" lakes are TROUT_CHAR (p.86) and replace the 5 as the same statement (no lift);
     # Lois/Khartoum's aggregate 6 lifts the 4 for rainbow + steelhead (its "2 hatchery steelhead"
     # clause is lifted whole, so it is not listed here).
     larger = [(e, f"{r}.r{n}", f"trout_char_quota.r{t}") for e, r, n, ts in (
         ("r2:ross_lake_boundary_between_ross_lake_and_skagit_river_is_mar@2-2", "ross_lake", 4,
-         (1,)),
-        ("r2:lois_lake@2-12", "lois_lake", 4, (1,)),
-        ("r2:khartoum_lake@2-12", "khartoum_lake", 5, (1,)),
-        ("r3:tranquille_lake@3-29", "tranquille_lake", 1, (1,)),
+         (1, 2)),
+        ("r2:lois_lake@2-12", "lois_lake", 4, (1, 2)),
+        ("r2:khartoum_lake@2-12", "khartoum_lake", 5, (1, 2)),
+        ("r3:tranquille_lake@3-29", "tranquille_lake", 1, (1, 3)),
         ("r4:beaver_creek@4-8", "beaver_creek", 1, (1,)),
         ("r4:big_fish_dunbar_lake@4-34", "big_fish_dunbar_lake", 1, (1,)),
         ("r4:botts_lake@4-34", "botts_lake", 1, (1,)),
@@ -389,18 +390,18 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         ("r6:bennett_lake@6-28", "bennett_lake", 1, (2,)),
         ("r6:morley_lake@6-25", "morley_lake", 1, (2,)),
         ("r6:tagish_lake@6-27", "tagish_lake", 1, (2,)),
-        ("r7:bow_lake@7-15", "bow_lake", 1, (1,)),
-        ("r7:butterfly_lake@7-15", "butterfly_lake", 1, (1,)),
-        ("r7:camp_lake@7-15", "camp_lake", 1, (1,)),
-        ("r7:kathie_lake@7-15", "kathie_lake", 1, (1,)),
+        ("r7:bow_lake@7-15", "bow_lake", 1, (1, 2)),
+        ("r7:butterfly_lake@7-15", "butterfly_lake", 1, (1, 2)),
+        ("r7:camp_lake@7-15", "camp_lake", 1, (1, 2)),
+        ("r7:kathie_lake@7-15", "kathie_lake", 1, (1, 2)),
         ("r7:unnamed_lake_kinglet_lake_located_100_m_west_of_butterfly_la@7-15", "kinglet_lake",
-         1, (1,)),
+         1, (1, 2)),
         ("r7:unnamed_lake_redstart_lake_located_approx_200_m_southwest_of@7-15", "redstart_lake",
-         1, (1,)),
+         1, (1, 2)),
         ("r7:gwillim_lake@7-21", "gwillim_lake", 1, (2,)),
         ("r7:muncho_lake@7-51", "muncho_lake", 1, (2,)),
         ("r7:williston_lake_in_zone_b@7-31+7-36", "williston_lake_zone_b", 5, (4,)),
-        ("r8:jewel_lake@8-14", "jewel_lake", 1, (1,))) for t in ts]
+        ("r8:jewel_lake@8-14", "jewel_lake", 1, (1, 2))) for t in ts]
     assert sorted(p for p in partial if p[2] != "invasive_species_notice.r1") == sorted(larger + [
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r4"),
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),

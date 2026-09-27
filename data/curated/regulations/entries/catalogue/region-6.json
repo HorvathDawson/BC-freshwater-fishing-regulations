@@ -553,7 +553,7 @@
      "type": "retention_limit",
      "verbatim": "trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -992,7 +992,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1755,7 +1755,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1844,7 +1844,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -2766,7 +2766,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -3132,7 +3132,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (no minimum size)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -3738,6 +3738,7 @@
      ],
      "take": 0,
      "may_target": false,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "between",
@@ -3769,6 +3770,7 @@
      },
      "take": 0,
      "may_target": false,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "upstream_of",
@@ -3777,6 +3779,33 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "kitimat_river.r2b",
+     "type": "retention_limit",
+     "verbatim": "No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 3,
+        "from_day": 16,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "C (2026-09-26): the row closes EVERY tributary of the Kitimat Mar 16-May 31 ('No Fishing in tributaries and upstream of Hwy 37 bridge'); r2 holds the mainstem upstream of the bridge, this the tributaries — the whole river's, not only those upstream of the bridge."
     },
     {
      "rule_id": "kitimat_river.r3",
@@ -6255,7 +6284,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -6835,7 +6864,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -7249,7 +7278,7 @@
      "type": "retention_limit",
      "verbatim": "no minimum size for trout",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "extents": [
       {
@@ -7638,7 +7667,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -7733,7 +7762,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (no minimum size)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -9141,7 +9170,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -9304,7 +9333,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 1 (no minimum size)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -9491,7 +9520,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "tributaries_only": true,
@@ -10662,7 +10691,6 @@
      "verbatim": "3 Dolly Varden/bull trout and/or lake trout combined",
      "species": [
       "DV",
-      "BT",
       "LT"
      ],
      "take": 3,
@@ -10679,7 +10707,7 @@
      "type": "retention_limit",
      "verbatim": "1 trout from streams July 1-Oct 31",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [
@@ -10709,8 +10737,7 @@
      "type": "retention_limit",
      "verbatim": "all Dolly Varden/bull trout from streams all year",
      "species": [
-      "DV",
-      "BT"
+      "DV"
      ],
      "take": 0,
      "may_target": true,
@@ -10730,7 +10757,7 @@
      "type": "retention_limit",
      "verbatim": "Trout under 30 cm from any stream",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "lengths": [
       {
@@ -10754,7 +10781,7 @@
      "type": "retention_limit",
      "verbatim": "Trout of any size from streams, Nov 1-June 30",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "when": {
       "dates": [

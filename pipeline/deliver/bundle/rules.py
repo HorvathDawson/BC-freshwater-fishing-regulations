@@ -123,7 +123,46 @@ def _zone_region(entry_id: str) -> str:
 #: one resolved to ANOTHER region's closure of the same kind (`_equivalent_closures`). The client
 #: refuses any other key.
 LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when",
-             "origin", "lengths", "basis", "equivalent")
+             "origin", "lengths", "basis", "equivalent", "caution")
+
+#: `caution.kind` on a lift of a REGION'S SIZE CLAUSE (`size_clause_caution`).
+SIZE_CLAUSE_OVERRIDE = "size_clause_override"
+
+
+def is_size_clause(lifted_eid: str, z) -> bool:
+    """A REGION'S SIZE CLAUSE: a `within` clause of a region's own table (`z<region>:`, never the
+    province's) that caps how many fish over a length the quota may hold — Region 5's "Trout/char:
+    5, but not more than 1 over 50 cm", Region 4's "1 rainbow trout or cutthroat trout over 50
+    cm". One band, a lower bound only, the clause's own count."""
+    if not lifted_eid.startswith("z") or lifted_eid.startswith("zp:"):
+        return False
+    if z.type.value != "retention_limit" or not z.within or not z.take or not z.lengths:
+        return False
+    if len(z.lengths) != 1:
+        return False
+    b = z.lengths[0]
+    return b.min_cm is not None and b.max_cm is None and b.take is None
+
+
+def overrides_size_clause(lifter_eid: str, by, lifted_eid: str, z) -> bool:
+    """A WATER ROW'S LARGER NUMBER lifting a region's size clause (`is_size_clause`): the lifter is
+    a water row (`r<region>:`) that keeps MORE of the fish than the clause allows (a larger
+    `take`, or `unlimited`). A release that lifts the clause keeps none and overrides nothing;
+    the region's own "20 brook trout from streams" is the table's own word, not a water's."""
+    if not lifter_eid.startswith("r") or not is_size_clause(lifted_eid, z):
+        return False
+    return by.type.value == "retention_limit" and (
+        bool(by.unlimited) or (by.take is not None and by.take > z.take))
+
+
+def size_clause_caution(z) -> dict:
+    """THE WARNING A LIFT OF A REGION'S SIZE CLAUSE CARRIES (user ruling 2026-09-26). A water row
+    printing a larger number for a fish than its region allows overrides the region's "only 1
+    over 50 cm" too — "(any size)" or not — but the book never says so outright, so every such
+    lift says it plainly, in a field the reader can show (`guide.gotchas`)."""
+    return {"kind": SIZE_CLAUSE_OVERRIDE,
+            "says": f"overrides the region's 'only {z.take} over {z.lengths[0].min_cm:g} cm'; "
+                    f"the book's intent here is hard to read"}
 
 #: `basis` on a lift the book does not print as an exemption but states by NAMING THE FISH (see
 #: `_named_lifts`). Absent = the rule's own printed `exempts`.
@@ -131,10 +170,12 @@ NAMES_THE_FISH = "names_the_fish"
 
 #: Groups that are NOT the name of a fish: an aggregate the book counts or closes as a class
 #: ("Trout/char: 5", "No fishing in any stream"). A rule naming one of these names no single fish,
-#: so it never takes part in a lift by naming (`_named_lifts`). "Bass", "cutthroat", "whitefish"
-#: and "salmon" are the book's names for fish and count as naming each of theirs.
-AGGREGATE_GROUPS = frozenset({"ALL_GAME_FISH", "ALL_FIN_FISH", "NON_GAME_FISH", "TROUT_CHAR",
-                              "TROUT", "CHAR", "PROTECTED_SPECIES"})
+#: so it never takes part in a lift by naming (`_named_lifts`). "Bass" and "whitefish" are the
+#: book's names for fish and count as naming each of theirs. "Char" stays an aggregate HERE — a
+#: water's "char catch and release" derives no lift of a region's closure naming one char — though
+#: the competition reads it as naming char (`read.names_fish`, `catalogue.NAMING_GROUPS`).
+AGGREGATE_GROUPS = frozenset({"ALL_GAME_FISH", "ALL_FIN_FISH", "TROUT_CHAR", "CHAR",
+                              "PROTECTED_SPECIES", "SALMON"})
 
 
 #: The two origins a fish can have. A rule with no `origin` holds for both.
@@ -438,7 +479,7 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
     so the closure stays and the reader marks it partly lifted. And a closure that prints its own
     exemption list accepts no derived lift at all (`zone_closures`)."""
     if not entry_id.startswith("r") or r.type.value != "retention_limit" or r.may_target is False \
-            or r.within or r.standing or r.lift_only or r.record_retention:
+            or r.within or r.standing or r.lift_only or r.record_retention or r.undrawn_part:
         return []
     mine = named_leaves(r)
     if not mine:
@@ -625,11 +666,14 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
                 named.append((in_entry, x.target))
         got: list[dict] = []
         for e, rid in named:
-            terms = _lift_terms(r, rules_of[e][rid])
+            lifted = rules_of[e][rid]
+            terms = _lift_terms(r, lifted)
             if terms is None:
                 continue
             got.append({"entry_id": e, "rule_id": rid, **terms,
-                        **({"note": x.note} if x.note else {})})
+                        **({"note": x.note} if x.note else {}),
+                        **({"caution": size_clause_caution(lifted)}
+                           if overrides_size_clause(entry_id, r, e, lifted) else {})})
         # The row's water in another region: the same blanket closure there (`regions` — the
         # regions the row's own water lies in; see `_equivalent_closures`).
         have = {(e, rid) for e, rid in named} | {(y["entry_id"], y["rule_id"]) for y in out}

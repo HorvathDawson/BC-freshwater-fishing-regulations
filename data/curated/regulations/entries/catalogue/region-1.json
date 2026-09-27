@@ -171,7 +171,7 @@
      "type": "retention_limit",
      "verbatim": "no trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -279,7 +279,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -371,7 +371,7 @@
      "type": "retention_limit",
      "verbatim": "Trout and kokanee catch and release",
      "species": [
-      "TROUT",
+      "TROUT_CHAR",
       "KO"
      ],
      "take": 0,
@@ -935,7 +935,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1009,7 +1009,7 @@
      "type": "retention_limit",
      "verbatim": "no trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1093,7 +1093,7 @@
      "type": "retention_limit",
      "verbatim": "trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -1738,7 +1738,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -2675,7 +2675,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -2750,7 +2750,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -3177,7 +3177,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -3258,7 +3258,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -3753,7 +3753,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -3880,7 +3880,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none over 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -3976,7 +3976,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none over 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -4077,7 +4077,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4158,7 +4158,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4398,7 +4398,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4950,7 +4950,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5069,7 +5069,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -5276,7 +5276,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5503,7 +5503,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5596,7 +5596,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5808,7 +5808,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5921,7 +5921,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -6037,7 +6037,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -6071,7 +6071,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -6510,7 +6510,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none over 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -6961,7 +6961,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -7056,7 +7056,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -7727,7 +7727,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -7964,7 +7964,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -8039,7 +8039,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -8465,7 +8465,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -9019,7 +9019,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -9286,7 +9286,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1 (none over 50 cm)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "lengths": [
@@ -9369,7 +9369,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -10157,7 +10157,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -10232,7 +10232,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -10358,7 +10358,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -10427,7 +10427,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -11354,7 +11354,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -11514,7 +11514,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -11635,7 +11635,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 1",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 1,
      "extents": [
@@ -12021,7 +12021,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -12175,7 +12175,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -12304,7 +12304,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -12542,7 +12542,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -12617,7 +12617,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -12692,7 +12692,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -12766,7 +12766,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -12840,7 +12840,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -12915,7 +12915,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -12989,7 +12989,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -13063,7 +13063,7 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -13138,7 +13138,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -13552,7 +13552,7 @@
      "type": "retention_limit",
      "verbatim": "No trout over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -13636,7 +13636,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "extents": [
@@ -14536,7 +14536,7 @@
      "type": "retention_limit",
      "verbatim": "Trout: 4",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 4,
      "extents": [
@@ -14552,7 +14552,7 @@
      "type": "retention_limit",
      "verbatim": "1 over 50 cm",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "species_except": [
       "ST"
@@ -14600,7 +14600,7 @@
      "type": "retention_limit",
      "verbatim": "2 from streams (must be hatchery)",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 2,
      "within": "trout_quota.r1",
@@ -14640,7 +14640,7 @@
      "type": "retention_limit",
      "verbatim": "All wild trout from streams",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 0,
      "may_target": true,
