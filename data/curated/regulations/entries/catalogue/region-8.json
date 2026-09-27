@@ -2143,6 +2143,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z8:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      }
      ]
     },
     {

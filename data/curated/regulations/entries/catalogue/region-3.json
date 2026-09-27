@@ -9959,6 +9959,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z3:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 8 replaces the region's number for rainbow trout"
+      }
      ]
     },
     {

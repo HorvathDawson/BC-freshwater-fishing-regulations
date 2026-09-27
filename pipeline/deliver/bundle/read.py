@@ -418,13 +418,18 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
          its parent quota are one statement ("Trout/char: 5, but not more than 3 lake trout")
          and never displace each other. Ties all speak.
-         QUOTAS SIT BESIDE (user ruling 2026-09-25): a quota written for this water (or reaching
-         it by the walk) and a zone, area or provincial quota, both keeping fish, displace each
-         other only when they state EXACTLY the same thing (`rules.same_statement`: the same fish
-         or group, size bounds, origin, water kind, means and target) — Kokanee: 10 at a lake
-         replaces the region's Kokanee: 5. Otherwise both speak: the zone's number is a day's
-         total over every water of the region, so a lake's "Rainbow trout: 2" or "Hatchery
-         steelhead: 2" is how many of that total may come from here.
+         A WATER'S QUOTA AND THE ZONE'S (user rulings 2026-09-26), both keeping fish — a quota
+         written for this water (or reaching it by the walk) and a zone, area or provincial one:
+           the SAME statement (`rules.same_statement`: the same fish or group, size bounds,
+             origin, water kind, means, target and clock) — the WATER's number replaces the
+             zone's, larger or smaller, whatever naming says: Tranquille Lake's "kokanee daily
+             quota = 10" replaces Region 3's "Kokanee: 5" (never the smaller of the two);
+           DIFFERENT statements sit beside each other and both speak: the Dean's "Steelhead
+             daily quota = 1" counts toward Region 5's "Trout/char: 5";
+           a LARGER number for a fish than the zone's aggregate gives it is printed as a lift of
+             the zone's quota for that fish (`exempts`, step 3): Kootenay Lake's "rainbow trout
+             daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5" and its "1 rainbow or
+             cutthroat over 50 cm" for rainbow, so the 10 speaks alone.
          A CLOSURE ("No fishing": take 0, may not fish for it) is never displaced — "this water
          overrides regional always, except closures unless they are lifted in this water's regs".
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
@@ -541,17 +546,30 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     def place(k) -> int:
         return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
 
-    def displaces(o, k) -> bool:
-        """QUOTAS SIT BESIDE (user ruling 2026-09-25): between a quota written for this water
-        (or reaching it by the walk) and a zone, area or provincial quota — both keeping fish —
-        the better displaces the other only when both state EXACTLY the same thing
-        (`rules.same_statement`); otherwise both speak, the zone's number being a day's total
-        over every water of the region."""
-        a, b = every[o], every[k]
-        if yields_to_release(a) and yields_to_release(b) \
-                and min(place(o), place(k)) in (0, 1) and max(place(o), place(k)) >= 2:
-            return same_statement(a, b)
-        return True
+    def water_and_zone(o, k) -> bool:
+        """Two quotas that both let the fish be kept, one written for this water (or reaching it
+        by the walk), the other a zone, area or provincial one — never a superior authority's."""
+        return bool(yields_to_release(every[o]) and yields_to_release(every[k])
+                    and min(place(o), place(k)) in (0, 1) and max(place(o), place(k)) >= 2)
+
+    def beats(o, k) -> bool:
+        """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
+
+        Between a WATER quota and a ZONE quota that both keep fish (user rulings 2026-09-26):
+          THE SAME STATEMENT (`rules.same_statement`: the same fish or group, size bounds,
+            origin, water kind, means, target and clock) — the WATER's number replaces the
+            zone's, larger or smaller: never the smaller of the two, and never undone by naming
+            (Tranquille Lake's "kokanee daily quota = 10" replaces Region 3's "Kokanee: 5");
+          DIFFERENT STATEMENTS sit beside each other — both speak (the Dean's "Steelhead: 1"
+            counts toward Region 5's "Trout/char: 5"). A water row printing a LARGER number for a
+            fish than the zone's aggregate is a different statement: it takes the fish out of the
+            aggregate by LIFTING the zone's quota for that fish (`exempts`, step 3 — Kootenay
+            Lake's "rainbow trout daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5"
+            for rainbow), never by this comparison.
+        Everything else: the better rung (`order`) displaces."""
+        if water_and_zone(o, k):
+            return place(o) <= 1 and same_statement(every[o], every[k])
+        return order(o) < order(k)
 
     def base(k) -> str | None:
         """The region whose OWN table (`z<region>:`, not the province's) wrote the rule."""
@@ -565,8 +583,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     out_ = set(cand)
     for group in keyed.values():
         for k in group:
-            if not closure(k) and any(order(o) < order(k) and family(o) != family(k)
-                                      and not peers(o, k) and displaces(o, k) for o in group):
+            if not closure(k) and any(o != k and family(o) != family(k)
+                                      and not peers(o, k) and beats(o, k) for o in group):
                 out_.discard(k)
 
     # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition

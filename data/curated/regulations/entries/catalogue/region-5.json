@@ -1841,7 +1841,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -5215,7 +5215,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -7102,7 +7102,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -7319,7 +7319,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -8824,7 +8824,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -8931,7 +8931,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -9366,7 +9366,7 @@
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 8",
      "species": [
-      "TROUT"
+      "TROUT_CHAR"
      ],
      "take": 8,
      "extents": [
@@ -9495,6 +9495,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z5:trout_char_quota",
+       "note": "(any size): the lake's 5 lake trout replaces '1 over 50 cm'"
       }
      ]
     },

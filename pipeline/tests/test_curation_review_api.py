@@ -128,8 +128,10 @@ def test_get_serves_the_generated_label(env, picks, part):
     siblings = {r.rule_id: r for r in model.rules}
     # THE BUNDLE'S LABEL: the same function, handed the same place-namer the bundle uses.
     place_of = env["reuse"]._place_namer().for_entry(model.matched)
+    # and the corpus, so a lift of another entry's rule names it in words, as the bundle's does
+    entries = sys.modules["model_api"].corpus_entries(env["dir"])
     for got, r in zip(served.get("rules") or [], model.rules):
-        assert got["label"] == C.label(r, siblings, place_of)
+        assert got["label"] == C.label(r, siblings, place_of, entries)
     for got, x in zip(served.get("licensing") or [], model.licensing):
         assert got["label"], f"{x.kind} {x.id} was served with no label"
         assert got["label"] == C.licensing_label(

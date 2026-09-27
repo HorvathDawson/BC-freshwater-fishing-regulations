@@ -740,7 +740,7 @@ def test_the_guide_states_the_rulings_of_the_second_round(db):
     from pipeline.tools import export_ui_rules as X
     g = X.build(Path(BUNDLE))["guide"]
     lad = g["ladder"]
-    assert "SITS BESIDE" in lad["quotas_sit_beside"] and "EXACTLY" in lad["quotas_sit_beside"]
+    assert "SIT BESIDE" in lad["quotas_sit_beside"] and "SAME STATEMENT" in lad["quotas_sit_beside"]
     assert "NAMES THE" in lad["closures"] and "West Road" in lad["closures"]
     assert "20 brook trout from streams" in lad["counted_apart"]
     assert "p.86" in lad["steelhead_definition"] and "Chilliwack" in lad["steelhead_definition"]
@@ -749,37 +749,251 @@ def test_the_guide_states_the_rulings_of_the_second_round(db):
     assert g["exempts"]["derived_lifts"] > 0
 
 
-# --------------------------------------------------------------------------- round R4 (2026-09-25)
-# 1. A WATER QUOTA CAN NEVER MAKE THE NUMBER BIGGER: the zone total caps it.
-def test_a_larger_water_quota_sits_beside_the_zone_total_that_caps_it(tmp_path):
-    """Perry Creek's "Brook trout daily quota = 20" beside Region 4's "Trout/char: 5": both speak,
-    so the angler keeps at most 5. MUTATION: `same_statement` answering True lets the 20 displace
-    the 5 — the number grows — and this fails."""
-    from pipeline.deliver.bundle import rules as rules_mod
-    path = _tiny(tmp_path, [
+# --------------------------------------------------------------------------- round R7 (2026-09-26)
+# REVISES round R4's "a water quota can never make the number bigger". The user's rulings:
+#   1. a water row printing a LARGER number for a fish than the zone gives it REPLACES the zone's
+#      number for that fish — printed as a lift of the zone's quota for that fish (`exempts`);
+#   2. when a water quota and a zone quota state EXACTLY the same thing, the WATER's number wins,
+#      larger or smaller (never the smaller of the two);
+#   3. only DIFFERENT statements sit beside each other (the Dean's 1 counts toward the 5).
+KOOTENAY = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+Z4 = "z4:trout_char_quota"
+DEAN = "r5:dean_river@5-9"
+
+
+def _larger_case(tmp_path, lift: dict | None) -> str:
+    """Region 4's "Trout/char: 5" with its "1 rainbow or cutthroat over 50 cm", and a lake's
+    "rainbow trout daily quota = 10 (any size)" lifting both for rainbow (or not at all)."""
+    lifts = [] if lift is None else [dict({"entry_id": "z4:q", "rule_id": r}, **lift)
+                                     for r in ("q.r1", "q.r2")]
+    return _tiny(tmp_path, [
         {"entry": "z4:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
-        {"entry": "r4:perry", "rule": "p.r3", "species": ["EB"], "take": 20, "_rank": 0}])
-    assert _speak(path, "EB", (8, 1)) == {"q.r1", "p.r3"}
+        {"entry": "z4:q", "rule": "q.r2", "species": ["RB", "CT"], "take": 1, "_rank": 3,
+         "within": "q.r1", "lengths": [{"min_cm": 50}]},
+        {"entry": "r4:k", "rule": "k.r4", "species": ["RB"], "take": 10, "_rank": 0,
+         "exempts": lifts}])
+
+
+def test_a_larger_water_number_for_a_fish_replaces_the_zones_for_that_fish(tmp_path):
+    """RULING 1. The lake's 10 lifts the zone's 5 (and its size clause) FOR RAINBOW: a rainbow
+    answers to the 10 alone; a bull trout, which the lift does not name, still to the 5.
+    MUTATIONS: with no lift the 5 speaks beside the 10 (the round-R4 "capped" answer); with a lift
+    that names no fish (the lift wider than its lifter) the 5 is gone for the bull trout too."""
+    path = _larger_case(tmp_path, {"species": ["RB"]})
+    assert _speak(path, "RB", (7, 1)) == {"k.r4"}
+    assert _speak(path, "BT", (7, 1)) == {"q.r1"}
+    (tmp_path / "none").mkdir()
+    assert _speak(_larger_case(tmp_path / "none", None), "RB", (7, 1)) == {"k.r4", "q.r1", "q.r2"}
+    (tmp_path / "wide").mkdir()
+    assert _speak(_larger_case(tmp_path / "wide", {}), "BT", (7, 1)) == set()
+
+
+def test_kootenay_lake_rainbow_10_replaces_region_4s_5(db):
+    """p.39: KOOTENAY LAKE — MAIN BODY, "rainbow trout daily quota = 10 (any size)". On the real
+    bundle a rainbow there answers to the 10 alone — Region 4's "Trout/char: 5" and its "1 rainbow
+    trout or cutthroat trout over 50 cm" are lifted for rainbow (the lift is in the data) — and a
+    bull trout still answers to the lake's own 1 inside Region 4's 5."""
+    sid = _sid(db, KOOTENAY, "kootenay_lake_main_body.r4")
+    got = _kept(sid, (7, 1), "RB")
+    assert f"{KOOTENAY}::kootenay_lake_main_body.r4" in got
+    assert not {f"{Z4}::trout_char_quota.r1", f"{Z4}::trout_char_quota.r2"} & got, got
+    (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
+                       (KOOTENAY, "kootenay_lake_main_body.r4")).fetchone()
+    lifted = {(x["rule_id"], tuple(x.get("species") or ())) for x in json.loads(ex)}
+    assert {("trout_char_quota.r1", ("RB",)), ("trout_char_quota.r2", ("RB",))} <= lifted
+    assert f"{Z4}::trout_char_quota.r1" in _kept(sid, (7, 1), "BT")
+
+
+def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(db):
+    """Lois Lake (p.26): "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery
+    rainbow trout = 6 / Rainbow trout/hatchery steelhead quota = 6 in the aggregate". The 6 is a
+    larger number for rainbow and hatchery steelhead than Region 2's "Trout/char: 4" and its
+    "2 hatchery steelhead over 50 cm": both are lifted for those fish. The row prints no size, so
+    the region's "1 over 50 cm" stays for rainbow; a cutthroat still answers to the 4."""
+    eid, Z2 = "r2:lois_lake@2-12", "z2:trout_char_quota"
+    sid = _sid(db, eid, "lois_lake.r4")
+    rb = _kept(sid, (7, 1), "RB")
+    assert {f"{eid}::lois_lake.r1", f"{eid}::lois_lake.r4", f"{Z2}::trout_char_quota.r2"} <= rb
+    assert f"{Z2}::trout_char_quota.r1" not in rb, rb
+    st = _kept(sid, (7, 1), "ST")
+    assert f"{eid}::lois_lake.r4" in st and f"{Z2}::trout_char_quota.r7" in st   # wild released
+    assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r3"} & st, st
+    assert f"{Z2}::trout_char_quota.r1" in _kept(sid, (7, 1), "CCT")
+
+
+def test_a_bare_larger_row_keeps_the_zones_size_clause(db):
+    """Jewel Lake (p.76) "Brook trout daily quota = 20" replaces Region 8's "Trout/char: 5" for
+    brook trout, but prints no "(any size)": the region's "1 over 50 cm" still speaks for it."""
+    eid, Z8 = "r8:jewel_lake@8-14", "z8:trout_char_quota"
+    got = _kept(_sid(db, eid, "jewel_lake.r1"), (7, 1), "EB")
+    assert f"{eid}::jewel_lake.r1" in got and f"{Z8}::trout_char_quota.r2" in got
+    assert f"{Z8}::trout_char_quota.r1" not in got, got
+
+
+def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
+    """p.86: "all regulations that apply to trout (as a group) also apply to char unless char are
+    specifically excluded". Bootjack Lake's "Trout daily quota = 8" is a trout/char quota: it
+    replaces Region 5's "Trout/char: 5" for a brook trout too (no 8 trout BESIDE 5 char), and the
+    region's clauses stay ("1 over 50 cm", "2 lake trout")."""
+    eid, Z5 = "r5:bootjack_lake@5-2", "z5:trout_char_quota"
+    sid = _sid(db, eid, "bootjack_lake.r1")
+    for f in ("RB", "EB", "LT"):
+        got = _kept(sid, (7, 1), f)
+        assert f"{eid}::bootjack_lake.r1" in got and f"{Z5}::trout_char_quota.r1" not in got, got
+        assert f"{Z5}::trout_char_quota.r2" in got, got
+    assert f"{Z5}::trout_char_quota.r5" in _kept(sid, (7, 1), "LT")
+
+
+@pytest.mark.parametrize("eid,rid,zone", [
+    ("r6:atlin_lake@6-25+6-27", "atlin_lake.r1", "z6"),
+    ("r6:bennett_lake@6-28", "bennett_lake.r1", "z6"),
+    ("r7:gwillim_lake@7-21", "gwillim_lake.r1", "z7b"),
+])
+def test_a_lakes_own_lake_trout_sizes_replace_one_over_50(db, eid, rid, zone):
+    """Atlin ("3: EITHER none over 60 cm, OR only 1 over 60 cm"), Bennett ("2 (only 1 over 90 cm,
+    none between 60 cm and 90 cm)"), Gwillim ("2 (none under 40 cm or over 60 cm)") keep more than
+    one lake trout over 50 cm: the zone's "1 over 50 cm" is lifted for lake trout, its aggregate
+    is not."""
+    got = _kept(_sid(db, eid, rid), (7, 1), "LT")
+    assert f"{eid}::{rid}" in got and f"{zone}:trout_char_quota::trout_char_quota.r1" in got
+    assert f"{zone}:trout_char_quota::trout_char_quota.r2" not in got, got
+
+
+def test_a_printed_lift_carries_its_lifters_origin():
+    """`_lift_terms` narrows a printed lift to the lifter's origin, as a derived one always was.
+    MUTATION: without the origin term Kitimat's hatchery quota lifted Region 6's stream release
+    for wild rainbow too — this fails against it."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    by = _crule(rule_id="w.r3", verbatim="hatchery rainbow trout = 6", species=["RB"], take=6,
+                origin="hatchery")
+    zone = _crule(rule_id="q.r1", verbatim="Trout/char: 4", species=["TROUT_CHAR"], take=4)
+    assert rules_mod._lift_terms(by, zone) == {"species": ["RB"], "origin": "hatchery"}
+    same = _crule(rule_id="q.r4", verbatim="2 from streams (must be hatchery)",
+                  species=["TROUT_CHAR"], take=2, origin="hatchery")
+    assert "origin" not in rules_mod._lift_terms(by, same)
+
+
+#: Rows left undecided by ruling 1 (none today: Lois/Khartoum's aggregate 6 was decided in review,
+#: `test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead`).
+UNDECIDED: set = set()
+
+
+def test_every_larger_water_number_for_a_fish_is_handled(db):
+    """THE GUARD for ruling 1, on the real bundle: no water quota that prints a larger number for
+    a fish than a zone quota still speaks beside it — except where the lift holds for one origin
+    only (the zone stays, partly lifted, for the other) and a zone SIZE clause the water does not
+    restate ("1 over 50 cm" beside a lake's unsized "Rainbow trout daily quota = 2": different
+    statements, ruling 3). A new row printing a larger number fails here until it is decided."""
+    from pipeline.deliver.bundle.rules import yields_to_release
+    from pipeline.regs.parsing.catalogue import expand_species
+    rules = R._rules_of(BUNDLE)
+
+    def leaves(x):
+        return set(expand_species(list(x.get("species") or []))) - set(
+            expand_species(list(x.get("species_except") or [])))
+
+    def num(x):
+        return float("inf") if x.get("unlimited") else x.get("take")
+
+    sets: dict = {}
+    for s, e, r in db.execute("select set_id, entry_id, rule_id from ruleset"):
+        if (e, r) in rules:
+            sets.setdefault(s, []).append((e, r))
+    sid = dict(db.execute("select set_id, min(sid) from section_ruleset group by set_id"))
+    bad, checked = [], 0
+    for s, mem in sets.items():
+        W = [k for k in mem if rules[k]["_rank"] == 0 and yields_to_release(rules[k])
+             and num(rules[k]) and rules[k].get("species")]
+        Z = [k for k in mem if rules[k]["_rank"] >= 2 and yields_to_release(rules[k])
+             and num(rules[k]) is not None]
+        for w in W:
+            for z in Z:
+                a, b = rules[w], rules[z]
+                if (a.get("period") or "daily") != (b.get("period") or "daily") \
+                        or not leaves(a) or not leaves(a) <= leaves(b) or not num(a) > num(b) \
+                        or (b.get("lengths") and "any size" not in a["verbatim"]) \
+                        or w in UNDECIDED:
+                    continue
+                on = next((d for d in ((7, 1), (1, 15), (10, 1), (4, 1))
+                           if R.in_force(a.get("when"), d) == R.in_force(b.get("when"), d)
+                           == "yes"), None)
+                if on is None or s not in sid:
+                    continue
+                for f in sorted(leaves(a)):
+                    checked += 1
+                    got = {(x["entry"], x["rule"]): x
+                           for x in R.effective_rules(sid[s], on, f, BUNDLE)}
+                    if w in got and z in got and got[w]["state"] == got[z]["state"] == "speaks" \
+                            and not got[z].get("partly_lifted"):
+                        bad.append(f"{w[0]}::{w[1]} {num(a)} beside {z[0]}::{z[1]} {num(b)} "
+                                   f"for {f} on {on}")
+    assert checked > 100
+    assert bad == [], bad[:10]
+
+
+def test_the_same_statement_the_waters_number_wins_larger_or_smaller(tmp_path):
+    """RULING 2. A water's "Kokanee: 10" and the zone's "Kokanee: 5" say the same thing: the 10
+    speaks alone. It holds even where NAMING would put the zone first — the water's kokanee
+    number is a clause of a group quota (named at its parent's level) and the zone's names
+    kokanee. MUTATION: the pre-R7 ladder (the better rung displaces, same statement or not) lets
+    the zone's 5 silence the water's 10; with `same_statement` always false both speak."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r1", "species": ["ALL_GAME_FISH"], "take": 20, "_rank": 0},
+        {"entry": "r9:w", "rule": "w.r2", "species": ["KO"], "take": 10, "_rank": 0,
+         "within": "w.r1"},
+        {"entry": "z9:k", "rule": "k.r1", "species": ["KO"], "take": 5, "_rank": 3}])
+    got = _speak(path, "KO", (7, 1))
+    assert "w.r2" in got and "k.r1" not in got, got
+    import pipeline.deliver.bundle.rules as rules_mod
+    real = rules_mod.same_statement
+    try:
+        rules_mod.same_statement = lambda a, b: False
+        assert {"w.r2", "k.r1"} <= _speak(path, "KO", (7, 1))
+    finally:
+        rules_mod.same_statement = real
+    (tmp_path / "small").mkdir()
+    small = _quota_case(tmp_path / "small", {"species": ["KO"], "take": 2})
+    assert _speak(small, "KO", (7, 1)) == {"w.r1"}                  # smaller: the water's 2
+
+
+@pytest.mark.parametrize("eid,rid,zone_rule,fish", [
+    ("r3:tranquille_lake@3-29", "tranquille_lake.r2", "z3:species_quotas::species_quotas.r4", "KO"),
+    ("r6:teslin_lake@6-25", "teslin_lake.r4", "z6:species_quotas::species_quotas.r1", "GR"),
+])
+def test_a_larger_same_statement_at_a_real_water_wins(db, eid, rid, zone_rule, fish):
+    """Tranquille Lake (p.34) "kokanee daily quota = 10" over Region 3's "Kokanee: 5"; Teslin Lake
+    "Arctic grayling daily and possession quotas = 4" over Region 6's "Arctic grayling: 3"."""
+    sid = _sid(db, eid, rid)
+    got = _kept(sid, (7, 1), fish)
+    assert f"{eid}::{rid}" in got and zone_rule not in got, got
+
+
+def test_the_dean_still_sits_beside_region_5(db):
+    """RULING 3. The Dean's "Trout/char daily quota = 1 (none under 35 cm)" is not Region 5's
+    "Trout/char: 5" (a size bound): both speak, the 1 counting toward the 5. MUTATION: with
+    `same_statement` always true the Dean's 1 displaces the 5 and this fails."""
+    sid = _sid(db, DEAN, "dean_river.r6",
+               without=((DEAN, "dean_river.r2"), (DEAN, "dean_river.r4")))
+    both = {f"{DEAN}::dean_river.r6", "z5:trout_char_quota::trout_char_quota.r1"}
+    assert both <= _kept(sid, (7, 1), "RB")
+    import pipeline.deliver.bundle.rules as rules_mod
     real = rules_mod.same_statement
     try:
         rules_mod.same_statement = lambda a, b: True
-        assert _speak(path, "EB", (8, 1)) == {"p.r3"}
+        assert not both <= _kept(sid, (7, 1), "RB")
     finally:
         rules_mod.same_statement = real
 
 
-def test_perry_creek_brook_trout_20_is_capped_by_the_zone_5(db):
-    eid = "r4:perry_creek@4-20"
-    sid = _sid(db, eid, "perry_creek.r3")
-    got = _kept(sid, (8, 1), "EB")
-    assert {f"{eid}::perry_creek.r3", "z4:trout_char_quota::trout_char_quota.r1"} <= got
-
-
-def test_the_guide_says_a_larger_water_quota_is_capped(db):
+def test_the_guide_states_rulings_1_to_3(db):
     from pipeline.tools import export_ui_rules as X
     lad = X.build(Path(BUNDLE))["guide"]["ladder"]
-    assert "CAN NEVER MAKE THE NUMBER BIGGER" in lad["quotas_sit_beside"]
-    assert "capped" in lad["quotas_sit_beside"] and "counted apart" in lad["quotas_sit_beside"]
+    q = lad["quotas_sit_beside"]
+    assert "CAN NEVER MAKE THE NUMBER BIGGER" not in q and "capped" not in q
+    assert "the WATER's number replaces" in q and "never the smaller" in q
+    assert "Kootenay" in q and "rainbow trout daily quota = 10" in q and "Dean" in q
+    assert "Tranquille" in q and "SIT BESIDE" in q
+    assert "Kootenay Lake's rainbow 10" in lad["counted_apart"]
     assert "MOST STRICT" in lad["two_regions"] and "LOWER" in lad["two_regions"]
     assert "whole length" in lad["region"] and "PER-REGION" in lad["region"]
     assert "PRINTS ITS OWN EXEMPTION LIST" in lad["closures"]

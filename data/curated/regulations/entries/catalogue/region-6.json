@@ -71,6 +71,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
+      }
      ]
     },
     {
@@ -699,6 +706,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
       }
      ]
     },
@@ -4966,6 +4980,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
+      }
      ]
     },
     {
@@ -5864,6 +5885,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
+      }
      ]
     },
     {
@@ -5901,6 +5929,21 @@
        "take": 0
       }
      ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r13",
+     "type": "retention_limit",
+     "verbatim": "Lake trout daily and possession quotas = 2",
+     "species": [
+      "LT"
+     ],
+     "take": 2,
+     "period": "possession",
      "extents": [
       {
        "op": "whole"
@@ -5963,6 +6006,21 @@
      ]
     },
     {
+     "rule_id": "morley_lake.r14",
+     "type": "retention_limit",
+     "verbatim": "Arctic grayling daily and possession quotas = 4",
+     "species": [
+      "GR"
+     ],
+     "take": 4,
+     "period": "possession",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "morley_lake.r7",
      "type": "retention_limit",
      "verbatim": "northern pike daily and possession quotas = 4",
@@ -6011,6 +6069,21 @@
        "take": 0
       }
      ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r15",
+     "type": "retention_limit",
+     "verbatim": "northern pike daily and possession quotas = 4",
+     "species": [
+      "NP"
+     ],
+     "take": 4,
+     "period": "possession",
      "extents": [
       {
        "op": "whole"
@@ -8161,6 +8234,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z6:trout_char_quota",
+       "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
       }
      ]
     },

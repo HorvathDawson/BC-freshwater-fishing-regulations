@@ -774,6 +774,13 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            }
           ]
         }
       ]
@@ -984,6 +991,13 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            }
           ]
         }
       ]
@@ -1084,6 +1098,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             }
           ]
         },
@@ -3900,6 +3921,13 @@
               "op": "whole"
             }
           ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7b:trout_char_quota",
+              "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
+            }
+          ],
           "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
         },
         {
@@ -5113,6 +5141,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             }
           ]
         }
@@ -6836,6 +6871,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r2",
+              "entry_id": "z7b:trout_char_quota",
+              "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
             }
           ]
         },
@@ -10038,6 +10080,13 @@
             {
               "op": "whole"
             }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
+            }
           ]
         }
       ]
@@ -10072,6 +10121,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r1",
+              "entry_id": "z7a:trout_char_quota",
+              "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             }
           ]
         }
@@ -10773,6 +10829,13 @@
           "extents": [
             {
               "op": "whole"
+            }
+          ],
+          "exempts": [
+            {
+              "target": "trout_char_quota.r4",
+              "entry_id": "z7b:trout_char_quota",
+              "note": "the lake's own lake trout quota (3) replaces '2 lake trout'"
             }
           ]
         },

@@ -116,8 +116,9 @@ def _zone_region(entry_id: str) -> str:
 
 #: The keys of one resolved lift in the `exempts` column — and nothing else. Two name the lifted
 #: rule; `note` is the book's words; `species`, `when_targeting`, `while` and `when`, when present,
-#: say the lift holds only IN PART (see `_lift_terms`); so do `origin` and `lengths`, which only a
-#: derived lift carries (the lifter keeps only hatchery fish, or only some sizes — `_named_lifts`);
+#: say the lift holds only IN PART (see `_lift_terms`); so do `origin` (the lifter keeps only
+#: hatchery fish, or only wild — printed or derived) and `lengths`, which only a derived lift
+#: carries (the lifter keeps only some sizes — `_named_lifts`);
 #: `basis` marks a lift derived from the lifter NAMING the fish (`_named_lifts`) and `equivalent`
 #: one resolved to ANOTHER region's closure of the same kind (`_equivalent_closures`). The client
 #: refuses any other key.
@@ -198,12 +199,14 @@ def statement(x: dict) -> tuple:
 
 
 def same_statement(a: dict, b: dict) -> bool:
-    """QUOTAS SIT BESIDE (user ruling 2026-09-25): a water's quota sits beside a zone's, because
-    the zone's spans waters — "Trout/char: 5" is a day's total over every water of the region, and
-    a lake's "Rainbow trout: 2" or "Wild trout/char: 2" says how many of those may come from the
-    lake. The ONE exception is a water quota that states EXACTLY what the zone's states (same fish
-    or group, same size bounds, origin, water kind, means and target — `statement`): then the
-    water's number displaces the zone's. Both must be keeping quotas (`yields_to_release`)."""
+    """DO TWO QUOTAS SAY THE SAME THING (`statement`: same fish or group, size bounds, origin,
+    water kind, means, target and clock)? Between a water's quota and a zone's (user rulings
+    2026-09-26): when they do, the WATER's number replaces the zone's, larger or smaller —
+    Tranquille Lake's "kokanee daily quota = 10" over Region 3's "Kokanee: 5", never the smaller
+    of the two. When they do not, both speak: the Dean's "Steelhead daily quota = 1" counts
+    toward Region 5's "Trout/char: 5". A water row printing a larger number for a fish than the
+    zone's aggregate LIFTS the aggregate for that fish (`exempts`) — it is not decided here.
+    Both must be keeping quotas (`yields_to_release`)."""
     return statement(a) == statement(b)
 
 
@@ -249,6 +252,8 @@ def _lift_terms(by, lifted) -> dict | None:
       while           a lift that holds only WHILE doing something (set lining, spearing) leaves
                       the rule standing for everyone else, unless the lifted rule binds only while
                       doing the same thing (`while`).
+      origin          a lifter about HATCHERY (or WILD) fish only lifts only for them: the rule
+                      stays for the other origin, partly lifted (Kitimat River's hatchery rainbow).
       when            A LIFT IS IN FORCE ONLY WHILE ITS LIFTER IS. The item carried no time, and
                       the guide read an item with no qualifier as "lifted outright" — so a lifter
                       printed for Jul 1-Apr 30 (Chilliwack/Vedder's hatchery rainbow quota) lifted
@@ -275,6 +280,14 @@ def _lift_terms(by, lifted) -> dict | None:
                 return None                     # it speaks about other fish: nothing is lifted
             if not theirs <= mine:
                 terms["species"] = sorted(both)
+    # ORIGIN, printed or derived. A printed lift from a hatchery-only quota lifts only for hatchery
+    # fish; a wild one still answers to the lifted rule. Kitimat River's "Hatchery rainbow trout
+    # … daily quota = 5, all year" lifted Region 6's "Trout of any size from streams, Nov 1-June
+    # 30" release for EVERY rainbow — wild ones too —
+    # because only a derived lift carried the lifter's origin. Which a fish is shows only once it
+    # is caught, so the lifted rule stays, partly lifted (`read.effective_rules` step 3).
+    if by.origin is not None and by.origin != lifted.origin:
+        terms["origin"] = by.origin.value
     when = _when_term(by, lifted)
     if when is None:
         return None                             # never in force on a day the lifted rule is
@@ -446,8 +459,7 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
             terms.pop("species", None)
             if both != theirs:
                 terms["species"] = sorted(both)
-            if r.origin is not None and r.origin != z.origin:
-                terms["origin"] = r.origin.value
+            # `origin` is `_lift_terms`' own (a printed lift carries it too).
             sizes = _kept_lengths(r, both)
             if sizes:
                 terms["lengths"] = sizes

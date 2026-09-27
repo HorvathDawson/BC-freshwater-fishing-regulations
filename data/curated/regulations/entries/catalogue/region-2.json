@@ -5168,6 +5168,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z2:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
+      },
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z2:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
+      }
      ]
     }
    ]
@@ -5835,6 +5847,18 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z2:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
+      },
+      {
+       "target": "trout_char_quota.r3",
+       "entry_id": "z2:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 6 (rainbow trout and hatchery steelhead in the aggregate) replaces the region's number for those fish"
       }
      ],
      "review_reason": "Steelhead in this aggregate are hatchery-origin per the printed text, but rainbow trout's origin is not stated in the same clause; a single `origin` field cannot capture that asymmetry, and how this aggregate relates to the 'hatchery rainbow trout = 6' figure in the line above is not fully clear from the text alone."
@@ -8188,6 +8212,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z2:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 5 replaces the region's number for brook trout"
       }
      ]
     },

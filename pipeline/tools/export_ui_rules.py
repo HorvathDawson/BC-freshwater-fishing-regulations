@@ -739,8 +739,10 @@ LIFT_TEXT = {
     "origin": "the lift holds only for fish of this origin (hatchery | wild): the lifter keeps "
               "only those. Which a fish is shows only once it is caught, so the lifted rule stays "
               "and the lift is a condition on it (Kitimat River's 'Hatchery steelhead … daily "
-              "quota = 2' could never reopen a closure for WILD steelhead). Only a derived lift "
-              "(`basis`) carries it",
+              "quota = 2' could never reopen a closure for WILD steelhead; Kitimat's 'Hatchery "
+              "rainbow trout … daily quota = 5, all year' lifts Region 6's stream release for "
+              "hatchery rainbow only — a wild rainbow is still released Nov 1-June 30). "
+              "A printed lift carries it as much as a derived one",
     "lengths": "[{min_cm, max_cm}] — the lift holds only for fish of these sizes (the sizes the "
                "lifter keeps). The lifted rule stays and the lift is a condition on it. A band "
                "that only restates a fish's own definition (a steelhead is a rainbow over 50 cm) "
@@ -985,9 +987,10 @@ def guide(d: dict) -> dict:
                       "only by a better rule of ANOTHER quota: a quota and its `within` clauses "
                       "are one statement ('Trout/char: 5, but not more than 3 lake trout') and "
                       "never displace each other. Rules that tie all speak. Between two quotas "
-                      "that let the fish be kept — one of this water, one of the zone — naming and "
-                      "place decide only when both state the same thing; otherwise both speak "
-                      "(`quotas_sit_beside`). Where a water row's "
+                      "that let the fish be kept — one of this water, one of the zone — the "
+                      "WATER's number replaces the zone's when both state the same thing, "
+                      "larger or smaller and whatever naming says; otherwise both speak, and a "
+                      "larger number for one fish is a lift (`quotas_sit_beside`). Where a water row's "
                       "group rule must still speak over a zone rule that names a fish (a "
                       "'Catch and release' row under the zone's 'Burbot: 5'), the row LIFTS the "
                       "zone rule (`exempts`) — it does not rely on the ladder.",
@@ -1048,42 +1051,78 @@ def guide(d: dict) -> dict:
                          "about another fish never takes part (per fish). The zone's own "
                          "releases, record-keeping duties and the possession multiplier stand "
                          "beside the water's release.",
-        "quotas_sit_beside": "A WATER'S QUOTA SITS BESIDE THE ZONE'S (user ruling 2026-09-25). The "
-                             "zone's quota is a day's TOTAL over every water of the region: you "
-                             "may keep 2 at one lake and more elsewhere, up to the zone's number. "
-                             "So a quota written for this water (or reaching it by the tributary "
-                             "walk) and a zone, area or provincial quota BOTH SPEAK, and an angler "
-                             "is held by both — Kitimat River's 'Hatchery steelhead daily quota = "
-                             "2' beside Region 6's 'Trout/char: 5'; Dodd Lake's 'Wild trout/char "
-                             "daily quota = 2' beside Region 2's 'Trout/char: 4'. The ONE "
-                             "exception: the water's quota states EXACTLY what the zone's states — "
-                             "the same fish or group, the same size bounds, the same origin, water "
-                             "kind, means (`while`) and target (`when_targeting`), on the same "
-                             "clock — and differs only in its number; then the water's number "
-                             "REPLACES the zone's (a lake's 'Kokanee daily quota = 10' replaces the "
-                             "region's 'Kokanee: 5'). This is between quotas that let a fish be "
-                             "kept; releases and closures follow `closures` and `water_release`. "
-                             "A WATER QUOTA CAN NEVER MAKE THE NUMBER BIGGER (user ruling "
-                             "2026-09-25): a water quota LARGER than the zone's total is capped "
-                             "by it. Perry Creek's 'Brook trout daily quota = 20' speaks beside "
-                             "Region 4's 'Trout/char: 5', and an angler there keeps at most 5 "
-                             "brook trout a day; Polley Lake's 'Trout daily quota = 8' beside "
-                             "Region 5's 'Trout/char: 5' keeps at most 5. Both rules speak and "
-                             "BOTH bind: show the water's number and the zone's total, and the "
-                             "smaller is what the angler may keep. (Region 8's '20 brook trout "
-                             "from streams' is not a water quota: it is the zone's own allowance, "
-                             "counted apart — `counted_apart`.)",
-        "counted_apart": "A QUOTA COUNTED APART FROM THE AGGREGATE. Region 8 prints 'Trout/char: "
-                         "5, but not more than … 4 from streams … And you may retain: 20 brook "
-                         "trout from streams' (p.68): brook trout from streams are retained "
-                         "BESIDE the trout/char quota, not inside it. The data says so with a "
-                         "lift: the brook trout rule (bound to streams only) lifts the trout/char "
-                         "quota and its clauses FOR BROOK TROUT (`exempts[].species: [EB]`), so on "
-                         "a stream a brook trout is counted only against its 20, and on a lake "
-                         "(where the 20 does not bind) against the trout/char 5. No other "
-                         "region's table prints a separate brook trout retention. A water row's "
-                         "own 'Brook trout daily quota = 20' is a quota that sits beside the "
-                         "zone's trout/char quota (`quotas_sit_beside`).",
+        "quotas_sit_beside": "A WATER'S QUOTA AND THE ZONE'S (user rulings 2026-09-26). This is "
+                             "between two quotas that let a fish be kept — one written for this "
+                             "water (or reaching it by the tributary walk), one of the zone, an "
+                             "area or the province; releases and closures follow `closures` and "
+                             "`water_release`. Three cases, and nothing else: "
+                             "(1) THE SAME STATEMENT — the same fish or group, size bounds, origin, "
+                             "water kind, means (`while`), target (`when_targeting`) and clock, "
+                             "differing only in the number: the WATER's number replaces the "
+                             "zone's, whether it is larger or smaller. It is never the smaller of "
+                             "the two. Tranquille Lake's 'kokanee daily quota = 10' replaces Region "
+                             "3's 'Kokanee: 5' (10 may be kept); Teslin Lake's 'Arctic grayling "
+                             "daily and possession quotas = 4' replaces Region 6's 'Arctic "
+                             "grayling: 3'. The water always overrides the same statement. "
+                             "(2) A LARGER NUMBER FOR A FISH than the zone gives it: the water's "
+                             "number REPLACES the zone's for that fish, and the data says so with a "
+                             "lift (`exempts`, `species`), never by comparing numbers. Kootenay "
+                             "Lake (main body) prints 'rainbow trout daily quota = 10 (any size)': "
+                             "it lifts Region 4's 'Trout/char: 5' and its '1 rainbow trout or "
+                             "cutthroat trout over 50 cm' FOR RAINBOW, so a rainbow there answers "
+                             "to the 10 alone — and is counted apart from the 5, which still holds "
+                             "every other trout and char (`counted_apart`). Perry Creek's 'brook "
+                             "trout daily quota = 20' lifts the 5 for brook trout; Lois Lake's "
+                             "'Rainbow trout/hatchery steelhead quota = 6 in the aggregate' lifts "
+                             "Region 2's 'Trout/char: 4' and its '2 hatchery steelhead' for "
+                             "rainbow and steelhead. A row that prints no size keeps the zone's "
+                             "'1 over 50 cm' (the book prints '(any size)' where it means "
+                             "otherwise, as at Kootenay Lake): Jewel Lake's 'Brook trout daily "
+                             "quota = 20' lifts Region 8's 5 but not its '1 over 50 cm'. 'Trout' "
+                             "includes char unless char are excluded (p.86): Polley Lake's 'Trout "
+                             "daily quota = 8' is a trout/char quota, the same statement as Region "
+                             "5's 'Trout/char: 5', and replaces it by case (1) — 8 trout and char "
+                             "together, the region's clauses still in force. Where the water's number is larger "
+                             "only than one CLAUSE of the zone's quota, only that clause is "
+                             "lifted and the fish still counts toward the aggregate: Williston "
+                             "Lake's 'Lake trout daily quota = 3' lifts Zone B's '2 lake trout'; "
+                             "Duncan River's 'Rainbow trout daily quota = 5 (any size)' lifts "
+                             "Region 4's '2 from streams' and '1 … over 50 cm' for rainbow, and the "
+                             "5 trout/char still binds; a lake printing its own lake trout sizes "
+                             "that keep more than one over 50 cm (Atlin, Bennett, Gwillim) lifts "
+                             "the zone's '1 over 50 cm' for lake trout. A lift for one ORIGIN "
+                             "(Kitimat's hatchery rainbow) carries `origin`: the zone's rule "
+                             "stays for wild fish, partly lifted. "
+                             "(3) DIFFERENT STATEMENTS SIT BESIDE EACH OTHER and both speak: the "
+                             "zone's quota is a day's total over every water of the region, and "
+                             "the water's says how many of it may come from here. The Dean River's "
+                             "'Trout/char daily quota = 1 (none under 35 cm)' beside Region 5's "
+                             "'Trout/char: 5' (1 a day from the Dean, counting toward the 5); "
+                             "Kitimat River's 'Hatchery steelhead … daily quota = 2' beside Region "
+                             "6's 'Trout/char: 5'; Dodd Lake's 'Wild trout/char daily quota = 2' "
+                             "beside Region 2's 'Trout/char: 4'. Show both; each binds. A size "
+                             "clause the water does not restate is a different statement: a "
+                             "lake's 'Rainbow trout daily quota = 2' leaves Region 3's '1 over 50 "
+                             "cm' beside it. So the only way a zone quota stops speaking for a "
+                             "fish at a water is the same statement, a lift, a release "
+                             "(`water_release`) or a closure — never a comparison of numbers the "
+                             "reader makes.",
+        "counted_apart": "A QUOTA COUNTED APART FROM THE AGGREGATE. The zone's 'Trout/char: 5' "
+                         "counts every trout and char together; a fish the book gives its own, "
+                         "larger number leaves that count. The data says so with a lift: the rule "
+                         "with the larger number lifts the aggregate AND its clauses FOR THAT "
+                         "FISH (`exempts[].species`), where it binds. Region 8 prints it in its "
+                         "own table — 'Trout/char: 5, but not more than … 4 from streams … And "
+                         "you may retain: 20 brook trout from streams' (p.68): on a stream a "
+                         "brook trout answers to its 20 only, and on a lake (where the 20 does "
+                         "not bind) to the trout/char 5. A water row does it the same way "
+                         "(`quotas_sit_beside`, case 2): Kootenay Lake's rainbow 10, the brook "
+                         "trout lakes and creeks of Regions 2, 4, 7A and 8 (5 to 20), Tranquille "
+                         "Lake's rainbow 8, and Lois and Khartoum lakes' rainbow/hatchery "
+                         "steelhead 6 in the aggregate. A water row lifts a size clause "
+                         "('1 over 50 cm') only where it prints '(any size)' or sizes of its "
+                         "own that keep more. Every other fish still counts toward the "
+                         "aggregate.",
         "steelhead_definition": "WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book defines "
                                 "(p.86): 'steelhead: a rainbow trout longer than 50 cm in waters "
                                 "where anadromous rainbow trout are found.' It lists no such "
@@ -1124,7 +1163,9 @@ def guide(d: dict) -> dict:
                        "STRICTER zone rule of the other: a closure beats any retention rule "
                        "that is not a closure (closed beats open); an outright release beats a "
                        "quota keeping only fish it releases; of two quotas stating exactly the "
-                       "same thing (`quotas_sit_beside`) the LOWER number beats the higher. "
+                       "same thing the LOWER number beats the higher (between two REGIONS' "
+                       "tables only — a water's own number always replaces its zone's same "
+                       "statement, `quotas_sit_beside`). "
                        "Quotas stating different things sit beside each other (the stricter "
                        "binds by itself), equal rules both speak, and gear and method "
                        "restrictions are never displaced — both regions' apply. A rule written "
@@ -1638,6 +1679,8 @@ def guide(d: dict) -> dict:
         "licensing": "kinds, who, doing, paths, designations, and the rules of reading",
         "placement": "sets, waters and their parts, outside B.C., via, placement, binds (and "
                      "undrawn parts), uncertain",
+        "cases": "one real water per mechanism of the ladder, a date, a fish and the "
+                 "reference answer to assert against",
     }
     return {
         "contents": contents,
@@ -1725,6 +1768,755 @@ def guide(d: dict) -> dict:
         "licensing": licensing,
         "placement": placement,
     }
+
+
+# --------------------------------------------------------------------------------------------
+# Test waters: one REAL case of every mechanism, with the answer the reference gives
+# --------------------------------------------------------------------------------------------
+#
+# The consumer builds its page against a handful of waters; each mechanism of the ladder needs at
+# least one it can assert against ("add more test waters to cover weird ones … we need to cover all
+# orthogonal items", 2026-09-26). Every case is FOUND in the data by a predicate, exactly as the
+# guide's examples are (`_Pick`): never a remembered id, so a case that stops existing is replaced
+# by the next match, and a mechanism with no match is reported (`problems`) and fails the tests.
+#
+# A case names its water (`item_id`), the rule set and licensing set its sections carry
+# (`waters[item].parts`), a date, a fish, and the EXPECTED answer: `read.effective_rules` for that
+# part on that date — every rule that speaks, stands beside or is shown, with `partly_lifted` where
+# a lift holds only in part. Section handles never leave the bundle (AGENTS 5): the answer depends
+# only on the part's rule set and whether a rainbow over 50 cm is a steelhead there
+# (`anadromous_rainbow`), both of which the case carries.
+
+CASE_MECHANISMS = {
+    "zone_only": "a water with no row of its own: the region's table speaks alone",
+    "quota_beside": "a water quota that says something DIFFERENT from the zone's sits beside it — "
+                    "both speak (`ladder.quotas_sit_beside`, case 3)",
+    "larger_replaces": "a water row printing a LARGER number for a fish lifts the zone's quota "
+                       "for that fish, and speaks alone (case 2)",
+    "same_statement": "a water quota stating EXACTLY the zone's statement replaces the zone's "
+                      "number, here a larger one (case 1)",
+    "water_release": "a water's outright release silences a zone quota of another dimension for "
+                     "that fish (`ladder.water_release`)",
+    "naming_beats_group": "a zone rule NAMING the fish beats a water row's GROUP rule for it",
+    "water_names_fish": "a water row that itself names the fish beats the zone's rule naming it",
+    "within_clause_parent_level": "a zone quota's `within` clause naming the fish is read at its "
+                                  "parent's (group) level: the water's group release beats it",
+    "water_closure_silences_zone": "a water's dated closure speaks for every fish it covers as if "
+                                   "it named it: the zone's named quota is silent on its dates",
+    "derived_lift": "a water row naming a fish its region closes lifts that closure "
+                    "(`exempts[].basis: names_the_fish`)",
+    "printed_lift_reopens_closure": "a printed lift of a region's species closure reopens it",
+    "closure_prints_its_exemptions": "a region's closure that prints its own exemption list takes "
+                                     "no derived lift: a water row naming the fish leaves it standing",
+    "blanket_closure_exempt": "a blanket seasonal closure lifted on a water exempt from it",
+    "equivalent_lift": "a row's lift of its region's blanket closure reaches the SAME KIND of "
+                       "closure in another region its water lies in (`exempts[].equivalent`)",
+    "lift_for_one_fish": "a lift for one fish leaves the lifted rule standing for every other "
+                         "fish (asked about a fish the lift does not name)",
+    "partly_lifted": "a lift that holds only for some anglers or fish leaves the rule standing, "
+                     "marked `partly_lifted`",
+    "counted_apart": "a fish counted apart from the zone's aggregate by the zone's own table "
+                     "(`ladder.counted_apart`)",
+    "two_regions_lake": "a lake drawn across a region line: both regions' tables bind, the MOST "
+                        "STRICT displaces the other (`ladder.two_regions`)",
+    "home_region_differs": "a river piece taking the zone rules of the region it lies in, which "
+                           "is not the region of its own row",
+    "pointer": "a pointer row ('See X') binds nothing; the target row's rules speak on the "
+               "pointer's water",
+    "steelhead_water": "where a rainbow over 50 cm is a steelhead, a rule about rainbow over 50 cm "
+                       "speaks for no rainbow",
+    "dated_in_force": "a dated water rule on a day it is in force",
+    "dated_out_of_force": "the same water and fish on a day the dated rule is not in force",
+    "semicolon_dated_clause": "a date printed after a semicolon clause scopes only that clause: the "
+                              "clause before it holds all year",
+    "part_day_beside": "a rule in force only some hours or weekdays (or of unreadable season) "
+                       "stands BESIDE what it would displace",
+    "suspended_while": "a record dormant while its named closure is in force (`suspended_while`: "
+                       "today only licensing records carry it) — asked on a day the closure "
+                       "speaks",
+    "size_band": "a quota with a size window (`lengths`)",
+    "origin": "a rule about hatchery or wild fish only (`origin`)",
+    "while_or_targeting": "a rule that holds only while fishing a way (`while`) or for a target "
+                          "(`when_targeting`)",
+    "gear_only": "a water whose own row says only how to fish (gear, bait, method)",
+    "annual_clock": "a quota on another clock than the day (`period`)",
+    "superior_authority": "a federal or park rule, outside the ladder",
+    "standing": "a standing rule: shown everywhere, never deciding",
+    "angler_closure": "a water closed to one kind of angler (`closed_to`)",
+    "tributary_walk": "a water rule reaching this water by the tributary walk (`via: trib`)",
+    "watershed_part": "a rule bound to a PART of a watershed, cut by FWA code (`Extent.watershed`)",
+    "undrawn_part": "a rule held on the water as a note, in a part nothing draws (`undrawn_part`)",
+    "licensing_classified": "a classified water (licensing designation)",
+    "licensing_stamp": "a water where a stamp is required",
+    "province_except": "a part where a province-wide licensing requirement stops (a national park)",
+    "outside_bc": "a part of a water outside British Columbia: no rules at all",
+}
+
+
+def _leaves(x: dict) -> list[str]:
+    return sorted(set(C.expand_species(list(x.get("species") or [])))
+                  - set(C.expand_species(list(x.get("species_except") or []))))
+
+
+def _keeps(x: dict) -> bool:
+    from pipeline.deliver.bundle.rules import yields_to_release
+    return bool(yields_to_release(x)) and x.get("take") is not None
+
+
+def _closure(x: dict) -> bool:
+    return x.get("type") == "retention_limit" and x.get("take") == 0 and not x.get("may_target")
+
+
+_DAYS = [(m, d) for m in (7, 8, 6, 9, 5, 10, 4, 11, 3, 12, 2, 1) for d in (1, 15)]
+
+
+class _Cases:
+    """The data a case is found in: the bundle's rules (`read.rules` shape, with ladder rank), its
+    interned sets, and the named water parts carrying each."""
+
+    def __init__(self, d: dict, bundle: Path):
+        from pipeline.deliver.bundle import read as RD
+        self.RD, self.d, self.path = RD, d, str(bundle)
+        self.R = RD._rules_of(self.path)
+        db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+        self.members: dict = defaultdict(dict)
+        for s, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset"):
+            if (e, r) in self.R:
+                self.members[str(s)][(e, r)] = via
+        self.lic: dict = defaultdict(list)
+        for s, e, r in db.execute("SELECT set_id, entry_id, record_id FROM licensing_set"):
+            self.lic[str(s)].append(f"{e}#{r}")
+        self.sid = {(str(s), bool(sw)): sid for s, sw, sid in db.execute(
+            "SELECT r.set_id, EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = r.sid), "
+            "MIN(r.sid) FROM section_ruleset r GROUP BY 1, 2")}
+        self.outside = dict(db.execute(
+            "SELECT i.item_id, MIN(o.sid) FROM outside_bc o JOIN item_section s ON s.sid = o.sid "
+            "JOIN item i ON i.ord = s.ord GROUP BY i.item_id"))
+        db.close()
+        self.parts = [(it, p) for it, w in sorted(d["waters"].items()) for p in w["parts"]]
+        self.first_part: dict = {}
+        for it, p in self.parts:
+            if p["ruleset"] is not None:
+                self.first_part.setdefault(p["ruleset"], (it, p))
+        self.sets = sorted(self.first_part, key=int)
+
+    # ---- the answer ----------------------------------------------------------------------
+    def section(self, item: str, part: dict):
+        if part["ruleset"] is None:
+            return self.outside.get(item)
+        return self.sid.get((part["ruleset"], bool(part.get("anadromous_rainbow"))))
+
+    def answer(self, item: str, part: dict, on, fish: str) -> list[dict]:
+        sid = self.section(item, part)
+        if sid is None:
+            return []
+        return [{"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
+                 **({"partly_lifted": True} if x.get("partly_lifted") else {})}
+                for x in self.RD.effective_rules(sid, on, fish, self.path)]
+
+    def record(self, mech, item, part, on, fish, because, ans, licensing=False) -> dict:
+        w = self.d["waters"][item]
+        return {
+            "mechanism": mech, "shows": CASE_MECHANISMS[mech],
+            "water": {"item_id": item, "name": w["name"], "kind": w["kind"]},
+            "entries": w["entries"],
+            "ruleset": part["ruleset"], "licensing_set": part["licensing_set"],
+            **({"anadromous_rainbow": True} if part.get("anadromous_rainbow") else {}),
+            **({"province_except": part["province_except"]} if part.get("province_except") else {}),
+            "date": f"{on[0]:02d}-{on[1]:02d}", "fish": fish,
+            "because": sorted(set(because)),
+            "expect": ans,
+            **({"expect_licensing": sorted(self.lic.get(part["licensing_set"] or "", []))}
+               if licensing else {}),
+        }
+
+    # ---- helpers the finders share -------------------------------------------------------
+    def day(self, *xs, state="yes"):
+        return next((on for on in _DAYS
+                     if all(self.RD.in_force(x.get("when"), on) == state for x in xs)), None)
+
+    def day_out(self, x):
+        return next((on for on in _DAYS if self.RD.in_force(x.get("when"), on) == "no"), None)
+
+    def first(self, mech, cands, check, licensing=False):
+        seen = set()
+        for item, part, on, fish, because in cands:
+            if on is None or fish is None:
+                continue
+            key = (part["ruleset"], bool(part.get("anadromous_rainbow")), on, fish)
+            if key in seen:
+                continue
+            seen.add(key)
+            ans = self.answer(item, part, on, fish)
+            if check(ans):
+                return self.record(mech, item, part, on, fish, because, ans, licensing)
+        return None
+
+    def by_set(self, test):
+        """(item, part, set members) for every set carried by a named water, `test`ed on its
+        members; `test` returns an iterable of (on, fish, because)."""
+        for s in self.sets:
+            item, part = self.first_part[s]
+            for on, fish, because in test(self.members[s]) or ():
+                yield item, part, on, fish, because
+
+
+def _speaking(ans) -> set:
+    return {a["id"] for a in ans if a["state"] == "speaks"}
+
+
+def _ids(ans) -> set:
+    return {a["id"] for a in ans}
+
+
+def cases(d: dict, bundle: Path) -> dict:
+    from pipeline.deliver.bundle.rules import release_origins, same_statement
+    K = _Cases(d, bundle)
+    R, RD = K.R, K.RD
+    rid = lambda k: f"{k[0]}::{k[1]}"                              # noqa: E731
+    water = lambda k: k[0].startswith("r") and R[k]["_rank"] == 0  # noqa: E731
+    zone = lambda k: k[0].startswith("z") and R[k]["_rank"] >= 2   # noqa: E731
+    got: dict = {}
+
+    def add(mech, case):
+        if case is not None:
+            got.setdefault(mech, []).append(case)
+
+    # zone_only: no water row binds; the region's trout/char quota speaks for a rainbow
+    def t(m):
+        if any(k[0].startswith("r") for k in m):
+            return
+        z = [k for k in m if k[0].startswith("z") and k[1].endswith("trout_char_quota.r1")]
+        if z:
+            yield (7, 1), "RB", [rid(z[0])]
+    add("zone_only", K.first("zone_only", K.by_set(t),
+                             lambda a: any(i.startswith("z") and "trout_char_quota" in i
+                                           for i in _speaking(a))))
+
+    # quota_beside: same fish or group, a size bound or other difference, smaller at the water
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and _keeps(a) and not a.get("within") and m[w] == "reach"):
+                continue
+            for z in m:
+                b = R[z]
+                if zone(z) and RD.base_region(z[0]) and _keeps(b) and not b.get("within") \
+                        and set(_leaves(a)) <= set(_leaves(b)) and not same_statement(a, b) \
+                        and (a.get("period") or "daily") == (b.get("period") or "daily") \
+                        and a["take"] < b["take"]:
+                    yield K.day(a, b), _leaves(a)[0], [rid(w), rid(z)]
+    beside = lambda w, z: lambda a: {w, z} <= _speaking(a)    # noqa: E731
+    for c in K.by_set(t):
+        case = K.first("quota_beside", [c], beside(*c[4]))
+        if case:
+            add("quota_beside", case)
+            break
+
+    # larger_replaces: a water row's lift of the zone's aggregate for the fish it names larger
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and _keeps(a) and m[w] == "reach"):
+                continue
+            for x in a.get("exempts") or []:
+                z = (x["entry_id"], x["rule_id"])
+                b = R.get(z)
+                if z in m and b and zone(z) and _keeps(b) and not b.get("within") \
+                        and a["take"] > b["take"] and not x.get("origin"):
+                    fish = sorted(set(_leaves(a)) & set(x.get("species") or _leaves(b)))
+                    if fish:
+                        yield K.day(a, b), fish[0], [rid(w), rid(z)]
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("larger_replaces", [c], lambda a: w in _speaking(a) and z not in _ids(a))
+        if case:
+            add("larger_replaces", case)
+            break
+
+    # same_statement: the water's larger number replaces the zone's
+    def t(m):
+        for w in m:
+            for z in m:
+                a, b = R[w], R[z]
+                if water(w) and zone(z) and _keeps(a) and _keeps(b) and same_statement(a, b) \
+                        and not b.get("within") and a["take"] > b["take"] and _leaves(a):
+                    yield K.day(a, b), _leaves(a)[0], [rid(w), rid(z)]
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("same_statement", [c], lambda a: w in _speaking(a) and z not in _ids(a))
+        if case:
+            add("same_statement", case)
+            break
+
+    # water_release: an outright release silencing a zone quota of another dimension
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and release_origins(a) == frozenset({"wild", "hatchery"})
+                    and not _closure(a)):
+                continue
+            for z in m:
+                b = R[z]
+                if zone(z) and _keeps(b) and b.get("dimension") != a.get("dimension"):
+                    fish = sorted(set(_leaves(a)) & set(_leaves(b)))
+                    if fish:
+                        yield K.day(a, b), fish[0], [rid(w), rid(z)]
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("water_release", [c], lambda a: w in _speaking(a) and z not in _ids(a))
+        if case:
+            add("water_release", case)
+            break
+
+    # naming_beats_group / water_names_fish / within_clause_parent_level
+    def t(m):
+        for z in m:
+            b = R[z]
+            if not (zone(z) and b.get("type") == "retention_limit" and not b.get("within")):
+                continue
+            for w in m:
+                a = R[w]
+                if water(w) and _keeps(a) and (a["type"], a["dimension"]) == \
+                        (b["type"], b["dimension"]):
+                    for f in _leaves(a):
+                        if RD.names_fish(b, f) and not RD.names_fish(a, f) \
+                                and RD.speaks_for(b, f):
+                            yield K.day(a, b), f, [rid(z), rid(w)]
+                            break
+    for c in K.by_set(t):
+        z, w = c[4]
+        case = K.first("naming_beats_group", [c],
+                       lambda a: z in _speaking(a) and w not in _speaking(a))
+        if case:
+            add("naming_beats_group", case)
+            break
+
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and _keeps(a)):
+                continue
+            for z in m:
+                b = R[z]
+                if zone(z) and _closure(b) is False and b.get("take") == 0 and \
+                        (a["type"], a["dimension"]) == (b["type"], b["dimension"]):
+                    for f in _leaves(a):
+                        if RD.names_fish(a, f) and RD.names_fish(b, f):
+                            yield K.day(a, b), f, [rid(w), rid(z)]
+                            break
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("water_names_fish", [c],
+                       lambda a: w in _speaking(a) and z not in _speaking(a))
+        if case:
+            add("water_names_fish", case)
+            break
+
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and release_origins(a) and not _closure(a)):
+                continue
+            for z in m:
+                b = R[z]
+                if zone(z) and _keeps(b) and b.get("within"):
+                    for f in _leaves(b):
+                        if RD.names_fish(b, f) and RD.speaks_for(a, f) \
+                                and not RD.names_fish(a, f):
+                            yield K.day(a, b), f, [rid(w), rid(z)]
+                            break
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("within_clause_parent_level", [c],
+                       lambda a: w in _speaking(a) and z not in _speaking(a))
+        if case:
+            add("within_clause_parent_level", case)
+            break
+
+    # water_closure_silences_zone: a water's dated closure over the zone's named quota
+    def t(m):
+        for w in m:
+            a = R[w]
+            if not (water(w) and _closure(a) and (a.get("when") or {}).get("dates")):
+                continue
+            for z in m:
+                b = R[z]
+                if zone(z) and _keeps(b) and not b.get("within"):
+                    for f in _leaves(b):
+                        if f != "CRA" and RD.names_fish(b, f) and RD.speaks_for(a, f):
+                            yield K.day(a, b), f, [rid(w), rid(z)]
+                            break
+    for c in K.by_set(t):
+        w, z = c[4]
+        case = K.first("water_closure_silences_zone", [c],
+                       lambda a: w in _speaking(a) and z not in _speaking(a))
+        if case:
+            add("water_closure_silences_zone", case)
+            break
+
+    # lifts: derived, printed over a species closure, blanket, equivalent, one fish, partly
+    def lifts(test):
+        def t(m):
+            for w in m:
+                if m[w] != "reach":
+                    continue
+                for x in R[w].get("exempts") or []:
+                    z = (x["entry_id"], x["rule_id"])
+                    if z in m and z in R and test(w, x, z):
+                        yield w, x, z
+        return t
+
+    def full(x):
+        return not any(x.get(k) for k in ("origin", "lengths", "when_targeting", "while"))
+
+    def lift_cases(mech, test, fish_of, check):
+        finder = lifts(test)
+        for s in K.sets:
+            item, part = K.first_part[s]
+            for w, x, z in finder(K.members[s]):
+                f = fish_of(w, x, z)
+                if f is None:
+                    continue
+                on = K.day(R[w], R[z])
+                case = K.first(mech, [(item, part, on, f, [rid(w), rid(z)])], check(w, x, z))
+                if case:
+                    return case
+        return None
+
+    def lifted_fish(w, x, z):
+        f = sorted(set(x.get("species") or _leaves(R[z])) & set(_leaves(R[w]) or _leaves(R[z])))
+        return f[0] if f else None
+
+    gone = lambda w, x, z: lambda a: rid(z) not in _ids(a)     # noqa: E731
+    add("derived_lift", lift_cases(
+        "derived_lift", lambda w, x, z: x.get("basis") and full(x) and water(w),
+        lifted_fish, gone))
+    add("printed_lift_reopens_closure", lift_cases(
+        "printed_lift_reopens_closure",
+        lambda w, x, z: not x.get("basis") and full(x) and water(w) and _closure(R[z])
+        and zone(z) and bool(R[z].get("species")) and not x.get("equivalent")
+        and set(R[z]["species"]).isdisjoint({"ALL_GAME_FISH", "ALL_FIN_FISH"}),
+        lifted_fish, gone))
+    add("blanket_closure_exempt", lift_cases(
+        "blanket_closure_exempt",
+        lambda w, x, z: full(x) and not x.get("equivalent") and water(w)
+        and R[w].get("dimension") == "lift" and _closure(R[z]) and bool(R[z].get("water"))
+        and set(R[z].get("species") or []) <= {"ALL_GAME_FISH", "ALL_FIN_FISH"},
+        lambda w, x, z: "RB", gone))
+    add("equivalent_lift", lift_cases(
+        "equivalent_lift", lambda w, x, z: bool(x.get("equivalent")) and full(x),
+        lambda w, x, z: "RB", gone))
+    add("counted_apart", lift_cases(
+        "counted_apart",
+        lambda w, x, z: zone(w) and w[0] == z[0] and bool(x.get("species")) and full(x)
+        and _keeps(R[w]),
+        lambda w, x, z: x["species"][0],
+        lambda w, x, z: lambda a: rid(w) in _speaking(a) and rid(z) not in _ids(a)))
+
+    def other_fish(w, x, z):
+        f = sorted(set(_leaves(R[z])) - set(x["species"]))
+        return f[0] if x.get("species") and f else None
+    add("lift_for_one_fish", lift_cases(
+        "lift_for_one_fish", lambda w, x, z: water(w) and bool(x.get("species")) and full(x),
+        other_fish,
+        lambda w, x, z: lambda a: rid(z) in _speaking(a)))
+    add("partly_lifted", lift_cases(
+        "partly_lifted", lambda w, x, z: not full(x), lifted_fish,
+        lambda w, x, z: lambda a: any(i["id"] == rid(z) and i.get("partly_lifted") for i in a)))
+
+    # closure_prints_its_exemptions: a region's species closure a water row names, not lifted
+    def t(m):
+        for z in m:
+            b = R[z]
+            if not (zone(z) and _closure(b) and b.get("species")
+                    and set(b["species"]).isdisjoint(set(read_aggregates()))):
+                continue
+            for w in m:
+                a = R[w]
+                if water(w) and _keeps(a) and not any(
+                        (x["entry_id"], x["rule_id"]) == z for x in a.get("exempts") or []):
+                    for f in _leaves(a):
+                        if RD.names_fish(a, f) and RD.names_fish(b, f):
+                            yield K.day(a, b), f, [rid(z), rid(w)]
+                            break
+    for c in K.by_set(t):
+        z, w = c[4]
+        case = K.first("closure_prints_its_exemptions", [c], lambda a: z in _speaking(a))
+        if case:
+            add("closure_prints_its_exemptions", case)
+            break
+
+    # two_regions_lake: two regions' tables on one lake, the stricter displacing the other. Never a
+    # lake the book divides into parts (Williston: its Zone A and Zone B halves each take one
+    # table) — the parent's own section there is the sliver the parts leave, not the lake.
+    divided = {w["part_of"] for w in K.d["waters"].values() if w.get("part_of")}
+    for s in K.sets:
+        item, part = K.first_part[s]
+        m = K.members[s]
+        bases = {RD.base_region(k[0]) for k in m if zone(k)} - {None}
+        if len(bases) < 2 or K.d["waters"][item]["kind"] != "lake" or item in divided:
+            continue
+        found = None
+        for f in ("RB", "LT", "KO", "BT", "EB", "BB", "WP", "NP", "MW"):
+            ans = K.answer(item, part, (7, 1), f)
+            said = _ids(ans)
+            spoken = [tuple(i.split("::")) for i in _speaking(ans)]
+            # the other table's rule that displaced it: a retention rule about this fish — never
+            # a water closure silencing both tables (Kinbasket's undrawn "No Fishing within 200 m
+            # of Bush-Sullivan Road Bridge" is held on the whole lake)
+            if any(k in R and water(k) and _closure(R[k]) for k in spoken):
+                continue
+            other = lambda k: [o for o in spoken if o in R and zone(o)  # noqa: E731
+                               and RD.base_region(o[0]) not in (None, RD.base_region(k[0]))
+                               and R[o].get("type") == "retention_limit"
+                               and not R[o].get("standing") and RD.speaks_for(R[o], f)]
+            dropped = [k for k in m if zone(k) and RD.base_region(k[0])
+                       and R[k].get("type") == "retention_limit"
+                       and RD.speaks_for(R[k], f) and RD.in_force(R[k].get("when"), (7, 1)) == "yes"
+                       and not R[k].get("standing") and rid(k) not in said and other(k)]
+            if dropped:
+                found = K.record("two_regions_lake", item, part, (7, 1), f,
+                                 [rid(k) for k in dropped]
+                                 + [rid(o) for k in dropped for o in other(k)], ans)
+                break
+        if found:
+            add("two_regions_lake", found)
+            break
+
+    # home_region_differs: a stream piece whose zone rules are another region's than its row's
+    fam = lambda r: r[:1] if r and r[:1] == "7" else r            # noqa: E731
+    for s in K.sets:
+        item, part = K.first_part[s]
+        m = K.members[s]
+        if K.d["waters"][item]["kind"] != "stream":
+            continue
+        bases = {RD.base_region(k[0]) for k in m if zone(k)} - {None}
+        rows = {k[0].split(":", 1)[0][1:] for k in m if water(k) and m[k] == "reach"}
+        if len(bases) != 1 or not rows or any(fam(r) == fam(next(iter(bases))) for r in rows):
+            continue
+        w = sorted(k for k in m if water(k) and m[k] == "reach")[0]
+        z = sorted(k for k in m if zone(k) and k[1].endswith("trout_char_quota.r1"))
+        case = K.first("home_region_differs", [(item, part, (7, 1), "RB", [rid(w)] + [rid(k) for k in z])],
+                       lambda a: any(i.startswith("z") for i in _speaking(a)))
+        if case:
+            add("home_region_differs", case)
+            break
+
+    # pointer: a pointer-only row's water carries its target's rules
+    for eid, e in sorted(K.d["entries"].items()):
+        if not e.get("see") or e["rules"] or e["licensing"]:
+            continue
+        targets = {t for s_ in e["see"] for t in s_.get("entry_ids") or []}
+        hit = None
+        for it in e["matched"]:
+            for p in (K.d["waters"].get(it) or {}).get("parts", []):
+                if p["ruleset"] and any(k[0] in targets for k in K.members[p["ruleset"]]):
+                    hit = (it, p)
+                    break
+            if hit:
+                break
+        if hit:
+            case = K.first("pointer", [(hit[0], hit[1], (7, 1), "RB", [eid] + sorted(targets))],
+                           lambda a: any(i.split("::")[0] in targets for i in _ids(a)))
+            if case:
+                add("pointer", case)
+                break
+
+    # steelhead_water: a rainbow rule over 50 cm only speaks for no rainbow
+    for it, p in K.parts:
+        if not (p.get("anadromous_rainbow") and p["ruleset"]):
+            continue
+        over = [k for k in K.members[p["ruleset"]] if RD.speaks_for(R[k], "RB")
+                and R[k].get("lengths") and all((b.get("min_cm") or 0) >= 50
+                                                for b in R[k]["lengths"])]
+        if over:
+            case = K.first("steelhead_water", [(it, p, (7, 15), "RB", [rid(k) for k in over])],
+                           lambda a: not ({rid(k) for k in over} & _ids(a)))
+            if case:
+                add("steelhead_water", case)
+                break
+
+    # dated rules, in and out of force (the same water, fish and part)
+    def t(m):
+        for w in m:
+            a = R[w]
+            wh = a.get("when") or {}
+            if water(w) and _keeps(a) and wh.get("dates") and not (
+                    wh.get("hours") or wh.get("weekdays") or wh.get("unparsed")) and _leaves(a):
+                yield K.day(a), _leaves(a)[0], [rid(w)]
+    for c in K.by_set(t):
+        (w,) = c[4]
+        inside = K.first("dated_in_force", [c], lambda a: w in _speaking(a))
+        e_, _, r_ = w.partition("::")
+        out = K.day_out(R[(e_, r_)])
+        outside = inside and K.first("dated_out_of_force", [c[:2] + (out,) + c[3:]],
+                                     lambda a: w not in _ids(a))
+        if inside and outside:
+            add("dated_in_force", inside)
+            add("dated_out_of_force", outside)
+            break
+
+    # semicolon_dated_clause: "A; B, <dates>" — A all year
+    for s in K.sets:
+        item, part = K.first_part[s]
+        m = K.members[s]
+        hit = None
+        for a_ in m:
+            for b_ in m:
+                a, b = R[a_], R[b_]
+                if a_[0] != b_[0] or a_ == b_ or a.get("when") or \
+                        not (b.get("when") or {}).get("dates"):
+                    continue
+                text = K.d["entries"][a_[0]]["printed"] or ""
+                if f"{a['verbatim']}; {b['verbatim'][:12]}" in text:
+                    hit = (a_, b_)
+                    break
+            if hit:
+                break
+        if hit:
+            a_, b_ = hit
+            case = K.first("semicolon_dated_clause",
+                           [(item, part, K.day_out(R[b_]), "RB", [rid(a_), rid(b_)])],
+                           lambda a: rid(a_) in _ids(a) and rid(b_) not in _ids(a))
+            if case:
+                add("semicolon_dated_clause", case)
+                break
+
+    # one rule of a kind, in the answer on a day it is in force
+    def single(mech, test, check=None, state="yes"):
+        for s in K.sets:
+            item, part = K.first_part[s]
+            for k in sorted(K.members[s]):
+                x = R[k]
+                if not test(k, x) or (water(k) and K.members[s][k] != "reach"):
+                    continue
+                f = (_leaves(x) or ["RB"])[0]
+                if x.get("when_targeting"):
+                    f = C.expand_species(list(x["when_targeting"]))[0]
+                on = K.day(x, state=state)
+                ok = check(k) if check else (lambda a, k=k: rid(k) in _ids(a))
+                case = K.first(mech, [(item, part, on, f, [rid(k)])], ok)
+                if case:
+                    add(mech, case)
+                    return
+
+    part_day = lambda x: bool((x.get("when") or {}).get("hours") or (x.get("when") or {})
+                              .get("weekdays") or (x.get("when") or {}).get("unparsed"))
+    single("part_day_beside", lambda k, x: part_day(x),
+           lambda k: lambda a: any(i["id"] == rid(k) and i["state"] == "beside" for i in a),
+           state="part")
+    # suspended_while: no rule carries it today; a licensing record does ("Steelhead Stamp not
+    # required until reopened to steelhead fishing") — the case asks on a day its closure speaks.
+    for it, p in K.parts:
+        if not (p["ruleset"] and p["licensing_set"]):
+            continue
+        hit = None
+        for i in K.lic.get(p["licensing_set"], []):
+            x = K.d["licensing"].get(i)
+            for sw in (x or {}).get("fields", {}).get("suspended_while") or []:
+                k = (x["entry_id"], sw["rule_id"])
+                if k in K.members[p["ruleset"]]:
+                    hit = (i, k)
+        if hit:
+            i, k = hit
+            case = K.first("suspended_while", [(it, p, K.day(R[k]), "ST", [i, rid(k)])],
+                           lambda a: rid(k) in _speaking(a), licensing=True)
+            if case:
+                add("suspended_while", case)
+                break
+    single("size_band", lambda k, x: water(k) and _keeps(x) and any(
+        b.get("min_cm") is not None and b.get("max_cm") is not None and b.get("take") != 0
+        for b in x.get("lengths") or []))
+    single("origin", lambda k, x: water(k) and bool(x.get("origin")) and _keeps(x))
+    single("while_or_targeting", lambda k, x: water(k) and bool(x.get("while")
+                                                                 or x.get("when_targeting")))
+    single("annual_clock", lambda k, x: x.get("period") == "annual")
+    single("superior_authority", lambda k, x: R[k]["_rank"] < 0,
+           lambda k: lambda a: rid(k) in _speaking(a))
+    single("standing", lambda k, x: bool(x.get("standing")))
+    single("angler_closure", lambda k, x: x.get("type") == "angler_closure")
+    for s in K.sets:
+        item, part = K.first_part[s]
+        m = K.members[s]
+        trib = [k for k in sorted(m) if m[k] == "trib" and water(k)
+                and R[k].get("type") == "retention_limit"]
+        if trib:
+            k = trib[0]
+            case = K.first("tributary_walk", [(item, part, K.day(R[k]),
+                                               (_leaves(R[k]) or ["RB"])[0], [rid(k)])],
+                           lambda a: rid(k) in _speaking(a))
+            if case:
+                add("tributary_walk", case)
+                break
+    single("watershed_part", lambda k, x: any(e.get("watershed") for e in x.get("extents") or []))
+    single("undrawn_part", lambda k, x: bool(x.get("undrawn_part")))
+
+    def gear_only(m):
+        own = [k for k in m if water(k) and m[k] == "reach"]
+        return own and all(R[k]["type"] in ("tackle_restriction", "bait_restriction",
+                                            "method_rule") for k in own)
+    for s in K.sets:
+        item, part = K.first_part[s]
+        if gear_only(K.members[s]):
+            own = sorted(k for k in K.members[s] if water(k))
+            case = K.first("gear_only", [(item, part, (7, 1), "RB", [rid(k) for k in own])],
+                           lambda a: any(rid(k) in _ids(a) for k in own))
+            if case:
+                add("gear_only", case)
+                break
+
+    # licensing, the province's exceptions, and water outside B.C.
+    L = K.d["licensing"]
+
+    def lic_case(mech, test, part_test=lambda p: True):
+        for it, p in K.parts:
+            if p["ruleset"] and p["licensing_set"] and part_test(p) and any(
+                    test(L[i]) for i in K.lic.get(p["licensing_set"], []) if i in L):
+                why = [i for i in K.lic[p["licensing_set"]] if i in L and test(L[i])]
+                case = K.first(mech, [(it, p, (7, 1), "RB", why)], lambda a: True,
+                               licensing=True)
+                if case:
+                    add(mech, case)
+                    return
+    lic_case("licensing_classified", lambda x: x["kind"] == "designation"
+             and bool(x["fields"].get("classified")))
+    lic_case("licensing_stamp", lambda x: "stamp" in json.dumps(x["fields"]))
+    lic_case("province_except", lambda x: True, lambda p: bool(p.get("province_except")))
+    for it, w in sorted(K.d["waters"].items()):
+        if w["outside_bc"] and it in K.outside:
+            p = next((p for p in w["parts"] if p["ruleset"] is None
+                      and p["licensing_set"] is None), None)
+            if p:
+                case = K.first("outside_bc", [(it, p, (7, 1), "RB", [])], lambda a: a == [],
+                               licensing=True)
+                if case:
+                    add("outside_bc", case)
+                    break
+
+    return {
+        "reading": "One REAL water per mechanism of the ladder, found in the data by a test "
+                   "(never a remembered id), with the answer the reference semantics give "
+                   "(`pipeline.deliver.bundle.read.effective_rules`). Build your page against "
+                   "them and assert: on the water `water.item_id`, for the part whose sections "
+                   "carry `ruleset` (and `licensing_set`; `anadromous_rainbow` where a rainbow "
+                   "over 50 cm is a steelhead), on `date` (MM-DD, any year), for `fish` (a leaf "
+                   "code), the rules in play are exactly `expect` — each `speaks`, stands "
+                   "`beside` (in force only some hours or days, or of unreadable season), or is "
+                   "`shown` (standing, information); `partly_lifted` where a lift holds only "
+                   "for some anglers or fish. `because` names the records that make it this "
+                   "mechanism. A licensing case also carries `expect_licensing`: every record "
+                   "its licensing set holds. The ids are the export's own; section handles "
+                   "never leave the bundle.",
+        "mechanisms": CASE_MECHANISMS,
+        "missing": sorted(set(CASE_MECHANISMS) - set(got)),
+        "cases": [c for mech in CASE_MECHANISMS for c in got.get(mech, [])],
+    }
+
+
+def read_aggregates():
+    from pipeline.deliver.bundle.rules import AGGREGATE_GROUPS
+    return AGGREGATE_GROUPS
 
 
 # --------------------------------------------------------------------------------------------
@@ -1821,7 +2613,7 @@ def build(bundle: Path = BUNDLE) -> dict:
             "counts": counts,
             "unresolved_references": [],
         },
-        "guide": guide(d),
+        "guide": dict(guide(d), cases=cases(d, bundle)),
         "field_dictionary": field_dictionary(d),
         "species": species_table(),
         "licences": d["licences"],
@@ -2026,8 +2818,30 @@ def corpus_references(doc: dict) -> list[str]:
     return out
 
 
+def case_problems(doc: dict) -> list[str]:
+    """A mechanism with no real case, and a case naming anything the file does not hold."""
+    g = doc["guide"]["cases"]
+    out = [f"guide.cases: no real case of {m}" for m in g["missing"]]
+    for c in g["cases"]:
+        w = doc["waters"].get(c["water"]["item_id"])
+        tag = f"guide.cases {c['mechanism']}"
+        if w is None:
+            out.append(f"{tag}: water {c['water']['item_id']}")
+            continue
+        if not any(p["ruleset"] == c["ruleset"] and p["licensing_set"] == c["licensing_set"]
+                   for p in w["parts"]):
+            out.append(f"{tag}: no part of {c['water']['item_id']} carries ruleset "
+                       f"{c['ruleset']} / licensing set {c['licensing_set']}")
+        out += [f"{tag}: expects {x['id']}" for x in c["expect"] if x["id"] not in doc["rules"]]
+        out += [f"{tag}: because {i}" for i in c["because"]
+                if i not in doc["rules"] and i not in doc["licensing"] and i not in doc["entries"]]
+        out += [f"{tag}: entry {e}" for e in c["entries"] if e not in doc["entries"]]
+    return out
+
+
 def problems(doc: dict) -> list[str]:
-    return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc))
+    return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
+            + case_problems(doc))
 
 
 def dumps(doc: dict) -> str:

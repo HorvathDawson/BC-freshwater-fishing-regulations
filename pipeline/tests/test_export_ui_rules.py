@@ -644,3 +644,78 @@ def test_a_lake_cut_into_parts_is_read_through_its_parts(doc):
         assert whole in doc["waters"], whole
         parts = [k for k, w in doc["waters"].items() if w.get("part_of") == whole]
         assert len(parts) >= 2, (whole, parts)
+
+
+# ---------------------------------------------------------------------------------------
+# guide.cases — one real water per mechanism, with the reference answer
+# ---------------------------------------------------------------------------------------
+def _case_section(db, c) -> int | None:
+    """A section of the case's part, from the ids the case carries (never a handle it ships)."""
+    if c["ruleset"] is None:
+        row = db.execute("SELECT MIN(o.sid) FROM outside_bc o JOIN item_section s ON s.sid = o.sid "
+                         "JOIN item i ON i.ord = s.ord WHERE i.item_id = ?",
+                         (c["water"]["item_id"],)).fetchone()
+        return row[0]
+    return db.execute(
+        "SELECT MIN(r.sid) FROM section_ruleset r JOIN item_section s ON s.sid = r.sid "
+        "JOIN item i ON i.ord = s.ord WHERE r.set_id = ? AND i.item_id = ? AND "
+        "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = r.sid) = ?",
+        (int(c["ruleset"]), c["water"]["item_id"], bool(c.get("anadromous_rainbow")))).fetchone()[0]
+
+
+def test_every_case_expects_what_the_reference_answers(doc, db):
+    """Each case's `expect` IS `read.effective_rules` on a section of that water's part — asked
+    afresh here from the ids the case carries, so a case cannot rot into a stale answer. A
+    licensing case's `expect_licensing` is exactly its licensing set in the bundle."""
+    from pipeline.deliver.bundle import read as RD
+    cs = doc["guide"]["cases"]["cases"]
+    assert len(cs) >= len(X.CASE_MECHANISMS)
+    for c in cs:
+        sid = _case_section(db, c)
+        assert sid is not None, (c["mechanism"], c["water"])
+        m, d = (int(x) for x in c["date"].split("-"))
+        got = [{"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
+                **({"partly_lifted": True} if x.get("partly_lifted") else {})}
+               for x in RD.effective_rules(sid, (m, d), c["fish"], str(BUNDLE))]
+        assert got == c["expect"], c["mechanism"]
+        if "expect_licensing" in c:
+            want = sorted(f"{e}#{r}" for e, r in db.execute(
+                "SELECT entry_id, record_id FROM licensing_set WHERE set_id = ?",
+                (int(c["licensing_set"]) if c["licensing_set"] else -1,)))
+            assert c["expect_licensing"] == want, c["mechanism"]
+        assert c["because"] or c["mechanism"] == "outside_bc", c["mechanism"]
+
+
+def test_every_mechanism_has_a_real_case(doc):
+    """A mechanism whose predicate finds nothing fails loudly — here and in `problems`, which
+    refuses the export. MUTATION: dropping a mechanism's cases makes `case_problems` name it."""
+    g = doc["guide"]["cases"]
+    assert g["missing"] == []
+    assert {c["mechanism"] for c in g["cases"]} == set(X.CASE_MECHANISMS)
+    assert X.case_problems(doc) == []
+    broken = copy.deepcopy(doc)
+    bg = broken["guide"]["cases"]
+    bg["cases"] = [c for c in bg["cases"] if c["mechanism"] != "two_regions_lake"]
+    bg["missing"] = sorted(set(X.CASE_MECHANISMS) - {c["mechanism"] for c in bg["cases"]})
+    assert X.case_problems(broken) == ["guide.cases: no real case of two_regions_lake"]
+
+
+def test_the_cases_show_their_mechanisms(doc):
+    """A few cases, read for what they claim: a larger water number speaks alone, a water quota
+    saying something else sits beside the zone's, a lake across two regions loses a rule of one
+    of them, and water outside B.C. has no rules."""
+    by = {c["mechanism"]: c for c in doc["guide"]["cases"]["cases"]}
+    speaks = lambda c: {x["id"] for x in c["expect"] if x["state"] == "speaks"}   # noqa: E731
+    w, z = by["larger_replaces"]["because"][0], by["larger_replaces"]["because"][1]
+    assert w in speaks(by["larger_replaces"]) and z not in {x["id"] for x in
+                                                            by["larger_replaces"]["expect"]}
+    assert set(by["quota_beside"]["because"]) <= speaks(by["quota_beside"])
+    assert by["outside_bc"]["expect"] == [] and by["outside_bc"]["expect_licensing"] == []
+    assert any(x.get("partly_lifted") for x in by["partly_lifted"]["expect"])
+    assert any(x["state"] == "beside" for x in by["part_day_beside"]["expect"])
+    # a REAL straddling lake: never a lake the book divides into parts (Williston's halves each
+    # take one table; its parent section is a 0.14 km2 sliver), and both tables speak on it
+    two = by["two_regions_lake"]
+    assert not any(w.get("part_of") == two["water"]["item_id"] for w in doc["waters"].values())
+    assert len({i.split(":")[0] for i in speaks(two) if i.startswith("z") and not
+                i.startswith("zp:")}) == 2, two["water"]

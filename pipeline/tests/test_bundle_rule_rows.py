@@ -342,7 +342,7 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
                     assert set(x) <= set(rules_mod.LIFT_KEYS), x
                     assert x["rule_id"] in rules_of[x["entry_id"]]
                     assert (x["entry_id"], x["rule_id"]) != (ce.entry_id, r.rule_id)
-                    if {"species", "when_targeting", "while", "when"} & set(x):
+                    if {"species", "when_targeting", "while", "when", "origin"} & set(x):
                         partial.append((ce.entry_id, r.rule_id, x["rule_id"]))
             else:
                 silent.append((ce.entry_id, r.rule_id))
@@ -356,7 +356,52 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     # 2026-09-24: conditions in the key stopped these competing, and the angler got two limits).
     chw = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
     kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
-    assert sorted(p for p in partial if p[2] != "invasive_species_notice.r1") == [
+    # RULING 1 (2026-09-26): a water row printing a LARGER number for a fish lifts the zone's
+    # trout/char quota (and the clauses of it the row outnumbers) for THAT fish only. A bare row
+    # keeps the zone's "1 over 50 cm" (the book prints "(any size)" where it means otherwise);
+    # a lake printing its OWN lake trout sizes lifts only that clause. The Region 5 "Trout daily
+    # quota = 8" lakes are TROUT_CHAR (p.86) and replace the 5 as the same statement (no lift);
+    # Lois/Khartoum's aggregate 6 lifts the 4 for rainbow + steelhead (its "2 hatchery steelhead"
+    # clause is lifted whole, so it is not listed here).
+    larger = [(e, f"{r}.r{n}", f"trout_char_quota.r{t}") for e, r, n, ts in (
+        ("r2:ross_lake_boundary_between_ross_lake_and_skagit_river_is_mar@2-2", "ross_lake", 4,
+         (1,)),
+        ("r2:lois_lake@2-12", "lois_lake", 4, (1,)),
+        ("r2:khartoum_lake@2-12", "khartoum_lake", 5, (1,)),
+        ("r3:tranquille_lake@3-29", "tranquille_lake", 1, (1,)),
+        ("r4:beaver_creek@4-8", "beaver_creek", 1, (1,)),
+        ("r4:big_fish_dunbar_lake@4-34", "big_fish_dunbar_lake", 1, (1,)),
+        ("r4:botts_lake@4-34", "botts_lake", 1, (1,)),
+        ("r4:box_lake@4-15", "box_lake", 1, (1,)),
+        ("r4:lavington_creek@4-26", "lavington_creek", 1, (1,)),
+        ("r4:north_star_lake@4-22", "north_star_lake", 1, (1,)),
+        ("r4:perry_creek@4-20", "perry_creek", 3, (1,)),
+        ("r4:premier_lake@4-21", "premier_lake", 3, (1,)),
+        ("r4:twin_lakes@4-34", "twin_lakes", 1, (1,)),
+        ("r4:whitetail_lake@4-26", "whitetail_lake", 3, (1,)),
+        ("r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19",
+         "kootenay_lake_main_body", 4, (1, 2)),
+        ("r4:duncan_river@4-19", "duncan_river", 4, (2,)),
+        ("r4:lardeau_river@4-29+4-30", "lardeau_river", 4, (2,)),
+        ("r5:quesnel_lake@5-15", "quesnel_lake", 3, (2,)),
+        ("r6:atlin_lake@6-25+6-27", "atlin_lake", 1, (2,)),
+        ("r6:laidlaw_lake@6-25+6-27", "laidlaw_lake", 1, (2,)),
+        ("r6:bennett_lake@6-28", "bennett_lake", 1, (2,)),
+        ("r6:morley_lake@6-25", "morley_lake", 1, (2,)),
+        ("r6:tagish_lake@6-27", "tagish_lake", 1, (2,)),
+        ("r7:bow_lake@7-15", "bow_lake", 1, (1,)),
+        ("r7:butterfly_lake@7-15", "butterfly_lake", 1, (1,)),
+        ("r7:camp_lake@7-15", "camp_lake", 1, (1,)),
+        ("r7:kathie_lake@7-15", "kathie_lake", 1, (1,)),
+        ("r7:unnamed_lake_kinglet_lake_located_100_m_west_of_butterfly_la@7-15", "kinglet_lake",
+         1, (1,)),
+        ("r7:unnamed_lake_redstart_lake_located_approx_200_m_southwest_of@7-15", "redstart_lake",
+         1, (1,)),
+        ("r7:gwillim_lake@7-21", "gwillim_lake", 1, (2,)),
+        ("r7:muncho_lake@7-51", "muncho_lake", 1, (2,)),
+        ("r7:williston_lake_in_zone_b@7-31+7-36", "williston_lake_zone_b", 5, (4,)),
+        ("r8:jewel_lake@8-14", "jewel_lake", 1, (1,))) for t in ts]
+    assert sorted(p for p in partial if p[2] != "invasive_species_notice.r1") == sorted(larger + [
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r4"),
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),
         ("r2:coquitlam_river@2-8", "coquitlam_river.r3", "trout_char_quota.r8"),
@@ -399,7 +444,7 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         *[("z8:trout_char_quota", "trout_char_quota.r5", f"trout_char_quota.r{k}")
           for k in (1, 2, 3, 4)],
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
-        ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")]
+        ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")])
     assert lifted >= 80
     # nothing lifts itself: the z6 steelhead exemption is its own rule, placed on the five
     # mainstems (steelhead_stream_closure.r2), so no lift is dropped

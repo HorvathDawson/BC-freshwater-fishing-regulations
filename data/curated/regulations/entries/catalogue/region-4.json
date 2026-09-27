@@ -718,6 +718,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z4:trout_char_quota",
        "note": "the stream's own quota replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 8 replaces the region's number for brook trout"
       }
      ]
     }
@@ -848,6 +853,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      }
      ]
     },
     {
@@ -917,6 +929,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      }
      ]
     },
     {
@@ -960,6 +979,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
     },
@@ -3135,6 +3161,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z4:trout_char_quota",
        "note": "the stream's own quota replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z4:trout_char_quota",
+       "note": "(any size): the row's 5 replaces '1 rainbow trout or cutthroat trout over 50 cm'"
       }
      ]
     },
@@ -6447,6 +6478,18 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 10 (any size) replaces the region's number for rainbow trout"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 10 (any size) replaces the region's number for rainbow trout"
+      }
      ]
     },
     {
@@ -7537,6 +7580,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z4:trout_char_quota",
        "note": "the stream's own quota replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "entry_id": "z4:trout_char_quota",
+       "note": "(any size): the row's 5 replaces '1 rainbow trout or cutthroat trout over 50 cm'"
       }
      ]
     },
@@ -7638,6 +7686,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z4:trout_char_quota",
        "note": "the stream's own quota replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
     },
@@ -10268,6 +10321,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      }
      ]
     }
    ]
@@ -10649,6 +10709,11 @@
        "target": "trout_char_quota.r3",
        "entry_id": "z4:trout_char_quota",
        "note": "the stream's own quota replaces '2 from streams'"
+      },
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
     }
@@ -10812,6 +10877,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
     },
@@ -12991,6 +13063,13 @@
       {
        "op": "whole"
       }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
+      }
      ]
     },
     {
@@ -13951,6 +14030,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "entry_id": "z4:trout_char_quota",
+       "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
     },
