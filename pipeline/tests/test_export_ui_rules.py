@@ -737,7 +737,12 @@ def test_the_species_section_is_the_book_s_list(doc):
     assert all(sp["groups"][g].get("open") for g in C.OPEN_SUBJECTS)
     used = {c for x in doc["rules"].values() for k in ("species", "species_except")
             for c in x["fields"].get(k) or []}
-    assert used <= set(sp["fish"]) | set(sp["groups"]), used - set(sp["fish"]) - set(sp["groups"])
+    # chinook is a salmon the book names, never a game fish (user ruling 2026-09-28)
+    assert "CH" not in sp["fish"] and sp["salmon"]["CH"] == {"name": "Chinook", "group": "SALMON",
+                                                             "game_fish": False}
+    assert "DFO" in sp["salmon_note"]
+    named = set(sp["fish"]) | set(sp["groups"]) | set(sp["salmon"])
+    assert used <= named, used - named
 
 
 def test_a_rule_in_an_undrawn_part_is_flagged_prominent(doc):
@@ -766,8 +771,11 @@ def test_the_gotchas_carry_the_size_clause_caution(doc):
                 for e in x["fields"].get("exempts") or [] if e.get("caution")]
     assert g["size_clause_override"]["lifts"] == len(cautions) > 0
     assert all(e["caution"]["kind"] == "size_clause_override" and
-               "the book's intent here is hard to read" in e["caution"]["says"]
+               "the row prints '(any size)'" in e["caution"]["says"]
                for _, e in cautions)
+    # only rows printing "(any size)" (user ruling 2026-09-28), and the gotcha says so
+    assert all("(any size)" in doc["rules"][i]["verbatim"] for i, _ in cautions)
+    assert "Kootenay" in g["size_clause_override"]["says"]
     assert "gotchas" in doc["guide"]["contents"]
     assert "caution" in doc["field_dictionary"]["rule.fields.exempts[]"]
 

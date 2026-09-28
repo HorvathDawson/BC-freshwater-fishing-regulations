@@ -863,18 +863,24 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
 def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
     """Jewel Lake (p.76) "Brook trout daily quota = 20" replaces Region 8's "Trout/char: 5" for
     brook trout AND its "1 over 50 cm", though it prints no "(any size)" (user ruling
-    2026-09-26, reversing R8): the 20 speaks alone. The lift of the size clause carries the
-    caution the page must show."""
+    2026-09-26, reversing R8): the 20 speaks alone. It prints no size at all, so the lift carries
+    NO caution (user ruling 2026-09-28: only "(any size)" is hard to read); Kootenay Lake's
+    "rainbow trout daily quota = 10 (any size)" does."""
     eid, Z8 = "r8:jewel_lake@8-14", "z8:trout_char_quota"
     got = _kept(_sid(db, eid, "jewel_lake.r1"), (7, 1), "EB")
     assert f"{eid}::jewel_lake.r1" in got
     assert not {f"{Z8}::trout_char_quota.r1", f"{Z8}::trout_char_quota.r2"} & got, got
     lifts = {x["rule_id"]: x for x in R._rules_of(BUNDLE)[(eid, "jewel_lake.r1")]["exempts"]}
-    assert lifts["trout_char_quota.r2"]["caution"] == {
-        "kind": "size_clause_override",
-        "says": "overrides the region's 'only 1 over 50 cm'; the book's intent here is hard to "
-                "read"}
+    assert "trout_char_quota.r2" in lifts and "caution" not in lifts["trout_char_quota.r2"]
     assert "caution" not in lifts["trout_char_quota.r1"]
+    kl = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+    kl_lifts = {x["rule_id"]: x for x in
+                R._rules_of(BUNDLE)[(kl, "kootenay_lake_main_body.r4")]["exempts"]}
+    assert kl_lifts["trout_char_quota.r2"]["caution"] == {
+        "kind": "size_clause_override",
+        "says": "overrides the region's 'only 1 over 50 cm'; the row prints '(any size)' — "
+                "whether that means no size limit at all or only no minimum size, the book does "
+                "not say"}
 
 
 def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
@@ -1212,11 +1218,12 @@ def test_two_regions_on_one_lake_the_most_strict_speaks(tmp_path):
 
 
 def test_every_lift_of_a_region_size_clause_carries_the_caution():
-    """RULING B (2026-09-26). A larger water number overrides the region's "only 1 over 50 cm" —
-    and every such lift says so in a field the page can show. The lift of the aggregate carries
-    none; neither does a lift of a clause that is not a size clause ("2 from streams").
-    MUTATION: dropping the `caution` from `rules._exempts` (or making `is_size_clause` false)
-    fails the first assert."""
+    """RULING B (2026-09-26), NARROWED 2026-09-28. A larger water number overrides the region's
+    "only 1 over 50 cm" — and where the row prints "(any size)" the lift says so in a field the
+    page can show. The lift of the aggregate carries none; neither does a lift of a clause that is
+    not a size clause ("2 from streams"), nor one by a row printing no "(any size)". MUTATION:
+    dropping the `caution` from `rules._exempts` (or making `is_size_clause` false) fails the
+    first assert."""
     import json
     from pipeline.deliver.bundle import rules as rules_mod
     agg = _crule(rule_id="q.r1", verbatim="Trout/char: 8", species=["TROUT_CHAR"], take=8)
@@ -1225,14 +1232,17 @@ def test_every_lift_of_a_region_size_clause_carries_the_caution():
     streams = _crule(rule_id="q.r3", verbatim="2 from streams", species=["TROUT_CHAR"], take=2,
                      within="q.r1", water="stream",
                      extents=[{"op": "whole", "feature_types": ["stream"]}])
-    by = _crule(rule_id="w.r1", verbatim="Brook trout daily quota = 20", species=["EB"], take=20,
+    by = _crule(rule_id="w.r1", verbatim="Brook trout daily quota = 20 (any size)",
+                species=["EB"], take=20,
                 exempts=[{"target": t, "entry_id": "z8:q"} for t in ("q.r1", "q.r2", "q.r3")])
-    got = {x["rule_id"]: x for x in json.loads(rules_mod._exempts(
-        "r8:w", by, {}, {"z8:q": {"q.r1": agg, "q.r2": size, "q.r3": streams}}))}
-    assert got["q.r2"]["caution"] == {
-        "kind": "size_clause_override",
-        "says": "overrides the region's 'only 1 over 50 cm'; the book's intent here is hard to read"}
+    tables = {"z8:q": {"q.r1": agg, "q.r2": size, "q.r3": streams}}
+    got = {x["rule_id"]: x for x in json.loads(rules_mod._exempts("r8:w", by, {}, tables))}
+    assert got["q.r2"]["caution"]["kind"] == "size_clause_override"
     assert "caution" not in got["q.r1"] and "caution" not in got["q.r3"]
+    # the same row without "(any size)" lifts the same rules, with no caution
+    plain = by.model_copy(update={"verbatim": "Brook trout daily quota = 20"})
+    got = {x["rule_id"]: x for x in json.loads(rules_mod._exempts("r8:w", plain, {}, tables))}
+    assert set(got) == {"q.r1", "q.r2", "q.r3"} and not any("caution" in x for x in got.values())
     assert rules_mod.is_size_clause("z8:q", size) and not rules_mod.is_size_clause("zp:q", size)
     # a release lifting the clause keeps none — no caution; nor the region's own table
     rel = _crule(rule_id="w.r2", verbatim="Catch and release", species=["TROUT_CHAR"], take=0,
@@ -1244,9 +1254,10 @@ def test_every_lift_of_a_region_size_clause_carries_the_caution():
 
 def test_every_restored_size_clause_lift_is_in_the_bundle_with_its_caution(db):
     """The 18 lifts R8 removed are back (Ross, Lois, Khartoum, Tranquille, the seven Region 5
-    'Trout daily quota = 8' lakes, the six Zone A brook trout lakes, Jewel), and EVERY lift of a
-    region size clause by a water row's larger number carries the caution — and nothing else
-    does (a release lifting the clause keeps none)."""
+    'Trout daily quota = 8' lakes, the six Zone A brook trout lakes, Jewel), and every lift of a
+    region size clause by a water row's larger number printed "(any size)" carries the caution —
+    and nothing else does (user ruling 2026-09-28: not a row printing its own sizes or none, not
+    a release lifting the clause)."""
     from pipeline.deliver.bundle.rules import SIZE_CLAUSE_OVERRIDE
     every = R._rules_of(BUNDLE)
     size_clauses = {k for k, x in every.items() if k[0].startswith("z") and not
@@ -1260,10 +1271,11 @@ def test_every_restored_size_clause_lift_is_in_the_bundle_with_its_caution(db):
         return k[0].startswith("r") and by.get("type") == "retention_limit" and (
             by.get("unlimited") or (by.get("take") or 0) > every[z]["take"])
     of_size = [(k, z, e) for k, z, e in lifts if z in size_clauses and larger(k, z)]
+    any_size = lambda k: "(any size)" in (every[k].get("verbatim") or "")  # noqa: E731
     assert of_size and all((e.get("caution") or {}).get("kind") == SIZE_CLAUSE_OVERRIDE
-                           for _, _, e in of_size)
-    assert not [e for k, z, e in lifts if not (z in size_clauses and larger(k, z))
-                and e.get("caution")]
+                           for k, _, e in of_size if any_size(k))
+    assert not [e for k, z, e in lifts if not (z in size_clauses and larger(k, z)
+                                               and any_size(k)) and e.get("caution")]
     lifters = {k[0] for k, _, _ in of_size}
     for eid in ("r2:ross_lake_boundary_between_ross_lake_and_skagit_river_is_mar@2-2",
                 "r2:lois_lake@2-12", "r2:khartoum_lake@2-12", "r3:tranquille_lake@3-29",

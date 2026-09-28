@@ -155,14 +155,30 @@ def overrides_size_clause(lifter_eid: str, by, lifted_eid: str, z) -> bool:
         bool(by.unlimited) or (by.take is not None and by.take > z.take))
 
 
+#: "(any size)" as a water row prints it: Kootenay Lake's "rainbow trout daily quota = 10 (any
+#: size)", the Duncan and Lardeau rivers', Quesnel Lake's "Lake trout daily quota = 5 (any size)".
+ANY_SIZE = re.compile(r"\(\s*any\s+size\s*\)", re.I)
+
+
+def prints_any_size(by) -> bool:
+    """Does the lifter's own sentence print "(any size)"? The ONE case where overriding the
+    region's size clause is hard to read (user ruling 2026-09-28): does "any size" mean no size
+    limit at all — overriding "only 1 over 50 cm" — or only no minimum?"""
+    return bool(ANY_SIZE.search(by.verbatim or ""))
+
+
 def size_clause_caution(z) -> dict:
-    """THE WARNING A LIFT OF A REGION'S SIZE CLAUSE CARRIES (user ruling 2026-09-26). A water row
-    printing a larger number for a fish than its region allows overrides the region's "only 1
-    over 50 cm" too — "(any size)" or not — but the book never says so outright, so every such
-    lift says it plainly, in a field the reader can show (`guide.gotchas`)."""
+    """THE WARNING A LIFT OF A REGION'S SIZE CLAUSE CARRIES — ONLY WHERE THE ROW PRINTS "(ANY
+    SIZE)" (user rulings 2026-09-26, 2026-09-28). A water row printing a larger number for a fish
+    than its region allows overrides the region's "only 1 over 50 cm" too, "(any size)" or not.
+    Only "(any size)" is ambiguous — no size limit at all, or just no minimum? — so only that lift
+    says so, in a field the reader can show (`guide.gotchas`). A row printing its own sizes
+    (Gwillim Lake's "none under 40 cm or over 60 cm") or none at all (Jewel Lake's "Brook trout
+    daily quota = 20") overrides the clause with no caution (`prints_any_size`)."""
     return {"kind": SIZE_CLAUSE_OVERRIDE,
             "says": f"overrides the region's 'only {z.take} over {z.lengths[0].min_cm:g} cm'; "
-                    f"the book's intent here is hard to read"}
+                    f"the row prints '(any size)' — whether that means no size limit at all or "
+                    f"only no minimum size, the book does not say"}
 
 #: `basis` on a lift the book does not print as an exemption but states by NAMING THE FISH (see
 #: `_named_lifts`). Absent = the rule's own printed `exempts`.
@@ -699,7 +715,8 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
             got.append({"entry_id": e, "rule_id": rid, **terms,
                         **({"note": x.note} if x.note else {}),
                         **({"caution": size_clause_caution(lifted)}
-                           if overrides_size_clause(entry_id, r, e, lifted) else {})})
+                           if overrides_size_clause(entry_id, r, e, lifted)
+                           and prints_any_size(r) else {})})
         # The row's water in another region: the same blanket closure there (`regions` — the
         # regions the row's own water lies in; see `_equivalent_closures`).
         have = {(e, rid) for e, rid in named} | {(y["entry_id"], y["rule_id"]) for y in out}

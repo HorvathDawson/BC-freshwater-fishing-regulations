@@ -566,6 +566,11 @@ RULE_FIELD_TEXT = {
     "undrawn_part": "the book's words for the PART of the bound water this rule holds in, which "
                     "nothing draws. The rule is placed on the whole water it is in; show it there "
                     "as a note ('in <part>') and never colour the water by it — see `binds`",
+    "life_stage": "adult: the rule holds for fish of that LIFE STAGE only, as the sentence prints "
+                  "it — 'record your retention of adult chinook salmon' (p.7). The book defines "
+                  "'adult' for chinook only (p.77: over 50 cm nose to fork in most non-tidal "
+                  "waters, over 62 cm in some rivers), so the stage is its word, never a length; "
+                  "the label's `what` says it ('Adult chinook')",
     "side": "north | south | east | west: the rule holds on that HALF OF THE CHANNEL only, "
             "lengthwise ('No Fishing on the west half of river …', Kitimat River). It is placed "
             "on the stretch its extents draw, but an angler on the other half follows the "
@@ -806,8 +811,10 @@ LIFT_TEXT = {
     "caution": "{kind, says} — an INTERPRETATION WARNING to show beside the lift. kind "
                "'size_clause_override': the lift removes a region's size clause ('only 1 over 50 "
                "cm') because the water row prints a larger number for the fish (user ruling "
-               "2026-09-26). The lift applies; `says` is the plain sentence to show with it — the "
-               "book's intent there is hard to read. See `gotchas`",
+               "2026-09-26) AND prints it '(any size)' (user ruling 2026-09-28) — whether that "
+               "means no size limit at all or only no minimum, the book does not say. The lift "
+               "applies; `says` is the plain sentence to show with it. A row printing its own "
+               "sizes, or none, lifts the clause with no caution. See `gotchas`",
 }
 
 LENGTH_TEXT = {
@@ -1091,20 +1098,39 @@ def guide(d: dict) -> dict:
                          "about another fish never takes part (per fish). The zone's own "
                          "releases, record-keeping duties and the possession multiplier stand "
                          "beside the water's release.",
-        "dated_zone_release": "A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S "
-                              "QUOTA (user ruling 2026-09-28). A zone, area or provincial rule "
-                              "that keeps none of a fish (take 0) on printed dates is stricter "
-                              "than a water's quota for that fish and is not a direct override "
-                              "of it, so on its dates it keeps speaking — beside the water's "
-                              "quota, and the release binds: Region 3's 'Lake trout from Oct "
-                              "15-Jan 31' (must release) still speaks on Shuswap Lake, whose "
-                              "row prints 'Char daily quota = 1 (none under 60 cm)'. Naming and "
-                              "place never let a water's quota displace it. It goes only by: "
-                              "(1) THE EXACT SAME STATEMENT — the water's rule is about the same "
-                              "fish, sizes, origin, water kind, means and target, ON THE SAME "
-                              "DATES; (2) a lift the water's row PRINTS ('exempt from …'); (3) "
-                              "for a closure, a derived lift by naming the fish, only where the "
-                              "closure sends the reader to the tables ('see tables for "
+        "dated_zone_release": "A DATED ZONE RULE AND A WATER'S OWN DATES (user rulings "
+                              "2026-09-28). A zone, area or provincial retention rule on "
+                              "printed dates — a release (take 0) or a quota — meets a water's "
+                              "rule for the same fish in one of two ways. "
+                              "(A) THE WATER ROW PRINTS ITS OWN DATES FOR THE FISH: the water's "
+                              "rule overrides the dated zone rule, ON THE DAYS BOTH HOLD ONLY. "
+                              "Cheslatta and Murray lakes (Region 6) print 'Lake trout catch and "
+                              "release, Sept 15-Oct 31' and 'Lake trout daily and possession "
+                              "quotas = 3' (Nov 1-Sept 14); Region 6 prints 'you must release … "
+                              "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30'. On "
+                              "Nov 1-30 the lake's quota of 3 speaks and the region's release "
+                              "does not; on Sept 15-Oct 31 the lake's own release speaks; outside "
+                              "Sept 15-Nov 30 the region's release is not in force anyway. The "
+                              "rules must be COMPATIBLE: the water's rule names the fish (or "
+                              "states the same set of fish as the zone rule), states a number "
+                              "for it (a quota or a release, not a size clause or a duty), holds "
+                              "for every fish the zone rule does (no narrower origin, water kind, "
+                              "means or target), and the zone rule is a release or quota — NEVER "
+                              "A CLOSURE: a blanket spring closure still closes the water. A "
+                              "water rule for one fish never overrides a zone rule for another "
+                              "(competition is per fish). "
+                              "(B) THE WATER ROW PRINTS NO DATES OF ITS OWN: the dated zone "
+                              "release or closure is stricter than the water's quota and no "
+                              "direct override of it, so on its dates it keeps speaking — beside "
+                              "the water's quota, and the release binds: Region 3's 'Lake trout "
+                              "from Oct 15-Jan 31' (must release) still speaks on Shuswap Lake, "
+                              "whose row prints 'Char daily quota = 1 (none under 60 cm)'. "
+                              "Naming and place never let an undated water quota displace it. It "
+                              "goes only by: (1) THE EXACT SAME STATEMENT — the water's rule is "
+                              "about the same fish, sizes, origin, water kind, means and target, "
+                              "ON THE SAME DATES; (2) a lift the water's row PRINTS ('exempt from "
+                              "…'); (3) for a closure, a derived lift by naming the fish, only "
+                              "where the closure sends the reader to the tables ('see tables for "
                               "exceptions' — Region 8's bass) (`closures`). A water's release "
                               "still silences a zone quota (`water_release`), and an undated "
                               "zone release a water row NAMES the fish over still gives way to "
@@ -1137,14 +1163,16 @@ def guide(d: dict) -> dict:
                              "SIZE CLAUSE ('only 1 over 50 cm'), whether or not the row prints "
                              "'(any size)' (user ruling 2026-09-26): Jewel Lake's 'Brook trout "
                              "daily quota = 20' lifts Region 8's 5 AND its '1 over 50 cm' for "
-                             "brook trout. The book's intent there is hard to read, so every lift "
-                             "of a region size clause carries a `caution` "
+                             "brook trout. Only where the row prints '(any size)' is that hard "
+                             "to read (user ruling 2026-09-28) — no size limit at all, or only "
+                             "no minimum? — so only such a lift carries a `caution` "
                              "(`exempts[].caution`, kind size_clause_override) the page must show "
                              "beside it (`gotchas`). 'Trout' includes char unless char are "
                              "excluded (p.86): Polley Lake's 'Trout daily quota = 8' is a "
                              "trout/char quota, the same statement as Region 5's 'Trout/char: 5', "
                              "and replaces it by case (1) — 8 trout and char together; it lifts "
-                             "the region's '1 over 50 cm' (with the caution) and the region's "
+                             "the region's '1 over 50 cm' (no caution: it prints no '(any "
+                             "size)') and the region's "
                              "other clauses ('1 Dolly Varden/bull trout', '2 lake trout') still "
                              "hold. Where the water's number is larger "
                              "only than one CLAUSE of the zone's quota, only that clause is "
@@ -1185,9 +1213,9 @@ def guide(d: dict) -> dict:
                          "Lake's rainbow 8, and Lois and Khartoum lakes' rainbow/hatchery "
                          "steelhead 6 in the aggregate. The larger number lifts the zone's size "
                          "clause ('1 over 50 cm') for that fish too — printed '(any size)' or "
-                         "not — and that lift carries `caution` (size_clause_override): show it, "
-                         "the book's intent is hard to read. Every other fish still counts "
-                         "toward the aggregate.",
+                         "not; where the row prints '(any size)' the lift carries `caution` "
+                         "(size_clause_override): show it (`gotchas.size_clause_override`). "
+                         "Every other fish still counts toward the aggregate.",
         "steelhead_definition": "WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book defines "
                                 "(p.86): 'steelhead: a rainbow trout longer than 50 cm in waters "
                                 "where anadromous rainbow trout are found.' It lists no such "
@@ -1744,10 +1772,17 @@ def guide(d: dict) -> dict:
         "size_clause_override": {
             "says": "A water row printing a LARGER number for a fish than its region allows "
                     "overrides the region's size clause ('only 1 over 50 cm') for that fish — "
-                    "'(any size)' printed or not (user ruling 2026-09-26). The book's intent "
-                    "there is hard to read, so the lift carries a warning: show "
-                    "`exempts[].caution.says` beside the lifter wherever the lift is shown, "
-                    "and never drop it because the lift itself applied.",
+                    "'(any size)' printed or not (user ruling 2026-09-26). ONLY WHERE THE ROW "
+                    "PRINTS '(ANY SIZE)' is that confusing (user ruling 2026-09-28): Kootenay "
+                    "Lake's 'rainbow trout daily quota = 10 (any size)' — does 'any size' mean "
+                    "no size limit at all, overriding Region 4's 'only 1 rainbow trout or "
+                    "cutthroat trout over 50 cm', or only no minimum size? (Duncan and Lardeau "
+                    "rivers, Quesnel Lake likewise.) Only those lifts carry a warning: show "
+                    "`exempts[].caution.says` beside the lifter wherever the lift is shown, and "
+                    "never drop it because the lift itself applied. A row printing its own "
+                    "sizes (Gwillim Lake's 'none under 40 cm or over 60 cm', Kitimat's hatchery "
+                    "steelhead '>50 cm') or no size at all (Jewel Lake's 'Brook trout daily "
+                    "quota = 20') overrides the clause with no warning.",
             "key_on": "rules[*].fields.exempts[*].caution.kind == 'size_clause_override'",
             "lifts": len(cautions),
             "lifters": sorted({i for i, _ in cautions}),
@@ -1794,7 +1829,12 @@ def guide(d: dict) -> dict:
                     "water kind and the same dates), a lift the row prints, or a derived lift of "
                     "a closure that sends the reader to the tables ('see tables for exceptions', "
                     "Region 8's bass) takes the zone rule away. Never hide a dated zone release "
-                    "because the water has its own number.",
+                    "because the water has its own number. BUT a water row printing ITS OWN "
+                    "DATES for the fish overrides the dated zone rule on the days both hold "
+                    "(user ruling 2026-09-28): Cheslatta Lake's 'Lake trout … quotas = 3' "
+                    "(Nov 1-Sept 14) replaces Region 6's 'Lake trout from Fraser and Skeena "
+                    "Watersheds, Sept 15-Nov 30' release on Nov 1-30 (`ladder.dated_zone_release` "
+                    "(A)); a zone closure is never overridden this way.",
             "key_on": "an answer holding a zone rule with take 0 and `when.dates` beside a water "
                       "quota for the same fish (`ladder.dated_zone_release`)",
         },
@@ -2071,8 +2111,9 @@ CASE_MECHANISMS = {
                            "others of the same fish (hatchery kept, wild released)",
     "undrawn_closure": "a closure in a part nobody has drawn, held on the whole water as a note "
                        "(`not_yet_mapped`): it silences nothing",
-    "size_clause_caution": "a larger water number lifts the zone's size clause ('1 over 50 cm') "
-                           "too, and the lift carries `caution` (size_clause_override)",
+    "size_clause_caution": "a larger water number printed '(any size)' lifts the zone's size "
+                           "clause ('1 over 50 cm') too, and only such a lift carries `caution` "
+                           "(size_clause_override)",
     "kootenay_rainbow_10": "Kootenay Lake (main body): rainbow 10 (any size) replaces Region 4's "
                            "trout/char 5 and its size clause for rainbow",
     "dean_beside": "the Dean River: its 'Trout/char daily quota = 1 (none under 35 cm)' sits "
@@ -2087,6 +2128,10 @@ CASE_MECHANISMS = {
     "dated_zone_release_stands": "Shuswap Lake on Nov 1: Region 3's dated lake trout release "
                                  "speaks beside the lake's 'Char daily quota = 1' "
                                  "(`ladder.dated_zone_release`)",
+    "water_dates_override": "Cheslatta Lake on Nov 15: the lake's own-dated 'Lake trout … "
+                            "quotas = 3' (Nov 1-Sept 14) replaces Region 6's 'Lake trout … "
+                            "Sept 15-Nov 30' release on the days both hold "
+                            "(`ladder.dated_zone_release` (A))",
     "one_side_beside": "Kitimat River at the hatchery outfall: the west-half closure is shown "
                        "BESIDE the river's other rules, which the east half answers to "
                        "(`fields.side`)",
@@ -2154,6 +2199,9 @@ WHAT_TO_SHOW = {
                                  "region's char release. Show the trout note beside it.",
     "dated_zone_release_stands": "On this date show the region's release of {fish} BESIDE "
                                  "{water}'s own quota: the release binds, none may be kept.",
+    "water_dates_override": "On this date show {water}'s own quota for {fish} alone: its dates "
+                            "overlap the region's dated release, and the water's row wins "
+                            "on the overlap. On the water's own release dates show its release.",
     "one_side_beside": "Show the closure on {water} with its side ('west half of the channel "
                        "only'), prominently, BESIDE the rules the other half follows — never as "
                        "the whole river closed.",
@@ -2199,8 +2247,8 @@ WHAT_TO_SHOW = {
     "undrawn_closure": "Show the closure at the top of {water} as a place NOT YET MAPPED; the "
                        "rest of the water is open under the rules that speak.",
     "size_clause_caution": "Show {water}'s number for {fish} with the caution beside it: it "
-                           "overrides the region's 'only 1 over 50 cm', and the book's intent "
-                           "is hard to read.",
+                           "overrides the region's 'only 1 over 50 cm', and whether '(any size)' "
+                           "means no size limit or only no minimum, the book does not say.",
     "kootenay_rainbow_10": "A rainbow on the main body answers to the lake's 10 (any size) "
                            "alone; show the region's 5 for every other trout and char.",
     "dean_beside": "Show the Dean's 1 a day (none under 35 cm) beside Region 5's trout/char "
@@ -3000,9 +3048,9 @@ def cases(d: dict, bundle: Path) -> dict:
     # size_clause_caution: a lift of a region size clause, carrying its caution
     add("size_clause_caution", lift_cases(
         "size_clause_caution",
-        # a row printing no "(any size)" — the case the book leaves hardest to read (Jewel Lake)
+        # only a row printing "(any size)" carries the caution (user ruling 2026-09-28)
         lambda w, x, z: water(w) and bool(x.get("caution")) and not x.get("origin")
-        and "any size" not in R[w]["verbatim"],
+        and "any size" in R[w]["verbatim"],
         lifted_fish,
         lambda w, x, z: lambda a: rid(w) in _speaking(a) and rid(z) not in _ids(a)))
 
@@ -3044,6 +3092,12 @@ def cases(d: dict, bundle: Path) -> dict:
         and "z3:trout_char_quota::trout_char_quota.r7" in _speaking(a),
         lambda x: _keeps(x) and "CHAR" in (x.get("species") or []) and x.get("take") == 1,
         on=(11, 1)))
+    add("water_dates_override", named(
+        "water_dates_override", "r6:cheslatta_lake", "LT",
+        lambda w, zs: lambda a: rid(w) in _speaking(a)
+        and "z6:trout_char_quota::trout_char_quota.r8" not in _speaking(a),
+        lambda x: _keeps(x) and x.get("species") == ["LT"] and x.get("take") == 3
+        and not x.get("within"), on=(11, 15)))
     add("one_side_beside", named(
         "one_side_beside", "r6:kitimat_river_angling", "RB",
         lambda w, zs: lambda a: any(i["id"] == rid(w) and i["state"] == "beside" for i in a)
@@ -3181,6 +3235,15 @@ def species_table() -> dict:
                                    "with species_except CHAR (user ruling 2026-09-28)",
             "trout_note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook "
                           "trout) unless the regulation lists char separately.",
+            # A SALMON THE BOOK NAMES — not a game fish, not in `fish` (user ruling 2026-09-28)
+            "salmon": {c: {"name": _name(c), "group": g, "game_fish": False}
+                       for c, g in sorted(C.SALMON_FISH.items())},
+            "salmon_note": "Chinook is a named fish in the SALMON group — not a game fish and "
+                           "not on the book's game-fish list (p.86); SALMON stays an open group "
+                           "(it speaks for every salmon, named or not). The synopsis says little "
+                           "about salmon ('record your retention of adult chinook salmon', the "
+                           "salmon stamp, 'no spear fishing of Pacific salmon'): salmon "
+                           "regulations will come later, with the DFO salmon implementation.",
             "refused": dict(sorted(C.REFUSED_SPECIES.items()))}
 
 

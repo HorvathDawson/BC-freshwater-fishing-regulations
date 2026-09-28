@@ -170,9 +170,10 @@ it is refused.
 * Groups: `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH` (the whole list). Words the
   book uses for fish that are NOT on the list, with no codes under them: `ALL_FIN_FISH` (*"any
   fish"*, *"fin fish"* — never crayfish), `PROTECTED_SPECIES` (the protected list; Region 2 adds
-  green sturgeon), `SALMON` (Pacific salmon; kokanee is `KO`). Chinook, coho, sculpins,
-  sticklebacks, splake, golden trout, arctic char and the like have NO code: name the group the
-  sentence belongs to and keep the fish's name in the verbatim.
+  green sturgeon), `SALMON` (Pacific salmon; kokanee is `KO`). CHINOOK is the one salmon the book
+  names: `CH` — a member of the SALMON group, never a game fish (not in `ALL_GAME_FISH`). Coho,
+  sculpins, sticklebacks, splake, golden trout, arctic char and the like have NO code: name the
+  group the sentence belongs to and keep the fish's name in the verbatim.
 
 ---
 
@@ -217,6 +218,10 @@ side           north | south | east | west — the rule holds on that HALF OF A 
                only ("No Fishing on the west half of river between fishing boundary signs …":
                side west, extents = the stretch, extent_text = the stretch's words WITHOUT the
                half). Required whenever the sentence prints "<side> half of the river".
+life_stage     adult — a life stage the book defines, as the sentence prints it: "record your
+               retention of ADULT chinook salmon" is species [CH], life_stage adult (p.77 defines
+               adult chinook by a length that differs by water — never write it as `lengths`).
+               Required whenever the sentence prints "adult chinook".
 exempts        what this rule LIFTS
 suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. (A licensing
                designation says the same thing its own way — see "Licensing" below.)

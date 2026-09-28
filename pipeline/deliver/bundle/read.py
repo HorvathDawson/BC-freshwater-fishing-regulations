@@ -246,9 +246,10 @@ def speaks_for(rule: dict, fish: str) -> bool:
     """Whether a rule says anything about ONE fish (a leaf code of the book's list, "DV"). A rule
     that names no species binds whatever you catch; `ALL_FIN_FISH` is every fish but crayfish;
     the other open subjects (`PROTECTED_SPECIES`, `SALMON`) hold no game fish and so speak for
-    none; otherwise the fish must be in the expansion of `species` and not of `species_except`. A
+    none — but `SALMON` speaks for a salmon the book names (`catalogue.SALMON_FISH`: chinook);
+    otherwise the fish must be in the expansion of `species` and not of `species_except`. A
     bait or tackle rule for a TARGET speaks only when the fish asked about is that target."""
-    from pipeline.regs.parsing.catalogue import expand_species
+    from pipeline.regs.parsing.catalogue import SALMON_FISH, expand_species
     tgt = rule.get("when_targeting") or []
     if tgt and fish not in expand_species(list(tgt)):
         return False
@@ -261,6 +262,8 @@ def speaks_for(rule: dict, fish: str) -> bool:
         # "Fin fish" is not crayfish: "release all fin fish caught in your trap" keeps the
         # crayfish, and `rules._lift_terms` leaves a crayfish quota standing under "all fish".
         return fish != "CRA"
+    if fish in SALMON_FISH and SALMON_FISH[fish] in sp:
+        return True
     return fish in expand_species(sp)
 
 
@@ -439,10 +442,16 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
              the zone's quota for that fish (`exempts`, step 3): Kootenay Lake's "rainbow trout
              daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5" and its "1 rainbow or
              cutthroat over 50 cm" for rainbow, so the 10 speaks alone.
-         A DATED ZONE RELEASE OR CLOSURE is never displaced by a water's quota (user ruling
-           2026-09-28) unless the water's rule is the exact same statement on the same dates:
-           Shuswap Lake's "Char daily quota = 1" leaves Region 3's "Lake trout from Oct 15-Jan
-           31" release speaking beside it on those dates. Only a lift removes it otherwise.
+         A DATED ZONE RELEASE OR CLOSURE is never displaced by a water's quota WITH NO DATES OF
+           ITS OWN (user ruling 2026-09-28) unless the water's rule is the exact same statement on
+           the same dates: Shuswap Lake's "Char daily quota = 1" leaves Region 3's "Lake trout
+           from Oct 15-Jan 31" release speaking beside it on those dates. Only a lift removes it
+           otherwise.
+         A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone release or quota
+           for that fish on the days both hold (user ruling 2026-09-28, second): Cheslatta
+           Lake's "Lake trout … quotas = 3" (Nov 1-Sept 14) replaces Region 6's "Lake trout from
+           Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30. Only for the same
+           fish or subject, a quota or release against a release or quota — never a closure.
          A CLOSURE ("No fishing": take 0, may not fish for it) is never displaced — "this water
          overrides regional always, except closures unless they are lifted in this water's regs".
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
@@ -566,7 +575,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         if competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
 
-    from pipeline.deliver.bundle.rules import (release_origins, same_statement,
+    from pipeline.deliver.bundle.rules import (release_origins, same_statement, statement,
                                                yields_to_release)
 
     def place(k) -> int:
@@ -591,6 +600,48 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         return same_statement(every[o], every[k]) and \
             (every[o].get("when") or {}).get("dates") == every[k]["when"]["dates"]
 
+    def dated_zone_retention(k) -> bool:
+        """A zone, area or provincial retention rule on printed dates that states a NUMBER for
+        the fish — a release (take 0) or a quota — and is no closure: Region 6's "Lake trout from
+        Fraser and Skeena Watersheds, Sept 15-Nov 30" (must release)."""
+        x = every[k]
+        return place(k) >= 2 and x.get("type") == "retention_limit" and not closure(k) \
+            and (x.get("take") is not None or bool(x.get("unlimited"))) \
+            and not x.get("record_retention") and bool((x.get("when") or {}).get("dates"))
+
+    def water_dates_override(o, k) -> bool:
+        """A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone rule for that
+        fish, on the days both hold (user ruling 2026-09-28). Cheslatta and Murray lakes print
+        "Lake trout catch and release, Sept 15-Oct 31" and "quotas = 3" (Nov 1-Sept 14); Region
+        6 prints "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" (release). On Nov
+        1-30 both are in force and the lake's 3 replaces the region's release; on Sept 15-Oct 31
+        the lake's own release speaks. The overlap needs no arithmetic: both rules are in force on
+        the day asked, or this is never asked.
+
+        Only COMPATIBLE rules: `o` is written for this water (or reaches it by the walk) and
+        states a number for the fish (a quota or a release — not a size clause, a duty, a lift)
+        on dates of its OWN; `k` is a dated zone retention rule stating a number
+        (`dated_zone_retention` — never a CLOSURE: a blanket spring closure still closes); and
+        both are about THE SAME FISH OR SUBJECT — the water row names this fish, or the two
+        state the same set of fish (`rules.statement`). The water rule must hold for every fish
+        the zone rule does: no narrower origin, water kind, means or target. A water row with no
+        dates of its own leaves the dated zone release speaking (Shuswap, `beats`)."""
+        x, z = every[o], every[k]
+        if not (0 <= place(o) <= 1 and x.get("type") == "retention_limit"
+                and (x.get("take") is not None or x.get("unlimited"))
+                and not x.get("within") and not x.get("record_retention")
+                and bool((x.get("when") or {}).get("dates")) and dated_zone_retention(k)):
+            return False
+        if not (names_fish(x, fish) or statement(x)[0] == statement(z)[0]):
+            return False
+        for c in ("origin", "water"):
+            if x.get(c) and x.get(c) != z.get(c):
+                return False
+        for c in ("while", "when_targeting"):
+            if x.get(c) and set(x[c]) != set(z.get(c) or []):
+                return False
+        return True
+
     def beats(o, k) -> bool:
         """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
 
@@ -612,7 +663,13 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         place it silenced Region 3's "Lake trout from Oct 15-Jan 31" release — the stricter rule,
         and no override of it. A lift the row prints, or a derived lift of a closure that sends
         the reader to the tables, still removes it (step 3).
+        A WATER ROW WITH DATES OF ITS OWN FOR THE FISH overrides a dated zone release or quota
+        for it on the days both hold (user ruling 2026-09-28, `water_dates_override`): Cheslatta
+        Lake's "Lake trout daily and possession quotas = 3" (Nov 1-Sept 14) replaces Region 6's
+        "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30.
         Everything else: the better rung (`order`) displaces."""
+        if water_dates_override(o, k):
+            return True
         if water_and_zone(o, k):
             return place(o) <= 1 and same_statement(every[o], every[k])
         if 0 <= place(o) <= 1 and yields_to_release(every[o]) and dated_zone_release(k):

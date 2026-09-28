@@ -81,7 +81,7 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
       </F>
 
       <Group title="who / what" path={path} open
-        keys={["species", "species_except", "when_targeting", "closed_to", "closed_to_except", "water", "origin"]}>
+        keys={["species", "species_except", "when_targeting", "closed_to", "closed_to_except", "water", "origin", "life_stage"]}>
         <F path={`${path}.species`} deep>
           <SpeciesPicker values={r.species} options={v.species} label="species"
             onChange={(x) => set({ species: x })} />
@@ -124,6 +124,9 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
             onChange={(x) => set({ water: x })} /></F>
           <F path={`${path}.origin`}><Pick value={r.origin} options={v.origins} label="origin"
             onChange={(x) => set({ origin: x })} /></F>
+          <F path={`${path}.life_stage`} hint="a life stage the book defines, as the sentence prints it ('adult chinook', p.77)">
+            <Pick value={r.life_stage} options={v.life_stages} label="life_stage" none="every stage"
+              onChange={(x) => set({ life_stage: x })} /></F>
         </div>
       </Group>
 

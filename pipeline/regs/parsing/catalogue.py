@@ -142,6 +142,20 @@ class ChannelSide(str, Enum):
                 ChannelSide.east: ChannelSide.west, ChannelSide.west: ChannelSide.east}[self]
 
 
+class LifeStage(str, Enum):
+    """A LIFE STAGE THE BOOK DEFINES (`CatalogueRule.life_stage`). One: an ADULT chinook (p.77,
+    "Definition of Adult Chinook in Non-Tidal Waters": over 50 cm nose to fork in most non-tidal
+    waters, over 62 cm in some rivers). The length is the definition's, and it differs by water,
+    so the stage is held as the book's word — never as `lengths`."""
+    adult = "adult"
+
+
+#: The fish a life stage is defined for (p.77 defines "adult" for chinook only).
+LIFE_STAGE_FISH = {LifeStage.adult: "CH"}
+#: "adult chinook" as a sentence prints it.
+_ADULT_CHINOOK = re.compile(r"\badult\s+chinook\b", re.I)
+
+
 #: "on the west half of river" — a rule printed for one half of a channel (`CatalogueRule.side`).
 #: A lake's half ("south half only", Premier Lake) is a part of the lake, `undrawn_part`.
 HALF_OF_CHANNEL = re.compile(r"\b(north|south|east|west)\s+half\s+of\s+(?:the\s+)?"
@@ -388,9 +402,19 @@ OPEN_SUBJECTS: tuple[str, ...] = ("ALL_FIN_FISH", "PROTECTED_SPECIES", "SALMON")
 for _s in OPEN_SUBJECTS:
     SPECIES_GROUPS[_s] = ()
 
-#: Every code a synopsis rule may name: the book's fish, its groups, and the open subjects. A rule
-#: naming anything else is refused at validation rather than printing a raw code.
-KNOWN_SPECIES = frozenset(set(BOOK_SPECIES) | set(SPECIES_GROUPS))
+#: A FISH THE BOOK NAMES INSIDE THE SALMON GROUP, NOT A GAME FISH (user ruling 2026-09-28).
+#: "You must immediately record your retention of adult chinook salmon on your basic angling
+#: licence" (p.7) names CHINOOK. Chinook is not on p.86's game-fish list and is in no game-fish
+#: group (not `ALL_GAME_FISH`); it is a member of the SALMON group, and SALMON stays an OPEN
+#: group — "no spear fishing of Pacific salmon" is every salmon, not the chinook alone, so the
+#: group is never expanded to this list. Salmon regulations proper come later, with the DFO salmon
+#: implementation (`pipeline.regs.dfo_salmon`, `FEDERAL_SALMON`).
+SALMON_FISH: dict[str, str] = {"CH": "SALMON"}
+
+#: Every code a synopsis rule may name: the book's fish, the salmon it names, its groups, and the
+#: open subjects. A rule naming anything else is refused at validation rather than printing a
+#: raw code.
+KNOWN_SPECIES = frozenset(set(BOOK_SPECIES) | set(SALMON_FISH) | set(SPECIES_GROUPS))
 
 #: CODES THAT ARE REFUSED, each with what to write instead. The two the corpus used carry the
 #: book's reason; every other unknown code is "not on the book's list (p.86)".
@@ -407,7 +431,8 @@ REFUSED_SPECIES: dict[str, str] = {
 #: FEDERAL SALMON — NOT A SYNOPSIS VOCABULARY. The DFO salmon feed (`pipeline.regs.dfo_salmon`)
 #: types its own pages into `CatalogueRule`s naming chinook, coho, sockeye, pink and chum (`SA`:
 #: all salmon on a DFO page). A bare rule accepts them so that feed can be typed; a synopsis ENTRY
-#: refuses them (`CatalogueEntry` — the book's list is p.86's, and a salmon rule in it is `SALMON`).
+#: refuses them (`CatalogueEntry` — the book's list is p.86's, and a salmon rule in it is `SALMON`)
+#: — except chinook, which the book names (`SALMON_FISH`).
 FEDERAL_SALMON = frozenset({"CH", "CO", "SK", "PK", "CM", "SA"})
 
 
@@ -2654,6 +2679,13 @@ class CatalogueRule(BaseModel):
     #: (`_check`).
     side: Optional[ChannelSide] = None
 
+    #: A LIFE STAGE THE BOOK DEFINES, as the sentence prints it: "record your retention of ADULT
+    #: chinook salmon" (p.7; "adult" defined on p.77 by a length that differs by water). The rule
+    #: holds for fish of that stage only, and its line says so ("Adult chinook"). Only for the fish
+    #: the stage is defined for (`LIFE_STAGE_FISH`), and a sentence printing "adult chinook" must
+    #: set it (`_check`).
+    life_stage: Optional[LifeStage] = None
+
     # ------------------------------------------------------------------ #
     @property
     def clock(self) -> Period:
@@ -2948,6 +2980,27 @@ class CatalogueRule(BaseModel):
             if HALF_OF_CHANNEL.search(self.extent_text or ""):
                 e.append("extent_text repeats the half of the channel `side` says — keep only the "
                          "stretch in extent_text")
+        # A LIFE STAGE (`life_stage`): what the sentence prints, both ways, and only for the fish
+        # the book defines it for — "adult chinook" read as every chinook is a different rule.
+        adult = bool(_ADULT_CHINOOK.search(self.verbatim or ""))
+        if adult and self.life_stage is not LifeStage.adult:
+            e.append("the sentence says 'adult chinook' — set life_stage: adult (the rule holds "
+                     "for adult chinook only, p.77)")
+        if self.life_stage is not None:
+            fish = LIFE_STAGE_FISH[self.life_stage]
+            if list(self.species) != [fish]:
+                e.append(f"life_stage {self.life_stage.value} is defined for {fish} only (p.77) — "
+                         f"species must be [{fish}], not {list(self.species)}")
+            if self.life_stage is LifeStage.adult and not adult:
+                e.append("life_stage adult — the sentence prints no 'adult chinook'")
+        # CHINOOK IS NOT A GAME FISH (p.86; user ruling 2026-09-28): it is a salmon
+        # (`SALMON_FISH`). Excepted from a set that holds no salmon, it subtracts nothing — "all
+        # game fish other than chinook" reads as if chinook were one.
+        salmon_sets = {"SALMON", "ALL_FIN_FISH"} | set(SALMON_FISH)
+        idle = [c for c in self.species_except if c in SALMON_FISH]
+        if idle and not (set(self.species) & salmon_sets):
+            e.append(f"species_except {idle}: chinook is a salmon, not a game fish (p.86) — "
+                     f"{list(self.species)} never held it, so the exception subtracts nothing")
         # A PLACE IS NOT A LIST ITEM. The book numbers its lists; a place phrase that starts with
         # a marker was cut out of one, and every label built from it would print the marker.
         for f in ("extent_text", "undrawn_part"):
@@ -3024,6 +3077,8 @@ _SPECIES_WORDS = {
     "CHAR": "Char", "WHITEFISH": "Whitefish", "BASS": "Bass",
     # the subjects that are not game fish (`OPEN_SUBJECTS`)
     "ALL_FIN_FISH": "All fish", "PROTECTED_SPECIES": "Protected species", "SALMON": "Salmon",
+    # a salmon the book names (`SALMON_FISH`) — not a game fish
+    "CH": "Chinook",
     # trout (p.86). GB is Brown Trout (Salmo trutta) in the official table.
     "RB": "Rainbow trout", "ST": "Steelhead", "CT": "Cutthroat trout", "GB": "Brown trout",
     # char. ONE fish for Dolly Varden and bull trout: "Any bull trout that you catch and keep must
@@ -3077,7 +3132,9 @@ def species_menu() -> str:
              "ALL_FIN_FISH": ("\"any fish\" / \"fin fish\" — game fish, salmon AND non-game; never "
                               "crayfish"),
              "PROTECTED_SPECIES": "the protected list (p.9; Region 2 adds green sturgeon)",
-             "SALMON": "Pacific salmon — federal, not part of ALL_GAME_FISH (kokanee is `KO`)"}
+             "SALMON": ("Pacific salmon — federal, not part of ALL_GAME_FISH (kokanee is `KO`); "
+                        "the one salmon the book names, chinook, is `CH` — a salmon, never a "
+                        "game fish")}
     for code in ("ALL_GAME_FISH", "TROUT_CHAR", "CHAR", "WHITEFISH", "BASS") + OPEN_SUBJECTS:
         members = SPECIES_GROUPS[code]
         g = gloss.get(code, "")
@@ -3521,6 +3578,9 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     duty: list = []
     t = r.type
     sp = species_words(r.species, r.species_except)
+    if r.life_stage is not None and sp:
+        # "adult chinook", as the sentence prints it (`life_stage`)
+        sp = f"{r.life_stage.value.capitalize()} {sp.lower()}"
     # A DUTY ON A RULE THAT IS NOT ABOUT GEAR QUALIFIES IT; it does not replace it. Rendered alone,
     # the rule's own half of the sentence reads as unconditional.
     gear_type = t in (RuleType.tackle_restriction, RuleType.bait_restriction,

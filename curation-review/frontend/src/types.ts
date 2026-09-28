@@ -181,6 +181,8 @@ export interface Rule {
   undrawn_part?: string;
   /** holds on this half of the river's channel only (north | south | east | west) */
   side?: string | null;
+  /** a life stage the book defines ("adult" chinook, p.77) — the rule holds for that stage only */
+  life_stage?: string | null;
   unresolved_locators?: string[];
   review_reason?: string;
 }
@@ -322,6 +324,7 @@ export interface Vocab {
   periods: string[];
   water_kinds: string[];
   channel_sides: string[];
+  life_stages: string[];
   origins: string[];
   obligations: string[];
   vessel_aspects: string[];

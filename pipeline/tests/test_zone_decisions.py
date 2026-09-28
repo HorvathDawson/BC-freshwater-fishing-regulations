@@ -304,8 +304,8 @@ def test_an_exception_must_meet_the_closure():
 
 
 def test_the_four_record_duties_sit_beside_their_stamps(corpus):
-    # chinook is not on the book's list (p.86): the duty names SALMON, its verbatim the chinook
-    want = {("zp:salmon_stamp", "salmon_stamp.r1"): (["SALMON"], None),
+    # chinook is a named fish of the SALMON group, not a game fish (user ruling 2026-09-28)
+    want = {("zp:salmon_stamp", "salmon_stamp.r1"): (["CH"], None),
             ("zp:kootenay_rainbow_stamp", "kootenay_rainbow_stamp.r1"): (["RB"], 50),
             ("zp:shuswap_char_stamp", "shuswap_char_stamp.r1"): (["LT", "DV"], 60),
             ("zp:shuswap_rainbow_stamp", "shuswap_rainbow_stamp.r1"): (["RB"], 50)}

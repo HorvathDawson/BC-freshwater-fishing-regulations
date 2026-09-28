@@ -1202,7 +1202,7 @@
      "type": "retention_limit",
      "verbatim": "You must immediately record your retention of adult chinook salmon on your basic angling licence.",
      "species": [
-      "SALMON"
+      "CH"
      ],
      "record_retention": true,
      "extents": [
@@ -1211,7 +1211,8 @@
        "area_kind": "region"
       }
      ],
-     "review_reason": "'adult' is defined on page 77 as over 50 cm in most non-tidal waters; the size is not in this sentence, so the rule names chinook without a length. SPECIES (2026-09-26): chinook is not on the book's species list (p.86), so the rule names SALMON; the verbatim says it is adult chinook only."
+     "review_reason": "'adult' is defined on page 77 by a length that differs by water (over 50 cm in most non-tidal waters, over 62 cm in some rivers), so the stage is `life_stage: adult`, never `lengths`. SPECIES (2026-09-28): chinook is a named fish in the SALMON group, not a game fish (`catalogue.SALMON_FISH`).",
+     "life_stage": "adult"
     }
    ],
    "licensing": [

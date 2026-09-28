@@ -287,12 +287,13 @@ def test_the_species_are_the_book_s_list_and_nothing_else():
             "LMB", "SMB",                                 # BASS
             "KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA"]   # OTHER
     assert list(C.BOOK_SPECIES) == book
-    assert set(C.KNOWN_SPECIES) - set(C.SPECIES_GROUPS) == set(book)
+    # and the one salmon the book names, which is no game fish (user ruling 2026-09-28)
+    assert set(C.KNOWN_SPECIES) - set(C.SPECIES_GROUPS) == set(book) | {"CH"}
     assert set(C.SPECIES_GROUPS) == {"TROUT_CHAR", "CHAR", "WHITEFISH", "BASS", "ALL_GAME_FISH",
                                      "ALL_FIN_FISH", "PROTECTED_SPECIES", "SALMON"}
     assert list(C.SPECIES_GROUPS["ALL_GAME_FISH"]) == book
     for gone in ("BT", "TROUT", "WCT", "CCT", "GT", "AC", "SPK", "PW", "RW", "BG", "PMB", "CP",
-                 "NON_GAME_FISH", "SA", "CH", "NDC", "GSG", "SLV", "WF", "BS", "SG", "P"):
+                 "NON_GAME_FISH", "SA", "CO", "NDC", "GSG", "SLV", "WF", "BS", "SG", "P"):
         assert gone not in C.KNOWN_SPECIES, gone
 
 
@@ -309,9 +310,10 @@ def test_a_bad_species_or_group_is_refused_with_what_to_write():
     with pytest.raises(ValueError, match="write DV"):
         _r(type=RuleType.tackle_restriction,
            gear=[{"slot": "hook_points", "only": ["single"], "when": {"targeting": ["BT"]}}])
-    # the federal salmon the DFO feed types are a bare rule's, never a synopsis row's
-    ok = _r(type=RuleType.retention_limit, species=["CH"], take=1)
-    with pytest.raises(ValueError, match="'CH' — not on the book's species list"):
+    # the federal salmon the DFO feed types are a bare rule's, never a synopsis row's — but for
+    # chinook, which the book names (`SALMON_FISH`, user ruling 2026-09-28)
+    ok = _r(type=RuleType.retention_limit, species=["CO"], take=1)
+    with pytest.raises(ValueError, match="'CO' — not on the book's species list"):
         CatalogueEntry(entry_id="r9:x", name="X", regs_verbatim=ok.verbatim, rules=[ok])
 
 
