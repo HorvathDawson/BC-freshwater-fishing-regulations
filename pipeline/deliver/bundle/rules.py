@@ -230,10 +230,20 @@ def statement(x: dict) -> tuple:
 
     Two quotas with the same statement say the same thing with different numbers — Kokanee: 10 at
     a lake beside the region's Kokanee: 5 — and only then does the water's number replace the
-    zone's (`same_statement`)."""
+    zone's (`same_statement`).
+
+    THE PRINTED WORD "TROUT" IS ONE STATEMENT, whether or not its row's mention of char takes the
+    char out of it (`catalogue.trout_scope_problems`, user ruling 2026-09-28): Amor Lake's "Trout
+    daily quota = 2" (its row names no char: trout and char) and Region 1's "Trout: 4" (its box
+    releases "All char": trout only) both say "trout", so for a trout the lake's 2 replaces the
+    4 — and Region 1's char release still binds the char. So a `CHAR` exception on `TROUT_CHAR` is
+    the word's scope, not part of what the statement is about."""
     bands = tuple((b.get("min_cm"), b.get("max_cm"), b.get("take") == 0)
                   for b in (x.get("lengths") or []))
-    return (_leaves(x.get("species")) - _leaves(x.get("species_except")),
+    sp = list(x.get("species") or [])
+    out = [c for c in (x.get("species_except") or [])
+           if not (c == "CHAR" and "TROUT_CHAR" in sp)]
+    return (_leaves(sp) - _leaves(out),
             bands, x.get("origin"), x.get("water"),
             tuple(sorted(x.get("while") or [])), tuple(sorted(x.get("when_targeting") or [])),
             x.get("period") or "daily", bool(x.get("record_retention")))
@@ -394,6 +404,19 @@ def _is_species_closure(r) -> bool:
 
 #: "(No exceptions)" — Region 4's "White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions)".
 _NO_EXCEPTIONS = re.compile(r"\bno exceptions?\b", re.I)
+#: "(see tables for exceptions)" — Region 8's "Region 8 Daily Quotas (See tables for exceptions)"
+#: box, where "Bass: 0 quota, CLOSED TO FISHING" is printed (p.68).
+_SEE_TABLES = re.compile(r"\bsee\s+(?:the\s+)?tables?\s+for\s+(?:\w+\s+)*?exceptions\b",
+                         re.I)
+
+
+def sends_to_tables(ce, r) -> bool:
+    """Does the closure, or the table it is printed in, SEND THE READER TO THE TABLES for its
+    exceptions — "(see tables for exceptions)"? Only such a closure takes a derived lift by
+    naming the fish (user ruling 2026-09-28): the water row naming the fish is then one of the
+    exceptions the closure points to. Read off the rule's words, or its entry's (the box
+    heading is quoted in the zone entry's `regs_verbatim`)."""
+    return bool(_SEE_TABLES.search(r.verbatim or "") or _SEE_TABLES.search(ce.regs_verbatim or ""))
 
 
 def prints_its_exemptions(ce, r) -> bool:
@@ -418,14 +441,17 @@ def zone_closures(docs) -> dict[str, list[tuple[str, object]]]:
     `_named_lifts`. A closure that prints its own exemptions (`prints_its_exemptions`) is not one:
     Kitimat River's "Hatchery steelhead daily quota = 2" lifted Region 6's steelhead stream closure
     on 4,733 sections — wild steelhead and every tributary included — though the closure's own
-    exemption list does not name the Kitimat (user ruling 2026-09-25)."""
+    exemption list does not name the Kitimat (user ruling 2026-09-25). And only a closure that
+    SENDS THE READER TO THE TABLES for its exceptions (`sends_to_tables`) is one (user ruling
+    2026-09-28): any other closure is lifted only by an exemption the row prints."""
     out: dict[str, list] = {}
     for ce in docs:
         eid = ce.entry_id
         if not eid.startswith("z") or eid.startswith("zp:"):
             continue
         for r in ce.rules:
-            if _is_species_closure(r) and not prints_its_exemptions(ce, r):
+            if _is_species_closure(r) and not prints_its_exemptions(ce, r) \
+                    and sends_to_tables(ce, r):
                 out.setdefault(_zone_region(eid), []).append((eid, r))
     return out
 

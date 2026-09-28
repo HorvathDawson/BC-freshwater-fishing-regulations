@@ -303,8 +303,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints char its own limit ('no more than 1 char (none under 60 cm)'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every char the row lets you keep."
+     ]
     },
     {
      "rule_id": "alta_lake.r4",
@@ -1603,7 +1602,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1618,8 +1617,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "chehalis_lake.r2",
@@ -1781,7 +1779,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -1796,8 +1794,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "chilliwack_lake.r2",
@@ -2777,7 +2774,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -2792,8 +2789,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "cultus_lake.r2",
@@ -4005,7 +4001,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -4020,8 +4016,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "harrison_lake.r2",
@@ -5432,7 +5427,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -5447,8 +5442,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "lillooet_lake.r2",
@@ -7692,7 +7686,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV"
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
@@ -7707,8 +7701,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "R10 (2026-09-27): the row prints bull trout its own limit ('1 bull trout over 60 cm'), which is the specific exclusion p.86 names ('trout ... also apply to char unless char are specifically excluded'); without it this release would take every bull trout the row lets you keep."
+     ]
     },
     {
      "rule_id": "pitt_lake.r2",
@@ -8221,6 +8214,9 @@
      "verbatim": "trout daily quota = 1 (none under 40 cm)",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "take": 1,
      "lengths": [

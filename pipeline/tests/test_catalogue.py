@@ -961,7 +961,15 @@ def test_no_row_releases_the_char_it_gives_its_own_limit():
                 chilliwack = e
     assert not bad, bad
     assert chilliwack is not None
+    # MUTATION: without its exclusion the row cancels its own limit. (The entry validator now
+    # refuses that row outright — `trout_scope_problems` — so the mutant is built unvalidated.)
+    from pipeline.regs.parsing.catalogue import CatalogueRule
     raw = json.loads(chilliwack.model_dump_json(by_alias=True, exclude_none=True))
+    rules = []
     for r in raw["rules"]:
         r.pop("species_except", None)
-    assert _row_cancels_its_own_char_limit(CatalogueEntry.model_validate(raw))
+        rules.append(CatalogueRule.model_validate(r))
+    with pytest.raises(ValueError, match="species_except \\[CHAR\\]"):
+        CatalogueEntry.model_validate(raw)
+    assert _row_cancels_its_own_char_limit(CatalogueEntry.model_construct(
+        entry_id=chilliwack.entry_id, rules=rules))

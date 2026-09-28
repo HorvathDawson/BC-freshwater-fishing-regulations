@@ -389,7 +389,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     `section` is a bundle `sid`, `on` a `datetime.date` or `(month, day)`, `fish` a leaf species
     code. Returns the rules bound to the section that say something about that fish on that day,
     each a `rules()` dict with `state` added: "speaks", "beside" (in force only some hours or
-    weekdays, or of unreadable season: shown, never displacing), "shown" (never competes), or
+    weekdays, or of unreadable season, or on one half of the channel only — `side`: shown, never
+    displacing), "shown" (never competes), or
     "not_yet_mapped" (holds only in a part nothing draws). Sorted by `rid`.
 
       0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
@@ -438,6 +439,10 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
              the zone's quota for that fish (`exempts`, step 3): Kootenay Lake's "rainbow trout
              daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5" and its "1 rainbow or
              cutthroat over 50 cm" for rainbow, so the 10 speaks alone.
+         A DATED ZONE RELEASE OR CLOSURE is never displaced by a water's quota (user ruling
+           2026-09-28) unless the water's rule is the exact same statement on the same dates:
+           Shuswap Lake's "Char daily quota = 1" leaves Region 3's "Lake trout from Oct 15-Jan
+           31" release speaking beside it on those dates. Only a lift removes it otherwise.
          A CLOSURE ("No fishing": take 0, may not fish for it) is never displaced — "this water
          overrides regional always, except closures unless they are lifted in this water's regs".
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
@@ -496,6 +501,12 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                 else:
                     every[k] = v
     state = {k: in_force(every[k].get("when"), on) for k in here}
+    # ONE HALF OF THE CHANNEL (`side`: Kitimat River's "No Fishing on the west half of river …"):
+    # the rule holds on part of the section's width, so, like a rule holding some hours, it is
+    # shown BESIDE the rules the other half answers to and displaces none (user ruling 2026-09-28).
+    for k in here:
+        if every[k].get("side") and state[k] == "yes":
+            state[k] = "part"
     undrawn = {k for k in here if not_yet_mapped(every[k])}
     for k in here:                                          # 1. dormant under its closure
         sw = every[k].get("suspended_while")
@@ -567,6 +578,19 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         return bool(yields_to_release(every[o]) and yields_to_release(every[k])
                     and min(place(o), place(k)) in (0, 1) and max(place(o), place(k)) >= 2)
 
+    def dated_zone_release(k) -> bool:
+        """A zone, area or provincial rule keeping NONE of the fish (take 0: a release, or a
+        closure) on printed dates — Region 3's "you must release … Lake trout from Oct 15-Jan 31"."""
+        x = every[k]
+        return place(k) >= 2 and x.get("type") == "retention_limit" and x.get("take") == 0 \
+            and bool((x.get("when") or {}).get("dates"))
+
+    def exact_same(o, k) -> bool:
+        """The water's rule says EXACTLY what the dated zone rule says — the same fish, sizes,
+        origin, water kind, means and target (`rules.statement`) on the same dates."""
+        return same_statement(every[o], every[k]) and \
+            (every[o].get("when") or {}).get("dates") == every[k]["when"]["dates"]
+
     def beats(o, k) -> bool:
         """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
 
@@ -581,9 +605,18 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
             aggregate by LIFTING the zone's quota for that fish (`exempts`, step 3 — Kootenay
             Lake's "rainbow trout daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5"
             for rainbow), never by this comparison.
+        A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S QUOTA (user ruling
+        2026-09-28): a water rule that lets the fish be kept displaces a zone rule keeping none of
+        it on printed dates only when it is the EXACT same statement on the same dates
+        (`exact_same`). Shuswap Lake's "Char daily quota = 1" names lake trout, and by naming and
+        place it silenced Region 3's "Lake trout from Oct 15-Jan 31" release — the stricter rule,
+        and no override of it. A lift the row prints, or a derived lift of a closure that sends
+        the reader to the tables, still removes it (step 3).
         Everything else: the better rung (`order`) displaces."""
         if water_and_zone(o, k):
             return place(o) <= 1 and same_statement(every[o], every[k])
+        if 0 <= place(o) <= 1 and yields_to_release(every[o]) and dated_zone_release(k):
+            return exact_same(o, k)
         return order(o) < order(k)
 
     def base(k) -> str | None:

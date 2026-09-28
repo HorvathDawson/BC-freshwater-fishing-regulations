@@ -1247,6 +1247,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "lengths": [
       {
        "max_cm": 25,
@@ -1987,6 +1990,9 @@
      "verbatim": "no trout under 25 cm",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "lengths": [
       {
@@ -6902,6 +6908,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "when": {
       "dates": [
        {
@@ -6929,6 +6938,9 @@
      "verbatim": "No trout under 25 cm downstream of Nicola Lake",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "lengths": [
       {
@@ -7824,6 +7836,9 @@
      "verbatim": "No trout under 25 cm",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "lengths": [
       {
@@ -9272,6 +9287,9 @@
      "verbatim": "No trout under 25 cm",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "lengths": [
       {

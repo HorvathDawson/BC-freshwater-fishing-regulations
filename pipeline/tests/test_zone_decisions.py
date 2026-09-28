@@ -234,7 +234,9 @@ def test_steelhead_over_50_are_not_in_the_trout_one_over_50(corpus):
     for eid, rid in (("z1:trout_quota", "trout_quota.r2"),
                      ("z2:trout_char_quota", "trout_char_quota.r2")):
         r = _rule(corpus, eid, rid)
-        assert r.species_except == ["ST"] and "ST" in C.expand_species(list(r.species))
+        # Region 1's box also mentions char, so its trout lines exclude CHAR (ruling 2026-09-28)
+        assert "ST" in r.species_except and "ST" in C.expand_species(list(r.species))
+        assert set(r.species_except) - {"ST"} == ({"CHAR"} if eid.startswith("z1:") else set())
 
 
 # ============================================================================ decision 9

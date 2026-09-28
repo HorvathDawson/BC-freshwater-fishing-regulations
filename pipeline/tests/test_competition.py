@@ -701,9 +701,11 @@ def test_named_lifts_need_both_rules_to_name_the_fish():
                      may_target=False)
     streams = rule(rule_id="k.r1", verbatim="No fishing in any stream", species=["ALL_GAME_FISH"],
                    take=0, may_target=False)
-    closures = rules_mod.zone_closures([type("E", (), {"entry_id": "z8:s", "rules": [bass_closed]}),
-                                        type("E", (), {"entry_id": "z8:c", "rules": [st_closed]}),
-                                        type("E", (), {"entry_id": "z8:k", "rules": [streams]})])
+    box = "Region 8 Daily Quotas (See tables for exceptions)"      # p.68: the rows are exceptions
+    closures = rules_mod.zone_closures([
+        type("E", (), {"entry_id": "z8:s", "rules": [bass_closed], "regs_verbatim": box}),
+        type("E", (), {"entry_id": "z8:c", "rules": [st_closed], "regs_verbatim": box}),
+        type("E", (), {"entry_id": "z8:k", "rules": [streams], "regs_verbatim": box})])
     assert sorted(eid for rows in closures.values() for eid, _ in rows) == ["z8:c", "z8:s"]
     bass = rule(rule_id="w.r1", verbatim="bass daily quota = 8", species=["BASS"], take=8)
     trout = rule(rule_id="w.r2", verbatim="Trout daily quota = 1", species=["TROUT_CHAR"], take=1)
@@ -1063,8 +1065,8 @@ def _crule(**kw):
                                               "extents": [{"op": "whole"}]}, **kw))
 
 
-def _E(eid, rules):
-    return type("E", (), {"entry_id": eid, "rules": rules})
+def _E(eid, rules, text=""):
+    return type("E", (), {"entry_id": eid, "rules": rules, "regs_verbatim": text})
 
 
 def test_a_closure_printing_its_own_exemptions_takes_no_derived_lift():
@@ -1082,7 +1084,8 @@ def test_a_closure_printing_its_own_exemptions_takes_no_derived_lift():
                  "exceptions)", species=["WSG"], take=0, may_target=False)
     bass = _crule(rule_id="s.r1", verbatim="Bass: 0 quota, CLOSED TO FISHING", species=["BASS"],
                   take=0, may_target=False)
-    docs = [_E("z6:c", [st, mains]), _E("z6:s", [wsg, bass])]
+    docs = [_E("z6:c", [st, mains], "(See tables for exceptions)"),
+            _E("z6:s", [wsg, bass], "Daily Quotas (See tables for exceptions)")]
     got = {(e, r.rule_id) for rows in rules_mod.zone_closures(docs).values() for e, r in rows}
     assert got == {("z6:s", "s.r1")}
     kit = _crule(rule_id="k.r5", verbatim="Hatchery steelhead daily quota = 2", species=["ST"],

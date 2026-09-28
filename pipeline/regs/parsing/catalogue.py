@@ -129,6 +129,25 @@ class Origin(str, Enum):
     wild = "wild"
 
 
+class ChannelSide(str, Enum):
+    """One half of a river's channel, lengthwise, by compass side (`CatalogueRule.side`)."""
+    north = "north"
+    south = "south"
+    east = "east"
+    west = "west"
+
+    @property
+    def opposite(self) -> "ChannelSide":
+        return {ChannelSide.north: ChannelSide.south, ChannelSide.south: ChannelSide.north,
+                ChannelSide.east: ChannelSide.west, ChannelSide.west: ChannelSide.east}[self]
+
+
+#: "on the west half of river" — a rule printed for one half of a channel (`CatalogueRule.side`).
+#: A lake's half ("south half only", Premier Lake) is a part of the lake, `undrawn_part`.
+HALF_OF_CHANNEL = re.compile(r"\b(north|south|east|west)\s+half\s+of\s+(?:the\s+)?"
+                             r"(?:river|stream|creek|channel)\b", re.I)
+
+
 class VesselAspect(str, Enum):
     propulsion = "propulsion"
     speed = "speed"
@@ -232,11 +251,13 @@ BOOK_SPECIES: tuple[str, ...] = tuple(c for fs in BOOK_FAMILIES.values() for c i
 #: merely coincide. `expand_species` turns a group back into members where a caller needs the set.
 #:
 #: "TROUT" IS NOT ONE OF THEM. Page 86: "trout/char: all regulations that apply to trout (as a
-#: group) also apply to char unless char are specifically excluded." No row of the book excludes
-#: char from a trout rule (searched: "except char", "not char", "char excluded" — none), so every
-#: "Trout daily quota = 2" is a trout/char quota, `TROUT_CHAR`, and a TROUT-only group would be a
-#: subject the book never states. It is refused (`REFUSED_SPECIES`); the book's TROUT heading lives
-#: on as a family (`BOOK_FAMILIES`), for display.
+#: group) also apply to char unless char are specifically excluded." So the printed word "trout"
+#: is `TROUT_CHAR` — and where its row or zone table MENTIONS CHAR APART (user ruling 2026-09-28,
+#: `mentions_char_apart`), that is the exclusion: the row's "trout" lines are written `TROUT_CHAR`
+#: with `species_except: [CHAR]` (`trout_scope_problems`). ONE representation for "trout", scoped
+#: by its row; a TROUT-only code would be a second spelling of the same fish set. It is refused
+#: (`REFUSED_SPECIES`); the book's TROUT heading lives on as a family (`BOOK_FAMILIES`), for
+#: display.
 SPECIES_GROUPS: dict[str, tuple[str, ...]] = {
     "TROUT_CHAR": BOOK_FAMILIES["TROUT"] + BOOK_FAMILIES["CHAR"],
     #: "char catch and release", Region 1's "you must release: All char (includes Dolly Varden)".
@@ -255,6 +276,95 @@ SPECIES_GROUPS["ALL_GAME_FISH"] = BOOK_SPECIES
 #: by p.86 — must not reopen them. Read as a group, the zone's char release lost to the water's
 #: group quota by place, and 56 Region 1 lakes would have let a char be kept.
 NAMING_GROUPS = frozenset({"CHAR"})
+
+#: THE SCOPE OF THE WORD "TROUT" (user ruling 2026-09-28): "trout" includes char UNLESS CHAR ARE
+#: MENTIONED. p.86 says trout rules apply to char "unless char are specifically excluded", and the
+#: book excludes them by naming char APART in the same row, or in the same zone table: Region 6's
+#: box (p.49) prints "Trout/char: 5, but not more than … 3 Dolly Varden/bull trout and/or lake
+#: trout combined, 1 trout from streams July 1-Oct 31. And you must release: … Trout under 30 cm
+#: from any stream, Trout of any size from streams, Nov 1-June 30" — so "1 trout from streams",
+#: "Trout under 30 cm" and "Trout of any size from streams" are about trout alone; Region 1's
+#: "Trout: 4 … And you must release: … All char (includes Dolly Varden)" (p.13) likewise. A lake
+#: row printing only "Trout daily quota = 2" mentions no char, and its 2 counts char too.
+#:
+#: A char is mentioned apart when the text names one ON ITS OWN: "char", Dolly Varden, bull trout,
+#: lake trout, brook trout. The group word "trout/char" ("trout and char") is not such a mention —
+#: it names char IN: Dodd Lake's "Wild trout/char daily quota = 2 (no wild trout over 40 cm)"
+#: names no char apart, and its "no wild trout over 40 cm" holds for char too (user confirmation
+#: 2026-09-28, "none over 40 cm like trout"). "Rainbow trout and char" names char apart (the trout
+#: there is a rainbow).
+_CHAR_NAMED = re.compile(r"\bchar\b|\bdolly\s+varden\b|\bbull\s+trout\b|\blake\s+trout\b"
+                         r"|\bbrook\s+trout\b", re.I)
+#: The group word, printed three ways.
+_TROUT_GROUP = re.compile(r"\btrout\s*(?:/|\band\b|&|\bor\b)\s*char\b", re.I)
+_TROUT_WORD = re.compile(r"\btrout\b", re.I)
+#: A fish's own name before "trout" ("rainbow trout", "lake trout") — then "trout" is not the group.
+_TROUT_KIND = re.compile(r"(?:rainbow|cutthroat|brown|lake|brook|bull|golden)[\s-]*$", re.I)
+
+
+def _is_group_trout(text: str, at: int) -> bool:
+    return not _TROUT_KIND.search(text[:at])
+
+
+def mentions_char_apart(text: str) -> bool:
+    """Does this row (or zone table) NAME A CHAR ON ITS OWN — "char", Dolly Varden, bull trout,
+    lake trout, brook trout — outside the group word "trout/char"? Then its "trout" lines exclude
+    char (see the note above `_CHAR_NAMED`)."""
+    masked = text or ""
+    for m in reversed(list(_TROUT_GROUP.finditer(masked))):
+        if _is_group_trout(masked, m.start()):
+            masked = masked[:m.start()] + " " * (m.end() - m.start()) + masked[m.end():]
+    return bool(_CHAR_NAMED.search(masked))
+
+
+def trout_word(text: str) -> Optional[str]:
+    """The trout word a line prints: "trout/char" (the group word, char named in), "trout" (the
+    bare word, whose scope its row decides), or None (no group trout word — "1 over 50 cm", or
+    only a fish's own name, "rainbow trout")."""
+    text = text or ""
+    if any(_is_group_trout(text, m.start()) for m in _TROUT_GROUP.finditer(text)):
+        return "trout/char"
+    if any(_is_group_trout(text, m.start()) for m in _TROUT_WORD.finditer(text)):
+        return "trout"
+    return None
+
+
+def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
+    """EVERY "TROUT" LINE IS SCOPED BY ITS ROW (user ruling 2026-09-28; `mentions_char_apart`).
+    A `TROUT_CHAR` rule printing the bare word "trout" (itself, or the quota it is a clause
+    `within`: Region 1's "1 over 50 cm" under "Trout: 4") carries `species_except: [CHAR]` exactly
+    when its row or zone table names a char apart. A line printing "trout/char" names char in and
+    never excludes them. A bare "trout" line never excludes one char alone (the book's exclusion
+    is of char as a group, `CHAR`) — the seven Region 2 rows that once excluded only the bull trout
+    their row gave its own limit are the general rule now."""
+    apart = mentions_char_apart(regs_verbatim)
+    by_id = {r.rule_id: r for r in rules}
+    out: List[str] = []
+    for r in rules:
+        if "TROUT_CHAR" not in r.species:
+            continue
+        word, p, seen = trout_word(r.verbatim), r, {r.rule_id}
+        while word is None and p.within and p.within in by_id and p.within not in seen:
+            p = by_id[p.within]
+            seen.add(p.rule_id)
+            word = trout_word(p.verbatim)
+        out_char = "CHAR" in r.species_except
+        if word == "trout/char" and out_char:
+            out.append(f"{r.rule_id}: prints 'trout/char', which names char in — it never "
+                       f"carries species_except CHAR")
+        if word != "trout":
+            continue
+        lone = sorted(c for c in r.species_except if c in BOOK_FAMILIES["CHAR"])
+        if lone:
+            out.append(f"{r.rule_id}: species_except {lone} — a 'trout' line excludes char as a "
+                       f"group (CHAR) when its row mentions char apart, never one char")
+        if apart and not out_char:
+            out.append(f"{r.rule_id}: prints 'trout' and its row mentions char apart — its "
+                       f"trout exclude char (p.86; user ruling 2026-09-28): species_except [CHAR]")
+        elif not apart and out_char:
+            out.append(f"{r.rule_id}: prints 'trout' and its row mentions no char apart — trout "
+                       f"includes char (p.86): drop CHAR from species_except")
+    return out
 
 #: SUBJECTS THE BOOK NAMES THAT ARE NOT GAME FISH, so no fish code lies under them. Each is a word
 #: the book prints in a rule, and each is OPEN — it has no member list, on purpose:
@@ -287,8 +397,10 @@ KNOWN_SPECIES = frozenset(set(BOOK_SPECIES) | set(SPECIES_GROUPS))
 REFUSED_SPECIES: dict[str, str] = {
     "BT": "a bull trout is a Dolly Varden in the regulations (p.86: 'Any bull trout that you catch "
           "and keep must be counted as part of your Dolly Varden quota') — write DV",
-    "TROUT": "trout includes char unless char are specifically excluded (p.86), and no row "
-             "excludes them — write TROUT_CHAR",
+    "TROUT": "trout includes char unless char are specifically excluded (p.86) — write "
+             "TROUT_CHAR, with species_except [CHAR] when the row or zone table mentions char "
+             "apart (a char named on its own: 'char', Dolly Varden/bull trout, lake trout, brook "
+             "trout)",
     "SA": "the salmon subject is SALMON",
 }
 
@@ -2530,6 +2642,18 @@ class CatalogueRule(BaseModel):
     #: this field goes: then the rule colours what it binds.
     undrawn_part: str = ""
 
+    #: THE HALF OF THE CHANNEL THIS RULE HOLDS ON, lengthwise — the book's "on the west half of
+    #: river" (Kitimat River, p.51: "No Fishing on the west half of river between fishing boundary
+    #: signs near Kitimat Hatchery outfall"). The atlas draws a river as ONE line, so the rule is
+    #: placed on the reach its extents name (the stretch between the signs is drawn) — but it
+    #: holds on that half only, and an angler on the other half follows the water's OTHER rules
+    #: for the stretch (user ruling 2026-09-28). So the rule is shown BESIDE them on the reach
+    #: and displaces none (`read.effective_rules`), and its line says which half in its own part
+    #: (`label_parts` "side"). Not `undrawn_part`: the stretch is drawn and the rule is placed on
+    #: it; only the width is not. A sentence printing "<side> half of the river" must set it
+    #: (`_check`).
+    side: Optional[ChannelSide] = None
+
     # ------------------------------------------------------------------ #
     @property
     def clock(self) -> Period:
@@ -2805,6 +2929,25 @@ class CatalogueRule(BaseModel):
                          "never also limited to one undrawn part")
         elif self.undrawn_part:
             e.append("undrawn_part is blank")
+        # ONE HALF OF THE CHANNEL (`side`): what the sentence prints, both ways — a rule printed
+        # "on the west half of river" that lost it would close the whole width on every screen.
+        half = HALF_OF_CHANNEL.search(self.verbatim or "")
+        printed = ChannelSide(half.group(1).lower()) if half else None
+        if printed is not None and self.side is not printed:
+            e.append(f"the sentence says the {printed.value} half of the channel — set side: "
+                     f"{printed.value} (the rule holds on that half only)")
+        if self.side is not None:
+            if printed is None:
+                e.append(f"side: {self.side.value} — the sentence prints no '{self.side.value} "
+                         f"half of the river'")
+            if not self.extents:
+                e.append("side needs extents — it is a half of the stretch they draw")
+            if self.undrawn_part.strip():
+                e.append("side and undrawn_part: a half of a drawn stretch is placed on it "
+                         "(side); an undrawn part is not — keep one")
+            if HALF_OF_CHANNEL.search(self.extent_text or ""):
+                e.append("extent_text repeats the half of the channel `side` says — keep only the "
+                         "stretch in extent_text")
         # A PLACE IS NOT A LIST ITEM. The book numbers its lists; a place phrase that starts with
         # a marker was cut out of one, and every label built from it would print the marker.
         for f in ("extent_text", "undrawn_part"):
@@ -2909,7 +3052,14 @@ def species_menu() -> str:
            "  * TROUT INCLUDES CHAR unless char are specifically excluded ('trout/char: all",
            "    regulations that apply to trout (as a group) also apply to char unless char are",
            "    specifically excluded'). 'Trout daily quota = 2' is `TROUT_CHAR`. There is no",
-           "    TROUT-only code: the code TROUT is refused.",
+           "    TROUT-only code: the code TROUT is refused. BUT when the SAME ROW (or the same",
+           "    zone table) mentions char apart — 'char', Dolly Varden/bull trout, lake trout,",
+           "    brook trout on their own; 'trout/char' names char IN and does not count — that",
+           "    row's bare 'trout' lines exclude char: `TROUT_CHAR` with species_except [CHAR].",
+           "    Region 6's box ('Trout/char: 5 … 3 Dolly Varden/bull trout and/or lake trout",
+           "    combined, 1 trout from streams July 1-Oct 31 … Trout under 30 cm from any",
+           "    stream') mentions char, so '1 trout from streams' and 'Trout under 30 cm' are",
+           "    [TROUT_CHAR] except [CHAR]; 'Trout/char: 5' stays [TROUT_CHAR].",
            "  * A BULL TROUT IS A DOLLY VARDEN ('*Any bull trout that you catch and keep must be",
            "    counted as part of your Dolly Varden quota'). 'Bull trout catch and release' is",
            "    `DV`. The code BT is refused.",
@@ -2921,7 +3071,8 @@ def species_menu() -> str:
            "",
            "GROUPS — prefer these:"]
     gloss = {"ALL_GAME_FISH": "the whole list below; NOT salmon, NOT non-game fish",
-             "TROUT_CHAR": "'trout', 'trout/char', 'trout and char' — trout rules cover char",
+             "TROUT_CHAR": ("'trout', 'trout/char', 'trout and char' — trout rules cover char "
+                            "(except [CHAR] on a bare 'trout' line whose row mentions char apart)"),
              "CHAR": "'char' — Dolly Varden/bull trout, lake trout, brook trout",
              "ALL_FIN_FISH": ("\"any fish\" / \"fin fish\" — game fish, salmon AND non-game; never "
                               "crayfish"),
@@ -2955,7 +3106,13 @@ def species_menu() -> str:
 def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
     if not codes:
         return ""
-    names = [_SPECIES_WORDS.get(c, c) for c in codes]
+    # "TROUT" WITH CHAR EXCLUDED BY ITS ROW (`trout_scope_problems`) is the book's word, "Trout" —
+    # never "Trout and char other than char".
+    trout_only = "TROUT_CHAR" in codes and "CHAR" in (excepts or [])
+    if trout_only:
+        excepts = [c for c in excepts if c != "CHAR"]
+    names = ["Trout" if (c == "TROUT_CHAR" and trout_only) else _SPECIES_WORDS.get(c, c)
+             for c in codes]
     out = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
     if excepts:
         ex = [_SPECIES_WORDS.get(c, c).lower() for c in excepts]
@@ -3186,6 +3343,16 @@ def _where(r: CatalogueRule, place_of=None) -> str:
     return text
 
 
+def _side_words(r: CatalogueRule) -> str:
+    """ONE HALF OF THE CHANNEL (`side`), said so no angler on the other half reads the rule as
+    theirs: "west half of the channel only — on the east half, this water's other regulations
+    apply" (Kitimat River's hatchery-outfall closure, user ruling 2026-09-28)."""
+    if r.side is None:
+        return ""
+    return (f"{r.side.value} half of the channel only — on the {r.side.opposite.value} half, "
+            f"this water's other regulations apply")
+
+
 def _suspended(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None) -> str:
     """"not while <the rule it sleeps under>", read off that rule's own line. Without the entry's
     other rules to hand it names the rule by id, which is ugly and still true."""
@@ -3284,8 +3451,21 @@ def _lifts(r: CatalogueRule, siblings: Optional[dict] = None,
     # "except burbot, which may also be speared" lifts the spear closure for burbot, not for all.
     every = list(r.species) == ["ALL_GAME_FISH"] and not r.species_except
     fish = species_words(r.species, r.species_except).lower() if r.species and not every else ""
-    tail = f" for {fish}" if fish and not any(fish in n.lower() for n in said) else ""
+    tail = f" for {fish}" if fish and not _lift_covers_fish(fish, said) else ""
     return f"lifts {', '.join(said)}{tail}"
+
+
+def _lift_covers_fish(fish: str, names: list) -> bool:
+    """Does what a lift names already say the lifter's fish, so "for <fish>" would add nothing?
+    The lifted line names it ("“Trout and char — …”" lifted by trout and char), or — "Trout and
+    char" lifting "“Trout (none under 30 cm), from streams”", whose row naming char apart made it
+    trout only (`trout_scope_problems`) — the lift is of the whole rule, and "for trout and char"
+    would claim it reaches char the rule never bound. Used by the `lifts` part and by the line of
+    a rule that only lifts, so the two read alike (Seeley Creek, Station Creek)."""
+    if any(fish in n.lower() for n in names):
+        return True
+    return fish.startswith("trout and char") and any(n.lower().startswith("“trout")
+                                                     for n in names)
 
 
 #: THE PARTS A RULE'S LINE IS MADE OF, and the order a reader composes them in (`compose`). Each
@@ -3301,6 +3481,8 @@ def _lifts(r: CatalogueRule, siblings: Optional[dict] = None,
 #:               salmon", "while set lining", "in possession" (a clause's clock)
 #:   when        dates, weekdays, hours, an unread season — "Sep 1-Dec 31, on Saturdays"
 #:   where       the place in the book's words, or named from what the extents draw
+#:   side        the half of the channel it holds on (`side`): "west half of the channel only —
+#:               on the east half, this water's other regulations apply"
 #:   in_part     the undrawn part it holds in (`undrawn_part`): a note, never a colour
 #:   lifts       what it exempts from
 #:   duty        what you must do with it — "record your retention on your licence immediately"
@@ -3311,7 +3493,7 @@ def _lifts(r: CatalogueRule, siblings: Optional[dict] = None,
 #: the model has no field for a reason — `reason` was retired because it held a citation here, an
 #: explanation there and a hidden condition elsewhere — and a part is generated from fields only.
 #: A reason therefore reaches a reader through the verbatim shown underneath, never paraphrased.
-LABEL_PARTS = ("what", "size", "conditions", "when", "where", "in_part", "lifts", "duty",
+LABEL_PARTS = ("what", "size", "conditions", "when", "where", "side", "in_part", "lifts", "duty",
                "suspended", "notice")
 
 
@@ -3330,6 +3512,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     `entries` is {entry_id: CatalogueEntry} for the corpus, so a rule that lifts another entry's
     rule names it in words (`_lift_name`); without it the lifted entry's slug is said."""
     p: dict = {"when": _when_words(r), "where": _where(r, place_of),
+               "side": _side_words(r),
                "in_part": strip_list_marker(r.undrawn_part),
                "lifts": _lifts(r, siblings, entries),
                "suspended": _suspended(r, siblings, place_of),
@@ -3357,7 +3540,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
         head = " and ".join(names) + " lifted"
         every = list(r.species) == ["ALL_GAME_FISH"] and not r.species_except
         fish = species_words(r.species, r.species_except).lower() if r.species else ""
-        if fish and not every and not any(fish in n.lower() for n in names):
+        if fish and not every and not _lift_covers_fish(fish, names):
             head += f" for {fish}"
         p["what"] = head[:1].upper() + head[1:]
         p["lifts"] = ""
@@ -3476,7 +3659,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
 
 def compose(parts: dict, verbatim: str = "") -> str:
     """ONE line from the parts — the ONE composer, so a preview cannot drift from what a reader
-    composes by the guide. Order: what (size), conditions, when — where — in part: … — lifts —
+    composes by the guide. Order: what (size), conditions, when — where — side — in part: … — lifts —
     duty — not while … (notice). With no `what`, the line is the book's own sentence (emphasis
     and list marker stripped) and what it lifts — the preview only; no part ever carries it."""
     head = parts.get("what")
@@ -3496,6 +3679,8 @@ def compose(parts: dict, verbatim: str = "") -> str:
             out += ", " + parts[k]
     if parts.get("where"):
         out += " — " + parts["where"]
+    if parts.get("side"):
+        out += " — " + parts["side"]
     if parts.get("in_part"):
         out += " — in part: " + parts["in_part"]
     for k in ("lifts", "duty", "suspended"):
@@ -3883,6 +4068,15 @@ class CatalogueEntry(BaseModel):
                                             f"{r.rule_id}.gear.when.targeting")
         if bad:
             raise ValueError("; ".join(bad))
+        return self
+
+    @model_validator(mode="after")
+    def _trout_scope(self) -> "CatalogueEntry":
+        """"TROUT" INCLUDES CHAR UNLESS THE ROW MENTIONS CHAR (user ruling 2026-09-28) — see
+        `trout_scope_problems`. The row is this entry: a water's row, or a zone table."""
+        bad = trout_scope_problems(self.entry_id, self.regs_verbatim, self.rules)
+        if bad:
+            raise ValueError(f"{self.entry_id}: " + "; ".join(bad))
         return self
 
     @model_validator(mode="after")

@@ -220,7 +220,7 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
       </Group>
 
       <Group title="where" path={path} open
-        keys={["extents", "includes_tributaries", "tributaries_only", "tributary_excludes", "extent_text", "undrawn_part", "unresolved_locators"]}>
+        keys={["extents", "includes_tributaries", "tributaries_only", "tributary_excludes", "extent_text", "undrawn_part", "side", "unresolved_locators"]}>
         <F path={`${path}.extents`} hint="the rule's own reach — never inherited from the entry">
           <ExtentEditor extents={r.extents ?? []} boundaries={boundaries} itemNames={itemNames}
             path={`${path}.extents`} onChange={(x) => set({ extents: x.length ? x : undefined })} />
@@ -243,6 +243,10 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
         </F>
         <F path={`${path}.undrawn_part`} hint="holds only in this part of what the extents draw, and nothing draws the part — shown as a note, never coloured (replaces extent_text)">
           <Text value={r.undrawn_part} label="undrawn_part" onChange={(x) => set({ undrawn_part: x })} />
+        </F>
+        <F path={`${path}.side`} hint="holds on this half of the river's channel only ('on the west half of river') — placed on the stretch, shown beside the other half's rules">
+          <Pick value={r.side} options={v.channel_sides} label="side" none="the whole width"
+            onChange={(x) => set({ side: x })} />
         </F>
         <F path={`${path}.unresolved_locators`} deep hint="phrases nobody could bind — needs a review_reason">
           <Tags values={r.unresolved_locators} label="unresolved_locators"

@@ -144,10 +144,29 @@ it is refused.
   excluded."* *"Trout daily quota = 2"*, *"No trout over 50 cm"*, *"Trout/char: 5"* are all
   `TROUT_CHAR`. There is no trout-only code — `TROUT` is refused. `CHAR` is for a line that says
   *char* (*"char catch and release"*, *"All char (includes Dolly Varden)"*).
-  A ROW THAT GIVES A CHAR ITS OWN LIMIT EXCLUDES IT from the row's trout size rule — that is the
-  "specifically excluded": *"No wild trout over 50 cm, 1 bull trout over 60 cm"* is the release
-  `species: ["TROUT_CHAR"], species_except: ["DV"]` beside the bull trout's own quota; otherwise
-  the release would take every bull trout the row lets you keep.
+* **"TROUT" INCLUDES CHAR UNLESS CHAR ARE MENTIONED.** When the same water row (entry), or the
+  same zone table (the region's quota box / zone entry), mentions char separately — *char*,
+  *Dolly Varden/bull trout*, *lake trout*, *brook trout* — that row's or table's "trout" lines
+  EXCLUDE char. Otherwise "trout" = trout + char.
+  - Write an excluding line `species: ["TROUT_CHAR"], species_except: ["CHAR"]` (keep any other
+    exception beside it: `["CHAR", "ST"]`). A clause printed under a "trout" quota (*"1 over 50
+    cm"* under *"Trout: 4"*) is a "trout" line too.
+  - Only a BARE "trout" line is scoped this way. A line printing *"trout/char"* (or *"trout and
+    char"*) names char in and is always plain `TROUT_CHAR` — and that group word is not itself a
+    mention of char apart: *"Wild trout/char daily quota = 2 (no wild trout over 40 cm)"* names
+    no char on its own, so its *"no wild trout over 40 cm"* holds for char too.
+  - Never exclude ONE char from a "trout" line (`species_except: ["DV"]`): the exclusion is of
+    char as a group.
+  - Example — Region 6's box: *"Trout/char: 5, but not more than … 3 Dolly Varden/bull trout
+    and/or lake trout combined, 1 trout from streams July 1-Oct 31. And you must release: … Trout
+    under 30 cm from any stream, Trout of any size from streams, Nov 1-June 30"*. The box
+    mentions char (Dolly Varden/bull trout, lake trout), so *"1 trout from streams July 1-Oct
+    31"*, *"Trout under 30 cm from any stream"* and *"Trout of any size from streams, Nov 1-June
+    30"* are `["TROUT_CHAR"]` except `["CHAR"]`; *"Trout/char: 5"* stays `["TROUT_CHAR"]`.
+    Region 1's *"Trout: 4 … And you must release: … All char (includes Dolly Varden)"* likewise
+    makes *"Trout: 4"* trout only. A lake row printing only *"Trout daily quota = 2"* mentions no
+    char: `["TROUT_CHAR"]`, and a char counts toward the 2.
+  - Validation refuses a row that breaks this, both ways.
 * Groups: `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH` (the whole list). Words the
   book uses for fish that are NOT on the list, with no codes under them: `ALL_FIN_FISH` (*"any
   fish"*, *"fin fish"* — never crayfish), `PROTECTED_SPECIES` (the protected list; Region 2 adds
@@ -194,6 +213,10 @@ closed_to      angler_closure only: WHO the water is closed to, as a `Who` (belo
 extent_text    the reach in the page's own words, when no split can express it
 undrawn_part   the page's words for the PART of the water the rule holds in, when the menu
                cannot draw it — beside `extents` that bind the water it is in (see below)
+side           north | south | east | west — the rule holds on that HALF OF A RIVER'S CHANNEL
+               only ("No Fishing on the west half of river between fishing boundary signs …":
+               side west, extents = the stretch, extent_text = the stretch's words WITHOUT the
+               half). Required whenever the sentence prints "<side> half of the river".
 exempts        what this rule LIFTS
 suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. (A licensing
                designation says the same thing its own way — see "Licensing" below.)

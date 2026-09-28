@@ -179,6 +179,8 @@ export interface Rule {
   extent_text?: string;
   /** holds only in this part of what `extents` draw; nothing draws the part (a note, never coloured) */
   undrawn_part?: string;
+  /** holds on this half of the river's channel only (north | south | east | west) */
+  side?: string | null;
   unresolved_locators?: string[];
   review_reason?: string;
 }
@@ -319,6 +321,7 @@ export interface Vocab {
   documents: { doc: string; words: string; provincial: boolean }[];
   periods: string[];
   water_kinds: string[];
+  channel_sides: string[];
   origins: string[];
   obligations: string[];
   vessel_aspects: string[];

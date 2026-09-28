@@ -3748,8 +3748,9 @@
        ]
       }
      ],
-     "extent_text": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
-     "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension"
+     "extent_text": "between fishing boundary signs near Kitimat Hatchery outfall",
+     "review_reason": "west half of the channel only (`side`): placed on the reach between the outfall signs; the atlas draws the river as one line, so the half itself is not drawn",
+     "side": "west"
     },
     {
      "rule_id": "kitimat_river.r2",
@@ -10709,6 +10710,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "when": {
       "dates": [
        {
@@ -10759,6 +10763,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "lengths": [
       {
        "max_cm": 30,
@@ -10782,6 +10789,9 @@
      "verbatim": "Trout of any size from streams, Nov 1-June 30",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "when": {
       "dates": [

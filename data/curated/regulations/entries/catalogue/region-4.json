@@ -4341,6 +4341,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "when": {
       "dates": [
        {
@@ -4464,6 +4467,9 @@
      "verbatim": "Trout daily quota = 1 (none under 30 cm)",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "when": {
       "dates": [
@@ -7092,6 +7098,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "when": {
       "dates": [
        {
@@ -7188,6 +7197,9 @@
      "verbatim": "no trout under 30 cm",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "when": {
       "dates": [

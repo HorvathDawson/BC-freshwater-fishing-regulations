@@ -566,6 +566,12 @@ RULE_FIELD_TEXT = {
     "undrawn_part": "the book's words for the PART of the bound water this rule holds in, which "
                     "nothing draws. The rule is placed on the whole water it is in; show it there "
                     "as a note ('in <part>') and never colour the water by it — see `binds`",
+    "side": "north | south | east | west: the rule holds on that HALF OF THE CHANNEL only, "
+            "lengthwise ('No Fishing on the west half of river …', Kitimat River). It is placed "
+            "on the stretch its extents draw, but an angler on the other half follows the "
+            "water's other rules there: the reference answers it `beside` them (it displaces "
+            "nothing), and its `parts.side` says which half — show it; never colour or close the "
+            "whole width by it (`gotchas.one_side_of_channel`)",
 }
 
 #: THE PARTS OF A LINE, in words. Checked against `catalogue.LABEL_PARTS` and
@@ -583,6 +589,9 @@ PART_TEXT = {
     "when": "dates, weekdays, hours, and any season nobody could read ('as printed: …' — "
             "uncertain, never all year)",
     "where": "the place in the book's words, or named from what the extents draw",
+    "side": "the half of the channel the rule holds on (`fields.side`): 'west half of the "
+            "channel only — on the east half, this water's other regulations apply'. Show it "
+            "wherever the rule is shown",
     "in_part": "the undrawn part the rule holds in (`fields.undrawn_part`): a note, never a "
                "colour — see `binds`",
     "lifts": "what the rule exempts from",
@@ -987,7 +996,8 @@ def guide(d: dict) -> dict:
                        "dormant under `suspended_while` is not in force. A rule uncertain in time "
                        "(`when.unparsed`), or asked about for a date when it holds only some "
                        "hours, is shown BESIDE what it would displace, each with its own `when`, "
-                       "never in place of it. A lift is in force only while its lifter is "
+                       "never in place of it; so is a rule holding on one half of the channel "
+                       "only (`fields.side`), which the other half's anglers do not answer to. A lift is in force only while its lifter is "
                        "(`exempts[].when`).",
         "who_speaks": "Among competitors for one fish, in this order: (1) a superior authority "
                       "(rank -1) is outside the ladder: nothing below it opens what it closed. "
@@ -1047,7 +1057,9 @@ def guide(d: dict) -> dict:
                     "(p.49) names its exceptions, so Kitimat River's 'Hatchery steelhead daily "
                     "quota = 2' does not reopen it; nor does a closure printed '(No "
                     "exceptions)'. Region 8's '(see tables for exceptions)' sends the reader to "
-                    "the rows, which is what a derived lift reads.",
+                    "the rows, which is what a derived lift reads — and ONLY such a closure "
+                    "takes one (user ruling 2026-09-28): a closure whose table does not send the "
+                    "reader to the tables is lifted only by a printed exemption.",
         "water_release": "A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH, whatever the zone "
                          "rule's conditions. Competition keys on (type, dimension), and a zone "
                          "quota's conditions (origin, water kind, while, size-only) are part of "
@@ -1079,6 +1091,24 @@ def guide(d: dict) -> dict:
                          "about another fish never takes part (per fish). The zone's own "
                          "releases, record-keeping duties and the possession multiplier stand "
                          "beside the water's release.",
+        "dated_zone_release": "A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S "
+                              "QUOTA (user ruling 2026-09-28). A zone, area or provincial rule "
+                              "that keeps none of a fish (take 0) on printed dates is stricter "
+                              "than a water's quota for that fish and is not a direct override "
+                              "of it, so on its dates it keeps speaking — beside the water's "
+                              "quota, and the release binds: Region 3's 'Lake trout from Oct "
+                              "15-Jan 31' (must release) still speaks on Shuswap Lake, whose "
+                              "row prints 'Char daily quota = 1 (none under 60 cm)'. Naming and "
+                              "place never let a water's quota displace it. It goes only by: "
+                              "(1) THE EXACT SAME STATEMENT — the water's rule is about the same "
+                              "fish, sizes, origin, water kind, means and target, ON THE SAME "
+                              "DATES; (2) a lift the water's row PRINTS ('exempt from …'); (3) "
+                              "for a closure, a derived lift by naming the fish, only where the "
+                              "closure sends the reader to the tables ('see tables for "
+                              "exceptions' — Region 8's bass) (`closures`). A water's release "
+                              "still silences a zone quota (`water_release`), and an undated "
+                              "zone release a water row NAMES the fish over still gives way to "
+                              "the row (`who_speaks`).",
         "quotas_sit_beside": "A WATER'S QUOTA AND THE ZONE'S (user rulings 2026-09-26). This is "
                              "between two quotas that let a fish be kept — one written for this "
                              "water (or reaching it by the tributary walk), one of the zone, an "
@@ -1431,9 +1461,19 @@ def guide(d: dict) -> dict:
                    "and the other two hold no fish you can ask about.",
         "trout_includes_char": "'Trout' includes char unless char are specifically excluded "
                                "(p.86: 'all regulations that apply to trout (as a group) also "
-                               "apply to char'). No row excludes them, so every trout rule is "
-                               "`TROUT_CHAR` — 'Trout daily quota = 2' counts char too — and "
-                               "there is no trout-only code. 'Char' (`CHAR`) is how the book "
+                               "apply to char unless char are specifically excluded'). A row "
+                               "or zone table excludes them by MENTIONING CHAR APART (user "
+                               "ruling 2026-09-28): where it names a char on its own ('char', "
+                               "Dolly Varden/bull trout, lake trout, brook trout — 'trout/char' "
+                               "names char in and does not count), its bare 'trout' lines are "
+                               "`TROUT_CHAR` with species_except `CHAR` — trout only (Region 6's "
+                               "'Trout under 30 cm from any stream', Region 1's 'Trout: 4'). "
+                               "Otherwise 'Trout daily quota = 2' is `TROUT_CHAR` and counts "
+                               "char too. There is no trout-only code. For the same-statement "
+                               "test (`ladder.quotas_sit_beside`) the printed word decides: a "
+                               "lake's 'Trout daily quota = 2' and Region 1's 'Trout: 4' are the "
+                               "same statement, so the lake's 2 replaces the 4 for trout. "
+                               "'Char' (`CHAR`) is how the book "
                                "names char apart from trout, so a rule about char NAMES each "
                                "char (`ladder.who_speaks`): Region 1's 'you must release: All "
                                "char (includes Dolly Varden)' still releases a char on a lake "
@@ -1722,9 +1762,52 @@ def guide(d: dict) -> dict:
             "rules": len(in_part),
         },
         "trout_includes_char": {
-            "says": "'Trout' includes char (p.86). A rule printed 'Trout daily quota = 2' is "
-                    "TROUT_CHAR: a char counts toward the 2. Never label it 'trout only'.",
-            "key_on": "species contains TROUT_CHAR",
+            "says": "'Trout' includes char UNLESS THE REGULATION MENTIONS CHAR (p.86; user ruling "
+                    "2026-09-28). A lake row printing only 'Trout daily quota = 2' is TROUT_CHAR: "
+                    "a char counts toward the 2 — never label it 'trout only'. But where the SAME "
+                    "row, or the same zone table, names a char on its own ('char', Dolly "
+                    "Varden/bull trout, lake trout, brook trout), its bare 'trout' lines are "
+                    "about trout alone: TROUT_CHAR with species_except CHAR (label 'Trout'). "
+                    "Region 6's box mentions Dolly Varden and lake trout, so its '1 trout from "
+                    "streams', 'Trout under 30 cm from any stream' and 'Trout of any size from "
+                    "streams, Nov 1-June 30' do not bind char; Region 1's box releases 'All "
+                    "char', so its 'Trout: 4' counts trout only. 'Trout/char' always includes "
+                    "char. Show `note` beside every trout rule, and `note_trout_only` beside one "
+                    "whose char are excluded, so the reader sees which reading applies.",
+            "note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook trout) "
+                    "unless the regulation lists char separately.",
+            "note_trout_only": "This regulation lists char separately, so 'trout' here means "
+                               "trout only (rainbow, steelhead, cutthroat, brown); char follow "
+                               "their own lines.",
+            "key_on": "species contains TROUT_CHAR (note); and species_except contains CHAR "
+                      "(note_trout_only)",
+            "trout_only_rules": sorted(i for i, x in rules.items()
+                                       if "TROUT_CHAR" in (_f(x).get("species") or [])
+                                       and "CHAR" in (_f(x).get("species_except") or [])),
+        },
+        "dated_zone_release_stands": {
+            "says": "A DATED zone release or closure is NOT silenced by a water's quota for the "
+                    "fish (user ruling 2026-09-28). Shuswap Lake prints 'Char daily quota = 1 "
+                    "(none under 60 cm)'; Region 3 prints 'you must release … Lake trout from "
+                    "Oct 15-Jan 31'. On those dates both speak and the release binds: no lake "
+                    "trout may be kept. Only the exact same statement (same fish, sizes, origin, "
+                    "water kind and the same dates), a lift the row prints, or a derived lift of "
+                    "a closure that sends the reader to the tables ('see tables for exceptions', "
+                    "Region 8's bass) takes the zone rule away. Never hide a dated zone release "
+                    "because the water has its own number.",
+            "key_on": "an answer holding a zone rule with take 0 and `when.dates` beside a water "
+                      "quota for the same fish (`ladder.dated_zone_release`)",
+        },
+        "one_side_of_channel": {
+            "says": "A rule for ONE HALF of a river's channel ('No Fishing on the west half of "
+                    "river between fishing boundary signs near Kitimat Hatchery outfall') is "
+                    "placed on the stretch, because the map draws a river as one line, but it "
+                    "holds on that half only: an angler on the other half follows the river's "
+                    "other regulations there. The reference answers it `beside` those (it "
+                    "displaces nothing). Show `parts.side` with it, prominently; never colour "
+                    "or close the whole width by it.",
+            "key_on": "rules[*].fields.side",
+            "rules": sorted(i for i, x in rules.items() if _f(x).get("side")),
         },
         "bull_trout_is_dolly_varden": {
             "says": "Bull trout and Dolly Varden are one fish in the regulations (p.86). Ask "
@@ -1753,7 +1836,8 @@ def guide(d: dict) -> dict:
         "rule_parts": {k: PART_TEXT[k] for k in C.LABEL_PARTS},
         "rule_order": {
             "order": list(C.LABEL_PARTS),
-            "suggested": "what (size), conditions, when — where — in part: in_part — lifts — "
+            "suggested": "what (size), conditions, when — where — side — in part: in_part — "
+                         "lifts — "
                          "duty — suspended (notice)",
         },
         "licensing_parts": {k: LICENSING_PART_TEXT[k] for k in C.LICENSING_PARTS},
@@ -1995,6 +2079,17 @@ CASE_MECHANISMS = {
                    "beside Region 5's 'Trout/char: 5'",
     "straddling_named_lake": "Ahbau Lake (Region 5 / Zone 7A) or Mara Lake (Region 3 / Region "
                              "8): both regions' tables bind the lake",
+    # ---- sample waters added 2026-09-28 (user rulings A, B, C) -------------------------------
+    "trout_word_same_statement": "Amor Lake: its 'Trout daily quota = 2' (no char mentioned: "
+                                 "trout and char) and Region 1's 'Trout: 4' (its box mentions "
+                                 "char: trout only) are the same statement — the lake's 2 "
+                                 "replaces the 4 for a trout (`gotchas.trout_includes_char`)",
+    "dated_zone_release_stands": "Shuswap Lake on Nov 1: Region 3's dated lake trout release "
+                                 "speaks beside the lake's 'Char daily quota = 1' "
+                                 "(`ladder.dated_zone_release`)",
+    "one_side_beside": "Kitimat River at the hatchery outfall: the west-half closure is shown "
+                       "BESIDE the river's other rules, which the east half answers to "
+                       "(`fields.side`)",
 }
 
 #: WHAT THE PAGE SHOULD SHOW for a case — one plain line for the builder, per mechanism.
@@ -2054,6 +2149,14 @@ WHAT_TO_SHOW = {
     "size_band": "{water}'s quota for {fish} has a size window: show the sizes with the "
                  "number.",
     "origin": "{water}'s rule is about hatchery or wild {fish} only: say which.",
+    "trout_word_same_statement": "Show {water}'s trout number for {fish} in place of the "
+                                 "region's 'Trout: 4'; a char there still answers to the "
+                                 "region's char release. Show the trout note beside it.",
+    "dated_zone_release_stands": "On this date show the region's release of {fish} BESIDE "
+                                 "{water}'s own quota: the release binds, none may be kept.",
+    "one_side_beside": "Show the closure on {water} with its side ('west half of the channel "
+                       "only'), prominently, BESIDE the rules the other half follows — never as "
+                       "the whole river closed.",
     "while_or_targeting": "The rule holds only while fishing a certain way or for a certain "
                           "fish: show the condition with it.",
     "gear_only": "{water}'s own row says only how to fish: show the gear lines and the "
@@ -2904,7 +3007,7 @@ def cases(d: dict, bundle: Path) -> dict:
         lambda w, x, z: lambda a: rid(w) in _speaking(a) and rid(z) not in _ids(a)))
 
     # named sample waters: Kootenay Lake's rainbow 10, the Dean beside, a straddling lake
-    def named(mech, entry_prefix, fish, check, rule_test=lambda x: True):
+    def named(mech, entry_prefix, fish, check, rule_test=lambda x: True, on=None):
         eids = sorted(e for e in K.d["entries"] if e.startswith(entry_prefix))
         for eid in eids:
             for it in K.d["entries"][eid]["matched"]:
@@ -2914,9 +3017,9 @@ def cases(d: dict, bundle: Path) -> dict:
                             and rule_test(R[k]) and RD.speaks_for(R[k], fish)]
                     if not mine:
                         continue
-                    on = K.day(*(R[k] for k in mine[:1])) or (7, 1)
+                    day = on or K.day(*(R[k] for k in mine[:1])) or (7, 1)
                     zs = [k for k in sorted(m) if zone(k) and k[1].endswith("trout_char_quota.r1")]
-                    case = K.first(mech, [(it, p_, on, fish, [rid(k) for k in mine[:1] + zs])],
+                    case = K.first(mech, [(it, p_, day, fish, [rid(k) for k in mine[:1] + zs])],
                                    check(mine[0], zs))
                     if case:
                         return case
@@ -2930,6 +3033,22 @@ def cases(d: dict, bundle: Path) -> dict:
         lambda w, zs: lambda a: rid(w) in _speaking(a) and bool(zs)
         and set(map(rid, zs)) <= _speaking(a),
         lambda x: _keeps(x) and "TROUT_CHAR" in (x.get("species") or [])))
+    add("trout_word_same_statement", named(
+        "trout_word_same_statement", "r1:amor_lake@", "RB",
+        lambda w, zs: lambda a: rid(w) in _speaking(a)
+        and "z1:trout_quota::trout_quota.r1" not in _ids(a),
+        lambda x: _keeps(x) and "TROUT_CHAR" in (x.get("species") or [])))
+    add("dated_zone_release_stands", named(
+        "dated_zone_release_stands", "r3:shuswap_lake_see_maps", "LT",
+        lambda w, zs: lambda a: rid(w) in _speaking(a)
+        and "z3:trout_char_quota::trout_char_quota.r7" in _speaking(a),
+        lambda x: _keeps(x) and "CHAR" in (x.get("species") or []) and x.get("take") == 1,
+        on=(11, 1)))
+    add("one_side_beside", named(
+        "one_side_beside", "r6:kitimat_river_angling", "RB",
+        lambda w, zs: lambda a: any(i["id"] == rid(w) and i["state"] == "beside" for i in a)
+        and any(i.startswith("r6:kitimat") for i in _speaking(a)),
+        lambda x: bool(x.get("side")), on=(7, 1)))
     straddle = None
     for name in ("Ahbau Lake", "Mara Lake"):
         for it, w in sorted(K.d["waters"].items()):
@@ -3057,7 +3176,11 @@ def species_table() -> dict:
             "fish": fish, "groups": groups,
             "trout_includes_char": "p.86: 'all regulations that apply to trout (as a group) "
                                    "also apply to char unless char are specifically excluded' "
-                                   "— the trout group is TROUT_CHAR",
+                                   "— the trout group is TROUT_CHAR; a bare 'trout' line of a "
+                                   "row or zone table that mentions char apart is TROUT_CHAR "
+                                   "with species_except CHAR (user ruling 2026-09-28)",
+            "trout_note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook "
+                          "trout) unless the regulation lists char separately.",
             "refused": dict(sorted(C.REFUSED_SPECIES.items()))}
 
 

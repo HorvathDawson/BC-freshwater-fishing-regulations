@@ -14538,6 +14538,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "take": 4,
      "extents": [
       {
@@ -14555,6 +14558,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
+      "CHAR",
       "ST"
      ],
      "take": 1,
@@ -14602,6 +14606,9 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "species_except": [
+      "CHAR"
+     ],
      "take": 2,
      "within": "trout_quota.r1",
      "water": "stream",
@@ -14641,6 +14648,9 @@
      "verbatim": "All wild trout from streams",
      "species": [
       "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "take": 0,
      "may_target": true,
