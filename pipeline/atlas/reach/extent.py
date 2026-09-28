@@ -534,6 +534,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         if i in reg:
             universe |= set(reg[i].section_ids)
     op = ex.get("op")
+    if op == "rest":
+        # A COMPLEMENT IS A STATEMENT ABOUT OTHER RULES' REACHES, so one extent alone cannot say
+        # it: `build.build_reach` resolves it against the rule's siblings.
+        _fail("rest_needs_its_siblings", ",".join(ex.get("siblings") or ()))
+        return None
     if not universe and op != "within":
         # `within` is the one op that can answer without an item scope — an admin-area closure names
         # the area, not a water. Every other op selects FROM a water, so no water means no answer.

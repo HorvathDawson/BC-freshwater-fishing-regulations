@@ -19,6 +19,8 @@ export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
       return `between ${lbls[0] ?? "?"} and ${lbls[1] ?? "?"}`;
     case "within":
       return `within ${ex.area_id ?? lbls.join(" & ") ?? "?"}`;
+    case "rest":
+      return `the rest of the water, after ${(ex.siblings ?? []).join(", ") || "?"}`;
     default:
       return ex.op;
   }
@@ -35,6 +37,7 @@ export function rawExtent(ex: Extent): string {
 export function splitArity(op: Extent["op"]): number | null {
   switch (op) {
     case "whole":
+    case "rest":
       return 0;
     case "upstream_of":
     case "downstream_of":

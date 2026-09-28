@@ -2276,7 +2276,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone",
-     "undrawn_part": "various locations"
+     "undrawn_part": "various locations (as buoyed and signed)"
     },
     {
      "rule_id": "kalamalka_lake.r4",
@@ -2290,7 +2290,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone",
-     "undrawn_part": "various locations"
+     "undrawn_part": "various locations (as buoyed and signed)"
     }
    ]
   },
@@ -3675,7 +3675,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone",
-     "undrawn_part": "various locations"
+     "undrawn_part": "various locations (as buoyed and signed)"
     },
     {
      "rule_id": "okanagan_lake.r5",
@@ -3689,7 +3689,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone",
-     "undrawn_part": "various locations"
+     "undrawn_part": "various locations (as buoyed and signed)"
     }
    ]
   },

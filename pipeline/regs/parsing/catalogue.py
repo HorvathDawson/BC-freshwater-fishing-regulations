@@ -1860,6 +1860,45 @@ def _extents_the_resolver_reads(extents: Optional[List[dict]]) -> List[str]:
 LIST_MARKER = re.compile(r"^\s*(\d{1,2}[.)]\s|\([a-z0-9ivx]{1,3}\)\s*|[•–-]\s)")
 
 
+#: A RULE'S VALUE IN ITS PLACE PHRASE — a speed, an engine power, a size, a quota or a date inside
+#: `extent_text` / `undrawn_part`. Strawberry Slough's part read "on parts (8 km/h)": the speed
+#: leaked out of the rule into its place, and the not-yet-mapped sentence then said the rule holds
+#: "on parts (8 km/h)". A place is where; the value is the rule's own field (`CatalogueRule`).
+PLACE_VALUE = re.compile(
+    r"\d+(?:\.\d+)?\s*(?:km/h|kw|hp|cm)\b|\bquotas?\b|\bper day\b"
+    r"|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?"
+    r"|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}\b", re.I)
+
+#: A PART THE BOOK DOES NOT IDENTIFY — "Speed restriction on parts (8 km/h)", "no towing on parts",
+#: "various locations (as buoyed and signed)". These are the book's words for the part
+#: (`undrawn_part`), but they name no place: the page never says which parts. Quoted as a place
+#: they read "applies only in one part of this water — on parts —"; `part_words` says instead what
+#: is true (the regulations do not identify them). Exactly these shapes and nothing looser, so a
+#: part that does name a place is never read as unidentified.
+UNIDENTIFIED_PART = re.compile(
+    r"^(?:on (?:a )?(?P<n>parts?)|various locations)(?P<signed>\s*\(as buoyed and signed\))?$",
+    re.I)
+
+
+def part_identifies_place(part: str) -> bool:
+    """Does this undrawn part name a place (see `UNIDENTIFIED_PART`)?"""
+    return not UNIDENTIFIED_PART.match(strip_list_marker(part))
+
+
+def part_words(part: str) -> str:
+    """The undrawn part, as a reader should see it: the book's words when they name a place, else
+    what is true of it — "parts the regulations do not identify" (never "on parts")."""
+    text = strip_list_marker(part)
+    m = UNIDENTIFIED_PART.match(text)
+    if not m:
+        return text
+    if m.group("signed"):
+        return "parts marked by buoys and signs, which the regulations do not identify"
+    if (m.group("n") or "").lower() == "part":
+        return "a part the regulations do not identify"
+    return "parts the regulations do not identify"
+
+
 def strip_list_marker(text: str) -> str:
     """`text` without a leading list marker (see `LIST_MARKER`)."""
     return LIST_MARKER.sub("", text or "", count=1).strip()
@@ -3007,6 +3046,12 @@ class CatalogueRule(BaseModel):
             if LIST_MARKER.match(getattr(self, f) or ""):
                 e.append(f"{f} starts with a list marker ({getattr(self, f)[:20]!r}) — it "
                          f"names a place, not a list item")
+            # A PLACE CARRIES NO RULE VALUE — see `PLACE_VALUE`.
+            leak = PLACE_VALUE.search(getattr(self, f) or "")
+            if leak:
+                e.append(f"{f} {getattr(self, f)[:60]!r} carries a rule value "
+                         f"({leak.group(0)!r}) — a place says where; the value is the rule's own "
+                         f"field")
         # THE CLOCK BELONGS TO A NUMBER OF FISH. On a bait ban or an advisory it says nothing.
         if self.period is not None and t not in _COUNTED_TYPES:
             e.append(f"period belongs to {' and '.join(x.value for x in _COUNTED_TYPES)}, "
@@ -3570,7 +3615,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     rule names it in words (`_lift_name`); without it the lifted entry's slug is said."""
     p: dict = {"when": _when_words(r), "where": _where(r, place_of),
                "side": _side_words(r),
-               "in_part": strip_list_marker(r.undrawn_part),
+               "in_part": part_words(r.undrawn_part),
                "lifts": _lifts(r, siblings, entries),
                "suspended": _suspended(r, siblings, place_of),
                "notice": f"fishery notice {r.notice}" if r.notice else ""}
@@ -4137,6 +4182,64 @@ class CatalogueEntry(BaseModel):
         bad = trout_scope_problems(self.entry_id, self.regs_verbatim, self.rules)
         if bad:
             raise ValueError(f"{self.entry_id}: " + "; ".join(bad))
+        return self
+
+    @model_validator(mode="after")
+    def _complements(self) -> "CatalogueEntry":
+        """"OTHER PARTS" IS THE REST OF THE WATER AFTER NAMED SIBLINGS (`Extent` op `rest`).
+
+        Bull River's "Other parts: trout/char daily quota = 1" was held as an undrawn part, so the
+        everyday quota for most of the river never decided anything. As `rest` it binds the
+        rule's water minus the sections its `siblings` bind (`reach.build.build_reach`). So each
+        sibling must be a rule of THIS entry that draws its place: extents, none of them `rest`
+        (a complement of a complement has no order), no undrawn part and no unbound locator (the
+        rest would swallow the part nobody drew). And `rest` stands alone on a rule — a union with
+        another place is a different shape — and only on a rule: an entry's scope, a licensing
+        record or a carve-out has no siblings to be the rest of."""
+        from pipeline.regs.parsing.entry_models import Op
+        e: List[str] = []
+        rest = Op.REST.value
+
+        def is_rest(x) -> bool:
+            return isinstance(x, dict) and x.get("op") == rest
+
+        if any(is_rest(x) for x in self.extents):
+            e.append("entry extents: op rest is a rule's complement of its siblings — an entry's "
+                     "scope has none")
+        for x in self.licensing:
+            if any(is_rest(y) for y in (getattr(x, "extents", None) or [])) or \
+                    any(is_rest(y) for y in (getattr(x, "tributary_excludes", None) or [])):
+                e.append(f"{x.kind} {x.id}: op rest belongs to rules — a licensing record is "
+                         f"placed on its water, never the rest of other rules")
+        by_id = {r.rule_id: r for r in self.rules}
+        for r in self.rules:
+            if any(is_rest(y) for y in r.tributary_excludes):
+                e.append(f"{r.rule_id}: a carve-out (tributary_excludes) cannot be op rest")
+            mine = [x for x in (r.extents or []) if is_rest(x)]
+            if not mine:
+                continue
+            if len(r.extents or []) != 1:
+                e.append(f"{r.rule_id}: op rest must be the rule's only extent — it is the rest "
+                         f"of the water, not a place to union with another")
+            if r.undrawn_part.strip():
+                e.append(f"{r.rule_id}: op rest DRAWS the other parts — drop undrawn_part")
+            for sib in mine[0].get("siblings") or []:
+                o = by_id.get(sib)
+                if o is None or sib == r.rule_id:
+                    e.append(f"{r.rule_id}: rest sibling {sib!r} names no other rule in this "
+                             f"entry")
+                    continue
+                if not o.extents:
+                    e.append(f"{r.rule_id}: rest sibling {sib} has no extents — the rest of an "
+                             f"undrawn place is unknown")
+                elif any(is_rest(y) for y in o.extents):
+                    e.append(f"{r.rule_id}: rest sibling {sib} is itself op rest — a complement "
+                             f"of a complement has no order")
+                if o.undrawn_part.strip() or o.unresolved_locators or o.standing:
+                    e.append(f"{r.rule_id}: rest sibling {sib} holds in a part nothing draws — "
+                             f"the rest of the water around it is unknown")
+        if e:
+            raise ValueError(f"{self.entry_id}: " + "; ".join(e))
         return self
 
     @model_validator(mode="after")

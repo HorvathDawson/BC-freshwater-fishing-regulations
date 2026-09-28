@@ -51,6 +51,11 @@ class Reason(str, Enum):
     #: (`out_of_bc`) or in no region polygon. B.C. regulations do not apply there.
     outside_bc = "outside_bc"
 
+    # --- a complement whose siblings are not all drawn ---------------------------
+    #: `rest` ("other parts") is the water minus its named siblings' sections; a sibling that
+    #: does not bind leaves the rest UNKNOWN — never guessed as the whole water.
+    complement_unknown = "complement_unknown"
+
     # --- deliberately deferred -------------------------------------------------
     tributaries_pending = "tributaries_pending"      # direct part bound; no expander supplied
     no_tributaries = "no_tributaries"                # tributaries_only, but there are none

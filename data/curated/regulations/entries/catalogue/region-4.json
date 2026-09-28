@@ -1138,11 +1138,13 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "rest",
+       "siblings": [
+        "bull_river.r1"
+       ]
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'Other parts' is the complement of r1's reaches (Galbraith-Van, Aberfeldie-Tie Mill, Quinn Creek), which no extent op expresses. A curator must also say whether it includes the tributaries (the row is 'Includes Tributaries').",
-     "undrawn_part": "other parts"
+     "extent_text": "other parts"
     },
     {
      "rule_id": "bull_river.r3",
@@ -3950,11 +3952,13 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "rest",
+       "siblings": [
+        "elk_river_upstream_of_elko_dam.r2"
+       ]
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'All other parts' is the complement of the four catch-and-release reaches named above; no negation op exists to express a complement, so this falls back to the entry's whole upstream-of-Elko-Dam scope",
-     "undrawn_part": "All other parts"
+     "extent_text": "all other parts"
     },
     {
      "rule_id": "elk_river_upstream_of_elko_dam.r4",
@@ -4155,7 +4159,10 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "rest",
+       "siblings": [
+        "findlay_creek.r1"
+       ]
       }
      ],
      "tributary_excludes": [
@@ -4164,8 +4171,7 @@
        "item_id": "gnis:20058"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'other parts' is the complement of the mainstem catch-and-release reach named above; no negation op exists to express a complement",
-     "undrawn_part": "other parts (including tributaries, except Lavington Creek)"
+     "extent_text": "other parts (including tributaries, except Lavington Creek)"
     },
     {
      "rule_id": "findlay_creek.r3",
@@ -4188,7 +4194,10 @@
      "within": "findlay_creek.r2",
      "extents": [
       {
-       "op": "whole"
+       "op": "rest",
+       "siblings": [
+        "findlay_creek.r1"
+       ]
       }
      ],
      "tributary_excludes": [
@@ -4197,8 +4206,7 @@
        "item_id": "gnis:20058"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): nested sub-limit of findlay_creek.r2, which sits on the same unbindable 'other parts' complement",
-     "undrawn_part": "other parts (including tributaries, except Lavington Creek)"
+     "extent_text": "other parts (including tributaries, except Lavington Creek)"
     },
     {
      "rule_id": "findlay_creek.r4",
@@ -10910,7 +10918,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'south half only' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "south half only"
+     "undrawn_part": "south half"
     },
     {
      "rule_id": "premier_lake.r5",
@@ -10924,7 +10932,7 @@
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'south half only' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "south half only"
+     "undrawn_part": "south half"
     }
    ]
   },

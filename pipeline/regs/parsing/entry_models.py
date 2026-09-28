@@ -48,6 +48,13 @@ class Op(str, Enum):
     DOWNSTREAM_OF = "downstream_of" # sections below split s, following the water  (1 split)
     BETWEEN = "between"             # sections between a and b                     (2 splits)
     WITHIN = "within"              # sections inside an area/polygon (area, not splits)
+    #: THE REST OF THE WATER — "Other parts: trout/char daily quota = 1" (Bull River), "All other
+    #: parts" (Elk River). The rule's water (as `whole` selects it, with the rule's own tributary
+    #: walk) MINUS every section the named SIBLING rules of the same entry bind, their walks
+    #: included. Resolved by `reach.build.build_reach`, never by `extent.resolve_extent` alone: a
+    #: complement is a statement about other rules' reaches. A sibling that does not bind makes the
+    #: complement UNKNOWN (`Reason.complement_unknown`) — never guessed as the whole water.
+    REST = "rest"                   # the water minus the named siblings' sections   (0 splits)
 
 
 class Extent(BaseModel):
@@ -133,6 +140,14 @@ class Extent(BaseModel):
         "`tributaries_only` means the part without the river, and `feature_types` still limit it.",
     )
 
+    siblings: List[str] = Field(
+        default_factory=list,
+        description="op=rest only: the rule ids (same entry) whose sections this extent is the "
+        "COMPLEMENT of. 'Other parts' is the rest of the water after the rules that name parts; "
+        "each is listed explicitly so the complement never depends on rule order, and "
+        "`CatalogueEntry` checks each exists and draws its place.",
+    )
+
     @property
     def scope_ids(self) -> List[str]:
         """The registry items this extent is scoped to — [] meaning "every item the entry covers"."""
@@ -196,6 +211,23 @@ class Extent(BaseModel):
                 raise ValueError("watershed is the basin of ONE river — scope it with item_id")
             if self.area_id or self.area_kind:
                 raise ValueError("watershed takes its basin from the river's code, not an area_id")
+        if self.op == Op.REST:
+            # THE COMPLEMENT OF NAMED SIBLINGS, over the rule's water (or the items it scopes).
+            # Everything that would add or cut water is refused: a complement of a cut or an area
+            # is a different shape, and the one the book prints is "the rest of this water".
+            if not self.siblings:
+                raise ValueError("op rest needs `siblings` — the rule ids whose sections it is "
+                                 "the rest of")
+            if len(set(self.siblings)) != len(self.siblings):
+                raise ValueError(f"siblings has duplicates: {self.siblings}")
+            extra = [k for k in ("splits", "area_id", "area_kind", "within_area", "outside_area",
+                                 "outside_areas", "outside_area_kind", "outside_items", "watershed")
+                     if getattr(self, k)]
+            if extra:
+                raise ValueError(f"op rest is the rest of the rule's water after its siblings — "
+                                 f"it takes no {extra}")
+        elif self.siblings:
+            raise ValueError(f"siblings belongs to op rest, not {self.op.value}")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:

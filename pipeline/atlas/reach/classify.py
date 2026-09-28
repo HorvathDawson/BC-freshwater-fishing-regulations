@@ -73,6 +73,18 @@ WALK_BEFORE_AREA = True
 OUTSIDE_BC_SUBTRACTED = True
 
 
+#: "OTHER PARTS" IS THE REST OF THE WATER AFTER ITS SIBLINGS (`Extent` op `rest`, resolved in
+#: `build.build_reach`). If any named sibling does not bind — unresolved, pending its walk — the
+#: rest is UNKNOWN and the rule is unresolved (`Reason.complement_unknown`): the rest of an
+#: unknown reach is not the whole water, and guessing so is the silent widening of AGENTS 12.
+COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND = True
+
+#: A piece a sibling's reach reports as STRADDLING its end (`unclassified`) is withheld from the
+#: rest as well, and reported: it is partly the sibling's, and handing it to "other parts" would
+#: decide for the curator which rule it answers to (AGENTS 12).
+COMPLEMENT_WITHHOLDS_STRADDLERS = True
+
+
 def wants_tributaries(rule: dict, entry: dict) -> bool:
     """Does this rule extend to tributaries?
 

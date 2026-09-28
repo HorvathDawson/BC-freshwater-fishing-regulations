@@ -754,13 +754,42 @@ def test_a_rule_in_an_undrawn_part_is_flagged_prominent(doc):
     for x in part:
         n = x["not_yet_mapped"]
         assert n["part"] == x["fields"]["undrawn_part"]
-        assert n["says"].startswith("Not yet mapped: this applies only in one part of this "
-                                    "water — " + n["part"] + " — ")
+        if n["identified"]:
+            assert n["says"] == ("Not yet mapped: this applies only in one part of this water — "
+                                 + n["part"] + " — which is not drawn on the map yet. It does not "
+                                 "apply to the rest of the water.")
+        else:
+            # A PART THE BOOK NEVER IDENTIFIES is never quoted as a place ("— on parts —").
+            assert f"— {n['part']} —" not in n["says"] and "do not identify" in n["says"], \
+                n["says"]
+    assert {x["not_yet_mapped"]["identified"] for x in part} == {True, False}
     assert not [x for x in doc["rules"].values()
                 if x.get("not_yet_mapped") and x["binds"] != "sections_in_part"]
     g = doc["guide"]["placement"]["not_yet_mapped"]
     assert g["rules"] == len(part) and g["closures"]
     assert "not_yet_mapped" in doc["guide"]["ladder"]
+
+
+def test_an_unidentified_part_reads_as_what_is_true():
+    """"on parts" names no place: the sentence says the regulations do not identify the parts.
+    The whole composed string is pinned for each shape (AGENTS 33). MUTATION: quoting the part
+    for every rule in `not_yet_mapped` fails every assert here."""
+    from pipeline.tools.export_ui_rules import not_yet_mapped
+    tail = " It does not apply to the rest of the water."
+    assert not_yet_mapped({"undrawn_part": "on parts"}) == {
+        "display": "prominent", "part": "on parts", "identified": False,
+        "says": "Not yet mapped: this applies only on parts of this water that the regulations "
+                "do not identify, so they are not drawn on the map." + tail}
+    assert not_yet_mapped({"undrawn_part": "on part"})["says"] == (
+        "Not yet mapped: this applies only on one part of this water, which the regulations do "
+        "not identify, so it is not drawn on the map." + tail)
+    assert not_yet_mapped({"undrawn_part": "various locations (as buoyed and signed)"})["says"] == (
+        "Not yet mapped: this applies only on parts of this water marked on site by buoys and "
+        "signs; the regulations do not identify them, so they are not drawn on the map." + tail)
+    got = not_yet_mapped({"undrawn_part": "south half"})
+    assert got["identified"] is True and got["says"] == (
+        "Not yet mapped: this applies only in one part of this water — south half — which is not "
+        "drawn on the map yet." + tail)
 
 
 def test_the_gotchas_carry_the_size_clause_caution(doc):

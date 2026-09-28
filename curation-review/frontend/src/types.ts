@@ -43,6 +43,9 @@ export interface Extent {
   outside_items?: string[];
   /** an admin-area FAMILY subtracted, e.g. national_parks (the mirror of `area_kind`) */
   outside_area_kind?: string | null;
+  /** op `rest` only: the rule ids (same entry) whose sections this extent is the complement of —
+   *  "Other parts" is the rule's water minus what these rules bind (their walks included). */
+  siblings?: string[];
   [key: string]: unknown;
 }
 

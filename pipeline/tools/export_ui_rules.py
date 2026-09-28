@@ -213,12 +213,33 @@ def not_yet_mapped(r: dict) -> dict:
     top, marked as a place not yet mapped — and it never decides the water (`read.not_yet_mapped`:
     it never competes, displaces, lifts or suspends)."""
     part = str(r["undrawn_part"]).strip()
-    return {"display": "prominent", "part": part,
-            # "applies only {part}" read "applies only waters lying west of …" / "only the area
-            # at …" for about half the 131 parts; the part is quoted as a phrase instead.
-            "says": f"Not yet mapped: this applies only in one part of this water — {part} — "
-                    f"which is not drawn on the map yet. It does not apply to the rest of the "
-                    f"water."}
+    identified = C.part_identifies_place(part)
+    return {"display": "prominent", "part": part, "identified": identified,
+            "says": _not_yet_mapped_says(part) if identified else _unidentified_says(part)}
+
+
+def _not_yet_mapped_says(part: str) -> str:
+    # "applies only {part}" read "applies only waters lying west of …" / "only the area at …" for
+    # about half the 131 parts; the part is quoted as a phrase instead.
+    return (f"Not yet mapped: this applies only in one part of this water — {part} — which is "
+            f"not drawn on the map yet. It does not apply to the rest of the water.")
+
+
+def _unidentified_says(part: str) -> str:
+    """A PART THE BOOK NEVER IDENTIFIES ("on parts", "various locations"): quoted as a place it read
+    "applies only in one part of this water — on parts —". Said instead as what is true: the
+    regulations do not say which parts, so no map can draw them (`catalogue.UNIDENTIFIED_PART`)."""
+    m = C.UNIDENTIFIED_PART.match(C.strip_list_marker(part))
+    if m.group("signed"):
+        where = ("only on parts of this water marked on site by buoys and signs; the regulations "
+                 "do not identify them, so they are not drawn on the map")
+    elif (m.group("n") or "").lower() == "part":
+        where = ("only on one part of this water, which the regulations do not identify, so it "
+                 "is not drawn on the map")
+    else:
+        where = ("only on parts of this water that the regulations do not identify, so they are "
+                 "not drawn on the map")
+    return f"Not yet mapped: this applies {where}. It does not apply to the rest of the water."
 
 
 #: The licensing tables, their id column, and whether the kind is placed.
@@ -639,7 +660,9 @@ RECORD_TEXT = {
     "binds": "where the rule holds: " + " | ".join(BINDS_TEXT) + " — see `placement.binds`",
     "not_yet_mapped": "ONLY on a rule that holds in a part nothing draws (`binds: "
                       "sections_in_part`): {display: 'prominent', part: the book's words for the "
-                      "part, says: the sentence to show}. Show it AT THE TOP of the water, marked "
+                      "part, identified: false when those words name no place ('on parts', "
+                      "'various locations' — the regulations never say which parts), says: the "
+                      "sentence to show}. Show it AT THE TOP of the water, marked "
                       "as a place not yet mapped — never as the water's rule. It never decides "
                       "open or closed, never displaces or lifts anything — see "
                       "`placement.not_yet_mapped`",

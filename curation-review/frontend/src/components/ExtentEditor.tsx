@@ -11,13 +11,17 @@ interface Props {
   itemNames?: Record<string, string>;
   /** where this list sits in the entry (`rules.2.extents`), so errors land on the right row */
   path?: string;
+  /** the entry's OTHER rule ids — what an op `rest` extent ("other parts") can be the rest of.
+   *  Absent where no rule holds the list (an entry's scope, a licensing record): `rest` belongs to
+   *  rules only, and the model refuses it anywhere else. */
+  siblingRules?: string[];
 }
 
 // Per-rule extent editor: op dropdown + split-id multiselect populated from the
 // item's boundaries. Arity is enforced in the UI (whole=0, up/down=1, between=2).
-export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, path = "extents" }: Props) {
+export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, path = "extents", siblingRules }: Props) {
   const v = useVocab();
-  const OPS: Op[] = v.extent_ops;
+  const OPS: Op[] = v.extent_ops.filter((o) => o !== "rest" || siblingRules !== undefined);
   // Bindable options: drop curated splits no longer in splits.json (orphans — they vanish on rebuild),
   // keep auto boundaries, and float curated splits (splits.json) to the top.
   const baseOptions = useMemo(
@@ -48,12 +52,14 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
     const arity = splitArity(op);
     let splits = extents[i].splits ?? [];
     if (arity != null && splits.length > arity) splits = splits.slice(0, arity);
-    if (op === "whole") splits = [];
+    if (op === "whole" || op === "rest") splits = [];
     // `item_ids` is derived from the CUT-POINTS' owners, so it is meaningless once there are no
     // cuts; leaving it set would scope a whole-water extent to whatever the previous op happened to
-    // bind. `item_id` is the curator's own choice and survives.
-    update(i, op === "whole" ? { op, splits: orNone(splits), item_ids: undefined }
-                             : { op, splits: orNone(splits) });
+    // bind. `item_id` is the curator's own choice and survives. `siblings` belongs to `rest` alone.
+    const siblings = op === "rest" ? extents[i].siblings : undefined;
+    update(i, op === "whole" || op === "rest"
+      ? { op, splits: orNone(splits), item_ids: undefined, siblings }
+      : { op, splits: orNone(splits), siblings });
   }
   // Which registry items the chosen cut-points belong to.
   function owners(splits: string[]): string[] {
@@ -137,7 +143,7 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
                 so "the river above the lake, plus the lake" is two extents, and without this control
                 the second one could not be expressed in the app at all. Hidden on a single-water
                 entry, where there is nothing to choose. */}
-            {ex.op === "whole" && Object.keys(itemNames).length > 1 && (
+            {(ex.op === "whole" || ex.op === "rest") && Object.keys(itemNames).length > 1 && (
               <select
                 value={ex.item_id ?? ""}
                 title="which of this entry's waters this extent selects — default is all of them"
@@ -152,6 +158,15 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
                   </option>
                 ))}
               </select>
+            )}
+            {/* "OTHER PARTS": the rule's water minus what the chosen rules bind. The builder resolves
+                it against them (`reach.build._build_rest`); a chosen rule that does not draw its
+                place leaves the rest unknown, and the model refuses it. */}
+            {ex.op === "rest" && (
+              <F path={`${at}.siblings`} deep hint="the rules whose sections this is the rest of">
+                <Checks values={ex.siblings} options={siblingRules ?? []}
+                  onChange={(x) => update(i, { siblings: x })} />
+              </F>
             )}
             {(ex.op === "within" || ex.area_id || ex.area_kind || (ex.feature_types ?? []).length > 0) && (
               <span className="extent-area">

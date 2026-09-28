@@ -43,7 +43,10 @@ from typing import Callable
 #: 11: a LAKE touching two region polygons resolves `area:region:*` to BOTH (stream pieces keep
 #:    their home), and a regional row not printed by another region applies along its water's
 #:    whole length (`outside.region_limit`, user ruling 2026-09-25, second half).
-POLICY_VERSION = "11"
+#: 12: `Extent` op `rest` — "other parts" binds the rule's water minus its named siblings'
+#:    sections (`build._build_rest`); unknown when a sibling does not bind, and a sibling's
+#:    straddling pieces are withheld (`classify.COMPLEMENT_*`).
+POLICY_VERSION = "12"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

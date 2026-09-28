@@ -71,7 +71,10 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     draws ("500 m upstream and downstream of Causeway Road", "on parts") is `undrawn_part` beside
     `[{op: whole}]`: placed on the water as a note, never colouring it (130 rules, 2026-09-24).
     A part that is a place ON the water does not walk the row's tributaries
-    (`includes_tributaries: false`); only a complement ("other parts") keeps them. What is left with no
+    (`includes_tributaries: false`). A COMPLEMENT ("other parts", "all other parts") is not an undrawn
+    part: it is `Extent` op `rest` with its `siblings` named — the rule's water, with its own tributary
+    scope, minus every section those rules bind (`build._build_rest`); a sibling that does not bind
+    leaves it `complement_unknown`, never the whole water (Bull, Elk, Findlay, 2026-09-28). What is left with no
     extents (14 rules) names a place that is not a part of the row's water, or a carve-out.
     An AREA rule (every extent `within`) with `unresolved_locators` is a carve-out no cut
     expresses ("No powered boats … except Gold, Upper Campbell and Buttle lakes") and stays

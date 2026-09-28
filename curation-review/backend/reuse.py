@@ -935,6 +935,10 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
     binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
                                    shared=_shared_waters())
     total = set(binding.sections)
+    if any((ex or {}).get("op") == "rest" for ex in rule.get("extents") or []):
+        # "OTHER PARTS" (op `rest`) resolves only against its siblings, so no extent alone says
+        # its direct reach: it is what the builder bound, less what its own walk added.
+        direct = total - set(binding.via_tributary)
     added = sorted(total - direct)
 
     # Carve-outs only bite where the rule actually expands to tributaries — `classify` calls the

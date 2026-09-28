@@ -256,7 +256,24 @@ upstream_of      exactly 1 split id
 downstream_of    exactly 1 split id
 between          exactly 2 split ids
 within           an area, not a reach — area_id or area_kind
+rest             "other parts" — the water minus what named sibling rules bind; `siblings`
 ```
+
+**"Other parts", "all other parts", "remainder" — `rest`.** A row that names parts of its water
+in some rules and then says "Other parts: trout/char daily quota = 1" means the REST of the water:
+
+```json
+"extents": [{"op": "rest", "siblings": ["bull_river.r1"]}], "extent_text": "other parts"
+```
+
+List every rule whose parts it is the rest of, by `rule_id`, explicitly. The builder binds the
+rule's water (with the rule's own tributary scope — a row marked "Includes Tributaries" includes
+them in the rest too) minus every section those siblings bind, their tributary walks included. Each
+sibling must draw its place (a reach or a named water — never an `undrawn_part` or an unbound
+locator); if one cannot, the rest is unknown too, so write the rest as an `undrawn_part` with a
+`review_reason` instead. `rest` is the rule's only extent, and only rules take it. A clause nested
+inside the rest rule (`within`) takes the same `rest` extent. When the page bounds the remainder
+itself ("Remainder of mainstem" beside two named reaches), draw it with ordinary ops instead.
 
 **Split ids come ONLY from that item's "Bindable boundaries" menu.** Never invent one, never
 reuse an id you saw on another item. Ingest refuses an id the water cannot bind.
@@ -305,6 +322,12 @@ whole water, and the builder would close the whole lake for a rule about one bay
 is not inside the row's water at all, or nothing says which water it is in, keep the words in
 `extent_text` with NO `extents` (the rule stays unbound). ("Mainstem only" has a field:
 `includes_tributaries: false` on the rule.)
+
+**A place phrase is only the place.** `undrawn_part` and `extent_text` never carry the rule's
+values — no speed, engine power, size, quota or date: "Speed restriction on parts (8 km/h)" is
+`max_kmh: 8` with `undrawn_part: "on parts"`, never `"on parts (8 km/h)"` (refused). When the page
+names no place at all — "on parts", "on part", "various locations (as buoyed and signed)" — write
+exactly those words; the reader is told the regulations do not identify the parts.
 
 ## Seasons and times — `when`
 

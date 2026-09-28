@@ -21,7 +21,7 @@ interface Props {
 // upstream_of a point excludes that point and everything above it (including its own tributaries).
 export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
   // A carve-out is a place on a named tributary, so every op but `within` (an area) applies.
-  const OPS: Op[] = useVocab().extent_ops.filter((o) => o !== "within");
+  const OPS: Op[] = useVocab().extent_ops.filter((o) => o !== "within" && o !== "rest");
   const [tribs, setTribs] = useState<{ id: string; name: string }[]>([]);
   const [cache, setCache] = useState<Record<string, Boundary[]>>({}); // item id -> its boundaries
 

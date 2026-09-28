@@ -378,12 +378,17 @@ def test_policy_version_is_bumped_when_classify_changes():
         "feature_types_after_walk": classify.FEATURE_TYPES_AFTER_WALK,
         "outside_bc_subtracted": classify.OUTSIDE_BC_SUBTRACTED,
         "walk_before_area": classify.WALK_BEFORE_AREA,
+        "complement_unknown_if_a_sibling_does_not_bind":
+            classify.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND,
+        "complement_withholds_straddlers": classify.COMPLEMENT_WITHHOLDS_STRADDLERS,
     }
     expected = {"straddlers_included_for": [], "ambiguous_cut_is_fatal": False,
                 "partial_extents_bind": True, "area_carve_outs_unbind": True,
                 "feature_types_after_walk": True, "outside_bc_subtracted": True,
-                "walk_before_area": True}
-    assert cache.POLICY_VERSION == "11", "update this pin with the version it was taken at"
+                "walk_before_area": True,
+                "complement_unknown_if_a_sibling_does_not_bind": True,
+                "complement_withholds_straddlers": True}
+    assert cache.POLICY_VERSION == "12", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

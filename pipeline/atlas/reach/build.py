@@ -16,9 +16,10 @@ from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
+from pipeline.atlas.reach import classify as _policy
 from pipeline.atlas.reach.classify import classify, wants_tributaries
 from pipeline.atlas.reach.models import (
-    BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,
+    BuildReport, Diagnostic, Outcome, Reason, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.atlas.reach.outside import outside_bc, region_limit, shared_waters
@@ -220,6 +221,10 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         covered = _covered_ids(entry, registry)
     if outside is None:
         outside = outside_bc(registry, graph)
+    rest = _rest_of(rule)
+    if rest is not None:
+        return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,
+                           outside=outside, shared=shared, regional=regional)
     region = region_limit(entry, registry, shared) if regional else None
 
     per: list[dict | None] = []
@@ -264,6 +269,85 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "region_clip", {
             "removed": out_of_region, "removed_from_walk": walked_out}))
     return binding, diags
+
+
+def _rest_of(rule: dict) -> dict | None:
+    """The rule's `rest` extent ("other parts"), or None. `CatalogueEntry` holds it to be the
+    rule's only extent."""
+    for x in rule.get("extents") or []:
+        if isinstance(x, dict) and x.get("op") == "rest":
+            return x
+    return None
+
+
+def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered, clip,
+                outside, shared, regional) -> tuple[RuleBinding, list[Diagnostic]]:
+    """"OTHER PARTS": the rule's water MINUS every section its named siblings bind.
+
+    The water is what `whole` (with the rest extent's own item scope) selects for THIS rule —
+    its own tributary walk, carve-outs, region and entry clip, exactly as a `whole` rule of the
+    row would bind. Each sibling is resolved by this same function, walk included, so "Galbraith
+    Creek to Van Creek [Includes Tributaries]" takes its tributaries out of Bull River's other
+    parts, while Findlay Creek's mainstem-only release leaves the tributaries along it in the rest.
+
+    A sibling that does not draw its place, or does not bind, leaves the rest UNKNOWN
+    (`classify.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND`); pieces a sibling reports as
+    straddling its end are withheld and reported (`classify.COMPLEMENT_WITHHOLDS_STRADDLERS`).
+    The review app calls `build_reach` too, so it shows the same rest."""
+    eid, rid = entry["entry_id"], rule["rule_id"]
+    tribs = wants_tributaries(rule, entry)
+    rules = {r.get("rule_id"): r for r in entry.get("rules") or [] if isinstance(r, dict)}
+
+    def unknown(detail: str) -> tuple[RuleBinding, list[Diagnostic]]:
+        return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.complement_unknown, detail,
+                           tributaries_pending=tribs), []
+
+    taken: set[str] = set()
+    withheld: set[str] = set()
+    counts: dict[str, int] = {}
+    for sid in rest.get("siblings") or []:
+        sib = rules.get(sid)
+        if sib is None or sid == rid:
+            return unknown(f"rest sibling {sid!r} is not another rule of this entry")
+        if (not sib.get("extents") or _rest_of(sib) is not None
+                or str(sib.get("undrawn_part") or "").strip() or sib.get("unresolved_locators")
+                or sib.get("standing")):
+            return unknown(f"rest sibling {sid} does not draw its place, so the rest of the "
+                           f"water around it is unknown")
+        b, d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
+                           outside=outside, shared=shared, regional=regional)
+        if _policy.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND and (
+                b.outcome is not Outcome.bound or b.tributaries_pending):
+            why = (f"{b.reason.value}: {b.detail}" if b.reason is not None
+                   else "its tributary walk is pending")
+            return unknown(f"rest sibling {sid} does not bind ({why}) — the rest of the water "
+                           f"is unknown until it does")
+        taken |= set(b.sections)
+        counts[sid] = len(b.sections)
+        if _policy.COMPLEMENT_WITHHOLDS_STRADDLERS:
+            withheld |= {p for x in d if x.kind == "unclassified"
+                         for p in (x.payload.get("pieces") or ())}
+
+    whole = {k: v for k, v in rest.items() if k != "siblings"} | {"op": "whole"}
+    base, diags = build_reach(entry, {**rule, "extents": [whole]}, registry, graph,
+                              covered=covered, clip=clip, outside=outside, shared=shared,
+                              regional=regional)
+    if base.outcome is not Outcome.bound:
+        return base, diags
+    held = set(base.sections) & withheld
+    sections = set(base.sections) - taken - withheld
+    diags.append(Diagnostic(eid, rid, "complement", {
+        "siblings": counts, "water": len(base.sections),
+        "removed": len(set(base.sections) & taken), "withheld": sorted(held),
+        "kept": len(sections),
+        "why": "other parts: the water minus the sections its siblings bind; pieces straddling "
+               "a sibling's end are withheld, never decided"}))
+    if not sections:
+        return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.no_sections,
+                           "the siblings bind every section of the water — no other parts "
+                           "remain", tributaries_pending=tribs), diags
+    return RuleBinding(eid, rid, Outcome.bound, tuple(sorted(sections)),
+                       via_tributary=tuple(s for s in base.via_tributary if s in sections)), diags
 
 
 def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
