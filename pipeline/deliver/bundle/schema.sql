@@ -48,6 +48,25 @@ CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
 -- the bundle.
 CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 
+-- WHICH SECTIONS OF ONE WATER BORDER EACH OTHER. A pair (a, b), a < b, for every flow edge of the
+-- atlas graph whose two ends are sections of the same named water (`item_section`): river pieces
+-- joined end to end (either side of a split point, `continuation`), and a branch of the water — a
+-- side channel, a braid, a fork bearing the same name — flowing into it (`confluence`). Nothing
+-- else: two pieces separated by a stretch that is not theirs do not touch, and a river above a
+-- lake does not touch the river below it (the lake is another water, so the pair has no edge
+-- between two sections of ONE water). Stored once per pair; a reader symmetrises.
+--
+-- WHY IT IS HERE. A reader that groups a water's sections (the UI export's `parts`) could not say
+-- which groups are neighbours, so it merged every closed stretch of a water whether or not they
+-- met. The graph is an atlas artifact and the bundle is the only source a reader may open, so
+-- the build writes the adjacency down. Restricted to named waters because nothing groups the
+-- sections of an unnamed one: 25,793 pairs over 63,396 sections, ~0.3 MB.
+--
+-- HANDLES, so AGENTS 5 holds: the export turns this into part-to-part `touches` and never ships
+-- a section.
+CREATE TABLE section_touch (a INTEGER NOT NULL, b INTEGER NOT NULL,
+                           PRIMARY KEY (a, b)) WITHOUT ROWID;
+
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
 -- "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)".

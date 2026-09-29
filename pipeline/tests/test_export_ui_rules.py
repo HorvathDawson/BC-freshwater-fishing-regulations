@@ -444,7 +444,7 @@ def test_the_reference_check_catches_a_dangling_id(doc):
     # a water's part naming a set the file does not have
     item = next(iter(doc["waters"]))
     w = dict(doc["waters"][item], parts=[{"ruleset": "99999999", "licensing_set": None,
-                                          "sections": 1}])
+                                          "sections": 1, "touches": []}])
     bad = dict(bad, rulesets=doc["rulesets"], waters=dict(doc["waters"], **{item: w}))
     assert X.dangling(bad) == [f"water {item} -> ruleset 99999999"]
 

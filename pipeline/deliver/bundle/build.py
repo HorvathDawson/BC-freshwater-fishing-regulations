@@ -254,6 +254,48 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     cov.filled("item_section", len(pairs))
 
 
+def touching_pairs(edges, sid: dict[str, int],
+                   waters_of: dict[int, set[int]]) -> list[tuple[int, int]]:
+    """Every pair of sections of ONE water that a flow edge joins, as sorted handle pairs.
+
+    `edges` are the graph's (from_node, to_node) pairs; `waters_of` maps a section handle to the
+    items it belongs to. An edge counts only when both ends belong to a common water, and a
+    section never touches itself. See `section_touch` in schema.sql for what that includes.
+    """
+    out: set[tuple[int, int]] = set()
+    for f, t in edges:
+        a, b = sid.get(f), sid.get(t)
+        if a is None or b is None or a == b:
+            continue
+        if waters_of.get(a, set()) & waters_of.get(b, set()):
+            out.add((a, b) if a < b else (b, a))
+    return sorted(out)
+
+
+def _section_touch(db: sqlite3.Connection, build_dir: Path, cov: Coverage) -> None:
+    """`section_touch`, from the atlas graph and the `item_section` already written.
+
+    REFUSED, not skipped, without a graph: an empty table reads as "no part of any water borders
+    another", and a reader merging neighbours would then show every stretch apart.
+    """
+    graph_path = build_dir / "graph.pkl"
+    if not graph_path.exists():
+        raise SystemExit(f"section_touch: no {graph_path} — the bundle cannot say which parts "
+                         f"of a water border each other without the atlas graph")
+    from pipeline.common.io.serialize import read_artifact
+    from pipeline.common.section_handles import read as _read_handles
+
+    _, sid = _read_handles(build_dir)
+    waters_of: dict[int, set[int]] = {}
+    for ord_, s in db.execute("SELECT ord, sid FROM item_section"):
+        waters_of.setdefault(s, set()).add(ord_)
+    graph = read_artifact(str(graph_path))
+    pairs = touching_pairs(((e.from_node, e.to_node) for e in graph.edges), sid, waters_of)
+    del graph
+    db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", pairs)
+    cov.filled("section_touch", len(pairs))
+
+
 def _place_id(p: dict) -> str:
     """A stable id for a place.
 
@@ -702,7 +744,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     if not registry.exists():
         raise FileNotFoundError(f"{registry} not found — run the build first")
     _items(db, registry, cov)
-    places = _places(db, data_dir / "bc_places.json",
+    _section_touch(db, build_dir, cov)
+    places =_places(db, data_dir / "bc_places.json",
                      data_dir / "bc_boundary.geojson", cov)
     _place_water(db, build_dir, places, cov)
     _gauges(db, build_dir, data_dir, cov)

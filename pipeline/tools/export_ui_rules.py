@@ -55,6 +55,7 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},
                     "item": ("part_of",), "outside_bc": ("sid",),
+                    "section_touch": ("a", "b"),
                     "province_except": ("area_kind", "sid"),
                     "steelhead_water": ("sid", "entry_id")}
 
@@ -91,8 +92,9 @@ def _need(db: sqlite3.Connection) -> None:
             f"export_ui_rules: the bundle has no {', '.join(missing)}. Rebuild it with a "
             f"`pipeline/deliver/bundle/rules.py` that writes `entry.matched` (every matched "
             f"item, JSON), `rule.unresolved` (the reach run's 'reason: detail', NULL when "
-            f"bound), `rule.exempts` (each lift resolved to its entry, JSON), `item.part_of` "
-            f"and the `outside_bc` table (the sections B.C. does not govern).")
+            f"bound), `rule.exempts` (each lift resolved to its entry, JSON), `item.part_of`, "
+            f"the `outside_bc` table (the sections B.C. does not govern) and `section_touch` "
+            f"(which sections of a water border each other).")
 
 
 # --------------------------------------------------------------------------------------------
@@ -356,22 +358,48 @@ def read(bundle: Path) -> dict:
     # areas its sections lie in — a national park) and WHERE A RAINBOW OVER 50 CM IS A STEELHEAD
     # (`anadromous_rainbow`). Both were per water, or absent: a count of park sections on the
     # water left the page to infer WHICH stretch was the park's from the permit.
+    #
+    # WHICH PARTS BORDER EACH OTHER (`touches`). A part is every section of the water carrying the
+    # same sets, so it is a CLASS, not a stretch: two closed stretches with an open one between
+    # them are one part if their sets agree, and two parts can lie apart. A reader merging "the
+    # closed stretches" merged every closed part of a water, touching or not. `touches` lists the
+    # indexes (into this water's `parts`) of the other parts some section of this one borders in
+    # the stream graph (`section_touch`: end to end, or a branch of the water flowing into it).
+    # Section handles stay in here (AGENTS 5); only the part-to-part relation leaves.
+    _PART_SQL = (
+        "FROM item i JOIN item_section s ON s.ord = i.ord "
+        "LEFT JOIN section_ruleset r ON r.sid = s.sid "
+        "LEFT JOIN section_licensing l ON l.sid = s.sid ")
+    _PART_COLS = (
+        "i.item_id, r.set_id, l.set_id, "
+        "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
+        " WHERE p.sid = s.sid ORDER BY p.area_kind)) AS pe, "
+        "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid) AS sw")
+    part_ix: dict[tuple, int] = {}
     for item_id, rs, ls, pe, sw, n in db.execute(
-            "SELECT i.item_id, r.set_id, l.set_id, "
-            "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
-            " WHERE p.sid = s.sid ORDER BY p.area_kind)) AS pe, "
-            "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid) AS sw, COUNT(*) "
-            "FROM item i JOIN item_section s ON s.ord = i.ord "
-            "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-            "LEFT JOIN section_licensing l ON l.sid = s.sid "
+            f"SELECT {_PART_COLS}, COUNT(*) {_PART_SQL}"
             "GROUP BY i.item_id, r.set_id, l.set_id, pe, sw "
             "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id, "
             "pe IS NOT NULL, pe, sw"):
+        part_ix[(item_id, rs, ls, pe, sw)] = len(waters[item_id]["parts"])
         waters[item_id]["parts"].append({
             "ruleset": None if rs is None else str(rs),
             "licensing_set": None if ls is None else str(ls), "sections": n,
             **({"province_except": pe.split(",")} if pe else {}),
-            **({"anadromous_rainbow": True} if sw else {})})
+            **({"anadromous_rainbow": True} if sw else {}),
+            "touches": []})
+    section_part: dict[int, list[tuple[str, int]]] = defaultdict(list)
+    for item_id, rs, ls, pe, sw, s in db.execute(f"SELECT {_PART_COLS}, s.sid {_PART_SQL}"):
+        section_part[s].append((item_id, part_ix[(item_id, rs, ls, pe, sw)]))
+    touching: set[tuple[str, int, int]] = set()
+    for a, b in db.execute("SELECT a, b FROM section_touch"):
+        on_b = dict(section_part.get(b, ()))
+        for item_id, pa in section_part.get(a, ()):
+            pb = on_b.get(item_id)
+            if pb is not None and pb != pa:
+                touching |= {(item_id, pa, pb), (item_id, pb, pa)}
+    for item_id, pa, pb in sorted(touching):
+        waters[item_id]["parts"][pa]["touches"].append(pb)
     # WATER B.C. DOES NOT GOVERN — the sections of each water that lie outside the province. They
     # carry no set (the build refuses one that does), so they are among the parts with
     # `ruleset: null`; this count says why they have none.
@@ -404,6 +432,37 @@ def read(bundle: Path) -> dict:
 # `problems`), so a type, slot, act, kind or field the model gains is refused until it is
 # explained here, and one the model loses cannot linger.
 # --------------------------------------------------------------------------------------------
+
+#: WHAT `touches` MEANS — one text, used by the guide and the field dictionary.
+TOUCHES_TEXT = (
+    "The indexes (into this water's `parts`) of the OTHER parts of this water that this part "
+    "borders. Two parts touch when a section of one and a section of the other are joined in "
+    "the stream graph: river pieces joined end to end (the two sides of a split point, or of any "
+    "cut between differently regulated stretches), or a branch of this same water — a side "
+    "channel, a braid, a fork bearing the same name — flowing into it at a confluence. Nothing "
+    "else touches: two stretches with a differently regulated stretch between them do not, and a "
+    "river above a lake does not touch the river below it, because the lake between them is "
+    "another water. Another water never appears here: a tributary joining the river is its own "
+    "water with its own `parts`, and a lake part (`part_of`) is its own water too. Symmetric (if "
+    "0 lists 1, 1 lists 0), never lists the part itself, sorted, and `[]` when the part borders "
+    "no other part. A PART IS NOT ONE STRETCH: it is every section carrying the same sets, so "
+    "it may be several stretches that do not meet one another; `touches` says that SOME section "
+    "of it borders the other part. TO MERGE NEIGHBOURS (e.g. 'closed all year' shown once for a "
+    "run of closed stretches), merge only parts connected through `touches` — the connected "
+    "groups of the graph whose edges are `touches`, among the parts that qualify — never every "
+    "qualifying part of the water.")
+
+#: A water's part, field by field.
+WATER_PART_TEXT = {
+    "ruleset": "the rule set its sections carry (a key of `rulesets`), or null: none",
+    "licensing_set": "the licensing set its sections carry (a key of `licensing_sets`), or "
+                     "null: none",
+    "sections": "how many of the water's sections are in this part",
+    "province_except": "present where the part lies in areas a province-wide requirement stops "
+                       "at (a national park): the families of those areas",
+    "anadromous_rainbow": "present (true) where a rainbow over 50 cm is a steelhead",
+    "touches": TOUCHES_TEXT,
+}
 
 TYPE_TEXT = {
     "retention_limit": "How many of a fish you may keep, on which clock, of which sizes. A "
@@ -1734,8 +1793,11 @@ def guide(d: dict) -> dict:
                    "(a rainbow over 50 cm is a steelhead there; `ladder.steelhead_definition`). "
                    "`null` on either side "
                    "is a stretch with no set of that kind. The parts' sections sum to the "
-                   "water's `sections`. Set ids are local to this file and change with every "
+                   "water's `sections`. A part is a class of sections, not one stretch; which "
+                   "parts border each other is `touches` (below) — merge only parts connected "
+                   "through it. Set ids are local to this file and change with every "
                    "build; never store one. Section handles never leave the bundle.",
+        "touches": TOUCHES_TEXT,
         "outside_bc": "A water's `outside_bc` counts its sections outside British Columbia — "
                       "past the border, or in no region. No B.C. regulation applies there and "
                       "the book does not govern them: they carry no set (the build refuses one "
@@ -1957,7 +2019,8 @@ def guide(d: dict) -> dict:
                 "rulesets / licensing_sets": "the interned sets of records that sections carry",
                 "waters": "every named water (by durable item_id): its `parts` (the (ruleset, "
                           "licensing_set) pairs its sections carry together, with "
-                          "`province_except` and `anadromous_rainbow` where they hold), its "
+                          "`province_except` and `anadromous_rainbow` where they hold, and "
+                          "`touches`: the other parts each borders), its "
                           "`outside_bc` "
                           "count, and `part_of` for a lake part",
                 "species": "the book's species list (p.86) under its headings, and the groups "
@@ -3294,6 +3357,7 @@ def field_dictionary(d: dict) -> dict:
         "licensing.provenance": {k: PROVENANCE_TEXT[k] for k in ("entry_name", "uncertain",
                                                                    "why")},
         "entry": ENTRY_TEXT,
+        "water.parts[]": WATER_PART_TEXT,
     }
 
 
@@ -3450,10 +3514,24 @@ def unexplained(doc: dict) -> list[str]:
     return out
 
 
+def touch_problems(waters: dict) -> list[str]:
+    """Every `touches` list that is not sorted, names its own part, names no part of the water,
+    or is not returned by the part it names."""
+    out = []
+    for item, w in waters.items():
+        for i, p in enumerate(w["parts"]):
+            t = p.get("touches")
+            if t is None or t != sorted(set(t)) or i in t or any(
+                    not 0 <= j < len(w["parts"]) or i not in w["parts"][j].get("touches", ())
+                    for j in t):
+                out.append(f"water {item} part {i} -> touches {t}")
+    return out
+
+
 def dangling(doc: dict) -> list[str]:
     """Every reference in the file that does not resolve."""
     R, L, E = doc["rules"], doc["licensing"], doc["entries"]
-    out = []
+    out = touch_problems(doc["waters"])
     for eid, e in E.items():
         out += [f"entry {eid} -> rule {r}" for r in e["rules"] if r not in R]
         out += [f"entry {eid} -> see {t}" for s in e.get("see") or []
