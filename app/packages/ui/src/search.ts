@@ -12,7 +12,7 @@
  */
 import { useMemo } from "react";
 import {
-  fixOf, normalise, townBox, type Bbox, type Extent, type LatLon,
+  duplicateNames, fixOf, normalise, rankNear, townBox, type Bbox, type Extent, type LatLon,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -67,8 +67,14 @@ export const NEAR_KM = 25;
 export function focusFor(input: {
   town: TownView | null;
   best: Located | null;
+  /**
+   * A town to keep marked while a WATER is shown — the reader opened "water near Smithers"
+   * and is now looking at one of them. The water is the subject; the pin says where they
+   * were asking from.
+   */
+  pin?: PlaceHit | null;
 }): MapFocus | null {
-  const { town, best } = input;
+  const { town, best, pin = null } = input;
   if (town) {
     const far = town.near.reduce((m, n) => Math.max(m, n.km), 0);
     const p = town.place;
@@ -90,7 +96,7 @@ export function focusFor(input: {
       bbox: best.extent?.bbox ?? null,
       highlight: best.sections,
       refine: true,
-      marker: null,
+      marker: pin ? { lat: pin.lat, lon: pin.lon } : null,
       caption: best.extent ? best.name : `${best.name} — the map cannot place it yet`,
     };
   }
@@ -116,7 +122,9 @@ export function useTown(source: RegsSource, place: PlaceHit | null): Async<TownV
   return useAsync(
     async () => {
       if (!place) return null;
-      const near = await source.watersNear(place.place);
+      // The source answers nearest first; the list reads MOST WORTH LISTING first —
+      // importance against distance, decided in core (`rankNear`).
+      const near = rankNear(await source.watersNear(place.place));
       const waters = await Promise.all(near.map((n) => source.water(n.item)));
       return {
         place, near,
@@ -126,28 +134,6 @@ export function useTown(source: RegsSource, place: PlaceHit | null): Async<TownV
     `town:${place?.place ?? ""}`,
     place !== null,
   );
-}
-
-/**
- * The map's half of the search screen: which water or town to open on and light.
- *
- * `hits` is the ranked list the screen is already showing (from `useSearch`), so the map
- * and the first row can never disagree about which water is "best".
- */
-export function useSearchFocus(source: RegsSource, query: string,
-                               hits: readonly NameHit[], place: PlaceHit | null):
-    MapFocus | null {
-  const bestItem = query.trim().length >= 2 && !place ? hits[0]?.item ?? null : null;
-  const located = useLocated(source, bestItem);
-  const town = useTown(source, place);
-  const best = located.state === "ready" ? located.value : null;
-  const tv = town.state === "ready" ? town.value : null;
-  return useMemo(
-    () => focusFor({ town: place && tv?.place.place === place.place ? tv : null,
-                     // Only the located water that IS the current best — a slow answer
-                     // for the previous keystroke must not light the wrong river.
-                     best: best && best.item === bestItem ? best : null }),
-    [place, tv, best, bestItem]);
 }
 
 /**
@@ -179,4 +165,150 @@ export function townToPreview(query: string, waters: readonly { name: string }[]
   const town = places.find((p) => normalise(p.name) === q);
   if (!town) return null;
   return waters.some((w) => normalise(w.name) === q) ? null : town;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────────────────
+ * LOOK, THEN GO.
+ *
+ * A result row answers "where is that?" and nothing else: tapping it frames the water on
+ * the pinned map and lights it, or frames the town and marks it — and the reader stays on
+ * the list, free to tap the next row and compare. LEAVING is a separate, deliberate act:
+ * the eye button on the row. For a water the eye opens its page, framed and lit on the main
+ * map; for a town it opens the list of what is near it (which is still this screen — a town
+ * has no page of its own).
+ *
+ * The two used to be one tap, so every look at a row was a trip away from the results and
+ * back. Kept pure here so "a tap never leaves" is a test, not a hope.
+ * ──────────────────────────────────────────────────────────────────────────────────────── */
+
+/** Something in the results the reader can point at: a water, or a town. */
+export type SearchTarget =
+  | { kind: "water"; item: ItemId; name: string }
+  | { kind: "place"; place: PlaceHit };
+
+/** The key a target's row shares with the `MapFocus` it produces — how a row knows it is lit. */
+export function targetKey(t: SearchTarget): string {
+  return t.kind === "water" ? `item:${t.item}` : `place:${t.place.place}`;
+}
+
+/** What the reader has in hand on the search screen. */
+export interface SearchPick {
+  /** The row they tapped: the pinned map shows it; nothing else moves. */
+  preview: SearchTarget | null;
+  /** The town whose "water near" list is open — the eye on a town. */
+  town: PlaceHit | null;
+}
+
+export const NO_PICK: SearchPick = { preview: null, town: null };
+
+export type SearchAction =
+  /** The query changed: a preview of the old results means nothing any more. */
+  | { t: "typed" }
+  /** A tap on a row. */
+  | { t: "preview"; target: SearchTarget }
+  /** The eye. */
+  | { t: "go"; target: SearchTarget }
+  /** "All results" from a town's list. */
+  | { t: "back" };
+
+/**
+ * One step of the search screen. `leave` is the water to open — set ONLY by the eye on a
+ * water, so a preview can never navigate. The eye on a town stays: it opens the town's
+ * list and shows the town, whole, with every water near it lit.
+ */
+export function searchStep(s: SearchPick, a: SearchAction):
+    { pick: SearchPick; leave: ItemId | null } {
+  switch (a.t) {
+    case "typed":
+    case "back":
+      return { pick: NO_PICK, leave: null };
+    case "preview":
+      return { pick: { ...s, preview: a.target }, leave: null };
+    case "go":
+      return a.target.kind === "water"
+        ? { pick: { ...s, preview: a.target }, leave: a.target.item }
+        : { pick: { preview: null, town: a.target.place }, leave: null };
+  }
+}
+
+/**
+ * WHAT THE PINNED MAP IS ABOUT, in order: the row the reader tapped; else the town whose
+ * list is open; else a town typed in full; else the best match for the typing. A water
+ * looked at from inside a town's list keeps that town pinned.
+ */
+export function subjectOf(pick: SearchPick, auto: { best: ItemId | null;
+                                                    typedTown: PlaceHit | null }):
+    { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null } {
+  const p = pick.preview;
+  if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town };
+  if (p?.kind === "place") return { item: null, place: p.place, pin: null };
+  if (pick.town) return { item: null, place: pick.town, pin: null };
+  if (auto.typedTown) return { item: null, place: auto.typedTown, pin: null };
+  return { item: auto.best, place: null, pin: null };
+}
+
+/** One group of results, in the order they are drawn. */
+export type ResultGroup =
+  | { kind: "places"; title: string; note: string; places: readonly PlaceHit[] }
+  | { kind: "waters"; title: string;
+      waters: readonly { hit: NameHit; dup: boolean }[] };
+
+/**
+ * PLACES FIRST, AND APART. A town is not a water — it is a question about the ground
+ * around it — so it never sits in the same list as the rivers, and when the results hold
+ * one it comes before them: a reader who typed a town's name meant the town. Each water
+ * carries whether its name is shared with another in the list, which is what earns it a
+ * "near Fernie".
+ */
+export function resultGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[] }):
+    ResultGroup[] {
+  const out: ResultGroup[] = [];
+  if (r.places.length)
+    out.push({ kind: "places", title: r.places.length === 1 ? "Place" : "Places",
+               note: `water within ${NEAR_KM} km`, places: r.places });
+  if (r.waters.length) {
+    const dups = duplicateNames(r.waters);
+    out.push({ kind: "waters",
+               title: `${r.waters.length} named ${r.waters.length === 1 ? "water" : "waters"}`,
+               waters: r.waters.map((hit) => ({ hit, dup: dups.has(normalise(hit.name)) })) });
+  }
+  return out;
+}
+
+/**
+ * The search screen's map and its town list, from what the reader has in hand.
+ *
+ * `results` is the ranked list the screen is already showing, so the map and the first row
+ * can never disagree about which water is "best". ONE town fetch serves both the open list
+ * and the map: inside a town's list the subject is that town or a water near it.
+ */
+export function useSearchView(source: RegsSource, query: string,
+                              results: { waters: readonly NameHit[];
+                                         places: readonly PlaceHit[] },
+                              pick: SearchPick):
+    { focus: MapFocus | null; town: Async<TownView | null> } {
+  const typed = query.trim().length >= 2;
+  const subject = subjectOf(pick, {
+    best: typed ? results.waters[0]?.item ?? null : null,
+    typedTown: typed ? townToPreview(query, results.waters, results.places) : null,
+  });
+  const located = useLocated(source, subject.item);
+  const townPlace = pick.town ?? subject.place;
+  const town = useTown(source, townPlace);
+  const best = located.state === "ready" ? located.value : null;
+  const tv = town.state === "ready" ? town.value : null;
+  const focus = useMemo(
+    () => focusFor({
+      town: subject.place && tv?.place.place === subject.place.place ? tv : null,
+      // Only the located water that IS the current subject — a slow answer for the
+      // previous keystroke must not light the wrong river.
+      best: best && best.item === subject.item ? best : null,
+      pin: subject.pin,
+    }),
+    [subject.place, subject.item, subject.pin, tv, best]);
+  // A town list reads only ITS town's answer, never a stale one for another.
+  const stale = pick.town !== null && tv !== null && tv.place.place !== pick.town.place;
+  const mine: Async<TownView | null> = stale ? { state: "loading", value: null, error: null }
+                                             : town;
+  return { focus, town: mine };
 }

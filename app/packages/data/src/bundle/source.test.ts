@@ -90,6 +90,23 @@ describe("the bundle source", () => {
     for (const h of near) expect(await src.itemExists(h.item), h.name).toBe(true);
   });
 
+  it("says how much water each near-by water is, from the bundle's own tables", async () => {
+    const [place] = await src.searchPlaces("Chilliwack", 1);
+    const near = await src.watersNear(place!.place);
+    for (const h of near) {
+      expect(h.signals.pieces, h.name).toBeGreaterThanOrEqual(1);
+      // It is near THIS town at least, so it is near one town at least.
+      expect(h.signals.towns, h.name).toBeGreaterThanOrEqual(1);
+      if (h.signals.mag !== null) expect(h.signals.mag).toBeGreaterThan(0);
+    }
+    // Read, not invented: a water with a gauge on one of its reaches says so.
+    const gauged = new Set((await db.all(
+      "SELECT DISTINCT i.item_id FROM item i JOIN item_section s ON s.ord = i.ord " +
+      "JOIN gauge g ON g.sid = s.sid")).map((r) => str(r.item_id)));
+    for (const h of near) if (gauged.has(h.item)) expect(h.signals.gauged, h.name).toBe(true);
+    expect(near.some((h) => h.signals.mag !== null)).toBe(true);
+  });
+
   it("a town search carries where the town is, and ranks the exact name first", async () => {
     const [place] = await src.searchPlaces("Chilliwack", 3);
     expect(place!.name).toBe("Chilliwack");

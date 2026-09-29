@@ -152,8 +152,12 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     },
     async watersNear(p): Promise<readonly NearHit[]> {
       return p === "12"
-        ? [{ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream", km: 1.8 },
-           { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream", km: 2.4 }]
+        ? [{ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream", km: 1.8,
+             signals: { mag: 2166, pieces: 19, towns: 72, gauged: true, stocked: false,
+                        listed: true } },
+           { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream", km: 2.4,
+             signals: { mag: 12, pieces: 1, towns: 40, gauged: false, stocked: false,
+                        listed: false } }]
         : [];
     },
     async locate(i) {

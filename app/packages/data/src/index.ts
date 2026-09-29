@@ -14,7 +14,9 @@
  * interface: regulations are not integrated, and `@app/core`'s `regulations.ts` says where
  * they plug in and which bundle tables they will read.
  */
-import type { Band, GaugeTrust, NearPlace, Standing, WaterFix } from "@app/core";
+import type {
+  Band, GaugeTrust, NearPlace, Standing, WaterFix, WaterSignals,
+} from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
 export type ItemId = string & { readonly __brand: "ItemId" };
@@ -346,6 +348,11 @@ export interface NearHit {
   name: string;
   kind: string;
   km: number;
+  /**
+   * How much water it is, as the bundle records it — what `rankNear` in @app/core weighs
+   * against `km`. The source reports; the order is core's decision.
+   */
+  signals: WaterSignals;
 }
 
 export interface LakeInfo {
@@ -408,7 +415,11 @@ export interface RegsSource {
   // ---- search ---------------------------------------------------------
   searchNames(q: string, limit: number): Promise<readonly NameHit[]>;
   searchPlaces(q: string, limit: number): Promise<readonly PlaceHit[]>;
-  /** Precomputed: named water within 25 km, nearest first. */
+  /**
+   * Precomputed: named water within 25 km, NEAREST FIRST, each with its size signals. The
+   * list a reader sees is re-ordered by `rankNear` (@app/core); the source stays nearest-
+   * first so every implementation returns one checkable order.
+   */
   watersNear(place: PlaceId): Promise<readonly NearHit[]>;
   /**
    * Where a water is, as far as the bundle can say: points ON it (a gauge on one of its

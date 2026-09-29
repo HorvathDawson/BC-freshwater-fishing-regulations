@@ -92,3 +92,18 @@ export function LayersIcon({ colour, size = 16 }: { colour: string; size?: numbe
     </Svg>
   );
 }
+
+/**
+ * "Go and look at it" — the eye on a search result. Cut from straight segments like the tab
+ * icons: an eye with hard corners and a square pupil, not the rounded almond every icon set
+ * ships, which would be the one soft shape on a square screen.
+ */
+export function EyeIcon({ colour, size = 20 }: { colour: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M2 12L7 6.5H17L22 12L17 17.5H7Z" stroke={colour} strokeWidth={1.8}
+            strokeLinecap="butt" strokeLinejoin="miter" />
+      <Rect x={9.5} y={9.5} width={5} height={5} fill={colour} />
+    </Svg>
+  );
+}

@@ -19,6 +19,21 @@ export interface Palette {
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
+  /**
+   * A TOWN, not a water. The search results put places in their own group above the
+   * waters, and the pin that marks a town on the map wears the same colour, so "this row is
+   * that pin" reads without a legend. Warm, because everything that is water is blue or the
+   * accent's violet; far from `accent`, which marks "you chose this" on the same small map.
+   * Used as TEXT (the group's heading) as well as a mark, so it holds 4.5:1 on the card.
+   */
+  place: string;
+  /**
+   * The ground of the places group: a warm band behind the town rows, so the group reads as
+   * NOT WATER before a word of it is read. Faint on purpose — `sub` and `faint` grey fall
+   * under 4.5:1 on any tint strong enough to see, so secondary text inside the band is
+   * drawn in `place`, which holds it; `ink` holds it with room to spare.
+   */
+  placeBand: string;
   /** Stocking recency ramp, most recent first. Rule 29: every bucket coloured. */
   stock: readonly [string, string, string, string, string];
   /**
@@ -128,6 +143,7 @@ export const LIGHT: Palette = {
   ...statusColours("light"), ...legend("light"),
   // 3.02:1 — WCAG 1.4.11 for a non-text mark. #C3C8CD was 1.68:1.
   quiet: "#8A9196", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
+  place: "#A64B00", placeBand: "#FBF0E6",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
   donor: ["#04879B", "#B5480B", "#A81E6B", "#0E7A3D"],
   lift: HARD(3, "rgba(21,24,28,0.90)"), r: RADIUS,
@@ -141,6 +157,7 @@ export const DARK: Palette = {
   faint: "#7C858C",
   ...statusColours("dark"), ...legend("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
+  place: "#F59E4B", placeBand: "#231A12",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
   donor: ["#37D6EA", "#FF9B54", "#FF7BB8", "#4ADE80"],
   // On a dark ground a black shadow is invisible, so the offset slab is the LINE

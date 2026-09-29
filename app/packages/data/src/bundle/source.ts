@@ -169,6 +169,12 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return (await db.all(Q.WATERS_NEAR, id, 2000)).map((r) => ({
         item: str(r.item_id) as ItemId, name: str(r.name), kind: str(r.kind),
         km: Number(r.km),
+        signals: {
+          mag: r.mag === null || r.mag === undefined ? null : Number(r.mag),
+          pieces: Number(r.pieces), towns: Number(r.towns),
+          gauged: Number(r.gauged) === 1, stocked: Number(r.stocked) === 1,
+          listed: Number(r.listed) === 1,
+        },
       })) as NearHit[];
     },
 

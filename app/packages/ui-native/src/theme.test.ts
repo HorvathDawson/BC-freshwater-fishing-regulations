@@ -6,7 +6,7 @@
  * "you are here" marker, on a map whose whole job is to say which of five pins is you.
  */
 import { describe, expect, it } from "vitest";
-import { DARK, LIGHT, type Palette } from "./theme";
+import { CVD, DARK, LIGHT, type Palette } from "./theme";
 
 /** CIE L*a*b* via sRGB, matching `tools/build-style.mjs` so the two guards agree. */
 function lab(hex: string): [number, number, number] {
@@ -55,5 +55,44 @@ describe.each([["light", LIGHT], ["dark", DARK]] as const)("%s theme", (_name, p
   it("keeps every donor tone readable against the card it sits on", () => {
     for (const tone of p.donor)
       expect(deltaE(tone, p.card)).toBeGreaterThanOrEqual(MIN_DELTA_E);
+  });
+});
+
+/** WCAG relative-luminance contrast. */
+function contrast(a: string, b: string): number {
+  const L = (hex: string) => {
+    const h = hex.replace("#", "");
+    const [r, g, b2] = [0, 2, 4]
+      .map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)) as
+        [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b2;
+  };
+  const [x, y] = [L(a), L(b)].sort((m, n) => n - m) as [number, number];
+  return (x + 0.05) / (y + 0.05);
+}
+
+describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)(
+  "%s theme: the place colour", (_name, p: Palette) => {
+  it("is not the you-chose-this accent, nor the live feed's", () => {
+    // A town's pin stands on the same small map as a lit water; a town row sits in the
+    // same list as the selected one. Both must read as a different KIND of thing.
+    expect(deltaE(p.place, p.accent)).toBeGreaterThanOrEqual(MIN_DELTA_E);
+    expect(deltaE(p.place, p.live)).toBeGreaterThanOrEqual(MIN_DELTA_E);
+  });
+
+  it("reads as text on the card and on the pressed row", () => {
+    // The group heading is 10.5px caps in this colour — small text, so 4.5:1.
+    expect(contrast(p.place, p.card)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(p.place, p.wash)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("gives the places band a ground you can see, and every word on it 4.5:1", () => {
+    // Visible against the plain list around it — that is the whole point of the band —
+    // and the pressed/selected row inside it (the card) must differ from it too.
+    expect(deltaE(p.placeBand, p.card)).toBeGreaterThanOrEqual(3);
+    expect(deltaE(p.placeBand, p.wash)).toBeGreaterThanOrEqual(3);
+    for (const [name, c] of [["ink", p.ink], ["place", p.place]] as const)
+      expect(contrast(c, p.placeBand), `${name} on the band`).toBeGreaterThanOrEqual(4.5);
   });
 });

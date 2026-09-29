@@ -115,9 +115,24 @@ export const SEARCH_PLACES =
  * id that fails `itemExists` and routes a tap nowhere.
  */
 export const WATERS_NEAR =
-  "SELECT i.item_id, i.name, i.kind, pw.ckm / 100.0 AS km FROM place_water pw " +
-  "JOIN item i ON i.ord = pw.ord " +
-  "WHERE pw.place_id = ? ORDER BY pw.ckm LIMIT ?";
+  // `towns` is how many places the water comes within 25 km of — ONE grouped pass over
+  // place_water for just these waters (it is keyed by place, not by water), the same scan
+  // NEAR_FOR_ITEMS already pays once per search.
+  "WITH near AS (SELECT pw.ord, pw.ckm FROM place_water pw WHERE pw.place_id = ?1), " +
+  "     towns AS (SELECT pw.ord, count(*) AS n FROM place_water pw " +
+  "               WHERE pw.ord IN (SELECT ord FROM near) GROUP BY pw.ord) " +
+  "SELECT i.item_id, i.name, i.kind, n.ckm / 100.0 AS km, " +
+  "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
+  "         WHERE s.ord = i.ord) AS mag, " +
+  "       (SELECT count(*) FROM item_section s WHERE s.ord = i.ord) AS pieces, " +
+  "       COALESCE(t.n, 1) AS towns, " +
+  "       (EXISTS (SELECT 1 FROM item_section s JOIN gauge g ON g.sid = s.sid " +
+  "                WHERE s.ord = i.ord) " +
+  "        OR EXISTS (SELECT 1 FROM lake_gauge lg WHERE lg.item_id = i.item_id)) AS gauged, " +
+  "       EXISTS (SELECT 1 FROM stock_water sw WHERE sw.item_id = i.item_id) AS stocked, " +
+  "       EXISTS (SELECT 1 FROM entry e WHERE e.item_id = i.item_id) AS listed " +
+  "FROM near n JOIN item i ON i.ord = n.ord LEFT JOIN towns t ON t.ord = n.ord " +
+  "ORDER BY n.ckm, i.name LIMIT ?2";
 
 /**
  * WHERE A WATER IS — the evidence the bundle holds, since it holds no geometry.

@@ -15,6 +15,7 @@ export * from "./trust";
 export * from "./section";
 export * from "./regulations";
 export * from "./search";
+export * from "./near";
 
 export type Freshness =
   | { state: "live"; ageMs: number }
