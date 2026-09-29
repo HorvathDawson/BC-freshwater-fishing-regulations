@@ -2169,12 +2169,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nitinat_river__little_nitinat_river_into_nitinat_river",
+              "nitinat_river__powerline_crossing_above_hatchery_intake"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Little Nitinat confluence (m 29,704) up to the powerline (m 30,027), 323 m. 'Then perpendicular to the flow of the Nitinat River, to the opposite shore' is the cut across the river at the confluence."
+        ],
         "spatial_caveat": false
       }
     },
@@ -2220,12 +2230,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nitinat_river__red_rock_pool_100_m_downstream",
+              "nitinat_river__fishing_boundary_signs_100_m_upstream_of_red_rock_pool"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Red Rock Pool located by hand by the curator; the signs sit 100 m either side (m 28,461 / 28,661)."
+        ],
         "spatial_caveat": false
       }
     },
