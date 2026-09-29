@@ -6813,6 +6813,34 @@
       55.01592
      ],
      "_offset_m": 100
+    },
+    {
+     "id": "bulkley_river__morice_river_into_bulkley_river_d1000m",
+     "label": "the Forks fishing boundary signs, 1 km downstream",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "offset_m": 1000,
+      "offset_dir": "downstream",
+      "_name": "Morice River"
+     },
+     "note": "DFO r6 (the Forks): 'The closure starts 100 meters upstream of the confluence and ends approximately 1 kilometre downstream'.",
+     "_note": "[authored 2026-09-29] Distance stated by the regulation. Upstream on the BULKLEY is the upper Bulkley arm — the smaller one (magnitude 2,542 vs the Morice's 6,643) that keeps the name."
+    },
+    {
+     "id": "bulkley_river__morice_river_into_bulkley_river_u100m",
+     "label": "the Forks fishing boundary signs, 100 m up the upper Bulkley",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "offset_m": 100,
+      "offset_dir": "upstream",
+      "_name": "Morice River"
+     },
+     "note": "DFO r6 (the Forks): 'The closure starts 100 meters upstream of the confluence and ends approximately 1 kilometre downstream'.",
+     "_note": "[authored 2026-09-29] Distance stated by the regulation. Upstream on the BULKLEY is the upper Bulkley arm — the smaller one (magnitude 2,542 vs the Morice's 6,643) that keeps the name."
     }
    ]
   },
@@ -7207,7 +7235,68 @@
       "_name": "Gosnell Creek"
      },
      "note": "",
-     "_note": "[dfo-salmon 2026-09-02] DFO r6: 'from Gosnell Creek to Lamprey Creek.' Derived from FWA topology, not a coordinate: Gosnell Creek's wsc 400-431358-585806-558169-005657 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds."
+     "_note": "[dfo-salmon 2026-09-02; CORRECTED 2026-09-29] DFO r6: 'from Gosnell Creek to Lamprey Creek.' Gosnell Creek is NOT a Morice tributary: its wsc 400-431358-585806-558169-005657 is a child of the THAUTIL (…-558169), which it joins 222 m above the Thautil's mouth. The Thautil meets the Morice at m 75,150 and this point lands at m 75,170 — the spot on the mainstem where Gosnell's water arrives. The earlier note claimed a direct child, which was false."
+    },
+    {
+     "id": "morice_river__gosnell_creek_into_morice_river_d100m",
+     "label": "fishing boundary signs ~100 m downstream of Gosnell Creek",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-431358-585806-558169-005657",
+      "offset_m": 100,
+      "offset_dir": "downstream",
+      "_name": "Gosnell Creek"
+     },
+     "note": "DFO r6: 'from fishing boundary signs located approximately 100 m downstream of Gosnell Creek to Lamprey Creek.' A distinct reach from 'from Gosnell Creek to Lamprey Creek'.",
+     "_note": "[authored 2026-09-29] Offset from the curated Gosnell point on the Morice (m 75,170), which sits 20 m above the Thautil mouth: Gosnell is a THAUTIL tributary, joining it 222 m above the Thautil's own mouth, so its water reaches the Morice at the Thautil confluence."
+    },
+    {
+     "id": "morice_river__bymac_bridge",
+     "label": "Bymac Bridge (Walcott FSR)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.749665,
+       54.375857
+      ],
+      "is_lonlat": true
+     },
+     "note": "DFO r6: 'from the confluence of the Bulkley and Morice Rivers upstream to the Bymac Bridge on Walcott Road' / 'upstream of the Bymac Bridge on Walcott Road'.",
+     "_note": "[authored 2026-09-29] Where WALCOTT FSR (forest_service_roads) crosses the Morice: m 4,754, 4.75 km above the Forks. NOT Walcott locality on the Bulkley — that pin sat 18 km BELOW the Forks and contradicted 'upstream'. BYMAC FSR also exists but is a 1.2 km spur crossing no water."
+    },
+    {
+     "id": "morice_river__bulkley_confluence",
+     "label": "Bulkley River confluence (the Forks)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.746019,
+       54.411266
+      ],
+      "is_lonlat": true
+     },
+     "note": "The Morice's own mouth. Exists so a reach can be written `between` the Forks and a point upstream rather than `downstream_of` — the two select the same water.",
+     "_note": "[authored 2026-09-29] Coord 0 of the Morice chain (blk 360885316). Lands on a BARE natural end, which a curated split may take (sectionizer._pickup): nothing to relabel, no sliver."
+    },
+    {
+     "id": "morice_river__bulkley_confluence_u100m",
+     "label": "the Forks fishing boundary signs, 100 m up the Morice",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.746019,
+       54.411266
+      ],
+      "is_lonlat": true,
+      "offset_m": 100,
+      "offset_dir": "upstream"
+     },
+     "note": "DFO r6 (the Forks): 'The closure starts 100 meters upstream of the confluence and ends approximately 1 kilometre downstream'. The Morice arm's upstream sign.",
+     "_note": "[authored 2026-09-29] Distance stated by the regulation, so derivable — unlike the Kispiox zone."
     }
    ]
   },

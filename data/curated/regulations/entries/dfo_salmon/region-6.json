@@ -6768,12 +6768,18 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Bound to Morice LAKE (wbk:329385412) and the streams feeding it — not the Morice River, which leaves the lake and has its own locators."
+        ],
         "spatial_caveat": false
       }
     },
@@ -6826,12 +6832,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__morice_lake",
+              "morice_river__gosnell_creek_into_morice_river"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Starts at the OUTLET signs (UTM 602539E 5997166N, Morice m 91,875 — on the lake edge), not at the Dunes signs 2 km down. The province splits this into outlet->Dunes and Dunes->Gosnell; DFO writes one reach, and binding it to the Dunes split would drop the top 2 km."
+        ],
         "spatial_caveat": false
       }
     },
@@ -6894,12 +6910,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__gosnell_creek_into_morice_river_d100m",
+              "morice_river__lamprey_creek_into_morice_river"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Same place as ~2: the trailing chinook-only sentence is a rule, not a place."
+        ],
         "spatial_caveat": false
       }
     },
@@ -6947,7 +6973,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "morice_river__lamprey_creek_into_morice_river"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7001,7 +7034,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__gosnell_creek_into_morice_river",
+              "morice_river__lamprey_creek_into_morice_river"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7061,12 +7102,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__bulkley_confluence",
+              "morice_river__bymac_bridge"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Bymac Bridge = where WALCOTT FSR crosses the Morice, m 4,754. Not the Walcott locality on the Bulkley, which is 18 km BELOW the Forks and contradicts 'upstream'."
+        ],
         "spatial_caveat": false
       }
     },
@@ -7117,7 +7168,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "morice_river__bymac_bridge"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9616,12 +9674,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river_d1000m",
+              "bulkley_river__morice_river_into_bulkley_river_u100m"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Sign-bounded zone at the Forks. Tributaries OFF although the section heading reads 'Morice River (including tributaries)': the reach text is 'waters within the four white triangular fishing boundary signs', which is water inside the signs, not the streams above them. The regulation states its own distances (100 m up, ~1 km down), so this is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m."
+        ],
         "spatial_caveat": false
       }
     },
@@ -9680,12 +9748,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__bulkley_confluence",
+              "morice_river__bulkley_confluence_u100m"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Sign-bounded zone at the Forks. Tributaries OFF although the section heading reads 'Morice River (including tributaries)': the reach text is 'waters within the four white triangular fishing boundary signs', which is water inside the signs, not the streams above them. The regulation states its own distances (100 m up, ~1 km down), so this is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m."
+        ],
         "spatial_caveat": false
       }
     },
@@ -10388,7 +10466,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__gosnell_creek_into_morice_river_d100m",
+              "morice_river__lamprey_creek_into_morice_river"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
