@@ -180,6 +180,24 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1]) {
                : { below: all.slice(0, i), labels: all.slice(i) };
 }
 
+/**
+ * THE EXTERNAL RASTER SOURCES the generated style declares — the satellite imagery.
+ *
+ * Copied from `style.json` rather than restated here, so the URL, tile size and the
+ * attribution EOX requires live in ONE place (`layers.source.json`), where the builder
+ * refuses an external source without a credit. Our own authoring keys (`external`,
+ * `$comment`) are stripped: MapLibre's validator rejects properties it does not know.
+ */
+function externalRasters(): Record<string, Record<string, unknown>> {
+  return Object.fromEntries(Object.entries(MAP_STYLE.sources)
+    .filter(([, v]) => (v as { type?: string }).type === "raster")
+    .map(([id, v]) => [id, Object.fromEntries(Object.entries(v as Record<string, unknown>)
+      .filter(([k]) => k !== "external" && !k.startsWith("$")))]));
+}
+
+/** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
+const isRaster = (l: { type?: string }) => l.type === "raster";
+
 export function runtimeStyle(at: TileEndpoints, theme: string,
                              modes: Record<string, string> = {}) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
@@ -195,6 +213,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     sources: {
       basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, attribution:
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
+      ...externalRasters(),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
       // itself, so it has to be parsed. See `geojsonData` below for why that distinction
       // cost us an error on every map mount.
@@ -273,6 +292,13 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // may not cross, which river you are standing on. They go first; the basemap's
       // decorative labels fill in around them.
       ...baseBelowLabels,
+      /*
+       * THE SATELLITE GROUND, directly over the drawn one and under everything else: the
+       * Conditions wash, the outside-BC mask (so the province still reads as the place we
+       * answer for), our water, and every label. Hidden until the map's `basemap` prop asks
+       * for it — see `setBasemap` in the adapter contract.
+       */
+      ...(MAP_STYLE.layers as { id: string; type?: string }[]).filter(isRaster),
       /**
        * A SHEET OF PAPER OVER THE GROUND, for the Conditions view only.
        *
@@ -333,7 +359,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
                            8, resolveTheme(theme)["opacity.outside"] as number],
         },
       }] : []),
-      ...MAP_STYLE.layers.flatMap((l) => {
+      ...MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
         const view = defaultView();
         const mode = modes[l.id] ?? view?.modes[l.id];
         const painted = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;

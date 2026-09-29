@@ -41,35 +41,70 @@ export const ITEM_FOR_SECTION =
   "WHERE s.sid = ? LIMIT 1";
 
 /**
- * Name search.
+ * Name search — the CANDIDATES. The final order is decided in @app/core (`rankWaters`).
  *
- * Prefix-anchored, then contains, because "chil" should offer Chilliwack River before
- * Upper Chilliwack, and a plain LIKE '%q%' orders by rowid — which is to say, at random.
+ * `?1` is the query with LIKE's own wildcards escaped (see `likeEscape`), so a name with an
+ * underscore in it is not a wildcard. The tier here is the coarse half of core's ladder —
+ * exact, prefix, word-prefix, anywhere, with an alias one step behind the name — and it is
+ * only here so that the LIMIT keeps the right rows: "creek" matches thousands of waters and
+ * the ones worth offering are the exact and prefix matches on the biggest of them, which a
+ * LIMIT over rowid order would have thrown away.
+ *
+ * `size` is the FWA stream MAGNITUDE of the water's biggest reach (`section_gauge.mag`) —
+ * the count of headwaters above it, the same measure the zoom ladder draws rivers by. It is
+ * the one measure of how much water this is that the bundle carries for nearly every
+ * stream. `section_panel.area_km2` looked like the answer and is not: it is the PANEL's
+ * catchment, so a creek entering the Fraser reported the Fraser's 64,000 km² and "creek"
+ * ranked Nathan Creek first. Lakes carry no magnitude and come back null, sorted as small.
+ *
  * Aliases come back with the name they belong to so a row can say "also VEDDER RIVER"
  * instead of looking like the wrong water.
  */
 export const SEARCH =
   // The union is wrapped because SQLite will not ORDER a compound SELECT by an expression
   // — only by a result column. Ordering outside also keeps the ranking in one place.
-  "SELECT * FROM ( " +
-  "  SELECT i.item_id, i.name, i.kind, NULL AS matched_as, " +
-  "         (CASE WHEN i.name LIKE ?1 || '%' THEN 0 ELSE 1 END) AS rank " +
-  "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' " +
+  "SELECT m.item_id, m.name, m.kind, m.matched_as, min(m.tier) AS tier, " +
+  "       (SELECT count(*) FROM item_section s WHERE s.ord = m.ord) AS pieces, " +
+  "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
+  "         WHERE s.ord = m.ord) AS size " +
+  "FROM ( " +
+  "  SELECT i.ord, i.item_id, i.name, i.kind, NULL AS matched_as, " +
+  "         (CASE WHEN i.name LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN i.name LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
+  "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
+  "               ELSE 6 END) AS tier " +
+  "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "  UNION ALL " +
-  "  SELECT i.item_id, i.name, i.kind, a.alias AS matched_as, " +
-  "         (CASE WHEN a.alias LIKE ?1 || '%' THEN 2 ELSE 3 END) AS rank " +
-  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' " +
-  ") ORDER BY rank, length(name), name LIMIT ?2";
+  "  SELECT i.ord, i.item_id, i.name, i.kind, a.alias AS matched_as, " +
+  "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
+  "               WHEN a.alias LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
+  "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
+  "               ELSE 7 END) AS tier " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  ") m GROUP BY m.item_id, m.matched_as " +
+  "ORDER BY tier, size IS NULL, size DESC, length(m.name), m.name LIMIT ?2";
 
-export const PIECES =
-  "SELECT i.item_id, count(*) AS n FROM item_section s JOIN item i ON i.ord = s.ord " +
-  `WHERE i.item_id IN (%IDS%) GROUP BY i.item_id`;
+/** `%` and `_` are LIKE's wildcards; a query containing either means the character. */
+export const likeEscape = (q: string): string => q.replace(/[\\%_]/g, (c) => "\\" + c);
+
+/**
+ * The towns each of these waters comes within 25 km of, nearest first.
+ *
+ * `place_water` is keyed by place, so this scans it — about 380,000 rows held in memory,
+ * a few tens of milliseconds, once per search rather than once per row.
+ */
+export const NEAR_FOR_ITEMS =
+  "SELECT i.item_id, p.name, p.kind, p.lat, p.lon, pw.ckm / 100.0 AS km " +
+  "FROM place_water pw JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
+  "WHERE i.item_id IN (%IDS%) AND p.lat IS NOT NULL ORDER BY pw.ckm";
 
 export const SEARCH_PLACES =
   // Biggest first among equally good matches: someone typing "vic" means Victoria, not a
-  // hamlet of forty people that happens to sort earlier.
-  "SELECT place_id, name, kind FROM place WHERE name LIKE '%' || ?1 || '%' " +
-  "ORDER BY (CASE WHEN name LIKE ?1 || '%' THEN 0 ELSE 1 END), " +
+  // hamlet of forty people that happens to sort earlier. An exact name beats both.
+  "SELECT place_id, name, kind, pop, lat, lon FROM place " +
+  "WHERE name LIKE '%' || ?1 || '%' ESCAPE '\\' AND lat IS NOT NULL " +
+  "ORDER BY (CASE WHEN name LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN name LIKE ?1 || '%' ESCAPE '\\' THEN 1 ELSE 2 END), " +
   "         -COALESCE(pop, 0), length(name) LIMIT ?2";
 
 /**
@@ -83,6 +118,26 @@ export const WATERS_NEAR =
   "SELECT i.item_id, i.name, i.kind, pw.ckm / 100.0 AS km FROM place_water pw " +
   "JOIN item i ON i.ord = pw.ord " +
   "WHERE pw.place_id = ? ORDER BY pw.ckm LIMIT ?";
+
+/**
+ * WHERE A WATER IS — the evidence the bundle holds, since it holds no geometry.
+ *
+ * Points ON the water: a hydrometric station whose own reach is one of this water's
+ * (`gauge.sid`), and a stocking site matched to it. Then the rings: every town within
+ * 25 km and how close the water comes to it. See `fixOf` in @app/core.
+ */
+export const GAUGES_ON_ITEM =
+  "SELECT g.lat, g.lon FROM item_section s JOIN item i ON i.ord = s.ord " +
+  "JOIN gauge g ON g.sid = s.sid " +
+  "WHERE i.item_id = ? AND g.lat IS NOT NULL AND g.lon IS NOT NULL";
+
+export const STOCKED_ON_ITEM =
+  "SELECT lat, lon FROM stock_water WHERE item_id = ? AND lat IS NOT NULL AND lon IS NOT NULL";
+
+export const RINGS_FOR_ITEM =
+  "SELECT p.lat, p.lon, pw.ckm / 100.0 AS km FROM place_water pw " +
+  "JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
+  "WHERE i.item_id = ? AND p.lat IS NOT NULL ORDER BY pw.ckm LIMIT 12";
 
 // ---- conditions ------------------------------------------------------------------
 /**

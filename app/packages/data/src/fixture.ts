@@ -129,26 +129,41 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async searchNames(q, limit): Promise<readonly NameHit[]> {
       const needle = q.toLowerCase();
       const rows: NameHit[] = [];
+      // THE SAME TOWN the bundle's `place_water` would name, with the same fields, so a
+      // screen rendering "near Chilliwack" is exercised by the fixture too.
+      const near = { name: "Chilliwack", kind: "city", lat: 49.171, lon: -121.953, km: 1.8 };
       if (CHILLIWACK.name.toLowerCase().includes(needle)) {
-        rows.push({ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name,
-                    matchedAs: null, pieces: CHILLIWACK.sections.length });
+        rows.push({ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream",
+                    matchedAs: null, pieces: CHILLIWACK.sections.length, size: 2236, near });
       }
       const byAlias = JEPERSON.alias.toLowerCase().includes(needle);
       if (byAlias || JEPERSON.name.toLowerCase().includes(needle)) {
-        rows.push({ item: id<ItemId>(JEPERSON.item), name: JEPERSON.name,
-                    matchedAs: byAlias ? JEPERSON.alias : null, pieces: 1 });
+        rows.push({ item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream",
+                    matchedAs: byAlias ? JEPERSON.alias : null, pieces: 1, size: 12,
+                    near: { ...near, km: 2.4 } });
       }
-      return rows.slice(0, limit);
+      return rows.slice(0, Math.max(0, limit));
     },
     async searchPlaces(q, limit): Promise<readonly PlaceHit[]> {
       return "chilliwack".includes(q.toLowerCase())
-        ? [{ place: id<PlaceId>("chilliwack"), name: "Chilliwack", kind: "city" }].slice(0, limit)
+        ? [{ place: id<PlaceId>("12"), name: "Chilliwack", kind: "city",
+             lat: 49.171, lon: -121.953, pop: 93203 }].slice(0, limit)
         : [];
     },
     async watersNear(p): Promise<readonly NearHit[]> {
-      return p === "chilliwack"
-        ? [{ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, km: 1.8 }]
+      return p === "12"
+        ? [{ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream", km: 1.8 },
+           { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream", km: 2.4 }]
         : [];
+    },
+    async locate(i) {
+      // The station sits ON the Chilliwack; the side channel has only its town ring.
+      if (i === CHILLIWACK.item)
+        return { on: [{ lat: 49.096, lon: -121.958 }],
+                 near: [{ lat: 49.171, lon: -121.953, km: 1.8 }] };
+      if (i === JEPERSON.item)
+        return { on: [], near: [{ lat: 49.171, lon: -121.953, km: 2.4 }] };
+      return { on: [], near: [] };
     },
 
     async gaugeForSection(s): Promise<GaugeLink | null> {

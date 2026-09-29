@@ -9,12 +9,13 @@
  */
 import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
-import { Map, type Camera, type TileEndpoints } from "@app/map";
+import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
 import { mapChrome, type Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
-                          hint, data, highlight, marker, pins, bare, groups }: {
+                          hint, data, highlight, marker, pins, bare, groups, fit,
+                          basemap, style }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;
   data?: Record<string, Record<string, Record<string, unknown>>>;
@@ -26,11 +27,18 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   bare?: boolean;
   /** Which layer groups to draw. Omitted, the style's own defaults apply. */
   groups?: Record<string, boolean>;
+  /** Send the camera to a subject — the search map opens on the best match. */
+  fit?: MapProps["fit"];
+  basemap?: MapProps["basemap"];
+  /** Replaces the fixed height — e.g. `{ flexGrow: 1 }` to take what the list leaves. */
+  style?: object;
 }) {
   return (
-    <View style={{ height, backgroundColor: palette.tint, overflow: "hidden" }}>
+    <View style={[style ? null : { height },
+                  { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
+           fit={fit} basemap={basemap}
            chrome={mapChrome(palette, theme)} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,

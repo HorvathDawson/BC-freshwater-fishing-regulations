@@ -23,7 +23,14 @@ describe("the generated style", () => {
     // layers against a source the spec can see.
     const errors = validateStyleMin({
       ...style,
-      sources: { atlas: { type: "vector", tiles: ["https://example.invalid/{z}/{x}/{y}.pbf"] } },
+      sources: {
+        atlas: { type: "vector", tiles: ["https://example.invalid/{z}/{x}/{y}.pbf"] },
+        // The imagery source as the runtime hands it over: our authoring keys stripped.
+        ...Object.fromEntries(Object.entries(style.sources as Record<string, object>)
+          .filter(([, v]) => (v as { type?: string }).type === "raster")
+          .map(([k, v]) => [k, Object.fromEntries(Object.entries(v)
+            .filter(([f]) => f !== "external" && !f.startsWith("$")))])),
+      },
       glyphs: "https://example.invalid/{fontstack}/{range}.pbf",
     } as Parameters<typeof validateStyleMin>[0]);
     expect(errors.map((e) => `${e.message}`)).toEqual([]);
@@ -42,8 +49,20 @@ describe("the generated style", () => {
     // type. A layer whose type it does not recognise silently gets circle-color, which a
     // fill layer ignores — so the area draws in its default colour and nothing reports a
     // problem. "symbol" is here because water labels are text and text takes text-color.
-    for (const l of style.layers)
+    //
+    // A RASTER is the one exception, and it is exempt only because the adapter never
+    // paints it: it has no colour modes at all (the builder refuses one), so there is no
+    // mode for `colourPropFor` to translate. Pinned here, so a raster that grew a colour
+    // mode would fail rather than be handed `circle-color`.
+    const meta = JSON.parse(readFileSync(fileURLToPath(
+      new URL("../packages/map/style/style.meta.json", import.meta.url)), "utf8"));
+    for (const l of style.layers) {
+      if (l.type === "raster") {
+        expect(meta.colorModes[l.id], `${l.id} is a raster with colour modes`).toBeUndefined();
+        continue;
+      }
       expect(["line", "fill", "circle", "symbol"], `${l.id} is drawn as ${l.type}`)
         .toContain(l.type);
+    }
   });
 });

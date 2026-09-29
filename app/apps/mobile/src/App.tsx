@@ -174,6 +174,10 @@ export default function App() {
                  "the information on this website with caution and at their own risk.",
                  "Stocking: Province of British Columbia, Fisheries Inventory Data Queries",
                  "Weather from Open-Meteo.com (CC BY 4.0)",
+                 // The Satellite basemap. EOX's required form; the map's own attribution
+                 // control carries it too while the imagery is on screen.
+                 "Satellite imagery: EOxCloudless 2016 by EOX IT Services GmbH (Contains " +
+                 "modified Copernicus Sentinel data 2016), CC BY 4.0",
                ]} />
       ) : (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>

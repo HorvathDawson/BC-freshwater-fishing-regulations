@@ -53,6 +53,19 @@ describe("map parity", () => {
     expect(a.calls.length).toBeGreaterThan(0);
   });
 
+  it("the basemap switch issues the identical calls on both, and only on imagery", () => {
+    for (const kind of ["satellite", "map"] as const) {
+      const a = recorder(), b = recorder();
+      native.setBasemap(a.h, kind);
+      web.setBasemap(b.h, kind);
+      expect(a.calls).toEqual(b.calls);
+      expect(a.calls.length).toBeGreaterThan(0);
+      for (const c of a.calls)
+        expect(c, "setBasemap touched a layer outside the imagery group")
+          .toBe(`vis imagery ${kind === "satellite"}`);
+    }
+  });
+
   it("every view x every theme produces the identical paint calls on both", () => {
     for (const view of STYLE_META.views)
       for (const theme of Object.keys(STYLE_META.themes)) {

@@ -14,7 +14,7 @@
  * interface: regulations are not integrated, and `@app/core`'s `regulations.ts` says where
  * they plug in and which bundle tables they will read.
  */
-import type { Band, GaugeTrust, Standing } from "@app/core";
+import type { Band, GaugeTrust, NearPlace, Standing, WaterFix } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
 export type ItemId = string & { readonly __brand: "ItemId" };
@@ -314,20 +314,37 @@ export interface Water {
 export interface NameHit {
   item: ItemId;
   name: string;
+  /** stream | lake | wetland — a lake and a river of one name are different answers. */
+  kind: string;
   /** Set when the query matched an alias rather than the display name. */
   matchedAs: string | null;
   pieces: number;
+  /**
+   * How notable it is: the FWA stream magnitude of its biggest reach — how many headwaters
+   * drain through it. Null when the bundle carries no figure (every lake).
+   */
+  size: number | null;
+  /**
+   * The town it is best described by — "near Fernie · 3 km". What tells two waters of one
+   * name apart. Null when no named place is within 25 km of it.
+   */
+  near: NearPlace | null;
 }
 
 export interface PlaceHit {
   place: PlaceId;
   name: string;
   kind: string;
+  lat: number;
+  lon: number;
+  /** Population, when the gazetteer has one. Null is "not recorded", not zero. */
+  pop: number | null;
 }
 
 export interface NearHit {
   item: ItemId;
   name: string;
+  kind: string;
   km: number;
 }
 
@@ -393,6 +410,15 @@ export interface RegsSource {
   searchPlaces(q: string, limit: number): Promise<readonly PlaceHit[]>;
   /** Precomputed: named water within 25 km, nearest first. */
   watersNear(place: PlaceId): Promise<readonly NearHit[]>;
+  /**
+   * Where a water is, as far as the bundle can say: points ON it (a gauge on one of its
+   * reaches, a stocking site) and the towns within 25 km with their distance to it.
+   *
+   * The bundle holds no geometry, so this is evidence rather than an outline —
+   * `fixOf` in @app/core turns it into a camera box and the map refines that against the
+   * tiles. Both lists empty is a real answer: remote water with no station and no town.
+   */
+  locate(item: ItemId): Promise<WaterFix>;
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;

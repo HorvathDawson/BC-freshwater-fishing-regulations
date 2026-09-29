@@ -38,6 +38,13 @@
       "label": "Land ownership",
       "toggleable": true,
       "defaultVisible": false
+    },
+    {
+      "id": "imagery",
+      "label": "Satellite imagery",
+      "toggleable": false,
+      "defaultVisible": false,
+      "$comment": "NOT a group a screen toggles. Imagery replaces the drawn ground, so it is switched as the map's `basemap` prop (adapter `setBasemap`), never through `groups` — which is how a screen could otherwise light it while the drawn basemap and its wash still competed underneath."
     }
   ],
   "views": [
@@ -243,6 +250,7 @@
     }
   },
   "layerGroup": {
+    "imagery": "imagery",
     "parcel_private": "ownership",
     "indigenous_land": "access",
     "no_access": "access",

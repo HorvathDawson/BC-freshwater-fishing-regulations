@@ -24,7 +24,8 @@ import { hatchImage } from "./hatch";
 import { resolveTheme, STYLE_META } from "./style";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
 import { toExpression } from "./legacy-filter";
-import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM } from "@app/core";
+import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
+         unionBbox, type Bbox } from "@app/core";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -67,10 +68,33 @@ function useOutsideMask(url: string | undefined): unknown {
   return got;
 }
 
+/**
+ * Run `fn` once the style can take layout and feature-state calls — now, or as soon as it
+ * can. Returns the cleanup.
+ *
+ * NOT `isStyleLoaded() ? fn() : once("load", fn)`, the pattern this file uses elsewhere and
+ * the one HANDOFF-ui.md records biting twice: `isStyleLoaded()` is briefly false on a map
+ * that loaded long ago (every `setFilter` and tile burst), and `load` never fires again —
+ * so the call was simply lost. `styledata` keeps arriving, so waiting on it cannot miss.
+ */
+function whenStyled(m: maplibregl.Map, fn: () => void): () => void {
+  if (m.isStyleLoaded()) { fn(); return () => {}; }
+  const h = () => {
+    if (!m.isStyleLoaded()) return;
+    m.off("styledata", h); m.off("load", h);
+    fn();
+  };
+  m.on("styledata", h); m.on("load", h);
+  return () => { m.off("styledata", h); m.off("load", h); };
+}
+
+/** The layers a searched water can be drawn in — what `fit.refine` measures. */
+const WATER_LAYERS = ["stream", "lake", "wetland"] as const;
+
 export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
-                      gauges, onVisible, pins, bare }: MapProps) {
+                      gauges, onVisible, pins, bare, fit, basemap }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef(baseAdapter("web"));
@@ -387,9 +411,12 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     };
   }, [(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")]);
 
+  const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
     const m = map.current;
     if (!m || !highlight) return;
+    // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
+    // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
       const handle = {
         setVisibility: () => {},
@@ -402,13 +429,83 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
           const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
           // Clear ONLY `selected`. Dropping every feature-state would take the status
           // values with it, so selecting a river would un-colour the map.
-          if (src) m.removeFeatureState({ source: src, sourceLayer: layerId }, "selected");
+          //
+          // PER FEATURE, from the ids this map lit last time. MapLibre refuses to remove
+          // one KEY from a whole source-layer ("A feature id is required to remove its
+          // specific state property") — so the old call threw on every clear, the old
+          // highlight stayed lit, and it only went unnoticed because nothing had ever
+          // changed a highlight on a mounted map until search did.
+          if (!src) return;
+          for (const id of wasLit.current)
+            m.removeFeatureState({ source: src, sourceLayer: layerId, id }, "selected");
         },
       };
       adapter.current.highlight(handle, [...highlight]);
+      wasLit.current = [...highlight];
     };
-    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    return whenStyled(m, apply);
   }, [highlight]);
+
+  /**
+   * THE GROUND — drawn basemap or satellite. Through the adapter, so the native map owes
+   * exactly the same switch (`setBasemap` in the contract), and keyed on the choice alone.
+   */
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    return whenStyled(m, () => adapter.current.setBasemap({
+      setVisibility: (id, v) => {
+        if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
+      },
+      setPaint: () => {}, setFeatureState: () => {}, clearFeatureStates: () => {},
+    }, basemap ?? "map"));
+  }, [basemap]);
+
+  /**
+   * SEND THE CAMERA to a subject, then let the water's own shape frame it.
+   *
+   * The box comes from the bundle's evidence (gauges, stocking sites, town distances) and
+   * is not an outline — the Chilliwack's gauges are all on its lower half. So after each
+   * move settles, the `highlight` features the tiles have actually delivered are measured
+   * and the camera re-fits to them while `refineFit` says there is more to see. Bounded
+   * rounds, so a river that runs off every tile set cannot walk the camera forever.
+   *
+   * The highlight is read through a ref: it arrives with the same subject, and a new array
+   * for the same water must not restart the fit.
+   */
+  const lit = useRef(highlight);
+  lit.current = highlight;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !fit) return;
+    let rounds = 0;
+    let alive = true;
+    const go = (b: Bbox) => {
+      const el = m.getContainer();
+      const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
+      m.fitBounds([[b[0], b[1]], [b[2], b[3]]],
+                  { padding: Math.max(pad, 8), maxZoom: MAX_ZOOM, duration: 450 });
+    };
+    if (fit.bbox) go(fit.bbox);
+    if (!fit.refine) return () => { alive = false; };
+    const measure = () => {
+      if (!alive) return;
+      const ids = new Set((lit.current ?? []).map(String));
+      if (!ids.size) return;
+      let found: Bbox | null = null;
+      for (const layer of WATER_LAYERS)
+        for (const f of m.querySourceFeatures("atlas", { sourceLayer: layer }))
+          if (f.id !== undefined && ids.has(String(f.id)))
+            found = unionBbox(found, bboxOfGeometry(f.geometry as never));
+      const vb = m.getBounds();
+      const next = refineFit([vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()],
+                             found, rounds);
+      if (next) { rounds += 1; go(padBbox(next, 0.4)); }
+      else m.off("idle", measure);
+    };
+    m.on("idle", measure);
+    return () => { alive = false; m.off("idle", measure); };
+  }, [fit?.key]);
 
   // Which reaches are on screen. Reported after movement settles rather than per frame:
   // a pan fires `idle` once, where `move` fires sixty times a second and would issue a

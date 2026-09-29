@@ -21,6 +21,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   searchNames: async () => [],
   searchPlaces: async () => [],
   watersNear: async () => [],
+  locate: async () => ({ on: [], near: [] }),
   gaugeForSection: async () => null,
   gaugeNow: async () => null,
   gaugeSeries: async () => null,

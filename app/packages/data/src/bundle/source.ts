@@ -10,7 +10,8 @@
  * It decides nothing, and it reads no regulation table: regulations are not integrated (see
  * `regulations.ts` in @app/core for where they plug in).
  */
-import { bandAt, type Band } from "@app/core";
+import { bandAt, describeBy, rankWaters, type Band, type NearPlace, type WaterFix }
+  from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
@@ -110,42 +111,77 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
-      if (q.trim().length < 2) return [];
-      const rows = await db.all(Q.SEARCH, q.trim(), limit * 2);
-      // One row per ITEM: an item matched by both its name and an alias is one result.
+      const query = q.trim();
+      if (query.length < 2 || limit < 1) return [];
+      // Candidates from SQL, ORDER from core — see `rankWaters`. Over-fetched so the rank
+      // has room to promote a big water past a small one of the same match quality.
+      const rows = await db.all(Q.SEARCH, Q.likeEscape(query), Math.max(limit * 3, 60));
+      // One row per ITEM: an item matched by both its name and an alias is one result,
+      // and the better of the two matches is the one it keeps.
       const seen = new Map<string, NameHit>();
       for (const r of rows) {
         const item = str(r.item_id);
-        if (seen.has(item)) continue;
-        seen.set(item, { item: item as ItemId, name: str(r.name),
-                         matchedAs: r.matched_as == null ? null : str(r.matched_as),
-                         pieces: 0 });
-        if (seen.size >= limit) break;
+        const hit: NameHit = {
+          item: item as ItemId, name: str(r.name), kind: str(r.kind),
+          matchedAs: r.matched_as == null ? null : str(r.matched_as),
+          pieces: Number(r.pieces ?? 0), size: num(r.size), near: null,
+        };
+        const had = seen.get(item);
+        if (!had || rankWaters(query, [had, hit])[0] === hit) seen.set(item, hit);
       }
-      const hits = [...seen.values()];
+      const hits = rankWaters(query, [...seen.values()]).slice(0, limit);
       if (hits.length) {
-        const counts = await db.all(Q.PIECES.replace("%IDS%", Q.placeholders(hits.length)),
-                                    ...hits.map((h) => h.item));
-        const n = new Map(counts.map((r) => [str(r.item_id), Number(r.n)]));
-        for (const h of hits) (h as { pieces: number }).pieces = n.get(h.item) ?? 0;
+        const rings = await db.all(
+          Q.NEAR_FOR_ITEMS.replace("%IDS%", Q.placeholders(hits.length)),
+          ...hits.map((h) => h.item));
+        const by = new Map<string, NearPlace[]>();
+        for (const r of rings) {
+          const list = by.get(str(r.item_id)) ?? [];
+          list.push({ name: str(r.name), kind: str(r.kind), lat: Number(r.lat),
+                      lon: Number(r.lon), km: Number(r.km) });
+          by.set(str(r.item_id), list);
+        }
+        for (const h of hits) (h as { near: NearPlace | null }).near =
+          describeBy(by.get(h.item) ?? []);
       }
       return hits;
     },
 
     async searchPlaces(q, limit): Promise<readonly PlaceHit[]> {
-      if (q.trim().length < 2) return [];
-      return (await db.all(Q.SEARCH_PLACES, q.trim(), limit)).map((r) => ({
+      if (q.trim().length < 2 || limit < 1) return [];
+      return (await db.all(Q.SEARCH_PLACES, Q.likeEscape(q.trim()), limit)).map((r) => ({
         place: str(r.place_id) as PlaceId, name: str(r.name), kind: str(r.kind),
+        lat: Number(r.lat), lon: Number(r.lon), pop: num(r.pop),
       }));
     },
 
     async watersNear(place): Promise<readonly NearHit[]> {
-      // `place` is the integer place_id from `searchPlaces`. Every row joins to a real
-      // item — the precompute is keyed on item_id, so there is nothing to invent when a
-      // name does not match.
-      return (await db.all(Q.WATERS_NEAR, place, 40)).map((r) => ({
-        item: str(r.item_id) as ItemId, name: str(r.name), km: Number(r.km),
+      // `place` is the integer place_id from `searchPlaces`, carried as a string. Bound as
+      // a NUMBER: the column is INTEGER and SQLite's affinity would convert a text
+      // parameter anyway, but relying on that is relying on every driver doing it.
+      // Every row joins to a real item — the precompute is keyed on item_id, so there is
+      // nothing to invent when a name does not match.
+      const id = /^\d+$/.test(place) ? Number(place) : place;
+      // EVERY water within 25 km, not the first forty. It was capped at 40, and the list
+      // under "Water near Chilliwack" then read as the whole answer while 162 of its 202
+      // waters were missing — a count a screen shows has to be the count there is. The
+      // busiest town in the province has 543; the cap is only a guard against a bad build.
+      return (await db.all(Q.WATERS_NEAR, id, 2000)).map((r) => ({
+        item: str(r.item_id) as ItemId, name: str(r.name), kind: str(r.kind),
+        km: Number(r.km),
       })) as NearHit[];
+    },
+
+    async locate(item): Promise<WaterFix> {
+      const pt = (r: Row) => ({ lat: Number(r.lat), lon: Number(r.lon) });
+      const [gauges, stocked, rings] = await Promise.all([
+        db.all(Q.GAUGES_ON_ITEM, item), db.all(Q.STOCKED_ON_ITEM, item),
+        db.all(Q.RINGS_FOR_ITEM, item),
+      ]);
+      return {
+        on: [...gauges, ...stocked].map(pt),
+        near: rings.map((r) => ({ ...pt(r), km: Number(r.km) })),
+      };
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {

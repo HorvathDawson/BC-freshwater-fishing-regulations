@@ -41,6 +41,12 @@ const source = JSON.parse(
             colorModes: Record<string, { data?: { field: string } }> }[];
   providers: Record<string, { key?: string }>;
 };
+/**
+ * The layers drawn FROM THE ATLAS — the only ones the tile contract speaks for. The
+ * satellite imagery is a third-party raster with no source-layer, no attributes and no
+ * id; holding it to our tile contract would be asking EOX's JPEGs for a `section_id`.
+ */
+source.layers = source.layers.filter((l) => (l as { source?: string }).source === "atlas");
 
 describe("the style and the tiles agree", () => {
   it("every layer the style draws exists in the tiles", () => {

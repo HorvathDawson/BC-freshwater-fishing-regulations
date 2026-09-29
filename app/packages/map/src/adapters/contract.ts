@@ -43,6 +43,14 @@ export interface MapAdapter {
   applyTheme(h: MapHandle, viewId: string, themeName: string, overrides?: Tokens): void;
   /** Highlight by id via feature-state — never by mutating paint. */
   highlight(h: MapHandle, featureIds: SectionKey[]): void;
+  /**
+   * The ground: the drawn basemap, or satellite imagery over it.
+   *
+   * Not `setGroupVisible`: the `imagery` group is deliberately not toggleable, so no screen
+   * can reach it through `groups`. This is the one switch, on the contract, so the native
+   * adapter owes the same behaviour the web one has.
+   */
+  setBasemap(h: MapHandle, kind: "map" | "satellite"): void;
   /** Push the per-feature data a colour mode reads (status, discharge, …). */
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
 }
@@ -249,6 +257,9 @@ function zoomFor(h: MapHandle, layerId: string, mode: string): void {
   h.setZoomRange(layerId, byMode[mode] ?? base ?? 0);
 }
 
+/** The style group holding satellite imagery — see `layers.source.json`. */
+export const IMAGERY_GROUP = "imagery";
+
 export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const typeOf = (layerId: string) =>
     (MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined)?.type;
@@ -310,6 +321,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         h.clearFeatureStates(id);
         for (const f of featureIds) h.setFeatureState(id, f, { selected: true });
       }
+    },
+
+    setBasemap(h, kind) {
+      for (const [layerId, gid] of Object.entries(STYLE_META.layerGroup))
+        if (gid === IMAGERY_GROUP) h.setVisibility(layerId, kind === "satellite");
     },
 
     setData(h, layerId, values) {

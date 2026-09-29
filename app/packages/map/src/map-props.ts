@@ -132,6 +132,31 @@ export interface MapProps {
   onMapPoint?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
   highlight?: readonly SectionKey[];
+  /**
+   * Take the camera to a subject — a searched water, a town.
+   *
+   * `initial` is where a map STARTS; this is where it is SENT, after it exists. Keyed:
+   * the camera moves when `key` changes and at no other time, so a re-render with the same
+   * subject never drags back a map the reader has panned since.
+   *
+   * `refine` says the box is evidence rather than an outline (the bundle holds no
+   * geometry — see `fixOf` in @app/core). The map then measures the `highlight` features it
+   * has actually loaded and re-fits to them, a few rounds at most (`refineFit`), so a
+   * searched river ends up framed by its own shape and not by where its gauges happen to be.
+   */
+  fit?: {
+    key: string;
+    bbox: readonly [number, number, number, number] | null;
+    refine?: boolean;
+  } | null;
+  /**
+   * The ground under the water: the drawn basemap, or satellite imagery.
+   *
+   * A property of the MAP, not a layer group a screen may address: the imagery is an
+   * external raster declared in `layers.source.json` (group `imagery`) and this is the one
+   * switch for it, so a screen cannot turn it on while the drawn ground stays underneath.
+   */
+  basemap?: "map" | "satellite";
   /** Gauge points as GeoJSON, drawn as a dot plus its reading. Replaced per feed tick. */
   gauges?: string;
   /**

@@ -11,7 +11,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
+         usePickFocus, useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 /**
@@ -36,6 +36,9 @@ import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
+
+/** No highlight — one frozen empty list, so the map's effect is not re-run every render. */
+const NONE: readonly SectionKey[] = [];
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
@@ -88,6 +91,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const counts = facts.state === "ready" ? facts.value.counts : null;
   const [tab, setTab] = useState<TabKey>("map");
   const [item, setItem] = useState<ItemId | null>(null);
+  /**
+   * The water chosen from SEARCH, which the map opens on and lights when the reader comes
+   * back from its page — riffle's `goTo`: frame the water, then open it. Cleared by
+   * anything that changes the subject (a tap on another water, a tab change), so a later
+   * remount of the map never drags the camera back to an old search.
+   */
+  const [picked, setPicked] = useState<ItemId | null>(null);
+  const pickFocus = usePickFocus(source, picked);
   const [layersOpen, setLayersOpen] = useState(false);
   /** Adding a spot takes over the whole screen: it is a flow, not a mode of the map. */
   const [adding, setAdding] = useState(false);
@@ -308,7 +319,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
     const found = await source.itemForSection(Number(featureId) as SectionId);
-    if (found) setItem(found);
+    if (found) { setPicked(null); setItem(found); }
   }, [source]);
 
   /**
@@ -362,7 +373,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         </View>
         <TabBar active={tab} palette={palette}
                 onChange={(k) => { close(); setItem(null); setCondSection(null);
-                                   setTab(k); }} />
+                                   setPicked(null); setTab(k); }} />
       </View>
     );
   }
@@ -401,8 +412,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    }}
                    onBack={() => setItem(null)} />
     : tab === "search"
-      ? <SearchScreen source={source} palette={palette} onPick={setItem}
-                      total={counts?.waters} tiles={tiles} theme={theme} />
+      ? <SearchScreen source={source} palette={palette}
+                      onPick={(id) => {
+                        // Frame it on the map AND open it: back from the page lands on
+                        // the water, lit, rather than on the search list.
+                        setPicked(id); setTab("map"); openWater(id);
+                      }}
+                      total={counts?.waters} tiles={tiles} theme={theme}
+                      basemap={layers.basemap} />
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
                             tiles={tiles} theme={theme}
@@ -437,6 +454,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         ? <MapScreen at={tiles} palette={palette} theme={theme}
                      camera={camera.current}
                      marker={focus}
+                     basemap={layers.basemap}
+                     // THE CHOSEN WATER, whole, on the Map tab only — the Conditions view
+                     // lights a gauge's route with the same feature-state and must not
+                     // inherit a search.
+                     fit={tab === "map" && pickFocus
+                       ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine }
+                       : null}
+                     highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : undefined}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
@@ -603,7 +628,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* A tab change is a change of subject: the remembered reach goes with it. */}
       <TabBar active={tab} palette={palette}
               onChange={(k) => { setItem(null); setCondSection(null); setCondAt(null);
-                                 setTab(k); }} />
+                                 setPicked(null); setTab(k); }} />
 
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}

@@ -6,6 +6,17 @@
       "type": "vector",
       "url": "pmtiles://atlas",
       "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data — see pipeline/deliver/tiles/layers.py."
+    },
+    "imagery": {
+      "type": "raster",
+      "tiles": [
+        "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"
+      ],
+      "tileSize": 256,
+      "maxzoom": 13,
+      "external": true,
+      "attribution": "<a href=\"https://cloudless.eox.at\">EOxCloudless 2016</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016) · CC BY 4.0",
+      "$comment": "SATELLITE IMAGERY — EOxCloudless (Sentinel-2 cloudless), the 2016 mosaic ONLY. EOX licenses the 2016 layer CC BY 4.0 and says to use its WMTS endpoints directly in an application (cloudless.eox.at/pricing, read 2026-09-29); every later year (2018–2025) is CC BY-NC-SA 4.0, which a commercial use of this app could not meet, so do not 'upgrade' the year without a licence. The attribution string is EOX's required form and must stay visible on the map, which is why it rides on the source (MapLibre's attribution control shows it while the layer is on). Tiles send Access-Control-Allow-Origin for the requesting origin, which WebGL needs to read the image. 10 m pixels: past z13 MapLibre overzooms, so the source stops there rather than asking for tiles that do not exist. Not a Google/Esri/Mapbox layer: those need an account key or forbid use outside their own SDKs."
     }
   },
   "groups": [
@@ -46,9 +57,23 @@
       "label": "Land ownership",
       "toggleable": true,
       "defaultVisible": false
+    },
+    {
+      "id": "imagery",
+      "label": "Satellite imagery",
+      "toggleable": false,
+      "defaultVisible": false,
+      "$comment": "NOT a group a screen toggles. Imagery replaces the drawn ground, so it is switched as the map's `basemap` prop (adapter `setBasemap`), never through `groups` — which is how a screen could otherwise light it while the drawn basemap and its wash still competed underneath."
     }
   ],
   "layers": [
+    {
+      "id": "imagery",
+      "group": "imagery",
+      "source": "imagery",
+      "geometry": "raster",
+      "$comment": "The satellite ground. Drawn UNDER everything of ours and under the outside-BC mask — the runtime places raster layers directly over the drawn basemap's ground, so the mask still says where we have no answers. No colour modes: a photograph has no colouring to choose, and the builder exempts raster layers from that rule for exactly this reason."
+    },
     {
       "id": "parcel_private",
       "group": "ownership",

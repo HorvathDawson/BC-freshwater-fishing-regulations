@@ -8,7 +8,7 @@
  */
 import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
-import { Map, type Camera, type TileEndpoints } from "@app/map";
+import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { Pill } from "./Chrome";
 import { LayersIcon } from "./icons";
 import { TYPE } from "./type";
@@ -17,7 +17,8 @@ import { mapChrome, type Palette } from "./theme";
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
                             onLayers, onPressFeature, onMoved, onMapPoint, horizons,
-                            highlight, marker, data, gauges, onVisible, onError }: {
+                            highlight, marker, data, gauges, onVisible, onError,
+                            fit, basemap }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -42,6 +43,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   /** Forecast horizons. Present only on the Conditions tab. */
   horizons?: { days: readonly number[]; value: number; onPick: (d: number) => void };
   onError?: (e: Error) => void;
+  /** Send the camera to a chosen water — see MapProps.fit. */
+  fit?: MapProps["fit"];
+  /** Drawn ground or satellite — the Layers sheet's Basemap choice. */
+  basemap?: MapProps["basemap"];
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
@@ -49,7 +54,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
            highlight={highlight} marker={marker} data={data} gauges={gauges}
-           onVisible={onVisible} onError={onError}
+           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap}
            chrome={mapChrome(palette, theme)} />
 
       {/*

@@ -90,6 +90,60 @@ describe("the bundle source", () => {
     for (const h of near) expect(await src.itemExists(h.item), h.name).toBe(true);
   });
 
+  it("a town search carries where the town is, and ranks the exact name first", async () => {
+    const [place] = await src.searchPlaces("Chilliwack", 3);
+    expect(place!.name).toBe("Chilliwack");
+    expect(Number.isFinite(place!.lat) && Number.isFinite(place!.lon)).toBe(true);
+    // In British Columbia, not at 0,0 — a NaN or a zero here opens the map on the Atlantic.
+    expect(place!.lat).toBeGreaterThan(48); expect(place!.lon).toBeLessThan(-114);
+    // LIKE's own wildcards are characters, not patterns.
+    expect(await src.searchPlaces("%%", 5)).toEqual([]);
+    expect(await src.searchNames("__", 5)).toEqual([]);
+  });
+
+  it("every water hit says what it is, and the town it is near when one is", async () => {
+    const hits = await src.searchNames("creek", 20);
+    expect(hits.length).toBeGreaterThan(3);
+    for (const h of hits) {
+      expect(["stream", "lake", "wetland"]).toContain(h.kind);
+      if (h.near) {
+        expect(h.near.km).toBeGreaterThanOrEqual(0);
+        expect(h.near.km).toBeLessThanOrEqual(25);
+      }
+    }
+    expect(hits.some((h) => h.near !== null)).toBe(true);
+  });
+
+  it("orders equally good matches by how much water they are", async () => {
+    // Prefix matches on "creek" do not exist; word matches do, and among the same tier a
+    // bigger magnitude must come first.
+    const hits = await src.searchNames("creek", 30);
+    const sized = hits.filter((h) => h.size !== null);
+    const firstNull = hits.findIndex((h) => h.size === null);
+    if (firstNull >= 0) expect(hits.slice(firstNull).every((h) => h.size === null)).toBe(true);
+    for (let i = 1; i < sized.length; i++)
+      expect(sized[i]!.size!).toBeLessThanOrEqual(sized[i - 1]!.size!);
+  });
+
+  it("locates a gauged water by points on it, and every water near a town by its ring", async () => {
+    const gauged = await db.get(
+      "SELECT i.item_id FROM item i JOIN item_section s ON s.ord = i.ord " +
+      "JOIN gauge g ON g.sid = s.sid WHERE g.lat IS NOT NULL LIMIT 1");
+    expect(gauged, "the fixture has a gauge on a named water").toBeTruthy();
+    const fix = await src.locate(str(gauged!.item_id) as ItemId);
+    expect(fix.on.length).toBeGreaterThan(0);
+    for (const p of fix.on) expect(p.lat).toBeGreaterThan(48);
+
+    const [place] = await src.searchPlaces("Chilliwack", 1);
+    const [first] = await src.watersNear(place!.place);
+    const ring = await src.locate(first!.item);
+    expect(ring.near.length).toBeGreaterThan(0);
+    for (let i = 1; i < ring.near.length; i++)
+      expect(ring.near[i]!.km).toBeGreaterThanOrEqual(ring.near[i - 1]!.km);
+
+    expect(await src.locate("gnis:does-not-exist" as ItemId)).toEqual({ on: [], near: [] });
+  });
+
   it("stores only bands the pipeline can produce — a refusal is an absent row", async () => {
     // There is no `none` band. `pipeline/gauges/consume/shed.py` writes NO ROW for a reach the gauge
     // drains far too much to describe, so the refusal reaches the client as a null link.

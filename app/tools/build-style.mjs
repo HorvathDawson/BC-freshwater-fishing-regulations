@@ -28,7 +28,7 @@ import { createHash } from "node:crypto";
  * Neither the tile-contract test nor the palette check could see this, because both compare
  * the style to OUR artifacts. Nothing compared it to the renderer's spec until it was run.
  */
-const MAPLIBRE_TYPE = { line: "line", polygon: "fill", point: "circle" };
+const MAPLIBRE_TYPE = { line: "line", polygon: "fill", point: "circle", raster: "raster" };
 
 const dir = new URL("../packages/map/style/", import.meta.url).pathname;
 const src = JSON.parse(readFileSync(dir + "layers.source.json", "utf8"));
@@ -192,6 +192,11 @@ for (const t of themes) {
   }
 }
 
+// --- a raster source must say where its tiles are ---
+for (const [id, s] of Object.entries(src.sources ?? {}))
+  if (s.type === "raster" && !s.url && !(Array.isArray(s.tiles) && s.tiles.length))
+    err(`source "${id}" is a raster with neither url nor tiles`);
+
 // --- external sources must be attributed ---
 for (const [id, s] of Object.entries(src.sources ?? {}))
   if (s.external && !s.attribution) {
@@ -244,6 +249,26 @@ for (const l of src.layers ?? []) {
   if (!src.sources?.[l.source]) err(`${where}: unknown source "${l.source}"`);
   if (l.highlightable && !l.featureIdProperty)
     err(`${where}: highlightable layers need featureIdProperty — feature-state has nothing to key on`);
+  /*
+   * A RASTER IS A PICTURE, NOT A GEOMETRY. Satellite imagery has no feature to colour, no
+   * id to highlight and no source-layer: it is the ground itself. So it is exempt from the
+   * colour-mode rule — and held to its own instead: it must draw an EXTERNAL raster source
+   * (whose attribution the check below already requires), and it may carry nothing that
+   * only a vector layer can mean.
+   */
+  if (l.geometry === "raster") {
+    const s = src.sources?.[l.source];
+    if (s && s.type !== "raster") err(`${where}: a raster layer must draw a raster source`);
+    if (s && !s.external) err(`${where}: a raster source is imagery we did not make — mark it external`);
+    for (const k of ["colorModes", "sourceLayer", "featureIdProperty", "highlightable",
+                     "label", "outline", "width", "opacity"])
+      if (l[k] !== undefined && l[k] !== false)
+        err(`${where}: "${k}" means nothing on a raster layer`);
+    layersById.set(l.id, l);
+    outLayers.push({ id: l.id, type: "raster", source: l.source,
+                     layout: { visibility: groups.get(l.group)?.defaultVisible ? "visible" : "none" } });
+    continue;
+  }
   if (!l.colorModes || !Object.keys(l.colorModes).length)
     err(`${where}: needs at least one colour mode`);
 

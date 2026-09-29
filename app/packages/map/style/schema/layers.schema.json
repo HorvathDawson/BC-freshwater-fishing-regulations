@@ -9,10 +9,14 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["type", "url"],
+        "required": ["type"],
         "properties": {
           "type": { "enum": ["vector", "raster", "geojson"] },
           "url": { "type": "string" },
+          "tiles": { "type": "array", "items": { "type": "string" },
+                     "description": "XYZ templates — a raster source needs url or tiles" },
+          "tileSize": { "type": "number" },
+          "maxzoom": { "type": "number" },
           "external": { "type": "boolean", "description": "not produced by our pipeline" },
           "attribution": { "type": "string", "description": "REQUIRED when external is true" }
         }
@@ -36,13 +40,14 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "group", "source", "geometry", "colorModes"],
+        "required": ["id", "group", "source", "geometry"],
         "properties": {
           "id": { "type": "string" },
           "group": { "type": "string" },
           "source": { "type": "string" },
           "sourceLayer": { "type": "string" },
-          "geometry": { "enum": ["line", "fill", "circle", "symbol"] },
+          "geometry": { "enum": ["line", "polygon", "point", "raster"],
+                        "description": "raster: imagery from an external raster source; no colour modes, no source-layer" },
           "minzoom": { "type": "number" },
           "maxzoom": { "type": "number" },
           "featureIdProperty": {
