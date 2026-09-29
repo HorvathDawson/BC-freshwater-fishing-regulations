@@ -9683,12 +9683,12 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "Sign-bounded zone at the Forks. Tributaries OFF although the section heading reads 'Morice River (including tributaries)': the reach text is 'waters within the four white triangular fishing boundary signs', which is water inside the signs, not the streams above them. The regulation states its own distances (100 m up, ~1 km down), so this is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m."
+          "Sign-bounded zone at the Forks. The regulation states its own distances (100 m up, ~1 km down), so it is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m. Tributaries as the section heading gives them."
         ],
         "spatial_caveat": false
       }
@@ -9757,12 +9757,12 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "Sign-bounded zone at the Forks. Tributaries OFF although the section heading reads 'Morice River (including tributaries)': the reach text is 'waters within the four white triangular fishing boundary signs', which is water inside the signs, not the streams above them. The regulation states its own distances (100 m up, ~1 km down), so this is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m."
+          "Sign-bounded zone at the Forks. The regulation states its own distances (100 m up, ~1 km down), so it is bound as reaches, not a drawn polygon: each water's locator binds its own arm, and together they are the zone — the lower Bulkley 1 km, the upper Bulkley 100 m, the Morice 100 m. Tributaries as the section heading gives them."
         ],
         "spatial_caveat": false
       }
