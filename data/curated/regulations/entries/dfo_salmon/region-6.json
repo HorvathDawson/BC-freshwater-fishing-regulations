@@ -5211,12 +5211,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "border:360886456:0"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. 'Downstream of the border' = below :0."
+        ],
         "spatial_caveat": false
       }
     },
@@ -5269,12 +5278,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:13637",
+            "within_area": "area:region:6"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. The Blanchard joins the Tatshenshini IN the Yukon stretch, so 'upstream of the border along the Haines Hwy' can only mean the Blanchard's own BC water: 39.9 of its 40.3 km. It weaves along 60°N, and `within_area` drops the two Yukon slivers (59 m, 211 m) exactly."
+        ],
         "spatial_caveat": false
       }
     },
@@ -5329,12 +5346,23 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "gnis:14159",
+              "gnis:14551",
+              "gnis:37919"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. Kwatini, Stanley and Goat Creeks all join the BC headwater stretch above :1 and lie wholly in BC. There are 7 Stanley and 8 Goat Creeks in the registry; these are the only ones whose watershed code is a child of the Tatshenshini's (990-295215)."
+        ],
         "spatial_caveat": false
       }
     },
@@ -5387,12 +5415,34 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "border:360886456:1"
+            ]
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14159"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:14551"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:37919"
+          }
+        ],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. 'Upstream of the border along the Haines Hwy' = above :1, NOT above :0 — above :0 would sweep in the 43 km Yukon stretch. 'All OTHER tributaries' = minus Kwatini, Stanley and Goat, which carry their own year-round closure (~2)."
+        ],
         "spatial_caveat": false
       }
     },
@@ -9527,12 +9577,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "border:360886456:0"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. 'Downstream of the border' = below :0."
+        ],
         "spatial_caveat": false
       }
     },
