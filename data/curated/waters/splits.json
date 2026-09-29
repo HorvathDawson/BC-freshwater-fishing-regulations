@@ -1350,6 +1350,18 @@
       48.86585
      ],
      "_offset_m": 50
+    },
+    {
+     "id": "nitinat_river__little_nitinat_river_into_nitinat_river",
+     "label": "Little Nitinat River → Nitinat River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "930-073434-373408",
+      "_name": "Little Nitinat River"
+     },
+     "note": "DFO r1: '... downstream to the lowest point of confluence with the Little Nitinat River and then perpendicular to the flow of the Nitinat River, to the opposite shore'. The perpendicular line IS a cut across the Nitinat at the confluence.",
+     "_note": "[authored 2026-09-29] Derived from FWA topology: wsc 930-073434-373408 is a direct child of the Nitinat's 930-073434, and the only Little Nitinat River in the registry. Joins at m 29,704."
     }
    ]
   },

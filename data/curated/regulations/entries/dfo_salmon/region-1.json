@@ -1980,12 +1980,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "nitinat_river__parker_creek_into_nitinat_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Parker Creek: 4 in the registry; gnis:22594 is the only direct child of the Nitinat (930-073434)."
+        ],
         "spatial_caveat": false
       }
     },
@@ -2031,12 +2040,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "nitinat_river__parker_creek_into_nitinat_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Bound WHOLESALE below Parker Creek. 'Except in the areas and times described below' is NOT carved out spatially: the exceptions are time-bounded (the bridge Aug 25-Oct 15, Red Rock Pool Aug 25-Dec 31, the hatchery reach all year), so removing that water would be wrong for the rest of the year. The narrower closures bind their own reaches and must displace this one where both hold."
+        ],
         "spatial_caveat": false
       }
     },
@@ -2079,12 +2097,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nitinat_river__the_nitinat_river_bridge_50_m_downstream",
+              "nitinat_river__boundary_signs_50_m_upstream_of_nitinat_river_bridge"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The road ('Carmanah area', forest_service_roads) crosses the Nitinat at m 32,268; the two cuts sit 50 m either side of it, at 32,215 and 32,315."
+        ],
         "spatial_caveat": false
       }
     },
