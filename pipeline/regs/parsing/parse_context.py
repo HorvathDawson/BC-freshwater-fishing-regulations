@@ -245,9 +245,12 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append("This row has NO registry item, so there are NO boundaries to bind. Still do the "
                      "real work: split `regs_verbatim` into catalogue rules — `type`, its required "
                      "conditions, `species`, `when`, and a `verbatim` that is a substring of the "
-                     "regs below. For EVERY rule set `extents: []` and a "
-                     "`review_reason` (e.g. \"no registry match — attach an item and bind extents\"). "
-                     "Do NOT invent split ids or op:whole.")
+                     "regs below. Write each rule's `extents` as the prompt teaches — "
+                     "`[{\"op\": \"whole\"}]` for a rule about the whole row, `undrawn_part` beside "
+                     "`whole` for a part of it, `extent_text` + `unresolved_locators` for a place "
+                     "nothing can draw — and on EVERY rule a `review_reason` (e.g. \"no registry "
+                     "match — attach an item and bind extents\"). A `whole` here binds nothing until "
+                     "a curator attaches the item. Do NOT invent split ids.")
         lines.append("")
     else:
         lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")

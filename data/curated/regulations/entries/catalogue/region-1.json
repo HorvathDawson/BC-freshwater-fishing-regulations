@@ -9512,12 +9512,12 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     },
     {
@@ -9526,12 +9526,12 @@
      "verbatim": "speed restriction on parts (8 and 60 km/h)",
      "aspect": "speed",
      "max_kmh": 60.0,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     }
    ]
@@ -10020,12 +10020,12 @@
      "verbatim": "speed restriction on parts (8 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     }
    ]
@@ -10727,12 +10727,12 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     },
     {
@@ -10741,12 +10741,12 @@
      "verbatim": "Speed restrictions on parts (8 and 65 km/h)",
      "aspect": "speed",
      "max_kmh": 65.0,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     }
    ]
@@ -11321,12 +11321,12 @@
      "aspect": "propulsion",
      "level": "power_capped",
      "max_power_kw": 7.5,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the river and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the river and names none; no cut-point or polygon draws them. Needs the parts drawn.",
      "undrawn_part": "on parts"
     }
    ]
@@ -13953,6 +13953,7 @@
    "name": "Bait ban",
    "display_name": "Every stream in Region 1",
    "region": "1",
+   "scope_note": "Region 1's streams except Haida Gwaii (MUs 6-12 and 6-13), which carry their own Nov 1-Apr 30 bait ban (z1:hg_bait_ban_streams) and not this one.",
    "regs_verbatim": "Bait ban: applies to all streams of Region 1, all year, with some important exceptions. Check the tables.",
    "source_pages": [
     13
@@ -13992,8 +13993,7 @@
       }
      ]
     }
-   ],
-   "scope_note": "Region 1's streams except Haida Gwaii (MUs 6-12 and 6-13), which carry their own Nov 1-Apr 30 bait ban (z1:hg_bait_ban_streams) and not this one."
+   ]
   },
   {
    "entry_id": "z1:cutthroat_tagging",

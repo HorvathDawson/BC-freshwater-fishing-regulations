@@ -249,10 +249,18 @@ def test_the_menu_offers_the_groups_the_synopsis_prints():
 def test_labels_match_the_official_table_not_a_strain_name():
     """GB was labelled 'Gerrard rainbow trout' — a Kootenay Lake strain that appears nowhere in the
     synopsis. The official table says Salmo trutta, Brown Trout."""
-    from pipeline.regs.parsing.species import SPECIES
-    from pipeline.regs.parsing.catalogue import _SPECIES_WORDS
+    from pipeline.regs.parsing.catalogue import SCIENTIFIC_NAMES, _SPECIES_WORDS
     assert _SPECIES_WORDS["GB"] == "Brown trout"
-    assert SPECIES["GB"].common_name == "Brown Trout"
+    assert SCIENTIFIC_NAMES["GB"] == "Salmo trutta"
+
+
+def test_the_retired_species_module_is_gone():
+    """`species.py` held the official table's whole code set (BT, SLV, TRT …), which the model
+    refuses. The scientific names live in catalogue, for the book's fish (and chinook) only."""
+    import importlib.util
+    from pipeline.regs.parsing.catalogue import BOOK_SPECIES, SCIENTIFIC_NAMES
+    assert set(SCIENTIFIC_NAMES) == set(BOOK_SPECIES) | {"CH"}
+    assert importlib.util.find_spec("pipeline.regs.parsing.species") is None
 
 
 def test_all_game_fish_is_the_closed_list_and_excludes_salmon():

@@ -81,7 +81,8 @@ keeps one edited after the seed. It was seeded on 2026-09-23 (1,480 entries).
   the file's indent and order, and validates what it wrote), batch items, reviews, LLM-JSON
   extraction, work-dir paths. **A strict leaf** (stdlib, plus `catalogue` lazily to write).
 - `entry_models.py` — the op + split `Extent` that extents are checked against.
-- `rows.py` — load synopsis rows; `species.py` — the species menu.
+- `rows.py` — load synopsis rows. The species are the book's list in `catalogue.py`
+  (`BOOK_FAMILIES`, `species_menu()`); scientific names are `catalogue.SCIENTIFIC_NAMES` (`species.py` is deleted).
 - `parse_context.py` — build the parse prompt (identity + bindable-boundary menu + species + regs).
 - `review_exporter.py` — build the review prompt (the checklist + each row's menu, regs and parsed
   entry + the one output envelope).

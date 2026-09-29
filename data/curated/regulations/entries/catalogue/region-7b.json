@@ -844,7 +844,6 @@
      "type": "hazard",
      "verbatim": "Due to aeration projects, dangerous thin ice and open water may exist on Inga and Sundance lakes.",
      "obligation": "should",
-     "extent_text": "Inga and Sundance lakes",
      "extents": [
       {
        "op": "whole",
@@ -853,14 +852,13 @@
         "wbk:329473810"
        ]
       }
-     ]
+     ],
+     "extent_text": "Inga and Sundance lakes"
     },
     {
      "rule_id": "thin_ice.r2",
      "type": "hazard",
      "verbatim": "It is prohibited to enter within the fenced area surrounding the aerator.",
-     "extent_text": "the fenced area surrounding the aerator",
-     "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — typed hazard until an access type can say 'do not enter' without implying a fishing ban. Placed on the two lakes (Sundance is `wbk:329473810`, the polygon r7:sundance_lake@7-32 matched); the fenced area itself has no polygon.",
      "extents": [
       {
        "op": "whole",
@@ -869,7 +867,9 @@
         "wbk:329473810"
        ]
       }
-     ]
+     ],
+     "extent_text": "the fenced area surrounding the aerator",
+     "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — typed hazard until an access type can say 'do not enter' without implying a fishing ban. Placed on the two lakes (Sundance is `wbk:329473810`, the polygon r7:sundance_lake@7-32 matched); the fenced area itself has no polygon."
     }
    ]
   },

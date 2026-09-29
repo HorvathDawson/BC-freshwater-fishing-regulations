@@ -11,7 +11,8 @@ import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { SplitEditor } from "./SplitEditor";
 import { RuleEditor } from "./model/RuleEditor";
 import { LicensingEditor, blankRecord } from "./model/LicensingEditor";
-import { ErrorsAt, ErrorsCtx, F, Text, Tri, put, useVocab } from "../model";
+import { SeeEditor } from "./model/SeeEditor";
+import { Check, ErrorsAt, ErrorsCtx, F, Text, Tri, put, useVocab } from "../model";
 
 interface Props {
   detail: EntryDetailT;
@@ -406,6 +407,19 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
         )}
         <F path="scope_note">
           <Text value={entry.scope_note} label="scope_note" onChange={(x) => edit((s) => put(s, { scope_note: x }))} />
+        </F>
+        {/* POINTERS ("See Lonzo Creek") — not rules, they bind nothing. The model refuses an
+            advisory that is only a pointer, so this is the one place one can be written. */}
+        <F path="see" hint="pointers to the row whose regulations govern — each names entries OR says why it names none">
+          <SeeEditor value={entry.see} path="see"
+            suggestions={related.map((r) => r.entry_id)}
+            onChange={(x) => edit((s) => put(s, { see: x }))} />
+        </F>
+        <F path="anadromous_rainbow" hint="anadromous rainbow are found here: a rainbow over 50 cm IS a steelhead (p.86) — set where known, never inferred">
+          <Check label="anadromous_rainbow" value={entry.anadromous_rainbow}
+            onChange={(x) => edit((s) => put(s, { anadromous_rainbow: x }))}>
+            anadromous rainbow trout are found in this water
+          </Check>
         </F>
       </div>
 

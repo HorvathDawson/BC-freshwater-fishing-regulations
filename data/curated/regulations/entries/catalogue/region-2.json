@@ -1454,12 +1454,12 @@
      ],
      "take": 0,
      "may_target": false,
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json.",
      "undrawn_part": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)"
     }
    ]
@@ -2454,16 +2454,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "coquihalla_river__coquihalla_othello_lower_tunnel"
-       ]
-      }
-     ],
      "when": {
       "dates": [
        {
@@ -2473,7 +2463,17 @@
         "to_day": 31
        }
       ]
-     }
+     },
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "coquihalla_river__coquihalla_othello_lower_tunnel"
+       ]
+      }
+     ]
     },
     {
      "rule_id": "coquihalla_river.r7",
@@ -2487,14 +2487,6 @@
        ]
       }
      ],
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "coquihalla_river__coquihalla_othello_lower_tunnel"
-       ]
-      }
-     ],
      "when": {
       "dates": [
        {
@@ -2504,7 +2496,15 @@
         "to_day": 31
        }
       ]
-     }
+     },
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "coquihalla_river__coquihalla_othello_lower_tunnel"
+       ]
+      }
+     ]
     }
    ]
   },
@@ -10753,7 +10753,8 @@
         "wbk:329291952"
        ]
       }
-     ]
+     ],
+     "review_reason": "Goose Lake (wbk:329291952) is kept out of this closure: only 2.2% of the lake (0.17 of 7.6 ha) lies inside the UBC Malcolm Knapp Research Forest polygon (area_catalog.gpkg, measured 2026-09-29) — it touches the forest's south-east edge and is not a lake 'in' the forest. Re-measure if the forest boundary changes."
     }
    ]
   },
@@ -10807,14 +10808,14 @@
      "rule_id": "rubble_creek.r1",
      "type": "hazard",
      "verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
-     "extent_text": "Rubble Creek Landslide Hazard Area",
-     "review_reason": "Placed on Rubble Creek: the Landslide Hazard Area has no polygon in the atlas. A notice, so it decides nothing about the water.",
      "extents": [
       {
        "op": "whole",
        "item_id": "gnis:27547"
       }
-     ]
+     ],
+     "extent_text": "Rubble Creek Landslide Hazard Area",
+     "review_reason": "Placed on Rubble Creek: the Landslide Hazard Area has no polygon in the atlas. A notice, so it decides nothing about the water."
     }
    ]
   },

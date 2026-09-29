@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { Boundary, Extent, Op } from "../types";
 import { splitArity } from "../format";
-import { Checks, ErrorsAt, F, Tags, Text, orNone, put, useVocab } from "../model";
+import { Check, Checks, ErrorsAt, F, Tags, Text, orNone, put, useVocab } from "../model";
 
 interface Props {
   extents: Extent[];
@@ -111,6 +111,17 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
                 </option>
               ))}
             </select>
+            {/* A PART OF A WATERSHED: the directional op selects the river's basin on that side of
+                the cut, not the river alone. Shown on the cut ops, and whenever set (so a flag left
+                on after the op changed stays visible and removable). The model refuses it with
+                item_ids / area_id / area_kind, and with includes_tributaries (own or the entry's). */}
+            {(ex.op === "upstream_of" || ex.op === "downstream_of" || ex.op === "between" || ex.watershed) && (
+              <F path={`${at}.watershed`} hint="the river's WATERSHED on this side of the cut — refused with includes_tributaries">
+                <Check label="watershed" value={ex.watershed} onChange={(x) => update(i, { watershed: x })}>
+                  watershed
+                </Check>
+              </F>
+            )}
             {needSplits &&
               (() => {
                 const opts = optionsFor(splits);

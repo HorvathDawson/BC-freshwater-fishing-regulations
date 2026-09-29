@@ -176,6 +176,43 @@ def test_put_unchanged_changes_nothing(env, picks, part):
     assert path.read_bytes() == before_bytes, "an unchanged save rewrote the file"
 
 
+def _smallest_with(env, has) -> str | None:
+    best = None
+    for eid, (_, e) in _entries(env["dir"]).items():
+        if has(e):
+            size = len(json.dumps(e))
+            if best is None or size < best[0]:
+                best = (size, eid)
+    return best[1] if best else None
+
+
+def _extents_of(e):
+    yield from e.get("extents") or []
+    for r in e.get("rules") or []:
+        yield from r.get("extents") or []
+
+
+# The fields the editor gained controls for (entry `see`, `anadromous_rainbow`; rule
+# `closure_kind`; extent `watershed`): an entry carrying one survives an unchanged save.
+@pytest.mark.parametrize("field,has", [
+    ("see", lambda e: bool(e.get("see"))),
+    ("anadromous_rainbow", lambda e: e.get("anadromous_rainbow") is True),
+    ("closure_kind", lambda e: any(r.get("closure_kind") for r in e.get("rules") or [])),
+    ("watershed", lambda e: any(x.get("watershed") for x in _extents_of(e))),
+])
+def test_put_unchanged_keeps_the_newer_fields(env, field, has):
+    eid = _smallest_with(env, has)
+    if eid is None:
+        pytest.skip(f"the corpus carries no entry with {field}")
+    d = _get(env, eid)
+    path = _file_of(env, eid)
+    before_bytes = path.read_bytes()
+    r = _put(env, eid, d["region"], d["entry"])
+    assert r.status_code == 200, r.text
+    assert has(_entries(env["dir"])[eid][1]), f"{field} was dropped by an unchanged save"
+    assert path.read_bytes() == before_bytes, "an unchanged save rewrote the file"
+
+
 # --------------------------------------------------------------------------- #
 # PUT an edit to each editor's field
 # --------------------------------------------------------------------------- #
@@ -553,6 +590,9 @@ def test_vocab_is_read_off_the_model(env):
     assert v["who_axes"] == {k: list(m) for k, m in C.WHO_AXES.items()}
     assert sorted(s["code"] for s in v["species"]) == sorted(C.KNOWN_SPECIES)
     assert v["exemptable_defaults"] == sorted(C.EXEMPTABLE_DEFAULTS)
+    assert v["closure_kinds"] == [k.value for k in C.ClosureKind]
+    assert v["while_means"] == sorted(C.WHILE_MEANS)
+    assert v["while_devices"] == sorted(C.WHILE_DEVICES)
     assert set(v["licensing_kinds"]) == {"designation", "not_classified", "requirement",
                                          "licence_terms", "exemption", "alternative"}
     for token in v["while"]:                                  # every offered token validates

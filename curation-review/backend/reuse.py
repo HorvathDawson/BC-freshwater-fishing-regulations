@@ -653,11 +653,6 @@ def entry_reaches(entry_id: str) -> dict:
     return {}
 
 
-def _scope_clipped(per: list, clip: set[str] | None) -> bool:
-    """Did the entry's scope actually remove sections this rule had resolved?"""
-    return bool(clip) and any(g is not None and not g["sections"] for g in per)
-
-
 def _clip(got: dict | None, clip: set[str] | None) -> dict | None:
     """Cut a resolved reach down to the entry's scope, recomputing the waters it lands on.
 

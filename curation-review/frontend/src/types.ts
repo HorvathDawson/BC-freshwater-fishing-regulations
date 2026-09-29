@@ -46,6 +46,10 @@ export interface Extent {
   /** op `rest` only: the rule ids (same entry) whose sections this extent is the complement of —
    *  "Other parts" is the rule's water minus what these rules bind (their walks included). */
   siblings?: string[];
+  /** on upstream_of / downstream_of / between scoped to ONE river: the river's WATERSHED on that
+   *  side of the cut(s), not the river alone. Refused with includes_tributaries (own or inherited),
+   *  with item_ids, and with area_id/area_kind. */
+  watershed?: boolean;
   [key: string]: unknown;
 }
 
@@ -322,12 +326,17 @@ export interface Vocab {
   slots: { slot: string; shape: "set" | "spec" | "count" | "measured" }[];
   methods: string[];
   while: string[];
+  /** the `means` / `devices` a `while` clause may name (catalogue.WHILE_MEANS / WHILE_DEVICES) */
+  while_means: string[];
+  while_devices: string[];
   conduct: { act: string; words: string }[];
   documents: { doc: string; words: string; provincial: boolean }[];
   periods: string[];
   water_kinds: string[];
   channel_sides: string[];
   life_stages: string[];
+  /** catalogue.ClosureKind — the season a blanket closure is NAMED for (rule `closure_kind`) */
+  closure_kinds: string[];
   origins: string[];
   obligations: string[];
   vessel_aspects: string[];

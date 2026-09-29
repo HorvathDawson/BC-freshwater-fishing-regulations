@@ -4024,15 +4024,15 @@
      "type": "vessel_rule",
      "verbatim": "Speed restriction on parts",
      "aspect": "speed",
-     "unresolved_locators": [
-      "on parts"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "unresolved_locators": [
+      "on parts"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn.",
      "undrawn_part": "on parts"
     },
     {
@@ -4041,15 +4041,15 @@
      "verbatim": "no vessels (see definition on page 4) in 5 signed swimming areas",
      "aspect": "propulsion",
      "level": "none",
-     "unresolved_locators": [
-      "5 signed swimming areas"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the 5 signed swimming areas are not polygons in the atlas; Osoyoos Lake has no sub-polygons. Needs them drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "unresolved_locators": [
+      "5 signed swimming areas"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the 5 signed swimming areas are not polygons in the atlas; Osoyoos Lake has no sub-polygons. Needs them drawn.",
      "undrawn_part": "in 5 signed swimming areas"
     }
    ]
@@ -4323,15 +4323,15 @@
      "verbatim": "No powered boats south of the CPR Bridge",
      "aspect": "propulsion",
      "level": "unpowered",
-     "unresolved_locators": [
-      "south of the CPR Bridge"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "unresolved_locators": [
+      "south of the CPR Bridge"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part.",
      "undrawn_part": "south of the CPR Bridge"
     }
    ]
@@ -5037,15 +5037,15 @@
      "type": "vessel_rule",
      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
      "aspect": "speed",
-     "unresolved_locators": [
-      "various locations (as buoyed and signed)"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn.",
      "extents": [
       {
        "op": "whole"
       }
      ],
+     "unresolved_locators": [
+      "various locations (as buoyed and signed)"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn.",
      "undrawn_part": "various locations (as buoyed and signed)"
     }
    ]
@@ -6441,6 +6441,9 @@
    "display_name": "Region 8",
    "region": "8",
    "regs_verbatim": "Possession quotas = 2 daily quotas.",
+   "source_pages": [
+    68
+   ],
    "extents": [
     {
      "op": "within",
@@ -6464,9 +6467,6 @@
       }
      ]
     }
-   ],
-   "source_pages": [
-    68
    ]
   },
   {

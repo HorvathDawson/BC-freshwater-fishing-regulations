@@ -132,6 +132,7 @@ def vocab(entries: list[dict]) -> dict:
         "water_kinds": _values(C.CatalogueRule, "water"),
         "channel_sides": _values(C.CatalogueRule, "side"),
         "life_stages": _values(C.CatalogueRule, "life_stage"),
+        "closure_kinds": _values(C.CatalogueRule, "closure_kind"),
         "origins": _values(C.CatalogueRule, "origin"),
         "obligations": _values(C.CatalogueRule, "obligation"),
         "vessel_aspects": _values(C.CatalogueRule, "aspect"),

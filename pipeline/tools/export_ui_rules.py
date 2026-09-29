@@ -35,7 +35,6 @@ from pathlib import Path
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
-from pipeline.regs.parsing.species import SPECIES
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
@@ -1180,6 +1179,19 @@ def guide(d: dict) -> dict:
                          "about another fish never takes part (per fish). The zone's own "
                          "releases, record-keeping duties and the possession multiplier stand "
                          "beside the water's release.",
+        "zone_release_by_water": "A ZONE RELEASE LIMITED TO A KIND OF WATER (2026-09-29). A "
+                                 "zone release printed for streams (or lakes) only — Region 3's "
+                                 "'Bull trout (Dolly Varden) from streams, Aug 1-Oct 31', Region "
+                                 "4's 'Trout/char release: in streams from Nov 1-Mar 31', "
+                                 "'Kokanee … (none from streams)' — in force on a section of that "
+                                 "kind of water displaces its OWN REGION'S TABLE's rules that let "
+                                 "the fish be kept (the quota and its clauses: '1 over 50 cm', '4 "
+                                 "from streams', '1 bull trout or lake trout'), exactly as a "
+                                 "release printed without a water kind does. A size clause of "
+                                 "another dimension ('none under 60 cm') stays beside it; "
+                                 "closures, water rows and another region's rules are untouched. "
+                                 "On a lake a stream release does not bind and the region's "
+                                 "quotas speak (read.released_on_water, effective_rules step 4b).",
         "dated_zone_release": "A DATED ZONE RULE AND A WATER'S OWN DATES (user rulings "
                               "2026-09-28). A zone, area or provincial retention rule on "
                               "printed dates — a release (take 0) or a quota — meets a water's "
@@ -1782,7 +1794,10 @@ def guide(d: dict) -> dict:
     rvia = Counter(v for s in d["rulesets"].values() for v in s if v != "sections")
     lvia = Counter(v for s in d["licensing_sets"].values() for v in s if v != "sections")
     placement = {
-        "reading": "Where a record applies is exported the way the bundle interns it. Many "
+        "unnamed_sets": "`waters` lists only named waters: a ruleset or licensing set that no "
+                        "water lists sits only on unnamed sections — reach it through a section's "
+                        "`ruleset` / `licensing_set`, never through `waters`.",
+        "reading":"Where a record applies is exported the way the bundle interns it. Many "
                    "sections carry the same set of records, so each SET is listed once "
                    "(`rulesets`, `licensing_sets`: its members grouped by `via`, and how many "
                    "sections carry it). Each named water lists its `parts`: every (ruleset, "
@@ -3279,8 +3294,7 @@ OPEN_GROUPS = C.OPEN_SUBJECTS
 
 
 def _name(code: str) -> str:
-    r = SPECIES.get(code)
-    return C._SPECIES_WORDS.get(code) or (r.common_name if r else code)
+    return C._SPECIES_WORDS.get(code) or code
 
 
 def species_table() -> dict:
@@ -3296,9 +3310,8 @@ def species_table() -> dict:
     fish = {}
     for fam, codes in C.BOOK_FAMILIES.items():
         for code in codes:
-            rec = SPECIES.get(code)
             d = {"name": _name(code), "family": fam,
-                 "scientific": rec.scientific if rec else None,
+                 "scientific": C.SCIENTIFIC_NAMES.get(code),
                  "groups": sorted(in_group[code])}
             if code == "DV":
                 d["includes"] = "bull trout — '*Any bull trout that you catch and keep must be " \

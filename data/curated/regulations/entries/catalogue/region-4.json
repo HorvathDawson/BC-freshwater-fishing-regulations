@@ -13956,7 +13956,6 @@
        ]
       }
      ],
-     "extent_text": "the outlet stream downstream of the falls",
      "exempts": [
       {
        "target": "species_quotas.r2",
@@ -13973,7 +13972,8 @@
        "entry_id": "z4:species_quotas",
        "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
       }
-     ]
+     ],
+     "extent_text": "the outlet stream downstream of the falls"
     }
    ]
   },

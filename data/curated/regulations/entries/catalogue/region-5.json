@@ -12862,6 +12862,9 @@
    "display_name": "Region 5",
    "region": "5",
    "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions)",
+   "source_pages": [
+    42
+   ],
    "extents": [
     {
      "op": "within",
@@ -12885,9 +12888,6 @@
       }
      ]
     }
-   ],
-   "source_pages": [
-    42
    ]
   },
   {

@@ -326,6 +326,31 @@ def as_rainbow(x: dict) -> dict | None:
     return x if len(inside) == len(bands) else dict(x, lengths=inside)
 
 
+def released_on_water(x: dict) -> str | None:
+    """THE WATER KIND A ZONE RELEASE IS LIMITED TO — "stream" for Region 3's "you must release:
+    Bull trout (Dolly Varden) from streams, Aug 1-Oct 31", Region 4's "Trout/char release: in
+    streams from Nov 1-Mar 31" — or `None`.
+
+    Only an outright release that is no closure (`take: 0`, the fish may still be fished for:
+    `rules.release_origins`), carrying a `water`, whose every extent draws only that kind of
+    water (`feature_types: [water]`), so that being bound to a section IS being on that kind of
+    water. `effective_rules` step 4b lets such a release displace its own table's keeping quotas
+    for the fish, exactly as a release printed without `water` does."""
+    from pipeline.deliver.bundle.rules import release_origins
+    water = x.get("water")
+    if not water or not release_origins(x) or x.get("may_target") == 0:
+        return None
+    exts = x.get("extents") or []
+    if not exts or any(list(e.get("feature_types") or []) != [water] for e in exts):
+        return None
+    return str(water)
+
+
+def _base_dimension(x: dict) -> str:
+    """A rule's dimension without its conditions: "daily@water=stream" -> "daily"."""
+    return str(x.get("dimension") or "").split("@", 1)[0]
+
+
 _RULES_BY_PATH: dict = {}
 
 
@@ -457,6 +482,15 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
          fish it covers AS IF IT NAMED IT, so a water's "No Fishing, Nov 1-Apr 30" silences the
          zone's "Burbot: 5" on its dates (read as a group rule, it let the 5 speak beside it).
+     4b. A ZONE RELEASE LIMITED TO A KIND OF WATER (`water: stream`, `released_on_water`), in
+         force on that kind of water, displaces its own region's table's quotas and clauses that
+         keep the fish, in the same dimension read without conditions — as Region 3's "Lake trout
+         from Oct 15-Jan 31" does with no `water`: "Bull trout (Dolly Varden) from streams, Aug
+         1-Oct 31" silences "Trout/char: 5", "1 over 50 cm" and "1 bull trout or lake trout" for
+         a bull trout on a Region 3 stream; Region 4's "Trout/char release: in streams from Nov
+         1-Mar 31" silences Region 4's quotas for every trout and char on its streams. A size
+         clause of another dimension ("none under 60 cm"), a closure, a water row and another
+         region's rule are untouched.
       5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25): an outright
          release in force here, written for this water or reached by the tributary walk,
          displaces every zone/area/provincial quota that would keep the fish, WHATEVER its
@@ -691,6 +725,30 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
             if not closure(k) and any(o != k and family(o) != family(k)
                                       and not peers(o, k) and beats(o, k) for o in group):
                 out_.discard(k)
+
+    # 4b. A ZONE RELEASE LIMITED TO A KIND OF WATER, ON THAT WATER (ZS-2, 2026-09-29). Region 3's
+    #     "Lake trout from Oct 15-Jan 31" (no `water`) meets "Trout/char: 5" and its clauses in
+    #     step 4 and displaces them; "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries
+    #     `water: stream`, which is part of its dimension, so it met none of them and "Dolly Varden
+    #     — 1 per day" spoke beside "release all" on the same stream on the same day. A release
+    #     `released_on_water`, surviving step 4, displaces its OWN REGION'S TABLE's rules that keep
+    #     the fish (`rules.yields_to_release`, every origin kept released here) in the same
+    #     dimension read without conditions ("daily": the quota, its "1 over 50 cm", "4 from
+    #     streams"), never a size clause of another dimension ("none under 60 cm" stays beside),
+    #     never a closure (it keeps nothing), never a water row, never another region's rule.
+    #     Bound here is being on its kind of water (its extents draw only that kind).
+    for k in sorted(out_):
+        kind = released_on_water(every[k]) if competes(k) and place(k) >= 2 else None
+        if kind is None or base(k) is None:
+            continue
+        freed = release_origins(every[k])
+        for o in sorted(out_):
+            keeps = yields_to_release(every[o])
+            if o != k and competes(o) and place(o) >= 2 and base(o) == base(k) \
+                    and family(o) != family(k) and keeps and keeps <= freed \
+                    and every[o].get("water") in (None, kind) \
+                    and _base_dimension(every[o]) == _base_dimension(every[k]):
+                out_.discard(o)
 
     # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
     #    keys on (type, dimension), and a zone quota's conditions are part of its dimension, so

@@ -1,11 +1,13 @@
-"""The rule catalogue — 14 types, their conditions, and what makes two rules comparable.
+"""The rule catalogue — 13 types in 6 families, their conditions, and what makes two rules
+comparable.
 
 Replaces hand-written `Rule.details` with a TYPE plus named CONDITIONS. The label is generated
 from those (see `label()`), so it cannot drift from the numbers the way the prose did:
 `r6:bennett_lake` said "tiered size limit" while its own verbatim said "only 1 over 90 cm, none
 between 60 cm and 90 cm".
 
-Spec: pipeline/docs/17-rule-catalogue.md. Source text: data/curated/regulations/reference/.
+Spec: pipeline/docs/18-how-regulations-are-stored.md and pipeline/docs/CURRENT-STATE.md. Source
+text: data/curated/regulations/reference/.
 
 THE ONE INVARIANT: a type boundary is a wall the override cannot cross. Two rules that could ever
 displace one another must share a type and differ only in `dimension`; two rules that never compete
@@ -259,6 +261,23 @@ BOOK_FAMILIES: dict[str, tuple[str, ...]] = {
 }
 #: Every fish a rule may name, in the book's order.
 BOOK_SPECIES: tuple[str, ...] = tuple(c for fs in BOOK_FAMILIES.values() for c in fs)
+
+#: THE SCIENTIFIC NAME OF EVERY FISH THE BOOK LISTS (and chinook, the one salmon it names), as
+#: the official B.C. species table prints it — for display only; no rule reads it. This is all
+#: that survived of `pipeline/regs/parsing/species.py`, the retired code set (BT, SLV, TRT, WCT …)
+#: whose codes the model refuses.
+SCIENTIFIC_NAMES: dict[str, str] = {
+    "RB": "Oncorhynchus mykiss", "ST": "Oncorhynchus mykiss", "CT": "Oncorhynchus clarki",
+    "GB": "Salmo trutta",
+    "DV": "Salvelinus malma", "LT": "Salvelinus namaycush", "EB": "Salvelinus fontinalis",
+    "LW": "Coregonus clupeaformis", "MW": "Prosopium williamsoni",
+    "LMB": "Micropterus salmoides", "SMB": "Micropterus dolomieui",
+    "KO": "Oncorhynchus nerka", "GR": "Thymallus arcticus", "BB": "Lota lota",
+    "WSG": "Acipenser transmontanus", "BCB": "Pomoxis nigromaculatus", "NP": "Esox lucius",
+    "YP": "Perca flavescens", "WP": "Sander vitreus (formerly Stizostedion vitreum 10/05)",
+    "GE": "Hiodon alosoides", "IN": "Stenodus leucichthys", "CRA": "Pacifastacus leniusculus",
+    "CH": "Oncorhynchus tshawytscha",
+}
 
 #: THE GROUPS A RULE MAY NAME, and what each one covers. Stored as the word the book printed:
 #: "Trout/char: 5" is ONE claim about trout and char, and nine codes would be nine claims that
@@ -2671,6 +2690,11 @@ class CatalogueRule(BaseModel):
     #: NOT `condition_of`, which points the other way — at the rule this one is the proviso of.
     #: One field for both would be a pointer whose meaning depends on the rule holding it.
     suspended_while: Optional[str] = None
+    #: THE PAGE'S WORDS FOR WHERE THE RULE HOLDS. With no `extents` it is a place nothing could
+    #: draw, and the rule stays unbound. Beside drawn extents it names the drawn place in the
+    #: book's words for the label ("between fishing boundary signs …"). Beside `rest` it is the
+    #: book's word for the remainder ("other parts") — the label prints it; the op alone does not.
+    #: Refused beside a bare `whole` (the whole water would be closed for a rule about one bay).
     extent_text: str = ""
     #: Locator phrases that could not be bound to a cut-point — "the outlet", "signs 500 m below
     #: the falls". Non-empty means the rule needs review; curation maps each to a split id.
@@ -2891,19 +2915,31 @@ class CatalogueRule(BaseModel):
             # ever say what they could, and "Wild cutthroat trout daily quota = 2 (none 40 cm or
             # more)" — 40 cm on the forbidden side — was rejected as a mismatch.
         else:
-            # `lengths` IS NOT ON THIS LIST. `band` was, because a band was only ever a
-            # retention thing — but a size on a document rule names WHICH FISH need the stamp
-            # ("required to catch and keep rainbow trout over 50 cm"), so `lengths` belongs to
-            # both and refusing it here rejected the two rules that prove the distinction.
+            # `lengths` IS ON THIS LIST. It was kept off it for the document rule type, where a
+            # size named WHICH FISH need a stamp — that type is gone, and a licensing record says
+            # it in `Doing.lengths`. On a bait or hook rule a size was accepted and dropped from
+            # the label: "Bait ban" for a rule the file said held only over 50 cm.
             for f in ("take", "unlimited", "per_daily", "within"):
                 if getattr(self, f) not in (None, False):
                     e.append(f"{f} belongs to retention_limit, not {t.value}")
+            if self.lengths:
+                e.append(f"lengths belongs to retention_limit, not {t.value} — a size a "
+                         f"licence depends on is the licensing record's `doing.lengths`")
 
         # A bait or tackle rule is not scoped to what you may CATCH — "banned for all angling and
         # for all species". 18 corpus rules carry codes leaked from a co-located catch-and-release
         # clause ("Trout/char catch and release, bait ban"), which reads narrower than the law.
         # But a rule may be scoped to what you are FISHING FOR — a stream can carry a salmon bait
         # ban and no other — and that is `when_targeting`.
+        # A `note` IS THE ESCAPE FROM A CLOSED VOCABULARY (`GearWhen`, `GearSpec`), and it costs a
+        # `review_reason`: without one the gap is absorbed into a clause that reads complete.
+        noted = [c.slot.value for c in self.gear
+                 if (c.when is not None and c.when.note)
+                 or any(u.note for u in c.unless)
+                 or (c.requires is not None and c.requires.note)]
+        if noted and not self.review_reason:
+            e.append(f"gear {sorted(set(noted))}: a `note` says what the vocabulary cannot — give "
+                     f"the rule a review_reason naming what is missing")
         if t in (RuleType.bait_restriction, RuleType.tackle_restriction):
             if self.species:
                 e.append(f"{t.value} must not carry `species` — a bait or hook rule binds all "
@@ -3255,7 +3291,9 @@ def _gear_words(r: CatalogueRule) -> str:
         if c.when is not None and c.when.targeting:
             fish = species_words(list(c.when.targeting)).lower()
             fish = {"all game fish": "game fish"}.get(fish, fish)
-        if c.slot is Slot.bait and c.ban == ["any_bait"] and plain(c):
+        if c.slot is Slot.bait and c.ban == ["any_bait"] and not c.of and not c.except_:
+            # "Bait ban" on EVERY branch: its condition (`when`, `unless`) is appended below
+            # like any clause's. Spelled "no any bait", a token read as English.
             bits.append("bait ban")
         elif c.slot is Slot.method and fish and c.ban is not None:
             bits.append(f"no {', '.join(c.ban).replace('_', ' ')} for {fish}")
@@ -3300,6 +3338,7 @@ def _gear_words(r: CatalogueRule) -> str:
                     bits.append(f"{kind} {v:g} {one}" + (f" per {tail}" if tail else ""))
         if c.when is not None and not c.when.is_empty():
             w = [x for x in (getattr(c.when.water, "value", None),
+                             getattr(c.when.method, "value", None),
                              getattr(c.when.angler, "value", None)) if x]
             if w:
                 bits[-1] += " (" + ", ".join(_ANGLER_WORDS.get(x, x.replace("_", " "))

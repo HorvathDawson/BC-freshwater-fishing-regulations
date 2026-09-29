@@ -131,7 +131,7 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
       </Group>
 
       <Group title="retention" path={path} open={isRetention || said(r, RETENTION_KEYS)}
-        keys={[...RETENTION_KEYS, "period"] as string[]}>
+        keys={[...RETENTION_KEYS, "period", "closure_kind"] as string[]}>
         <div className="grid3">
           <F path={`${path}.take`}><Num label="take" value={r.take} step={1} onChange={(x) => set({ take: x })} /></F>
           <F path={`${path}.unlimited`}><Check label="unlimited" value={r.unlimited} onChange={(x) => set({ unlimited: x })} /></F>
@@ -151,6 +151,16 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
           <F path={`${path}.record_retention`}><Check label="record_retention" value={r.record_retention}
             onChange={(x) => set({ record_retention: x })} /></F>
         </div>
+        {/* A closure's NAME ("Spring closure", "the winter/spring closure"): valid only on a
+            no-fishing closure (retention_limit, take 0, may_target false); where the sentence
+            prints the name the field may only repeat it. Shown whenever it is set, so a value
+            the validator refuses is still reachable. */}
+        {((r.type === "retention_limit" && r.take === 0 && r.may_target === false) || r.closure_kind != null) && (
+          <F path={`${path}.closure_kind`} hint="the season this closure is NAMED for — what 'Exempt from spring closure' lifts; must agree with a name the sentence prints">
+            <Pick value={r.closure_kind} options={v.closure_kinds} label="closure_kind" none="not a named closure"
+              onChange={(x) => set({ closure_kind: x })} />
+          </F>
+        )}
         <F path={`${path}.lengths`} hint="ordered size ranges; first match wins">
           <LengthsEditor value={r.lengths} path={`${path}.lengths`} onChange={(x) => set({ lengths: x })} />
         </F>

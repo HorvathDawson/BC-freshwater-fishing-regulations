@@ -7912,12 +7912,12 @@
        "op": "whole"
       }
      ],
+     "includes_tributaries": true,
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not required"
      },
      "verbatim": "Class II water[Includes Tributaries] when open",
-     "kind": "designation",
-     "includes_tributaries": true
+     "kind": "designation"
     }
    ],
    "see": [

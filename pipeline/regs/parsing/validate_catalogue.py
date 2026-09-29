@@ -106,7 +106,7 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
     on itself until clean — a check it cannot run is a defect it cannot fix, and an invented
     cut-point is otherwise invisible until it silently selects no sections at reach resolution."""
     if item.get("no_registry"):
-        return []                    # nothing to bind; the parser is told to emit extents: []
+        return []                    # nothing to bind: no split id can be valid here
     allowed, canon = boundary_ids(item)
     if not allowed:
         return []                    # a batch written before boundaries were exported

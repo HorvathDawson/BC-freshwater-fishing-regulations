@@ -875,6 +875,9 @@
           "species": [
             "ALL_GAME_FISH"
           ],
+          "species_except": [
+            "CRA"
+          ],
           "take": 0,
           "may_target": true,
           "extents": [
@@ -938,9 +941,6 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
-          ],
-          "species_except": [
-            "CRA"
           ]
         },
         {
@@ -2078,6 +2078,9 @@
           "species": [
             "ALL_GAME_FISH"
           ],
+          "species_except": [
+            "CRA"
+          ],
           "take": 0,
           "may_target": true,
           "extents": [
@@ -2131,9 +2134,6 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
-          ],
-          "species_except": [
-            "CRA"
           ]
         }
       ]
@@ -2187,6 +2187,9 @@
           "verbatim": "Catch and release, May 1-Oct 31",
           "species": [
             "ALL_GAME_FISH"
+          ],
+          "species_except": [
+            "CRA"
           ],
           "when": {
             "dates": [
@@ -2261,9 +2264,6 @@
               "entry_id": "z7b:arctic_grayling",
               "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
             }
-          ],
-          "species_except": [
-            "CRA"
           ]
         }
       ]
@@ -8079,6 +8079,9 @@
           "species": [
             "ALL_GAME_FISH"
           ],
+          "species_except": [
+            "CRA"
+          ],
           "take": 0,
           "may_target": true,
           "extents": [
@@ -8155,9 +8158,6 @@
               "entry_id": "z7b:species_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
-          ],
-          "species_except": [
-            "CRA"
           ]
         }
       ]

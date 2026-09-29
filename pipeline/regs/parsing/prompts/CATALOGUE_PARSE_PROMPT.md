@@ -6,9 +6,12 @@ You are converting one row of the BC Freshwater Fishing Synopsis into typed rule
 generated from those by `pipeline/regs/parsing/catalogue.py`. A label typed beside a number drifts
 from it — that is the defect this format exists to remove.
 
-Read `pipeline/docs/18-how-regulations-are-stored.md` first. The synopsis' own key to these tables
-is `data/curated/regulations/reference/water-specific-tables.md` — it defines the terms below and
-you must follow it, not your intuition about what the words mean.
+This prompt and the validator are the contract; everything you must write is here. Background on
+why the format is shaped this way is in `pipeline/docs/18-how-regulations-are-stored.md`. The
+synopsis' own key to these tables is `data/curated/regulations/reference/water-specific-tables.md`
+— it defines the book's terms, and you follow its definitions, not your intuition about what the
+words mean. Where either document and this prompt disagree about a FIELD, this prompt and the
+validator win.
 
 ---
 
@@ -16,7 +19,8 @@ you must follow it, not your intuition about what the words mean.
 
 1. **`verbatim` must be an exact contiguous substring of `regs_verbatim`.** Never reword, never
    stitch two sentences, never add a connective. If the printed text is a bullet under a heading,
-   quote the run that contains both.
+   quote the run that contains both. **Quote from the sentence, never from its list number or
+   bullet** — a `verbatim` that starts with `1.`, `(a)`, `•` or `-` is refused.
 2. **`regs_verbatim` is the printed passage, unedited.** If you find yourself improving it, stop.
 3. **One restriction per rule.** *"Bait ban and single barbless hook"* is two rules.
 4. **Never invent a number.** Every `take`, every bound inside `lengths`, `max_kmh`, `max_power_kw` must
@@ -43,7 +47,7 @@ you must follow it, not your intuition about what the words mean.
 
 ---
 
-## The catalogue is TWO TIERS: six families, fourteen types
+## The catalogue is TWO TIERS: six families, thirteen types
 
 The family is how the reader's screen is sectioned. The type is what you choose.
 
@@ -94,9 +98,9 @@ These were each filed two ways in the old corpus. The right column is the rule:
 | *"No angling from boats"* | `method_rule`, `gear: [{"slot": "method", "ban": ["angling"], "when": {"angler": "in_boat"}}]` | it restricts HOW you may fish, not the boat — a water can allow motoring and forbid fishing from the boat. The `when` keeps shore angling allowed |
 | *"No angling from powered boats"* | the same, `"angler": "in_powered_boat"` | without it the ban reaches a canoe the book allows. (The old boat-angling rule type is retired and refused.) |
 | *"Class I/II water"* | **not a rule** — a `designation` in `licensing` | a fact about the water; the provincial requirement fires on it |
-| *"Youth/disabled accompanied water"* | `program_membership` | an ACCESS provision — who may be brought along, not what licence is held |
+| *"Youth/Disabled Accompanied Water"* | **two rules on the same `verbatim`**: `program_membership` (the notice) AND `angler_closure` with `closed_to: {"age": ["16_plus"]}`, `closed_to_except: [{"residency": ["resident"], "status": ["disabled"]}, {"role": ["companion"]}]` | the water is CLOSED to every adult who is not a disabled resident or a companion to an authorized angler (p.4). The notice alone reads as open to everyone — the `angler_closure` is what closes it |
 | *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `angler_closure`, `closed_to: {"residency": ["non_resident_alien"], "guidance": ["non_guided"]}` | it closes the water to **one kind of angler**. Filed as `retention_limit` it shares a key with — and can displace — a quota that binds everyone. |
-| *"Exempt from the spring closure"* | **not a type** — `exempts` on the rule it lifts | an exemption takes the type of whatever it removes |
+| *"Exempt from the spring closure"* | **not a type** — a rule of the lifted rule's type carrying `exempts` (see "Exemptions") | an exemption takes the type of whatever it removes |
 | *"Bass: 0 quota, closed to fishing"* | `retention_limit(take=0, may_target=false)` | a closure IS a limit. Filed apart from quotas the override never fires. |
 
 **Quick test:** `retention_limit` limits what you keep · `bait_restriction` what goes in the water ·
@@ -221,10 +225,14 @@ side           north | south | east | west — the rule holds on that HALF OF A 
 life_stage     adult — a life stage the book defines, as the sentence prints it: "record your
                retention of ADULT chinook salmon" is species [CH], life_stage adult (p.77 defines
                adult chinook by a length that differs by water — never write it as `lengths`).
-               Required whenever the sentence prints "adult chinook".
-exempts        what this rule LIFTS
+               Required whenever the sentence prints "adult chinook". "Record your retention" is a
+               duty, not a count: `record_retention: true` and no `take`.
+exempts        what this rule LIFTS — see "Exemptions" below
 suspended_while  a rule id in this entry: this rule is DORMANT while that one binds. (A licensing
                designation says the same thing its own way — see "Licensing" below.)
+tributaries_only  true: the rule walks the row's tributaries WITHOUT the row's own water
+               ("… in all tributaries of X", "EXCEPT the mainstem"); never beside
+               `includes_tributaries: false` (that binds nothing)
 obligation     must (default) | should — "anglers are encouraged" is should, not law
 review_reason  why a human must look. A reason present IS the flag, so write one that
                names what is missing — longer than 20 characters is expected.
@@ -265,6 +273,10 @@ in some rules and then says "Other parts: trout/char daily quota = 1" means the 
 ```json
 "extents": [{"op": "rest", "siblings": ["bull_river.r1"]}], "extent_text": "other parts"
 ```
+
+`rest` draws the place; `extent_text` beside it is only the book's word for the remainder, which
+the label prints (the op alone prints nothing). It is the one drawn extent `extent_text` names
+without narrowing.
 
 List every rule whose parts it is the rest of, by `rule_id`, explicitly. The builder binds the
 rule's water (with the rule's own tributary scope — a row marked "Includes Tributaries" includes
@@ -307,6 +319,13 @@ not `between` two splits, because the region boundary is not a cut-point on the 
 has **zero** Fraser mainstem sections, which is why a bounded reach could never have worked there.
 
 Combine it freely with an op: `{"op": "upstream_of", "splits": ["x"], "within_area": "area:region:5"}`.
+
+**A row with NO REGISTRY MATCH** (the batch envelope says so) has no menu. Write its rules the same
+way — `[{"op": "whole"}]` for a rule about the whole row, `undrawn_part` beside `whole` for a
+part of it, `extent_text` + `unresolved_locators` for a place you cannot draw — and a
+`review_reason` on every rule ("no registry match — attach an item and bind extents"). A `whole`
+there binds nothing until a curator attaches the item; it is still the true statement of where
+the rule holds. Never invent a split id.
 
 **When nothing fits.** Do not force a binding. Put the page's words in `extent_text`, record the
 phrase in `unresolved_locators`, and give a `review_reason`. A rule bound to the
@@ -483,6 +502,50 @@ number of rods"* is `{"slot": "lines_per_angler", "unlimited": true, "when": {"a
 
 ---
 
+## Exemptions — `exempts`
+
+*"Exempt from spring closure"*, *"EXEMPT from single barbless hooks"*, *"also EXEMPT from bait ban
+downstream of …"* LIFT a rule printed elsewhere. The row writes ONE rule of the lifted rule's type
+(a closure or quota → `retention_limit`; a bait ban → `bait_restriction`; a hook rule →
+`tackle_restriction`) whose `exempts` names what it lifts — EXACTLY ONE of:
+
+```
+{"default_id": "<slug>"}                     a ZONE DEFAULT, by its registered slug — one of:
+                                               spring_stream_closure · summer_stream_closure ·
+                                               steelhead_stream_closure · trout_char_winter_release ·
+                                               bait_ban_streams · single_barbless_hook
+                                             (the book's "spring closure" is spring_stream_closure;
+                                              no other slug is accepted)
+{"target": "<rule_id>"}                      ONE RULE of THIS entry
+{"target": "<rule_id>", "entry_id": "<id>"}  one rule of ANOTHER entry ("EXEMPT from Columbia
+                                             Lake's tributaries closure") — the entry is named,
+                                             because a rule id is unique only within its entry
+```
+
+A rule that only lifts states nothing else of its own — no number, no gear of its own beyond what
+its type requires:
+
+```json
+{"rule_id": "oyster_river.r1", "type": "retention_limit",
+ "verbatim": "Exempt from July 15-Aug 31 summer closure",
+ "species": ["ALL_GAME_FISH"], "exempts": [{"default_id": "summer_stream_closure"}],
+ "extents": [{"op": "whole"}]}
+```
+
+* A lift-only `retention_limit` STILL carries `species` (the validator refuses one without):
+  `ALL_GAME_FISH` for a blanket closure, or the fish the row names (*"exempt from the steelhead
+  closure"* → `["ST"]`). No `take`, no `may_target`.
+* A lift of a bait ban is `bait_restriction` with `gear: [{"slot": "bait", "allow":
+  ["any_bait"]}]`; a lift of the single-barbless-hook default is `tackle_restriction` with no
+  `gear`.
+* Its dates are the lifted rule's — write no `when` unless the row prints dates for the lift
+  itself.
+* When the row also prints its own quota for the fish (*"Rainbow trout daily quota = 10"* where the
+  zone says 5), that is its own `retention_limit`; the lift of the zone quota is written only where
+  the row says it (or a curator adds it).
+
+---
+
 ## Rules the page imposes on you
 
 * **Bait bans and hook rules carry NO `species`.** *"During the period when bait is banned it is
@@ -501,6 +564,9 @@ number of rods"* is `{"slot": "lines_per_angler", "unlimited": true, "when": {"a
   FISH, never crayfish:** `species: ["ALL_GAME_FISH"]`, `species_except: ["CRA", …the fish the
   row names itself]`. Not `ALL_FIN_FISH` (that reaches every non-game fish). The validator
   refuses anything else.
+* **A bare *"Catch and release"* naming no fish is the same:** every game fish except crayfish —
+  `species: ["ALL_GAME_FISH"], species_except: ["CRA"], take: 0, may_target: true`. Without the
+  `CRA` exception it is refused (a crayfish may be kept).
 * **A POINTER IS NOT A RULE.** *"See Lonzo Creek"*, *"A tributary of Slocan River. See Slocan
   River"*, *"For regulations on the mainstem of the West Road River, see Region 5"* state no
   regulation: write them in the ENTRY's `see` list, never as an `advisory` rule —
@@ -534,6 +600,9 @@ exemption       a named `who` released from named documents
 alternative     a place where another document also satisfies a requirement
 ```
 
+* **Outside Region 4 a `designation` must say what the row prints about the Steelhead Stamp** —
+  `steelhead_stamp_during` (the stamp's own `when` and quote) or `steelhead_stamp_waived` — or, if
+  the row prints neither, a `review_reason` saying so. Region 4's Class II waters print no stamp.
 * **"Class II water when open" needs no field** — licensing is only consulted where the water is
   open. Leave `when` out.
 * **"X classified licence required for non-resident anglers"** is the designation's `unit`
@@ -541,9 +610,30 @@ alternative     a place where another document also satisfies a requirement
 * **A waiver lifts only the classified-water stamp.** "Steelhead Stamp not required unless
   fishing for steelhead" is `steelhead_stamp_waived`; the "unless" is the provincial rule.
 * **`Who`** is a set per axis: `residency` (resident / non_resident / non_resident_alien), `age`
-  (under_16 / 16_plus), `guidance` (guided / non_guided), `status`. "non-resident" in the book
+  (under_16 / 16_plus), `guidance` (guided / non_guided), `status` (indian_bc_resident / metis /
+  disabled), `role` (companion — the adult beside an authorized angler). "non-resident" in the book
   means `["non_resident", "non_resident_alien"]`; "Canadian resident" means
   `["resident", "non_resident"]`. Never name every member of an axis — leave it out.
+
+---
+
+## Fields the CURATOR sets — never write them
+
+The model has fields a parse must not invent: they record a curator's decision or a
+zone-table fact, and a parser writing them silently changes where or whether a rule binds.
+Leave them out; if the row seems to need one, say so in `review_reason`.
+
+| field | what the curator records |
+|---|---|
+| `closure_kind` | the season a zone's blanket closure is named for (spring / summer / winter) — zone entries |
+| `derived_from`, `condition_of` | links between rules a curator has reconciled |
+| `standing`, `authority`, `notice` | a rule that never competes; a superior (federal/park) authority; a notice |
+| `scope_note`, `anadromous_rainbow` | entry-level notes and the steelhead-water flag (p.86) |
+| extent `feature_types` | which kind of water an AREA extent reaches (a zone's "in streams"); on a water row, a rule limited to its lakes or streams says so with `water` |
+| extent `watershed`, `item_ids`, `outside_items`, `outside_area`, `outside_areas`, `outside_area_kind` | watershed parts and carve-outs of an area |
+
+`suspended_while` on a RULE, `record_retention`, `life_stage` and `tributaries_only` ARE yours —
+see the conditions above — when the sentence prints them.
 
 ---
 

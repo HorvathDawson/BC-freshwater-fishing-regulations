@@ -6,8 +6,9 @@ run this module — only hand the user the command to run in their own terminal.
 
 This is the automation layer over the tested export -> (parse) -> ingest flow. It shells out to the
 `claude` CLI in print mode with the batch's self-contained prompt; the CLI agent has Bash access, so it
-can run `pipeline.regs.parsing.validate_catalogue` and `pipeline.regs.parsing.species` to self-correct BEFORE emitting its
-JSON (exactly the "the chat can use the python functions" intent). Requires the `claude` CLI installed +
+can run `pipeline.regs.parsing.validate_catalogue` to self-correct BEFORE emitting its JSON (exactly the
+"the chat can use the python functions" intent). The species are the book's list, in the prompt and
+in `catalogue.BOOK_SPECIES`. Requires the `claude` CLI installed +
 authenticated (set CLAUDE_BIN or --claude-bin if it isn't on PATH). If you're parsing inside a chat
 already, skip this and paste batches to a subagent by hand — same downstream ingest.
 

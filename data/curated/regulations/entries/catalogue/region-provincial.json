@@ -153,7 +153,7 @@
    "entry_id": "zp:barbless_single_hook_streams",
    "name": "Single barbless hook in streams",
    "display_name": "Every stream in B.C.",
-   "regs_verbatim": "It is unlawful to use barbed hooks or a hook with more than one point in any river, stream, creek or slough in B.C. Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables. B.C. (Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables).",
+   "regs_verbatim": "It is unlawful to use barbed hooks or a hook with more than one point in any river, stream, creek or slough in B.C. (Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables).",
    "source_pages": [
     8
    ],
@@ -211,7 +211,7 @@
     {
      "rule_id": "barbless_single_hook_streams.r2",
      "type": "advisory",
-     "verbatim": "Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables).",
+     "verbatim": "Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables",
      "water": "lake",
      "extents": [
       {

@@ -15,8 +15,8 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
    `python -m pipeline.regs.parsing.dispatch`, anything that spawns `claude -p`. It spends the
    user's credits. Hand over the command; the human runs it. This holds even if the user
    says "run it" — that means *they* will.
-2. **Never write to `pipeline/regs/parsing/entries/*.json` without backing them up first.**
-   They hold in-progress curation that is not committed. `cp` them to the scratchpad, make
+2. **Never write to `data/curated/regulations/entries/catalogue/region-*.json` without backing
+   them up first.** They hold in-progress curation that may not be committed. `cp` them to the scratchpad, make
    the change, then diff to prove only what you intended moved. A lock was lost in this
    repo once; do not be the second time.
 3. **Prefix shell commands with `rtk`.** Token-optimised proxy; passes through when it has
@@ -89,19 +89,26 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 14. **Every rule ends bound, or unresolved with a typed reason. Never absent, never
     bound-and-empty, never unresolved-and-unexplained.** Enforced in
     `RuleBinding.__post_init__` (⑪ + ㊳).
-15. **A rule extending to tributaries is `tributaries_pending`** — the reach-scoped walk
-    does not exist. 547 rules. Nothing downstream may treat such a binding as complete.
+15. **The tributary walk exists; `tributaries_pending` means it could not run.** The reach
+    builder walks every rule that extends to tributaries (451 rules carry a `tributaries`
+    diagnostic, reach run 2026-09-28). "Tributaries" walks STREAMS only (p.86); "watershed"
+    keeps lakes. `report.json` `tributaries_pending` is **8** — exactly the unresolved
+    `no_extents` rules whose rule or entry asks for tributaries (no seed to walk from). A
+    binding flagged pending is still never complete; nothing downstream may treat it so.
 16. **The review app and the builder share one implementation.** `entry_reaches` calls
-    `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. Verified:
-    **3,038 of 3,038 rules identical**. If you change one, re-run that parity check — the
-    app is where a human signs off, so divergence is invisible until a user hits it.
+    `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. Verified
+    once: **3,038 of 3,038 rules identical** — a number that predates the current corpus (3,317
+    rules, `rest`, `Extent.watershed`) and has **not been re-run since**; re-run it before relying
+    on it. If you change one, re-run that parity check — the app is where a human signs off, so
+    divergence is invisible until a user hits it.
 
 ## Builds and tests
 
 17. **Full builds take ~18 min and ~9 GB.** Never rebuild to test a change. Build to a new
     `--out` and compare with `pipeline/tools/build_parity.py`. `data/generated/atlas/full` and
     `data/generated/atlas/full_new` already exist.
-18. **`pytest.ini` deselects 153 `slow` tests by default** (㊷). Determinism and full-build
+18. **`pytest.ini` deselects the `slow` tests by default** (㊷) — 197 of 2,263 on
+    2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
@@ -245,3 +252,51 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 43. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
 44. **Report honestly what you did not verify.** An unverified claim is worse than a known
     gap. Say "scaffolded, not run" when that is what happened.
+
+## Reading the regulations
+
+<!-- 45-53: rulings from 2026-09-25 to 2026-09-29 that were only in commit messages and memory.
+     Appended, not interleaved, so the numbers above stay stable. The mechanics are in
+     pipeline/docs/CURRENT-STATE.md; the reference reader is read.py `effective_rules`. -->
+
+45. **The book's species list (p.86) is closed, and a bull trout IS a Dolly Varden.** 22 fish
+    in TROUT/CHAR/WHITEFISH/BASS/OTHER (`catalogue.BOOK_FAMILIES`); any other code is refused.
+    `BT` is refused — "bull trout" is `DV` (p.86: "Any bull trout that you catch and keep must be
+    counted as part of your Dolly Varden quota"). Chinook `CH` is the one salmon the book names:
+    in SALMON, never a game fish. (29ef0a20, aeb070cf)
+46. **"Trout" is `TROUT_CHAR`, scoped by its row or zone table.** Trout includes char unless
+    char are excluded (p.86); `TROUT` is refused. When the same row or zone table mentions a char
+    apart (char, Dolly Varden/bull trout, lake trout, brook trout — not the group word
+    "trout/char"), its bare "trout" lines carry `species_except: [CHAR]` — never one char alone.
+    `trout_scope_problems` refuses it both ways. (38149b92)
+47. **A `;` ends a dating run.** "Trout/char catch and release; bait ban, June 15-Oct 31" dates
+    only the bait ban; an "and"/comma chain shares the date. The model refuses a `when` that
+    crosses a `;` and a quote that prints dates its rule does not carry. (3b5c6e9c, 1c8dfac8)
+48. **A pointer is `see`, never a rule.** "See Lonzo Creek" goes in the entry's `see` list
+    (`entry_ids`, or `unresolved` with a reason); the model refuses an `advisory` that is a
+    pointer. A pointer never moves a water into the target's region (Mara Lake). (3b5c6e9c)
+49. **Half of a river is `side`, not a part and not the whole.** "No Fishing on the west half of
+    river …" is `side: west` on the stretch; it is read "beside" the other rules and displaces
+    none, so the other half follows the water's other regulations. A lake's half is
+    `undrawn_part`. (38149b92)
+50. **A water's own dates override a dated zone rule on the overlap only.** A water row printing
+    its own dates for a fish replaces a dated zone release or quota for that fish on the days
+    both hold (Cheslatta/Murray lake trout Nov 1-30: the lake's 3) — never a closure. An undated
+    water quota never silences a dated zone release unless it is the exact same statement
+    (Shuswap char 1 vs Region 3's lake trout release Oct 15-Jan 31). (aeb070cf, 38149b92)
+51. **"(any size)" is a caution, not a reading.** A larger water quota overrides the zone's "1
+    over 50 cm" either way; only where the row prints "(any size)" does it carry a structured
+    interpretation caution (no size limit, or just no minimum?). Rows with their own sizes or none
+    get no caution. (aeb070cf)
+52. **A zone release limited to a kind of water displaces its own table on that water.** A zone
+    release with `water: stream` (extents `feature_types: [stream]`) in force on a stream
+    displaces its OWN region's quotas and clauses that keep the fish in the same base dimension
+    ("daily"), as a no-water release does (`read.released_on_water`, `effective_rules` step
+    4b): Region 3's "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31", Region 4's
+    "Trout/char release: in streams from Nov 1-Mar 31". Size clauses of another dimension ("none
+    under 60 cm"), closures, water rows and other regions' rules are untouched. (2026-09-29,
+    working tree)
+53. **Competition lives in one function.** `pipeline/deliver/bundle/read.py::effective_rules` is
+    the reference reader: per fish, per day, lifts, naming before place, water-vs-zone quota
+    rulings. The export `guide` restates it; the app must match it. Change a ruling there and in
+    the guide together.

@@ -138,7 +138,7 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- in the label generator, and the same misreading is available to anything that only sees a
 -- quota of zero.
 CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
-                   type TEXT NOT NULL,        -- one of 14 (catalogue.RuleType)
+                   type TEXT NOT NULL,        -- one of 13 (catalogue.RuleType)
                    family TEXT NOT NULL,      -- one of 6  (retention, gear_and_method, ...)
                    dimension TEXT NOT NULL,   -- precedence key, second half
                    -- `parts` (JSON object): the rule's line as PARTS, each generated from the
