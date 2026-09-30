@@ -50,6 +50,10 @@ class Reason(str, Enum):
     #: Every section the rule selects lies OUTSIDE British Columbia — past the provincial border
     #: (`out_of_bc`) or in no region polygon. B.C. regulations do not apply there.
     outside_bc = "outside_bc"
+    #: Every section the rule selects is TIDAL water — a water whose row says it is tidal
+    #: (`CatalogueEntry.tidal`, Nitinat Lake): the federal tidal regulations apply there, and no
+    #: provincial rule does.
+    tidal = "tidal"
 
     # --- a complement whose siblings are not all drawn ---------------------------
     #: `rest` ("other parts") is the water minus its named siblings' sections; a sibling that

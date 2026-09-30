@@ -46,7 +46,18 @@ from typing import Callable
 #: 12: `Extent` op `rest` — "other parts" binds the rule's water minus its named siblings'
 #:    sections (`build._build_rest`); unknown when a sibling does not bind, and a sibling's
 #:    straddling pieces are withheld (`classify.COMPLEMENT_*`).
-POLICY_VERSION = "12"
+#: 13: (2026-09-29 rulings) a cut at a CONFLUENCE keeps the joining water and its subtree out of the
+#:    walk unless the rule's words include it (`build.confluence_excludes`); a carve-out may
+#:    `walk_past` its water; a water row's walk is not held to any region
+#:    (`outside.WATER_ROW_WALKS_CROSS_REGIONS`); a tidal row's water leaves every other binding
+#:    (`outside.tidal_sections`); a code-less floodplain lake takes its side of a watershed cut
+#:    from the nearest river piece (`extent.CODE_LAKES_PLACED_BY_POSITION`); a designation stops
+#:    at national parks (`licensing.DESIGNATIONS_STOP_AT_NATIONAL_PARKS`); a designation still
+#:    walks into a confluence cut's joining water (`tributaries.LICENSING_WALKS_INTO_CONFLUENCE_WATERS`).
+#:    Signs the rule's words put BELOW the confluence ("signs located downstream of the Meziadin River
+#:    confluence") put it inside a reach running up from them: the joining water is walked
+#:    (`build._signs_below`, review 2026-09-29).
+POLICY_VERSION = "13"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
@@ -74,10 +85,15 @@ def _resolution_inputs(entry: dict) -> dict:
         "matched": list(entry.get("matched") or ()),
         "extents": entry.get("extents") or [],
         "includes_tributaries": entry.get("includes_tributaries"),
+        "tidal": bool(entry.get("tidal")),
         "rules": [
             {
                 "rule_id": r.get("rule_id"),
                 "type": r.get("type"),
+                # The words decide whether a confluence cut's joining water is taken in
+                # ("including Macleod Creek", `build.confluence_excludes`).
+                "verbatim": r.get("verbatim"),
+                "extent_text": r.get("extent_text"),
                 "extents": r.get("extents") or [],
                 "includes_tributaries": r.get("includes_tributaries"),
                 "tributaries_only": r.get("tributaries_only"),

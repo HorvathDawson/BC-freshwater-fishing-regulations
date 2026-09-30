@@ -414,7 +414,7 @@ left to infer:
 "not more than 1 over 50 cm"   you MAY keep one big one, and the parent governs the rest
                                  -> [{"min_cm": 50}]                       (a clause: `within`)
 "no trout over 50 cm"          you may keep NO big ones, and this says nothing about small ones
-                                 -> [{"min_cm": 50, "take": 0}]            take=0, may_target=true
+                                 -> [{"min_cm": 50, "take": 0}]            no take, may_target=true
 "1 bull trout over 60 cm"      the one you keep must BE big, and a 50 cm one is forbidden
                                  -> [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
 "Trout daily quota = 2 (none over 50 cm)"   the 2 is bounded above
@@ -435,6 +435,11 @@ grants it, and inside a `within` clause the parent quota governs it.
                                              {"max_cm":20,"take":0},{"min_cm":30,"take":0}]
 "none between 70 cm and 100 cm"             [{"min_cm":70,"max_cm":100,"take":0}]
 ```
+
+A rule's `take` fills only the ranges without one of their own: when EVERY range carries its own
+`take`, write no `take` on the rule (it is refused) — "no trout over 50 cm" and "none under 30 cm"
+are SIZE rules, which say nothing about the fish outside their ranges, never a count of 0 that
+would silence the quota for the small fish too.
 
 Write the grant BEFORE the denial beneath it, so a fish of exactly 60 cm is granted rather than
 denied. Where a clause carries both a hole and a number — "only 1 over 100 cm, none between 70

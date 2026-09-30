@@ -379,6 +379,29 @@
        "item_id": "wbk:329021804"
       }
      ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
+      }
+     ],
      "extent_text": "upstream of Tweedsmuir Provincial Park plus Tenas Lake"
     },
     {
@@ -418,6 +441,27 @@
         "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river"
        ],
        "item_id": "gnis:17209"
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
       }
      ]
     },
@@ -442,6 +486,29 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
+      }
      ]
     },
     {
@@ -457,6 +524,29 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
       }
      ]
     },
@@ -492,6 +582,16 @@
       {
        "op": "whole",
        "item_id": "gnis:11611"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "atnarko_bella_coola_rivers.r3",
+       "note": "EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31 ONLY — replaces the row's 'Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)' there"
+      },
+      {
+       "target": "atnarko_bella_coola_rivers.r4",
+       "note": "EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31 ONLY — replaces the row's 'Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)' there"
       }
      ]
     },
@@ -611,6 +711,29 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
+      }
      ]
     },
     {
@@ -640,6 +763,29 @@
        "op": "downstream_of",
        "splits": [
         "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary"
+       ]
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
        ]
       }
      ]
@@ -688,6 +834,29 @@
         "gnis:11611"
        ]
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
+      }
      ]
     },
     {
@@ -702,6 +871,29 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:2100",
+       "splits": [
+        "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
+       ]
       }
      ]
     }
@@ -736,6 +928,20 @@
        "item_id": "gnis:2100",
        "splits": [
         "burnt_bridge_creek__sitkatapa_confluence"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22290",
+       "splits": [
+        "hunlen_creek__hunlen_falls"
+       ]
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:1914",
+       "splits": [
+        "young_creek__young_hwy20"
        ]
       }
      ],
@@ -952,7 +1158,8 @@
        "op": "upstream_of",
        "splits": [
         "baker_creek__pinnacles_park_upstream_boundary"
-       ]
+       ],
+       "outside_area": "area:park:pinnacles_park"
       }
      ]
     },
@@ -981,6 +1188,26 @@
        "splits": [
         "baker_creek__pinnacles_park_upstream_boundary"
        ]
+      }
+     ]
+    },
+    {
+     "rule_id": "baker_creek.r2x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     },
@@ -1308,6 +1535,7 @@
    "matched": [
     "gnis:11611"
    ],
+   "includes_tributaries": true,
    "see": [
     {
      "verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
@@ -2576,6 +2804,26 @@
      ]
     },
     {
+     "rule_id": "chilcotin_river.r2x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** downstream of Chilko River, Oct 1-June 10",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
+    },
+    {
      "rule_id": "chilcotin_river.r3",
      "type": "retention_limit",
      "verbatim": "No trout/char under 30 cm downstream of Chilko River",
@@ -2745,7 +2993,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -2947,6 +3194,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "chilko_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Nov 1-June 10",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     },
@@ -6600,7 +6867,10 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "downstream_of",
+     "splits": [
+      "horsefly_river__horsefly_river_falls"
+     ]
     }
    ],
    "rules": [
@@ -6626,6 +6896,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "horsefly_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Nov 1-May 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     },
@@ -8726,7 +9016,8 @@
         "mitchell_river__cameron_creek_into_mitchell_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of Cameron Creek (including Cameron Creek)"
     },
     {
      "rule_id": "mitchell_river.r5",
@@ -8747,7 +9038,8 @@
         "mitchell_river__cameron_creek_into_mitchell_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of Cameron Creek (including Cameron Creek)"
     },
     {
      "rule_id": "mitchell_river.r6",
@@ -8768,7 +9060,8 @@
         "mitchell_river__cameron_creek_into_mitchell_river"
        ]
       }
-     ]
+     ],
+     "extent_text": "downstream of Cameron Creek (including Cameron Creek)"
     }
    ]
   },
@@ -9686,6 +9979,26 @@
        "splits": [
         "quesnel_river__cariboo_river_into_quesnel_river"
        ]
+      }
+     ]
+    },
+    {
+     "rule_id": "quesnel_river.r2x",
+     "type": "retention_limit",
+     "verbatim": "No Fishing upstream of Cariboo River, Mar 1-June 15",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     },
@@ -11796,6 +12109,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "watch_creek.r1x",
+     "type": "retention_limit",
+     "verbatim": "No Fishing Mar 1-May 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     }

@@ -35,7 +35,7 @@ The two readings are opposite and the page distinguishes them:
 "not more than 1 over 50 cm"  ALLOWS one big fish, parent governs the rest
                                 lengths [{"min_cm": 50}]                     take=1, within=<parent>
 "no trout over 50 cm"         forbids big fish, says nothing about small ones
-                                lengths [{"min_cm": 50, "take": 0}]          take=0, may_target=true
+                                lengths [{"min_cm": 50, "take": 0}]          no take, may_target=true
 "1 bull trout over 60 cm"     the kept fish must BE big; a 50 cm one is forbidden
                                 lengths [{"min_cm": 60}, {"max_cm": 60, "take": 0}]      take=1
 ```

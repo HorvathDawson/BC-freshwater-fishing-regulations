@@ -110,7 +110,7 @@ sub-limit. The call is no-targeting, on the fishery rather than the typography.)
 
 ```
 "not more than 1 over 50 cm"    you MAY keep one big one       take=1, within=parent, lengths [{min_cm: 50}]
-"no trout over 50 cm"           you may keep NO big ones       take=0, may_target=true, lengths [{min_cm: 50, take: 0}]
+"no trout over 50 cm"           you may keep NO big ones       no take, may_target=true, lengths [{min_cm: 50, take: 0}]
 "1 bull trout over 60 cm"       the one you keep must BE big   take=1, lengths [{min_cm: 60}, {max_cm: 60, take: 0}]
 ```
 

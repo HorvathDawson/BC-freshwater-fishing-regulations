@@ -64,6 +64,11 @@ def area_sections(reg, g, key: str) -> set[str] | None:
 #: only absorbs the rounding of FWA's millionths (1.4 m a unit on the Fraser).
 WATERSHED_AT_CUT_M = 5.0
 
+#: POLICY (user ruling 2026-09-29, SP-9): a water coded to the RIVER ITSELF that touches no other
+#: water (a floodplain lake) goes to the side of the cut the river piece nearest to it is on
+#: (`position.nearest_pieces`) — where it lies, as its code would have said had FWA given it one.
+CODE_LAKES_PLACED_BY_POSITION = True
+
 #: {(id(graph), river code): (graph, ((node id, first group or None), ...))} — a basin's members
 #: with the position each joins the river at. The graph is held and checked by identity (a recycled
 #: id() never serves another graph).
@@ -217,6 +222,18 @@ def _watershed_part(g, universe: set[str], river_in: set[str], river_amb: set[st
         v = votes.pop() if len(votes) == 1 and votes <= {"in", "out"} else "?"
         for nid in comp:
             verdict[nid] = v
+    # THE RIVER'S OWN CODE, TOUCHING NOTHING: a floodplain lake no stream enters or leaves (151 of
+    # the Fraser's in Region 5). Placed where it lies — with the river piece nearest its outline
+    # (`position.nearest_pieces`), when that piece's side is known (`CODE_LAKES_PLACED_BY_POSITION`).
+    if CODE_LAKES_PLACED_BY_POSITION:
+        from pipeline.atlas.reach import position as _position
+        alone = [n for n, v in verdict.items() if v == "?" and n in g.nodes
+                 and not g.up_adj.get(n) and not g.down_adj.get(n)
+                 and str(getattr(g.nodes[n].kind, "value", g.nodes[n].kind)) != "stream"]
+        placed = {s for s in universe if verdict.get(s) in ("in", "out")
+                  and node_basin_code(g.nodes[s]) == river}
+        for n, piece in _position.nearest_pieces(g, alone, placed).items():
+            verdict[n] = verdict[piece]
     return {"sections": {n for n, v in verdict.items() if v == "in"},
             "unplaced": sorted(n for n, v in verdict.items() if v == "?"),
             "at_cut": sorted(f"{river}-{p:06d}" for p in at_cut),

@@ -224,9 +224,18 @@ def test_a_water_row_naming_bull_trout_beats_the_zone(db, eid, rid, out_of_seaso
     """Williston Lake (Zone B) and the Liard watershed print "Bull trout daily quota = 1 (none
     under 30 cm or over 50 cm), Oct 16-Aug 14". Both name bull trout, as the zone does, so the
     water's quota speaks on its dates; on Aug 15-Oct 15 it is not in force and the release
-    speaks (the Liard's own, Williston's from the zone's Peace line)."""
+    speaks (the Liard's own, Williston's from the zone's Peace line).
+
+    SINCE 2026-09-29 (a displaced rule displaces nothing, SP-4) the water's quota is not alone on
+    its dates: it beats Zone B's bull trout release, and that release — itself displaced — no
+    longer takes Zone B's "Trout/char: 5" and "1 over 50 cm" with it. They are different
+    statements from the water's "1 (30-50 cm)" and sit beside it: the bull trout counts toward
+    the day's 5 trout/char, as everywhere else in Zone B."""
     sid = _sid(db, eid, rid)
-    assert _speaks(sid, (7, 1), "DV") == {f"{eid}::{rid}"}
+    assert _speaks(sid, (7, 1), "DV") >= {f"{eid}::{rid}", f"{ZB}::trout_char_quota.r1",
+                                          f"{ZB}::trout_char_quota.r2"}
+    assert f"{ZB}::trout_char_quota.r9" not in _speaks(sid, (7, 1), "DV")
+    assert f"{ZB}::trout_char_quota.r10" not in _speaks(sid, (7, 1), "DV")
     assert _speaks(sid, (9, 1), "DV") == out_of_season
 
 
@@ -1145,7 +1154,9 @@ def test_kitimat_steelhead_closure_stands_for_wild_and_hatchery(db):
     closure speaks for steelhead; the row's own hatchery quota stands beside it. No lift of the
     closure ships on the Kitimat's rules."""
     kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
-    for rid in ("kitimat_river.r5", "kitimat_river.r6"):
+    # (kitimat_river.r6, the provincial annual quota restated, is a `see` pointer since
+    # 2026-09-29 — it bound nowhere and lifted nothing)
+    for rid in ("kitimat_river.r5",):
         (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
                            (kit, rid)).fetchone()
         assert "steelhead_stream_closure" not in (ex or ""), rid

@@ -22,11 +22,12 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, Reason, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.atlas.reach.outside import outside_bc, region_limit, shared_waters
+from pipeline.atlas.reach.outside import outside_bc, region_limit, shared_waters, tidal_sections
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
-    on_designations, own_beats_inherited, place_record,
+    national_park_sections, on_designations, own_beats_inherited, place_record,
+    without_national_parks,
 )
 
 
@@ -61,7 +62,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     #: item -> entries covering it with `includes_tributaries: true`, and each carving
     #: designation's removed sections — for `carve_out_orphans`.
     claims: dict[str, list[str]] = {}
-    carved: dict[tuple[str, str], tuple[set[str], set[str]]] = {}
+    carved: dict[tuple, tuple[set[str], set[str]]] = {}
     designations: dict = {}
     report = BuildReport(build=build, handles=handles)
     ents = sorted(iter_entries(entries), key=lambda x: x["entry_id"])
@@ -77,6 +78,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # The waters more than one region prints a row for: those rows stay in their own region; every
     # other row applies along its water's whole length (`outside.region_limit`).
     shared = shared_waters(ents)
+    # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_sections`).
+    tidal = tidal_sections(ents, registry)
+    parks = national_park_sections(registry)
 
     for e in ents:
         report.n_entries += 1
@@ -101,7 +105,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             report.n_rules += 1
             binding, diags = build_reach(e, rule, registry, graph,
                                          covered=covered, clip=clip, outside=outside,
-                                         shared=shared)
+                                         shared=shared, tidal=tidal)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -116,8 +120,10 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
                 e, r, registry, graph, covered=covered, clip=clip, outside=outside,
-                regional=False))
+                regional=False, tidal=tidal))
             placed, diags = place_record(e, rec, reach)
+            placed, parked = without_national_parks(placed, parks)
+            diags = list(diags) + parked
             licensing.append(placed)
             if rec.get("kind") == "designation":
                 designations[(entry_id, rec["id"])] = Designation.model_validate(rec)
@@ -128,11 +134,19 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                 bare, _ = reach(as_rule({**rec, "tributary_excludes": []},
                                         rec.get("extents") if rec.get("extents") is not None
                                         else list(e.get("extents") or [])))
-                items = {i for x in rec["tributary_excludes"]
-                         for i in ([x.get("item_id")] if x.get("item_id") else [])
-                         + list(x.get("item_ids") or [])}
-                carved[(entry_id, rec["id"])] = (set(bare.sections) - set(placed.sections),
-                                                 items)
+                removed = set(bare.sections) - set(placed.sections) - parks
+                # PER CARVE-OUT: each excluded water's own designation takes only what ITS carve-out
+                # removed. Pooled, the Atnarko's three EXCEPTs handed Hunlen's and Young's upper
+                # creeks (435 sections) to Burnt Bridge Creek — the only one of the three with a
+                # designation.
+                detail, _ = resolve_carve_outs(e, rec, registry, graph, covered)
+                for i, (x, row) in enumerate(zip(rec["tributary_excludes"], detail)):
+                    secs = set(row.get("sections") or ())
+                    mine = secs if row.get("walk_past") else \
+                        secs | set(_tribs.tributaries_of_reach(graph, secs))
+                    items = set(([x.get("item_id")] if x.get("item_id") else [])
+                                + list(x.get("item_ids") or []))
+                    carved[(entry_id, rec["id"], i)] = (removed & mine, items)
 
     # A water's own designation beats one inherited by another water's tributary walk.
     licensing, yielded = own_beats_inherited(licensing, designations)
@@ -191,7 +205,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                 clip=None, outside=None, shared=None,
-                regional: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
+                regional: bool = True, tidal=None) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
     One call, so no caller has to remember the order, or that tributaries need expanding.
@@ -216,7 +230,15 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     lost their designation with no other row to give it back — and for licensing the unsafe
     direction is requiring too little (decision 2: licensing never opens or closes water, so
     reaching past a region line cannot change a water's status). The border still applies.
+
+    `tidal` is the corpus's tidal water (`outside.tidal_sections`): taken out of the binding of
+    every row that is not itself marked `tidal`, and reported. `None` (a caller that did not
+    compute it) takes nothing out.
     """
+    if tidal and not entry.get("tidal"):
+        binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
+                                     outside=outside, shared=shared, regional=regional)
+        return _without_tidal(entry, rule, binding, diags, tidal)
     if covered is None:
         covered = _covered_ids(entry, registry)
     if outside is None:
@@ -262,6 +284,12 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         kind_of=lambda s: _resolve._kind_of(graph, s),
         outside=outside,
     )
+    for row in getattr(expander, "confluence", None) or ():
+        # REPORTED, never silent: which joining water each confluence cut kept out of the walk,
+        # and which the rule's words took in.
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "confluence_cut", {
+            "split": row["split"], "water": row["water"], "included": row["included"],
+            "in_reach": bool(row.get("in_reach")), "kept_out": len(row["sections"])}))
     walked_out = getattr(expander, "out_of_region", 0)
     if out_of_region or walked_out:
         # REPORTED, never silent: what the row's own region(s) took away, before the walk and
@@ -269,6 +297,26 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "region_clip", {
             "removed": out_of_region, "removed_from_walk": walked_out}))
     return binding, diags
+
+
+def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Diagnostic],
+                   tidal) -> tuple[RuleBinding, list[Diagnostic]]:
+    """`binding` minus the tidal sections, reported. A rule left with nothing is unresolved
+    `tidal` — never bound to no water."""
+    gone = set(binding.sections) & set(tidal)
+    if not gone:
+        return binding, diags
+    kept = tuple(s for s in binding.sections if s not in gone)
+    diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
+        "removed": len(gone), "kept": len(kept),
+        "why": "tidal water: the federal tidal regulations apply, no provincial rule does"})]
+    if not kept:
+        return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.unresolved, (),
+                           Reason.tidal, f"every section it selects ({len(gone)}) is tidal water",
+                           tributaries_pending=binding.tributaries_pending), diags
+    return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.bound, kept,
+                       via_tributary=tuple(s for s in binding.via_tributary if s not in gone),
+                       tributaries_pending=binding.tributaries_pending), diags
 
 
 def _rest_of(rule: dict) -> dict | None:
@@ -369,17 +417,160 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
     # list — one would cut every rule in the row, including a rule that is about the very water
     # another rule must not reach.
     for ex in rule.get("tributary_excludes") or []:
-        got = _resolve.resolve_extent(registry, graph, covered, ex)
+        # `walk_past` is the carve-out's own flag, not a place: resolved without it.
+        past = bool(ex.get("walk_past"))
+        got = _resolve.resolve_extent(registry, graph, covered,
+                                      {k: v for k, v in ex.items() if k != "walk_past"})
         row = {"extent": ex, "resolved": got is not None,
                "sections": [], "above": 0}
+        if past:
+            row["walk_past"] = True
         if got is not None:
             secs = set(got.get("sections") or ())
-            above = _tribs.tributaries_of_reach(graph, secs)
-            blocked |= secs | above
             row["sections"] = sorted(secs)
-            row["above"] = len(above)          # "and everything upstream of it"
+            if not past:
+                above = _tribs.tributaries_of_reach(graph, secs)
+                blocked |= secs | above
+                row["above"] = len(above)      # "and everything upstream of it"
         detail.append(row)
     return detail, blocked
+
+
+def carve_out_passed(detail: list[dict]) -> set[str]:
+    """The sections of the `walk_past` carve-outs in `resolve_carve_outs`' detail: removed from the
+    rule, walked through — the named water has its own row, the streams feeding it do not."""
+    return {s for row in detail if row.get("walk_past") for s in row.get("sections") or ()}
+
+
+def confluence_excludes(entry: dict, rule: dict, registry, graph, covered) -> list[dict]:
+    """THE WATER JOINING AT EACH OF THE RULE'S CONFLUENCE CUTS, which its walk must not enter
+    (`tributaries.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER`, user ruling 2026-09-29).
+
+    A cut is at a confluence when its boundary is a curated `confluence` cut (the joining stream's
+    mouth sits on it), or a point cut whose LABEL puts it NEAR a named confluence ("fishing boundary
+    signs near the Mobbs Creek confluence") and the named stream joins its line within
+    `CONFLUENCE_NEAR_M`. A cut placed a stated distance from a confluence is not at it: "signs 100 m
+    below the Slesse Creek confluence" closes the Chilliwack upstream, Slesse Creek with it. The
+    joining water and everything above it are kept out — unless the rule's own words take it in:
+    "upstream of and including Hemmingsen Creek", "(including Cameron Cr.)".
+
+    Returns one row per joining water: ``{"split", "water", "mouths", "sections", "included"}``;
+    `sections` is empty for a water the rule includes. Public, like `resolve_carve_outs`, so the
+    review app shows what the builder kept out."""
+    if not _tribs.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER:
+        return []
+    if rule.get("type") in _LICENSING_KINDS and _tribs.LICENSING_WALKS_INTO_CONFLUENCE_WATERS:
+        return []
+    words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
+    rows: list[dict] = []
+    done: set[tuple[str, str]] = set()
+    for ex in rule.get("extents") or []:
+        if not isinstance(ex, dict) or ex.get("watershed") \
+                or ex.get("op") not in ("upstream_of", "downstream_of", "between"):
+            continue
+        scope = ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else covered)
+        universe = {s for i in scope if i in registry for s in registry[i].section_ids}
+        for sid in ex.get("splits") or []:
+            for kind, label, blk, m in _cut_places(registry, graph, scope, universe, sid):
+                if kind == "confluence":
+                    head = label.split("\u2192")[0].strip().lower()
+                    got = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
+                    got = got or _tribs.confluence_joiners(graph, blk, m)
+                elif "confluence" in label.lower() and " near " in f" {label.lower()} ":
+                    near = _tribs.confluence_joiners(graph, blk, m,
+                                                     near=_tribs.CONFLUENCE_NEAR_M)
+                    got = frozenset(j for j in near
+                                    if (graph.nodes[j].display_name or "").strip()
+                                    and graph.nodes[j].display_name.strip().lower()
+                                    in label.lower())
+                else:
+                    continue
+                by_name: dict[str, set[str]] = {}
+                for j in got:
+                    by_name.setdefault((graph.nodes[j].display_name or "").strip(), set()).add(j)
+                for water, mouths in sorted(by_name.items()):
+                    if (sid, water) in done:
+                        continue
+                    done.add((sid, water))
+                    included = _rule_includes(words, water)
+                    rows.append({"split": sid, "water": water or "(unnamed)",
+                                 "mouths": sorted(mouths), "included": included,
+                                 "signs_below": _signs_below(words, water),
+                                 "blk": blk, "m": m,
+                                 "sections": [] if included
+                                 else sorted(_tribs.subtree(graph, mouths))})
+    return rows
+
+
+def _signs_below(words: str, water: str) -> bool:
+    """Do the rule's words put the boundary signs BELOW the joining water's confluence — "from white
+    triangular fishing boundary signs located downstream of the Meziadin River confluence, and
+    upstream to the Hwy 37 bridge" (Nass River)? Then the curated cut sits on the confluence only
+    for want of a sign position: the confluence is INSIDE a reach running up from the signs, and
+    the joining water is walked like any tributary (the Slesse principle, "signs 100 m downstream
+    of the confluence of the Chilliwack River and Slesse Creek"). "Signs … downstream near the
+    confluence of Mobbs Creek" (Lardeau) says only where the signs stand, and is not this."""
+    import re
+    first = (water or "").split(" ")[0]
+    if not first:
+        return False
+    return bool(re.search(
+        r"\bsigns?\b[^.;]{0,60}?\b(?:downstream|below)\s+(?:of\s+)?(?:the\s+)?"
+        r"(?:confluence\s+of\s+(?:the\s+)?[^.;]{0,40}?\band\s+)?" + re.escape(first) + r"\b",
+        words, re.IGNORECASE))
+
+
+#: `as_rule` hands a licensing record to `build_reach` with its kind as the rule's `type`.
+_LICENSING_KINDS = frozenset({"designation", "requirement", "not_classified", "alternative"})
+
+
+def _rule_includes(words: str, water: str) -> bool:
+    """Do the rule's words take the joining water in — "including Macleod Creek", "upstream of and
+    including Hemmingsen Creek", "(including Cameron Cr.)"? Matched on the water's first word, which
+    is what the book abbreviates least ("Cameron Cr.", "North White River")."""
+    import re
+    first = (water or "").split(" ")[0]
+    if not first:
+        return False
+    for m in re.finditer(r"\binclud\w*\s+(?:the\s+)?" + re.escape(first) + r"\b", words,
+                         re.IGNORECASE):
+        # "…, but not including the Muchalat or Heber Rivers" (Gold River) says the opposite.
+        if not re.search(r"\bnot\s*$", words[max(0, m.start() - 8):m.start()], re.IGNORECASE):
+            return True
+    return False
+
+
+def _cut_places(registry, graph, scope, universe, split_id: str):
+    """(boundary kind, label, blk, measure) for every place split `split_id` cuts the scoped water:
+    the node bounds that carry it, by the registry boundary's ref (as `extent._cut_at` finds it)."""
+    want = {split_id, f"split:{split_id}"}
+    refs: dict[str, tuple[str, str]] = {}
+    for i in scope:
+        it = registry.get(i) if hasattr(registry, "get") else (registry[i] if i in registry else None)
+        for b in (it.boundaries if it else ()):
+            if b.id == split_id or (set(b.aliases or ()) & want):
+                for r in {b.ref, f"split:{b.id}"} | set(b.aliases or ()):
+                    if r:
+                        refs.setdefault(r, (b.kind, b.label or ""))
+    out: set[tuple[str, str, str, float]] = set()
+    for nid in universe:
+        n = graph.nodes.get(nid)
+        if n is None or not n.blk:
+            continue
+        for bd in (n.lower_bound, n.upper_bound):
+            if bd is not None and bd.boundary_id in refs and bd.route_measure is not None:
+                kind, label = refs[bd.boundary_id]
+                out.add((kind, label, n.blk, round(bd.route_measure, 3)))
+    return sorted(out)
+
+
+def _runs_up_from(graph, reach, row) -> bool:
+    """Does `reach` go on UP the cut's line from the confluence at `row` (blk, m)?"""
+    for s in reach:
+        n = graph.nodes.get(s)
+        if n is not None and n.blk == row.get("blk") and n.down_m >= row["m"] - 1.0:
+            return True
+    return False
 
 
 def _expander(graph, registry, covered, rule, entry, *, window=None, region=None):
@@ -393,10 +584,30 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
     `region` holds a REGIONAL ROW's walk to its region(s), applied to what the walk returns — the
     walk is what leaves the region, as it is what leaves a `within_area` (`outside.region_limit`).
     """
-    _, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
+    detail, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
+    passed = carve_out_passed(detail)
+    # The water joining at a confluence cut, and everything above it (`confluence_excludes`). Never
+    # the reach itself: a braid can make a piece of it an ancestor of the joining mouth.
+    # Computed on the first walk only: a joining river's subtree can be most of a basin (the
+    # Thompson at the Fraser), and most rules never walk.
 
     def expand(reach, *, only=False):
-        got = _tribs.expand(graph, reach, only=only, excluded=excluded, window=window)
+        if expand.confluence is None:
+            rows = confluence_excludes(entry, rule, registry, graph, covered)
+            # A joining water whose mouth is IN the reach is the reach going on under another
+            # name (the Atnarko's closure runs on up the South Atnarko to Tenas Lake), not a
+            # water the cut names to end it.
+            for row in rows:
+                if set(row["mouths"]) & set(reach) or (
+                        row.get("signs_below") and _runs_up_from(graph, reach, row)):
+                    # ...and one whose confluence the rule's words put inside the reach (signs
+                    # BELOW it, the reach running up from them: `_signs_below`) is walked.
+                    row.update(sections=[], in_reach=True)
+            expand.confluence = rows
+        joining = {s for row in expand.confluence for s in row["sections"]}
+        blocked = excluded | (joining - set(reach))
+        got = _tribs.expand(graph, reach, only=only, excluded=blocked, passed=passed,
+                            window=window)
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -404,6 +615,7 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
         return kept
 
     expand.out_of_region = 0
+    expand.confluence = None
     return expand
 
 

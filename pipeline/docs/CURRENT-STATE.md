@@ -141,7 +141,7 @@ A list, unioned. **A rule never inherits its entry's extents** (AGENTS 13). Ops,
 - "All other species" / "all species" / bare "catch and release" on a water row = `ALL_GAME_FISH`
   except `CRA`.
 - Scientific names for display are `catalogue.SCIENTIFIC_NAMES` (working tree, §2);
-  `pipeline/regs/parsing/species.py` is deleted (its `bc_species.csv` is now read by nothing).
+  `pipeline/regs/parsing/species.py` and its `bc_species.csv` are deleted.
 
 ### Seasons — `when` (576 rules)
 
@@ -227,7 +227,7 @@ Made 2026-09-29 by another agent; the artifacts in the table above predate them.
    hatchery quota speaks).
 2. **`pipeline/regs/parsing/species.py` is deleted.** Scientific names are
    `catalogue.SCIENTIFIC_NAMES`, which `export_ui_rules.py` reads; `pipeline/tests/test_species.py`
-   is deleted; `bc_species.csv` is orphaned (read by nothing).
+   is deleted; so is `bc_species.csv`, which nothing read (2026-09-29).
 3. **Validators** (`catalogue.py`): a gear `note` (`GearWhen`/`GearSpec`) requires a
    `review_reason`; `lengths` is refused off `retention_limit`; a conditional `any_bait` ban
    labels "Bait ban (…)" instead of "No any bait". The corpus still loads clean (0 refusals).

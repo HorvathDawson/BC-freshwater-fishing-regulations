@@ -173,7 +173,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -1011,7 +1010,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -1206,6 +1204,13 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:21681",
+       "walk_past": true
+      }
      ]
     },
     {
@@ -1332,8 +1337,21 @@
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
-     "extent_text": "in any tributaries (except Quinsam River)",
-     "review_reason": "Closes all tributaries except the Quinsam River; the extent model has no exclusion op to carve one named tributary out of a tributary-wide closure."
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "campbell_river__john_hart_dam_power_station"
+       ]
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:27883"
+      }
+     ],
+     "extent_text": "in any tributaries (except Quinsam River)"
     },
     {
      "rule_id": "campbell_river.r5",
@@ -1740,7 +1758,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -1945,7 +1962,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -3061,7 +3077,7 @@
      },
      "take": 0,
      "may_target": false,
-     "includes_tributaries": false,
+     "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
@@ -3179,7 +3195,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -3825,6 +3840,7 @@
      "op": "whole"
     }
    ],
+   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "eve_river.r1",
@@ -4079,7 +4095,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4160,7 +4175,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4400,7 +4414,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4520,6 +4533,12 @@
        "splits": [
         "gold_river__muchalat_river_into_gold_river"
        ]
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:20215"
       }
      ],
      "extent_text": "downstream of the Muchalat River confluence, not including the Muchalat or Heber Rivers",
@@ -4836,7 +4855,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5701,6 +5719,7 @@
      "op": "whole"
     }
    ],
+   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "honna_river.r1",
@@ -5810,7 +5829,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5985,11 +6003,6 @@
    "matched": [
     "wbk:329069971"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "john_hart_lake_s_tributaries.r1",
@@ -6010,6 +6023,43 @@
      },
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "john_hart_lake_s_tributaries.r2",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 15,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "includes_tributaries": true,
+     "extents": [
+      {
+       "op": "between",
+       "item_id": "gnis:39532",
+       "splits": [
+        "campbell_river__ladore_dam",
+        "campbell_river__john_hart_lake"
+       ]
+      }
+     ],
      "extent_text": "includes channel downstream of Ladore Dam"
     }
    ]
@@ -6357,11 +6407,6 @@
    "matched": [
     "gnis:30726"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "kokish_river.r1",
@@ -6384,11 +6429,22 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:30726",
+       "splits": [
+        "kokish_river__boundary_signs_in_kokish_canyon",
+        "kokish_river__bonanza_river_into_kokish_river"
+       ]
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:29055",
+       "splits": [
+        "bonanza_river__ida_lake"
+       ]
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'Ida Lake' is not a cut-point on this water's boundary menu — the reach cannot be bound past the canyon signs",
-     "undrawn_part": "from boundary signs in Kokish canyon to Ida Lake"
+     "extent_text": "from boundary signs in Kokish canyon to Ida Lake"
     },
     {
      "rule_id": "kokish_river.r2",
@@ -7219,11 +7275,6 @@
    "matched": [
     "wbk:329069968"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "campbell_lake_s_tributaries.r1",
@@ -7245,8 +7296,43 @@
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
-     "extent_text": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
-     "review_reason": "The closure extends onto a named reach of Campbell River (Strathcona Dam to Campbell Lake), but this item's own boundary menu lists no split ids to bind it; those splits exist only on the separate Campbell River item."
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "campbell_lake_s_tributaries.r2",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 2,
+        "from_day": 1,
+        "to_month": 7,
+        "to_day": 15
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "includes_tributaries": true,
+     "extents": [
+      {
+       "op": "between",
+       "item_id": "gnis:39532",
+       "splits": [
+        "campbell_river__strathcona_dam",
+        "campbell_river__campbell_lake"
+       ]
+      }
+     ],
+     "extent_text": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake"
     }
    ]
   },
@@ -7310,7 +7396,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -7547,7 +7632,6 @@
      },
      "take": 0,
      "may_target": false,
-     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -8041,7 +8125,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -8390,7 +8473,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -8467,7 +8549,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -8838,7 +8919,8 @@
       }
      ]
     }
-   ]
+   ],
+   "tidal": true
   },
   {
    "entry_id": "r1:nitinat_river@1-4",
@@ -9021,7 +9103,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -9976,6 +10057,32 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "quatse_river.r4x",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban, May 1-Nov 30",
+     "when": {
+      "dates": [
+       {
+        "from_month": 12,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "bait_ban_streams",
+       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+      }
+     ]
     }
    ]
   },
@@ -10234,7 +10341,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -10828,6 +10934,32 @@
      ]
     },
     {
+     "rule_id": "somass_river.r2x",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban, June 1-Aug 24",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 25,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "bait_ban_streams",
+       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+      }
+     ]
+    },
+    {
      "rule_id": "somass_river.r3",
      "type": "vessel_rule",
      "verbatim": "Engine power restriction 7.5 kW (10 hp)",
@@ -11030,7 +11162,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -11141,6 +11272,32 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "sproat_river.r2x",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban, May 1-Oct 31",
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "bait_ban_streams",
+       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
       }
      ]
     }
@@ -11315,6 +11472,35 @@
      ]
     },
     {
+     "rule_id": "stamp_river.r4x",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban downstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek), June 1-Aug 24",
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 25,
+        "to_month": 5,
+        "to_day": 31
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "stamp_river__girl_guide_falls_signs"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "bait_ban_streams",
+       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+      }
+     ]
+    },
+    {
      "rule_id": "stamp_river.r5",
      "type": "vessel_rule",
      "verbatim": "Engine power restriction 7.5 kW (10 hp), on parts",
@@ -11356,7 +11542,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -12023,7 +12208,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -13554,7 +13738,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {

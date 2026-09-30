@@ -209,6 +209,35 @@ def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):
 # ---------------------------------------------------------------------------------------
 # Water outside B.C.
 # ---------------------------------------------------------------------------------------
+def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_licensing(doc, db):
+    """Nitinat Lake is tidal (p.19): the water says so with the words to show, its sections carry
+    only the tidal row's own rules and no licensing set, and every province-wide requirement stops
+    there (`province_except`: `tidal`)."""
+    rows = dict(db.execute("SELECT sid, entry_id FROM tidal"))
+    assert rows, "the bundle lists no tidal section (Nitinat Lake)"
+    assert set(rows.values()) == {"r1:nitinat_lake@1-3"}
+    want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
+                           "ON s.ord = i.ord JOIN tidal t ON t.sid = s.sid GROUP BY 1"))
+    for item, w in doc["waters"].items():
+        got = w.get("tidal")
+        assert (got or {}).get("sections", 0) == want.get(item, 0), item
+        if got:
+            assert got["entry"] == "r1:nitinat_lake@1-3" and "Tidal Waters" in got["guide"]
+    assert "wbk:329504244" in want
+    foreign = db.execute("SELECT COUNT(*) FROM tidal t JOIN section_ruleset sr ON sr.sid = t.sid "
+                         "JOIN ruleset rs ON rs.set_id = sr.set_id "
+                         "WHERE rs.entry_id != t.entry_id").fetchone()[0]
+    assert foreign == 0
+    assert db.execute("SELECT COUNT(*) FROM tidal t JOIN section_licensing l "
+                      "ON l.sid = t.sid").fetchone()[0] == 0
+    assert {s for (s,) in db.execute("SELECT sid FROM province_except WHERE area_kind='tidal'")} \
+        == set(rows)
+    parts = [p for p in doc["waters"]["wbk:329504244"]["parts"]]
+    assert all("tidal" in (p.get("province_except") or []) for p in parts)
+    assert doc["about"]["counts"]["sections"]["tidal"] == len(rows)
+    assert doc["guide"]["placement"]["tidal"]
+
+
 def test_water_outside_bc_is_counted_and_carries_no_set(doc, db):
     want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
                            "ON s.ord = i.ord JOIN outside_bc o ON o.sid = s.sid GROUP BY 1"))

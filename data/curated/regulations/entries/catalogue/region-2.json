@@ -290,7 +290,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "within": "alta_lake.r2",
      "lengths": [
@@ -904,11 +903,6 @@
    "matched": [
     "gnis:10070"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "rules": [
     {
      "rule_id": "brunette_river.r1",
@@ -919,16 +913,18 @@
      ],
      "take": 0,
      "may_target": false,
+     "tributaries_only": true,
      "extents": [
       {
-       "op": "upstream_of",
-       "splits": [
-        "brunette_river__burnaby_lake"
-       ]
+       "op": "whole",
+       "item_id": "wbk:329291868"
       }
      ],
      "extent_text": "upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
-     "review_reason": "Salamander Creek is not in the boundary menu — the 'Cariboo Dam to Salamander Creek' portion of this closure cannot be bound"
+     "unresolved_locators": [
+      "from Cariboo Dam to Salamander Creek"
+     ],
+     "review_reason": "'from Cariboo Dam to Salamander Creek' is not drawn: there is no cut at Salamander Creek's mouth on the Brunette (the piece below Cariboo Dam runs to the Fraser). Only 'upstream of Burnaby Lake' — the lake's tributaries — binds."
     },
     {
      "rule_id": "brunette_river.r2",
@@ -1604,7 +1600,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -1781,7 +1776,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -2003,7 +1997,6 @@
        }
       ]
      },
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -2776,7 +2769,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -3037,7 +3029,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4003,7 +3994,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4389,7 +4379,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4674,7 +4663,6 @@
      "species": [
       "CT"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -4743,7 +4731,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5118,7 +5105,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5429,7 +5415,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5827,7 +5812,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "within": "lois_lake.r1",
      "lengths": [
@@ -7003,7 +6987,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -7688,7 +7671,6 @@
      "species_except": [
       "CHAR"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -10296,8 +10278,7 @@
      "within": "wahleach_jones_lake.r1",
      "lengths": [
       {
-       "min_cm": 40,
-       "take": 1
+       "min_cm": 40
       }
      ],
      "extents": [

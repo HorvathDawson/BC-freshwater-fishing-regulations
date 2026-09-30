@@ -45,26 +45,36 @@ PLACED = ("designation", "requirement", "not_classified", "alternative")
 #: A DESIGNATION AND A NOT_CLASSIFIED ON THE SAME SECTION, known and acknowledged.
 #:
 #: Design validator 7: the build refuses any section both bind, because one of them is wrong and
-#: the book says which — "ALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway
-#: Bridge …) are Class II waters". Here it is the Elk River's tributary designation, whose walk
-#: reaches lower Coal Creek because the printed carve-out is not drawn: a `tributary_excludes` on
-#: that split would also cut Coal Creek ABOVE the bridge, which is classified. Drawing it is a
-#: curator's job (the designation's `review_reason` says so), and inventing the cut here is not.
+#: the book says which. An acknowledged pair ships, with the designation's binding on those
+#: sections marked `contested` — neither side silently wins, and the reader says "check". An
+#: UNLISTED conflict fails the build naming both, and a listed pair that no longer conflicts fails
+#: too, so this list cannot outlive its reason.
 #:
-#: So an acknowledged pair ships, with the designation's binding on those sections marked
-#: `contested` — neither side silently wins. An UNLISTED conflict fails the build naming both, and
-#: a listed pair that no longer conflicts fails too, so this list cannot outlive its reason.
-ACKNOWLEDGED_CONFLICTS: dict[tuple[tuple[str, str], tuple[str, str]], str] = {
-    (("r4:elk_river_s_tributaries_see_exceptions@4-2+4-23", "elk_river"),
-     ("r4:coal_creek_downstream_of_old_mf_m_railway_bridge_7_km_upstre@4-23", "not_classified")):
-        "the Elk's '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge…)' is not drawn",
-    # Found by this check on its first full build: the Elk above Elko Dam, "including
-    # tributaries", walks into lower Coal Creek by the same undrawn carve-out.
-    (("r4:elk_river_upstream_of_elko_dam@4-2+4-23", "elk_river"),
-     ("r4:coal_creek_downstream_of_old_mf_m_railway_bridge_7_km_upstre@4-23", "not_classified")):
-        "the Elk (upstream of Elko Dam, including tributaries) reaches lower Coal Creek by the "
-        "same undrawn carve-out",
-}
+#: EMPTY SINCE 2026-09-29: the two pairs it held (the Elk River designations walking into lower Coal
+#: Creek) are settled by `_own_row_not_classified` — the water's OWN row beats a designation that
+#: reaches it only by another row's tributary walk.
+ACKNOWLEDGED_CONFLICTS: dict[tuple[tuple[str, str], tuple[str, str]], str] = {}
+
+
+def _own_row_not_classified(by_section: dict) -> dict:
+    """A WATER'S OWN ROW SAYING "NOT a Classified Water" BEATS A DESIGNATION THAT REACHES IT BY
+    ANOTHER ROW'S TRIBUTARY WALK (2026-09-29) — as a water's own rules outrank the rules it
+    inherits by the walk (`read.effective_rules`, the `inherited` rung).
+
+    Coal Creek's row prints "Part described is NOT a Classified Water" (downstream of the old MF&M
+    Railway bridge); the Elk River's rows print "ALL tributaries (EXCEPT Coal Creek downstream of
+    old MF&M Railway Bridge …) are Class II waters" and "Class II water when open, including
+    tributaries". Both rows agree the lower creek is not classified; only the Elk's tributary walk,
+    which does not draw its printed carve-out, reached it — so it read "contested", and the page
+    said "check" where the book says "not classified". A designation bound to the section by its
+    own extents (`reach`) is not dropped: two rows each NAMING the water conflict, and that still
+    stops the build."""
+    out = {}
+    for s, rows in by_section.items():
+        own = any(k == "not_classified" and via == "reach" for k, _, _, via in rows)
+        out[s] = {r for r in rows if not (own and r[0] == "designation" and r[3] == "trib")} \
+            if own else rows
+    return out
 
 
 def _jsonl(path: Path):
@@ -154,6 +164,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
     if _unknown:
         raise SystemExit(f"licensing: {len(_unknown):,} bound sections are not in the handle "
                          f"table (e.g. {_unknown[:3]}) — the reach run and the atlas disagree")
+
+    # A water's own "NOT a Classified Water" beats a designation it inherits by a walk.
+    by_section = _own_row_not_classified(by_section)
 
     # DESIGN VALIDATOR 7 — no section is both Classified and NOT Classified.
     conflicts: dict[tuple, list[str]] = {}
@@ -285,6 +298,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         if not got:
             raise SystemExit(f"licensing: outside_area_kind {kind!r} has no sections in this atlas")
         except_rows |= {(kind, s) for s in got}
+    # TIDAL WATER STOPS EVERY PROVINCE-WIDE REQUIREMENT, whatever its record names: "Nitinat Lake is
+    # tidal water; tidal regulations apply and a (federal) Tidal Waters Sport Fishing Licence is
+    # required" (p.19) — the basic licence and the stamps are provincial (review 2026-09-29).
+    # Kind `tidal`, no record names it; the sections are the `tidal` table's (`rules.tidal_rows`).
+    if any(p["placement"] == "province" for p in placed.values()):
+        from pipeline.deliver.bundle.rules import tidal_rows
+        except_rows |= {("tidal", s) for s, _ in tidal_rows(entries, registry, sid)}
     db.executemany("INSERT INTO province_except (area_kind, sid) VALUES (?,?)",
                    sorted(except_rows))
     cov.filled("province_except", len(except_rows))

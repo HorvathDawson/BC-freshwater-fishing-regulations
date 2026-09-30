@@ -2199,7 +2199,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -2722,6 +2721,36 @@
      ]
     },
     {
+     "rule_id": "fulton_river.r1b",
+     "type": "retention_limit",
+     "verbatim": "Open June 16-Apr 30 each year",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 6,
+        "from_day": 16,
+        "to_month": 4,
+        "to_day": 30
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "skeena_nass_winter_closure.r1",
+       "entry_id": "z6:skeena_nass_winter_closure",
+       "note": "Open June 16-Apr 30 each year: the Skeena winter closure (Jan 1-June 15) does not close the Fulton Jan 1-Apr 30"
+      }
+     ]
+    },
+    {
      "rule_id": "fulton_river.r2",
      "type": "bait_restriction",
      "verbatim": "Bait ban",
@@ -3225,6 +3254,7 @@
      "op": "whole"
     }
    ],
+   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "insect_creek.r1",
@@ -3909,19 +3939,6 @@
      ]
     },
     {
-     "rule_id": "kitimat_river.r6",
-     "type": "retention_limit",
-     "verbatim": "province-wide hatchery steelhead annual quota = 10",
-     "species": [
-      "ST"
-     ],
-     "take": 10,
-     "period": "annual",
-     "origin": "hatchery",
-     "extent_text": "province-wide",
-     "review_reason": "this is a province-wide annual quota mentioned on the Kitimat's row, not a Kitimat-specific reach"
-    },
-    {
      "rule_id": "kitimat_river.r7",
      "type": "stop_fishing_after_quota",
      "verbatim": "When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day",
@@ -3945,6 +3962,14 @@
       {
        "op": "whole"
       }
+     ]
+    }
+   ],
+   "see": [
+    {
+     "verbatim": "province-wide hatchery steelhead annual quota = 10",
+     "entry_ids": [
+      "zp:steelhead"
      ]
     }
    ]
@@ -4059,6 +4084,7 @@
    "matched": [
     "gnis:3942"
    ],
+   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "kitsumkalum_river.r1",
@@ -5158,7 +5184,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -5516,7 +5541,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -6237,6 +6261,31 @@
      ]
     },
     {
+     "rule_id": "murray_lake.r2p",
+     "type": "retention_limit",
+     "verbatim": "Lake trout daily and possession quotas = 3",
+     "species": [
+      "LT"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 11,
+        "from_day": 1,
+        "to_month": 9,
+        "to_day": 14
+       }
+      ]
+     },
+     "take": 3,
+     "period": "possession",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "murray_lake.r3",
      "type": "retention_limit",
      "verbatim": "only 1 over 50 cm",
@@ -6832,7 +6881,6 @@
      "species": [
       "RB"
      ],
-     "take": 0,
      "may_target": true,
      "lengths": [
       {
@@ -7601,7 +7649,7 @@
       {
        "op": "between",
        "splits": [
-        "skeena_river__exchamsiks_river_into_skeena_river",
+        "area:SKEENA RIVER ECOLOGICAL RESERVE",
         "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
        ]
       }
@@ -7610,6 +7658,7 @@
       "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead."
      },
      "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
+     "review_reason": "LS-1: the Exchamsiks confluence cut lies only on a Skeena side channel (blk 360216952), so a between from it never met the Kitsumkalum cut on the mainstem and bound 2 sections. The reach starts at the Skeena River Ecological Reserve's lower mainstem crossing (m 63,480), the nearest mainstem cut: ~1.5 km below the Exchamsiks mouth, so it over-requires the licence there (the safe direction). A mainstem split at the Exchamsiks needs an atlas rebuild.",
      "kind": "designation"
     },
     {

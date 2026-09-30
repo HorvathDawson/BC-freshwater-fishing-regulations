@@ -242,7 +242,16 @@ def test_stripping_any_real_rules_dates_is_nearly_always_caught(raw):
         *[("r3:mahood_lake_see_map_on_page_28_for_area_closure", f"mahood_lake.r{k}")
           for k in (2, 3, 4, 6, 7, 8)],
         ("r6:tchesinkut_lake", "tchesinkut_lake.r1"),
-        ("r7:crooked_river", "crooked_river.r2")]), json.dumps(missed)
+        ("r7:crooked_river", "crooked_river.r2"),
+        # LIFT-ONLY RULES (2026-09-29): an exemption in force on the days the row leaves open —
+        # the complement of a dated bait ban (Region 1), Fulton's "Open June 16-Apr 30", the
+        # Thompson's "Additional opening … May 1-31". Their `when` is what they lift over; a lift
+        # with no `when` lifts all year, which the model cannot tell from the words.
+        *[(f"r1:{w}", f"{w}.r{k}x") for w, k in (("quatse_river", 4), ("somass_river", 2),
+                                                  ("sproat_river", 2), ("stamp_river", 4))],
+        ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t",
+         "thompson_river_downstream_of_kamloops_lake.r3o"),
+        ("r6:fulton_river", "fulton_river.r1b")]), json.dumps(missed)
 
 
 # --------------------------------------------------------------------------- ruling of 2026-09-25

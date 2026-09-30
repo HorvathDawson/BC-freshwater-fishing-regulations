@@ -300,11 +300,93 @@ def _main_outlets(graph: StreamGraph, outs: list[str]) -> frozenset[str]:
     return frozenset(flow or best)
 
 
+#: POLICY (user ruling 2026-09-29): A CUT AT A CONFLUENCE NAMES THE JOINING WATER ONLY TO SAY WHERE
+#: THE REACH ENDS. "No Fishing upstream of Morice/Bulkley River confluence" is about the Bulkley;
+#: "No Fishing upstream of the Muchalat River (see river specific regulations for Muchalat River)"
+#: is about the Gold. The river joining AT the cut is neither the reach nor one of its tributaries,
+#: so it and everything above it are kept out of the walk (`confluence_joiners` +
+#: `subtree`, applied by `reach.build`) — unless the row's own words take it in ("upstream of and
+#: including Hemmingsen Creek"). Before this, the Bulkley's closure walked into the Morice and shut
+#: 2,175 sections all year, the Duncan's the Lardeau (1,374), the Gold's the Muchalat: 36 rules,
+#: 10,492 sections. Switch it off and those return.
+CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER = True
+
+#: ...BUT NOT FOR LICENSING. A classified-water designation cut at a confluence keeps the joining
+#: water in its walk, as before: for licensing the unsafe direction is requiring TOO LITTLE (the
+#: same reason a designation is not held to its region, `reach.build.build_reach(regional=False)`),
+#: and a licence never opens or closes water. Excluded, the Iltasyuko (Dean Class II upper, 2,033
+#: sections), Crag Creek (Dean Class I), Limonite Creek (Zymoetz A), Brittany Creek (Chilko) and
+#: lower Young Creek (Atnarko) were left with no designation at all. A joining water with its own
+#: designation still takes it over (`licensing.own_beats_inherited`).
+LICENSING_WALKS_INTO_CONFLUENCE_WATERS = True
+
+#: A POINT cut whose label puts it NEAR a named confluence ("fishing boundary signs near the Mobbs
+#: Creek confluence") is a cut at that confluence when the named stream's mouth lies this close to
+#: it, on its own blue line (`reach.build.confluence_excludes`). The Lardeau's signs stand 53 m below
+#: the Mobbs Creek mouth.
+CONFLUENCE_NEAR_M = 150.0
+
+
+def confluence_joiners(graph: StreamGraph, blk: str, m: float, *, near: float = 1.0,
+                       names: tuple[str, ...] = ()) -> frozenset[str]:
+    """The mouths of streams on OTHER blue lines joining line `blk` within `near` metres of `m`.
+
+    `names` (lower-cased) keeps only joiners whose display name is one of them — how a point cut's
+    label ("… near the Mobbs Creek confluence") says which of the creeks around it it means. With no
+    `names`, a joiner carrying the SAME watershed code as the line is a side channel of the river
+    itself, not a joining water, and is left out."""
+    out: set[str] = set()
+    for nid in _nodes_on(graph, blk):
+        n = graph.nodes[nid]
+        if n.down_m - near > m or n.up_m + near < m:
+            continue
+        for ei in graph.up_adj.get(nid, []):
+            e = graph.edges[ei]
+            src = graph.nodes.get(e.from_node)
+            if src is None or src.blk == blk or e.kind != "confluence" \
+                    or e.at_measure is None or abs(e.at_measure - m) > near:
+                continue
+            if names:
+                if (src.display_name or "").strip().lower() not in names:
+                    continue
+            elif src.wsc and n.wsc and src.wsc == n.wsc:
+                continue
+            out.add(e.from_node)
+    return frozenset(out)
+
+
+def _nodes_on(graph: StreamGraph, blk: str) -> tuple[str, ...]:
+    """Every node on blue line `blk` — indexed once per graph object."""
+    cached = getattr(graph, "_nodes_on_blk_cache", None)
+    if cached is None or cached[0] is not graph.nodes:
+        idx: dict[str, list[str]] = {}
+        for nid, n in graph.nodes.items():
+            if n.blk:
+                idx.setdefault(n.blk, []).append(nid)
+        cached = (graph.nodes, {k: tuple(sorted(v)) for k, v in idx.items()})
+        try:
+            setattr(graph, "_nodes_on_blk_cache", cached)
+        except (AttributeError, TypeError):
+            return cached[1].get(blk, ())
+    return cached[1].get(blk, ())
+
+
+def subtree(graph: StreamGraph, mouths, *, guarded: bool = True) -> frozenset[str]:
+    """`mouths` and EVERYTHING upstream of them — a joining river, its own mainstem above its
+    mouth included (which `tributaries_of_reach` would leave out as "the river continuing")."""
+    out: set[str] = set()
+    for m in sorted(mouths):
+        out.add(m)
+        out |= ancestors(graph, m, guarded=guarded)
+    return frozenset(out)
+
+
 def tributaries_of_reach(
     graph: StreamGraph,
     reach: set[str] | frozenset[str],
     *,
     blocked: set[str] | frozenset[str] = frozenset(),
+    passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
     window: tuple[str, float, float] | None = None,
 ) -> frozenset[str]:
@@ -313,6 +395,11 @@ def tributaries_of_reach(
     `blocked` sections are neither returned nor traversed — that is how a
     `tributary_excludes` carve-out removes a stream *and everything above it*, which is what
     "except Burnt Bridge Creek upstream of Sitkatapa Creek" means.
+
+    `passed` sections are traversed but never returned — a carve-out marked `walk_past`: the named
+    water has its own row, its tributaries do not ("Elk River's tributaries … see separate listings
+    for Fording R. downstream of Josephine Falls": the Fording is not the row's, the creeks
+    feeding it still are).
 
     `guarded=False` drops the 2300 barrier stop; it exists only so tests can show the guard
     is doing something.
@@ -422,7 +509,7 @@ def tributaries_of_reach(
             out.add(src)
             stack.append(src)
 
-    return frozenset(out)
+    return frozenset(out - frozenset(passed))
 
 
 def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
@@ -551,6 +638,7 @@ def expand(
     *,
     only: bool = False,
     excluded: set[str] | frozenset[str] = frozenset(),
+    passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
     window: tuple[str, float, float] | None = None,
 ) -> frozenset[str]:
@@ -570,8 +658,8 @@ def expand(
     reach = frozenset(reach)
     excluded = frozenset(excluded)
     tribs = frozenset(
-        s for s in tributaries_of_reach(graph, reach, blocked=excluded, guarded=guarded,
-                                        window=window)
+        s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
+                                        guarded=guarded, window=window)
         if not STREAMS_ONLY or ((n := graph.nodes.get(s)) is not None
                                 and n.kind == NodeKind.stream))
     base = frozenset() if only else (reach - excluded)

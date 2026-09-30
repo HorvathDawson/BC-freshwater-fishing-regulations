@@ -867,6 +867,7 @@
           "op": "whole"
         }
       ],
+      "includes_tributaries": true,
       "rules": [
         {
           "rule_id": "burnt_river.r1",
@@ -1269,6 +1270,30 @@
           ]
         },
         {
+          "rule_id": "carbon_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "Lake trout daily and possession quotas = 1 (none under 30 cm)",
+          "species": [
+            "LT"
+          ],
+          "take": 1,
+          "period": "possession",
+          "lengths": [
+            {
+              "min_cm": 30
+            },
+            {
+              "max_cm": 30,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
           "rule_id": "carbon_lake.r3",
           "type": "vessel_rule",
           "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
@@ -1569,6 +1594,21 @@
           ]
         },
         {
+          "rule_id": "charlie_lake.r1p",
+          "type": "retention_limit",
+          "verbatim": "Walleye daily and possession quotas = 3",
+          "species": [
+            "WP"
+          ],
+          "take": 3,
+          "period": "possession",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
           "rule_id": "charlie_lake.r2",
           "type": "retention_limit",
           "verbatim": "northern pike daily and possession quotas = 3",
@@ -1576,6 +1616,21 @@
             "NP"
           ],
           "take": 3,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
+          "rule_id": "charlie_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "northern pike daily and possession quotas = 3",
+          "species": [
+            "NP"
+          ],
+          "take": 3,
+          "period": "possession",
           "extents": [
             {
               "op": "whole"
@@ -1996,6 +2051,30 @@
             "RB"
           ],
           "take": 2,
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
+          "rule_id": "chunamun_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+          "species": [
+            "RB"
+          ],
+          "take": 2,
+          "period": "possession",
           "lengths": [
             {
               "max_cm": 50
@@ -5439,6 +5518,30 @@
           ]
         },
         {
+          "rule_id": "letain_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+          "species": [
+            "RB"
+          ],
+          "take": 2,
+          "period": "possession",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
           "rule_id": "letain_lake.r3",
           "type": "bait_restriction",
           "verbatim": "bait ban",
@@ -5924,6 +6027,46 @@
             ]
           },
           "take": 1,
+          "lengths": [
+            {
+              "min_cm": 40,
+              "max_cm": 60
+            },
+            {
+              "max_cm": 40,
+              "take": 0
+            },
+            {
+              "min_cm": 60,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
+        },
+        {
+          "rule_id": "lower_blue_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "Bull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14",
+          "species": [
+            "DV"
+          ],
+          "when": {
+            "dates": [
+              {
+                "from_month": 5,
+                "from_day": 1,
+                "to_month": 8,
+                "to_day": 14
+              }
+            ]
+          },
+          "take": 1,
+          "period": "possession",
           "lengths": [
             {
               "min_cm": 40,
@@ -8461,6 +8604,30 @@
           ]
         },
         {
+          "rule_id": "rainbow_lakes.r2p",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+          "species": [
+            "RB"
+          ],
+          "take": 2,
+          "period": "possession",
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
           "rule_id": "rainbow_lakes.r3",
           "type": "bait_restriction",
           "verbatim": "bait ban",
@@ -10703,7 +10870,8 @@
           "tributaries_only": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "within_area": "area:region:7a"
             }
           ]
         },
@@ -10786,7 +10954,8 @@
           "includes_tributaries": true,
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "within_area": "area:region:7b"
             }
           ]
         },
@@ -11127,6 +11296,30 @@
             "RB"
           ],
           "take": 2,
+          "lengths": [
+            {
+              "max_cm": 50
+            },
+            {
+              "min_cm": 50,
+              "take": 0
+            }
+          ],
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        },
+        {
+          "rule_id": "wolverine_lake.r2p",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+          "species": [
+            "RB"
+          ],
+          "take": 2,
+          "period": "possession",
           "lengths": [
             {
               "max_cm": 50

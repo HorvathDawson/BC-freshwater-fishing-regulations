@@ -127,6 +127,47 @@ def place_record(entry: dict, rec: dict, reach) -> tuple[LicensingPlacement, lis
         tributaries_pending=binding.tributaries_pending), diags
 
 
+#: POLICY (book p.11: "A provincial angling licence is not valid unless otherwise stated for any fresh
+#: water within National Parks"; R4 p.35: "Provincial angling regulations and licensing do not apply
+#: in the National Parks in this region"): a CLASSIFIED WATER designation stops at a national park.
+#: The Kootenay's "upstream of White River, including tributaries: Class II" put the Class II licence
+#: on 2,317 sections inside Kootenay National Park (LS-8). `without_national_parks`.
+DESIGNATIONS_STOP_AT_NATIONAL_PARKS = True
+NATIONAL_PARKS = "national_parks"
+
+
+def national_park_sections(registry) -> frozenset[str]:
+    """Every section of every `area:national_parks:*` item."""
+    prefix = f"area:{NATIONAL_PARKS}:"
+    return frozenset(s for k, it in registry.items() if str(k).startswith(prefix)
+                     for s in it.section_ids)
+
+
+def without_national_parks(placed: LicensingPlacement, parks: frozenset[str]
+                           ) -> tuple[LicensingPlacement, list[Diagnostic]]:
+    """A designation placed on sections, minus the national parks — reported. One left with nothing
+    is unresolved `national_park` (never bound to no water)."""
+    if (not DESIGNATIONS_STOP_AT_NATIONAL_PARKS or placed.kind != "designation"
+            or placed.placement != "sections" or not parks):
+        return placed, []
+    gone = set(placed.sections) & parks
+    if not gone:
+        return placed, []
+    kept = tuple(s for s in placed.sections if s not in gone)
+    diag = Diagnostic(placed.entry_id, placed.record_id, "national_park", {
+        "removed": len(gone), "kept": len(kept),
+        "why": "provincial licensing does not apply in national parks (p.11)"})
+    if not kept:
+        return LicensingPlacement(placed.entry_id, placed.record_id, placed.kind, "unresolved",
+                                  reason="national_park",
+                                  detail=f"every section it selects ({len(gone)}) is in a "
+                                         f"national park"), [diag]
+    return LicensingPlacement(placed.entry_id, placed.record_id, placed.kind, "sections",
+                              sections=kept,
+                              via_tributary=tuple(x for x in placed.via_tributary if x not in gone),
+                              tributaries_pending=placed.tributaries_pending), [diag]
+
+
 #: Why a requirement with a place and an `on` holds nowhere. The bundle refuses a build that has one.
 NO_DESIGNATION = "no_designation"
 
@@ -342,7 +383,8 @@ def carve_outs_to_owner(placements: list[LicensingPlacement],
             by_entry.setdefault(p.entry_id, []).append(i)
     out = list(placements)
     diags: list[Diagnostic] = []
-    for (eid, rid), (removed, items) in sorted(carved.items()):
+    for key, (removed, items) in sorted(carved.items()):
+        eid, rid = key[0], key[1]           # (entry, record[, carve-out index])
         targets = [i for o in _owners(eid, items, claims) for i in by_entry.get(o, [])]
         if len(targets) != 1:
             continue
@@ -383,7 +425,8 @@ def carve_out_orphans(placements: list[LicensingPlacement],
         if p.kind == "designation" and p.placement == "sections":
             held.setdefault(p.entry_id, set()).update(p.sections)
     out: list[Diagnostic] = []
-    for (eid, rid), (removed, items) in sorted(carved.items()):
+    for key, (removed, items) in sorted(carved.items()):
+        eid, rid = key[0], key[1]           # (entry, record[, carve-out index])
         owners = _owners(eid, items, claims)
         if not owners or not removed:
             continue

@@ -38,6 +38,10 @@ def main() -> int:
     from pipeline.atlas.registry import regions
     home = regions.homes(build, registry)
     regions.attach(graph, home)
+    # WHERE A WATER THAT TOUCHES NOTHING LIES, for a watershed part (`reach.position`): read from
+    # this build's geometry the first time a watershed part asks.
+    from pipeline.atlas.reach import position
+    position.attach(graph, build)
     lakes = sum(1 for s in home if s.startswith(regions.LAKE_PREFIX))
     print(f"  region homes: {len(home) - lakes:,} straddling stream piece(s) held to the region "
           f"they lie in; {lakes:,} straddling lake(s) in every region they touch")

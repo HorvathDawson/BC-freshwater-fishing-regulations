@@ -1418,9 +1418,12 @@
       {
        "op": "whole",
        "item_id": "wbk:329518146"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:33426"
       }
-     ],
-     "review_reason": "the South Thompson River between Shuswap Lake and Little Shuswap Lake is not bound (the stamp record carries the same gap)"
+     ]
     }
    ],
    "licensing": [
@@ -1461,6 +1464,10 @@
       {
        "op": "whole",
        "item_id": "wbk:329518146"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:33426"
       }
      ],
      "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake.",

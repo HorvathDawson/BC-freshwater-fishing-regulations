@@ -227,6 +227,17 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 -- general rules", which is what a section with no rule set would otherwise read as.
 CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 
+-- WATER THE BOOK CALLS TIDAL. "Nitinat Lake is tidal water; tidal regulations apply and a (federal)
+-- Tidal Waters Sport Fishing Licence is required" (p.19): the sections of the matched waters of
+-- every row marked `tidal` (`CatalogueEntry.tidal`), with that row. No provincial rule holds there —
+-- not the zone's base, not a park closure, not a licence: the reach builder takes them out of
+-- every other row's binding (`pipeline/atlas/reach/outside.py`, `tidal_sections`), and the build
+-- REFUSES a bundle in which one carries a rule of any other row or a licensing set. Province-wide
+-- licensing requirements stop here too (`province_except`, kind `tidal`). A reader shows such a
+-- section as tidal water under the federal regulations, with the row's own note — never as "open
+-- under the general rules".
+CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROWID;
+
 -- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.86: "steelhead: a rainbow
 -- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on the waters
 -- of every row that says anadromous rainbow are found there (`CatalogueEntry.anadromous_rainbow`),
@@ -242,7 +253,9 @@ CREATE TABLE steelhead_water (sid INTEGER NOT NULL, entry_id TEXT NOT NULL,
 -- valid in National Parks": the basic licence, the stamps and the licence duties are placed
 -- `province` minus `national_parks` — the park is Parks Canada's, and its own permit (a
 -- superior requirement, placed on the parks) is what an angler there needs. Only the kinds some
--- record subtracts are listed; the build refuses a kind with no sections.
+-- record subtracts are listed; the build refuses a kind with no sections. ONE KIND NO RECORD NAMES:
+-- `tidal` — the `tidal` table's sections, where EVERY `province` requirement stops (tidal water
+-- is federal; the Tidal Waters Sport Fishing Licence applies there, not the basic licence).
 CREATE TABLE province_except (area_kind TEXT NOT NULL, sid INTEGER NOT NULL,
                               PRIMARY KEY (area_kind, sid)) WITHOUT ROWID;
 

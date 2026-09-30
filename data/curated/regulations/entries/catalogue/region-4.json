@@ -1225,14 +1225,14 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "burton_creek__woden_creek_into_burton_trout_creek"
+       ]
       }
      ],
-     "unresolved_locators": [
-      "Hwy 6 bridge"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Hwy 6 bridge has no cut-point in this item's boundary menu, so the reach cannot be closed at its downstream end (only the Woden Creek confluence is bindable)",
-     "undrawn_part": "from Woden Creek to Hwy 6 bridge"
+     "extent_text": "from Woden Creek to Hwy 6 bridge",
+     "review_reason": "The Hwy 6 bridge cut sits at the creek's mouth (m 0), below the registry item's first piece (m 378): downstream of Woden Creek is the whole reach."
     }
    ]
   },
@@ -2031,8 +2031,17 @@
      "take": 0,
      "may_target": false,
      "tributaries_only": true,
-     "extent_text": "(except Dutch Creek)",
-     "review_reason": "'except Dutch Creek' is a named-water carve-out from this tributary closure; catalogue schema has no per-rule exclusion op to bind it — Dutch Creek carries its own reciprocal exemption rule"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:8242"
+      }
+     ]
     }
    ]
   },
@@ -3035,11 +3044,6 @@
    "matched": [
     "wbk:329120714"
    ],
-   "extents": [
-    {
-     "op": "whole"
-    }
-   ],
    "includes_tributaries": true,
    "rules": [
     {
@@ -3052,8 +3056,32 @@
      "take": 0,
      "may_target": true,
      "tributaries_only": true,
-     "extent_text": "(includes Upper Duncan River and tributaries)",
-     "review_reason": "'Upper Duncan River and tributaries' is a separate registry item not matched to this entry — the extension of this rule onto it cannot be bound here"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "duncan_lake_s_tributaries.r2",
+     "type": "retention_limit",
+     "verbatim": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
+     "species": [
+      "DV"
+     ],
+     "take": 0,
+     "may_target": true,
+     "includes_tributaries": true,
+     "extents": [
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:22255",
+       "splits": [
+        "duncan_river__duncan_lake"
+       ]
+      }
+     ],
+     "extent_text": "(includes Upper Duncan River and tributaries)"
     }
    ]
   },
@@ -3706,6 +3734,88 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:8798",
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:9343",
+       "splits": [
+        "alexander_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12449"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:16777",
+       "walk_past": true
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:19955",
+       "splits": [
+        "fording_river__josephine_falls"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "between",
+       "item_id": "gnis:11815",
+       "splits": [
+        "forsyth_creek__connor_lakes",
+        "forsyth_creek__connor_lake_3000_m_downstream"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:10373"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:19452"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:14951"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     },
     {
@@ -3740,6 +3850,88 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:8798",
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:9343",
+       "splits": [
+        "alexander_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12449"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:16777",
+       "walk_past": true
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:19955",
+       "splits": [
+        "fording_river__josephine_falls"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "between",
+       "item_id": "gnis:11815",
+       "splits": [
+        "forsyth_creek__connor_lakes",
+        "forsyth_creek__connor_lake_3000_m_downstream"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:10373"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:19452"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:14951"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     },
     {
@@ -3769,6 +3961,88 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:8798",
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:9343",
+       "splits": [
+        "alexander_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12449"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:16777",
+       "walk_past": true
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:19955",
+       "splits": [
+        "fording_river__josephine_falls"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "between",
+       "item_id": "gnis:11815",
+       "splits": [
+        "forsyth_creek__connor_lakes",
+        "forsyth_creek__connor_lake_3000_m_downstream"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:10373"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:19452"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:14951"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     },
     {
@@ -3785,6 +4059,88 @@
       {
        "op": "whole"
       }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:8798",
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:9343",
+       "splits": [
+        "alexander_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:12449"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:16777",
+       "walk_past": true
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:19955",
+       "splits": [
+        "fording_river__josephine_falls"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "between",
+       "item_id": "gnis:11815",
+       "splits": [
+        "forsyth_creek__connor_lakes",
+        "forsyth_creek__connor_lake_3000_m_downstream"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:10373"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:19452"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:28953",
+       "splits": [
+        "michel_creek__easternmost_hwy_3"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:14951"
+      },
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ],
+       "walk_past": true
+      },
+      {
+       "op": "upstream_of",
+       "item_id": "gnis:27703",
+       "splits": [
+        "wigwam_river__wigwam_km42_ram_fsr"
+       ]
+      }
      ]
     }
    ],
@@ -3795,6 +4151,16 @@
      "unit": "elk_river",
      "unit_name": "Elk River",
      "tributaries_only": true,
+     "tributary_excludes": [
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:17550",
+       "splits": [
+        "elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck"
+       ],
+       "walk_past": true
+      }
+     ],
      "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
      "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out",
      "kind": "designation"
@@ -4000,6 +4366,16 @@
       }
      ],
      "includes_tributaries": true,
+     "tributary_excludes": [
+      {
+       "op": "downstream_of",
+       "item_id": "gnis:17550",
+       "splits": [
+        "elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck"
+       ],
+       "walk_past": true
+      }
+     ],
      "verbatim": "**Class II water when open, including tributaries**",
      "review_reason": "its tributary walk reaches lower Coal Creek, which Coal Creek's own row prints as 'NOT a Classified Water' (downstream of the old MF&M railway bridge); the carve-out is not drawn — a tributary_excludes on that split would also cut Coal Creek above the bridge, which is classified. A curator must draw it",
      "kind": "designation"
@@ -4915,8 +5291,18 @@
        }
       ]
      },
-     "extent_text": "(EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
-     "review_reason": "'except Kitchener Creek' is a named-water carve-out from this tributary-wide bait ban; catalogue schema has no per-rule exclusion op — Kitchener Creek carries its own separate listing"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "tributary_excludes": [
+      {
+       "op": "whole",
+       "item_id": "gnis:30933",
+       "walk_past": true
+      }
+     ]
     }
    ]
   },
@@ -14717,9 +15103,7 @@
      "extents": [
       {
        "op": "within",
-       "splits": [
-        "wood_river__hamber_prov_park_boundary"
-       ]
+       "area_id": "area:park:hamber_park"
       }
      ]
     }

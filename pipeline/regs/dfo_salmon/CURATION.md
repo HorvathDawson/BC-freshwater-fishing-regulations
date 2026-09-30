@@ -222,7 +222,9 @@ watershed-above-a-point primitive again.
 | `Sockeye, Pink, Chum` | 1 |
 
 Six singles, two compounds (the same rule, punctuated two ways — a drift instance), and
-`All`. They map onto `pipeline/regs/parsing/species.py` codes with a fixed 8-row table.
+`All`. They map onto the catalogue's salmon codes (`catalogue.FEDERAL_SALMON`: CH, CO, SK, PK,
+CM, and SA for all salmon) with a fixed 8-row table. (`pipeline/regs/parsing/species.py` and its
+`bc_species.csv` are deleted.)
 
 **Dates — 427 of 438 (97.5%) parse** with the existing
 `pipeline.regs.dfo_salmon.dates.parse_date_window`, unchanged. The 11 that do not are three

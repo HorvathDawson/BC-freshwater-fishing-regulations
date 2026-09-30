@@ -53,7 +53,7 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "rule": ("unresolved", "exempts", "undrawn_part", "parts"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},
-                    "item": ("part_of",), "outside_bc": ("sid",),
+                    "item": ("part_of",), "outside_bc": ("sid",), "tidal": ("sid", "entry_id"),
                     "section_touch": ("a", "b"),
                     "province_except": ("area_kind", "sid"),
                     "steelhead_water": ("sid", "entry_id")}
@@ -406,6 +406,13 @@ def read(bundle: Path) -> dict:
             "SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord "
             "JOIN outside_bc o ON o.sid = s.sid GROUP BY i.item_id"):
         waters[item_id]["outside_bc"] = n
+    # WATER THE BOOK CALLS TIDAL (Nitinat Lake) — present only on a water with tidal sections. They
+    # carry only the tidal row's own note (the build refuses any other rule or a licensing set),
+    # and every province-wide requirement stops there (`province_except`: `tidal`).
+    for item_id, eid, n in db.execute(
+            "SELECT i.item_id, MIN(t.entry_id), COUNT(*) FROM item i JOIN item_section s "
+            "ON s.ord = i.ord JOIN tidal t ON t.sid = s.sid GROUP BY i.item_id"):
+        waters[item_id]["tidal"] = {"sections": n, "entry": eid, "guide": TIDAL_GUIDE}
 
     sections = {
         "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
@@ -415,6 +422,7 @@ def read(bundle: Path) -> dict:
         "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
         "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
         "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
+        "tidal": db.execute("SELECT COUNT(*) FROM tidal").fetchone()[0],
         "province_except": dict(db.execute("SELECT area_kind, COUNT(*) FROM province_except "
                                            "GROUP BY 1 ORDER BY 1").fetchall()),
         "anadromous_rainbow": db.execute("SELECT COUNT(DISTINCT sid) FROM steelhead_water")
@@ -451,6 +459,14 @@ TOUCHES_TEXT = (
     "groups of the graph whose edges are `touches`, among the parts that qualify — never every "
     "qualifying part of the water.")
 
+#: WHAT A TIDAL WATER MEANS TO AN ANGLER — the page's words for `waters[item].tidal`, from the
+#: book's own note (p.19, Nitinat Lake).
+TIDAL_GUIDE = (
+    "Tidal water: the federal tidal waters sport fishing regulations apply here, not the B.C. "
+    "freshwater regulations. You need a federal Tidal Waters Sport Fishing Licence; no provincial "
+    "quota, closure, gear rule, licence or stamp applies. Show this note at the top of the water, "
+    "and never read its sections as 'open under the general rules'.")
+
 #: A water's part, field by field.
 WATER_PART_TEXT = {
     "ruleset": "the rule set its sections carry (a key of `rulesets`), or null: none",
@@ -458,7 +474,9 @@ WATER_PART_TEXT = {
                      "null: none",
     "sections": "how many of the water's sections are in this part",
     "province_except": "present where the part lies in areas a province-wide requirement stops "
-                       "at (a national park): the families of those areas",
+                       "at: the families of those areas — `national_parks` (for a record whose "
+                       "extent names that kind), `tidal` (tidal water: EVERY province-wide "
+                       "requirement stops there, whatever its record names)",
     "anadromous_rainbow": "present (true) where a rainbow over 50 cm is a steelhead",
     "touches": TOUCHES_TEXT,
 }
@@ -937,7 +955,9 @@ PLACEMENT_TEXT = {
                 "`outside_area_kind`, on the sections that kind covers (bundle table "
                 "`province_except`; on a water, each of its `parts` lists the families its "
                 "sections lie in as `province_except`). The basic licence and "
-                "the stamps do not hold inside National Parks, whose own permit does",
+                "the stamps do not hold inside National Parks, whose own permit does. On "
+                "`province_except` kind `tidal` NO province-wide requirement holds, whatever its "
+                "record names: tidal water is federal (the Tidal Waters Sport Fishing Licence)",
     "on_designation": "applies wherever a designation is in force (`on`); no section rows",
     "unresolved": "could not be placed: `provenance.uncertain` is true and `why` says why. For "
                   "licensing the unsafe direction is under-requiring, so render 'check', never "
@@ -1080,8 +1100,9 @@ def guide(d: dict) -> dict:
                        "('Lake trout catch and release EXCEPT during months of February and July "
                        "(when regional quotas apply)'). So a water's dated quota gives way to its "
                        "region's outside its dates, and a stream's 'No fishing, Jan 1-Jun 15' "
-                       "does not silence its region's lake trout release on Oct 1. A rule "
-                       "dormant under `suspended_while` is not in force. A rule uncertain in time "
+                       "does not silence its region's lake trout release on Oct 1. A record "
+                       "dormant under `suspended_while` is not in force (today only licensing "
+                       "records carry it — no regulation rule does). A rule uncertain in time "
                        "(`when.unparsed`), or asked about for a date when it holds only some "
                        "hours, is shown BESIDE what it would displace, each with its own `when`, "
                        "never in place of it; so is a rule holding on one half of the channel "
@@ -1107,12 +1128,31 @@ def guide(d: dict) -> dict:
                       "the same limit; both name bull trout, so on their dates they outrank the "
                       "zone's bull trout release. `binds_to` decides before `authority`: a "
                       "provincial rule written for one lake speaks there before the region's "
-                      "table. `provenance.rank` is the rank where the rule is written; on a "
+                      "table. A WATER TABLE'S AREA ROW — every extent `within` a named area "
+                      "('CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS … EXCEPT Duck "
+                      "Lake', Bowron Lake Park waters, the Liard River watershed) — is written for "
+                      "an area, not for the water it lands on: it ranks as an area (2), so a "
+                      "named water's own row beats it (Duck Lake's 'Bass daily quota = 3' "
+                      "replaces the CVWMA's 'unlimited' there; Denetiah Creek's own bull trout "
+                      "rule beats the Liard watershed row). "
+                      "`provenance.rank` is the rank where the rule is written; on a "
                       "section it reached by the tributary walk (`via: trib` in its ruleset) a "
                       "water rule speaks at the `inherited` rung instead. A rule is displaced "
                       "only by a better rule of ANOTHER quota: a quota and its `within` clauses "
                       "are one statement ('Trout/char: 5, but not more than 3 lake trout') and "
-                      "never displace each other. Rules that tie all speak. Between two quotas "
+                      "never displace each other. Rules that tie all speak. A RULE THAT IS "
+                      "ITSELF DISPLACED DISPLACES NOTHING (2026-09-29): only a rule that still "
+                      "speaks takes another away. At Cheslatta Lake on Nov 15 Region 6's lake "
+                      "trout release names the fish and would take the region's 'Trout/char: 5' "
+                      "and '3 Dolly Varden/bull trout and/or lake trout combined' with it — but "
+                      "the lake's own dated quota overrides that release, so the 5 and the 3 "
+                      "speak beside the lake's 3, exactly as they do on Jul 1. A SIZE RULE "
+                      "DISPLACES ONLY OVER THE SIZES IT SPEAKS ABOUT: 'Rainbow trout over 50 cm "
+                      "catch and release' (Lakelse Lake) or 'no rainbow trout over 70 cm' "
+                      "(Chilko Lake) says nothing about a smaller fish, so it never takes away a "
+                      "quota that counts the smaller ones — Region 6's 'Trout/char: 5' and "
+                      "Chilko Lake's own 'Trout/char daily quota = 2' still speak for rainbow. "
+                      "Between two quotas "
                       "that let the fish be kept — one of this water, one of the zone — the "
                       "WATER's number replaces the zone's when both state the same thing, "
                       "larger or smaller and whatever naming says; otherwise both speak, and a "
@@ -1125,9 +1165,13 @@ def guide(d: dict) -> dict:
                     "always (except closures unless they are lifted in this water's regs).' A "
                     "closure (take 0, `may_target` false) is lifted by an `exempts`, never "
                     "displaced by a competing rule — whatever it names or wherever it is written. "
-                    "In NAMING it counts as naming every fish it covers, so it displaces what "
-                    "ranks below it by place: Clearwater Lake's 'No Fishing Nov 1-Apr 30' "
-                    "silences Zone B's 'Burbot: 5' on those dates. A WATER ROW THAT NAMES THE "
+                    "In NAMING it counts as naming every fish it covers, so it displaces every "
+                    "competing rule that does not beat it by authority or by naming the fish — "
+                    "what ranks below it by place (Clearwater Lake's 'No Fishing Nov 1-Apr 30' "
+                    "silences Zone B's 'Burbot: 5' on those dates) AND a water row's GROUP rule "
+                    "that ranks ABOVE it by place: a zone's steelhead closure silences a water's "
+                    "'Trout daily quota = 1' for a steelhead, because the closure names the fish "
+                    "and the water's trout quota does not. A WATER ROW THAT NAMES THE "
                     "FISH a region-wide closure names lifts that closure for that fish (the "
                     "book's '(see tables for exceptions)'): Okanagan River's 'bass daily quota = "
                     "8' lifts Region 8's 'Bass: 0 quota, CLOSED TO FISHING' there. It must NAME "
@@ -1191,7 +1235,10 @@ def guide(d: dict) -> dict:
                                  "another dimension ('none under 60 cm') stays beside it; "
                                  "closures, water rows and another region's rules are untouched. "
                                  "On a lake a stream release does not bind and the region's "
-                                 "quotas speak (read.released_on_water, effective_rules step 4b).",
+                                 "quotas speak (read.released_on_water, effective_rules step 4b). "
+                                 "A water row printing its OWN dates for the fish overrides such "
+                                 "a release on the days both hold (`dated_zone_release` (A)), "
+                                 "and the overridden release then displaces nothing.",
         "dated_zone_release": "A DATED ZONE RULE AND A WATER'S OWN DATES (user rulings "
                               "2026-09-28). A zone, area or provincial retention rule on "
                               "printed dates — a release (take 0) or a quota — meets a water's "
@@ -1212,7 +1259,15 @@ def guide(d: dict) -> dict:
                               "means or target), and the zone rule is a release or quota — NEVER "
                               "A CLOSURE: a blanket spring closure still closes the water. A "
                               "water rule for one fish never overrides a zone rule for another "
-                              "(competition is per fish). "
+                              "(competition is per fish). The same holds for a zone release "
+                              "LIMITED TO A KIND OF WATER (user ruling 2026-09-29; "
+                              "`zone_release_by_water`): Region 4's 'Trout/char release: in "
+                              "streams from Nov 1-Mar 31' gives way, on the days both hold, to "
+                              "Michel Creek's own 'Trout/char catch and release, June 15-Mar 31' "
+                              "(and to the Kootenay above Koocanusa's and the Fording's), and "
+                              "Region 5's 'Bull trout (Dolly Varden) from streams, Aug 1-Oct 31' "
+                              "to the Atnarko/Bella Coola tributaries' 'char catch and release, "
+                              "Sept 1-May 31'. An overridden release then silences nothing. "
                               "(B) THE WATER ROW PRINTS NO DATES OF ITS OWN: the dated zone "
                               "release or closure is stricter than the water's quota and no "
                               "direct override of it, so on its dates it keeps speaking — beside "
@@ -1820,6 +1875,13 @@ def guide(d: dict) -> dict:
                       "rules'.",
         "waters_with_sections_outside_bc": sum(1 for w in d["waters"].values()
                                                if w.get("outside_bc")),
+        "tidal": "A water's `tidal` (present only where the book calls the water tidal — Nitinat "
+                 "Lake) is `{sections, entry, guide}`: how many of its sections are tidal, the row "
+                 "that says so, and the words to show. No provincial regulation holds there: its "
+                 "sections carry only that row's note (the build refuses any other rule or a "
+                 "licensing set), and every province-wide requirement stops there "
+                 "(`province_except`: `tidal`).",
+        "waters_with_tidal_sections": sum(1 for w in d["waters"].values() if w.get("tidal")),
         "part_of": "A lake the atlas cuts into parts (Kootenay Lake's Main Body and West Arms, "
                    "Williston Lake's arms and zones, Shannon Lake's netted-off portion) lists each "
                    "part as its own water, with `part_of` naming the whole. No record may name "
@@ -1849,10 +1911,19 @@ def guide(d: dict) -> dict:
             "reading": "An uncertain record binds nowhere: it can only ever raise 'unknown', "
                        "never 'no rules here'. `provenance.why` says why.",
         },
-        # A row that is only a pointer binds nothing, so it has nothing to place.
+        # A row that is only a pointer binds nothing, so it has nothing to place. A row with no
+        # matched water whose rules DO bind (an area row: Bowron Lake Park waters, the Liard
+        # River watershed — thousands of sections through its `within` extents) is placed, and
+        # is not listed (SP-14): "unplaced" means NOTHING of the row reaches the map.
         "unplaced_entries": [e for e, v in d["entries"].items() if not v["matched"]
                              and v["kind"] == "water"
-                             and (v["rules"] or v["licensing"] or not v.get("see"))],
+                             and (v["rules"] or v["licensing"] or not v.get("see"))
+                             and not any(rules[r]["binds"] != "nowhere" for r in v["rules"])],
+        "unplaced_entries_reading": "Water rows NOTHING of which reaches the map: no matched "
+                                    "water, and no rule of the row bound anywhere. Their rules "
+                                    "are `binds: nowhere` and can only raise 'unknown'. An area "
+                                    "row with no matched water whose `within` extents bind is "
+                                    "placed and is not listed.",
     }
 
     in_part = [x for x in rules.values() if x.get("not_yet_mapped")]
@@ -2290,8 +2361,10 @@ WHAT_TO_SHOW = {
                               "the first clause holds all year — show it.",
     "part_day_beside": "A rule in force only some hours or days: show it BESIDE the rule it "
                        "would replace, with its hours, never instead of it.",
-    "suspended_while": "The record is dormant while its closure speaks: show the closure, and "
-                       "the record as not applying today.",
+    "suspended_while": "This is a LICENSING record (a licence, stamp or designation), dormant "
+                       "while its closure speaks: show the closure, and the licensing line as "
+                       "not required today. No regulation rule carries `suspended_while` — only "
+                       "licensing records do — so the rule list never changes because of it.",
     "size_band": "{water}'s quota for {fish} has a size window: show the sizes with the "
                  "number.",
     "origin": "{water}'s rule is about hatchery or wild {fish} only: say which.",
@@ -2300,9 +2373,13 @@ WHAT_TO_SHOW = {
                                  "region's char release. Show the trout note beside it.",
     "dated_zone_release_stands": "On this date show the region's release of {fish} BESIDE "
                                  "{water}'s own quota: the release binds, none may be kept.",
-    "water_dates_override": "On this date show {water}'s own quota for {fish} alone: its dates "
-                            "overlap the region's dated release, and the water's row wins "
-                            "on the overlap. On the water's own release dates show its release.",
+    "water_dates_override": "On this date {water}'s own quota for {fish} replaces the region's "
+                            "dated release (the water's dates overlap it, and the water's row "
+                            "wins on the overlap): show the water's quota and NOT the region's "
+                            "release — and, BESIDE the water's quota, the region's quotas that "
+                            "count {fish} with other fish (its 'Trout/char: 5' and clauses): an "
+                            "overridden release silences nothing. On the water's own release "
+                            "dates show its release.",
     "one_side_beside": "Show the closure on {water} with its side ('west half of the channel "
                        "only'), prominently, BESIDE the rules the other half follows — never as "
                        "the whole river closed.",

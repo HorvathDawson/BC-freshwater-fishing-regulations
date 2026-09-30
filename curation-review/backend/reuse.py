@@ -195,6 +195,14 @@ def _shared_waters() -> frozenset[str]:
     return shared_waters([e for _, e in _all_entries()])
 
 
+def _tidal() -> frozenset[str]:
+    """The sections of the rows marked `tidal` (Nitinat Lake), read from the corpus as it is NOW —
+    the same derivation the reach CLI makes (`outside.tidal_sections`), so the app takes the same
+    tidal water out of every other row as what ships."""
+    from pipeline.atlas.reach.outside import tidal_sections
+    return tidal_sections([e for _, e in _all_entries()], _registry())
+
+
 @lru_cache(maxsize=1)
 def _row_image_index() -> dict:
     """raw_regs -> [(water_lower, image)]. Keyed on the verbatim regs (exact, near-unique); the parser
@@ -486,6 +494,8 @@ def _graph():
     # The region each straddling section lies in, exactly as the reach CLI attaches it — so a zone
     # rule the curator reviews binds what ships (`registry.regions`).
     regions.attach(g, regions.homes(_BUILD, _registry()))
+    from pipeline.atlas.reach import position       # the same placement the reach CLI makes
+    position.attach(g, _BUILD)
     return g
 
 
@@ -624,6 +634,7 @@ def entry_reaches(entry_id: str) -> dict:
         covered = _covered_ids(e)
         clip, scope_failed = _scope_sections(e, covered)
         shared = _shared_waters()
+        tidal = _tidal()
 
         out: dict = {}
         per_rule: dict[str, list] = {}
@@ -637,7 +648,7 @@ def entry_reaches(entry_id: str) -> dict:
         verdict: dict = {}
         for r in e.get("rules") or []:
             binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip,
-                                          shared=shared)
+                                          shared=shared, tidal=tidal)
             verdict[r["rule_id"]] = {
                 "outcome": binding.outcome.value,
                 "reason": binding.reason.value if binding.reason else None,
@@ -928,7 +939,7 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
             direct |= set(got.get("sections") or ())
 
     binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
-                                   shared=_shared_waters())
+                                   shared=_shared_waters(), tidal=_tidal())
     total = set(binding.sections)
     if any((ex or {}).get("op") == "rest" for ex in rule.get("extents") or []):
         # "OTHER PARTS" (op `rest`) resolves only against its siblings, so no extent alone says

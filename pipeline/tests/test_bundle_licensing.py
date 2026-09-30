@@ -179,18 +179,20 @@ def _write(tmp, sections, placements=PLACED, entries=None):
 
 
 def test_an_unlisted_classified_and_not_classified_section_fails_the_build(tmp_path, monkeypatch):
-    """Design validator 7: one of the two is wrong, and the build says which two."""
+    """Design validator 7: one of the two is wrong, and the build says which two. (Both rows
+    NAME the section here — `reach`; a designation that only WALKED there yields to the water's
+    own row, below.)"""
     monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
     with pytest.raises(SystemExit, match=r"r4:elk@4-2#elk_river\s+vs\s+not_classified "
                                          r"r4:coal@4-23#not_classified"):
-        _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "trib"),
+        _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "reach"),
                           ("r4:coal@4-23", "not_classified", "not_classified", "s:1", "reach")])
 
 
 def test_an_acknowledged_conflict_ships_contested_and_a_stale_one_fails(tmp_path, monkeypatch):
     pair = (("r4:elk@4-2", "elk_river"), ("r4:coal@4-23", "not_classified"))
     monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {pair: "not drawn"})
-    db = _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "trib"),
+    db = _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "reach"),
                            ("r4:elk@4-2", "elk_river", "designation", "s:2", "trib"),
                            ("r4:coal@4-23", "not_classified", "not_classified", "s:1", "reach")])
     got = dict(db.execute("SELECT sid, via FROM designation_section").fetchall())
@@ -213,9 +215,22 @@ def test_an_acknowledged_conflict_needs_the_curator_told(tmp_path, monkeypatch):
     raw["licensing"][0]["review_reason"] = ""
     es[0] = CatalogueEntry.model_validate(raw)
     with pytest.raises(SystemExit, match="no review_reason"):
-        _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "trib"),
+        _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "reach"),
                           ("r4:coal@4-23", "not_classified", "not_classified", "s:1", "reach")],
                entries=es)
+
+
+def test_a_waters_own_not_classified_beats_a_designation_it_inherits_by_the_walk(
+        tmp_path, monkeypatch):
+    """Coal Creek (2026-09-29): the Elk's designation reaches lower Coal Creek only by its
+    tributary walk (`trib`); Coal Creek's own row binds it (`reach`) as NOT a Classified Water.
+    The water's own row wins — no conflict, no "contested", no "check"."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db = _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:1", "trib"),
+                           ("r4:elk@4-2", "elk_river", "designation", "s:2", "trib"),
+                           ("r4:coal@4-23", "not_classified", "not_classified", "s:1", "reach")])
+    assert dict(db.execute("SELECT sid, via FROM designation_section").fetchall()) == {2: "trib"}
+    assert db.execute("SELECT sid, via FROM not_classified_section").fetchall() == [(1, "reach")]
 
 
 def test_records_ship_with_label_quote_structure_and_placement(tmp_path, monkeypatch):

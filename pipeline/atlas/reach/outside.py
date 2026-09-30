@@ -38,6 +38,10 @@ REGION_PREFIX = "area:region:"
 
 _ENTRY_REGION = re.compile(r"^r(\d+[a-z]?):")
 
+#: POLICY (user ruling 2026-09-25, 9144c975): a WATER row (its water printed by no other region)
+#: is not held to any region — neither its reach nor its tributary walk (`region_limit`).
+WATER_ROW_WALKS_CROSS_REGIONS = True
+
 #: POLICY (user ruling 2026-09-24): a regional row's MUs name its ZONE where the book prints a
 #: region as zones (Region 7: 7A and 7B) — `entry_regions`.
 ZONES_FROM_UNITS = True
@@ -215,9 +219,15 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     West Road River's Region 5 row on its Zone 7A pieces, the Nechako's Region 7 row on its Region
     6 pieces, the Similkameen's Region 8 row on its Region 2 pieces. Only a PER-REGION row — its
     water printed by another region too (`shared`, from `shared_waters`) — is held to the regions
-    its id names, as before. A whole-water row is held to the regions its own waters lie in (and
-    its id names): the row reaches wherever its water does, and a tributary walk from it stops
-    where the water's regions do.
+    its id names, as before.
+
+    AND SO DOES ITS TRIBUTARY WALK (`WATER_ROW_WALKS_CROSS_REGIONS`, the same ruling, second half:
+    "the row and its tributary walk extend into other regions"). A whole-water row is not limited
+    at all: it used to be held to the regions its own water lies in, which let the row reach
+    wherever its water did and stopped its walk at the line — the Skagit's "No Fishing Nov 1-June
+    30" lost 163 tributary sections in Region 8, the Dean's closure 17 in Region 6 (226 in all).
+    A row whose own words hold it to one zone says so in its extents (`within_area`: Williston
+    Lake "in Zone B").
 
     `shared=None` (a caller that did not compute it) holds every row to its id's regions — the
     narrower answer, never a widening."""
@@ -225,5 +235,27 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     if not regions:
         return None
     if shared is not None and not (set(entry.get("matched") or ()) & set(shared)):
+        if WATER_ROW_WALKS_CROSS_REGIONS:
+            return None
         regions = tuple(sorted(set(regions) | set(water_regions(entry, registry))))
     return region_sections(regions, registry)
+
+
+def tidal_sections(entries, registry) -> frozenset[str]:
+    """THE SECTIONS OF THE WATERS THE BOOK CALLS TIDAL — every matched item of a row marked
+    `tidal` (`CatalogueEntry.tidal`). "Nitinat Lake is tidal water; tidal regulations apply and a
+    (federal) Tidal Waters Sport Fishing Licence is required" (p.19): no provincial rule, zone base,
+    park closure or licensing record holds there — only the row's own note. The reach builder takes
+    them out of every OTHER row's binding, the way it takes out water past the border
+    (`build.build_reach`, `tidal`); the tidal row's own rules keep them.
+
+    `entries` is the corpus as `(region, entry)` pairs or bare entry dicts."""
+    out: set[str] = set()
+    for x in entries:
+        e = x[1] if isinstance(x, tuple) else x
+        if not isinstance(e, dict) or not e.get("tidal"):
+            continue
+        for i in e.get("matched") or ():
+            if i in registry:
+                out.update(registry[i].section_ids)
+    return frozenset(out)

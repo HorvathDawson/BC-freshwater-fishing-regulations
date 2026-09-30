@@ -2166,7 +2166,8 @@ def test_none_over_is_a_release_rule_not_a_closure():
     assert parent.take == 4
     # "none over 50 cm" denies the big ones and says nothing about the small ones — a release,
     # not a closure, which is what `may_target` carries.
-    assert (sub.take, sub.may_target) == (0, True)
+    # A SIZE rule (2026-09-29): the band says take 0, the rule states no count of its own.
+    assert (sub.take, sub.may_target) == (None, True)
     assert [b.model_dump(exclude_none=True) for b in sub.lengths] == [{"min_cm": 50, "take": 0}]
 
 

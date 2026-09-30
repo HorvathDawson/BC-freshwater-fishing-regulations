@@ -377,6 +377,8 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
             **base(times=times, verbatim=quoted or gear or (rec.get("species") or "row"))))
 
         # --- the size sub-limit, as its own rule pointing at the parent ----
+        # ("none over 50 cm" is a SIZE rule: its band carries its own take 0 and the rule none —
+        # `CatalogueRule` refuses a `take` no band uses, 2026-09-29.)
         sub = _first(_RE_ONLY_OVER.search(gear), _RE_WHICH_MAY.search(gear))
         if sub:
             out.append(CatalogueRule(
@@ -387,14 +389,14 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         elif (none_over := _RE_NONE_OVER.search(gear)):
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=0, may_target=True,
+                may_target=True,
                 lengths=[LengthBand(min_cm=int(none_over.group(1)), take=0)], within=parent_id,
                 **base(verbatim=none_over.group(0))))
         elif (mx := _RE_MAX_SIZE.search(gear)):
             cm = int(mx.group(1) or mx.group(2))
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=0, may_target=True, lengths=[LengthBand(min_cm=cm, take=0)],
+                may_target=True, lengths=[LengthBand(min_cm=cm, take=0)],
                 within=parent_id,
                 **base(verbatim=mx.group(0))))
 

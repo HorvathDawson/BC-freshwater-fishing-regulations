@@ -51,10 +51,10 @@ TRIBS = {"m2": {"t1"}, "m3": set(), "m4": {"t2"}, "m1": {"q1"}, "q1": set()}
 
 @pytest.fixture(autouse=True)
 def _walk(monkeypatch):
-    def expand(graph, reach, *, only=False, excluded=(), window=None):
+    def expand(graph, reach, *, only=False, excluded=(), passed=(), window=None):
         got = set() if only else set(reach)
         for s in reach:
-            got |= {t for t in TRIBS.get(s, ()) if t not in excluded}
+            got |= {t for t in TRIBS.get(s, ()) if t not in excluded and t not in passed}
         return got
     monkeypatch.setattr(B._tribs, "expand", expand)
 

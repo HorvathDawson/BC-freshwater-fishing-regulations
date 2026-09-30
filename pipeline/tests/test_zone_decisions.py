@@ -432,10 +432,16 @@ def test_bowron_park_waters_are_bound_and_bowron_lake_is_not(db):
 
 
 @pytest.mark.slow
-def test_provincial_licences_do_not_bind_inside_national_parks(db):
+def test_provincial_licences_do_not_bind_inside_national_parks(db, corpus):
     """Placed `province` (no rows), minus the national parks, which the bundle lists once — and
-    the parks it lists are exactly where the park closure binds."""
+    the parks it lists are exactly where the park closure binds, bar TIDAL water inside a park
+    (Nitinat Lake, `CatalogueEntry.tidal`): no provincial rule binds there, the closure included."""
     parks = _sections(db, "zp:superior_closures", "superior_closures.r1")
+    tidal_items = [i for e in corpus.values() if e.tidal for i in e.matched]
+    tidal = {s for i in tidal_items for (s,) in db.execute(
+        "select s.sid from item i join item_section s on s.ord = i.ord where i.item_id = ?", (i,))}
+    assert tidal and not tidal & parks
+    parks = parks | tidal
     placement, record = db.execute("select placement, record from requirement where "
                                    "entry_id='zp:basic_licence' and req_id='basic_licence'").fetchone()
     assert placement == "province"

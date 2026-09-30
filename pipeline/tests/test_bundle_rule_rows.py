@@ -445,7 +445,26 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         *[("z8:trout_char_quota", "trout_char_quota.r5", f"trout_char_quota.r{k}")
           for k in (1, 2, 3, 4)],
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
-        ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1")])
+        ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1"),
+        # EXEMPTIONS OF 2026-09-29, each in force only on its own days (`when`): Region 1's
+        # dated bait-ban rows lift the region's all-year ban outside their dates; Fulton's "Open
+        # June 16-Apr 30" lifts the Skeena winter closure; Thompson's "Additional opening, May
+        # 1-31" lifts its own closure and Region 3's spring closure; Bella Coola's Apr 1-May 31
+        # EXCEPT lifts the row's quota and its cutthroat release.
+        ("r1:quatse_river@1-13", "quatse_river.r4x", "bait_ban_streams.r1"),
+        ("r1:somass_river@1-7", "somass_river.r2x", "bait_ban_streams.r1"),
+        ("r1:sproat_river@1-7", "sproat_river.r2x", "bait_ban_streams.r1"),
+        ("r1:stamp_river@1-7", "stamp_river.r4x", "bait_ban_streams.r1"),
+        ("r6:fulton_river@6-8", "fulton_river.r1b", "skeena_nass_winter_closure.r1"),
+        ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+         "thompson_river_downstream_of_kamloops_lake.r3o",
+         "thompson_river_downstream_of_kamloops_lake.r1"),
+        ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+         "thompson_river_downstream_of_kamloops_lake.r3o", "spring_stream_closure.r1"),
+        ("r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+         "atnarko_bella_coola_rivers.r5", "atnarko_bella_coola_rivers.r3"),
+        ("r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+         "atnarko_bella_coola_rivers.r5", "atnarko_bella_coola_rivers.r4")])
     assert lifted >= 80
     # nothing lifts itself: the z6 steelhead exemption is its own rule, placed on the five
     # mainstems (steelhead_stream_closure.r2), so no lift is dropped

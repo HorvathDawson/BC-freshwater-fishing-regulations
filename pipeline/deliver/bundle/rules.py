@@ -1116,6 +1116,24 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"({bound_outside}) — the reach run predates the border subtraction, or the atlas "
             f"changed under it. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+    # WATER THE BOOK CALLS TIDAL (Nitinat Lake), and the proof that no other row binds it: the
+    # reach builder takes it out of every other row (`reach.outside.tidal_sections`); a reach run
+    # from before that — or a tidal row with a rule that is not a note — must not ship.
+    tidal = tidal_rows(ces, registry, sid)
+    db.executemany("INSERT INTO tidal (sid, entry_id) VALUES (?,?)", tidal)
+    cov.filled("tidal", len(tidal))
+    own = {s: e for s, e in tidal}
+    foreign = [(s, e, r) for s, e, r in db.execute(
+        "SELECT t.sid, rs.entry_id, rs.rule_id FROM tidal t JOIN section_ruleset sr ON sr.sid = t.sid "
+        "JOIN ruleset rs ON rs.set_id = sr.set_id") if e != own[s]]
+    licensed = db.execute("SELECT COUNT(*) FROM tidal t JOIN section_licensing l "
+                          "ON l.sid = t.sid").fetchone()[0]
+    if foreign or licensed:
+        raise SystemExit(
+            f"tidal: tidal sections carry provincial regulation — rules of other rows "
+            f"{foreign[:5]} ({len(foreign)}), licensing sets on {licensed} section(s). Tidal "
+            f"water takes only its own row's note. Re-run the reach builder:\n"
+            f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
     # WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.86): the sections of the matched waters of
     # every row saying anadromous rainbow are found there. A flagged row whose waters place no
     # section would state the definition nowhere, so it stops the build.
@@ -1148,3 +1166,22 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     print(f"     rules: {len(entry_rows):,} entries · {len(rule_rows):,} rules "
           f"({n_uncertain} uncertain) · {len(section_set):,} sections carry one, "
           f"sharing {len(sets):,} distinct sets")
+
+
+def tidal_rows(ces, registry, sid) -> list[tuple[int, str]]:
+    """THE SECTIONS OF THE WATERS THE BOOK CALLS TIDAL, with the row that says so — every matched
+    item of a row marked `tidal` (`CatalogueEntry.tidal`; `reach.outside.tidal_sections` is the
+    same set by handle). A flagged row whose waters place no section would state it nowhere, so
+    it stops the build. One place for the `tidal` table and licensing's `province_except`."""
+    out: dict[int, str] = {}
+    for ce in ces:
+        if not getattr(ce, "tidal", False):
+            continue
+        got = {sid[h] for it in ce.matched if registry is not None and it in registry
+               for h in registry[it].section_ids if h in sid}
+        if not got:
+            raise SystemExit(f"tidal: {ce.entry_id} says its water is tidal, but its matched "
+                             f"waters {list(ce.matched)} place no section")
+        for s in got:
+            out.setdefault(s, ce.entry_id)
+    return sorted(out.items())

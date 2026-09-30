@@ -193,16 +193,24 @@ def test_shared_waters_are_printed_by_rows_of_two_regions():
 
 def test_a_whole_water_row_reaches_every_region_its_water_lies_in():
     """West Road's Region 5 row binds its Zone 7A pieces; the Fraser's Region 5 row stays in
-    Region 5. MUTATION: `region_limit` ignoring `shared` holds the West Road row to Region 5."""
+    Region 5. MUTATION: `region_limit` ignoring `shared` holds the West Road row to Region 5.
+    A water row is not held to any region at all (`WATER_ROW_WALKS_CROSS_REGIONS`, 2026-09-29) —
+    so its walk crosses the line too; with the switch off it is held to its water's regions."""
+    import pipeline.atlas.reach.outside as O
     from pipeline.atlas.reach.outside import region_limit
     reg = {**_reg(**{"5": ["w:1", "f:1"], "7a": ["w:2", "f:2"]}),
            "W": SimpleNamespace(section_ids=("w:1", "w:2")),
            "F": SimpleNamespace(section_ids=("f:1", "f:2"))}
     west = {"entry_id": "r5:west_road@5-13", "matched": ["W"]}
     fraser = {"entry_id": "r5:fraser@5-2", "matched": ["F"]}
-    assert region_limit(west, reg, frozenset({"F"})) == {"w:1", "w:2", "f:1", "f:2"}
+    assert region_limit(west, reg, frozenset({"F"})) is None
     assert region_limit(fraser, reg, frozenset({"F"})) == {"w:1", "f:1"}
     assert region_limit(west, reg) == {"w:1", "f:1"}           # not computed: never widened
+    O.WATER_ROW_WALKS_CROSS_REGIONS = False
+    try:
+        assert region_limit(west, reg, frozenset({"F"})) == {"w:1", "w:2", "f:1", "f:2"}
+    finally:
+        O.WATER_ROW_WALKS_CROSS_REGIONS = True
 
 
 def _blanket(rid, frm, to, water="stream", species=("ALL_GAME_FISH",)):

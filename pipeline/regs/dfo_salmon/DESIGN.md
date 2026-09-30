@@ -630,7 +630,7 @@ mostly **no**:
 | extent → sections, tributary walk | `pipeline.atlas.reach.build.build_reach` |
 | split anchors | `pipeline/atlas/splits.json` — the same file |
 | date windows | `pipeline.regs.dfo_salmon.dates` (the DFO feed's own; the synopsis uses `catalogue.parse_date_range`) |
-| species codes | `pipeline.regs.parsing.species` |
+| species codes | `pipeline.regs.parsing.catalogue` (`FEDERAL_SALMON`, `SPECIES_GROUPS`) |
 
 What is genuinely DFO-only, and has to be: fetching and parsing *their* HTML
 (`fetch`/`parse`/`untangle`), the lettered cascade (`cascade`), and the fingerprint that

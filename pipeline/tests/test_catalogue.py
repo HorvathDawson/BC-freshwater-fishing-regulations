@@ -200,9 +200,11 @@ def test_a_counted_size_class_on_a_sub_limit_allows_the_big_fish():
 
 
 def test_a_flat_size_prohibition_still_reads_as_one():
-    r = _r(type=RuleType.retention_limit, species=["TROUT_CHAR"], take=0, may_target=True,
+    """"No trout over 50 cm" is a SIZE rule (2026-09-29: no `take` beside a band that has its own —
+    `CatalogueRule` refuses one), and reads as the size it forbids."""
+    r = _r(type=RuleType.retention_limit, species=["TROUT_CHAR"], may_target=True,
            lengths=[{"min_cm": 50, "take": 0}])
-    assert label(r) == "Trout and char — release all over 50 cm"
+    assert label(r) == "Trout and char (none over 50 cm)"
 
 
 def test_a_slot_sub_limit_keeps_its_count():

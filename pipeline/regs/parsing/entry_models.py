@@ -182,6 +182,16 @@ class Extent(BaseModel):
         "how such a lake is taken back out; it is also the 'except X Lake' a `within` could not say.",
     )
 
+    walk_past: bool = Field(
+        default=False,
+        description="ON A `tributary_excludes` CARVE-OUT ONLY: remove the named water's own "
+        "sections from the rule but keep walking above them. A carve-out otherwise removes the "
+        "water AND everything upstream of it. 'Elk River's tributaries — see separate listings "
+        "for … Fording R. downstream of Josephine Falls': the lower Fording has its own row, "
+        "which does not include its tributaries, so the creeks feeding it are still the Elk "
+        "row's. Use it where the excluded water's own row does not take its tributaries.",
+    )
+
     @model_validator(mode="after")
     def _check_arity(self) -> "Extent":
         n = len(self.splits)

@@ -273,8 +273,8 @@ def test_the_output_example_the_prompt_prints_validates():
      {"species": ["ALL_GAME_FISH"], "take": 0, "may_target": False},
      "A whole-water closure is `species=ALL_GAME_FISH, take=0, may_target=false`"),
     ("no trout over 50 cm", "No trout over 50 cm",
-     {"species": ["TROUT_CHAR"], "take": 0, "may_target": True,
-      "lengths": [{"min_cm": 50, "take": 0}]}, '[{"min_cm": 50, "take": 0}]'),
+     {"species": ["TROUT_CHAR"], "may_target": True,
+      "lengths": [{"min_cm": 50, "take": 0}]}, '[{"min_cm": 50, "take": 0}]            no take'),
 ])
 def test_a_one_rule_teaching_validates(name, verb, rule, taught):
     _says(taught)

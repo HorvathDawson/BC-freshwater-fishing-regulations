@@ -2910,6 +2910,19 @@ class CatalogueRule(BaseModel):
                 e.append("a release rule is a daily-period rule")
             if self.per_daily is not None and self.clock is not Period.possession:
                 e.append("per_daily is a possession multiplier")
+            # A `take` NO BAND USES SAYS NOTHING, AND IT MADE A SIZE RULE A COUNT (N-5,
+            # 2026-09-29). A band without its own `take` uses the rule's; when every band carries
+            # one, the rule's fills none. "Rainbow trout over 50 cm catch and release" written
+            # `take: 0` + [{min_cm: 50, take: 0}] was keyed `daily` — a count — and silenced
+            # Region 6's "Trout/char: 5" for every rainbow at Lakelse Lake, where the 5 still
+            # holds every fish under 50 cm. Written [{min_cm: 50, take: 0}] alone it is a size
+            # rule (`daily/size`, like "none under 30 cm") and speaks only about the big ones.
+            if self.take is not None and self.lengths \
+                    and all(b.take is not None for b in self.lengths):
+                e.append(f"take={self.take} fills no band — every range in `lengths` carries its "
+                         f"own take. Leave `take` out: 'no trout over 50 cm' is "
+                         f"[{{min_cm: 50, take: 0}}], a size rule that says nothing about "
+                         f"smaller fish")
             # `lengths` IS THE ONLY SIZE FIELD. over_cm/under_cm/band WERE HERE and are refused
             # on load (`extra=forbid`): checked for equality against them, `lengths` could only
             # ever say what they could, and "Wild cutthroat trout daily quota = 2 (none 40 cm or
@@ -3011,6 +3024,12 @@ class CatalogueRule(BaseModel):
                      "could bind is exactly what a human has to look at")
         if self.standing and not self.review_reason:
             e.append("a standing rule must be flagged: its extent is unknowable, not merely absent")
+        # THE PROMPT'S "never beside `includes_tributaries: false`": the row's tributaries
+        # WITHOUT its own water, and then not its tributaries either, binds nothing at all. (The
+        # designation refuses the same pair — `Designation._check`.)
+        if self.tributaries_only and self.includes_tributaries is False:
+            e.append("tributaries_only with includes_tributaries: false binds nothing — the "
+                     "rule walks the row's tributaries without the row's own water")
 
         # `whole` SAYS THE WHOLE WATER; `extent_text` SAYS A PART NOTHING COULD DRAW. Both at once
         # is the shape the parser wrote on every part-lake rule — "No Fishing in Salmon Arm Bay"
@@ -4110,6 +4129,11 @@ def licensing_label(rec, siblings: Optional[dict] = None, *, units: Optional[dic
 # Entries
 # --------------------------------------------------------------------------------------- #
 
+#: The book's "includes tributaries" glyph, as the extractor writes it into `symbols`
+#: (`pipeline.regs.parsing.rows.TRIBUTARIES_SYMBOL`). `CatalogueEntry._glyph_walks` holds the row to it.
+GLYPH_INCLUDES_TRIBUTARIES = "Incl. Tribs"
+
+
 def _extent_errors(entry: "CatalogueEntry") -> List[str]:
     """Every extent the entry, its rules and its licensing records carry, read through `Extent`.
 
@@ -4141,6 +4165,11 @@ def _extent_errors(entry: "CatalogueEntry") -> List[str]:
     check("entry extents", entry.extents)
     holders = [(f"{r.rule_id}", r) for r in entry.rules] + \
               [(f"{x.kind} {x.id}", x) for x in entry.licensing]
+    # `walk_past` says how a CARVE-OUT is walked; on a place it would mean nothing.
+    for where, xs in [("entry extents", entry.extents)] + \
+            [(w, getattr(h, "extents", None)) for w, h in holders]:
+        if any(isinstance(x, dict) and x.get("walk_past") for x in xs or []):
+            e.append(f"{where}: walk_past belongs on a tributary_excludes carve-out, not on a place")
     for where, h in holders:
         wet = check(where, getattr(h, "extents", None))
         check(f"{where} tributary_excludes", getattr(h, "tributary_excludes", None))
@@ -4190,6 +4219,13 @@ class CatalogueEntry(BaseModel):
     #: known (Chilliwack/Vedder, user ruling 2026-09-25), never inferred. The bundle marks the row's
     #: waters (`steelhead_water`); `read.effective_rules` reads a rainbow there by it.
     anadromous_rainbow: bool = False
+    #: THE BOOK SAYS THIS WATER IS TIDAL: "Nitinat Lake is tidal water; tidal regulations apply and a
+    #: (federal) Tidal Waters Sport Fishing Licence is required" (p.19). No provincial regulation
+    #: holds there — not the zone's base, not a park closure, not a licence — so the reach builder
+    #: takes the row's waters out of every OTHER row's binding (`reach.outside.tidal_sections`), the
+    #: way it takes out water past the border. The row itself carries only its note: every rule is an
+    #: `advisory` and it has no licensing (user ruling 2026-09-29).
+    tidal: bool = False
 
     @property
     def pointer_only(self) -> bool:
@@ -4212,6 +4248,41 @@ class CatalogueEntry(BaseModel):
                                             f"{r.rule_id}.gear.when.targeting")
         if bad:
             raise ValueError("; ".join(bad))
+        return self
+
+    @model_validator(mode="after")
+    def _glyph_walks(self) -> "CatalogueEntry":
+        """THE BOOK'S "INCLUDES TRIBUTARIES" GLYPH ON THE ROW MEANS THE ROW WALKS (p.4 legend: "when
+        all regulations cited apply to both the named body of water and its tributaries, an asterisk
+        is placed in the first column"). The reach builder never reads `symbols`, so a row carrying
+        the glyph with no `includes_tributaries` bound none of its tributaries — the Eve, Honna,
+        Kitsumkalum, Insect Creek, Burnt River and Bella Coola rows did (2026-09-29). Refused unless
+        the entry says `includes_tributaries: true`, or every rule that stays on the water says why
+        in a `review_reason`."""
+        if GLYPH_INCLUDES_TRIBUTARIES not in self.symbols or self.includes_tributaries is True:
+            return self
+        silent = [r.rule_id for r in self.rules
+                  if not (r.includes_tributaries or r.tributaries_only or r.review_reason)]
+        if silent or not self.rules:
+            raise ValueError(
+                f"{self.entry_id}: the row prints the includes-tributaries glyph "
+                f"({GLYPH_INCLUDES_TRIBUTARIES!r} in symbols) but includes_tributaries is "
+                f"{self.includes_tributaries} — set it true, or give each rule that does not walk "
+                f"a review_reason saying why: {silent or 'the row has no rules'}")
+        return self
+
+    @model_validator(mode="after")
+    def _tidal_is_a_note(self) -> "CatalogueEntry":
+        """A TIDAL ROW CARRIES ONLY ITS NOTE (`tidal`): the provincial regulations do not hold on
+        tidal water, so neither can a rule or licensing record of the row itself."""
+        if not self.tidal:
+            return self
+        bad = [r.rule_id for r in self.rules if r.type is not RuleType.advisory]
+        if bad or self.licensing or not self.matched:
+            raise ValueError(
+                f"{self.entry_id}: a tidal row carries only advisory notes on its matched water — "
+                f"non-advisory rules {bad}, licensing records {len(self.licensing)}, "
+                f"matched {self.matched}")
         return self
 
     @model_validator(mode="after")
