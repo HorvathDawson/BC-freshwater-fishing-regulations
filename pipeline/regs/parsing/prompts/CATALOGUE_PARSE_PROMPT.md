@@ -580,6 +580,11 @@ its type requires:
   whose only content is a pointer has NO rules. A pointer at something that is not a row
   ("see page 63", "see sign at trailhead") is information: keep it an `advisory`, or give the
   `see` an `unresolved` reason instead of `entry_ids`.
+* **Known source artefacts — text in a row that is NOT a regulation. Write no rule for it.**
+  **GOAT RIVER 4-6** prints *"Trout/char catch and release (mainstem only) Leadville Creek Cameron
+  Creek"*: the two creek names are MAP LABELS that landed in the row, not a rule, an exception or a
+  pointer. The row is the mainstem-only release and the bait ban; nothing for "Leadville Creek
+  Cameron Creek" (the validator refuses a rule quoting it — `catalogue.SOURCE_ARTEFACTS`).
 
 ---
 

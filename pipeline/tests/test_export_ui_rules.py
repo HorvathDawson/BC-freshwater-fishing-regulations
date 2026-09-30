@@ -859,3 +859,15 @@ def test_every_case_says_what_to_show(doc):
     und = next(c for c in cs if c["mechanism"] == "undrawn_closure")
     assert any(x["state"] == "not_yet_mapped" for x in und["expect"])
     assert any(x["state"] == "speaks" and x["id"].startswith("z") for x in und["expect"])
+
+
+def test_the_gotchas_name_the_source_artefacts(doc):
+    """GOAT RIVER 4-6's "Leadville Creek Cameron Creek" is map labels, not a rule (user ruling
+    2026-09-30): the guide says so, and no rule in the export quotes it."""
+    g = doc["guide"]["gotchas"]["source_artefacts"]
+    got = {(a["entry"], a["text"]) for a in g["artefacts"]}
+    assert ("r4:goat_river@4-6", "Leadville Creek Cameron Creek") in got
+    assert "map labels" in g["artefacts"][0]["says"]
+    for x in doc["rules"].values():
+        for a in g["artefacts"]:
+            assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]

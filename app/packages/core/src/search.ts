@@ -22,6 +22,8 @@
  *     outline.
  */
 
+import { sizeSignal } from "./near";
+
 /** `[west, south, east, north]`, degrees. MapLibre's `fitBounds` order. */
 export type Bbox = readonly [number, number, number, number];
 
@@ -73,29 +75,36 @@ export function matchTier(query: string, name: string, alias: string | null = nu
 /** What the ranking needs to know about one candidate. */
 export interface Candidate {
   name: string;
+  /** stream | lake | wetland — which size figure speaks for it (`sizeSignal`). */
+  kind: string;
   /** The alias that matched, if the query found it by another name. */
   matchedAs: string | null;
   /**
-   * How notable the water is — the FWA stream magnitude of its biggest reach. Null when
-   * the bundle has no such figure (lakes carry none). Null sorts as small, never as big.
+   * How notable a STREAM is — the FWA stream magnitude of its biggest reach. Null when the
+   * bundle has no such figure (lakes carry none). Null sorts as small, never as big.
    */
   size: number | null;
+  /** How big a LAKE is, in hectares (`item.area_ha`). Null for a stream. */
+  areaHa: number | null;
   /** How many reaches it is drawn as. A tie-break after size: more water, more notable. */
   pieces: number;
 }
 
 /**
- * Order candidates for a query: match tier, then size, then pieces, then the shorter name,
- * then alphabetically — so the order is total and a re-render never reshuffles equals.
- * Candidates that do not match at all are dropped rather than sorted last.
+ * Order candidates for a query: match tier, then size (`sizeSignal` — a lake by its area, a
+ * stream by its magnitude, on one log scale, the SAME signal the near-place list ranks by),
+ * then pieces, then the shorter name, then alphabetically — so the order is total and a
+ * re-render never reshuffles equals. Candidates that do not match at all are dropped rather
+ * than sorted last.
  */
 export function rankWaters<T extends Candidate>(query: string, hits: readonly T[]): T[] {
   const scored = hits
-    .map((h) => ({ h, tier: matchTier(query, h.name, h.matchedAs) }))
-    .filter((x): x is { h: T; tier: number } => x.tier !== null);
+    .map((h) => ({ h, tier: matchTier(query, h.name, h.matchedAs),
+                   size: sizeSignal(h.kind, h.size, h.areaHa) }))
+    .filter((x): x is { h: T; tier: number; size: number } => x.tier !== null);
   scored.sort((a, b) =>
     a.tier - b.tier
-    || (b.h.size ?? 0) - (a.h.size ?? 0)
+    || b.size - a.size
     || b.h.pieces - a.h.pieces
     || a.h.name.length - b.h.name.length
     || a.h.name.localeCompare(b.h.name));

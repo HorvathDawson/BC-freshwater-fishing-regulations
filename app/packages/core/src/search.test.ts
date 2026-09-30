@@ -5,7 +5,10 @@ import {
 } from "./search";
 
 const w = (name: string, size: number | null, pieces = 1, matchedAs: string | null = null) =>
-  ({ name, size, pieces, matchedAs });
+  ({ name, kind: /lake/i.test(name) ? "lake" : "stream", size, areaHa: null as number | null,
+     pieces, matchedAs });
+const lake = (name: string, areaHa: number | null, pieces = 1) =>
+  ({ ...w(name, null, pieces), kind: "lake", areaHa });
 
 describe("the match ladder", () => {
   it("normalises case, accents and spacing", () => {
@@ -43,6 +46,22 @@ describe("rankWaters", () => {
     ]);
     expect(got.map((h) => `${h.name}:${h.size}`)).toEqual(
       ["Elk River:7525", "Elk River:796", "Elkin Creek:148", "Elk Lake:null"]);
+  });
+
+  it("a lake is ranked by its AREA, on the scale magnitude uses — not as a trickle", () => {
+    // "kamloops": Kamloops Lake (4,975 ha) above a creek of magnitude 300, below a river of
+    // magnitude 16,000 — one hectare weighs as one headwater (NEAR_RANK.REF).
+    const got = rankWaters("kam", [w("Kamloops Creek", 300), lake("Kamloops Lake", 4975),
+                                   w("Kam River", 16_000)]);
+    expect(got.map((h) => h.name)).toEqual(["Kam River", "Kamloops Lake", "Kamloops Creek"]);
+    // Williston (172,669 ha) and the Fraser both reach the top of the scale: pieces decide.
+    const top = rankWaters("w", [w("W River", 296_885, 251), lake("W Lake", 172_669, 1)]);
+    expect(top.map((h) => h.name)).toEqual(["W River", "W Lake"]);
+  });
+
+  it("a lake with no area is never ranked above one with any", () => {
+    const got = rankWaters("twin", [lake("Twin Lake", null), lake("Twin Lakes", 3)]);
+    expect(got[0]!.name).toBe("Twin Lakes");
   });
 
   it("the exact name wins whatever its size", () => {

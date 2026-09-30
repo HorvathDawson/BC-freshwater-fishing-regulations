@@ -311,14 +311,21 @@ def _main_outlets(graph: StreamGraph, outs: list[str]) -> frozenset[str]:
 #: 10,492 sections. Switch it off and those return.
 CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER = True
 
-#: ...BUT NOT FOR LICENSING. A classified-water designation cut at a confluence keeps the joining
-#: water in its walk, as before: for licensing the unsafe direction is requiring TOO LITTLE (the
-#: same reason a designation is not held to its region, `reach.build.build_reach(regional=False)`),
-#: and a licence never opens or closes water. Excluded, the Iltasyuko (Dean Class II upper, 2,033
-#: sections), Crag Creek (Dean Class I), Limonite Creek (Zymoetz A), Brittany Creek (Chilko) and
-#: lower Young Creek (Atnarko) were left with no designation at all. A joining water with its own
-#: designation still takes it over (`licensing.own_beats_inherited`).
-LICENSING_WALKS_INTO_CONFLUENCE_WATERS = True
+#: ...UNLESS THE JOINING WATER HAS NO ROW OF ITS OWN (user ruling 2026-09-30). Then nothing else in
+#: the tables speaks for it, and it GOES WITH THE CUT, ON BOTH SIDES: Bannon Creek takes both of the
+#: Chemainus's closures — "downstream of Bannon Creek, July 1-Sept 30" and "upstream of Bannon Creek,
+#: Dec 1-Sept 30" — because the creek at the boundary belongs to neither half more than the other
+#: and leaving it out of both left it under the zone alone. A joining water WITH a row of its own
+#: (the Morice, the Lardeau, the Iltasyuko, the Muchalat, the Eve …; `outside.rowed_waters`) stays
+#: out: its own row governs it. The rule's own words still decide first — "including X" takes it
+#: in, "not including X" keeps it out — and signs the words put up- or downstream of the
+#: confluence put it inside the reach (the Nass and the Meziadin).
+#:
+#: LICENSING FOLLOWS THE SAME TEST, and replaces the old "a designation always walks in" switch:
+#: when in doubt the water is Classified. A joining water with no row inherits the designation
+#: (Limonite Creek, whose whole river system is Classified); one whose own row prints no
+#: designation does not (the Iltasyuko), and one whose own row prints its own keeps that.
+CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT = True
 
 #: A POINT cut whose label puts it NEAR a named confluence ("fishing boundary signs near the Mobbs
 #: Creek confluence") is a cut at that confluence when the named stream's mouth lies this close to

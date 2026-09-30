@@ -10,7 +10,7 @@
  *     score = importance / (1 + km / D0)
  *
  *     importance = 1                                     every water counts for something
- *                + W.mag     · n(magnitude, REF.mag)     how much water drains through it
+ *                + W.size    · size(kind, mag, area)     how much water it is (`sizeSignal`)
  *                + W.length  · n(pieces,    REF.pieces)  how long it is
  *                + W.towns   · n(towns,     REF.towns)   how much ground it covers
  *                + W.gauged  · [a gauge reads it]
@@ -31,12 +31,12 @@
  *  - The baseline 1, so a water with no signals at all (most small creeks) is ranked by
  *    distance among its peers rather than tied at zero.
  *
- * WHAT THE BUNDLE HAS, AND WHAT IT DOES NOT. Magnitude is `section_gauge.mag`, the same
- * figure search ranks by; length is the count of reaches the water is cut into (the bundle
- * holds no metres); "towns" is how many places it comes within 25 km of, which is the only
- * measure of extent a LAKE has. There is NO lake area in the bundle, so a lake — which has
- * no magnitude either — takes `LAKE_MAG` in place of one: zero would say "a trickle", and
- * the lakes are half of what people fish near a town. `stocked` reads `stock_water`, empty
+ * WHAT THE BUNDLE HAS, AND WHAT IT DOES NOT. A stream's size is its magnitude
+ * (`section_gauge.mag`), a lake's its area (`item.area_ha`, the tile's own polygon) — ONE
+ * signal, `sizeSignal`, the same one search ranks by; length is the count of reaches the water
+ * is cut into (the bundle holds no metres); "towns" is how many places it comes within 25 km
+ * of. Until the bundle carried lake area every lake stood in at a fixed 0.45 — Williston was a
+ * pond and a pond was a respectable creek. `stocked` reads `stock_water`, empty
  * in the current build, so it is inert until that table is filled. `listed` is whether the
  * synopsis has an entry for the water — a notability signal only; nothing about what the
  * entry says is read, shown or implied.
@@ -49,6 +49,8 @@
 export interface WaterSignals {
   /** FWA stream magnitude of its biggest reach. Null for a lake, and for an unmeasured stream. */
   mag: number | null;
+  /** A lake's area in hectares (`item.area_ha`). Null for a stream, and for a lake with none. */
+  areaHa: number | null;
   /** How many reaches it is cut into — the bundle's only measure of length. */
   pieces: number;
   /** How many places it comes within 25 km of — extent, for a lake the only one there is. */
@@ -65,7 +67,7 @@ export interface WaterSignals {
  * THE TUNING. Every number the order depends on, in one place.
  *
  * Read the weights as "how many units of baseline importance the signal is worth at full
- * strength". Magnitude leads because it is the truest measure of how much water there is.
+ * strength". Size leads because it is the truest measure of how much water there is.
  */
 export const NEAR_RANK = {
   /**
@@ -74,7 +76,7 @@ export const NEAR_RANK = {
    */
   D0: 5,
   W: {
-    mag: 3,
+    size: 3,
     length: 1,
     /** Half: a creek in the dense Fraser valley is "near" many places without being big. */
     towns: 0.5,
@@ -83,14 +85,15 @@ export const NEAR_RANK = {
     stocked: 1,
     listed: 1,
   },
-  /** Where each size signal reaches 1. The Fraser is ~297k; Kamloops Lake is near 60 towns. */
-  REF: { mag: 100_000, pieces: 100, towns: 200 },
   /**
-   * A lake's stand-in for the magnitude it cannot have, as a fraction of full: 0.45 is a
-   * stream of magnitude ~180, a respectable creek. Without it no lake reached the first ten
-   * near Kamloops, whose lakes are what the town fishes.
+   * Where each size signal reaches 1. The Fraser's magnitude is ~297k; Kamloops Lake is near 60
+   * towns. `area` is hectares, and it is EQUAL to `mag` on purpose: one hectare of lake counts
+   * as one headwater, so a 180 ha lake weighs what a magnitude-180 creek does (what the old
+   * fixed stand-in guessed for every lake), Kamloops Lake (4,975 ha) what a sizeable river
+   * does, and Williston (172,669 ha) what the Fraser does — and the bundle's search can
+   * pre-order both kinds by the raw number (`queries.SEARCH`) in the same order as this.
    */
-  LAKE_MAG: 0.45,
+  REF: { mag: 100_000, area: 100_000, pieces: 100, towns: 200 },
 } as const;
 
 /** A signal on 0..1: log-scaled against its reference, capped at 1. */
@@ -99,12 +102,23 @@ export function normSignal(x: number | null, ref: number): number {
   return Math.min(1, Math.log1p(x) / Math.log1p(ref));
 }
 
+/**
+ * THE SIZE SIGNAL, on 0..1, for either kind of water: a lake by its area, anything else by its
+ * magnitude, each log-scaled against its reference. Search and the near-place list both rank
+ * by THIS, so "how big is it" has one answer. A lake with no area falls back to a magnitude if
+ * it has one; a water with neither is 0 — no figure, never "small" by assertion.
+ */
+export function sizeSignal(kind: string, mag: number | null, areaHa: number | null): number {
+  const { REF } = NEAR_RANK;
+  if (kind === "lake" && areaHa !== null && areaHa > 0) return normSignal(areaHa, REF.area);
+  return normSignal(mag, REF.mag);
+}
+
 /** How much water this is, before distance. At least 1. */
 export function importance(kind: string, s: WaterSignals): number {
   const { W, REF } = NEAR_RANK;
-  const mag = s.mag === null && kind === "lake" ? NEAR_RANK.LAKE_MAG : normSignal(s.mag, REF.mag);
   return 1
-    + W.mag * mag
+    + W.size * sizeSignal(kind, s.mag, s.areaHa)
     + W.length * normSignal(s.pieces, REF.pieces)
     + W.towns * normSignal(s.towns, REF.towns)
     + (s.gauged ? W.gauged : 0)

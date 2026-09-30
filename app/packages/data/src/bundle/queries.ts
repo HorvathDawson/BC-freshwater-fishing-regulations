@@ -55,7 +55,10 @@ export const ITEM_FOR_SECTION =
  * the one measure of how much water this is that the bundle carries for nearly every
  * stream. `section_panel.area_km2` looked like the answer and is not: it is the PANEL's
  * catchment, so a creek entering the Fraser reported the Fraser's 64,000 km² and "creek"
- * ranked Nathan Creek first. Lakes carry no magnitude and come back null, sorted as small.
+ * ranked Nathan Creek first. Lakes carry no magnitude: their size is `area_ha`, the lake's own
+ * polygon in hectares. The pre-order below sorts the two by the raw number, COALESCE(size,
+ * area_ha), which is the same order core's `sizeSignal` gives because its two references are
+ * equal (1 ha weighs as one headwater, `NEAR_RANK.REF`); core then decides the final order.
  *
  * Aliases come back with the name they belong to so a row can say "also VEDDER RIVER"
  * instead of looking like the wrong water.
@@ -66,23 +69,36 @@ export const SEARCH =
   "SELECT m.item_id, m.name, m.kind, m.matched_as, min(m.tier) AS tier, " +
   "       (SELECT count(*) FROM item_section s WHERE s.ord = m.ord) AS pieces, " +
   "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
-  "         WHERE s.ord = m.ord) AS size " +
+  "         WHERE s.ord = m.ord) AS size, m.area_ha " +
   "FROM ( " +
-  "  SELECT i.ord, i.item_id, i.name, i.kind, NULL AS matched_as, " +
+  "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, NULL AS matched_as, " +
   "         (CASE WHEN i.name LIKE ?1 ESCAPE '\\' THEN 0 " +
   "               WHEN i.name LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
   "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
   "               ELSE 6 END) AS tier " +
   "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "  UNION ALL " +
-  "  SELECT i.ord, i.item_id, i.name, i.kind, a.alias AS matched_as, " +
+  "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, a.alias AS matched_as, " +
   "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
   "               WHEN a.alias LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
   "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
   "               ELSE 7 END) AS tier " +
   "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   ") m GROUP BY m.item_id, m.matched_as " +
-  "ORDER BY tier, size IS NULL, size DESC, length(m.name), m.name LIMIT ?2";
+  "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
+  "         length(m.name), m.name LIMIT ?2";
+
+/**
+ * `item.area_ha` arrived with the 2026-09-30 bundle. `%AREA%` in SEARCH and WATERS_NEAR is the
+ * column where the bundle has it and NULL where it does not (`hasColumn`), so an app newer than
+ * its bundle ranks every lake at size 0 — what it did before the column existed — instead of
+ * failing every search. The bundle is fetched apart from the app; either can be the newer.
+ */
+export const withArea = (sql: string, has: boolean): string =>
+  sql.replaceAll("%AREA%", has ? "i.area_ha" : "NULL");
+
+export const HAS_ITEM_AREA =
+  "SELECT 1 AS yes FROM pragma_table_info('item') WHERE name = 'area_ha'";
 
 /** `%` and `_` are LIKE's wildcards; a query containing either means the character. */
 export const likeEscape = (q: string): string => q.replace(/[\\%_]/g, (c) => "\\" + c);
@@ -123,7 +139,7 @@ export const WATERS_NEAR =
   "               WHERE pw.ord IN (SELECT ord FROM near) GROUP BY pw.ord) " +
   "SELECT i.item_id, i.name, i.kind, n.ckm / 100.0 AS km, " +
   "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
-  "         WHERE s.ord = i.ord) AS mag, " +
+  "         WHERE s.ord = i.ord) AS mag, %AREA% AS area_ha, " +
   "       (SELECT count(*) FROM item_section s WHERE s.ord = i.ord) AS pieces, " +
   "       COALESCE(t.n, 1) AS towns, " +
   "       (EXISTS (SELECT 1 FROM item_section s JOIN gauge g ON g.sid = s.sid " +

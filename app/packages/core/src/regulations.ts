@@ -65,3 +65,12 @@ export interface WaterRegulations {
   readonly rules: readonly RegulationRecord[];
   readonly licensing: readonly RegulationRecord[];
 }
+
+/**
+ * THE ONE PLACE A WATER'S REGULATIONS COME FROM. Null until the integration: every status
+ * (`status.ts`) is decided from what this returns, so a surface that asks it today gets
+ * "not asked" and draws nothing, and draws the real answer the day this fills.
+ */
+export function regulationsFor(_item: string): WaterRegulations | null {
+  return null;
+}

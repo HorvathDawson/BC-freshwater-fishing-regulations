@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ItemId, PlaceId, SectionId } from "@app/data";
 import type { NameHit } from "@app/data";
 import {
-  NO_PICK, focusFor, resultGroups, searchStep, subjectOf, targetKey, townToPreview,
+  NO_PICK, focusFor, isSelected, resultGroups, searchStep, subjectOf, targetKey, townToPreview,
   type Located, type SearchPick, type SearchTarget, type TownView,
 } from "./search";
 
@@ -16,10 +16,10 @@ const smithers: TownView = {
   place: { place: "76" as PlaceId, name: "Smithers", kind: "town", lat: 54.779,
            lon: -127.176, pop: 5316 },
   near: [{ item: "gnis:1" as ItemId, name: "Bulkley River", kind: "stream", km: 1.48,
-           signals: { mag: 16673, pieces: 76, towns: 42, gauged: true, stocked: false,
+           signals: { mag: 16673, areaHa: null, pieces: 76, towns: 42, gauged: true, stocked: false,
                       listed: true } },
          { item: "gnis:2" as ItemId, name: "Lake Kathlyn", kind: "lake", km: 7.9,
-           signals: { mag: null, pieces: 1, towns: 7, gauged: true, stocked: false,
+           signals: { mag: null, areaHa: 240, pieces: 1, towns: 7, gauged: true, stocked: false,
                       listed: true } }],
   sections: [sid(10), sid(11), sid(12)],
 };
@@ -95,47 +95,74 @@ describe("a town typed in full", () => {
   });
 });
 
-describe("look, then go", () => {
+describe("select, then go", () => {
   const water: SearchTarget = { kind: "water", item: "gnis:8634" as ItemId,
                                 name: "Chilliwack River" };
+  const other: SearchTarget = { kind: "water", item: "gnis:1" as ItemId, name: "Bulkley River" };
   const place: SearchTarget = { kind: "place", place: smithers.place };
+  const sel = (t: SearchTarget) => searchStep(NO_PICK, { t: "select", target: t }).pick;
 
-  it("a tap on a water row previews it and never leaves", () => {
-    const r = searchStep(NO_PICK, { t: "preview", target: water });
+  it("the first tap on a water row selects it and never leaves", () => {
+    const r = searchStep(NO_PICK, { t: "select", target: water });
     expect(r.leave).toBeNull();
-    expect(r.pick.preview).toEqual(water);
+    expect(r.pick.selected).toEqual(water);
     expect(r.pick.town).toBeNull();
+    expect(isSelected(r.pick, water)).toBe(true);
   });
 
-  it("a tap on a place row previews the town and never leaves or opens its list", () => {
-    const r = searchStep(NO_PICK, { t: "preview", target: place });
+  it("the first tap on a place row selects the town and never leaves or opens its list", () => {
+    const r = searchStep(NO_PICK, { t: "select", target: place });
     expect(r.leave).toBeNull();
-    expect(r.pick).toEqual({ preview: place, town: null });
+    expect(r.pick).toEqual({ selected: place, town: null });
   });
 
-  it("the eye on a water leaves for that water", () => {
-    const r = searchStep(NO_PICK, { t: "go", target: water });
+  it("tapping the selected row again keeps it selected and does not navigate", () => {
+    const r = searchStep(sel(water), { t: "select", target: water });
+    expect(r).toEqual({ pick: { selected: water, town: null }, leave: null });
+  });
+
+  it("tapping another row moves the selection", () => {
+    const r = searchStep(sel(water), { t: "select", target: other });
+    expect(isSelected(r.pick, other)).toBe(true);
+    expect(isSelected(r.pick, water)).toBe(false);
+    expect(r.leave).toBeNull();
+  });
+
+  it("only the selected row shows the go button", () => {
+    const p = sel(water);
+    expect([water, other, place].map((t) => isSelected(p, t))).toEqual([true, false, false]);
+    expect(isSelected(NO_PICK, water)).toBe(false);
+  });
+
+  it("go on the selected water leaves for that water", () => {
+    const r = searchStep(sel(water), { t: "go", target: water });
     expect(r.leave).toBe("gnis:8634");
   });
 
-  it("the eye on a place stays, and opens what is near it", () => {
-    const seen = searchStep(NO_PICK, { t: "preview", target: water }).pick;
-    const r = searchStep(seen, { t: "go", target: place });
+  it("go on a row that is NOT selected only selects it — nothing opens by accident", () => {
+    const r = searchStep(sel(water), { t: "go", target: other });
     expect(r.leave).toBeNull();
-    // The earlier preview is dropped: the map now shows the town.
-    expect(r.pick).toEqual({ preview: null, town: smithers.place });
+    expect(isSelected(r.pick, other)).toBe(true);
+    expect(searchStep(NO_PICK, { t: "go", target: water }).leave).toBeNull();
   });
 
-  it("inside a town's list, a tap previews the water and keeps the town", () => {
-    const inTown: SearchPick = { preview: null, town: smithers.place };
-    const r = searchStep(inTown, { t: "preview", target: water });
+  it("go on the selected place stays, and opens what is near it", () => {
+    const r = searchStep(sel(place), { t: "go", target: place });
+    expect(r.leave).toBeNull();
+    // The selection is dropped: the map now shows the town and its waters.
+    expect(r.pick).toEqual({ selected: null, town: smithers.place });
+  });
+
+  it("inside a town's list, a tap selects the water and keeps the town", () => {
+    const inTown: SearchPick = { selected: null, town: smithers.place };
+    const r = searchStep(inTown, { t: "select", target: water });
     expect(r.leave).toBeNull();
     expect(r.pick.town).toBe(smithers.place);
-    expect(r.pick.preview).toEqual(water);
+    expect(r.pick.selected).toEqual(water);
   });
 
   it("typing and going back forget both", () => {
-    const busy: SearchPick = { preview: water, town: smithers.place };
+    const busy: SearchPick = { selected: water, town: smithers.place };
     expect(searchStep(busy, { t: "typed" })).toEqual({ pick: NO_PICK, leave: null });
     expect(searchStep(busy, { t: "back" })).toEqual({ pick: NO_PICK, leave: null });
   });
@@ -160,15 +187,15 @@ describe("what the pinned map is about", () => {
   });
 
   it("a tapped row beats the typing", () => {
-    expect(subjectOf({ preview: water, town: null }, auto).item).toBe("gnis:1");
-    expect(subjectOf({ preview: { kind: "place", place: smithers.place }, town: null }, auto))
+    expect(subjectOf({ selected: water, town: null }, auto).item).toBe("gnis:1");
+    expect(subjectOf({ selected: { kind: "place", place: smithers.place }, town: null }, auto))
       .toEqual({ item: null, place: smithers.place, pin: null });
   });
 
   it("an open town is the subject until one of its waters is tapped, which keeps it pinned", () => {
-    const inTown: SearchPick = { preview: null, town: smithers.place };
+    const inTown: SearchPick = { selected: null, town: smithers.place };
     expect(subjectOf(inTown, auto)).toEqual({ item: null, place: smithers.place, pin: null });
-    expect(subjectOf({ ...inTown, preview: water }, auto))
+    expect(subjectOf({ ...inTown, selected: water }, auto))
       .toEqual({ item: "gnis:1", place: null, pin: smithers.place });
   });
 
@@ -182,7 +209,7 @@ describe("what the pinned map is about", () => {
 describe("places are their own group, above the waters", () => {
   const hit = (item: string, name: string): NameHit => ({
     item: item as ItemId, name, kind: "stream", matchedAs: null, pieces: 1, size: null,
-    near: null,
+    areaHa: null, near: null,
   } as NameHit);
 
   it("places first, then waters, each with its own heading", () => {

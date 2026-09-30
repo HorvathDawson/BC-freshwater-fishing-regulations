@@ -326,6 +326,8 @@ export interface NameHit {
    * drain through it. Null when the bundle carries no figure (every lake).
    */
   size: number | null;
+  /** How big a lake is, in hectares — its size in place of a magnitude. Null for a stream. */
+  areaHa: number | null;
   /**
    * The town it is best described by — "near Fernie · 3 km". What tells two waters of one
    * name apart. Null when no named place is within 25 km of it.

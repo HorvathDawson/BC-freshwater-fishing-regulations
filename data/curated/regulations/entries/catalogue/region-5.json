@@ -1482,6 +1482,27 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "beaver_creek_chain_of_lakes.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing for bass**",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ],
+     "review_reason": "lift-only: the stream this row lists is out of Region 5's spring closure; the row's tributaries are not themselves listed, so the lift stays on the row's own water (user ruling 2026-09-30, question open for tributaries of glyph rows)"
     }
    ]
   },
@@ -1921,6 +1942,26 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "blue_lead_creek.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
     }
    ]
   },
@@ -2268,6 +2309,29 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "bowron_lake_park_waters.r5x",
+     "type": "retention_limit",
+     "verbatim": "Bait ban, single barbless hook; no powered boats",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:park:bowron_lake_park",
+       "outside_items": [
+        "wbk:329058703"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
     }
    ]
   },
@@ -2501,6 +2565,26 @@
      ]
     },
     {
+     "rule_id": "cameron_creek.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Oct 1-June 30",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
+    },
+    {
      "rule_id": "cameron_creek.r2",
      "type": "retention_limit",
      "verbatim": "Trout/char catch and release",
@@ -2637,6 +2721,26 @@
      ]
     },
     {
+     "rule_id": "canim_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release; bait ban",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
+    },
+    {
      "rule_id": "canim_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
@@ -2686,6 +2790,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "cariboo_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "Bull trout catch and release",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     }
@@ -3130,6 +3254,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "chilko_lake_tributaries.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Aug 1-June 30",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "tributaries_only": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
       }
      ]
     },
@@ -8302,6 +8446,26 @@
      ]
     },
     {
+     "rule_id": "little_horsefly_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release; bait ban",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
+    },
+    {
      "rule_id": "little_horsefly_river.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
@@ -8712,6 +8876,26 @@
      ]
     },
     {
+     "rule_id": "mckinley_creek.r1x",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release downstream of McKinley Lake; bait ban",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
+    },
+    {
      "rule_id": "mckinley_creek.r2",
      "type": "bait_restriction",
      "verbatim": "bait ban",
@@ -9001,6 +9185,27 @@
      ]
     },
     {
+     "rule_id": "mitchell_river.r3x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ],
+     "review_reason": "lift-only: the stream this row lists is out of Region 5's spring closure; the row's tributaries are not themselves listed, so the lift stays on the row's own water (user ruling 2026-09-30, question open for tributaries of glyph rows)"
+    },
+    {
      "rule_id": "mitchell_river.r4",
      "type": "retention_limit",
      "verbatim": "Trout/char catch and release",
@@ -9096,6 +9301,26 @@
       }
      ],
      "extent_text": "downstream of falls 8 km from Horsefly River"
+    },
+    {
+     "rule_id": "moffat_creek.r1x",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release and bait ban downstream of falls 8 km from Horsefly River",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
+      }
+     ]
     },
     {
      "rule_id": "moffat_creek.r2",

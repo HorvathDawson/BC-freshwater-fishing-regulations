@@ -303,7 +303,8 @@ def _bind_real(real, corpus, eid, rid, licensing=False):
         r = next(x for x in e["rules"] if x["rule_id"] == rid)
     b, d = build_reach(e, r, reg, g, regional=not licensing,
                        shared=O.shared_waters(list(corpus.values())),
-                       tidal=O.tidal_sections(list(corpus.values()), reg))
+                       tidal=O.tidal_sections(list(corpus.values()), reg),
+                       owned=O.rowed_waters(list(corpus.values())))
     return set(b.sections), d
 
 
@@ -321,6 +322,28 @@ def test_the_duncan_closure_stays_out_of_the_lardeau(real, corpus):
     g, reg = real
     got, _ = _bind_real(real, corpus, "r4:duncan_river@4-19", "duncan_river.r6")
     assert not got & set(reg["gnis:16359"].section_ids)
+
+
+@pytest.mark.slow
+def test_bannon_creek_has_no_row_so_it_takes_both_chemainus_closures(real, corpus):
+    """User ruling 2026-09-30: a joining water with no row goes with the cut on BOTH sides."""
+    g, reg = real
+    banon = set(reg["gnis:18278"].section_ids)
+    for rid in ("chemainus_river.r1", "chemainus_river.r2"):
+        got, _ = _bind_real(real, corpus, "r1:chemainus_river@1-5", rid)
+        assert banon <= got, rid
+
+
+@pytest.mark.slow
+def test_limonite_creek_inherits_both_zymoetz_designations_and_the_iltasyuko_none(real, corpus):
+    g, reg = real
+    lim = set(reg["gnis:10345"].section_ids)
+    for rid in ("zymoetz_river_a", "zymoetz_river_b"):
+        got, _ = _bind_real(real, corpus, "r6:zymoetz_copper_river@6-9", rid, licensing=True)
+        assert lim <= got, rid
+    got, _ = _bind_real(real, corpus, "r5:dean_river@5-9", "dean_river_class_ii_upper",
+                        licensing=True)
+    assert not got & set(reg["gnis:5467"].section_ids)
 
 
 @pytest.mark.slow

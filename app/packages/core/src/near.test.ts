@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { NEAR_RANK, importance, nearScore, normSignal, rankNear, type WaterSignals } from "./near";
+import {
+  NEAR_RANK, importance, nearScore, normSignal, rankNear, sizeSignal, type WaterSignals,
+} from "./near";
 
-const none: WaterSignals = { mag: null, pieces: 1, towns: 3, gauged: false, stocked: false,
-                             listed: false };
+const none: WaterSignals = { mag: null, areaHa: null, pieces: 1, towns: 3, gauged: false,
+                             stocked: false, listed: false };
 const w = (name: string, kind: string, km: number, s: Partial<WaterSignals> = {}) =>
   ({ name, kind, km, signals: { ...none, ...s } });
 
@@ -53,13 +55,28 @@ describe("which water near a town is listed first", () => {
     expect(order.at(-1)).toBe("Tenas Creek");
   });
 
-  it("a lake is not treated as a trickle because it has no magnitude", () => {
-    // Without the stand-in a listed lake would score as a nameless creek.
-    const lake = importance("lake", { ...none, listed: true });
-    const creek = importance("stream", { ...none, listed: true });
-    expect(lake - creek).toBeCloseTo(NEAR_RANK.W.mag * NEAR_RANK.LAKE_MAG, 6);
-    // …but an unmeasured STREAM is not given one: null there means no figure, not a lake.
-    expect(importance("stream", none)).toBeLessThan(importance("lake", none));
+  it("a lake is sized by its area, on the same log scale as a stream's magnitude", () => {
+    // One hectare weighs as one headwater: a 180 ha lake is a magnitude-180 creek.
+    expect(sizeSignal("lake", null, 180)).toBeCloseTo(sizeSignal("stream", 180, null), 9);
+    const lake = importance("lake", { ...none, areaHa: 4975, listed: true });   // Kamloops Lake
+    const creek = importance("stream", { ...none, mag: 300, listed: true });
+    expect(lake).toBeGreaterThan(creek);
+    expect(lake - importance("lake", { ...none, listed: true }))
+      .toBeCloseTo(NEAR_RANK.W.size * normSignal(4975, NEAR_RANK.REF.area), 6);
+    // Williston is not a pond: it reaches the top of the scale, as the Fraser does.
+    expect(sizeSignal("lake", null, 172_669)).toBe(1);
+    // …and a stream's area (none) or a lake's missing area is no figure, never a guess.
+    expect(sizeSignal("stream", null, 500)).toBe(0);
+    expect(sizeSignal("lake", null, null)).toBe(0);
+  });
+
+  it("a big lake near town outranks a pond at the door; a pond does not beat a river", () => {
+    const order = rankNear([
+      w("Pond", "lake", 1, { areaHa: 2 }),
+      w("Big Lake", "lake", 8, { areaHa: 3000, listed: true }),
+      w("River", "stream", 3, { mag: 16_673, pieces: 76, towns: 42, listed: true }),
+    ]).map((x) => x.name);
+    expect(order).toEqual(["River", "Big Lake", "Pond"]);
   });
 
   it("a gauge, stocking or a synopsis entry lifts a water, never lowers it", () => {

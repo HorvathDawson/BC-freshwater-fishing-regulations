@@ -254,6 +254,35 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     cov.filled("item_section", len(pairs))
 
 
+def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry: Path, cov: Coverage) -> None:
+    """`item.area_ha`: how big each LAKE is, for ranking — the lake's size signal, as stream
+    magnitude is a stream's.
+
+    Search and "water near a town" rank by how much water a candidate is, before a tile is ever
+    loaded, and a lake has no magnitude: the app stood a constant in for every lake (Williston
+    ranked like a pond). The area is the SAME polygon the tile draws (`waterbody_polys.pkl`, the
+    tile's `area_m2`), read from the same build, so the two cannot be of different vintages.
+    Whole hectares: ranking is log-scaled, and a pond under half a hectare reads 0, which is what
+    it is next to a lake. One value per lake item (a lake part's is its own polygon's); NULL for
+    every other kind. Measured: 7,742 lakes, Williston 172,669 ha, median 17 ha."""
+    poly_path = build_dir / "waterbody_polys.pkl"
+    if not poly_path.exists():
+        cov.skip("item.area_ha", f"no {poly_path.name} in this build")
+        return
+    import pickle
+    with poly_path.open("rb") as fh:
+        polys = pickle.load(fh)
+    rows = []
+    for i in json.loads(registry.read_text())["items"]:
+        if i.get("kind") != "lake" or not is_water(i):
+            continue
+        got = [polys[s] for s in i.get("section_ids", []) if s in polys]
+        if got:
+            rows.append((int(round(sum(g.area for g in got) / 1e4)), i["id"]))
+    db.executemany("UPDATE item SET area_ha = ? WHERE item_id = ?", rows)
+    cov.filled("item.area_ha", len(rows))
+
+
 def touching_pairs(edges, sid: dict[str, int],
                    waters_of: dict[int, set[int]]) -> list[tuple[int, int]]:
     """Every pair of sections of ONE water that a flow edge joins, as sorted handle pairs.
@@ -744,6 +773,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     if not registry.exists():
         raise FileNotFoundError(f"{registry} not found — run the build first")
     _items(db, registry, cov)
+    _lake_areas(db, build_dir, registry, cov)
     _section_touch(db, build_dir, cov)
     places =_places(db, data_dir / "bc_places.json",
                      data_dir / "bc_boundary.geojson", cov)

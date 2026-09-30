@@ -5255,21 +5255,6 @@
      ]
     },
     {
-     "rule_id": "goat_river.r2",
-     "type": "advisory",
-     "verbatim": "Leadville Creek Cameron Creek",
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "unresolved_locators": [
-      "Leadville Creek",
-      "Cameron Creek"
-     ],
-     "review_reason": "two names printed after the mainstem-only clause with no connecting word — likely a dropped exception or reference to separate listings for these tributaries; preserved verbatim without inventing a relationship"
-    },
-    {
      "rule_id": "goat_river.r3",
      "type": "bait_restriction",
      "verbatim": "Bait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",

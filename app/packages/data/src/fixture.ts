@@ -134,12 +134,13 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       const near = { name: "Chilliwack", kind: "city", lat: 49.171, lon: -121.953, km: 1.8 };
       if (CHILLIWACK.name.toLowerCase().includes(needle)) {
         rows.push({ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream",
-                    matchedAs: null, pieces: CHILLIWACK.sections.length, size: 2236, near });
+                    matchedAs: null, pieces: CHILLIWACK.sections.length, size: 2236, areaHa: null,
+                    near });
       }
       const byAlias = JEPERSON.alias.toLowerCase().includes(needle);
       if (byAlias || JEPERSON.name.toLowerCase().includes(needle)) {
         rows.push({ item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream",
-                    matchedAs: byAlias ? JEPERSON.alias : null, pieces: 1, size: 12,
+                    matchedAs: byAlias ? JEPERSON.alias : null, pieces: 1, size: 12, areaHa: null,
                     near: { ...near, km: 2.4 } });
       }
       return rows.slice(0, Math.max(0, limit));
@@ -153,10 +154,10 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async watersNear(p): Promise<readonly NearHit[]> {
       return p === "12"
         ? [{ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream", km: 1.8,
-             signals: { mag: 2166, pieces: 19, towns: 72, gauged: true, stocked: false,
+             signals: { mag: 2166, areaHa: null, pieces: 19, towns: 72, gauged: true, stocked: false,
                         listed: true } },
            { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream", km: 2.4,
-             signals: { mag: 12, pieces: 1, towns: 40, gauged: false, stocked: false,
+             signals: { mag: 12, areaHa: null, pieces: 1, towns: 40, gauged: false, stocked: false,
                         listed: false } }]
         : [];
     },

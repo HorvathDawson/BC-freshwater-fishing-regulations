@@ -195,6 +195,14 @@ def _shared_waters() -> frozenset[str]:
     return shared_waters([e for _, e in _all_entries()])
 
 
+def _rowed_waters() -> dict[str, tuple[str, ...]]:
+    """The waters the tables print a row of their own for — read from the corpus as it is NOW, the
+    same derivation the reach CLI makes (`outside.rowed_waters`), so a confluence cut's joining
+    water goes with the cut, or stays out, exactly as it ships."""
+    from pipeline.atlas.reach.outside import rowed_waters
+    return rowed_waters([e for _, e in _all_entries()])
+
+
 def _tidal() -> frozenset[str]:
     """The sections of the rows marked `tidal` (Nitinat Lake), read from the corpus as it is NOW —
     the same derivation the reach CLI makes (`outside.tidal_sections`), so the app takes the same
@@ -635,6 +643,7 @@ def entry_reaches(entry_id: str) -> dict:
         clip, scope_failed = _scope_sections(e, covered)
         shared = _shared_waters()
         tidal = _tidal()
+        owned = _rowed_waters()
 
         out: dict = {}
         per_rule: dict[str, list] = {}
@@ -648,7 +657,7 @@ def entry_reaches(entry_id: str) -> dict:
         verdict: dict = {}
         for r in e.get("rules") or []:
             binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip,
-                                          shared=shared, tidal=tidal)
+                                          shared=shared, tidal=tidal, owned=owned)
             verdict[r["rule_id"]] = {
                 "outcome": binding.outcome.value,
                 "reason": binding.reason.value if binding.reason else None,
@@ -939,7 +948,8 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
             direct |= set(got.get("sections") or ())
 
     binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip,
-                                   shared=_shared_waters(), tidal=_tidal())
+                                   shared=_shared_waters(), tidal=_tidal(),
+                                   owned=_rowed_waters())
     total = set(binding.sections)
     if any((ex or {}).get("op") == "rest" for ex in rule.get("extents") or []):
         # "OTHER PARTS" (op `rest`) resolves only against its siblings, so no extent alone says

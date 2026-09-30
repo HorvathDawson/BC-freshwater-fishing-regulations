@@ -9,6 +9,7 @@ import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { DEV_BUNDLE, hasDevBundle, openBundle } from "./drivers/node";
 import { str } from "./db";
 import { makeBundleSource } from "./source";
+import * as Q from "./queries";
 import type { Db } from "./db";
 import type { ItemId, RegsSource, SectionId } from "../index";
 
@@ -105,6 +106,34 @@ describe("the bundle source", () => {
       "JOIN gauge g ON g.sid = s.sid")).map((r) => str(r.item_id)));
     for (const h of near) if (gauged.has(h.item)) expect(h.signals.gauged, h.name).toBe(true);
     expect(near.some((h) => h.signals.mag !== null)).toBe(true);
+  });
+
+  it("reads lake area where the bundle has it, and asks for it by the column", async () => {
+    const [place] = await src.searchPlaces("Chilliwack", 1);
+    const near = await src.watersNear(place!.place);
+    const withArea = new Map((await db.all(
+      "SELECT item_id, area_ha FROM item WHERE area_ha IS NOT NULL"))
+      .map((r) => [str(r.item_id), Number(r.area_ha)]));
+    for (const h of near) expect(h.signals.areaHa, h.name).toBe(withArea.get(h.item) ?? null);
+  });
+
+  it("a bundle from before lake area still searches and lists — lakes at size 0", async () => {
+    // The bundle is fetched apart from the app: an app newer than its bundle must not fail
+    // every search on a column the bundle does not have (`Q.withArea`).
+    const sent: string[] = [];
+    const old: Db = {
+      get: (sql, ...a) => (sql === Q.HAS_ITEM_AREA ? Promise.resolve(undefined) : db.get(sql, ...a)),
+      all: (sql, ...a) => { sent.push(sql); return db.all(sql, ...a); },
+    };
+    const s = makeBundleSource(old);
+    const name = str((await db.get("SELECT name FROM item WHERE length(name) > 8 LIMIT 1"))!.name);
+    const hits = await s.searchNames(name.slice(0, 6), 10);
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits.every((h) => h.areaHa === null)).toBe(true);
+    const [place] = await s.searchPlaces("Chilliwack", 1);
+    expect((await s.watersNear(place!.place)).every((h) => h.signals.areaHa === null)).toBe(true);
+    expect(sent.some((q) => q.includes("area_ha") && q.includes("i.area_ha"))).toBe(false);
+    expect(sent.some((q) => q.includes("%AREA%"))).toBe(false);
   });
 
   it("a town search carries where the town is, and ranks the exact name first", async () => {

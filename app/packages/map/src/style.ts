@@ -3,6 +3,7 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
+import { WATER_STATUS, type WaterStatus } from "@app/core";
 import style from "../style/style.json" with { type: "json" };
 import meta from "../style/style.meta.json" with { type: "json" };
 
@@ -157,4 +158,15 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens): u
   const interp = out[3] as unknown[];
   for (const [at, ref] of mode.stops) interp.push(at, val(ref));
   return out;
+}
+
+/**
+ * THE COLOUR OF A WATER'S STATUS in one theme — the ONE resolver every surface uses (a search
+ * row, the list of water near a town, and the map's status colouring when regulations return).
+ * The status and its token are decided in @app/core (`WATER_STATUS`); the hex is the map's.
+ */
+export function waterStatusColour(theme: string, status: WaterStatus): string {
+  const hex = resolveTheme(theme)[WATER_STATUS[status].token];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);
+  return hex;
 }

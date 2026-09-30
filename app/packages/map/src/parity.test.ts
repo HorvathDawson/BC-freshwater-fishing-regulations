@@ -282,3 +282,21 @@ describe("the flow ramp's units", () => {
     expect([...(conditions?.hide ?? [])].sort()).toEqual(["mu", "region"]);
   });
 });
+
+describe("a water's status paints with the map's own colours", () => {
+  it("every status resolves in every theme, through the one resolver", async () => {
+    const { WATER_STATUS, WATER_STATUSES } = await import("@app/core");
+    const { waterStatusColour, resolveTheme, themeNames } = await import("./style");
+    for (const theme of themeNames())
+      for (const s of WATER_STATUSES) {
+        const hex = waterStatusColour(theme, s);
+        expect(hex).toMatch(/^#[0-9A-Fa-f]{6}/);
+        expect(hex).toBe(resolveTheme(theme)[WATER_STATUS[s].token]);
+      }
+  });
+
+  it("closed is the crimson every closure on the map wears", async () => {
+    const { waterStatusColour, resolveTheme } = await import("./style");
+    expect(waterStatusColour("light", "closed")).toBe(resolveTheme("light")["color.status.closed"]);
+  });
+});

@@ -12,7 +12,8 @@
  */
 import { useMemo } from "react";
 import {
-  duplicateNames, fixOf, normalise, rankNear, townBox, type Bbox, type Extent, type LatLon,
+  duplicateNames, fixOf, normalise, rankNear, regulationsFor, townBox, waterStatus,
+  type Bbox, type Extent, type LatLon, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -193,28 +194,41 @@ export function targetKey(t: SearchTarget): string {
 
 /** What the reader has in hand on the search screen. */
 export interface SearchPick {
-  /** The row they tapped: the pinned map shows it; nothing else moves. */
-  preview: SearchTarget | null;
+  /**
+   * The SELECTED row: the one tap chose it, the pinned map frames and lights it, and it alone
+   * carries the go button. Nothing navigates by selecting.
+   */
+  selected: SearchTarget | null;
   /** The town whose "water near" list is open — the eye on a town. */
   town: PlaceHit | null;
 }
 
-export const NO_PICK: SearchPick = { preview: null, town: null };
+export const NO_PICK: SearchPick = { selected: null, town: null };
+
+/** Is this row the selected one — the one that shows the go button? */
+export function isSelected(pick: SearchPick, t: SearchTarget): boolean {
+  return pick.selected !== null && targetKey(pick.selected) === targetKey(t);
+}
 
 export type SearchAction =
-  /** The query changed: a preview of the old results means nothing any more. */
+  /** The query changed: a selection among the old results means nothing any more. */
   | { t: "typed" }
-  /** A tap on a row. */
-  | { t: "preview"; target: SearchTarget }
-  /** The eye. */
+  /** A tap (or Enter) on a row: select it. */
+  | { t: "select"; target: SearchTarget }
+  /** The go button, which only the selected row carries. */
   | { t: "go"; target: SearchTarget }
   /** "All results" from a town's list. */
   | { t: "back" };
 
 /**
- * One step of the search screen. `leave` is the water to open — set ONLY by the eye on a
- * water, so a preview can never navigate. The eye on a town stays: it opens the town's
- * list and shows the town, whole, with every water near it lit.
+ * One step of the search screen: SELECT, THEN GO.
+ *
+ * The first tap on a row selects it — the pinned map frames and lights it — and never
+ * navigates; tapping it again keeps it selected; tapping another row moves the selection.
+ * Only the selected row carries the go button, and only `go` on the SELECTED row acts: a go
+ * aimed at any other row (a stale press, a second pointer) selects that row instead. `leave`
+ * is the water to open, set only by going on a water; going on a town stays and opens the
+ * town's list, with every water near it lit.
  */
 export function searchStep(s: SearchPick, a: SearchAction):
     { pick: SearchPick; leave: ItemId | null } {
@@ -222,12 +236,13 @@ export function searchStep(s: SearchPick, a: SearchAction):
     case "typed":
     case "back":
       return { pick: NO_PICK, leave: null };
-    case "preview":
-      return { pick: { ...s, preview: a.target }, leave: null };
+    case "select":
+      return { pick: { ...s, selected: a.target }, leave: null };
     case "go":
+      if (!isSelected(s, a.target)) return { pick: { ...s, selected: a.target }, leave: null };
       return a.target.kind === "water"
-        ? { pick: { ...s, preview: a.target }, leave: a.target.item }
-        : { pick: { preview: null, town: a.target.place }, leave: null };
+        ? { pick: s, leave: a.target.item }
+        : { pick: { selected: null, town: a.target.place }, leave: null };
   }
 }
 
@@ -239,7 +254,7 @@ export function searchStep(s: SearchPick, a: SearchAction):
 export function subjectOf(pick: SearchPick, auto: { best: ItemId | null;
                                                     typedTown: PlaceHit | null }):
     { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null } {
-  const p = pick.preview;
+  const p = pick.selected;
   if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town };
   if (p?.kind === "place") return { item: null, place: p.place, pin: null };
   if (pick.town) return { item: null, place: pick.town, pin: null };
@@ -311,4 +326,14 @@ export function useSearchView(source: RegsSource, query: string,
   const mine: Async<TownView | null> = stale ? { state: "loading", value: null, error: null }
                                              : town;
   return { focus, town: mine };
+}
+
+/**
+ * THE STATUS A RESULT ROW WEARS — a water in the search results or in the list of water near a
+ * town. The same answer the map will colour its line by: `waterStatus` over the water's
+ * regulations (`regulationsFor`), both in @app/core. Null today, because the app reads no
+ * regulations yet — the row then draws no status at all, never a guessed one.
+ */
+export function rowStatus(item: ItemId): WaterStatus | null {
+  return waterStatus(regulationsFor(item));
 }

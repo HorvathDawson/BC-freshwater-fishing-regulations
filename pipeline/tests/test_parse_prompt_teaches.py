@@ -332,3 +332,36 @@ def test_lengths_are_refused_off_retention():
         {"rule_id": "m_lake.r1", "type": "bait_restriction", "verbatim": verb,
          "gear": [{"slot": "bait", "ban": ["any_bait"]}], "lengths": [{"min_cm": 50}],
          "extents": [{"op": "whole"}]}]), "lengths belongs to retention_limit")
+
+
+# ---------------------------------------------------------------- known source artefacts
+
+def test_the_prompt_names_every_known_source_artefact():
+    """A reparse must not re-create a rule from map labels (Goat River 4-6, 2026-09-30)."""
+    from pipeline.regs.parsing.catalogue import SOURCE_ARTEFACTS
+    assert "Known source artefacts" in PROMPT
+    for a in SOURCE_ARTEFACTS:
+        flat = " ".join(PROMPT.split())
+        assert a["row"] in flat and a["text"] in flat, a
+
+
+def test_a_rule_quoting_a_source_artefact_is_refused():
+    verb = "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek"
+    rel = {"rule_id": "goat_river.r1", "type": "retention_limit",
+           "verbatim": "Trout/char catch and release (mainstem only)",
+           "species": ["TROUT_CHAR"], "take": 0, "may_target": True,
+           "includes_tributaries": False, "extents": [{"op": "whole"}]}
+    bad = {"rule_id": "goat_river.r2", "type": "advisory",
+           "verbatim": "Leadville Creek Cameron Creek", "extents": [{"op": "whole"}]}
+    _ok(_entry("r4:goat_river@4-6", verb, [rel]))
+    with pytest.raises(Exception, match="source artefact"):
+        CatalogueEntry.model_validate(_entry("r4:goat_river@4-6", verb, [rel, bad]))
+
+
+def test_mutation_without_the_guard_the_artefact_rule_passes(monkeypatch):
+    from pipeline.regs.parsing import catalogue as C
+    monkeypatch.setattr(C, "SOURCE_ARTEFACTS", ())
+    verb = "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek"
+    bad = {"rule_id": "goat_river.r2", "type": "advisory",
+           "verbatim": "Leadville Creek Cameron Creek", "extents": [{"op": "whole"}]}
+    CatalogueEntry.model_validate(_entry("r4:goat_river@4-6", verb, [bad]))

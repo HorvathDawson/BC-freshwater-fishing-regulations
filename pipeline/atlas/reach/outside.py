@@ -182,6 +182,35 @@ def shared_waters(entries) -> frozenset[str]:
     return frozenset(i for i, rs in by.items() if len(rs) > 1)
 
 
+def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
+    """THE WATERS THE BOOK PRINTS A ROW OF THEIR OWN FOR: `{item_id: ((entry_id, sees), …)}`,
+    `sees` the entries the row's `see` pointers name.
+
+    What a confluence cut asks of its joining water (`build.confluence_excludes`, user ruling
+    2026-09-30): a water with a row of its own is left out of the mainstem's rule; one without
+    goes with the cut on both sides. A water has a row of its own when a TABLE row (an entry
+    `r<region>:…`, never a zone entry) lists the water's registry item in `matched` and carries
+    at least one rule about the water itself. A pointer row ("See Bulkley River") carries no rule
+    and says the water's regulations are printed elsewhere, so it does not count; nor does a row
+    whose every rule is `tributaries_only` ("West Road River's tributaries" is about the creeks,
+    not the river). Which row is the CUT's own is the caller's to drop — and so is a row that
+    points part of its water BACK at the cut's row: YOUNG CREEK (upstream of Hwy 20) prints
+    "Downstream of Hwy 20: see Atnarko/Bella Coola Rivers", so at the Atnarko the creek has no row
+    of its own (`build.own_rows`)."""
+    out: dict[str, set[tuple[str, tuple[str, ...]]]] = {}
+    for e in entries:
+        eid = str(e.get("entry_id") or "")
+        rules = [r for r in e.get("rules") or [] if isinstance(r, dict)]
+        if not _ENTRY_REGION.match(eid) or not rules \
+                or all(r.get("tributaries_only") for r in rules):
+            continue
+        sees = tuple(sorted({t for s in e.get("see") or [] if isinstance(s, dict)
+                             for t in s.get("entry_ids") or ()}))
+        for i in e.get("matched") or ():
+            out.setdefault(i, set()).add((eid, sees))
+    return {i: tuple(sorted(es)) for i, es in sorted(out.items())}
+
+
 _WATER_CACHE: dict = {}
 
 

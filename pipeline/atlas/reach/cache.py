@@ -53,11 +53,18 @@ from typing import Callable
 #:    (`outside.tidal_sections`); a code-less floodplain lake takes its side of a watershed cut
 #:    from the nearest river piece (`extent.CODE_LAKES_PLACED_BY_POSITION`); a designation stops
 #:    at national parks (`licensing.DESIGNATIONS_STOP_AT_NATIONAL_PARKS`); a designation still
-#:    walks into a confluence cut's joining water (`tributaries.LICENSING_WALKS_INTO_CONFLUENCE_WATERS`).
+#:    walked into a confluence cut's joining water (replaced in 14).
 #:    Signs the rule's words put BELOW the confluence ("signs located downstream of the Meziadin River
 #:    confluence") put it inside a reach running up from them: the joining water is walked
 #:    (`build._signs_below`, review 2026-09-29).
-POLICY_VERSION = "13"
+#: 14: (2026-09-30 ruling) a confluence cut's joining water with NO ROW OF ITS OWN goes with the cut
+#:    on BOTH sides; one with its own row stays out (`outside.rowed_waters`,
+#:    `tributaries.CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT`); licensing takes the same test
+#:    (replacing "a designation always walks in"); signs ABOVE a confluence put the joining water
+#:    inside a reach running down from them (`build._signs_above`). NOTE: the answer now depends on
+#:    OTHER entries (which waters have rows), which `entry_key` does not see — a cache keyed on one
+#:    entry must also key on `rowed_waters` before it is ever used.
+POLICY_VERSION = "14"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

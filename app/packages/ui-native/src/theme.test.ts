@@ -96,3 +96,13 @@ describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)(
       expect(contrast(c, p.placeBand), `${name} on the band`).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe("status colours on a row are the map's", () => {
+  it("each palette's waterStatus is the map resolver's colour, theme by theme", async () => {
+    const { waterStatusColour } = await import("@app/map");
+    const { WATER_STATUSES } = await import("@app/core");
+    const { LIGHT, DARK, CVD } = await import("./theme");
+    for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)
+      for (const s of WATER_STATUSES) expect(p.waterStatus[s]).toBe(waterStatusColour(name, s));
+  });
+});

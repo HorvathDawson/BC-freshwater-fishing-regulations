@@ -64,6 +64,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
   const ready = db.all(Q.META).then((rows) => {
     meta = new Map(rows.map((r) => [str(r.k), str(r.v)]));
   });
+  // Whether this bundle carries lake area (`Q.withArea`), asked once.
+  const area = db.get(Q.HAS_ITEM_AREA).then((r) => r !== undefined, () => false);
 
   return {
     async info(): Promise<BundleInfo> {
@@ -115,7 +117,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       if (query.length < 2 || limit < 1) return [];
       // Candidates from SQL, ORDER from core — see `rankWaters`. Over-fetched so the rank
       // has room to promote a big water past a small one of the same match quality.
-      const rows = await db.all(Q.SEARCH, Q.likeEscape(query), Math.max(limit * 3, 60));
+      const rows = await db.all(Q.withArea(Q.SEARCH, await area), Q.likeEscape(query),
+                                Math.max(limit * 3, 60));
       // One row per ITEM: an item matched by both its name and an alias is one result,
       // and the better of the two matches is the one it keeps.
       const seen = new Map<string, NameHit>();
@@ -124,7 +127,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         const hit: NameHit = {
           item: item as ItemId, name: str(r.name), kind: str(r.kind),
           matchedAs: r.matched_as == null ? null : str(r.matched_as),
-          pieces: Number(r.pieces ?? 0), size: num(r.size), near: null,
+          pieces: Number(r.pieces ?? 0), size: num(r.size), areaHa: num(r.area_ha), near: null,
         };
         const had = seen.get(item);
         if (!had || rankWaters(query, [had, hit])[0] === hit) seen.set(item, hit);
@@ -166,11 +169,12 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       // under "Water near Chilliwack" then read as the whole answer while 162 of its 202
       // waters were missing — a count a screen shows has to be the count there is. The
       // busiest town in the province has 543; the cap is only a guard against a bad build.
-      return (await db.all(Q.WATERS_NEAR, id, 2000)).map((r) => ({
+      return (await db.all(Q.withArea(Q.WATERS_NEAR, await area), id, 2000)).map((r) => ({
         item: str(r.item_id) as ItemId, name: str(r.name), kind: str(r.kind),
         km: Number(r.km),
         signals: {
           mag: r.mag === null || r.mag === undefined ? null : Number(r.mag),
+          areaHa: num(r.area_ha),
           pieces: Number(r.pieces), towns: Number(r.towns),
           gauged: Number(r.gauged) === 1, stocked: Number(r.stocked) === 1,
           listed: Number(r.listed) === 1,

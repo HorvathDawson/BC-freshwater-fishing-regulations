@@ -40,8 +40,13 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- each part is drawn as its own polygon (`data/curated/waters/added_lakes.geojson`), so each is
 -- its own item with its own sections. `part_of` is what says they are one lake: a reader groups
 -- the parts on one screen by it, and never has to open the curated file to find out.
+--
+-- `area_ha` IS A LAKE'S SIZE, in whole hectares, else NULL: the ranking signal a lake has in place
+-- of the stream magnitude it cannot have (search and "water near a town" rank before any tile is
+-- loaded). It is the tile's own polygon area (`waterbody_polys.pkl`), rounded — the second
+-- exception to "no size in here", for the reason `name` is the first (build._lake_areas).
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
-                   name TEXT NOT NULL, kind TEXT, part_of TEXT);
+                   name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
 -- `ord` and `sid` are HANDLES, not ids — item.ord and the section handle table. See
 -- pipeline/common/section_handles for who owns the section one and why it may never leave

@@ -112,6 +112,15 @@ A list, unioned. **A rule never inherits its entry's extents** (AGENTS 13). Ops,
   "watershed" keeps lakes. `tributary_excludes` names what the walk must not enter; on a
   licensing designation, what it removes goes to the excluded water's own designation
   (`carve_outs_to_owner`).
+- **A confluence cut's joining water** (reach POLICY 14, user ruling 2026-09-30,
+  `build.confluence_excludes`): the rule's words decide first ("including X" in, "not including X"
+  out); signs up- or downstream of the confluence put it inside the reach (Nass/Meziadin); else a
+  joining water with a ROW OF ITS OWN (`outside.rowed_waters`: a table row with a rule about the
+  water, not the cut's own row, not one whose `see` points back at it) stays out, and one with
+  none goes WITH the cut on BOTH sides (Bannon Creek takes both Chemainus closures). Licensing
+  takes the same test (no row → inherits the designation; own row → its own, or none).
+- **Known source artefacts** (`catalogue.SOURCE_ARTEFACTS`): book text that is not a rule (GOAT
+  RIVER 4-6 "Leadville Creek Cameron Creek", map labels). A rule quoting one is refused.
 - `water` (80; stream|lake), `origin` (56), `within` (107; a clause inside its parent quota),
   `exempts` (211), `closed_to` (34) / `closed_to_except` (19), `species_except` (35),
   `record_retention` (5), `condition_of` (4), `authority` (7), `standing` (2), `derived_from` (1),

@@ -2030,6 +2030,14 @@ def guide(d: dict) -> dict:
                     "on purpose. An empty list is not 'no fish'.",
             "key_on": "species.groups[*].open",
         },
+        "source_artefacts": {
+            "says": "Text the book prints inside a row that is NOT a regulation, so no rule "
+                    "carries it and the page must not look for one. The row's `regs_verbatim` "
+                    "still shows it, as printed.",
+            "key_on": "entries[*].id + regs_verbatim; no rule quotes these",
+            "artefacts": [{"entry": a["entry_id"], "row": a["row"], "text": a["text"],
+                           "says": a["says"]} for a in C.SOURCE_ARTEFACTS],
+        },
     }
 
     labels = {
@@ -2090,7 +2098,7 @@ def guide(d: dict) -> dict:
         "placement": "sets, waters and their parts, outside B.C., via, placement, binds (and "
                      "undrawn parts: not_yet_mapped), uncertain",
         "gotchas": "where a page is easy to get wrong: size-clause overrides, places not yet "
-                   "mapped, trout includes char, bull trout is Dolly Varden",
+                   "mapped, trout includes char, bull trout is Dolly Varden, source artefacts",
         "cases": "SAMPLE WATERS to build the page against while it is built out — one or more "
                  "per mechanism, each with what to show and the reference answer",
     }

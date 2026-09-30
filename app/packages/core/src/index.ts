@@ -14,6 +14,7 @@ export * from "./ladder";
 export * from "./trust";
 export * from "./section";
 export * from "./regulations";
+export * from "./status";
 export * from "./search";
 export * from "./near";
 

@@ -26,10 +26,11 @@
  */
 import { useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { wherePhrase } from "@app/core";
+import { WATER_STATUS, wherePhrase, type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
-import { NEAR_KM, NO_PICK, resultGroups, searchStep, targetKey, useSearch, useSearchView,
+import { NEAR_KM, NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
+         useSearchView,
          type SearchAction, type SearchPick, type SearchResults, type SearchTarget }
   from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
@@ -79,7 +80,6 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
   const typed = q.trim().length >= 2;
   const results = typed ? last.current : { waters: [], places: [] };
   const { focus, town } = useSearchView(source, q, results, pick);
-  const lit = (t: SearchTarget) => focus?.key === targetKey(t);
 
   const rows: Row[] = [];
   const place = pick.town;
@@ -182,8 +182,9 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
           data={rows}
           keyExtractor={(r) => r.key}
           keyboardShouldPersistTaps="handled"
-          // The lit row is drawn from `focus`, which the list does not otherwise see.
-          extraData={focus?.key}
+          // The selected row (and its go button) is drawn from `pick`, which the list does not
+          // otherwise see.
+          extraData={pick}
           renderItem={({ item: r }) => {
             if (r.t === "head")
               return (
@@ -223,10 +224,10 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
               return (
                 <Hit palette={palette} tone={palette.place} bar band name={r.place.name}
                      sub={`${cap(r.place.kind)} · every named water around it`}
-                     selected={lit(t)}
+                     selected={isSelected(pick, t)}
                      label={`Show ${r.place.name} on the map`}
                      goLabel={`View water near ${r.place.name}`}
-                     onPress={() => act({ t: "preview", target: t })}
+                     onPress={() => act({ t: "select", target: t })}
                      onGo={() => act({ t: "go", target: t })} />
               );
             }
@@ -234,12 +235,13 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
               const t: SearchTarget = { kind: "water", item: r.near.item, name: r.near.name };
               return (
                 <Hit palette={palette} tone={palette.accent} name={r.near.name}
+                     status={rowStatus(r.near.item)}
                      sub={`${KIND[r.near.kind] ?? r.near.kind} · ${
                        r.near.km < 1 ? "under 1 km" : `${r.near.km.toFixed(1)} km`}`}
-                     selected={lit(t)}
+                     selected={isSelected(pick, t)}
                      label={`Show ${r.near.name} on the map`}
                      goLabel={`View ${r.near.name}`}
-                     onPress={() => act({ t: "preview", target: t })}
+                     onPress={() => act({ t: "select", target: t })}
                      onGo={() => act({ t: "go", target: t })} />
               );
             }
@@ -250,15 +252,16 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
             const t: SearchTarget = { kind: "water", item: h.item, name: h.name };
             return (
               <Hit palette={palette} tone={palette.accent} name={h.name}
+                   status={rowStatus(h.item)}
                    alias={h.matchedAs !== null ? `also ${h.matchedAs}` : null}
                    sub={[KIND[h.kind] ?? h.kind,
                          where ?? (r.dup ? "no town within 25 km" : null)]
                      .filter(Boolean).join(" · ")}
                    strongSub={r.dup}
-                   selected={lit(t)}
+                   selected={isSelected(pick, t)}
                    label={`Show ${named} on the map`}
                    goLabel={`View ${named}`}
-                   onPress={() => act({ t: "preview", target: t })}
+                   onPress={() => act({ t: "select", target: t })}
                    onGo={() => act({ t: "go", target: t })} />
             );
           }}
@@ -292,25 +295,34 @@ const EMPTY: readonly never[] = [];
 const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);
 
 /**
- * One result: the row itself PREVIEWS, the eye GOES. Two separate controls side by side —
- * never one inside the other, which on the web is a button inside a button and reaches a
- * screen reader as one control with two names.
+ * One result. SELECT, THEN GO (`searchStep`): a tap (or Enter) on the row selects it — the pinned
+ * map frames and lights it — and never navigates. Only the SELECTED row carries the go button:
+ * the eye at the row's end, quiet, labelled "View <name>", after the row in the tab order.
+ * Unselected rows carry none. Two separate controls side by side — never one inside the other,
+ * which on the web is a button inside a button and reaches a screen reader as one control with
+ * two names. The row announces its state with `aria-pressed` (AGENTS 34).
  *
  * `tone` says what kind of thing the row is: the accent for a water, `palette.place` for a
  * town, which also gets a bar down its edge so the two groups cannot be mistaken for each
  * other at a glance.
  */
 function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, label, onPress,
-               goLabel, onGo }: {
+               goLabel, onGo, status = null }: {
   palette: Palette; tone: string; bar?: boolean;
   /**
-   * On the places band. The row takes the band's warm ground (the card when it is the one
-   * on the map, so the lit row still stands out), and its secondary line is drawn in the
-   * place colour, because the greys do not hold 4.5:1 on the tint.
+   * On the places band. The row takes the band's warm ground (the card when it is the
+   * selected one, so it still stands out), and its secondary line is drawn in the place
+   * colour, because the greys do not hold 4.5:1 on the tint.
    */
   band?: boolean; name: string; alias?: string | null;
   sub: string; strongSub?: boolean; selected?: boolean; label: string;
   onPress: () => void; goLabel: string; onGo: () => void;
+  /**
+   * The water's status (`rowStatus`), a small dot in the colour the map paints it
+   * (`palette.waterStatus`), named for a screen reader. Null — not asked, as every water is
+   * until regulations are integrated — draws nothing.
+   */
+  status?: WaterStatus | null;
 }) {
   const [focus, setFocus] = useState<"row" | "go" | null>(null);
   // The ring is for the KEYBOARD. A tap focuses the control too, and a ring left round
@@ -321,8 +333,6 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
     if (!pressing.current) setFocus(which);
   };
   const blur = () => { pressing.current = false; setFocus(null); };
-  // Either order: a browser may focus on mousedown before the press begins, so the press
-  // also clears a ring that focus has just drawn.
   const press = () => { pressing.current = true; setFocus(null); };
   const ring = { outlineWidth: 2, outlineStyle: "solid" as const, outlineColor: tone,
                  outlineOffset: -2 };
@@ -331,9 +341,11 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
                    borderTopWidth: 1, borderTopColor: palette.line,
                    backgroundColor: band ? (selected ? palette.card : palette.placeBand)
                      : selected ? palette.wash : palette.card }}>
-      {/* The edge bar: a town's colour always, a water's only while it is on the map. */}
+      {/* The edge bar: a town's colour always, a water's only while it is selected. */}
       <View style={{ width: 4, backgroundColor: bar ? tone : selected ? tone : "transparent" }} />
-      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+      <Pressable onPress={onPress} accessibilityRole="button"
+                 accessibilityLabel={status ? `${label}. ${WATER_STATUS[status].label}` : label}
+                 aria-pressed={!!selected}
                  onPressIn={press}
                  onFocus={onFocusOf("row")} onBlur={blur}
                  style={({ pressed }) => ({
@@ -342,9 +354,16 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
                    backgroundColor: pressed ? palette.tint : "transparent",
                    ...(focus === "row" ? ring : null),
                  })}>
-        <Text style={{ ...TYPE.name, fontSize: 20, lineHeight: 23, color: palette.ink }}>
-          {name}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={{ ...TYPE.name, fontSize: 20, lineHeight: 23, color: palette.ink,
+                         flexShrink: 1 }}>
+            {name}
+          </Text>
+          {status ? (
+            <View style={{ width: 8, height: 8, borderRadius: 4,
+                           backgroundColor: palette.waterStatus[status] }} />
+          ) : null}
+        </View>
         {/* The alias line. Without it a matched alias looks like the wrong water. */}
         {alias ? (
           <Text style={{ ...TYPE.small, color: band ? palette.place : palette.faint,
@@ -356,27 +375,27 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
                        color: band ? palette.place : palette.sub }}>{sub}</Text>
       </Pressable>
       {/*
-        THE EYE. 44 × 44 — the smallest target a thumb reliably hits — boxed in the row's
-        tone so it reads as a button and not a decoration. Focusable on the web in its own
-        right, with a ring, so a keyboard can preview with one stop and go with the next.
+        THE EYE — the selected row's only. 44 × 44, the smallest target a thumb reliably hits,
+        outlined in the row's tone. Focusable on the web in its own right, with a ring, so a
+        keyboard selects with one stop and goes with the next.
       */}
-      <View style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
-        <Pressable onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
-                   onPressIn={press}
-                   onFocus={onFocusOf("go")} onBlur={blur}
-                   hitSlop={6}
-                   style={({ pressed }) => ({
-                     width: 44, height: 44, alignItems: "center", justifyContent: "center",
-                     borderWidth: 1.5, borderColor: tone, borderRadius: palette.r.box,
-                     // On the band too: the button is a card-coloured box, so it reads as
-                     // a control sitting ON the row rather than a hole in it.
-                     backgroundColor: pressed ? tone : palette.card,
-                     ...(focus === "go" ? { ...ring, outlineColor: palette.ink,
-                                            outlineOffset: 2 } : null),
-                   })}>
-          {({ pressed }) => <EyeIcon colour={pressed ? palette.card : tone} size={22} />}
-        </Pressable>
-      </View>
+      {selected ? (
+        <View style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
+          <Pressable onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
+                     onPressIn={press}
+                     onFocus={onFocusOf("go")} onBlur={blur}
+                     hitSlop={6}
+                     style={({ pressed }) => ({
+                       width: 44, height: 44, alignItems: "center", justifyContent: "center",
+                       borderWidth: 1.5, borderColor: tone, borderRadius: palette.r.box,
+                       backgroundColor: pressed ? tone : palette.card,
+                       ...(focus === "go" ? { ...ring, outlineColor: palette.ink,
+                                              outlineOffset: 2 } : null),
+                     })}>
+            {({ pressed }) => <EyeIcon colour={pressed ? palette.card : tone} size={22} />}
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }

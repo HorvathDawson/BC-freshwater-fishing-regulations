@@ -553,6 +553,34 @@ _FAMILY = {
 _COUNTED_TYPES = (RuleType.retention_limit, RuleType.stop_fishing_after_quota)
 
 
+#: KNOWN SOURCE ARTEFACTS: text the book prints inside a row that is NOT a regulation. A rule quoting
+#: one is refused (`CatalogueEntry._no_source_artefacts`), so a reparse cannot re-create it; the
+#: parse prompt names each one (CATALOGUE_PARSE_PROMPT.md, "Known source artefacts") and the export
+#: guide lists them (`gotchas.source_artefacts`). Keyed on the row's entry id; the text is matched
+#: case-insensitively inside a rule's `verbatim`.
+SOURCE_ARTEFACTS: tuple[dict, ...] = (
+    {"entry_id": "r4:goat_river@4-6", "row": "GOAT RIVER 4-6",
+     "text": "Leadville Creek Cameron Creek",
+     "says": "GOAT RIVER 4-6 prints 'Trout/char catch and release (mainstem only) Leadville Creek "
+             "Cameron Creek' — the two creek names are map labels that landed in the row, not a "
+             "rule (user ruling 2026-09-30). The row is its mainstem-only release and its bait "
+             "ban; Leadville and Cameron creeks are tributaries like any other."},
+)
+
+
+def source_artefact_problems(entry_id: str, rules) -> List[str]:
+    """Rules of `entry_id` that quote a known source artefact (`SOURCE_ARTEFACTS`)."""
+    out: List[str] = []
+    for a in SOURCE_ARTEFACTS:
+        if a["entry_id"] != entry_id:
+            continue
+        for r in rules:
+            if a["text"].lower() in str(getattr(r, "verbatim", "") or "").lower():
+                out.append(f"{r.rule_id} quotes {a['text']!r}, which is a source artefact, not a "
+                           f"regulation: {a['says']}")
+    return out
+
+
 #: THE ZONE DEFAULTS A WATER MAY LIFT BY NAME (`Exempts.default_id`), each the slug of a zone
 #: entry (`z<region>:<slug>`). A closed list, like `CONDUCT_ACTS`: a default_id outside it named
 #: nothing a reader could find — `set_lining.r1b` (a rule id) sat here — and adding one is a
@@ -4283,6 +4311,15 @@ class CatalogueEntry(BaseModel):
                 f"{self.entry_id}: a tidal row carries only advisory notes on its matched water — "
                 f"non-advisory rules {bad}, licensing records {len(self.licensing)}, "
                 f"matched {self.matched}")
+        return self
+
+    @model_validator(mode="after")
+    def _no_source_artefacts(self) -> "CatalogueEntry":
+        """A KNOWN SOURCE ARTEFACT IS NOT A RULE (`SOURCE_ARTEFACTS`): Goat River's "Leadville
+        Creek Cameron Creek" is two map labels printed into the row (user ruling 2026-09-30)."""
+        bad = source_artefact_problems(self.entry_id, self.rules)
+        if bad:
+            raise ValueError(f"{self.entry_id}: " + "; ".join(bad))
         return self
 
     @model_validator(mode="after")
