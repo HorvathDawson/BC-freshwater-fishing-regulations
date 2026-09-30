@@ -6779,6 +6779,29 @@
      "extent_text": "downstream of Nahatlatch Lake (including Hannah and Frances lakes)"
     },
     {
+     "rule_id": "nahatlatch_river.r2x",
+     "type": "retention_limit",
+     "verbatim": "Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "nahatlatch_river__nahatlatch_lake"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)' — this row prints its own season downstream of Nahatlatch Lake ('open until Dec 31; No Fishing Jan 1-May 31'), so the stretch is open from June 1 (user ruling 2026-09-30)"
+      }
+     ]
+    },
+    {
      "rule_id": "nahatlatch_river.r3",
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2 (none under 30 cm)",

@@ -8,7 +8,8 @@
   * An overridden release releases nothing (SP-12).
   * A water row's own dates override a zone release limited to a kind of water (user ruling,
     2026-09-29), and the overridden release displaces nothing.
-  * Exemptions: Region 5 listed streams, Fulton River, Thompson River; Bella Coola's EXCEPT.
+  * Exemptions: Region 5 listed streams, Fulton River, Thompson River; Bella Coola's EXCEPT;
+    Nahatlatch open from June 1; Beaver Creek (not listed) under Region 5's spring closure.
 
 Each synthetic test names the mutation that fails it. The real-section tests need a bundle built
 from this corpus (`UI_EXPORT_BUNDLE`); they skip on one that predates it.
@@ -304,6 +305,53 @@ def test_bella_coolas_spring_exception_replaces_the_rivers_quota(db):
     assert f"{a}::atnarko_bella_coola_rivers.r5" in got
     assert not {f"{a}::atnarko_bella_coola_rivers.r3", f"{a}::atnarko_bella_coola_rivers.r4"} & got
     assert f"{a}::atnarko_bella_coola_rivers.r3" in _says(sid, (7, 15), "CT")
+
+
+@pytest.fixture(scope="module")
+def db18(db):
+    if not db.execute("select count(*) from rule where rule_id = 'nahatlatch_river.r2x'").fetchone()[0]:
+        pytest.skip(f"{BUNDLE} predates the 2026-09-30 rulings (Nahatlatch, Beaver Creek)")
+    return db
+
+
+NAHATLATCH = "r3:nahatlatch_river@3-15"
+Z3_SPRING = "z3:spring_stream_closure::spring_stream_closure.r1"
+Z5_SPRING = "z5:spring_stream_closure::spring_stream_closure.r1"
+
+
+@pytest.mark.parametrize("on,closed_by", [
+    ((6, 15), None),                                       # open from June 1
+    ((5, 15), f"{NAHATLATCH}::nahatlatch_river.r2"),        # the row's own Jan 1-May 31
+    ((7, 15), None),
+])
+def test_nahatlatch_is_open_from_june_1(db18, on, closed_by):
+    """p.33 "Downstream of Nahatlatch Lake (…), open until Dec 31; No Fishing Jan 1-May 31"
+    (user ruling 2026-09-30): the row's own season lifts Region 3's Jan 1-June 30 spring closure
+    there; its own closure still holds to May 31. Mutation: drop nahatlatch_river.r2x."""
+    sid = _sid(db18, NAHATLATCH, "nahatlatch_river.r2x")
+    got = _says(sid, on, "RB")
+    assert Z3_SPRING not in got
+    closures = {r for r in got if r in (Z3_SPRING, f"{NAHATLATCH}::nahatlatch_river.r2")}
+    assert closures == ({closed_by} if closed_by else set())
+
+
+def test_beaver_creek_is_under_region_5s_spring_closure(db18):
+    """BEAVER CREEK chain of lakes (p.43) is about the lakes ("No Fishing for bass"); the creek is
+    not a listed stream, so Region 5's spring closure holds on it (user ruling 2026-09-30).
+    Mutation: restore beaver_creek_chain_of_lakes.r1x."""
+    b = "r5:beaver_creek_chain_of_lakes@5-2"
+    assert not db18.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
+                            (b, "beaver_creek_chain_of_lakes.r1x")).fetchone()[0]
+    assert Z5_SPRING in _says(_sid(db18, b, "beaver_creek_chain_of_lakes.r1"), (6, 15), "RB")
+
+
+@pytest.mark.parametrize("eid,rid", [
+    ("r5:beaver_lake@5-2", "beaver_lake.r1"), ("r5:chambers_lake@5-2", "chambers_lake.r1"),
+    ("r5:robert_lake@5-2", "robert_lake.r1"), ("r5:rye_lake@5-2", "rye_lake.r1"),
+])
+def test_the_beaver_creek_chain_lakes_keep_their_bass_closure(db18, eid, rid):
+    got = _says(_sid(db18, eid, rid), (7, 15), "LMB")
+    assert f"{eid}::{rid}" in got
 
 
 def test_daily_and_possession_rows_carry_both(db):

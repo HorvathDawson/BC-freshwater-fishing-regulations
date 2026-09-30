@@ -185,6 +185,74 @@ def _rule_record(r: dict, entry_name: str) -> dict:
     }
 
 
+#: THE RECORD DUTY OF AN ANNUAL QUOTA, linked once, from the book. A page rendering "The annual
+#: province-wide quota for hatchery steelhead is 10" added its own "Record each one you keep on
+#: your licence" under it, beside the printed zp:steelhead.r4 "You must immediately record your
+#: retention of hatchery steelhead on your basic angling licence" — the same duty twice, one of
+#: them invented. The link is DERIVED here, never authored: a `record_retention` rule is an annual
+#: quota's record duty when it names the same fish (groups expanded, `species_except` ignored —
+#: no annual quota or record rule carries one), the same origin or none, the same dates or none,
+#: and is IN FORCE WHEREVER THE QUOTA IS (in every rule set that holds the quota). Exactly one such
+#: rule links (`recorded_by` on the quota, `records_for` on the record rule); two would be
+#: ambiguous and are refused by `problems`; none leaves the quota without a record line.
+def _fish(codes) -> set:
+    out: set = set()
+    for c in codes or ():
+        out |= set(C.SPECIES_GROUPS.get(c) or (c,))
+    return out
+
+
+def _held(rulesets: dict) -> dict:
+    held = defaultdict(set)
+    for sid, s in rulesets.items():
+        for via, ids in s.items():
+            if via != "sections":
+                for i in ids:
+                    held[i].add(sid)
+    return held
+
+
+def record_candidates(rules: dict, rulesets: dict) -> dict[str, list[str]]:
+    """Every annual quota -> the record-duty rules that qualify as its own (sorted)."""
+    held = _held(rulesets)
+    quotas = sorted(k for k, x in rules.items() if x["fields"].get("period") == "annual")
+    records = sorted(k for k, x in rules.items() if x["fields"].get("record_retention"))
+    out = {}
+    for q in quotas:
+        fq = rules[q]["fields"]
+        out[q] = [r for r in records
+                  if _fish(fq.get("species")) & _fish(rules[r]["fields"].get("species"))
+                  and rules[r]["fields"].get("origin") in (None, fq.get("origin"))
+                  and rules[r]["fields"].get("when") in (None, fq.get("when"))
+                  and held[q] and held[q] <= held[r]]
+    return out
+
+
+def record_link_problems(doc: dict) -> list[str]:
+    """Every annual quota whose record duty qualifies is linked to it, both ways, and nothing
+    else is linked. Run on the OUTPUT."""
+    R, out = doc["rules"], []
+    cands = record_candidates(R, doc["rulesets"])
+    for q, c in cands.items():
+        got = R[q].get("recorded_by")
+        if len(c) > 1:
+            out.append(f"annual quota {q}: record duty is ambiguous ({', '.join(c)})")
+        elif c and got != c[0]:
+            out.append(f"annual quota {q}: not linked to its record duty {c[0]}")
+        elif not c and got:
+            out.append(f"annual quota {q}: linked to {got}, which is not its record duty")
+    for i, x in R.items():
+        if "recorded_by" in x and i not in cands:
+            out.append(f"{i}: recorded_by on a rule that is not an annual quota")
+        for q in x.get("records_for") or []:
+            if (R.get(q) or {}).get("recorded_by") != i:
+                out.append(f"{i}: records_for {q}, which is not recorded by it")
+        by = x.get("recorded_by")
+        if by and i not in ((R.get(by) or {}).get("records_for") or []):
+            out.append(f"{i}: recorded_by {by}, which does not list it in records_for")
+    return out
+
+
 #: WHERE A RULE ACTUALLY HOLDS, said once, on the record — so no reader has to cross-read
 #: `fields.extents` against `provenance.uncertain` to learn that a rule it sees as `whole` binds
 #: nothing (92 rules shipped that way: their row's water is not in the atlas).
@@ -429,6 +497,11 @@ def read(bundle: Path) -> dict:
                                 .fetchone()[0],
     }
     db.close()
+    # ---- the record duty an annual quota carries (`recorded_by` / `records_for`) ------------
+    for q, cands in record_candidates(rules, rulesets).items():
+        if len(cands) == 1:          # two would be ambiguous: left unlinked, `problems` says so
+            rules[q]["recorded_by"] = cands[0]
+            rules[cands[0]].setdefault("records_for", []).append(q)
     return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
             "licences": licences, "rulesets": rulesets, "licensing_sets": licensing_sets,
             "waters": waters, "sections": sections}
@@ -744,6 +817,13 @@ RECORD_TEXT = {
                       "`placement.not_yet_mapped`",
     "fields": "the rule's own fields, as the bundle ships them",
     "provenance": "who wrote it and what it binds to — see below",
+    "recorded_by": "ONLY on an annual quota (`period: annual`) whose record duty the book "
+                   "prints: the `entry_id::rule_id` of that `record_retention` rule. Show its "
+                   "text once, under the quota; never generate a 'record' line of your own — "
+                   "see `retention.record_duty`",
+    "records_for": "ONLY on a `record_retention` rule that is an annual quota's record duty: "
+                   "the quotas (`entry_id::rule_id`) it is shown under — see "
+                   "`retention.record_duty`",
 }
 
 PROVENANCE_TEXT = {
@@ -1712,6 +1792,23 @@ def guide(d: dict) -> dict:
             "record_retention": pick(lambda x: F(x, "record_retention"),
                                      "species", "record_retention", n=1),
         },
+        "record_duty": {
+            "reading": "An annual quota's duty to record what you keep is PRINTED, as its own "
+                       "`record_retention` rule. The quota carries `recorded_by` (that rule's "
+                       "id) and the record rule carries `records_for` (the quotas). NEVER "
+                       "generate a 'record each one you keep on your licence' line for an annual "
+                       "quota: show the linked record rule's text ONCE, under the quota, and do "
+                       "not show it a second time as a rule of its own there. An annual quota "
+                       "with no `recorded_by` gets nothing extra.",
+            "link": "Derived, never authored: the record rule names the same fish (groups "
+                    "expanded), the same origin or none, the same dates or none, and is in "
+                    "force in every rule set that holds the quota. Exactly one such rule links.",
+            "pairs": [{"quota": q, "record": x["recorded_by"], "quota_says": x["verbatim"],
+                       "record_says": rules[x["recorded_by"]]["verbatim"]}
+                      for q, x in sorted(rules.items()) if x.get("recorded_by")],
+            "without_record": sorted(q for q, x in rules.items()
+                                     if F(x, "period") == "annual" and not x.get("recorded_by")),
+        },
     }
     vessel = {
         "fields": {k: RULE_FIELD_TEXT.get(k) for k in ("aspect", "level", "max_power_kw",
@@ -2396,7 +2493,9 @@ WHAT_TO_SHOW = {
     "gear_only": "{water}'s own row says only how to fish: show the gear lines and the "
                  "region's quotas for {fish}.",
     "annual_clock": "A quota on another clock than the day: show 'per licence year' (or the "
-                    "clock) with the number.",
+                    "clock) with the number. Never add a 'record it on your licence' line of "
+                    "your own: if the quota has `recorded_by`, show that rule's text once, under "
+                    "it; if not, say nothing extra.",
     "superior_authority": "A federal or park rule: show it first; nothing below it opens what "
                           "it closed.",
     "standing": "A rule that holds everywhere at undrawable places: show it as a note; it "
@@ -3662,6 +3761,10 @@ def dangling(doc: dict) -> list[str]:
             for v in o:
                 yield from examples(v)
     out += [f"guide example {i}" for i in examples(doc["guide"]) if i not in R and i not in L]
+    for i, x in R.items():
+        out += [f"rule {i} -> recorded_by {x['recorded_by']}"] if x.get("recorded_by") and \
+            x["recorded_by"] not in R else []
+        out += [f"rule {i} -> records_for {q}" for q in x.get("records_for") or [] if q not in R]
     g = doc["guide"]
     listed = (g["standing"]["rules"] + g["angler_closure"]["rules"]
               + g["placement"]["uncertain"]["rules"] + g["placement"]["binds"]["in_part"])
@@ -3740,7 +3843,7 @@ def case_problems(doc: dict) -> list[str]:
 
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
-            + case_problems(doc))
+            + case_problems(doc) + record_link_problems(doc))
 
 
 def dumps(doc: dict) -> str:

@@ -871,3 +871,82 @@ def test_the_gotchas_name_the_source_artefacts(doc):
     for x in doc["rules"].values():
         for a in g["artefacts"]:
             assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]
+
+
+# ---------------------------------------------------------------------------------------
+# The record duty of an annual quota: linked once, from the book (2026-09-30)
+# ---------------------------------------------------------------------------------------
+KOOTENAY_MAIN = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+RECORD_PAIRS = {
+    "zp:steelhead::steelhead.r1": "zp:steelhead::steelhead.r4",
+    f"{KOOTENAY_MAIN}::kootenay_lake_main_body.r6":
+        "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1",
+    "z3:shuswap_annual::shuswap_annual.r1": "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1",
+    "z3:shuswap_annual::shuswap_annual.r2": "zp:shuswap_char_stamp::shuswap_char_stamp.r1",
+}
+
+
+def test_every_annual_quota_with_a_record_duty_is_linked(doc):
+    """A page added its own "Record each one you keep on your licence" under the steelhead 10,
+    beside the printed steelhead.r4: the duty twice. Each annual quota whose printed record rule
+    is in force wherever it is carries `recorded_by`; the record rule lists it in `records_for`."""
+    assert X.record_link_problems(doc) == []
+    R = doc["rules"]
+    for q, r in RECORD_PAIRS.items():
+        assert R[q]["recorded_by"] == r, q
+        assert q in R[r]["records_for"], r
+    duty = doc["guide"]["retention"]["record_duty"]
+    assert {p["quota"]: p["record"] for p in duty["pairs"]} == {
+        q: x["recorded_by"] for q, x in R.items() if x.get("recorded_by")}
+    annual = {q for q, x in R.items() if x["fields"].get("period") == "annual"}
+    assert set(duty["without_record"]) == {q for q in annual if not R[q].get("recorded_by")}
+    assert "never generate" in duty["reading"].lower()
+
+
+def _cut(doc):
+    return {"rules": copy.deepcopy(doc["rules"]), "rulesets": copy.deepcopy(doc["rulesets"])}
+
+
+def test_the_record_link_check_catches_a_dropped_link(doc):
+    bad = _cut(doc)
+    del bad["rules"]["zp:steelhead::steelhead.r1"]["recorded_by"]
+    got = X.record_link_problems(bad)
+    assert "annual quota zp:steelhead::steelhead.r1: not linked to its record duty " \
+           "zp:steelhead::steelhead.r4" in got
+
+
+def test_the_record_link_check_catches_a_duty_not_in_force_where_the_quota_is(doc):
+    bad = _cut(doc)
+    q, r = f"{KOOTENAY_MAIN}::kootenay_lake_main_body.r6", \
+        "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1"
+    for s in bad["rulesets"].values():
+        for via, ids in s.items():
+            if via != "sections" and r in ids:
+                ids.remove(r)
+    assert f"annual quota {q}: linked to {r}, which is not its record duty" \
+        in X.record_link_problems(bad)
+
+
+def test_the_record_link_check_catches_an_ambiguous_duty(doc):
+    bad = _cut(doc)
+    twin = "zp:steelhead::steelhead.r4_twin"
+    bad["rules"][twin] = copy.deepcopy(bad["rules"]["zp:steelhead::steelhead.r4"])
+    bad["rules"][twin].pop("records_for", None)
+    for s in bad["rulesets"].values():
+        for via, ids in s.items():
+            if via != "sections" and "zp:steelhead::steelhead.r4" in ids:
+                ids.append(twin)
+    assert any(p.startswith("annual quota zp:steelhead::steelhead.r1: record duty is ambiguous")
+               for p in X.record_link_problems(bad))
+
+
+@pytest.mark.parametrize("field,value", [("origin", "wild"), ("species", ["CT"]),
+                                         ("when", {"dates": [{"from_month": 1, "from_day": 1,
+                                                              "to_month": 3, "to_day": 31}]})])
+def test_the_record_link_check_reads_fish_origin_and_dates(doc, field, value):
+    """A record duty for wild steelhead, for another fish, or for other dates is not the hatchery
+    steelhead quota's."""
+    bad = _cut(doc)
+    bad["rules"]["zp:steelhead::steelhead.r4"]["fields"][field] = value
+    assert "annual quota zp:steelhead::steelhead.r1: linked to zp:steelhead::steelhead.r4, " \
+           "which is not its record duty" in X.record_link_problems(bad)

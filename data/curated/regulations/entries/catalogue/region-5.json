@@ -1482,27 +1482,6 @@
        "op": "whole"
       }
      ]
-    },
-    {
-     "rule_id": "beaver_creek_chain_of_lakes.r1x",
-     "type": "retention_limit",
-     "verbatim": "**No Fishing for bass**",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "includes_tributaries": false,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": "Region 5's spring closure (p.48): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
-      }
-     ],
-     "review_reason": "lift-only: the stream this row lists is out of Region 5's spring closure; the row's tributaries are not themselves listed, so the lift stays on the row's own water (user ruling 2026-09-30, question open for tributaries of glyph rows)"
     }
    ]
   },
