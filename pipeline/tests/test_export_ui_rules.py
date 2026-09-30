@@ -877,12 +877,16 @@ def test_the_gotchas_name_the_source_artefacts(doc):
 # The record duty of an annual quota: linked once, from the book (2026-09-30)
 # ---------------------------------------------------------------------------------------
 KOOTENAY_MAIN = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+SHUSWAP_ROW = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 RECORD_PAIRS = {
     "zp:steelhead::steelhead.r1": "zp:steelhead::steelhead.r4",
     f"{KOOTENAY_MAIN}::kootenay_lake_main_body.r6":
         "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1",
     "z3:shuswap_annual::shuswap_annual.r1": "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1",
     "z3:shuswap_annual::shuswap_annual.r2": "zp:shuswap_char_stamp::shuswap_char_stamp.r1",
+    # the char stamp covers every water of the Shuswap row (user ruling 2026-09-30)
+    f"{SHUSWAP_ROW}::shuswap_lake.r8": "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1",
+    f"{SHUSWAP_ROW}::shuswap_lake.r10": "zp:shuswap_char_stamp::shuswap_char_stamp.r1",
 }
 
 
@@ -900,6 +904,10 @@ def test_every_annual_quota_with_a_record_duty_is_linked(doc):
         q: x["recorded_by"] for q, x in R.items() if x.get("recorded_by")}
     annual = {q for q, x in R.items() if x["fields"].get("period") == "annual"}
     assert set(duty["without_record"]) == {q for q in annual if not R[q].get("recorded_by")}
+    # every annual quota has its record duty: the last one missing, the Shuswap row's char 5,
+    # links once the char stamp covers the row's waters (user ruling 2026-09-30)
+    assert duty["without_record"] == []
+    assert {p["quota"]: p["record"] for p in duty["pairs"]} == RECORD_PAIRS
     assert "never generate" in duty["reading"].lower()
 
 

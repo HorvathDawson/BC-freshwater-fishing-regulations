@@ -1342,8 +1342,21 @@
       {
        "op": "whole",
        "item_id": "wbk:329518145"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329534136"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329518146"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:33426"
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-09-30: the book (p.7) says char over 60 cm 'caught in Shuswap Lake', but the stamp and its record duty are extended beyond Shuswap Lake to every water the Shuswap Lake row (r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26) binds — Shuswap Lake, Little Shuswap Lake, Mara Lake and Little River — to match the row, whose char quota (1, none under 60 cm; annual 5) and 'Conservation Surcharge Stamp required to catch and keep … char over 60 cm' hold on all of them."
     }
    ],
    "licensing": [
@@ -1377,9 +1390,22 @@
       {
        "op": "whole",
        "item_id": "wbk:329518145"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329534136"
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329518146"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:33426"
       }
      ],
      "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake.",
+     "review_reason": "User ruling 2026-09-30: the book (p.7) says char over 60 cm 'caught in Shuswap Lake', but the stamp and its record duty are extended beyond Shuswap Lake to every water the Shuswap Lake row (r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26) binds — Shuswap Lake, Little Shuswap Lake, Mara Lake and Little River — to match the row, whose char quota (1, none under 60 cm; annual 5) and 'Conservation Surcharge Stamp required to catch and keep … char over 60 cm' hold on all of them.",
      "kind": "requirement"
     }
    ]

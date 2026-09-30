@@ -497,6 +497,24 @@ def test_keep_only_stamps_name_the_fish_and_the_size(corpus):
     assert salmon.doing.species == ["SALMON"] and not salmon.doing.species_except
 
 
+def test_the_shuswap_char_stamp_covers_every_water_of_the_shuswap_row(corpus):
+    """User ruling 2026-09-30: the book (p.7) says char 'caught in Shuswap Lake', but the stamp
+    and its record duty hold on every water the Shuswap Lake row binds (Shuswap, Little Shuswap,
+    Mara, Little River), so the row's char annual quota has its record duty everywhere it is."""
+    row = _find(corpus, "r3:shuswap_lake_see_maps_on_page_28")
+    want = [{"op": "whole", "item_id": i} for i in row.matched]
+    assert len(want) == 4
+    stamp = corpus["zp:shuswap_char_stamp"]
+    (r1,) = stamp.rules
+    rec = _rec(corpus, "zp:shuswap_char_stamp", "shuswap_char_stamp")
+    for x in (r1, rec):
+        got = [e if isinstance(e, dict) else e.model_dump(exclude_none=True, exclude_defaults=True)
+               for e in x.extents]
+        assert got == want
+        assert "User ruling 2026-09-30" in x.review_reason
+        assert "beyond Shuswap Lake" in x.review_reason
+
+
 def test_the_indian_resident_exemption_covers_every_provincial_document(corpus):
     ex = _rec(corpus, "zp:basic_licence", "indian_bc_resident")
     assert sorted(d.value for d in ex.documents) == sorted(PROVINCIAL_ANGLER_DOCUMENTS)
