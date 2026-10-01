@@ -3,15 +3,17 @@
  *
  * Drawn to `design/riffle.html`. The shell owns the state that more than one screen needs —
  * which tab, which water, which colouring, which layers, which palette — and hands it down.
- * Every answer on every screen comes from a hook (rule 25). Regulations are not integrated:
- * the map draws water plain and a water's sheet shows a placeholder where they will go.
+ * Every answer on every screen comes from a hook (rule 25). The Map tab colours water by the
+ * day's status from the status index (closed / own regulations / base); the regulation records
+ * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import type { SectionKey } from "@app/core";
+import { WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         usePickFocus, useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
+         usePickFocus, useStatusIndex, useVintage, statusData,
+         type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 /**
@@ -260,6 +262,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const vintage = useVintage(source, tiles?.atlas);
   const mixedPair = vintage.ok === false;
+  /*
+   * THE DAY'S STATUS, on the Map tab. The index is refused unless it was built against this
+   * bundle's atlas (`useStatusIndex`), and nothing is coloured from it on a mixed pair. Until it
+   * has loaded the water stays plain: "not asked" is never drawn as "base".
+   */
+  const statusIndex = useStatusIndex(source, tiles?.atlas);
+  const statusOk = statusIndex !== null && !mixedPair;
+  const statusMapData = useMemo(
+    () => (statusOk && tab === "map" ? statusData(statusIndex, visible, new Date()) : undefined),
+    [statusOk, statusIndex, tab, visible]);
 
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
@@ -279,19 +291,21 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
      * reading for water nobody measured. The dots say what they know; the rivers say
      * nothing.
      */
-    // Plain on the Map tab: its only other colouring was the regulation outcome, and
-    // regulations are not integrated.
+    // On the Map tab: the day's status, once the index has loaded and matched; plain before.
     stream: mixedPair ? "plain"
       : onConditions
         ? (quantity === "temperature" ? "plain" : "standing")
-        : "plain",
+        : statusOk ? "status" : "plain",
     // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
     // sitting IN the lake. Under depth and temperature they go plain for the same reason
     // the rivers do: nothing can carry either to a water with no station of its own.
     lake: mixedPair ? "plain"
       : onConditions
         ? (flowParam === "temperature" ? "plain" : "standing")
-        : lakeChoice?.mode ?? "plain",
+        // A lake left "plain" in Layers wears the day's status like the rivers; Stocked and
+        // Depth are questions the reader asked instead.
+        : (lakeChoice?.mode ?? "plain") === "plain" && statusOk ? "status"
+          : lakeChoice?.mode ?? "plain",
     gauges: quantity === "temperature" ? "temperature" : "standing",
     /*
      * THE FIELD. It has to be in this list or it is never painted at all: the map sets a
@@ -462,7 +476,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine }
                        : null}
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
-                     data={tab === "conditions" ? conditionData : undefined}
+                     data={tab === "conditions" ? conditionData : statusMapData}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
                      // must be answerable from the map without changing tab.
@@ -536,12 +550,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * being drawn. Same reason `item` hides them: a detail view is not a map.
    */
   /*
-   * THE MAP TAB HAS A LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE. With regulations
-   * not integrated its water is plain, and a key for plain water says nothing; the lakes'
-   * Stocked colouring is the one thing on that tab that needs its scale explained.
+   * THE MAP TAB HAS A LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE: the day's status
+   * (once the index is in), or the lakes' Stocked colouring. Plain water needs no key.
    */
   const showLegend = item === null && condSection === null
-    && (tab === "conditions" || (tab === "map" && layers.lake === "stocked"));
+    && (tab === "conditions"
+        || (tab === "map" && (layers.lake === "stocked" || statusOk)));
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -617,10 +631,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                           mid="normal" high="high"
                           stops={flowRamp(theme)} marks={visibleMarks} />
             )
-          ) : (
+          ) : layers.lake === "stocked" ? (
             palette.stock.map((c, i) => (
               <LegendCount key={c} palette={palette} colour={c}
                            label={STOCK_BANDS[i]!.label} />
+            ))
+          ) : (
+            // The three statuses, in the words and colours every surface uses (@app/core
+            // WATER_STATUS through the map's theme) — for today.
+            WATER_STATUSES.map((s) => (
+              <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
+                           label={s === "closed" ? "Closed today" : WATER_STATUS[s].label} />
             ))
           )}
         </LegendStrip>

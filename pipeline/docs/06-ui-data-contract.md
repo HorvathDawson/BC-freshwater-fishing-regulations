@@ -242,3 +242,46 @@ over the data, never a remembered id.
 `rule.unresolved`, and refuses to write when any key in the output is a retired field name
 (`RETIRED_ANYWHERE`, and `RETIRED_ON_RULE` for names current elsewhere, such as `method` in a
 gear clause's `when`). `pipeline/tests/test_export_ui_rules.py` pins both with mutations.
+
+## Part 7 — What ships today: `status_index.bin` (the colour index, built)
+
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.deliver.status_index [--bundle B] [--out OUT]
+
+Default out `data/generated/bundle/status_index.bin`, beside `bundle.sqlite`; ~55 s, read from
+the bundle only, deterministic. The dev server serves it at `/status_index.bin`
+(`app/tools/serve-tiles.mjs`; `STATUS_INDEX=<file>` serves a side build) and the app fetches it
+next to `atlas.pmtiles`. It is Part 2.2 made real: per SECTION and per DAY, three answers.
+
+| status | decided as |
+|---|---|
+| **closed** | on that day, for EVERY game fish (p.86's list minus crayfish), `read.effective_rules` returns a rule that *speaks* and is an unconditional closure — take 0, may not fish for it, no length / origin / `while` / target / `side`, not partly lifted. A "beside" closure (hours, weekdays, unreadable season, one half of the channel) and a not-yet-mapped note never close. A closure of some species only is not `closed`. |
+| **own** | not closed, and a WATER TABLE's row (`r<n>:` — a named water, a cut piece, an area row such as the CVWMA waters or the Liard watershed, or such a row reaching it by the tributary walk) binds the section. Independent of the day. |
+| **base** | neither: only zone / provincial / superior tables bind it. **Not in the file** — absence means base. |
+
+The Part 2.2 draft keyed "this water" on `scope` water/inherited; the index keys on the TABLE
+(row vs zone), because a zone table's rule that names waters (the Skeena/Nass winter closure,
+the white sturgeon licence waters) is still the base — 181k extra sections read "own" otherwise.
+`tidal` (Nitinat) and `outside` (past the border) carry their own codes and read as no status.
+
+A WATER (`item_id`) is rolled up from its parts: closed only when every part is closed, own when
+any part has a row, base otherwise (a zone closure on part of a row-less water is the base).
+
+**Format** (spec in the module docstring; decoder `app/packages/core/src/statusIndex.ts`):
+magic `BCSI`, version, the 8-byte `section_handles` digest, ~112 shared 366-day range tables
+(Feb 29 is day 60 every year; a season over New Year is two runs), then sections as runs of
+consecutive handles in three varint columns (gap, count, table), then waters as front-coded
+`item_id`s with a table each. Section keys are the tiles' feature ids (`section_id` = the bundle
+`sid`), so colouring needs no bundle query; the app refuses a file whose digest is not its
+bundle's, exactly as it refuses a mixed tiles/bundle pair — handles never leave that one set.
+
+**Measured 2026-10-01** (bundle `147b20dce7d8576c`): 891,384 of 1,958,036 sections listed
+(607,188 closed on some day, 576,101 own on some day), 10,478 of 19,754 waters; **1.64 MB raw,
+421 KB gzip -9, 360 KB brotli**; Node decode 22 ms, then O(1) per lookup.
+
+**Held to the reader**: `pipeline/tests/test_status_index.py -m slow` asks `effective_rules`
+directly for 6,000+ (section, date) pairs — listed and absent sections, every table's boundary
+days, Dec 31 / Jan 1, Feb 29 — and requires agreement; checks every ruleset an unlisted section
+carries binds no row and reads base across the year; checks the digest; and shows the check fails
+on a swapped table. The builder goes through `read.effective_rules_bound` (the same code
+`effective_rules` runs, with a section's bindings in hand) once per (ruleset, steelhead) and once
+per distinct reading of the rules' dates.

@@ -578,10 +578,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
 
     `by_naming=False` ranks by place alone — the ladder before the naming ruling — and exists
     only so an audit can list what the ruling changed."""
-    from pipeline.regs.parsing.catalogue import expand_species
-    if expand_species([fish]) != [fish]:
-        raise ValueError(f"effective_rules: {fish!r} is a group, not one fish — ask about a leaf "
-                         f"code ({', '.join(expand_species([fish]))})")
+    _leaf_fish(fish)
     db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
         bound = db.execute("SELECT r.entry_id, r.rule_id, r.via FROM section_ruleset s JOIN ruleset r "
@@ -589,6 +586,26 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         steelhead_here = fish == "RB" and steelhead_water(db, section)
     finally:
         db.close()
+    return effective_rules_bound(bound, steelhead_here, on, fish, path, by_naming=by_naming)
+
+
+def _leaf_fish(fish: str) -> None:
+    from pipeline.regs.parsing.catalogue import expand_species
+    if expand_species([fish]) != [fish]:
+        raise ValueError(f"effective_rules: {fish!r} is a group, not one fish — ask about a leaf "
+                         f"code ({', '.join(expand_species([fish]))})")
+
+
+def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str = BUNDLE, *,
+                          by_naming: bool = True) -> List[dict]:
+    """`effective_rules` with the section's bindings already in hand — the SAME code, minus the
+    two lookups that are all a section contributes: its `(entry_id, rule_id, via)` rows (its
+    ruleset) and whether the steelhead definition holds there (`steelhead_water`, which matters
+    only for "RB"). Every section sharing a ruleset (and steelhead flag) gets the same answer,
+    which is what lets `pipeline.deliver.status_index` evaluate 2,103 rulesets instead of 1.9 M
+    sections. Not a second reading of the ladder: `effective_rules` calls this."""
+    _leaf_fish(fish)
+    steelhead_here = bool(steelhead_here) and fish == "RB"
     orig = _rules_of(path)
     every = orig
     here = {(e, r): via for e, r, via in bound if (e, r) in every}

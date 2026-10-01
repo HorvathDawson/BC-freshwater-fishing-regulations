@@ -299,4 +299,25 @@ describe("a water's status paints with the map's own colours", () => {
     const { waterStatusColour, resolveTheme } = await import("./style");
     expect(waterStatusColour("light", "closed")).toBe(resolveTheme("light")["color.status.closed"]);
   });
+
+  /*
+   * THE MAP LINE AND THE SEARCH DOT ARE ONE VOCABULARY. The `status` colour mode is authored in
+   * layers.source.json and the dot resolves @app/core WATER_STATUS through `waterStatusColour`;
+   * if the two ever named different tokens a row and the line beside it would disagree. A
+   * section the index does not list is base, so `missing` must paint base.
+   */
+  it("the status colour mode paints each status with WATER_STATUS's own token", async () => {
+    const { WATER_STATUS, WATER_STATUSES } = await import("@app/core");
+    const { STYLE_META } = await import("./style");
+    for (const layer of ["stream", "lake"]) {
+      const m = STYLE_META.colorModes[layer]!["status"] as
+        { scale: string; property: string; categories: Record<string, { token: string }>;
+          missing: { token: string } };
+      expect(m.scale).toBe("categorical");
+      expect(m.property).toBe("status");
+      expect(Object.keys(m.categories).sort()).toEqual([...WATER_STATUSES].sort());
+      for (const s of WATER_STATUSES) expect(m.categories[s]!.token).toBe(WATER_STATUS[s].token);
+      expect(m.missing.token).toBe(WATER_STATUS.base.token);
+    }
+  });
 });

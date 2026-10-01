@@ -1,8 +1,9 @@
 /**
  * @app/core — domain logic. Pure TypeScript, no React, no platform.
  *
- * Flow, gauge trust, the zoom ladder and the trace. REGULATIONS ARE NOT HERE: they are not
- * integrated, and `./regulations` is the typed placeholder they plug into — read it first.
+ * Flow, gauge trust, the zoom ladder and the trace. REGULATION RECORDS ARE NOT HERE: they are not
+ * integrated, and `./regulations` is the typed placeholder they plug into — read it first. The
+ * day's STATUS of a section or a water is (`./statusIndex`, read through `./status`).
  *
  * `Freshness` below encodes a rule the plan calls a correctness requirement, not a nicety:
  * a stale answer must never be rendered as a live one (13-build-plan §5).
@@ -15,6 +16,7 @@ export * from "./trust";
 export * from "./section";
 export * from "./regulations";
 export * from "./status";
+export * from "./statusIndex";
 export * from "./search";
 export * from "./near";
 

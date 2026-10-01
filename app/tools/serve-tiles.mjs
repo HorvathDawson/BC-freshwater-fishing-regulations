@@ -25,6 +25,12 @@ const ARCHIVES = {
   // R2 for the same reason: one origin, one set of CORS rules, one thing to make fast.
   "/bundle.sqlite": `${repo}app/packages/data/dev/bundle.sqlite`,
   "/province.sqlite": `${repo}data/generated/bundle/bundle.sqlite`,
+  // THE STATUS INDEX — closed / own / base per section and water, by day
+  // (`python -m pipeline.deliver.status_index`). Beside the atlas because it is keyed by the
+  // tiles' feature ids; the app fetches it next to `atlas.pmtiles` and refuses one whose
+  // section_handles differ. `STATUS_INDEX` serves a side build without promoting it.
+  "/status_index.bin": process.env.STATUS_INDEX
+    ?? `${repo}data/generated/bundle/status_index.bin`,
   // The outside-BC mask. A file rather than a tile layer so changing how it looks does
   // not need a fifteen-minute rebuild — see pipeline/deliver/tiles/boundary.py.
   "/bc_outside.geojson": `${repo}data/source/bc_outside.geojson`,

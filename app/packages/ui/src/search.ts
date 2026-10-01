@@ -12,8 +12,8 @@
  */
 import { useMemo } from "react";
 import {
-  duplicateNames, fixOf, normalise, rankNear, regulationsFor, townBox, waterStatus,
-  type Bbox, type Extent, type LatLon, type WaterStatus,
+  duplicateNames, fixOf, normalise, rankNear, townBox, waterStatusOn,
+  type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -330,10 +330,11 @@ export function useSearchView(source: RegsSource, query: string,
 
 /**
  * THE STATUS A RESULT ROW WEARS — a water in the search results or in the list of water near a
- * town. The same answer the map will colour its line by: `waterStatus` over the water's
- * regulations (`regulationsFor`), both in @app/core. Null today, because the app reads no
- * regulations yet — the row then draws no status at all, never a guessed one.
+ * town, on `on` (today, by default). The same answer the map colours its line by: the status
+ * index, read through `waterStatusOn` in @app/core. Null when there is no index (not loaded, or
+ * refused for another atlas) — the row then draws no status at all, never a guessed one.
  */
-export function rowStatus(item: ItemId): WaterStatus | null {
-  return waterStatus(regulationsFor(item));
+export function rowStatus(item: ItemId, index: StatusIndex | null,
+                          on: Date = new Date()): WaterStatus | null {
+  return waterStatusOn(index, item, on);
 }

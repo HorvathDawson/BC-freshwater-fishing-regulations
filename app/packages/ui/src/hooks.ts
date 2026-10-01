@@ -3,8 +3,8 @@
  * and the desktop render the same answers with completely different components.
  */
 import { useMemo } from "react";
-import type { GaugeTrace } from "@app/core";
-import { monthAbbr } from "@app/core";
+import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
+import { decodeStatusIndex, monthAbbr, statusOn } from "@app/core";
 import type {
   BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
@@ -497,4 +497,74 @@ export function useVintage(source: RegsSource, atlasUrl: string | undefined): Vi
     `vintage:${atlasUrl ?? ""}`,
   );
   return got.state === "ready" ? got.value : UNKNOWN_VINTAGE;
+}
+
+/**
+ * WHERE THE STATUS INDEX LIVES: beside the tiles, like `atlas.meta.json`, because it is
+ * keyed by the tiles' own feature ids and is one set with them (`status_index.bin`, written by
+ * `python -m pipeline.deliver.status_index`).
+ */
+export function statusIndexUrl(atlasUrl: string): string {
+  return atlasUrl.replace(/[^/]*$/, "status_index.bin");
+}
+
+/** One fetch and one decode per URL and digest, whichever screens ask. */
+const STATUS_INDEXES = new Map<string, Promise<StatusIndex | null>>();
+
+/**
+ * Fetch and decode the status index, once. `handles` is the bundle's `section_handles`: an
+ * index built against any other atlas is REFUSED — its integers name different rivers — and so
+ * is any index when the bundle has no digest to hold it to. Any failure (no file, a 404, a
+ * damaged or refused file) is null: "not asked", never "every water is base".
+ */
+export function loadStatusIndex(url: string, handles: string | null,
+                                fetcher: typeof fetch = fetch): Promise<StatusIndex | null> {
+  if (!handles) return Promise.resolve(null);
+  const key = `${url}#${handles}`;
+  let got = STATUS_INDEXES.get(key);
+  if (!got) {
+    got = fetcher(url)
+      .then(async (res) => (res.ok
+        ? decodeStatusIndex(new Uint8Array(await res.arrayBuffer()), handles) : null))
+      .catch((e: unknown) => {
+        console.warn("status index:", e instanceof Error ? e.message : e);
+        return null;
+      });
+    STATUS_INDEXES.set(key, got);
+  }
+  return got;
+}
+
+/**
+ * THE DAY'S STATUS OF EVERY SECTION AND WATER — the index, once it has loaded and matched the
+ * bundle. Null until then, and for good if it is missing or refused: every surface then draws
+ * no status at all, which is what `statusOn` / `waterStatusOn` in @app/core return for it.
+ */
+export function useStatusIndex(source: RegsSource, atlasUrl: string | undefined):
+    StatusIndex | null {
+  const got = useAsync(
+    async () => {
+      if (!atlasUrl) return null;
+      const info = await source.info();
+      return loadStatusIndex(statusIndexUrl(atlasUrl), info.sectionHandles);
+    },
+    `status-index:${atlasUrl ?? ""}`,
+    !!atlasUrl,
+  );
+  return got.state === "ready" ? got.value : null;
+}
+
+/**
+ * The map's per-feature values for the status colouring: every section on screen, on `on`.
+ *
+ * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
+ * section that was closed yesterday and is base today must be told so, not left red. A
+ * section with no status (tidal, outside B.C.) is set to null: the mode's `missing`.
+ * The same values for streams and lakes, because feature-state is per layer.
+ */
+export function statusData(index: StatusIndex | null, visible: readonly SectionKey[],
+                           on: Date): Record<string, Record<string, Record<string, unknown>>> {
+  const values: Record<string, Record<string, unknown>> = {};
+  for (const s of visible) values[String(s)] = { status: statusOn(index, s, on) };
+  return { stream: values, lake: values };
 }

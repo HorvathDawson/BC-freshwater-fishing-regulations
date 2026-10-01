@@ -30,7 +30,7 @@ import { WATER_STATUS, wherePhrase, type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
 import { NEAR_KM, NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
-         useSearchView,
+         useSearchView, useStatusIndex,
          type SearchAction, type SearchPick, type SearchResults, type SearchTarget }
   from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
@@ -73,6 +73,10 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
     if (next.leave) onPick(next.leave);
   };
   const hits = useSearch(source, q);
+  // The day's status of each water, from the same index the map colours by. Today, read once
+  // per render — a list is not open across a midnight in any way that matters.
+  const statusIndex = useStatusIndex(source, tiles?.atlas);
+  const today = new Date();
   // HOLD THE LAST ANSWER while the next one loads. Blanking the list and the map on every
   // keystroke made both flash — the lit river went out and came back for each letter.
   const last = useRef<SearchResults>({ waters: [], places: [] });
@@ -235,7 +239,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
               const t: SearchTarget = { kind: "water", item: r.near.item, name: r.near.name };
               return (
                 <Hit palette={palette} tone={palette.accent} name={r.near.name}
-                     status={rowStatus(r.near.item)}
+                     status={rowStatus(r.near.item, statusIndex, today)}
                      sub={`${KIND[r.near.kind] ?? r.near.kind} · ${
                        r.near.km < 1 ? "under 1 km" : `${r.near.km.toFixed(1)} km`}`}
                      selected={isSelected(pick, t)}
@@ -252,7 +256,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
             const t: SearchTarget = { kind: "water", item: h.item, name: h.name };
             return (
               <Hit palette={palette} tone={palette.accent} name={h.name}
-                   status={rowStatus(h.item)}
+                   status={rowStatus(h.item, statusIndex, today)}
                    alias={h.matchedAs !== null ? `also ${h.matchedAs}` : null}
                    sub={[KIND[h.kind] ?? h.kind,
                          where ?? (r.dup ? "no town within 25 km" : null)]
@@ -319,8 +323,8 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
   onPress: () => void; goLabel: string; onGo: () => void;
   /**
    * The water's status (`rowStatus`), a small dot in the colour the map paints it
-   * (`palette.waterStatus`), named for a screen reader. Null — not asked, as every water is
-   * until regulations are integrated — draws nothing.
+   * (`palette.waterStatus`), named for a screen reader. Null — not asked: the status index has
+   * not loaded, or was refused for another atlas — draws nothing.
    */
   status?: WaterStatus | null;
 }) {

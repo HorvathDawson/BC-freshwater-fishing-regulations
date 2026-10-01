@@ -780,6 +780,31 @@
             "provider": "lakes",
             "field": "survey"
           }
+        },
+        "status": {
+          "label": "Status for the date",
+          "scale": "categorical",
+          "property": "status",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.water.mapped"
+            },
+            "base": {
+              "token": "color.water.unmapped"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "status"
+          },
+          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is base: the index lists every section that is not."
         }
       },
       "opacity": {
@@ -1051,6 +1076,31 @@
             "field": "standing"
           },
           "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
+        },
+        "status": {
+          "label": "Status for the date",
+          "scale": "categorical",
+          "property": "status",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.water.mapped"
+            },
+            "base": {
+              "token": "color.water.unmapped"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "status"
+          },
+          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is base: the index lists every section that is not."
         }
       },
       "label": {
@@ -1334,6 +1384,12 @@
       "fanout": "section_to_item",
       "freshness": "bundle",
       "$comment": "Per-lake facts from the bundle: whether the lake was surveyed, and when it was last stocked. Keyed by section because that is what the tile carries; the fanout resolves it to the item the fact belongs to."
+    },
+    "status": {
+      "kind": "bundle",
+      "key": "section_id",
+      "freshness": "bundle",
+      "$comment": "THE STATUS INDEX (`status_index.bin`, `python -m pipeline.deliver.status_index`): closed / own / base for every section on any day, precomputed from the bundle through the reference reader and pinned to the same section_handles digest as the tiles. Keyed by the tile's own section_id, so colouring needs no bundle query. A section the file does not list is BASE — absence is a claim the pipeline made, so `missing` paints base; the app only selects this mode once the index has loaded and matched the tiles' vintage."
     }
   },
   "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY — most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",

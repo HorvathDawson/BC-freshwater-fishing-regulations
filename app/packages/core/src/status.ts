@@ -14,13 +14,20 @@
  * is unregulated (tokens.json `$naming`). A surface resolves the token through the map's theme
  * (`waterStatusColour` in @app/map), so a row and the line beside it cannot disagree.
  *
- * NOT INTEGRATED YET. The app reads no regulations (`regulations.ts`), so `waterStatus` has
- * nothing to decide from and returns null — "not asked", rendered as NOTHING (AGENTS 32), never
- * as `base`: "only the base regulations" is a claim about the data, and we have not read it.
- * When the integration lands, `regulationsFor` returns the water's records and this function
- * is where closed / own / base are decided, once, for the map and every list alike.
+ * TWO SOURCES, ONE VOCABULARY. The STATUS INDEX (`statusIndex.ts`, built by
+ * `python -m pipeline.deliver.status_index` through the reference reader) answers closed / own /
+ * base for a section or a water on a day; `statusOn` and `waterStatusOn` below are the only
+ * readers of it, so the map line and the search row cannot disagree. `tidal` and `outside`
+ * (past the border) are not freshwater statuses: they read null — drawn as nothing, never as
+ * `base` (AGENTS 32). With no index (not loaded, or refused for another atlas) every answer is
+ * null, "not asked".
+ *
+ * The regulation RECORDS are still not integrated (`regulations.ts`): `waterStatus(regs)` decides
+ * from a water's records once they arrive, and returns null until then.
  */
 import { REGULATIONS, type WaterRegulations } from "./regulations";
+import type { SectionKey } from "./section";
+import type { StatusCode, StatusIndex } from "./statusIndex";
 
 export type WaterStatus = "closed" | "own" | "base";
 
@@ -41,4 +48,28 @@ export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: 
 export function waterStatus(regs: WaterRegulations | null | undefined): WaterStatus | null {
   if ((REGULATIONS as string) === "not-integrated" || !regs) return null;
   return regs.rules.length || regs.licensing.length ? "own" : "base";
+}
+
+/** The file's code as a status: `tidal` and `outside` are not one, so they read null. */
+export function statusOfCode(code: StatusCode): WaterStatus | null {
+  return code === "closed" || code === "own" || code === "base" ? code : null;
+}
+
+/**
+ * A SECTION'S STATUS ON A DAY — what the map colours a line or a lake by. `section` is the
+ * tile's feature id (the section handle). Null when there is no index (not asked).
+ */
+export function statusOn(index: StatusIndex | null | undefined, section: SectionKey,
+                         on: Date): WaterStatus | null {
+  return index ? statusOfCode(index.codeOn(section, on)) : null;
+}
+
+/**
+ * A WATER'S STATUS ON A DAY — what a search row or a "water near a town" row wears. Its parts
+ * rolled up by the pipeline: closed only when every part is, own when any part has a row of its
+ * own, base otherwise. Null when there is no index (not asked).
+ */
+export function waterStatusOn(index: StatusIndex | null | undefined, item: string,
+                              on: Date): WaterStatus | null {
+  return index ? statusOfCode(index.waterCodeOn(item, on)) : null;
 }
