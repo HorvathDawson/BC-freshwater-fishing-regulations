@@ -17,15 +17,17 @@
  * meanings. And "base" was `water.unmapped`, a GREY, while "own" was `water.mapped`, the
  * plain map's blue: recolouring a status would have repainted the plain map.
  *
- * Colour is still not the only channel. A closed line is drawn wider
- * (`width.status.closed`), and the legend swatch at the same ratio — see the last test.
+ * COLOUR IS NOW THE ONLY CHANNEL on the line. Closed used to be drawn 1.6x wider as well; the
+ * user found that width hard to use and it was removed (2026-10-01), so every status draws at
+ * the same width — see the last test — and these floors are what carry the distinction alone,
+ * in both themes, for every simulated reader.
  */
 import { describe, expect, it } from "vitest";
 import { namedFlavor } from "@protomaps/basemaps";
 import { WATER_STATUS, WATER_STATUSES, type WaterStatus } from "@app/core";
-import { resolveTheme, waterStatusColour, waterStatusWeight } from "@app/map";
+import { resolveTheme, waterStatusColour } from "@app/map";
 import { DARK, LIGHT, type Palette } from "../packages/ui-native/src/theme";
-import { MODELS, parseHex, worstSeparation } from "./cvd";
+import { MODELS, contrast, parseHex, worstSeparation } from "./cvd";
 
 /** The worst ΔE2000 across normal vision and protan/deutan/tritan under both models. */
 const worst = (a: string, b: string) => worstSeparation(a, b, MODELS);
@@ -71,9 +73,15 @@ const GROUND_FLOOR = 15;
  * that is a measured limit rather than a preference: in the light theme both are dark warm
  * hues held to 4.5:1 as text, and any red that stays a red sits within reach of one of them
  * under deuteranopia or tritanopia. Width separates them as well — the highlight has its own
- * floor, a closed line its own weight, and a town is a pin, not a line.
+ * floor, and a town is a pin, not a line.
  */
 const NEIGHBOUR_FLOOR = 10;
+/**
+ * The town against those warm marks. A pin is a different SHAPE from a line or a hatch, so
+ * this is the ground's floor rather than the status floor between lines — and it is the
+ * number the old orange failed by twenty-fold (ΔE 0.7 from the permit amber, deuteranopia).
+ */
+const TOWN_FLOOR = 15;
 
 describe("a water's status, for a colour-blind reader", () => {
   for (const { name, palette, flavor } of THEMES) {
@@ -107,10 +115,56 @@ describe("a water's status, for a colour-blind reader", () => {
       }
     });
 
+    it(`keeps the town apart from every warm mark on the map it stands on — ${name}`, () => {
+      /*
+       * THE PAIR THIS PALETTE PASS UNIFIED AWAY. The town was an orange, and under
+       * deuteranopia it sat ΔE 0.7 from `status.restricted` — the permit-only hatch, drawn in
+       * the plain view on the very map the town pin stands on (2.2 in the dark theme). It is
+       * now `color.label.place`, neutral like the basemap's own town names. Held here against
+       * every warm colour it can share a screen with: the three statuses of the search rows
+       * beside it, the permit amber, and the water you tapped.
+       */
+      const t = resolveTheme(name) as Record<string, string>;
+      for (const [n, hex] of [["restricted", palette.restricted], ["closed", colour("closed")],
+                              ["own", colour("own")], ["base", colour("base")]] as const) {
+        const w = worst(palette.place, hex);
+        expect(w.dE, `${name}: place ${palette.place} vs ${n} ${hex}, under ${w.under}`)
+          .toBeGreaterThanOrEqual(TOWN_FLOOR);
+      }
+      // The tapped water is a heavy LINE and the town a pin: the neighbour floor, the same
+      // one closed is held to against the highlight. The dark theme's town was lifted from
+      // #cfd5d8 to #D2D8E1 to clear it (8.4 -> 10.3 under deuteranopia), and no further: the gauge label beside it is the next colour over.
+      const h = worst(palette.place, t["color.highlight"]!);
+      expect(h.dE, `${name}: place vs highlight, under ${h.under}`)
+        .toBeGreaterThanOrEqual(NEIGHBOUR_FLOOR);
+    });
+
+    it(`keeps the you-chose-this pin off the water you tapped — ${name}`, () => {
+      /*
+       * Two selections on one map: the pin (`accent`, violet) and the tapped water
+       * (`color.highlight`, magenta). They were NOT unified, and this is why: the highlight
+       * is a LINE over blue water, and the accent's violet sits ΔE 7.3 from the dark theme's
+       * water under deuteranopia — a violet selection on blue water is the one a protan or
+       * deutan reader loses. Different marks, so they must also stay told apart.
+       */
+      const t = resolveTheme(name) as Record<string, string>;
+      const w = worst(palette.accent, t["color.highlight"]!);
+      expect(w.dE, `${name}: accent vs highlight, under ${w.under}`)
+        .toBeGreaterThanOrEqual(NEIGHBOUR_FLOOR);
+    });
+
+    it(`writes on the closed red legibly — the error banner and the danger button — ${name}`, () => {
+      // One red for closed, for danger and for error (the banner's #7A1F2B is gone), and
+      // one knock-out colour on it: `onAccent`, 4.5:1 because the banner's words are 11px.
+      expect(contrast(palette.onAccent, palette.closed),
+             `${name}: onAccent ${palette.onAccent} on closed ${palette.closed}`)
+        .toBeGreaterThanOrEqual(4.5);
+      expect(contrast(palette.onAccent, palette.accent)).toBeGreaterThanOrEqual(4.5);
+    });
+
     it(`the dots and the legend wear the map's colours — ${name}`, () => {
       for (const s of WATER_STATUSES) {
         expect(palette.waterStatus[s]).toBe(colour(s));
-        expect(palette.waterStatusWeight[s]).toBe(waterStatusWeight(name, s));
       }
     });
   }
@@ -127,13 +181,11 @@ describe("a water's status, for a colour-blind reader", () => {
     }
   });
 
-  it("does not rest closed on colour alone: it is the one status drawn wider", () => {
+  it("draws every status at one width: no status is a wider line", () => {
+    // The width cue is gone on purpose. Nothing may bring it back by the side door: no status
+    // names a width token, no token for one exists, and the status paint multiplies nothing.
+    for (const s of WATER_STATUSES) expect(Object.keys(WATER_STATUS[s]).sort()).toEqual(["label", "token"]);
     for (const { name } of THEMES)
-      for (const s of WATER_STATUSES) {
-        const w = waterStatusWeight(name, s);
-        if (s === "closed") expect(w, `${name} closed weight`).toBeGreaterThanOrEqual(1.4);
-        else expect(w, `${name} ${s} weight`).toBe(1);
-      }
-    expect(WATER_STATUS.closed.weight).toBe("width.status.closed");
+      expect(Object.keys(resolveTheme(name)).filter((k) => k.startsWith("width.status"))).toEqual([]);
   });
 });

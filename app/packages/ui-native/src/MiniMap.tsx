@@ -11,7 +11,7 @@ import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
-import { mapChrome, type Palette } from "./theme";
+import type { Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
                           hint, data, highlight, marker, pins, bare, groups, fit,
@@ -38,8 +38,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
                   { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
-           fit={fit} basemap={basemap}
-           chrome={mapChrome(palette, theme)} />
+           fit={fit} basemap={basemap} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,
                        paddingVertical: 7, paddingHorizontal: 13,

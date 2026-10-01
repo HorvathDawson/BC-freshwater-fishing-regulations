@@ -21,7 +21,8 @@ import "./controls.css";
 import { baseAdapter } from "./adapters/contract";
 import { pillImage } from "./pill";
 import { hatchImage } from "./hatch";
-import { resolveTheme, STYLE_META } from "./style";
+import { STYLE_META } from "./style";
+import { colour, mapChrome } from "./chrome";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
 import { toExpression } from "./legacy-filter";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
@@ -106,6 +107,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   // first frame and present a moment later, which is why it is in the restyle effect below
   // rather than only in the constructor.
   const outsideData = useOutsideMask(at.outside);
+  /** MapLibre's own controls and markers, in this theme's chrome unless told otherwise. */
+  const furniture = useMemo(() => chrome ?? mapChrome(theme), [chrome, theme]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -197,8 +200,9 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
      * asks for an image it does not have, so the pill arrives however the ordering falls.
      */
     const addPill = () => {
-      const t = resolveTheme(theme) as Record<string, string>;
-      const img = pillImage(t["color.outside"] ?? "#FFFFFF", t["color.line"] ?? "#D9D9D2");
+      // The pill's border read `color.line`, which was never a token, so every theme drew
+      // the light theme's hairline from a literal fallback. It is the app's hairline now.
+      const img = pillImage(colour(theme, "color.outside"), colour(theme, "color.ui.line"));
       if (m.hasImage("gauge-pill")) m.removeImage("gauge-pill");
       m.addImage("gauge-pill", img as unknown as ImageData,
                  { pixelRatio: img.pixelRatio, stretchX: img.stretchX,
@@ -211,7 +215,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        */
       for (const [layerId, w] of Object.entries(STYLE_META.patterns ?? {})) {
         const id = `${layerId}-hatch`;
-        const img2 = hatchImage(t[w.token] ?? "#808080", w.ground, w.stripe, w.darken,
+        const img2 = hatchImage(colour(theme, w.token), w.ground, w.stripe, w.darken,
                                 w.spacing, w.weight, w.cross);
         if (m.hasImage(id)) m.removeImage(id);
         m.addImage(id, img2 as unknown as ImageData, { pixelRatio: img2.pixelRatio });
@@ -383,7 +387,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     if (!m) return;
     if (!marker) { pin.current?.remove(); pin.current = null; return; }
     if (!pin.current)
-      pin.current = new maplibregl.Marker({ color: chrome?.accent ?? "#5F26E0" });
+      pin.current = new maplibregl.Marker({ color: furniture.accent });
     pin.current.setLngLat([marker.lon, marker.lat]).addTo(m);
     return () => { pin.current?.remove(); pin.current = null; };
   }, [marker?.lat, marker?.lon]);
@@ -400,7 +404,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     if (!m) return;
     for (const mk of pinned.current) mk.remove();
     pinned.current = (pins ?? []).map((p) => {
-      const mk = new maplibregl.Marker({ color: p.tone ?? chrome?.accent ?? "#5F26E0",
+      const mk = new maplibregl.Marker({ color: p.tone ?? furniture.accent,
                                         scale: 0.72 });
       if (p.title) mk.setPopup(new maplibregl.Popup({ closeButton: false }).setText(p.title));
       return mk.setLngLat([p.lon, p.lat]).addTo(m);
@@ -665,15 +669,15 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
    * `MiniMap` in a sheet) can be on different themes, and a document-level variable would
    * make the last one to mount win.
    */
-  const vars = useMemo(() => (chrome ? {
-    "--map-ink": chrome.ink,
-    "--map-card": chrome.card,
-    "--map-tint": chrome.tint,
-    "--map-sub": chrome.sub,
-    "--map-shadow": chrome.shadow,
-    "--map-icon-filter": chrome.iconFilter,
-    "--map-scale-bg": chrome.scaleBg,
-  } as React.CSSProperties : {}), [chrome]);
+  const vars = useMemo(() => ({
+    "--map-ink": furniture.ink,
+    "--map-card": furniture.card,
+    "--map-tint": furniture.tint,
+    "--map-sub": furniture.sub,
+    "--map-shadow": furniture.shadow,
+    "--map-icon-filter": furniture.iconFilter,
+    "--map-scale-bg": furniture.scaleBg,
+  } as React.CSSProperties), [furniture]);
 
   return <div ref={host}
               style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;

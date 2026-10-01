@@ -51,11 +51,48 @@ function tokenValue(ref, where) {
   return base?.values[ref.token];
 }
 
+// --- a theme value may NAME another token: "@color.ui.ink" ---
+//
+// For two tokens that are one colour BY DESIGN — the shadow is the ink, the first donor is
+// the live feed. Written as a second hex, the pair trips the duplicate guard below (rightly:
+// it cannot tell intent from collision) or drifts the first time one is retuned. Resolved
+// here, so the generated themes carry plain values and no reader ever sees an "@".
+const aliased = new Set();
+for (const t of themes)
+  for (const [name, v] of Object.entries(t.values)) {
+    if (typeof v !== "string" || !v.startsWith("@")) continue;
+    let target = v.slice(1), hops = 0;
+    while (typeof t.values[target] === "string" && t.values[target].startsWith("@") && hops++ < 8)
+      target = t.values[target].slice(1);
+    if (!tokens[target] || t.values[target] === undefined || hops >= 8)
+      err(`theme "${t.name}": ${name} names "${v}", which is not a token with a value here`);
+    else if (tokens[target].type !== tokens[name]?.type)
+      err(`theme "${t.name}": ${name} names ${target}, a ${tokens[target].type}, not a ${tokens[name]?.type}`);
+    else { t.values[name] = t.values[target]; aliased.add(`${t.name}:${name}`); }
+  }
+
 // --- every theme must define every themeable token ---
 for (const t of themes)
   for (const [name, def] of Object.entries(tokens))
     if (def.themeable && t.values[name] === undefined)
       err(`theme "${t.name}" is missing themeable token "${name}"`);
+
+// --- and a token that is NOT themeable must be the same in every theme ---
+// `themeable: false` is a claim (the satellite swatch previews photographs, which a theme
+// does not recolour). Unchecked, a theme could quietly disagree with it.
+for (const [name, def] of Object.entries(tokens)) {
+  if (def.themeable) continue;
+  const seen = new Set(themes.map((t) => JSON.stringify(t.values[name])));
+  if (seen.size > 1) err(`token "${name}" is not themeable but the themes disagree: ${[...seen].join(" / ")}`);
+}
+
+/**
+ * THE APP'S CHROME (`color.ui.*`) is in these themes so there is one palette, but it is never
+ * map paint: a card colour is not "on screen" beside a river the way a map token is. The two
+ * map guards below skip it; the duplicate guard runs within it; the ui-native and cvd tests
+ * hold its contrast and separation.
+ */
+const isUi = (name) => name.split(".")[1] === "ui";
 
 // --- colour tokens must be PERCEPTUALLY distinguishable, not merely different ---
 //
@@ -128,7 +165,8 @@ const together = (a, b) => {
 
 for (const t of themes) {
   const cols = Object.entries(t.values)
-    .filter(([, v]) => typeof v === "string" && v.startsWith("#"));
+    .filter(([n, v]) => typeof v === "string" && v.startsWith("#") && !isUi(n)
+                        && !aliased.has(`${t.name}:${n}`));
   for (let i = 0; i < cols.length; i++) {
     for (let j = i + 1; j < cols.length; j++) {
       const [n1, v1] = cols[i], [n2, v2] = cols[j];
@@ -150,7 +188,9 @@ for (const t of themes) {
 //
 // 3.0 is the AA-large floor and the minimum for a status WORD, which is what carries the
 // answer once texture is ruled out as an instrument (see 13-build-plan §2.1).
-const PANEL = { light: "#ffffff", dark: "#181d24" };
+// The panel is the app's own card, read from the theme — it was a pair of hexes typed here,
+// and the dark one (#181d24) was not the dark card (#15181B) the words actually sit on.
+const PANEL_TOKEN = "color.ui.card";
 const MIN_CONTRAST = 3.0;
 const _lum = (hex) => {
   const h = hex.replace("#", "");
@@ -163,8 +203,8 @@ const contrast = (a, b) => {
   return (x + 0.05) / (y + 0.05);
 };
 for (const t of themes) {
-  const panel = PANEL[t.name];
-  if (!panel) continue;
+  const panel = t.values[PANEL_TOKEN];
+  if (typeof panel !== "string") { err(`theme "${t.name}" has no ${PANEL_TOKEN}`); continue; }
   for (const [name, value] of Object.entries(t.values)) {
     if (!name.startsWith("color.status.") || typeof value !== "string") continue;
     const c = contrast(value, panel);
@@ -184,7 +224,10 @@ for (const t of themes) {
   const byValue = new Map();
   for (const [name, value] of Object.entries(t.values)) {
     if (typeof value !== "string" || !value.startsWith("#")) continue;
-    const k = value.toLowerCase();
+    if (aliased.has(`${t.name}:${name}`)) continue;     // one colour on purpose — see above
+    // The map's tokens and the app's chrome are checked each within their own set: the
+    // dark page and the paper under a missing tile are both near-black and both mean "ground".
+    const k = (isUi(name) ? "ui:" : "map:") + value.toLowerCase();
     if (byValue.has(k))
       err(`theme "${t.name}": ${byValue.get(k)} and ${name} are both ${value} — two meanings, ` +
           `one colour. A reader cannot tell them apart.`);

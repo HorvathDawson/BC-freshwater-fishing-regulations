@@ -736,13 +736,16 @@
           "enum": "stock_recency",
           "categories": {
             "season": {
-              "token": "color.stock.fresh"
+              "token": "color.stock.season"
             },
             "year": {
-              "token": "color.stock.recent"
+              "token": "color.stock.year"
             },
             "recent": {
               "token": "color.stock.recent"
+            },
+            "decade": {
+              "token": "color.stock.decade"
             },
             "old": {
               "token": "color.stock.old"
@@ -804,7 +807,7 @@
             "provider": "status",
             "field": "status"
           },
-          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
+          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
         }
       },
       "opacity": {
@@ -1100,7 +1103,7 @@
             "provider": "status",
             "field": "status"
           },
-          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
+          "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
         }
       },
       "label": {

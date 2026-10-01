@@ -22,9 +22,9 @@ export interface Camera {
  * map wore a white control stack. A `var()` fallback is indistinguishable from a value that
  * was supplied, which is why it went unnoticed.
  *
- * These arrive as a prop rather than being read from the map style, because the map style
- * has no chrome tokens: it describes water, not furniture. The palette lives in
- * `@app/ui-native`, which sits ABOVE this package, so the value comes down.
+ * Derived from the theme's `color.ui.*` tokens (`mapChrome` in ./chrome.ts) — the same tokens
+ * `palette` in @app/ui-native is built from, so the controls and the app around them are one
+ * palette. The prop remains only as an override.
  */
 export interface MapChrome {
   /** Frame, dividers and glyphs. */
@@ -59,7 +59,7 @@ export interface MapChrome {
 }
 
 export interface MapProps {
-  /** Colours for MapLibre's own controls. Omitted -> the light-theme defaults. */
+  /** Colours for MapLibre's own controls. Omitted -> `mapChrome(theme)`, from the tokens. */
   chrome?: MapChrome;
   /**
    * Drop the renderer's own furniture: zoom stack, compass, scale bar, attribution.

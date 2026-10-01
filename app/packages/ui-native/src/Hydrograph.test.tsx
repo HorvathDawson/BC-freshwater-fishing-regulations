@@ -26,7 +26,7 @@ const shape = (over: Partial<Parameters<typeof buildHydrograph>[0]> = {}) =>
   });
 
 const draw = (over = {}) =>
-  render(<Hydrograph shape={shape(over)} palette={LIGHT} colour="#1f7a8c" />);
+  render(<Hydrograph shape={shape(over)} palette={LIGHT} colour={LIGHT.live} />);
 
 describe("<Hydrograph>", () => {
   it("draws every path the shape describes, and no more", () => {
@@ -71,7 +71,7 @@ describe("<Hydrograph>", () => {
 
   it("carries a description, because a chart with no text is invisible to a screen reader", () => {
     const { getByLabelText } = render(
-      <Hydrograph shape={shape()} palette={LIGHT} colour="#1f7a8c" label="Chilliwack River flow" />,
+      <Hydrograph shape={shape()} palette={LIGHT} colour={LIGHT.live} label="Chilliwack River flow" />,
     );
     expect(getByLabelText("Chilliwack River flow")).toBeTruthy();
   });

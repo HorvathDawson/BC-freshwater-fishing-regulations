@@ -125,11 +125,11 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
                        { k: "map", t: "Map",
                          swatch: [palette.tint, palette.water[0], palette.water[1]] },
                        { k: "satellite", t: "Satellite",
-                         /* NOT from the palette, on purpose: this previews an imagery
-                            raster, and aerial photography is dark water, forest and scrub
-                            whatever theme the app is wearing. A themed swatch here would
-                            promise a recolour that does not happen. */
-                         swatch: ["#2A333B", "#3C5A2E", "#6E7F53"] },
+                         /* The same in every theme, on purpose (`color.ui.imagery.*`,
+                            not themeable): this previews an imagery raster, and aerial
+                            photography is dark water, forest and scrub whatever theme the
+                            app is wearing. */
+                         swatch: palette.imagery },
                      ]} />
         </Section>
 

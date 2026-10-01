@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { hatchImage } from "./hatch";
+import { colour } from "./chrome";
+
+/** The wetland fill the hatch is really woven from, and its bytes. */
+const WETLAND = colour("light", "color.wetland.fill");
+const bytes = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
 /** RGBA at (x, y), un-premultiplied so the tests can talk about the colour asked for. */
 const at = (img: ReturnType<typeof hatchImage>, x: number, y: number) => {
@@ -11,7 +16,7 @@ const at = (img: ReturnType<typeof hatchImage>, x: number, y: number) => {
 };
 
 describe("the wetland hatch", () => {
-  const img = hatchImage("#81C784");
+  const img = hatchImage(WETLAND);
 
   it("is a square tile of RGBA at 2x", () => {
     expect(img.width).toBe(img.height);
@@ -50,7 +55,7 @@ describe("the wetland hatch", () => {
   it("is woven from the colour it is given, not a fixed green", () => {
     // The token names a colour and the theme owns it; a hard-coded green would be right in
     // one theme and wrong in the other two.
-    const blue = hatchImage("#3355FF");
+    const blue = hatchImage(colour("light", "color.status.base"));
     const groundish = at(blue, 2, 0).straight;
     expect(groundish[2]).toBeGreaterThan(groundish[0]!);
     expect(groundish[2]).toBeGreaterThan(groundish[1]!);
@@ -71,13 +76,14 @@ describe("the wetland hatch", () => {
      *
      * The check: on the stripe, the colour must be the colour asked for, whatever its alpha.
      */
-    const green = hatchImage("#81C784", 0, 0.55, 0);
+    const green = hatchImage(WETLAND, 0, 0.55, 0);
+    const [r, g, b] = bytes(WETLAND);
     let strongest = -1, at = 0;
     for (let i = 0; i < green.data.length; i += 4)
       if (green.data[i + 3]! > strongest) { strongest = green.data[i + 3]!; at = i; }
     expect(strongest).toBeGreaterThan(0);
-    expect(green.data[at]).toBe(0x81);
-    expect(green.data[at + 1]).toBe(0xC7);
-    expect(green.data[at + 2]).toBe(0x84);
+    expect(green.data[at]).toBe(r);
+    expect(green.data[at + 1]).toBe(g);
+    expect(green.data[at + 2]).toBe(b);
   });
 });

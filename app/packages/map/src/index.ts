@@ -17,6 +17,8 @@ export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./ad
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */
 export { toggleableGroups, views, hiddenLayers, STYLE_META, resolveTheme, themeNames,
-         waterStatusColour, waterStatusWeight,
+         waterStatusColour,
          type LayerGroup, type MapView, type Tokens } from "./style";
 export { pillImage, type PillImage } from "./pill";
+/** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
+export { colour, amount, translucent, mapChrome } from "./chrome";

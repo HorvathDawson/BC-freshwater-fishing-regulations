@@ -12,7 +12,7 @@ import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { Pill } from "./Chrome";
 import { LayersIcon } from "./icons";
 import { TYPE } from "./type";
-import { mapChrome, type Palette } from "./theme";
+import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
@@ -54,8 +54,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
            highlight={highlight} marker={marker} data={data} gauges={gauges}
-           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap}
-           chrome={mapChrome(palette, theme)} />
+           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} />
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left

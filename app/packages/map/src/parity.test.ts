@@ -12,6 +12,7 @@ import {
   toggleableGroups,
 } from "./style";
 import { runtimeStyle } from "./runtime-style";
+import { colour } from "./chrome";
 
 /** Records every call, so two adapters can be compared on what they DO. */
 function recorder() {
@@ -79,12 +80,14 @@ describe("map parity", () => {
 
   it("a user palette override changes colour identically on both", () => {
     const a = recorder(), b = recorder();
-    const o = { "color.status.closed": "#123456" };
+    // Any value that is not light's own: the dark theme's closed red will do.
+    const other = colour("dark", "color.status.closed");
+    const o = { "color.status.closed": other };
     // The closed-area hatch (national parks, no-access land) draws in this token.
     native.applyView(a.h, "plain", "light", o);
     web.applyView(b.h, "plain", "light", o);
     expect(a.calls).toEqual(b.calls);
-    expect(a.calls.join(" ")).toContain("#123456");
+    expect(a.calls.join(" ")).toContain(other);
   });
 
   it("feature data pushes identically on both", () => {
@@ -121,7 +124,7 @@ describe("theme + toggle rules", () => {
 
   it("a user colour override must name a themeable token", () => {
     expect(() => resolveTheme("light", { "width.stream.base": 9 })).toThrow(/not themeable/);
-    expect(() => resolveTheme("light", { "color.nope": "#fff" })).toThrow(/unknown token/);
+    expect(() => resolveTheme("light", { "color.nope": colour("light", "color.ui.card") })).toThrow(/unknown token/);
   });
 
   it("a non-toggleable group cannot be hidden by an app", () => {
@@ -296,21 +299,18 @@ describe("a water's status paints with the map's own colours", () => {
   });
 
   /*
-   * CLOSED IS ALSO WIDER, and only where the line answers by status. The width rides inside
-   * the zoom curve (MapLibre allows one, outermost), multiplies by `width.status.closed` where
-   * the feature-state says closed, and the plain mode's paint never sees it — the plain map's
-   * water must not move when the status colouring does.
+   * EVERY STATUS AT ONE WIDTH. Closed was drawn 1.6x wider (`width.status.closed`); the user
+   * found it hard to use and it was removed, so the status mode's width is the plain mode's
+   * width exactly — colour alone tells the statuses apart (tools/water-status-cvd.test.ts).
    */
-  it("a closed line is drawn wider in the status mode, and only there", async () => {
+  it("a status line is the same width as the plain one", async () => {
     const { paintFor } = await import("./adapters/contract");
     const { resolveTheme } = await import("./style");
     const t = resolveTheme("light");
     for (const layer of ["stream", "lake__edge"]) {
-      const status = JSON.stringify(paintFor(layer, "status", t)["line-width"]);
-      expect(status, layer).toContain(
-        `["match",["feature-state","status"],"closed",${t["width.status.closed"]},1]`);
-      const plain = paintFor(layer, "plain", t);
-      expect(JSON.stringify(plain), layer).not.toContain('"status"');
+      const status = paintFor(layer, "status", t)["line-width"];
+      expect(JSON.stringify(status), layer).not.toContain('"feature-state","status"');
+      expect(status, layer).toEqual(paintFor(layer, "plain", t)["line-width"]);
     }
     expect(paintFor("stream", "plain", t)["line-color"]).toContain(t["color.water.mapped"]);
   });

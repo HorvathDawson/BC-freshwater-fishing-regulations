@@ -8,7 +8,12 @@
  *
  * 28px controls, square, a hard black hairline and an offset shadow with no blur —
  * v1's language (`archive/webapp`, canifishthis.ca), where the map stack is 29px square
- * over `box-shadow: Npx Npx 0 rgba(0,0,0,1)`.
+ * over a hard black offset shadow.
+ *
+ * NO FALLBACKS IN `var()`. Every value here is set on the map's host from the theme's chrome
+ * tokens (`mapChrome` in ./chrome.ts), always. These carried the light theme's hexes as
+ * fallbacks, so a variable that went missing put a white control stack on a dark map — and
+ * a fallback looks exactly like a value that was supplied.
  *
  * THESE WERE 36px AND RADIUS 12, and on a phone they were the loudest thing on the map: a
  * three-button stack 108px tall with a soft drop shadow, competing with the water it sits
@@ -19,9 +24,9 @@
 
 .maplibregl-ctrl-group {
   border-radius: 0;
-  border: 1px solid var(--map-ink, #15181C);
-  box-shadow: 2px 2px 0 var(--map-shadow, rgba(21, 24, 28, 0.90));
-  background: var(--map-card, #FFFFFF);
+  border: 1px solid var(--map-ink);
+  box-shadow: 2px 2px 0 var(--map-shadow);
+  background: var(--map-card);
   overflow: hidden;
 }
 .maplibregl-ctrl-group button {
@@ -32,7 +37,7 @@
 .maplibregl-ctrl-group button + button {
   /* The divider is the same black as the frame: inside a hard-edged box a paler hairline
      reads as a rendering artefact rather than a deliberate line. */
-  border-top: 1px solid var(--map-ink, #15181C);
+  border-top: 1px solid var(--map-ink);
 }
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
   /* MapLibre's icons are near-black; the design wants map furniture quieter than the map.
@@ -41,7 +46,7 @@
   transform: scale(0.82);
 }
 .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon { opacity: 1; }
-.maplibregl-ctrl-group button:active { background: var(--map-tint, #EEEFEB); }
+.maplibregl-ctrl-group button:active { background: var(--map-tint); }
 
 /*
  * The scale bar, the way every map draws one.
@@ -58,10 +63,10 @@
  */
 .maplibregl-ctrl-scale {
   border-radius: 0;
-  border: 2px solid var(--map-ink, #15181C);
+  border: 2px solid var(--map-ink);
   border-top: none;
-  background: var(--map-scale-bg, rgba(255, 255, 255, 0.78));
-  color: var(--map-ink, #15181C);
+  background: var(--map-scale-bg);
+  color: var(--map-ink);
   font: 700 10px/1.35 Archivo, system-ui, sans-serif;
   letter-spacing: 0.06em;
   padding: 1px 5px 2px;
@@ -78,10 +83,10 @@
  * the app's theme is a user choice and need not match the OS.
  */
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  filter: var(--map-icon-filter, none);
+  filter: var(--map-icon-filter);
 }
 /* The attribution's (i) is the same kind of baked-in glyph. */
-.maplibregl-ctrl-attrib-button { filter: var(--map-icon-filter, none); }
+.maplibregl-ctrl-attrib-button { filter: var(--map-icon-filter); }
 
 /*
  * Attribution stays, but quietly: it is a legal requirement, not a feature.
@@ -94,8 +99,8 @@
   font-size: 10px;
   line-height: 1.45;
   border-radius: 0;
-  border: 1px solid var(--map-ink, #15181C);
-  background: var(--map-card, #FFFFFF);
+  border: 1px solid var(--map-ink);
+  background: var(--map-card);
   max-width: 78vw;
 }
 /* Collapsed, it is just the (i) — no frame around a single round button. */

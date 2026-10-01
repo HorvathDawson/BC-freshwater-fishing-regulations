@@ -15,7 +15,7 @@ export function Sheet({ open, onClose, title, palette, children }: {
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       {/* tapping the map behind closes it — the standard way out of a sheet */}
       <Pressable accessibilityLabel="Close" onPress={onClose}
-                 style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)" }} />
+                 style={{ flex: 1, backgroundColor: palette.scrim }} />
       {/*
         THE SHEET WAS THE LAST ROUNDED THING. It carried a 22px radius on both top corners
         and a grabber pill, over a `palette.line` hairline — the softest surface in the app,

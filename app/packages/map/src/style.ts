@@ -170,16 +170,3 @@ export function waterStatusColour(theme: string, status: WaterStatus): string {
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);
   return hex;
 }
-
-/**
- * HOW MUCH WIDER a line of this status is drawn — 1 for a status that colour alone carries.
- * The redundant cue for `closed`: the map multiplies its line width by this (`paintFor`), and
- * the legend draws its swatch at the same ratio, so the key and the map cannot disagree.
- */
-export function waterStatusWeight(theme: string, status: WaterStatus): number {
-  const token = WATER_STATUS[status].weight;
-  if (token === undefined) return 1;
-  const w = resolveTheme(theme)[token];
-  if (typeof w !== "number") throw new Error(`theme "${theme}" has no width ${token}`);
-  return w;
-}

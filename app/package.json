@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run spinner && pnpm run fixture && pnpm run gauge-policy && pnpm run deps && pnpm run typecheck && pnpm run test",
+    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run fixture && pnpm run gauge-policy && pnpm run deps && pnpm run typecheck && pnpm run test",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
@@ -12,6 +12,7 @@
     "test": "vitest run",
     "style": "node tools/build-style.mjs && node tools/check-style.mjs && git diff --exit-code packages/map/style/",
     "style:build": "node tools/build-style.mjs",
+    "colours": "node tools/check-colours.mjs",
     "deps": "node tools/check-deps.mjs",
     "platform": "node tools/check-platform.mjs",
     "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts design/fish-sprite.png design/fish-sprite.html",

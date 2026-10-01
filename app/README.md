@@ -66,11 +66,12 @@ the line and it is why this works without committing to react-native-web up fron
 
 ```bash
 pnpm install
-pnpm check        # boundaries + platform + style + deps + typecheck + test — what CI runs
+pnpm check        # boundaries + platform + style + colours + deps + typecheck + test — what CI runs
 pnpm boundaries   # layer rules (layers.json)
 pnpm platform     # variant sets complete, shared code portable
 pnpm style        # rebuild the style, verify hash, fail if it was stale
 pnpm style:build  # after editing layers.source.json
+pnpm colours      # no colour literal outside tokens.json + themes/ (the one palette)
 pnpm deps         # every dependency justified in deps.md
 ```
 
@@ -181,6 +182,17 @@ terms our own pipeline does not.
    surfaces differ only in `platform`.
 5. **Apps cannot address layers directly.** The contract exposes *groups*, not layers,
    and there is no method to add a layer or set a colour outright.
+
+## One palette
+
+Every colour in the app — map paint AND the phone's own surfaces — is a token in
+`packages/map/style/tokens.json` with a value per theme in `themes/*.json`. The map reads them
+through `resolveTheme()`; `palette` in `packages/ui-native/src/theme.ts` is built from them
+(`paletteFor`) and holds no value of its own; MapLibre's controls and markers take
+`mapChrome(theme)` from the same tokens. The app's chrome is the `color.ui.*` family, which the
+map's ΔE/duplicate guards skip and `theme.test.ts` / `tools/cvd.test.ts` hold instead. A theme
+value may name another token (`"@color.ui.ink"`) when two are one colour by design.
+`tools/check-colours.mjs` fails on a hex, `rgb()`/`hsl()` or named colour anywhere else.
 
 ## What is deliberately NOT here
 

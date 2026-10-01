@@ -6,7 +6,7 @@
  * Layers come from the generated catalog; colours come from tokens; the active
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
-import { WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
+import type { SectionKey } from "@app/core";
 import {
   MAP_STYLE, STYLE_META, colorExpression, defaultView, isRuntimeLayer, resolveTheme,
   type Tokens,
@@ -129,26 +129,6 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
           z.push(at, ["*", scale, ["+", base, ["*", attr, slope]]]);
       }
       out[widthKey] = z;
-    }
-    /**
-     * A CLOSED WATER IS ALSO WIDER — so closed is never carried by colour alone.
-     *
-     * Only where the line is coloured by WATER STATUS: a status that names a `weight` token
-     * in @app/core `WATER_STATUS` multiplies the line's own width, inside the zoom curve for
-     * the same reason the highlight floor below is. Before the floor, so a tapped closed
-     * creek is still at least the highlight's width. A dash was the other cue on offer and
-     * is not available: `line-dasharray` cannot read feature-state.
-     */
-    const m = STYLE_META.colorModes[layerId]?.[mode];
-    if (type === "line" && m?.scale === "categorical" && m.enum === "water_status") {
-      const weighted = WATER_STATUSES.flatMap((s) => {
-        const t = WATER_STATUS[s].weight;
-        const w = t === undefined ? undefined : tokens[t];
-        return typeof w === "number" && w !== 1 ? [s, w] : [];
-      });
-      if (weighted.length)
-        out[widthKey] = withinZoomCurve(out[widthKey], (v) =>
-          ["*", v, ["match", ["feature-state", m.property], ...weighted, 1]]);
     }
     /**
      * A HIGHLIGHTED REACH IS ALSO THICKER — as a FLOOR, applied INSIDE the zoom curve.

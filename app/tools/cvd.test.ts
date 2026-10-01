@@ -136,7 +136,7 @@ describe("the colour-blind theme", () => {
      * or not. cividis carries the order in LIGHTNESS, which survives every deficiency
      * because none of them touches luminance much.
      */
-    const L = CVD.stock.map((c) => contrast(c, "#FFFFFF"));
+    const L = CVD.stock.map((c) => contrast(c, CVD.card));
     for (let i = 0; i < L.length - 1; i++)
       expect(L[i]!, `stock step ${i + 1} must be darker than step ${i + 2}`)
         .toBeGreaterThan(L[i + 1]!);
@@ -174,12 +174,9 @@ describe("the colour-blind theme", () => {
       expect(s.rg, `${flow[i]![0]}/${flow[i + 1]![0]} under red/green`)
         .toBeGreaterThanOrEqual(10);
     }
-    /* The no-baseline sentinel is a STATE, not a point on the scale, and must not read as
-       one — it has to stand off every stop of the ramp it sits beside. */
-    for (const [n, c] of flow) {
-      const s = separation(cvdMap["color.flow.nobaseline"]!, c);
-      expect(s.rg, `no-baseline vs ${n} under red/green`).toBeGreaterThanOrEqual(12);
-    }
+    /* There is no no-baseline colour to hold apart any more. `color.flow.nobaseline` was a
+       purple no layer drew — the sentinel became a DASH (`stream-nobaseline`) — and in the
+       dark theme it was the accent's exact hex. It was deleted rather than defended. */
   });
 
   it("holds the light and dark themes to the same text contrast", () => {

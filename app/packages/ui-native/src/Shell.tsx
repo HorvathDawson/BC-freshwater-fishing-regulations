@@ -570,12 +570,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         */}
       {mixedPair && (
         <View style={{ paddingVertical: 8, paddingHorizontal: 12,
-                       backgroundColor: palette.closed ?? "#7A1F2B" }}>
-          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
+                       backgroundColor: palette.closed }}>
+          {/* The error red is the closed red, and its words the on-accent knock-out — the
+              same pair a danger button wears. It was its own #7A1F2B behind a white typed
+              in twice, a third red with no theme. */}
+          <Text style={{ color: palette.onAccent, fontSize: 12, fontWeight: "600" }}>
             Map data is out of step — the tiles and the data bundle came from different
             builds, so nothing is coloured. Rebuild or re-download both.
           </Text>
-          <Text style={{ color: "#fff", fontSize: 11, opacity: 0.85, marginTop: 2 }}>
+          <Text style={{ color: palette.onAccent, fontSize: 11, opacity: 0.85, marginTop: 2 }}>
             tiles {vintage.tiles ?? "unknown"} · bundle {vintage.bundle ?? "unknown"}
           </Text>
         </View>
@@ -641,7 +644,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             // WATER_STATUS through the map's theme) — for today.
             WATER_STATUSES.map((s) => (
               <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
-                           weight={palette.waterStatusWeight[s]}
+                           line
                            label={s === "closed" ? "Closed today" : WATER_STATUS[s].label} />
             ))
           )}

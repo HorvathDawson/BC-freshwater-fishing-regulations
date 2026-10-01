@@ -16,8 +16,10 @@
  * token through the map's theme (`waterStatusColour` in @app/map), so a row and the line
  * beside it cannot disagree.
  *
- * CLOSED IS NOT CARRIED BY COLOUR ALONE: it also names a `weight` token, the factor a closed
- * line is drawn wider by — on the map (`paintFor`) and on the legend swatch alike.
+ * COLOUR ALONE CARRIES IT. Closed used to name a `weight` token too and was drawn 1.6x wider;
+ * that width was hard to use and was removed (2026-10-01), so every status draws at the
+ * line's own width and the three hues are held apart for every reader by
+ * tools/water-status-cvd.test.ts.
  *
  * TWO SOURCES, ONE VOCABULARY. The STATUS INDEX (`statusIndex.ts`, built by
  * `python -m pipeline.deliver.status_index` through the reference reader) answers closed / own /
@@ -38,13 +40,9 @@ export type WaterStatus = "closed" | "own" | "base";
 
 export const WATER_STATUSES: readonly WaterStatus[] = ["closed", "own", "base"];
 
-/**
- * What each status is called, the map token that paints it, and — for a status that must not
- * rest on colour alone — the token that widens its line.
- */
-export const WATER_STATUS: Readonly<Record<WaterStatus,
-    { label: string; token: string; weight?: string }>> = {
-  closed: { label: "Closed", token: "color.status.closed", weight: "width.status.closed" },
+/** What each status is called, and the map token that paints it. */
+export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: string }>> = {
+  closed: { label: "Closed", token: "color.status.closed" },
   own: { label: "Has its own regulations", token: "color.status.own" },
   base: { label: "Base regulations only", token: "color.status.base" },
 };

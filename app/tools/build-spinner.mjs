@@ -35,7 +35,7 @@
  * dark and colour-blind palettes — and cannot fall out of step with them.
  */
 import { deflateSync } from "node:zlib";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 // ── the drawing ──────────────────────────────────────────────────────────────────────
@@ -312,14 +312,26 @@ function png(width, height, alpha) {
  * It doubles as the reference for `FishSpinner.web.tsx`: the CSS below IS what that
  * component should do, and no JavaScript runs the animation.
  */
+/**
+ * The page's colours are the app's, read from the generated themes — the palette lives in
+ * the token files and nowhere else (tools/check-colours.mjs). The fish is `color.ui.live`,
+ * as the app draws it.
+ */
+const THEMES = JSON.parse(readFileSync(
+  fileURLToPath(new URL("../packages/map/style/style.meta.json", import.meta.url)), "utf8")).themes;
+const vars = (name) => {
+  const t = THEMES[name];
+  return `--bg:${t["color.ui.wash"]}; --fg:${t["color.ui.ink"]}; --sub:${t["color.ui.sub"]}; ` +
+         `--line:${t["color.ui.line"]};\n          --accent:${t["color.ui.accent"]}; ` +
+         `--fish:${t["color.ui.live"]};`;
+};
+
 function PAGE({ uri, frames, kb, cycle, orbit, figures, ring, ringW }) {
   return `<!doctype html>
 <meta charset="utf8"><title>Fish spinner</title>
 <style>
-  :root { --bg:#101215; --fg:#F0F2F0; --sub:#98A0A7; --line:#252A2F;
-          --accent:#A97CFF; --fish:#37D6EA; }   /* palette.live, as the app uses */
-  :root[data-t="light"] { --bg:#F7F7F5; --fg:#15181C; --sub:#6C737A; --line:#E5E6E1;
-                          --accent:#5F26E0; --fish:#04879B; }
+  :root { ${vars("dark")} }
+  :root[data-t="light"] { ${vars("light")} }
   body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg);
          font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
          display:grid; place-items:center; align-content:center; gap:26px; padding:48px 24px; }

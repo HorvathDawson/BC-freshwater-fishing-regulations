@@ -523,13 +523,16 @@
         "enum": "stock_recency",
         "categories": {
           "season": {
-            "token": "color.stock.fresh"
+            "token": "color.stock.season"
           },
           "year": {
-            "token": "color.stock.recent"
+            "token": "color.stock.year"
           },
           "recent": {
             "token": "color.stock.recent"
+          },
+          "decade": {
+            "token": "color.stock.decade"
           },
           "old": {
             "token": "color.stock.old"
@@ -591,7 +594,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
       }
     },
     "contour": {
@@ -706,7 +709,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
       }
     },
     "region": {
@@ -859,13 +862,16 @@
         "enum": "stock_recency",
         "categories": {
           "season": {
-            "token": "color.stock.fresh"
+            "token": "color.stock.season"
           },
           "year": {
-            "token": "color.stock.recent"
+            "token": "color.stock.year"
           },
           "recent": {
             "token": "color.stock.recent"
+          },
+          "decade": {
+            "token": "color.stock.decade"
           },
           "old": {
             "token": "color.stock.old"
@@ -927,7 +933,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
       }
     },
     "region__edge": {
@@ -1286,7 +1292,6 @@
       "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
-      "width.status.closed": 1.6,
       "opacity.overlay": 0.55,
       "color.water.route": "#A3AEB4",
       "color.lake.fill": "#94C9E0",
@@ -1298,9 +1303,6 @@
       "color.reserve.fill": "#AA7BF6",
       "color.noaccess.fill": "#3B6568",
       "color.mu.edge": "#8A7A62",
-      "color.stock.fresh": "#00224E",
-      "color.stock.recent": "#6A6C71",
-      "color.stock.old": "#D3C164",
       "color.label.place": "#3a4043",
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
@@ -1323,7 +1325,6 @@
       "color.flow.f6": "#2A3F8F",
       "color.flow.f7": "#101E4D",
       "color.gauge.dot": "#0A1116",
-      "color.flow.nobaseline": "#8C2AF6",
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
@@ -1344,7 +1345,37 @@
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1.6,
       "opacity.admin.edge": 0.35,
-      "opacity.basin": 0.55
+      "opacity.basin": 0.55,
+      "color.stock.season": "#00224E",
+      "color.stock.year": "#47516C",
+      "color.stock.recent": "#6A6C71",
+      "color.stock.decade": "#A29A76",
+      "color.stock.old": "#D3C164",
+      "color.ui.page": "#EFEFEC",
+      "color.ui.card": "#FFFFFF",
+      "color.ui.wash": "#F7F7F5",
+      "color.ui.tint": "#EEEFEB",
+      "color.ui.line": "#E5E6E1",
+      "color.ui.line2": "#D3D5CF",
+      "color.ui.ink": "#15181C",
+      "color.ui.sub": "#6C737A",
+      "color.ui.faint": "#6E757B",
+      "color.ui.quiet": "#8A9196",
+      "color.ui.accent": "#5F26E0",
+      "color.ui.on-accent": "#FFFFFF",
+      "color.ui.live": "#04879B",
+      "color.ui.place-band": "#FBF0E6",
+      "color.ui.donor.1": "#373708",
+      "color.ui.donor.2": "#670848",
+      "color.ui.donor.3": "#D77782",
+      "color.ui.donor.4": "#797000",
+      "color.ui.shadow": "#15181C",
+      "color.ui.imagery.water": "#2A333B",
+      "color.ui.imagery.forest": "#3C5A2E",
+      "color.ui.imagery.scrub": "#6E7F53",
+      "opacity.ui.shadow": 0.9,
+      "opacity.ui.scrim": 0.28,
+      "opacity.ui.scale": 0.78
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
@@ -1354,7 +1385,6 @@
       "color.status.restricted": "#e8a733",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
-      "width.status.closed": 1.6,
       "opacity.overlay": 0.45,
       "color.status.closed": "#FC4164",
       "color.status.own": "#F0E442",
@@ -1369,10 +1399,7 @@
       "color.reserve.fill": "#4d3320",
       "color.noaccess.fill": "#4a2a2a",
       "color.mu.edge": "#A6947A",
-      "color.stock.fresh": "#2ed573",
-      "color.stock.recent": "#94d82d",
-      "color.stock.old": "#5E7A68",
-      "color.label.place": "#cfd5d8",
+      "color.label.place": "#D2D8E1",
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
@@ -1394,7 +1421,6 @@
       "color.flow.f6": "#5A83F7",
       "color.flow.f7": "#A8B8FF",
       "color.gauge.dot": "#F4F8F5",
-      "color.flow.nobaseline": "#A97CFF",
       "color.water.ungauged": "#39434B",
       "color.mask": "#595956",
       "opacity.route": 0.4,
@@ -1415,7 +1441,37 @@
       "opacity.admin.area": 0.16,
       "width.closure.edge": 1.6,
       "opacity.admin.edge": 0.45,
-      "opacity.basin": 0.55
+      "opacity.basin": 0.55,
+      "color.stock.season": "#2ED573",
+      "color.stock.year": "#94D82D",
+      "color.stock.recent": "#FFC93C",
+      "color.stock.decade": "#CF9A46",
+      "color.stock.old": "#69737B",
+      "color.ui.page": "#0A0B0D",
+      "color.ui.card": "#15181B",
+      "color.ui.wash": "#101215",
+      "color.ui.tint": "#1E2227",
+      "color.ui.line": "#252A2F",
+      "color.ui.line2": "#343B42",
+      "color.ui.ink": "#F0F2F0",
+      "color.ui.sub": "#98A0A7",
+      "color.ui.faint": "#7C858C",
+      "color.ui.quiet": "#2F363D",
+      "color.ui.accent": "#A97CFF",
+      "color.ui.on-accent": "#100A22",
+      "color.ui.live": "#37D6EA",
+      "color.ui.place-band": "#231A12",
+      "color.ui.donor.1": "#37D6EA",
+      "color.ui.donor.2": "#FF9B54",
+      "color.ui.donor.3": "#FF7BB8",
+      "color.ui.donor.4": "#4ADE80",
+      "color.ui.shadow": "#000000",
+      "color.ui.imagery.water": "#2A333B",
+      "color.ui.imagery.forest": "#3C5A2E",
+      "color.ui.imagery.scrub": "#6E7F53",
+      "opacity.ui.shadow": 0.85,
+      "opacity.ui.scrim": 0.28,
+      "opacity.ui.scale": 0.72
     },
     "light": {
       "color.water.mapped": "#4A90E2",
@@ -1428,7 +1484,6 @@
       "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
-      "width.status.closed": 1.6,
       "opacity.overlay": 0.55,
       "color.water.route": "#2E62A8",
       "color.lake.fill": "#64B5F6",
@@ -1440,9 +1495,6 @@
       "color.reserve.fill": "#e0b48c",
       "color.noaccess.fill": "#d2a2a2",
       "color.mu.edge": "#8A7A62",
-      "color.stock.fresh": "#12873f",
-      "color.stock.recent": "#5e9b12",
-      "color.stock.old": "#88A492",
       "color.label.place": "#3a4043",
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
@@ -1465,7 +1517,6 @@
       "color.flow.f6": "#1D4ED8",
       "color.flow.f7": "#122A8F",
       "color.gauge.dot": "#0A1116",
-      "color.flow.nobaseline": "#7B4FBF",
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
@@ -1486,7 +1537,37 @@
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1.6,
       "opacity.admin.edge": 0.35,
-      "opacity.basin": 0.55
+      "opacity.basin": 0.55,
+      "color.stock.season": "#12873F",
+      "color.stock.year": "#5E9B12",
+      "color.stock.recent": "#B58105",
+      "color.stock.decade": "#866E3E",
+      "color.stock.old": "#8E979E",
+      "color.ui.page": "#EFEFEC",
+      "color.ui.card": "#FFFFFF",
+      "color.ui.wash": "#F7F7F5",
+      "color.ui.tint": "#EEEFEB",
+      "color.ui.line": "#E5E6E1",
+      "color.ui.line2": "#D3D5CF",
+      "color.ui.ink": "#15181C",
+      "color.ui.sub": "#6C737A",
+      "color.ui.faint": "#6E757B",
+      "color.ui.quiet": "#8A9196",
+      "color.ui.accent": "#5F26E0",
+      "color.ui.on-accent": "#FFFFFF",
+      "color.ui.live": "#04879B",
+      "color.ui.place-band": "#FBF0E6",
+      "color.ui.donor.1": "#04879B",
+      "color.ui.donor.2": "#B5480B",
+      "color.ui.donor.3": "#A81E6B",
+      "color.ui.donor.4": "#0E7A3D",
+      "color.ui.shadow": "#15181C",
+      "color.ui.imagery.water": "#2A333B",
+      "color.ui.imagery.forest": "#3C5A2E",
+      "color.ui.imagery.scrub": "#6E7F53",
+      "opacity.ui.shadow": 0.9,
+      "opacity.ui.scrim": 0.28,
+      "opacity.ui.scale": 0.78
     }
   },
   "tokens": {
@@ -1562,11 +1643,6 @@
       "type": "number",
       "themeable": false
     },
-    "width.status.closed": {
-      "type": "number",
-      "themeable": false,
-      "$comment": "CLOSED IS NOT CARRIED BY COLOUR ALONE. A multiplier on a line's own width, applied wherever a line is coloured by water status (`paintFor` in adapters/contract.ts), and drawn by the legend swatch at the same ratio. A dash was the other option and is not available: `line-dasharray` cannot read feature-state, and the status arrives as feature-state."
-    },
     "opacity.overlay": {
       "type": "number",
       "themeable": true
@@ -1620,25 +1696,10 @@
       "themeable": true,
       "$comment": "management unit boundaries"
     },
-    "color.stock.fresh": {
-      "type": "color",
-      "themeable": true,
-      "$comment": "stocked this season"
-    },
-    "color.stock.recent": {
-      "type": "color",
-      "themeable": true,
-      "$comment": "stocked this year"
-    },
-    "color.stock.old": {
-      "type": "color",
-      "themeable": true,
-      "$comment": "stocked over ten years ago"
-    },
     "color.label.place": {
       "type": "color",
       "themeable": true,
-      "$comment": "settlement labels"
+      "$comment": "A TOWN. The pin that marks one on the map and the places group's heading in search (`palette.place`). NEUTRAL, like the basemap's own city labels (Protomaps draws them #5c5c5c / #999999), and darkened to hold 4.5:1 as text. It was an orange (#A64B00 light, #F59E4B dark) — and under deuteranopia that orange sat ΔE2000 0.7 from `status.restricted`, the amber of the permit-only hatch drawn on the very map the town pin stands on (2.2 in the dark theme). No warm hue clears closed, restricted, own and the highlight at once for a dichromat (searched: only near-black and near-white do), so the town gave up hue; the warm `color.ui.place-band` behind its rows still says NOT WATER."
     },
     "width.lake.edge": {
       "type": "number",
@@ -1664,8 +1725,8 @@
     },
     "dash.route": {
       "type": "dash",
-      "themeable": false,
-      "$comment": "Dash pattern, in line widths. A route through a lake is dotted so it reads as connectivity rather than as another river."
+      "themeable": true,
+      "$comment": "Dash pattern, in line widths. A route through a lake is dotted so it reads as connectivity rather than as another river. THEMEABLE because the colour-blind theme draws it tighter ([1, 2.5]) — it was declared `themeable: false` while the themes disagreed, which nothing checked until the build began holding non-themeable tokens to one value."
     },
     "color.survey.digitised": {
       "type": "color",
@@ -1688,10 +1749,6 @@
       "$comment": "The mask is a WASH, not a blank. You should still be able to see that the river continues into Washington — only that we stop answering there."
     },
     "color.gauge.dot": {
-      "type": "color",
-      "themeable": true
-    },
-    "color.flow.nobaseline": {
       "type": "color",
       "themeable": true
     },
@@ -1783,6 +1840,151 @@
       "type": "number",
       "themeable": true,
       "$comment": "The field is a GROUND, not an answer in itself — the reader is looking for a region, not a value to three figures. Solid enough to read the ramp across a province, quiet enough that the coastline and the place names stay legible through it."
+    },
+    "color.stock.season": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "STOCKED THIS SEASON (within 120 days). The stocking ramp is FIVE steps, one per band of `STOCK_BANDS` in LayersSheet and one per member of the `stock_recency` enum before `never`, and the legend, the Layers swatch and the map's `stocked` mode all read these five. It was three map tokens beside a five-hex array in theme.ts, so the legend promised five colours the map could never draw."
+    },
+    "color.stock.year": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked this year"
+    },
+    "color.stock.recent": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked one to three years ago"
+    },
+    "color.stock.decade": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked three to ten years ago"
+    },
+    "color.stock.old": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked over ten years ago"
+    },
+    "color.ui.page": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "THE APP'S OWN SURFACES. Everything under `color.ui.*` is the phone chrome — `palette` in packages/ui-native/src/theme.ts is built from these and nothing else. They live HERE, beside the map's colours, because this is the one file both the map and the components can read (`@app/map` sits below `@app/ui-native`), and because a second palette is how the legend, the gauge pill and the map controls each ended up wearing a different copy of the same colour. The map's perceptual and duplicate guards skip this family — it is never drawn as map paint — and `tools/cvd.test.ts` / `packages/ui-native/src/theme.test.ts` hold it instead.\n\nThe ground behind the app shell, darker than `wash` so a sheet reads as lifted."
+    },
+    "color.ui.card": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "a card, a sheet, a control"
+    },
+    "color.ui.wash": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "the faint ground of a pressed row or a panel"
+    },
+    "color.ui.tint": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "a selected option's ground"
+    },
+    "color.ui.line": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "a hairline"
+    },
+    "color.ui.line2": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "a heavier rule"
+    },
+    "color.ui.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "text; and the hairline frame of a brutalist box"
+    },
+    "color.ui.sub": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "secondary text, 4.5:1 on the card"
+    },
+    "color.ui.faint": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "tertiary text — still 4.5:1 on the card: 'faint' is a role, not a licence"
+    },
+    "color.ui.quiet": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "'nothing to say', as a MARK: a gauge not reporting, a plain swatch. 3:1 on the card (WCAG 1.4.11)"
+    },
+    "color.ui.accent": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "YOU CHOSE THIS — a selected control, the you-are-here pin. Riffle's violet. Not `color.highlight`: that is the water you tapped, drawn as a LINE over blue water, and a violet line on blue is ΔE 7 under deuteranopia (measured), which is why the map's selection is magenta and the controls' is violet."
+    },
+    "color.ui.on-accent": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "text and glyphs on a strong fill: the accent, and the closed red of a danger button or an error banner"
+    },
+    "color.ui.live": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "a live feed — the gauge, the fish spinner. Distinct from `accent`, which means 'you chose this'"
+    },
+    "color.ui.place-band": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "The ground of the places group in search: a warm band behind the town rows, so the group reads as NOT WATER before a word of it is read. The TOWN itself — its pin, its heading — is `color.label.place`, the colour every town name on the map already wears."
+    },
+    "color.ui.donor.1": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "IDENTITY, NOT MAGNITUDE — one tone per gauge in a donor panel, in weight order. Four, because a panel holds at most four members. The first is the live-feed colour: the strongest donor IS the gauge the reading comes from."
+    },
+    "color.ui.donor.2": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.donor.3": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.donor.4": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.shadow": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "the hard offset slab under a raised box, and the scrim behind a sheet — both are the page darkened"
+    },
+    "color.ui.imagery.water": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "THE SATELLITE BASEMAP'S PREVIEW SWATCH. Not themeable, on purpose: it previews an imagery raster, and aerial photography is dark water, forest and scrub whatever theme the app wears. A themed swatch would promise a recolour that does not happen."
+    },
+    "color.ui.imagery.forest": {
+      "type": "color",
+      "themeable": false
+    },
+    "color.ui.imagery.scrub": {
+      "type": "color",
+      "themeable": false
+    },
+    "opacity.ui.shadow": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "the offset slab's alpha"
+    },
+    "opacity.ui.scrim": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "the scrim behind a bottom sheet"
+    },
+    "opacity.ui.scale": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "the map's scale-bar panel: the card, translucent, so the map reads through it"
     }
   },
   "enums": {
@@ -1791,6 +1993,7 @@
       "season",
       "year",
       "recent",
+      "decade",
       "old",
       "never"
     ],
