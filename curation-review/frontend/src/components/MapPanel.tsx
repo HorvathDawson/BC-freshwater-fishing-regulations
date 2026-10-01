@@ -138,8 +138,17 @@ export function MapPanel({
   useEffect(() => { setShownReach(null); }, [itemId, reloadKey, reaches]);
 
   const shownExtents = shownReach ? (reaches?.rules?.[shownReach] ?? []) : [];
+  // The sections a rule SHIPS with — the builder's verdict (tributaries walked, `rest` resolved
+  // against its siblings, tidal water and confluence cuts decided). The raw per-extent resolve is
+  // only the fallback: it has no answer at all for `rest`, so Bull River's "other parts" rule
+  // could not be drawn, and it shows a closure's mainstem without the tributaries it closes.
+  const shipped = (rid: string): string[] => {
+    const v = reaches?.verdict?.[rid];
+    if (v) return v.sections;
+    return (reaches?.rules?.[rid] ?? []).flatMap((x) => x?.sections ?? []);
+  };
   const reachSet = useMemo(
-    () => new Set(shownExtents.flatMap((x) => x?.sections ?? [])),
+    () => new Set(shownReach ? shipped(shownReach) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [shownReach, reaches],
   );
@@ -156,7 +165,7 @@ export function MapPanel({
     const out: { rule_id: string; type: string; label?: string; all: boolean }[] = [];
     for (const r of rules) {
       if (r.rule_id === shownReach) continue;
-      const secs = (reaches?.rules?.[r.rule_id] ?? []).flatMap((x) => x?.sections ?? []);
+      const secs = shipped(r.rule_id);
       if (secs.length === 0) continue;
       const hit = secs.filter((n) => reachSet.has(n)).length;
       if (hit > 0) out.push({ ...r, all: hit === reachSet.size });
@@ -166,10 +175,7 @@ export function MapPanel({
   }, [shownReach, reachSet, reaches, rules]);
 
   // Only rules that actually resolve to geometry are offerable; the rest would highlight nothing.
-  const reachable = rules.filter((r) => {
-    const per = reaches?.rules?.[r.rule_id];
-    return per && per.length > 0 && per.some((x) => x && x.sections.length > 0);
-  });
+  const reachable = rules.filter((r) => shipped(r.rule_id).length > 0);
   const unusedSet = useMemo(() => new Set(unusedSplitIds), [unusedSplitIds]);
 
   // Create the map once.
@@ -457,9 +463,7 @@ export function MapPanel({
               {reachable.length === 0 ? "none resolvable" : "none"}
             </option>
             {reachable.map((r) => {
-              const n = new Set(
-                (reaches?.rules?.[r.rule_id] ?? []).flatMap((x) => x?.sections ?? []),
-              ).size;
+              const n = new Set(shipped(r.rule_id)).size;
               const rid = r.rule_id.split(".").pop() ?? r.rule_id;
               return (
                 <option key={r.rule_id} value={r.rule_id}>

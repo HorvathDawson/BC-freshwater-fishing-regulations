@@ -31,15 +31,74 @@ def get_regions():
     out = []
     for r in reuse.regions():
         rows = reuse.queue(region=r)
-        out.append({"id": r, "total": len(rows), "by_status": dict(Counter(x["status"] for x in rows))})
+        out.append({"id": r, "total": len(rows), "by_status": dict(Counter(x["status"] for x in rows)),
+                    "by_verify": dict(Counter(x["verify"] for x in rows))})
     return out
 
 
 @app.get("/api/entries")
 def get_entries(region: str | None = None, status: str | None = None,
-                kind: str | None = None):
-    """`kind` is zone | water — the region chapters or the water tables. They are two jobs."""
-    return reuse.queue(region=region, status=status, kind=kind)
+                kind: str | None = None, verify: str | None = None,
+                order: str = "attention"):
+    """`kind` is zone | water — the region chapters or the water tables. They are two jobs.
+    `verify` is the reviewer's mark (unverified | verified | stale | flagged | todo); `order` is
+    attention (what needs a look first) or book (region, page, then the page's order)."""
+    if order not in ("attention", "book"):
+        raise HTTPException(422, [{"path": "order", "msg": "order is attention or book"}])
+    return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order)
+
+
+@app.get("/api/verification")
+def get_verification(region: str | None = None):
+    """Progress: {total, verified, stale, flagged, unverified} for a region, or the whole corpus."""
+    return reuse.verification_summary(region)
+
+
+class MarkPayload(BaseModel):
+    state: str          # verified | flagged | unverified
+    note: str = ""
+
+
+@app.put("/api/entries/{entry_id}/verify")
+def mark_entry(entry_id: str, body: MarkPayload):
+    """Mark an entry verified against the book, flag it with a note, or clear the mark. Stored in
+    the verification sidecar against the entry's content hash — never in the entry."""
+    try:
+        return reuse.mark_entry(entry_id, body.state, body.note)
+    except KeyError:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    except ValueError as ex:
+        raise HTTPException(422, [{"path": "state" if "state" in str(ex) else "note",
+                                   "msg": str(ex)}])
+
+
+@app.get("/api/entries/{entry_id}/bundle")
+def entry_bundle(entry_id: str):
+    """The live bundle's copy of this entry beside the file's — per-rule label and section count,
+    where each licensing record binds — and whether the bundle predates the file."""
+    d = reuse.entry_answer_context(entry_id)
+    if d is None:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    return d
+
+
+@app.get("/api/entries/{entry_id}/answer/waters")
+def entry_answer_waters(entry_id: str, q: str = "", limit: int = 60):
+    """The waters this entry reaches in the bundle, split into pieces that get one answer each."""
+    import answer
+    return answer.entry_waters(entry_id, q=q, limit=limit)
+
+
+@app.get("/api/answer")
+def get_answer(sid: int, date: str, fish: str):
+    """The EFFECTIVE answer an angler gets: `read.effective_rules` on one bundle section, one day,
+    one fish — plus the licensing bound there and whether it is tidal. Reflects the live bundle."""
+    import answer
+    try:
+        return answer.effective(sid, date, fish)
+    except ValueError as ex:
+        raise HTTPException(422, [{"path": "fish" if "fish" in str(ex) or "group" in str(ex)
+                                   else "date", "msg": str(ex)}])
 
 
 @app.get("/api/entries/{entry_id}")
@@ -202,6 +261,34 @@ def row_image(filename: str):
     if not path.exists():
         raise HTTPException(404, f"{filename} not found")
     return FileResponse(path, media_type="image/png")
+
+
+@app.get("/api/synopsis.pdf")
+def synopsis_pdf():
+    """The synopsis PDF the entries were read from (the repo copy), for `#page=<pdf page>` links."""
+    import synopsis_pages
+    if not synopsis_pages.PDF_PATH.exists():
+        raise HTTPException(404, f"{synopsis_pages.PDF_PATH} not found")
+    return FileResponse(synopsis_pages.PDF_PATH, media_type="application/pdf")
+
+
+@app.get("/api/synopsis/pages")
+def synopsis_page_map():
+    """printed page -> PDF page. `source_pages` are PRINTED numbers; the PDF index differs by 2-6."""
+    import synopsis_pages
+    return synopsis_pages.printed_to_pdf()
+
+
+@app.get("/api/synopsis/page/{printed}.png")
+def synopsis_page_image(printed: int):
+    """The whole printed page, rendered — the region chapter a zone entry was transcribed from has
+    no row crop, so this is how its text is checked against the book."""
+    import synopsis_pages
+    from fastapi.responses import Response
+    png = synopsis_pages.page_png(printed)
+    if png is None:
+        raise HTTPException(404, f"no printed page {printed} in the synopsis")
+    return Response(png, media_type="image/png")
 
 
 @app.post("/api/rebuild")

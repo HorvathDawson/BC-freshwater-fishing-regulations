@@ -4,7 +4,9 @@ import type {
   ItemSearchResult, LicensingRecord, Rule,
 } from "../types";
 import { api, type EntryRefused } from "../api";
-import { reachIdentities } from "../format";
+import { describeDiagnostic, reachIdentities } from "../format";
+import { AnswerPanel } from "./AnswerPanel";
+import { VerifyBar, type QueueNav } from "./VerifyBar";
 import { ExtentEditor } from "./ExtentEditor";
 import { AttachItem } from "./AttachItem";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
@@ -21,11 +23,17 @@ interface Props {
   onNavigate?: (entryId: string) => void;
   /** bumped after a graph rebuild — forces the map to refetch geometry for the same item */
   reloadKey?: number;
+  /** where this entry sits in the queue being worked through, and how to move */
+  nav?: QueueNav;
+  /** a mark was set or cleared — refresh the queue and progress */
+  onMarked?: () => void;
 }
 
 // Curated-split state vs the built graph, for the colour-coded chip badge.
 function boundaryState(b: Boundary): { cls: string; text: string; title: string } | null {
   if (!b.curated) return null;
+  if (b.minted)
+    return { cls: "synced", text: "minted", title: "a position the build cut itself (gauge, length, area) — not in splits.json by design" };
   if (b.in_graph && b.in_splits) {
     if (b.live && b.live.label !== b.label)
       return { cls: "edited", text: "edited", title: "differs from the built graph — rebuild to apply" };
@@ -38,11 +46,11 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
   return null;
 }
 
-/* The book the synopsis rows were read out of — the same file `extract_synopsis.py` downloads.
-   `source_pages` are its PDF pages, so #page= lands on the right one. */
-const SYNOPSIS_PDF =
-  "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/" +
-  "fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
+/* The book the entries were read from: the repo's copy, served by the backend. `source_pages`
+   are PRINTED page numbers and the PDF's index differs by 2-6 (the unnumbered centre gloss), so a
+   link goes through the printed -> PDF map. It used to put the printed number straight into
+   gov.bc.ca's `#page=`, which opened two to six pages early — Region 4's tables for the Dean. */
+const SYNOPSIS_PDF = "/api/synopsis.pdf";
 
 /** Strip what the backend stamps on a served entry (each rule's / record's generated `label`),
  *  so "unsaved changes" compares what would be written. */
@@ -54,7 +62,7 @@ function stored(e: Entry): Entry {
   };
 }
 
-export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Props) {
+export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, onMarked }: Props) {
   const vocab = useVocab();
   const { item, unused_curated_splits, source_image } = detail;
   const related = detail.related_entries ?? [];
@@ -78,6 +86,14 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
   const [selBoundary, setSelBoundary] = useState<string | null>(null); // clicked split -> map highlight + info
   const [pendingPoint, setPendingPoint] = useState<{ lon: number; lat: number } | null>(null); // live coord "show on map"
   const [reaches, setReaches] = useState<EntryReaches | null>(null); // resolved reach per rule/extent
+  const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
+  useEffect(() => { api.synopsisPages().then(setPdfPages).catch(() => {}); }, []);
+  // the whole printed page — open by default where there is no row crop (a region chapter)
+  const [showPage, setShowPage] = useState<number | null>(null);
+  useEffect(() => {
+    setShowPage(!detail.source_image && (detail.entry.source_pages ?? []).length
+      ? (detail.entry.source_pages ?? [])[0] : null);
+  }, [detail.entry.entry_id, detail.source_image]);
   const rules = entry.rules ?? [];
   const licensing = entry.licensing ?? [];
 
@@ -114,15 +130,19 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
   }, [detail]);
 
   // The resolved reach is derived from the SAVED entry + the built graph, so it is refetched when the
-  // entry changes or a rebuild lands — not on every keystroke. Editing an extent therefore shows its
-  // new reach after Save, which is also when the binding has actually been validated.
+  // saved entry changes (a save reloads `detail.entry`) or a rebuild lands — not on every keystroke.
+  // Keyed on the id alone it was NOT refetched after a save, so the map and every rule's binding
+  // went on showing the reach of the entry as it was before the edit.
+  const [reachBusy, setReachBusy] = useState(false);
   useEffect(() => {
     let live = true;
+    setReachBusy(true);
     api.reaches(detail.entry.entry_id)
       .then((r) => { if (live) setReaches(r); })
-      .catch(() => { if (live) setReaches(null); });
+      .catch(() => { if (live) setReaches(null); })
+      .finally(() => { if (live) setReachBusy(false); });
     return () => { live = false; };
-  }, [detail.entry.entry_id, reloadKey]);
+  }, [detail.entry, reloadKey]);
 
 
   useEffect(() => {
@@ -220,6 +240,8 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
+      <VerifyBar entryId={entry.entry_id} verification={detail.verification} dirty={dirty}
+        nav={nav} onMarked={onMarked} />
       {/* Identity header */}
       <div className="entry-head">
         <h2>{entry.display_name || entry.name}</h2>
@@ -359,7 +381,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
           context can open the book rather than hunting for the row. `entry.source_pages` is a
           list because seven MU 6-1 lakes are printed twice. */}
       {(source_image || (entry.source_pages ?? []).length > 0) && (
-        <div className="section source-image">
+        <div className={`section source-image${showPage != null ? " with-page" : ""}`}>
           <div className="dim" style={{ marginBottom: 4 }}>
             {detail.kind === "zone" ? "regional / provincial chapter" : "source row (synopsis)"}
             {(entry.source_pages ?? []).length > 0 && (
@@ -367,7 +389,13 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
                 {(entry.source_pages ?? []).map((n: number, i: number) => (
                   <span key={n}>
                     {i > 0 && ", "}
-                    <a href={`${SYNOPSIS_PDF}#page=${n}`} target="_blank" rel="noreferrer">{n}</a>
+                    <a href={`${SYNOPSIS_PDF}#page=${pdfPages[String(n)] ?? n}`} target="_blank" rel="noreferrer"
+                      title={pdfPages[String(n)] ? `printed page ${n} = PDF page ${pdfPages[String(n)]}` : undefined}>{n}</a>
+                    {" "}
+                    <button type="button" className="btn small" data-testid={`show-page-${n}`}
+                      onClick={() => setShowPage((cur) => (cur === n ? null : n))}>
+                      {showPage === n ? "hide page" : "show page"}
+                    </button>
                   </span>
                 ))}
               </>
@@ -377,6 +405,13 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
             <a href={`/api/row-image/${source_image}`} target="_blank" rel="noreferrer" title="open full size">
               <img src={`/api/row-image/${source_image}`} alt="source regulation row crop" />
             </a>
+          )}
+          {showPage != null && (
+            <div className="page-image">
+              <a href={`/api/synopsis/page/${showPage}.png`} target="_blank" rel="noreferrer" title="open full size">
+                <img src={`/api/synopsis/page/${showPage}.png`} alt={`synopsis printed page ${showPage}`} />
+              </a>
+            </div>
           )}
         </div>
       )}
@@ -432,6 +467,20 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
 
       <div className="section">
         <h3>Rules ({rules.length})</h3>
+        <div className="dim" style={{ marginBottom: 6 }}>
+          Each rule: the generated label (what the app says), the sentence it quotes, and WHERE it
+          binds — the reach builder's answer for the entry as saved
+          {reachBusy ? " (computing…)" : ""}.
+        </div>
+        {dirty && (
+          <div className="review-flag" data-testid="reach-stale">
+            Unsaved edits: labels and errors follow the draft, but every binding and the map show
+            the entry <strong>as last saved</strong>. Save to recompute them.
+          </div>
+        )}
+        {(entry.see ?? []).length > 0 && rules.length === 0 && (
+          <div className="dim">A pointer row: it carries no rules of its own; the entry it points to does.</div>
+        )}
         <div className="rules-list">
           {rules.map((rule, idx) => {
             const path = `rules.${idx}`;
@@ -464,6 +513,29 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
                 {rule.review_reason && (
                   <div className="review-flag"><strong>⚠ review_reason</strong> {rule.review_reason}</div>
                 )}
+                {rule.undrawn_part && (
+                  <div className="review-flag"><strong>not yet mapped</strong> holds only in “{String(rule.undrawn_part)}”,
+                    which nothing draws — shown as a note on the water, never colouring it</div>
+                )}
+                {(rule.unresolved_locators ?? []).length > 0 && (
+                  <div className="review-flag"><strong>unresolved place</strong> {(rule.unresolved_locators ?? []).join("; ")}</div>
+                )}
+                {(() => {
+                  const v = reaches?.verdict?.[rule.rule_id];
+                  if (!v) return null;
+                  const bound = v.outcome === "bound";
+                  return (
+                    <div className={`binding${bound ? "" : " unbound"}`} data-testid={`binding-${path}`}>
+                      <strong>{bound ? `binds ${v.n_sections.toLocaleString()} section(s)` : `${v.outcome}`}</strong>
+                      {v.reason && <> · {v.reason}{v.detail ? `: ${v.detail}` : ""}</>}
+                      {rule.side && <> · {String(rule.side)} half only</>}
+                      {v.tributaries_pending && <> · <span className="warn-text">tributaries pending</span></>}
+                      {v.diagnostics.length > 0 && (
+                        <ul>{v.diagnostics.map((d, i) => <li key={i}>{describeDiagnostic(d)}</li>)}</ul>
+                      )}
+                    </div>
+                  );
+                })()}
                 <ErrorsAt path={path} />
                 <button type="button" className="btn small edit-toggle"
                   onClick={() => setOpenRule((o) => ({ ...o, [rule.rule_id]: !(o[rule.rule_id] ?? bad) }))}>
@@ -508,6 +580,9 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
                   {lab ?? <span className="dim">— does not validate; see the errors below —</span>}
                 </div>
                 {rec.verbatim && <div className="rule-verbatim">{rec.verbatim}</div>}
+                {rec.review_reason && (
+                  <div className="review-flag"><strong>⚠ review_reason</strong> {String(rec.review_reason)}</div>
+                )}
                 <ErrorsAt path={path} />
                 <button type="button" className="btn small edit-toggle"
                   onClick={() => setOpenRule((o) => ({ ...o, [key]: !(o[key] ?? bad) }))}>
@@ -529,6 +604,8 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0 }: Prop
           </div>
         </div>
       </div>
+
+      <AnswerPanel entry={detail.entry} version={detail.entry} verdict={reaches?.verdict} />
 
       {/* Bindable boundaries */}
       <div className="section">

@@ -142,7 +142,57 @@ one of the waters, or the other water's cut falls outside the scope and the reac
 A boundary is looked up by the REF its kind implies (`split:{id}` for a curated cut, `lake:{wbk}` for
 a lake outlet), so reaches bounded by a lake resolve like any other.
 
-Reaches come from the built graph, so they reflect the last rebuild — not unsaved edits.
+Reaches come from the built graph and the SAVED entry: a save is reflected on the next call (the
+UI refetches after every save), unsaved edits are not. `verdict` is the builder's answer per rule
+(`outcome`, `reason`, `n_sections`, `sections`, `diagnostics`) — what ships; the UI binds and
+highlights from it, and falls back to the raw per-extent resolve only when it is absent.
+
+---
+
+## The review pass
+
+### GET /api/entries?…&verify=&order=
+`verify` ∈ `unverified | verified | stale | flagged | todo` (todo = not currently verified);
+`order` ∈ `attention` (default) `| book` (region, printed page, chapter before tables, file order).
+Each row also carries `page` (first printed page), `pointer` (a "See X" row with no rules),
+`verify` and `verify_note`. `GET /api/regions` adds `by_verify` counts.
+
+### GET /api/verification?region=
+→ `{total, verified, stale, flagged, unverified}` over a region or the whole corpus.
+
+### PUT /api/entries/{entry_id}/verify
+Body `{state: "verified" | "flagged" | "unverified", note}` → `{entry_id, record, status}`.
+Writes the sidecar `verification.json` (beside `catalogue/`, or `CURATION_VERIFICATION`) — never the
+entry. `422` for an unknown state or a flag with no note; `404` for an unknown entry. The record's
+`hash` is the entry's content hash, so a later edit reads `stale`. `GET /api/entries/{id}` carries
+`verification: {status, note, hash}`.
+
+## What an angler is told (the live bundle)
+
+Read from `data/generated/bundle/bundle.sqlite` — the LAST BUNDLE BUILD, not the entry file.
+
+### GET /api/entries/{entry_id}/bundle
+→ `{bundle: {built, version, …}, in_bundle, bundle_matches, rules: [{rule_id, label_bundle,
+label_now, n_sections, unresolved}], licensing: [{kind, id, label, unresolved, n_sections, n_waters,
+waters: [{name, n}]}]}`. `bundle_matches` compares labels only; the UI also compares each rule's
+`n_sections` with the reach builder's verdict for the saved entry.
+
+### GET /api/entries/{entry_id}/answer/waters?q=&limit=60
+→ `[{item_id, name, n_sections, pieces: [{sid, n_sections, rules: [{rule_id, via}]}]}]` — the waters
+the entry reaches in the bundle (`"(unnamed streams)"` for sections no named item holds), each split
+into pieces that answer to one rule set; `sid` is a representative bundle section (a handle within
+one bundle vintage — never stored).
+
+### GET /api/answer?sid=&date=YYYY-MM-DD&fish=
+→ `{sid, date, fish, waters, tidal, rules: [{entry_id, rule_id, entry_name, state, type, label,
+verbatim, via, undrawn_part, standing}], licensing: [{kind, entry_id, id, via, label}], bundle}` —
+`pipeline.deliver.bundle.read.effective_rules`, unchanged. `fish` is one leaf code; a group → 422.
+
+## The book
+
+`source_pages` are PRINTED page numbers. `GET /api/synopsis/pages` → `{printed: pdf_page}` read off
+the repo copy's footers; `GET /api/synopsis.pdf` serves that copy (link `#page=<pdf_page>`);
+`GET /api/synopsis/page/{printed}.png` renders the whole page.
 
 ---
 

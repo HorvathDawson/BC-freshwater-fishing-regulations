@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { QueueRow } from "../types";
 
 interface Props {
@@ -8,6 +9,12 @@ interface Props {
 }
 
 export function QueueList({ rows, selected, loading, onSelect }: Props) {
+  // keep the open entry in view as the reviewer steps through with prev / next
+  useEffect(() => {
+    if (!selected) return;
+    document.querySelector(`[data-entry="${CSS.escape(selected)}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [selected, rows]);
   if (loading) return <div className="queue"><div className="empty-state">Loading…</div></div>;
   if (!rows.length)
     return (
@@ -36,6 +43,7 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
       )}
         <div
           key={r.entry_id}
+          data-entry={r.entry_id}
           className={`queue-row${selected === r.entry_id ? " selected" : ""}`}
           onClick={() => onSelect(r.entry_id)}
         >
@@ -48,6 +56,13 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
             )}
           </div>
           <div className="meta">
+            {r.verify && r.verify !== "unverified" && (
+              <span className={`verify-chip ${r.verify}`} title={r.verify_note || r.verify}>
+                {r.verify === "verified" ? "✓ verified" : r.verify === "stale" ? "changed since verified" : "⚑ reviewer flag"}
+              </span>
+            )}
+            {r.page != null && <span className="dim">p.{r.page}</span>}
+            {r.pointer && <span className="badge">pointer</span>}
             <span className={`badge ${r.status}`}>{r.status}</span>
             {r.mus.length > 0 && <span>MU {r.mus.join(", ")}</span>}
             <span className="dim">{r.n_rules} rule{r.n_rules === 1 ? "" : "s"}</span>

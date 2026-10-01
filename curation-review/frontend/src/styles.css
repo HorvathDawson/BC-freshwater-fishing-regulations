@@ -617,7 +617,7 @@ body {
 }
 .source-image {
   position: sticky;
-  top: 0;
+  top: 34px;           /* under the sticky verify bar (48px tall, stuck at -14px) */
   z-index: 5;
   margin-top: 0;
   padding: 10px 0 8px;
@@ -1148,3 +1148,69 @@ button.btn.rebuild-running {
 .warnings { margin: 6px 0; font-size: 12px; }
 .add-record select { font-size: 12px; }
 .ref { display: inline-flex; gap: 6px; }
+
+/* ---- review pass: the reviewer's mark, progress, and the way to the next entry ---- */
+.verify-bar {
+  position: sticky;
+  top: -14px;
+  z-index: 5;
+  margin: -14px -18px 12px;
+  padding: 0 18px;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.verify-row { display: flex; gap: 6px; align-items: center; }
+.verify-row .btn { padding: 4px 10px; white-space: nowrap; }
+.verify-bar .errors { position: absolute; top: 48px; left: 18px; right: 18px; }
+.verify-note { flex: 1; min-width: 160px; font-size: 13px; padding: 3px 6px; }
+.verify-nav { display: inline-flex; gap: 4px; align-items: center; margin-left: 8px; }
+.verify-chip {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #eef0f3;
+  color: var(--muted);
+}
+.verify-chip.verified { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+.verify-chip.stale { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+.verify-chip.flagged { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.progress { display: inline-flex; gap: 6px; align-items: center; color: var(--text); }
+.progress .bar { width: 80px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress .bar i { display: block; height: 100%; background: var(--ok-border); }
+
+/* where a rule binds, as the reach builder decided it */
+.binding { margin-top: 6px; font-size: 12px; color: var(--text); }
+.binding.unbound strong { color: var(--danger-text); }
+.binding ul { margin: 2px 0 0; padding-left: 18px; color: var(--muted); }
+.warn-text { color: var(--warn-text); }
+
+/* what an angler is told */
+.answer .answer-ask { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.answer .answer-ask label { color: var(--muted); display: inline-flex; gap: 4px; align-items: center; }
+.answer .answer-ask select { max-width: 340px; }
+.answer .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin: 8px 0 4px; }
+.answer .answer-lic-row { margin-bottom: 4px; }
+.answer-result table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.answer-result td { padding: 3px 6px; border-top: 1px solid #eceef1; vertical-align: top; }
+.answer-result tr.mine td, .answer-result .mine { font-weight: 600; }
+.answer-result .state { font-size: 11px; white-space: nowrap; color: var(--muted); }
+.answer-result .state.speaks { color: var(--ok-text); }
+.answer-result .state.beside { color: var(--accent); }
+.answer-result .state.not_yet_mapped { color: var(--warn-text); }
+.attach-more { margin-top: 4px; }
+.attach-more input[type="text"] { width: 100%; padding: 5px 8px; font-size: 13px; }
+.page-image { max-height: 420px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--border); background: #fff; }
+.page-image img { width: 100%; display: block; }
+.source-image.with-page { position: static; }
+.source-image .page-image img { max-width: 100%; max-height: none; width: 100%; height: auto; }
+.verify-chip, .verify-nav, .verify-nav .dim { white-space: nowrap; }
+.verify-note { min-width: 80px; }
+.verify-row { min-width: 0; }
+.answer-result td:last-child { width: 26%; }
+.answer-result td:first-child { width: 1%; }

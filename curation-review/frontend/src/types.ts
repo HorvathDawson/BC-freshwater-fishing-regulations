@@ -385,6 +385,19 @@ export interface RegionSummary {
   id: string;
   total: number;
   by_status: Partial<Record<Status, number>>;
+  /** the reviewer's marks over the region (see `VerifyStatus`) */
+  by_verify?: Partial<Record<VerifyStatus, number>>;
+}
+
+/** The reviewer's mark on an entry, from the verification sidecar (never stored in the entry).
+ *  `stale` = it was verified, then the entry changed, so it needs another look. */
+export type VerifyStatus = "unverified" | "verified" | "stale" | "flagged";
+export type QueueOrder = "attention" | "book";
+
+export interface Verification {
+  status: VerifyStatus;
+  note: string;
+  hash: string;
 }
 
 export interface QueueRow {
@@ -399,6 +412,12 @@ export interface QueueRow {
   matched_item_name: string | null;
   also_item_ids: string[]; // a combined override's OTHER items (Chilliwack/Vedder, Fraser + channels)
   unused_curated_splits: number;
+  /** the first page the row is printed on */
+  page?: number | null;
+  /** a "See X" row with no rules of its own */
+  pointer?: boolean;
+  verify?: VerifyStatus;
+  verify_note?: string;
 }
 
 export interface Boundary {
@@ -408,6 +427,8 @@ export interface Boundary {
   ref: string;
   wbk: string;
   curated: boolean;
+  /** a cut the build minted itself (gauge__…, length:…, area:…) — never in splits.json */
+  minted?: boolean;
   item_id?: string; // which registry item this cut-point belongs to (combined entries)
   meta?: Record<string, unknown> | null; // AS-BUILT split metadata (anchor_type, route_measure, blk, …)
   in_graph?: boolean; // baked into the current graph build
@@ -481,6 +502,55 @@ export interface EntryDetail {
   related_entries: RelatedEntry[]; // other synopsis rows over the same water
   unused_curated_splits: UnusedSplit[];
   source_image: string | null; // synopsis row-crop image filename, if found
+  verification?: Verification;
+}
+
+// ---- What an angler is told (the live bundle) -------------------------------------------------
+
+export interface BundleMeta {
+  built: string;
+  version?: string;
+  reach_digest?: string;
+  [k: string]: string | undefined;
+}
+
+/** GET /api/entries/{id}/bundle — the bundle's copy of this entry beside the file's. */
+export interface EntryInBundle {
+  bundle: BundleMeta;
+  in_bundle: boolean;
+  /** false when a rule's label in the bundle differs from the one generated from the file now */
+  bundle_matches: boolean;
+  rules: { rule_id: string; label_bundle: string | null; label_now: string | null;
+           n_sections: number; unresolved: string | null }[];
+  licensing: { kind: string; id: string; label: string; unresolved: string | null;
+               n_sections: number; n_waters: number; waters: { name: string; n: number }[] }[];
+}
+
+export interface AnswerPiece {
+  sid: number;
+  n_sections: number;
+  rules: { rule_id: string; via: string }[];
+}
+
+export interface AnswerWater {
+  item_id: string;
+  name: string;
+  n_sections: number;
+  pieces: AnswerPiece[];
+}
+
+/** GET /api/answer — `read.effective_rules` at one section, one day, one fish. */
+export interface Answer {
+  sid: number;
+  date: string;
+  fish: string;
+  waters: string[];
+  tidal: string | null;
+  rules: { entry_id: string; rule_id: string; entry_name: string; state: string; type: string;
+           label: string; verbatim: string | null; via: string | null;
+           undrawn_part: string | null; standing: boolean }[];
+  licensing: { kind: string; entry_id: string; id: string; via: string; label: string }[];
+  bundle: BundleMeta;
 }
 
 /** One split whose cut lands at more than one measure on the same blue line, so the reach shown is

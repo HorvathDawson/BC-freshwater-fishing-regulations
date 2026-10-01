@@ -20,6 +20,11 @@ import type {
   SplitRef,
   Status,
   RuleResolved,
+  Answer,
+  AnswerWater,
+  EntryInBundle,
+  QueueOrder,
+  VerifyStatus,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -68,14 +73,23 @@ async function writeEntry(url: string, body: Record<string, unknown>): Promise<S
   return (await res.json()) as SaveResult;
 }
 
+let pageMap: Promise<Record<string, number>> | null = null;
+
 export const api = {
+  /** printed page -> PDF page of the repo's synopsis (`source_pages` are PRINTED numbers) */
+  synopsisPages: () => (pageMap ??= getJSON<Record<string, number>>("/api/synopsis/pages")
+    .catch((e) => { pageMap = null; throw e; })),
+
   regions: () => getJSON<RegionSummary[]>("/api/regions"),
 
-  entries: (region?: string, status?: Status | "", kind?: EntryKind | "") => {
+  entries: (region?: string, status?: Status | "", kind?: EntryKind | "",
+            verify?: VerifyStatus | "todo" | "", order?: QueueOrder) => {
     const p = new URLSearchParams();
     if (region) p.set("region", region);
     if (status) p.set("status", status);
     if (kind) p.set("kind", kind);
+    if (verify) p.set("verify", verify);
+    if (order) p.set("order", order);
     const qs = p.toString();
     return getJSON<QueueRow[]>(`/api/entries${qs ? `?${qs}` : ""}`);
   },
@@ -191,4 +205,36 @@ export const api = {
   },
 
   rebuildStatus: () => getJSON<RebuildStatus>("/api/rebuild/status"),
+
+  // --- review marks (a sidecar keyed by entry_id + content hash; never inside the entry) ---
+  /** mark verified, flag with a note, or clear ("unverified"). Throws EntryRefused on 422. */
+  verify: async (entryId: string, state: "verified" | "flagged" | "unverified", note = "") => {
+    const res = await fetch(`/api/entries/${encodeURIComponent(entryId)}/verify`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, note }),
+    });
+    if (res.status === 422) {
+      const payload = await res.json().catch(() => ({}));
+      const err = new Error("refused") as EntryRefused;
+      err.fieldErrors = asFieldErrors(payload?.detail);
+      throw err;
+    }
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as { entry_id: string; status: VerifyStatus };
+  },
+
+  /** progress over a region, or the whole corpus */
+  verification: (region?: string) =>
+    getJSON<{ total: number; verified: number; stale: number; flagged: number; unverified: number }>(
+      `/api/verification${region ? `?region=${encodeURIComponent(region)}` : ""}`),
+
+  // --- what an angler is told: the live bundle ---
+  entryBundle: (entryId: string) =>
+    getJSON<EntryInBundle>(`/api/entries/${encodeURIComponent(entryId)}/bundle`),
+  answerWaters: (entryId: string, q = "") =>
+    getJSON<AnswerWater[]>(
+      `/api/entries/${encodeURIComponent(entryId)}/answer/waters?q=${encodeURIComponent(q)}`),
+  answer: (sid: number, date: string, fish: string) =>
+    getJSON<Answer>(`/api/answer?sid=${sid}&date=${encodeURIComponent(date)}&fish=${encodeURIComponent(fish)}`),
 };

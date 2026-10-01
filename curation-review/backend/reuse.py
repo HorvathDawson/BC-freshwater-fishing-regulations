@@ -19,6 +19,7 @@ import json
 import math
 import os
 import tempfile
+import threading
 from functools import lru_cache
 from pathlib import Path
 
@@ -28,7 +29,9 @@ from pipeline.regs.matching.matcher import (
 from pipeline.regs.parsing import io
 from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
 from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
+import answer
 import model_api
+import verification
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
@@ -37,6 +40,7 @@ from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributarie
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.atlas.splits.sectionizer import _auto_split
 
 _ROOT = Path(__file__).resolve().parents[2]
 #: The catalogue region files the app reads AND WRITES. `CURATION_ENTRIES_DIR` points it at a copy
@@ -57,13 +61,35 @@ WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
 SPLITS_JSON_PATH = CURATED.waters.splits                 # THE hand-curated split source (editable here)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
+#: The reviewer's marks (verified / flagged), a sidecar beside the catalogue — never in an entry.
+VERIFICATION_PATH = verification.path_for(ENTRIES_DIR)
 
 
 # --------------------------------------------------------------------------- #
 # Registry + matcher indices (expensive — built once)
 # --------------------------------------------------------------------------- #
 
-@lru_cache(maxsize=1)
+#: ONE loader at a time for the big artifacts. FastAPI runs these sync endpoints on a thread pool
+#: and `lru_cache` does not hold a miss: when a page fires its five or six first requests at a cold
+#: backend (startup, or `--reload` after an edit), each thread loaded its own graph (~0.7 GB) and
+#: geometry (~2.9 GB) side by side. Measured: a reach that answers in 1.3 s warm took 7 min 50 s
+#: under that stampede.
+_LOAD_LOCK = threading.RLock()
+
+
+def _single_load(fn):
+    """`lru_cache(maxsize=1)` whose first load is serialised; keeps `cache_clear`."""
+    cached = lru_cache(maxsize=1)(fn)
+
+    def wrapper():
+        with _LOAD_LOCK:
+            return cached()
+    wrapper.cache_clear = cached.cache_clear
+    wrapper.__doc__, wrapper.__name__ = fn.__doc__, fn.__name__
+    return wrapper
+
+
+@_single_load
 def _registry() -> dict:
     return load_registry(REGISTRY_PATH)
 
@@ -295,7 +321,11 @@ def _boundary_dict(b) -> dict:
     # say what a boundary represents instead of it silently standing for more than its own label.
     return {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
             "aliases": [str(a).split(":", 1)[-1] for a in (getattr(b, "aliases", ()) or ())],
-            "curated": str(b.ref or "").startswith("split:")}
+            "curated": str(b.ref or "").startswith("split:"),
+            # a position the pipeline minted (a gauge, a length or area cut), not a split anyone
+            # authored in splits.json — so neither "orphan" when splits.json lacks it, nor an
+            # "unused curated split" when no rule binds it
+            "minted": _auto_split(b.id)}
 
 
 def _curated_split_ids(item) -> set[str]:
@@ -309,6 +339,10 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
 
     `entry_models.unused_splits` walked the retired Entry's `.scope`; a CatalogueEntry has plain
     `extents` on the entry and on each rule, so the walk is local now."""
+    if not e.get("rules"):
+        # a pointer row ("See Atnarko/Bella Coola Rivers") binds nothing by design; every cut on
+        # its water read as "unused" and put it in the unused_splits queue as a finding
+        return []
     curated = _curated_split_ids(item)
     if not curated:
         return []
@@ -320,31 +354,45 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     meta = _splits_meta()
     out = []
     for sid in sorted(curated - used):
+        if _auto_split(sid):
+            continue
         m = meta.get(sid, {})
         out.append({"id": sid, "label": m.get("label", sid), "anchor_type": m.get("anchor_type", "")})
     return out
 
 
+def _applies_keys(at: dict | None) -> set[str]:
+    """The registry ref_ids a splits.json `applies_to` names."""
+    at = at or {}
+    keys: set[str] = set()
+    if at.get("gnis_id") is not None:
+        keys.add(f"gnis:{at['gnis_id']}")
+    for g in (at.get("gnis_ids") or []):
+        keys.add(f"gnis:{g}")
+    if at.get("wsc"):
+        keys.add(f"wsc:{trim_wsc(str(at['wsc']))}")   # registry ref_ids store the TRIMMED wsc
+    if at.get("blk"):
+        keys.add(f"blk:{at['blk']}")
+    return keys
+
+
 def _item_split_source(item) -> list[dict]:
     """Live splits.json splits on the SAME waterbody as this registry item (applies_to matched to the
-    item's ref_ids). May include splits not yet built into the graph (pending rebuild)."""
+    item's ref_ids). May include splits not yet built into the graph (pending rebuild).
+
+    A split's own `applies_to` counts beside its waterbody's: four waterbodies (Atnarko/Bella
+    Coola, Skeena/Kispiox, Lynn Creek, Whiteswan) carry `applies_to: null` and put it on each split.
+    Reading only the waterbody's, every one of their built cut-points showed "orphan — removed from
+    splits.json, will vanish on rebuild" while splits.json held it unchanged."""
     if item is None:
         return []
     refs = set(item.ref_ids)
     out: list[dict] = []
     for wb in _load_splits().get("waterbodies", []):
-        at = wb.get("applies_to") or {}
-        keys: set[str] = set()
-        if at.get("gnis_id") is not None:
-            keys.add(f"gnis:{at['gnis_id']}")
-        for g in (at.get("gnis_ids") or []):
-            keys.add(f"gnis:{g}")
-        if at.get("wsc"):
-            keys.add(f"wsc:{trim_wsc(str(at['wsc']))}")   # registry ref_ids store the TRIMMED wsc
-        if at.get("blk"):
-            keys.add(f"blk:{at['blk']}")
-        if keys & refs:
-            out.extend(wb.get("splits", []))
+        wb_keys = _applies_keys(wb.get("applies_to"))
+        for sp in wb.get("splits", []):
+            if (wb_keys | _applies_keys(sp.get("applies_to"))) & refs:
+                out.append(sp)
     return out
 
 
@@ -492,7 +540,7 @@ def item_tributaries(item_id: str) -> list[dict]:
 # junction is expressed (the Chilliwack ENDS at Vedder Crossing).
 
 
-@lru_cache(maxsize=1)
+@_single_load
 def _graph():
     """The built StreamGraph — node bounds + flow adjacency. Big (~0.7 GB) but loaded once per
     process and only when a reach is actually requested."""
@@ -768,22 +816,35 @@ _KIND_ORDER = {"zone": 0, "water": 1}
 
 
 def queue(region: str | None = None, status: str | None = None,
-          kind: str | None = None) -> list[dict]:
-    """Review queue rows, sorted so items needing attention float to the top.
+          kind: str | None = None, verify: str | None = None,
+          order: str = "attention") -> list[dict]:
+    """Review queue rows.
 
-    Regional/provincial entries form their own block ahead of the water rows — they answer a
-    different question and are checked against a different source (the region chapter, not a
-    table row), so interleaving them by name made the queue two jobs shuffled together.
-    """
+    `order="attention"` (the default) floats what needs attention to the top, regional and
+    provincial entries in their own block ahead of the water rows — they answer a different
+    question and are checked against a different source (the region chapter, not a table row).
+
+    `order="book"` is the order to go through EVERY entry in: by region, then the page it is
+    printed on, the region chapter's entries before that page's table rows, then the file's
+    order (alphabetical within a table, as the book prints it).
+
+    `verify` filters on the reviewer's mark (`verification.STATUSES`): unverified | verified |
+    stale (verified, then changed) | flagged; `todo` is everything not currently verified."""
+    marks = verification.load(VERIFICATION_PATH)
     rows = []
     src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
-    for reg_id, e in src:
+    for pos, (reg_id, e) in enumerate(src):
         item = _item_for_entry(e)
         st = entry_status(e, item)
         if status and st != status:
             continue
         if kind and entry_kind(e) != kind:
             continue
+        rec = marks.get(e["entry_id"])
+        vst = verification.status_of(rec, verification.entry_hash(e))
+        if verify and not (vst == verify or (verify == "todo" and vst != "verified")):
+            continue
+        pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
         rows.append({
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
@@ -796,10 +857,64 @@ def queue(region: str | None = None, status: str | None = None,
             "matched_item_name": item.name if item else None,
             "also_item_ids": [a["id"] for a in _also_items(e)],      # combined-override items
             "unused_curated_splits": len(unused_curated_splits(e, item)),
+            "page": min(pages) if pages else None,
+            "pointer": bool(e.get("see")) and not e.get("rules"),
+            "verify": vst,
+            "verify_note": (rec or {}).get("note", ""),
+            "_pos": pos,
         })
-    rows.sort(key=lambda r: (_KIND_ORDER.get(r["kind"], 9),
-                             _STATUS_ORDER.get(r["status"], 9), r["name"]))
+    if order == "book":
+        rows.sort(key=lambda r: (_region_key(r["region"]), r["page"] if r["page"] is not None
+                                 else 10_000, _KIND_ORDER.get(r["kind"], 9), r["_pos"]))
+    else:
+        rows.sort(key=lambda r: (_KIND_ORDER.get(r["kind"], 9),
+                                 _STATUS_ORDER.get(r["status"], 9), r["name"]))
+    for r in rows:
+        del r["_pos"]
     return rows
+
+
+def _region_key(region: str) -> tuple:
+    """'provincial' first (the book's front pages), then 1, 2, … 7, 7a, 7b, 8."""
+    if region == "provincial":
+        return (0, 0, "")
+    num = "".join(ch for ch in region if ch.isdigit())
+    return (1, int(num) if num else 99, region)
+
+
+def verification_summary(region: str | None = None) -> dict:
+    """{total, verified, stale, flagged, unverified} over a region (or the whole corpus)."""
+    marks = verification.load(VERIFICATION_PATH)
+    src = load_region(region).values() if region else (e for _, e in _all_entries())
+    out = {k: 0 for k in verification.STATUSES}
+    n = 0
+    for e in src:
+        n += 1
+        out[verification.status_of(marks.get(e["entry_id"]), verification.entry_hash(e))] += 1
+    return {"total": n, **out}
+
+
+def mark_entry(entry_id: str, state: str, note: str = "") -> dict:
+    """Record a reviewer's call on an entry, against its content as it is on disk NOW."""
+    found = _find(entry_id)
+    if found is None:
+        raise KeyError(entry_id)
+    _, e = found
+    rec = verification.mark(VERIFICATION_PATH, entry_id, e, state, note)
+    return {"entry_id": entry_id, "record": rec,
+            "status": verification.status_of(rec or None, verification.entry_hash(e))}
+
+
+def entry_answer_context(entry_id: str) -> dict | None:
+    """The bundle's copy of this entry beside the file's: per-rule labels and section counts, and
+    where each licensing record binds (`answer.entry_in_bundle`)."""
+    found = _find(entry_id)
+    if found is None:
+        return None
+    _, e = found
+    lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
+    now = {r["rule_id"]: lab["rules"][i] for i, r in enumerate(e.get("rules") or [])}
+    return answer.entry_in_bundle(entry_id, now)
 
 
 def entry_detail(entry_id: str) -> dict | None:
@@ -843,8 +958,17 @@ def entry_detail(entry_id: str) -> dict | None:
             "related_entries": related_entries(entry_id),   # other rows over the same water
             "unused_curated_splits": unused_curated_splits(e, item),
             "source_image": entry_source_image(e),
+            "verification": _verification_of(entry_id),
         }
     return None
+
+
+def _verification_of(entry_id: str) -> dict:
+    found = _find(entry_id)
+    rec = verification.load(VERIFICATION_PATH).get(entry_id)
+    h = verification.entry_hash(found[1]) if found else ""
+    return {"status": verification.status_of(rec, h), "note": (rec or {}).get("note", ""),
+            "hash": h}
 
 
 def species_list() -> list[dict]:
@@ -1046,7 +1170,7 @@ def _sections_geojson(section_ids: list[str], kind: str) -> list[dict]:
 # replaces; the cost is ~2.9 GB resident, which is the right trade for a local single-curator tool.
 # --------------------------------------------------------------------------- #
 
-@lru_cache(maxsize=1)
+@_single_load
 def _geoms() -> dict:
     """node_id -> geometry (EPSG:3005), for `{blk}:{measure}` sections AND `lake:{wbk}` nodes."""
     if not GEOMS_PKL_PATH.exists():

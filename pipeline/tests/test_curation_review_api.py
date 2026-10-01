@@ -44,8 +44,11 @@ def env(tmp_path_factory):
         shutil.copy2(p, tmp / p.name)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
+    # the reviewer's marks go beside the copy, never beside the real catalogue
+    mp.setenv("CURATION_VERIFICATION", str(tmp / "verification.json"))
     mp.syspath_prepend(str(BACKEND))
-    for mod in ("app", "reuse", "model_api", "rebuild"):
+    for mod in ("app", "reuse", "model_api", "rebuild", "verification", "answer",
+                "synopsis_pages"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402
@@ -615,3 +618,179 @@ def test_covered_ids_read_matched_only(env, picks):
     assert reuse._covered_ids(empty) == []
     assert reuse._item_for_entry(empty) is None
     assert reuse.entry_status(empty, None) == "no_registry"
+
+
+# --------------------------------------------------------------------------- #
+# The review pass: a mark per entry, in a sidecar, against the entry's content
+# --------------------------------------------------------------------------- #
+
+BULL = "r4:bull_river@4-22"
+
+
+def _mark(env, eid, state, note=""):
+    return env["client"].put(f"/api/entries/{eid}/verify", json={"state": state, "note": note})
+
+
+def test_verification_is_a_sidecar_keyed_by_content(env):
+    reuse = env["reuse"]
+    side = env["dir"] / "verification.json"
+    assert reuse.VERIFICATION_PATH == side, "marks must go beside the copy the app serves"
+    path = _file_of(env, BULL)
+    before = path.read_bytes()
+    try:
+        r = _mark(env, BULL, "verified")
+        assert r.status_code == 200, r.text
+        assert r.json()["status"] == "verified"
+        assert path.read_bytes() == before, "marking an entry wrote to its region file"
+        rec = json.loads(side.read_text())["entries"][BULL]
+        assert set(rec) == {"state", "hash", "note"} and rec["state"] == "verified"
+        assert _get(env, BULL)["verification"]["status"] == "verified"
+        rows = env["client"].get("/api/entries", params={"region": "4", "verify": "verified"}).json()
+        assert [x["entry_id"] for x in rows] == [BULL]
+        todo = env["client"].get("/api/entries", params={"region": "4", "verify": "todo"}).json()
+        assert BULL not in {x["entry_id"] for x in todo}
+        prog = env["client"].get("/api/verification", params={"region": "4"}).json()
+        assert prog["verified"] == 1 and prog["total"] == len(todo) + 1
+
+        # an edit makes the mark STALE: it was verified, not in the form it has now
+        d = _get(env, BULL)
+        edited = copy.deepcopy(d["entry"])
+        edited["rules"][2]["includes_tributaries"] = False
+        assert _put(env, BULL, "4", edited).status_code == 200
+        assert _get(env, BULL)["verification"]["status"] == "stale"
+        assert [x["entry_id"] for x in env["client"].get(
+            "/api/entries", params={"region": "4", "verify": "stale"}).json()] == [BULL]
+        # and putting it back makes it verified again — the hash is of the content, not a counter
+        assert _put(env, BULL, "4", d["entry"]).status_code == 200
+        assert path.read_bytes() == before
+        assert _get(env, BULL)["verification"]["status"] == "verified"
+    finally:
+        _mark(env, BULL, "unverified")
+    assert _get(env, BULL)["verification"]["status"] == "unverified"
+    assert BULL not in json.loads(side.read_text())["entries"]
+
+
+def test_a_flag_needs_a_note_and_stands_through_edits(env):
+    r = _mark(env, BULL, "flagged")
+    assert r.status_code == 422 and "note" in r.text
+    r = _mark(env, BULL, "bogus", "x")
+    assert r.status_code == 422
+    try:
+        assert _mark(env, BULL, "flagged", "Galbraith cut").json()["status"] == "flagged"
+        row = next(x for x in env["client"].get(
+            "/api/entries", params={"region": "4", "verify": "flagged"}).json()
+            if x["entry_id"] == BULL)
+        assert row["verify_note"] == "Galbraith cut"
+    finally:
+        _mark(env, BULL, "unverified")
+    assert env["client"].put("/api/entries/r9:nope/verify",
+                             json={"state": "verified"}).status_code == 404
+
+
+def test_book_order_is_region_then_page(env):
+    rows = env["client"].get("/api/entries", params={"region": "5", "order": "book"}).json()
+    pages = [x["page"] for x in rows if x["page"] is not None]
+    assert pages == sorted(pages), "book order must run by printed page"
+    first_water = next(i for i, x in enumerate(rows) if x["kind"] == "water")
+    assert all(x["kind"] == "zone" for x in rows[:first_water])   # the chapter precedes its tables
+    assert env["client"].get("/api/entries", params={"order": "nope"}).status_code == 422
+
+
+def test_a_pointer_row_has_no_unused_splits(env):
+    rows = env["client"].get("/api/entries", params={"region": "5"}).json()
+    bc = next(x for x in rows if x["entry_id"] == "r5:bella_coola_river@5-8")
+    assert bc["pointer"] is True
+    assert bc["status"] != "unused_splits" and bc["unused_curated_splits"] == 0
+
+
+def test_minted_cuts_are_not_orphans_or_unused(env):
+    d = _get(env, "r5:dean_river@5-9")
+    minted = [b for b in d["item"]["boundaries"] if b.get("minted")]
+    assert minted, "Dean River has gauge and length cuts the build minted"
+    assert all(b["id"].startswith(("gauge__", "length:", "area:", "border:")) for b in minted)
+    assert not any(u["id"].startswith(("gauge__", "length:")) for u in d["unused_curated_splits"])
+
+
+def test_a_split_carrying_its_own_applies_to_is_in_splits_json(env):
+    """Atnarko/Bella Coola's waterbody has `applies_to: null`; each split carries its own."""
+    d = _get(env, "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8")
+    authored = [b for b in d["item"]["boundaries"] if b["curated"] and not b.get("minted")]
+    assert authored and all(b["in_splits"] for b in authored), \
+        [b["id"] for b in authored if not b["in_splits"]]
+
+
+def test_loaders_keep_cache_clear(env):
+    reuse = env["reuse"]
+    for fn in (reuse._registry, reuse._graph, reuse._geoms):
+        assert callable(fn.cache_clear)
+
+
+# --------------------------------------------------------------------------- #
+# What an angler is told: the live bundle, through read.effective_rules
+# --------------------------------------------------------------------------- #
+
+def _bundle_or_skip():
+    from pipeline.deliver.bundle import read as R
+    if not Path(R.BUNDLE).exists():
+        pytest.skip("needs the built bundle (data/generated/bundle/bundle.sqlite)")
+
+
+DEAN = "r5:dean_river@5-9"
+
+
+def test_bundle_copy_of_an_entry(env):
+    _bundle_or_skip()
+    b = env["client"].get(f"/api/entries/{DEAN}/bundle").json()
+    assert b["in_bundle"] is True
+    served = {r["rule_id"]: r["label"] for r in _get(env, DEAN)["entry"]["rules"]}
+    assert {r["rule_id"]: r["label_now"] for r in b["rules"]} == served
+    assert {x["id"] for x in b["licensing"]} >= {"dean_river_class_i_main"}
+    assert all(x["n_sections"] >= 0 and "waters" in x for x in b["licensing"])
+
+
+def test_answer_for_one_piece_one_day_one_fish(env):
+    _bundle_or_skip()
+    from pipeline.deliver.bundle import read as R
+    waters = env["client"].get(f"/api/entries/{DEAN}/answer/waters").json()
+    dean = next(w for w in waters if w["name"] == "Dean River")
+    piece = dean["pieces"][0]
+    assert piece["rules"] and all(r["rule_id"].startswith("dean_river.") for r in piece["rules"])
+    got = env["client"].get("/api/answer", params={"sid": piece["sid"], "date": "2026-07-01",
+                                                    "fish": "ST"}).json()
+    want = R.effective_rules(piece["sid"], __import__("datetime").date(2026, 7, 1), "ST")
+    assert [(x["entry_id"], x["rule_id"], x["state"]) for x in got["rules"]] == \
+        [(x["entry"], x["rule"], x["state"]) for x in want], "the app must answer as read.py does"
+    assert "Dean River" in got["waters"]
+    # a group is not one fish, and a date must be a date — refused, readably
+    r = env["client"].get("/api/answer", params={"sid": piece["sid"], "date": "2026-07-01",
+                                                  "fish": "TROUT_CHAR"})
+    assert r.status_code == 422 and "group" in r.text
+    r = env["client"].get("/api/answer", params={"sid": piece["sid"], "date": "July",
+                                                  "fish": "ST"})
+    assert r.status_code == 422 and "YYYY-MM-DD" in r.text
+
+
+def test_tidal_water_says_so(env):
+    _bundle_or_skip()
+    waters = env["client"].get("/api/entries/r1:nitinat_lake@1-3/answer/waters").json()
+    sid = waters[0]["pieces"][0]["sid"]
+    got = env["client"].get("/api/answer", params={"sid": sid, "date": "2026-07-01",
+                                                    "fish": "CT"}).json()
+    assert got["tidal"] == "r1:nitinat_lake@1-3"
+
+
+# --------------------------------------------------------------------------- #
+# The book: source_pages are PRINTED numbers; the PDF index is not
+# --------------------------------------------------------------------------- #
+
+def test_printed_pages_map_to_pdf_pages(env):
+    sp = sys.modules.get("synopsis_pages") or __import__("synopsis_pages")
+    if not sp.PDF_PATH.exists():
+        pytest.skip("needs data/source/fishing_synopsis.pdf")
+    m = {int(k): v for k, v in env["client"].get("/api/synopsis/pages").json().items()}
+    # printed = PDF - 2 up to printed 40, PDF - 6 after the unnumbered centre gloss
+    assert (m[14], m[35], m[40]) == (16, 37, 42)
+    assert (m[41], m[42], m[44]) == (47, 48, 50)
+    r = env["client"].get("/api/synopsis/page/44.png")
+    assert r.status_code == 200 and r.content[:8] == b"\x89PNG\r\n\x1a\n"
+    assert env["client"].get("/api/synopsis/page/999.png").status_code == 404

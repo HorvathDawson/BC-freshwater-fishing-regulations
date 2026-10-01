@@ -1,8 +1,8 @@
 # Curation Review — parsed-entry review tool
 
 A small, **local** app for a human to review the LLM-parsed catalogue entries against their source:
-the original regulation text, the parsed rules, the split bindings, and the water on a map — and to
-correct what is wrong. Edits are written straight back to the catalogue region files.
+the original regulation text, the parsed rules, the split bindings, the water on a map, and the
+answer an angler gets — to correct what is wrong, and to mark each entry verified. Edits are written straight back to the catalogue region files.
 
 > Status: **built and in use.** It reads and writes the current catalogue model (`CatalogueEntry`
 > with `rules` and `licensing`) — every field of it; see "What the editor covers".
@@ -33,6 +33,34 @@ but a rule can be **confident-but-wrong** (bound to the wrong reach, wrong speci
 missed). A human needs to check each entry against the source text — and, where the parser recorded
 uncertainty (a rule's `review_reason`, `unresolved_locators`, or an entry with no `matched` item),
 make the call the model couldn't.
+
+## Going through every entry (the review pass)
+
+The queue's **order** is `book (page)` by default: region, then printed page, the region chapter's
+entries before that page's table rows. Each entry has a bar at the top:
+
+- **Verified · next** marks the entry checked against the book and opens the next one;
+  **Flag** needs a note saying what is wrong; **Clear** removes the mark; ← / → step through the list.
+- The mark is stored in a sidecar, `data/curated/regulations/entries/verification.json` (beside
+  `catalogue/`; `CURATION_VERIFICATION` overrides it), as `{entry_id: {state, hash, note}}` —
+  never inside an entry. `hash` is the content hash of the entry when it was marked, so an entry
+  edited afterwards (here, by a re-parse, by hand) shows **changed since verified** and returns to
+  the to-do list. The file does not exist until the first mark.
+- The **review** filter lists to do / never verified / changed since verified / flagged /
+  verified, with counts; the bar beside it is progress (region, and the whole corpus).
+- An entry opens by URL: `http://localhost:5173/#r5:dean_river@5-9`.
+
+On each entry the reviewer sees: the book (the row crop, and **show page** for the whole printed
+page — open by default for a region-chapter entry, which has no row crop; page numbers link to the
+repo's PDF at the right PDF page, since `source_pages` are PRINTED numbers and the PDF index differs
+by 2-6); every rule's generated label, quote, `review_reason`, not-yet-mapped part and unresolved
+place; **where each rule binds** — the reach builder's answer for the entry as saved, with what it
+decided (tributary walk, `rest` of the water, tidal water removed, confluence cuts, straddling
+pieces, ambiguous cuts, region clips); and **What an angler is told** — `read.effective_rules`
+on a chosen water piece, date and fish, plus every licensing record and where it binds, read
+from the live bundle (`data/generated/bundle/bundle.sqlite`). The bundle reflects the last bundle
+build: when its copy of the entry differs from the file (a label, or a rule's section count), the
+panel says so and lists the rules.
 
 ## What the curator does per entry
 
@@ -109,4 +137,16 @@ catalogue: GET, unchanged PUT (byte-identical), an edit to each editor's field, 
 refused at the field — one entry of every rule type and every licensing kind.
 
 To run the app against a copy (never the real files): `CURATION_ENTRIES_DIR=<copy>` on the backend,
-and `CURATION_API=http://127.0.0.1:<port>` on `vite` when the backend is on another port.
+and `CURATION_API=http://127.0.0.1:<port>` on `vite` when the backend is on another port:
+
+```bash
+# backend on :8791 against a copy, frontend on :5181 pointed at it
+(cd curation-review/backend && CURATION_ENTRIES_DIR=/tmp/cat PYTHONPATH="$PWD/../.." \
+   ../../.venv/bin/uvicorn app:app --port 8791) &
+(cd curation-review/frontend && CURATION_API=http://127.0.0.1:8791 npx vite --port 5181 --strictPort)
+```
+
+`--reload` is convenient while editing the backend, but a reload with a page open can hang in
+"Waiting for connections to close"; restart the process instead. The first requests after a start
+load the graph and geometry (~30 s); the loaders are serialised so concurrent first requests do not
+each load their own copy.
