@@ -578,10 +578,10 @@
             "token": "color.status.closed"
           },
           "own": {
-            "token": "color.water.mapped"
+            "token": "color.status.own"
           },
           "base": {
-            "token": "color.water.unmapped"
+            "token": "color.status.base"
           }
         },
         "missing": {
@@ -591,7 +591,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is base: the index lists every section that is not."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
       }
     },
     "contour": {
@@ -693,10 +693,10 @@
             "token": "color.status.closed"
           },
           "own": {
-            "token": "color.water.mapped"
+            "token": "color.status.own"
           },
           "base": {
-            "token": "color.water.unmapped"
+            "token": "color.status.base"
           }
         },
         "missing": {
@@ -706,7 +706,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is base: the index lists every section that is not."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
       }
     },
     "region": {
@@ -914,10 +914,10 @@
             "token": "color.status.closed"
           },
           "own": {
-            "token": "color.water.mapped"
+            "token": "color.status.own"
           },
           "base": {
-            "token": "color.water.unmapped"
+            "token": "color.status.base"
           }
         },
         "missing": {
@@ -927,7 +927,7 @@
           "provider": "status",
           "field": "status"
         },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is base: the index lists every section that is not."
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. A closed line is also wider (`width.status.closed`), so closed is not carried by colour alone."
       }
     },
     "region__edge": {
@@ -1282,8 +1282,11 @@
       "color.status.open": "#0063D2",
       "color.status.restricted": "#5C0453",
       "color.status.closed": "#C80D00",
+      "color.status.own": "#B37B00",
+      "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.status.closed": 1.6,
       "opacity.overlay": 0.55,
       "color.water.route": "#A3AEB4",
       "color.lake.fill": "#94C9E0",
@@ -1351,8 +1354,11 @@
       "color.status.restricted": "#e8a733",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.status.closed": 1.6,
       "opacity.overlay": 0.45,
-      "color.status.closed": "#E8695A",
+      "color.status.closed": "#FC4164",
+      "color.status.own": "#F0E442",
+      "color.status.base": "#56B4E9",
       "color.water.route": "#3F5C6B",
       "color.lake.fill": "#205579",
       "color.lake.edge": "#6FA8C4",
@@ -1417,9 +1423,12 @@
       "color.highlight": "#c2187a",
       "color.status.open": "#1D7741",
       "color.status.restricted": "#8f5c00",
-      "color.status.closed": "#B33124",
+      "color.status.closed": "#940018",
+      "color.status.own": "#B37B00",
+      "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.status.closed": 1.6,
       "opacity.overlay": 0.55,
       "color.water.route": "#2E62A8",
       "color.lake.fill": "#64B5F6",
@@ -1505,7 +1514,17 @@
     "color.status.closed": {
       "type": "color",
       "themeable": true,
-      "$comment": "CLOSED — and it is one colour for one meaning, whichever way the ground got closed. A national park boundary, an ecological reserve, land with no public access: all crimson, all the same crimson. A second near-identical red for 'the AREA that closes it' was written and then deleted; the palette guard caught it at delta-E 5.4, which is the right complaint about two names for one idea."
+      "$comment": "CLOSED — and it is one colour for one meaning, whichever way the ground got closed. A national park boundary, an ecological reserve, land with no public access: all crimson, all the same crimson. A second near-identical red for 'the AREA that closes it' was written and then deleted; the palette guard caught it at delta-E 5.4, which is the right complaint about two names for one idea. It is also the CLOSED of a water's status (@app/core `WATER_STATUS`), so it must stay apart from the two other reds-adjacent marks drawn over water: `color.highlight` (the water you searched for or tapped) and the places accent (`place` in ui-native theme.ts). The light value was #B33124, which sat ΔE2000 1.6 from the places orange under deuteranopia and 2.4 from the highlight under tritanopia; tools/water-status-cvd.test.ts now holds the separation."
+    },
+    "color.status.own": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "A WATER WITH ITS OWN REGULATIONS — the synopsis names it. Amber: Okabe & Ito's orange (light, darkened to hold the 3:1 a status colour must hold on the panel) and yellow (dark). Amber sits on the blue–yellow axis every dichromat keeps, so it parts from `status.base` for protan, deutan and tritan alike, and from `status.closed` by LIGHTNESS, which no deficiency removes. Never the plain water colour: that is `water.mapped`, and a status colouring that reused it repainted the plain map the moment it changed."
+    },
+    "color.status.base": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "ONLY THE BASE (REGIONAL) REGULATIONS APPLY — 97.6% of waters. Blue, so the status map still reads as water: Okabe & Ito's blue (light) and sky blue (dark). A token of its own rather than `water.unmapped` (a grey that says something about the ATLAS) or `water.mapped` (the plain map's water, which must not move when this does)."
     },
     "color.flow.f1": {
       "type": "color",
@@ -1542,6 +1561,11 @@
     "width.stream.highlight": {
       "type": "number",
       "themeable": false
+    },
+    "width.status.closed": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "CLOSED IS NOT CARRIED BY COLOUR ALONE. A multiplier on a line's own width, applied wherever a line is coloured by water status (`paintFor` in adapters/contract.ts), and drawn by the legend swatch at the same ratio. A dash was the other option and is not available: `line-dasharray` cannot read feature-state, and the status arrives as feature-state."
     },
     "opacity.overlay": {
       "type": "number",

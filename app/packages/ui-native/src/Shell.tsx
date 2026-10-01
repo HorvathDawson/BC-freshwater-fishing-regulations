@@ -641,6 +641,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             // WATER_STATUS through the map's theme) — for today.
             WATER_STATUSES.map((s) => (
               <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
+                           weight={palette.waterStatusWeight[s]}
                            label={s === "closed" ? "Closed today" : WATER_STATUS[s].label} />
             ))
           )}

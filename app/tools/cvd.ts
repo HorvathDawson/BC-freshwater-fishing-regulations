@@ -67,11 +67,31 @@ const PROJECT: Record<Deficiency, number[][]> = {
 const apply = (m: number[][], v: number[]): number[] =>
   m.map((row) => row[0]! * v[0]! + row[1]! * v[1]! + row[2]! * v[2]!);
 
-/** What `colour` becomes for a dichromat of this type. */
-export function simulate(colour: string, kind: Deficiency): string {
+/**
+ * MACHADO, OLIVEIRA & FERNANDES (2009), severity 1.0 — the second model, in linear RGB.
+ *
+ * Viénot's single plane is known to be weakest for tritanopia, the deficiency it was not
+ * built around. Machado's physiologically-based matrices disagree with it most exactly there,
+ * so a palette that has to survive both is not resting on one model's blind spot.
+ */
+const MACHADO: Record<Deficiency, number[][]> = {
+  protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216],
+           [-0.003882, -0.048116, 1.051998]],
+  deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413],
+           [-0.011820, 0.042940, 0.968881]],
+  tritan: [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602],
+           [0.004733, 0.691367, 0.303900]],
+};
+
+export type Model = "vienot" | "machado";
+export const MODELS: readonly Model[] = ["vienot", "machado"];
+
+/** What `colour` becomes for a dichromat of this type, under either model. */
+export function simulate(colour: string, kind: Deficiency, model: Model = "vienot"): string {
   const [r, g, b] = parseHex(colour);
   const lin = [toLinear(r!), toLinear(g!), toLinear(b!)];
-  const out = apply(LMS_TO_RGB, apply(PROJECT[kind], apply(RGB_TO_LMS, lin)));
+  const out = model === "machado" ? apply(MACHADO[kind], lin)
+    : apply(LMS_TO_RGB, apply(PROJECT[kind], apply(RGB_TO_LMS, lin)));
   return hex(toSrgb(out[0]!), toSrgb(out[1]!), toSrgb(out[2]!));
 }
 
@@ -149,11 +169,13 @@ export const DEFICIENCIES: readonly Deficiency[] = ["protan", "deutan", "tritan"
  * A palette is only as good as its worst reader, so every threshold in the test is applied
  * to this number rather than to the normal-vision distance.
  */
-export function worstSeparation(a: string, b: string): { dE: number; under: string } {
+export function worstSeparation(a: string, b: string, models: readonly Model[] = ["vienot"]):
+    { dE: number; under: string } {
   let worst = { dE: deltaE(a, b), under: "normal" };
-  for (const k of DEFICIENCIES) {
-    const d = deltaE(simulate(a, k), simulate(b, k));
-    if (d < worst.dE) worst = { dE: d, under: k };
-  }
+  for (const m of models)
+    for (const k of DEFICIENCIES) {
+      const d = deltaE(simulate(a, k, m), simulate(b, k, m));
+      if (d < worst.dE) worst = { dE: d, under: models.length > 1 ? `${k} (${m})` : k };
+    }
   return worst;
 }

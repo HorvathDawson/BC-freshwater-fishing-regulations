@@ -1,4 +1,4 @@
-import { resolveTheme, waterStatusColour, type MapChrome } from "@app/map";
+import { resolveTheme, waterStatusColour, waterStatusWeight, type MapChrome } from "@app/map";
 import { WATER_STATUSES, type WaterStatus } from "@app/core";
 /**
  * Tokens for the phone components.
@@ -22,6 +22,8 @@ export interface Palette {
    * (`waterStatusColour`), so a search row wears the colour the map line beside it does.
    */
   waterStatus: Readonly<Record<WaterStatus, string>>;
+  /** How much wider the map draws each status's line (`waterStatusWeight`) — closed's cue. */
+  waterStatusWeight: Readonly<Record<WaterStatus, number>>;
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
@@ -139,6 +141,8 @@ const statusColours = (theme: string) => {
     open: v["color.status.open"]!,
     waterStatus: Object.fromEntries(WATER_STATUSES.map((s) => [s, waterStatusColour(theme, s)])) as
       Record<WaterStatus, string>,
+    waterStatusWeight: Object.fromEntries(
+      WATER_STATUSES.map((s) => [s, waterStatusWeight(theme, s)])) as Record<WaterStatus, number>,
   };
 };
 

@@ -69,11 +69,18 @@ export function LegendStrip({ palette, children, full }:
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label }:
-  { palette: Palette; colour: string; n?: number; label: string }) {
+export function LegendCount({ palette, colour, n, label, weight }:
+  { palette: Palette; colour: string; n?: number; label: string;
+    /**
+     * Draw the swatch as a LINE of this relative weight instead of a square — for a key to
+     * lines whose width carries meaning too (a closed water is drawn wider than the rest).
+     */
+    weight?: number }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      <View style={{ width: 9, height: 9, borderRadius: palette.r.chip, backgroundColor: colour }} />
+      <View style={weight === undefined
+        ? { width: 9, height: 9, borderRadius: palette.r.chip, backgroundColor: colour }
+        : { width: 14, height: Math.round(3 * weight), backgroundColor: colour }} />
       {n !== undefined && (
         <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{n}</Text>
       )}

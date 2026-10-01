@@ -295,6 +295,26 @@ describe("a water's status paints with the map's own colours", () => {
       }
   });
 
+  /*
+   * CLOSED IS ALSO WIDER, and only where the line answers by status. The width rides inside
+   * the zoom curve (MapLibre allows one, outermost), multiplies by `width.status.closed` where
+   * the feature-state says closed, and the plain mode's paint never sees it — the plain map's
+   * water must not move when the status colouring does.
+   */
+  it("a closed line is drawn wider in the status mode, and only there", async () => {
+    const { paintFor } = await import("./adapters/contract");
+    const { resolveTheme } = await import("./style");
+    const t = resolveTheme("light");
+    for (const layer of ["stream", "lake__edge"]) {
+      const status = JSON.stringify(paintFor(layer, "status", t)["line-width"]);
+      expect(status, layer).toContain(
+        `["match",["feature-state","status"],"closed",${t["width.status.closed"]},1]`);
+      const plain = paintFor(layer, "plain", t);
+      expect(JSON.stringify(plain), layer).not.toContain('"status"');
+    }
+    expect(paintFor("stream", "plain", t)["line-color"]).toContain(t["color.water.mapped"]);
+  });
+
   it("closed is the crimson every closure on the map wears", async () => {
     const { waterStatusColour, resolveTheme } = await import("./style");
     expect(waterStatusColour("light", "closed")).toBe(resolveTheme("light")["color.status.closed"]);
@@ -303,8 +323,9 @@ describe("a water's status paints with the map's own colours", () => {
   /*
    * THE MAP LINE AND THE SEARCH DOT ARE ONE VOCABULARY. The `status` colour mode is authored in
    * layers.source.json and the dot resolves @app/core WATER_STATUS through `waterStatusColour`;
-   * if the two ever named different tokens a row and the line beside it would disagree. A
-   * section the index does not list is base, so `missing` must paint base.
+   * if the two ever named different tokens a row and the line beside it would disagree.
+   * `missing` is a section with no status pushed (tidal, outside B.C., not yet asked): it
+   * must paint a neutral `water.*` grey, never base — that would be an answer.
    */
   it("the status colour mode paints each status with WATER_STATUS's own token", async () => {
     const { WATER_STATUS, WATER_STATUSES } = await import("@app/core");
@@ -317,7 +338,7 @@ describe("a water's status paints with the map's own colours", () => {
       expect(m.property).toBe("status");
       expect(Object.keys(m.categories).sort()).toEqual([...WATER_STATUSES].sort());
       for (const s of WATER_STATUSES) expect(m.categories[s]!.token).toBe(WATER_STATUS[s].token);
-      expect(m.missing.token).toBe(WATER_STATUS.base.token);
+      expect(m.missing.token).toBe("color.water.unmapped");
     }
   });
 });

@@ -5,14 +5,19 @@
  * row of "water near a town":
  *
  *   closed   no fishing here (on the day asked)                    `color.status.closed`
- *   own      the synopsis has regulations specific to this water   `color.water.mapped`
- *   base     only the regional (base) regulations apply            `color.water.unmapped`
+ *   own      the synopsis has regulations specific to this water   `color.status.own`
+ *   base     only the regional (base) regulations apply            `color.status.base`
  *
- * The TOKENS are the map's own (`packages/map/style/tokens.json`): `status.closed` is the
- * crimson every closure on the map already wears, and `water.mapped` / `water.unmapped` are the
- * coverage pair whose names say whether WE hold a water-specific record — never that a water
- * is unregulated (tokens.json `$naming`). A surface resolves the token through the map's theme
- * (`waterStatusColour` in @app/map), so a row and the line beside it cannot disagree.
+ * The TOKENS are the map's own (`packages/map/style/tokens.json`), and the hexes live only
+ * there: `status.closed` is the red every closure on the map already wears, and `status.own` /
+ * `status.base` are amber and blue, chosen to stay apart under protanopia, deuteranopia and
+ * tritanopia in every theme (tools/water-status-cvd.test.ts). They are NOT the plain map's
+ * `water.mapped`, so recolouring a status never repaints the plain map. A surface resolves the
+ * token through the map's theme (`waterStatusColour` in @app/map), so a row and the line
+ * beside it cannot disagree.
+ *
+ * CLOSED IS NOT CARRIED BY COLOUR ALONE: it also names a `weight` token, the factor a closed
+ * line is drawn wider by — on the map (`paintFor`) and on the legend swatch alike.
  *
  * TWO SOURCES, ONE VOCABULARY. The STATUS INDEX (`statusIndex.ts`, built by
  * `python -m pipeline.deliver.status_index` through the reference reader) answers closed / own /
@@ -33,11 +38,15 @@ export type WaterStatus = "closed" | "own" | "base";
 
 export const WATER_STATUSES: readonly WaterStatus[] = ["closed", "own", "base"];
 
-/** What each status is called, and the map token that paints it. */
-export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: string }>> = {
-  closed: { label: "Closed", token: "color.status.closed" },
-  own: { label: "Has its own regulations", token: "color.water.mapped" },
-  base: { label: "Base regulations only", token: "color.water.unmapped" },
+/**
+ * What each status is called, the map token that paints it, and — for a status that must not
+ * rest on colour alone — the token that widens its line.
+ */
+export const WATER_STATUS: Readonly<Record<WaterStatus,
+    { label: string; token: string; weight?: string }>> = {
+  closed: { label: "Closed", token: "color.status.closed", weight: "width.status.closed" },
+  own: { label: "Has its own regulations", token: "color.status.own" },
+  base: { label: "Base regulations only", token: "color.status.base" },
 };
 
 /**
