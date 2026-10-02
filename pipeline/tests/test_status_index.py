@@ -165,7 +165,10 @@ def _pairs(ix: SI.Index, n: int = 6000, seed: int = 20261001) -> list:
                 m, dd = SI.month_day(x)
                 out.append((sid, dt.date(2024, m, dd)))
             d += length
-    for sid in steel + tidal + rnd.sample(outside, min(20, len(outside))):
+    # steelhead water is ~149,000 sections since its tributaries joined it (user ruling
+    # 2026-10-01): a sample, as for the sections outside B.C. — every one would be 300,000 reads
+    for sid in (rnd.sample(steel, min(500, len(steel))) + tidal
+                + rnd.sample(outside, min(20, len(outside)))):
         out += [(sid, day()), (sid, rnd.choice(special))]
     while len(out) < n * 0.6:
         out.append((rnd.choice(listed), day() if rnd.random() < 0.8 else rnd.choice(special)))

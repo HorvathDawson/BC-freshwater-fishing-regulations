@@ -14411,10 +14411,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:mu_group:management_units_6_12_and_6_13"
+       "area_id": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
       }
      ],
-     "review_reason": "User ruling 2026-10-01 (wild release): \"You must release all wild steelhead\" applies in LAKES AND STREAMS, so the wild-steelhead release binds every water of the zone's own area; every other steelhead rule (hatchery quotas, the annual 10, the record duty, the stamp, stop-after-quota) stays streams-only. Lakes never carry anadromous_rainbow, so on a lake this release answers only a steelhead question, never a big rainbow's."
+     "review_reason": "User ruling 2026-10-01 (third): the wild-steelhead release binds STREAMS of the zone's own area (`feature_types: [stream]`, no `water`, so its competition key is unchanged) — 295c4ac3's reading of \"lakes and streams\" as every lake is reverted. A lake gets it only when its own row names steelhead."
     },
     {
      "rule_id": "hg_quota.r7",
@@ -14840,10 +14843,13 @@
       {
        "op": "within",
        "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
       }
      ],
-     "review_reason": "User ruling 2026-10-01 (wild release): \"You must release all wild steelhead\" applies in LAKES AND STREAMS, so the wild-steelhead release binds every water of the zone's own area; every other steelhead rule (hatchery quotas, the annual 10, the record duty, the stamp, stop-after-quota) stays streams-only. Lakes never carry anadromous_rainbow, so on a lake this release answers only a steelhead question, never a big rainbow's."
+     "review_reason": "User ruling 2026-10-01 (third): the wild-steelhead release binds STREAMS of the zone's own area (`feature_types: [stream]`, no `water`, so its competition key is unchanged) — 295c4ac3's reading of \"lakes and streams\" as every lake is reverted. A lake gets it only when its own row names steelhead."
     },
     {
      "rule_id": "trout_quota.r6",

@@ -864,11 +864,12 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
     assert {f"{eid}::lois_lake.r1", f"{eid}::lois_lake.r4"} <= rb
     assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r2"} & rb, rb
     st = _kept(sid, (7, 1), "ST")
-    # a lake answers to its own steelhead rule and to the wild-steelhead release, which binds
-    # lakes and streams (user rulings 2026-10-01); Region 2's "2 hatchery steelhead" binds
-    # streams only
-    assert {f"{eid}::lois_lake.r4", f"{Z2}::trout_char_quota.r7"} <= st, st
-    assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r3"} & st, st
+    # a lake answers to its own steelhead rule and, because that row names steelhead, to the
+    # wild-steelhead release (Region 2's twin `r7b` bound to Khartoum and Lois; user rulings
+    # 2026-10-01); Region 2's "2 hatchery steelhead" and its stream release bind streams only
+    assert {f"{eid}::lois_lake.r4", f"{Z2}::trout_char_quota.r7b"} <= st, st
+    assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r3",
+                f"{Z2}::trout_char_quota.r7"} & st, st
     assert {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r2"} <= _kept(sid, (7, 1), "CT")
 
 

@@ -74,6 +74,11 @@ def main() -> int:
     for k, v in sorted(r.diagnostics.items()):
         print(f"  {k:<12} {v:,}")
     print(f"  digest       {digest(result)}")
+    if r.steelhead:
+        print("  steelhead    " + " · ".join(f"{k} {v:,}" for k, v in r.steelhead.items()
+                                           if isinstance(v, int)))
+        for k, v in (r.steelhead.get("dropped_outside_steelhead_rules") or {}).items():
+            print(f"    dropped where no steelhead rule applies: {k} {v:,}")
     if r.licensing:
         print("  licensing")
         for k, v in sorted(r.licensing.items()):

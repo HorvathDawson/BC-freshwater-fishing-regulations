@@ -150,6 +150,8 @@ class BuildReport:
     tributaries_pending: int = 0
     #: Licensing records by `kind:placement` (see `pipeline.atlas.reach.licensing`).
     licensing: dict[str, int] = field(default_factory=dict)
+    #: `steelhead: known | possible` counts (`pipeline.atlas.reach.steelhead.Presence.finish`).
+    steelhead: dict = field(default_factory=dict)
     seconds: float = 0.0
 
     def total(self) -> int:

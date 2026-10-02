@@ -22,6 +22,7 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, Reason, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_sections,
 )
@@ -44,6 +45,9 @@ class ReachResult:
     #: thing that must not move between identical builds — is exactly what it was.
     licensing: list[LicensingPlacement] = field(default_factory=list)
     licensing_diagnostics: list[Diagnostic] = field(default_factory=list)
+    #: `steelhead: known | possible` per section (`pipeline.atlas.reach.steelhead`) — a fact about
+    #: the water, not a rule, so outside the rules' digest like the licensing.
+    steelhead: list[dict] = field(default_factory=list)
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
@@ -87,6 +91,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_sections`).
     tidal = tidal_sections(ents, registry)
     parks = national_park_sections(registry)
+    presence = _SteelheadPresence(registry, graph)
 
     for e in ents:
         report.n_entries += 1
@@ -118,6 +123,12 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         if e.get("includes_tributaries") is True:
             for i in covered:
                 claims.setdefault(i, []).append(entry_id)
+
+        # WHERE STEELHEAD ARE KNOWN TO BE: a row naming steelhead, its tributaries, in the row's
+        # own context and held to no region (`reach.steelhead`).
+        presence.add_row(e, covered, lambda r, e=e, covered=covered, clip=clip: build_reach(
+            e, r, registry, graph, covered=covered, clip=clip, outside=outside,
+            regional=False, tidal=tidal, owned=owned))
 
         # LICENSING, in the entry's own context: same covered items, same clip, same resolver.
         for rec in e.get("licensing") or []:
@@ -206,7 +217,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     diagnostics.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
     licensing.sort(key=lambda p: (p.entry_id, p.record_id))
     lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
-    return ReachResult(bindings, diagnostics, report, licensing, lic_diags)
+    steelhead, report.steelhead = presence.finish(bindings)
+    return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead)
 
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,

@@ -25,6 +25,9 @@ TABLES = ("rule_section", "rule_unresolved", "rule_extent", "rule_diagnostic")
 #: rule — its id is unique within its entry among LICENSING records, not among rules — and a
 #: reader that joined the two on (entry_id, id) would be joining different namespaces.
 LICENSING_TABLES = ("licensing_placement", "licensing_section", "licensing_diagnostic")
+#: `steelhead: known | possible` per section (`pipeline.atlas.reach.steelhead`): one row per section
+#: that has the attribute, with the row that makes it known (or `zp:steelhead` for possible).
+STEELHEAD_TABLE = "steelhead_presence"
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -110,12 +113,15 @@ def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
          "payload": json.dumps(d.payload, sort_keys=True)}
         for d in result.licensing_diagnostics),
         key=lambda r: (r["entry_id"], r["record_id"], r["kind"], r["payload"]))
+    tables[STEELHEAD_TABLE] = list(getattr(result, "steelhead", None) or [])
     for name, rows in tables.items():
         _write_jsonl(out / f"{name}.jsonl", rows)
 
     report = asdict(result.report)
     report["digest"] = digest(result)
     report["licensing_digest"] = licensing_digest(result)
+    report["steelhead_digest"] = hashlib.sha256(json.dumps(
+        tables[STEELHEAD_TABLE], sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {k: len(v) for k, v in tables.items()}

@@ -313,6 +313,24 @@ def steelhead_water(db, section: int) -> bool:
         is not None
 
 
+#: `section_steelhead.code` -> its word (schema.sql).
+STEELHEAD_CODES = {1: "known", 2: "possible"}
+
+
+def steelhead_presence(db, section: int) -> str | None:
+    """How sure we are that steelhead are on this section (`section_steelhead`, user ruling
+    2026-10-01): "known" (a water whose row names steelhead, or a tributary stream of one),
+    "possible" (any other stream the steelhead rules bind), or None. A rule bundle without the
+    table is refused."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead'").fetchone():
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
+            raise SystemExit("read: the bundle has no `section_steelhead` table — rebuild it "
+                             "(`python -m pipeline.deliver.bundle`)")
+        return None
+    row = db.execute("SELECT code FROM section_steelhead WHERE sid = ?", (section,)).fetchone()
+    return STEELHEAD_CODES[row[0]] if row else None
+
+
 def as_rainbow(x: dict) -> dict | None:
     """A rule READ FOR A RAINBOW WHERE A RAINBOW OVER 50 CM IS A STEELHEAD: its length bands over
     that range (every rainbow here is 50 cm or less). `None` when it speaks only of rainbow over 50

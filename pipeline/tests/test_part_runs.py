@@ -230,21 +230,25 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
         touch[a].add(b)
         touch[b].add(a)
     groups = defaultdict(list)
-    for item, kind, rs, ls, pe, sw, s in db.execute(
+    for item, kind, rs, ls, pe, sw, st, s in db.execute(
             "SELECT i.item_id, i.kind, r.set_id, l.set_id, (SELECT group_concat(k, ',') FROM "
             "(SELECT p.area_kind AS k FROM province_except p WHERE p.sid = s.sid ORDER BY "
-            "p.area_kind)), EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), s.sid "
+            "p.area_kind)), EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
+            "CASE WHEN EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = s.sid) THEN 'known' "
+            "ELSE (SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END "
+            "FROM steelhead_set h WHERE h.set_id = r.set_id) END, s.sid "
             "FROM item i JOIN item_section s ON s.ord = i.ord "
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
             "LEFT JOIN section_licensing l ON l.sid = s.sid"):
         if kind == "stream":
             groups[(item, None if rs is None else str(rs), None if ls is None else str(ls),
-                    pe, bool(sw))].append(s)
+                    pe, bool(sw), st)].append(s)
     checked = 0
-    for (item, rs, ls, pe, sw), sids in groups.items():
+    for (item, rs, ls, pe, sw, st), sids in groups.items():
         part = [p for p in doc["waters"][item]["parts"]
                 if (p["ruleset"], p["licensing_set"], ",".join(p.get("province_except") or [])
-                    or None, bool(p.get("anadromous_rainbow"))) == (rs, ls, pe, sw)]
+                    or None, bool(p.get("anadromous_rainbow")), p.get("steelhead"))
+                == (rs, ls, pe, sw, st)]
         assert len(part) == 1, item
         runs = SP.compose_runs(span, touch, sorted(sids))
         covered = [s for r in runs for s in r["sids"]]

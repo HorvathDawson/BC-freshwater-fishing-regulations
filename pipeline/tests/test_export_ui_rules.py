@@ -164,23 +164,27 @@ def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
     """The Dean's eight (ruleset, licensing set) combinations used to read as five rule sets
     beside four licensing sets; which Class I unit went with which closure was lost."""
     want: dict = {}
-    for item, rs, ls, pe, sw, n in db.execute(
+    for item, rs, ls, pe, sw, st, n in db.execute(
             "SELECT i.item_id, r.set_id, l.set_id, "
             "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
             " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
-            "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), COUNT(*) FROM item i "
+            "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
+            "CASE WHEN EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = s.sid) THEN 'known' "
+            "ELSE (SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END "
+            "FROM steelhead_set h WHERE h.set_id = r.set_id) END, COUNT(*) FROM item i "
             "JOIN item_section s ON s.ord = i.ord "
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-            "LEFT JOIN section_licensing l ON l.sid = s.sid GROUP BY 1, 2, 3, 4, 5"):
+            "LEFT JOIN section_licensing l ON l.sid = s.sid GROUP BY 1, 2, 3, 4, 5, 6"):
         want.setdefault(item, set()).add((None if rs is None else str(rs),
                                           None if ls is None else str(ls),
-                                          tuple(pe.split(",")) if pe else (), bool(sw), n))
+                                          tuple(pe.split(",")) if pe else (), bool(sw), st, n))
     for item, w in doc["waters"].items():
         got = {(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
-                bool(p.get("anadromous_rainbow")), p["sections"]) for p in w["parts"]}
+                bool(p.get("anadromous_rainbow")), p.get("steelhead"), p["sections"])
+               for p in w["parts"]}
         assert got == want[item], item
         keys = [(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
-                 bool(p.get("anadromous_rainbow"))) for p in w["parts"]]
+                 bool(p.get("anadromous_rainbow")), p.get("steelhead")) for p in w["parts"]]
         assert len(keys) == len(set(keys)), f"{item}: a part appears twice"
         assert "rulesets" not in w and "licensing_sets" not in w, "one encoding, not two"
         # PER PART, never per water: the page must not infer which stretch is the park's

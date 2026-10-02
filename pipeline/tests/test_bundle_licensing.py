@@ -294,6 +294,9 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     # no licensing in this corpus, but the run must still say so
     (run / "licensing_placement.jsonl").write_text("")
     (run / "licensing_section.jsonl").write_text("")
+    # no row names steelhead either: an empty steelhead presence, and the run's report saying so
+    (run / "steelhead_presence.jsonl").write_text("")
+    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {}}}))
     build = tmp / "atlas"
     build.mkdir()
     (build / "section_handles.txt").write_text("s:1\ns:2\ns:3\n")
@@ -552,3 +555,52 @@ def test_a_requirement_whose_place_and_on_never_meet_stops_the_build(tmp_path, m
                                 reach_lic.NO_DESIGNATION)]
     with pytest.raises(SystemExit, match="hold nowhere"):
         _write(tmp_path, [], placements=placements)
+
+
+# ------------------------------------------- steelhead presence (user ruling 2026-10-01)
+
+def test_a_run_without_steelhead_presence_is_refused(tmp_path):
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "steelhead_presence.jsonl").unlink()
+    with pytest.raises(SystemExit, match="steelhead_presence"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def test_a_flagged_row_the_run_never_placed_is_refused(tmp_path):
+    """Mutation: a row saying anadromous rainbow are found, which the reach run's presence pass did
+    not place, would state the definition nowhere — the bundle stops."""
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    f = entries / "region-1.json"
+    doc = json.loads(f.read_text())
+    doc["entries"][0]["anadromous_rainbow"] = True
+    f.write_text(json.dumps(doc))
+    with pytest.raises(SystemExit, match="reach run and the corpus disagree"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def test_known_streams_are_steelhead_water_and_possible_are_not(tmp_path):
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    f = entries / "region-1.json"
+    doc = json.loads(f.read_text())
+    doc["entries"][0]["anadromous_rainbow"] = True
+    f.write_text(json.dumps(doc))
+    (run / "report.json").write_text(json.dumps(
+        {"steelhead": {"by_entry": {"r1:x@1-1": {"reach": 1, "trib": 0}}}}))
+    (run / "steelhead_presence.jsonl").write_text(json.dumps(
+        {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "scope": "reach",
+         "kind": "stream"}) + "\n")
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT sid, code FROM section_steelhead ORDER BY sid").fetchall() == [
+        (2, 1)]
+    assert db.execute("SELECT sid FROM steelhead_water").fetchall() == [(2,)]
+
+
+def test_a_code_its_rule_set_cannot_carry_is_refused(tmp_path):
+    """Mutation: s:1 is possible but carries no rule set — the compact form (known streams per
+    section, everything else per set) cannot say it, so the bundle stops rather than drop it."""
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "steelhead_presence.jsonl").write_text(json.dumps(
+        {"section_id": "s:1", "steelhead": "possible", "entry_id": "zp:steelhead",
+         "scope": "rules", "kind": "stream"}) + "\n")
+    with pytest.raises(SystemExit, match="no rule set"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
