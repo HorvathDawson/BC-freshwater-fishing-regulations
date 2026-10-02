@@ -138,6 +138,7 @@ curated:
   # --- regulations ---------------------------------------------------------------
   regulations:
     overrides: "data/curated/regulations/overrides.json"
+    steelhead_waters: "data/curated/regulations/steelhead_waters.json"  # authored — the known-steelhead list
     entries:
       catalogue: "data/curated/regulations/entries/catalogue"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"

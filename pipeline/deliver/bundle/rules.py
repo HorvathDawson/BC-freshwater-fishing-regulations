@@ -1136,13 +1136,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
     # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
     # IS A STEELHEAD (p.86, `steelhead_water`). Both from the reach run's `steelhead_presence`
-    # (`pipeline.atlas.reach.steelhead`, user ruling 2026-10-01): `known` is the streams of every
-    # row naming steelhead (`anadromous_rainbow`) and their tributaries, and the lakes whose own row
-    # names steelhead (Khartoum, Lois); `possible` every other stream the provincial steelhead
-    # rules bind. The definition holds on the KNOWN STREAMS only — never a lake, never "possible".
-    # A flagged row the run placed nowhere would state the definition nowhere, so it stops the
-    # build; so does a run that predates the table, or disagrees with the corpus.
-    write_steelhead_presence(db, reaches, ces, sid, cov)
+    # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
+    # of a row naming steelhead binds, the tributaries of every row flagged `anadromous_rainbow`,
+    # and the curated known-steelhead list with its tributaries — anywhere in the province;
+    # `possible` every other stream the provincial steelhead rules bind. The definition holds on
+    # the KNOWN STREAMS only — never a lake, never "possible". A flagged row the run placed nowhere
+    # would state the definition nowhere, so it stops the build; so does a run that predates the
+    # table, or disagrees with the corpus or the curated list.
+    write_steelhead_presence(db, reaches, ces, sid, cov, registry)
     if namer.unnamed:
         print(f"     labels: {len(namer.unnamed)} cut-point(s) have no book name, so the rules "
               f"on them name no place:")
@@ -1162,14 +1163,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
           f"sharing {len(sets):,} distinct sets")
 
 
-def write_steelhead_presence(db, reaches, ces, sid, cov) -> None:
+def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     """`steelhead_known`, `steelhead_set` and `steelhead_source` from the reach run's
     `steelhead_presence` (`pipeline.atlas.reach.steelhead`), checked against the corpus (every row
     flagged `anadromous_rainbow` was placed, and no other) and against itself: the view
     `section_steelhead` must give every section exactly the code the run gave it."""
     import json as _json
     from pipeline.atlas.reach.io import STEELHEAD_TABLE
-    from pipeline.atlas.reach.steelhead import KNOWN, POSSIBLE
+    from pipeline.atlas.reach.steelhead import CURATED_LIST, KNOWN, POSSIBLE, load_list, resolve_list
     CODE = {KNOWN: 1, POSSIBLE: 2}
     path = Path(reaches) / f"{STEELHEAD_TABLE}.jsonl"
     report = Path(reaches) / "report.json"
@@ -1177,10 +1178,20 @@ def write_steelhead_presence(db, reaches, ces, sid, cov) -> None:
         raise SystemExit(
             f"{reaches} has no `{STEELHEAD_TABLE}` — the reach run predates it. Re-run the reach "
             f"builder:\n    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
-    by_entry = (_json.loads(report.read_text(encoding="utf-8")).get("steelhead") or {}
-                ).get("by_entry") or {}
+    sh_report = _json.loads(report.read_text(encoding="utf-8")).get("steelhead") or {}
+    by_entry = sh_report.get("by_entry") or {}
     flagged = {ce.entry_id for ce in ces if ce.anadromous_rainbow}
-    placed = {e for e, n in by_entry.items() if n.get("reach") or n.get("trib")}
+    placed = {e for e, n in by_entry.items()
+              if e != CURATED_LIST and (n.get("reach") or n.get("trib"))}
+    # THE CURATED LIST the run was given must be the list on disk now (resolved the same way).
+    if registry is not None:
+        want = [i for _, i in resolve_list(load_list(), registry)]
+        ran = [c.get("item_id") for c in sh_report.get("curated") or []]
+        if want != ran:
+            raise SystemExit(
+                f"steelhead: the reach run's curated known-steelhead list {ran[:5]} is not the "
+                f"list on disk {want[:5]} — re-run the reach builder:\n    python -m "
+                f"pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
     if flagged - placed or placed - flagged:
         raise SystemExit(
             f"steelhead_water: the reach run and the corpus disagree — flagged rows placing no "

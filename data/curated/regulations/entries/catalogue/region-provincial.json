@@ -1159,21 +1159,13 @@
      "origin": "hatchery",
      "extents": [
       {
-       "op": "whole",
-       "item_id": "wbk:329197058",
-       "feature_types": [
-        "lake"
-       ]
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329197063",
-       "feature_types": [
-        "lake"
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r1"
        ]
       }
      ],
-     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead.r1, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A rule of its own because an item extent on steelhead.r1 would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake)."
+     "review_reason": "User ruling 2026-10-02: every water bound by any rule of a row naming steelhead, and every KNOWN steelhead water wherever it lies (a steelhead row's waters, the tributaries of the rows flagged anadromous_rainbow, the curated steelhead list), carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp). The same line as steelhead.r1, bound to the known steelhead waters steelhead.r1 does not bind (op steelhead_waters: the reach builder's known set minus steelhead.r1's sections — a lake such as Tenas, Khartoum or Lois; a stream past the steelhead regions such as the Thompson's Nicola headwaters in Region 8). A rule of its own because a non-area extent on steelhead.r1 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water` (the base's 'in streams' is not true on a lake)."
     },
     {
      "rule_id": "steelhead.r2",
@@ -1236,21 +1228,13 @@
      "origin": "wild",
      "extents": [
       {
-       "op": "whole",
-       "item_id": "wbk:329197058",
-       "feature_types": [
-        "lake"
-       ]
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329197063",
-       "feature_types": [
-        "lake"
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r2"
        ]
       }
      ],
-     "review_reason": "User ruling 2026-10-01 (third): the same line as steelhead.r2, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the wild release; no other lake does. A rule of its own because an item extent on steelhead.r2 would rank it as a water rule on every stream it binds (`read.source_of`)."
+     "review_reason": "User ruling 2026-10-02: every water bound by any rule of a row naming steelhead, and every KNOWN steelhead water wherever it lies (a steelhead row's waters, the tributaries of the rows flagged anadromous_rainbow, the curated steelhead list), carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp). The same line as steelhead.r2, bound to the known steelhead waters steelhead.r2 does not bind (op steelhead_waters: the reach builder's known set minus steelhead.r2's sections — a lake such as Tenas, Khartoum or Lois; a stream past the steelhead regions such as the Thompson's Nicola headwaters in Region 8). A rule of its own because a non-area extent on steelhead.r2 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water` (the base's 'in streams' is not true on a lake)."
     },
     {
      "rule_id": "steelhead.r4",
@@ -1312,21 +1296,13 @@
      "origin": "hatchery",
      "extents": [
       {
-       "op": "whole",
-       "item_id": "wbk:329197058",
-       "feature_types": [
-        "lake"
-       ]
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329197063",
-       "feature_types": [
-        "lake"
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r4"
        ]
       }
      ],
-     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead.r4, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A rule of its own because an item extent on steelhead.r4 would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake)."
+     "review_reason": "User ruling 2026-10-02: every water bound by any rule of a row naming steelhead, and every KNOWN steelhead water wherever it lies (a steelhead row's waters, the tributaries of the rows flagged anadromous_rainbow, the curated steelhead list), carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp). The same line as steelhead.r4, bound to the known steelhead waters steelhead.r4 does not bind (op steelhead_waters: the reach builder's known set minus steelhead.r4's sections — a lake such as Tenas, Khartoum or Lois; a stream past the steelhead regions such as the Thompson's Nicola headwaters in Region 8). A rule of its own because a non-area extent on steelhead.r4 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water` (the base's 'in streams' is not true on a lake)."
     }
    ],
    "licensing": [
@@ -1398,7 +1374,7 @@
      "kind": "requirement"
     },
     {
-     "id": "steelhead_targeting_lakes",
+     "id": "steelhead_targeting_known",
      "satisfied_by": [
       {
        "hold": [
@@ -1419,22 +1395,15 @@
      },
      "extents": [
       {
-       "op": "whole",
-       "item_id": "wbk:329197058",
-       "feature_types": [
-        "lake"
-       ]
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329197063",
-       "feature_types": [
-        "lake"
-       ]
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead_targeting"
+       ],
+       "outside_area_kind": "national_parks"
       }
      ],
      "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
-     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead_targeting, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A record of its own because an item extent on steelhead_targeting would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake).",
+     "review_reason": "User ruling 2026-10-02: every water bound by any rule of a row naming steelhead, and every KNOWN steelhead water wherever it lies (a steelhead row's waters, the tributaries of the rows flagged anadromous_rainbow, the curated steelhead list), carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp). The same line as steelhead_targeting, bound to the known steelhead waters steelhead_targeting does not bind (op steelhead_waters: the reach builder's known set minus steelhead_targeting's sections — a lake such as Tenas, Khartoum or Lois; a stream past the steelhead regions such as the Thompson's Nicola headwaters in Region 8). A record of its own because a non-area extent on steelhead_targeting would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water` (the base's 'in streams' is not true on a lake).",
      "kind": "requirement"
     }
    ]

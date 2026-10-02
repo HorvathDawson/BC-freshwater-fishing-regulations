@@ -4390,6 +4390,50 @@ class CatalogueEntry(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def _steelhead_waters(self) -> "CatalogueEntry":
+        """THE KNOWN STEELHEAD WATERS (`Extent` op `steelhead_waters`, user ruling 2026-10-02) are
+        the reach builder's set, so only a zone/provincial row's RULE or LICENSING RECORD may bind
+        them — a water row names its own water — and only as its one extent (a union with another
+        place is a different shape). Each sibling is another rule (or, on a record, another record)
+        of this entry that draws its place: its sections are what the twin leaves to it."""
+        from pipeline.regs.parsing.entry_models import Op
+        op = Op.STEELHEAD_WATERS.value
+        e: List[str] = []
+
+        def has(xs) -> bool:
+            return any(isinstance(x, dict) and x.get("op") == op for x in xs or [])
+
+        if has(self.extents):
+            e.append("entry extents: op steelhead_waters belongs to a rule or a licensing record")
+        zone = self.entry_id.startswith("z")
+        rules = {r.rule_id: r for r in self.rules}
+        recs = {x.id: x for x in self.licensing}
+        for kind, rid, exts, excl, pool in (
+                [("rule", r.rule_id, r.extents, r.tributary_excludes, rules) for r in self.rules]
+                + [(x.kind, x.id, getattr(x, "extents", None), getattr(x, "tributary_excludes", None),
+                    recs) for x in self.licensing]):
+            if has(excl):
+                e.append(f"{kind} {rid}: a carve-out cannot be op steelhead_waters")
+            if not has(exts):
+                continue
+            if not zone:
+                e.append(f"{kind} {rid}: op steelhead_waters on a water row — a water row names "
+                         f"its own water")
+            if len(exts or []) != 1:
+                e.append(f"{kind} {rid}: op steelhead_waters must be the only extent")
+            for sib in (exts[0].get("siblings") or []):
+                o = pool.get(sib)
+                if o is None or sib == rid:
+                    e.append(f"{kind} {rid}: steelhead_waters sibling {sib!r} names no other "
+                             f"{'rule' if kind == 'rule' else 'licensing record'} of this entry")
+                elif not getattr(o, "extents", None) or has(o.extents):
+                    e.append(f"{kind} {rid}: steelhead_waters sibling {sib} does not draw its "
+                             f"own place")
+        if e:
+            raise ValueError(f"{self.entry_id}: " + "; ".join(e))
+        return self
+
+    @model_validator(mode="after")
     def _chain_of_custody(self) -> "CatalogueEntry":
         e: List[str] = []
         seen: set[str] = set()

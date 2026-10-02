@@ -55,6 +55,17 @@ class Op(str, Enum):
     #: complement is a statement about other rules' reaches. A sibling that does not bind makes the
     #: complement UNKNOWN (`Reason.complement_unknown`) — never guessed as the whole water.
     REST = "rest"                   # the water minus the named siblings' sections   (0 splits)
+    #: THE STEELHEAD WATERS — every section the reach builder marks steelhead KNOWN
+    #: (`pipeline.atlas.reach.steelhead`): every water any rule of a row naming steelhead binds, the
+    #: tributary walk of every row flagged `anadromous_rainbow` (held to no region), and the curated
+    #: steelhead list (`data/curated/regulations/steelhead_waters.json`) with its walk — MINUS every
+    #: section the named `siblings` bind (the rule or licensing record this one is the twin of). How
+    #: the provincial steelhead set (zp:steelhead r1b/r2b/r4b and the stamp twin) reaches a known water
+    #: its stream-only base does not: a lake (Tenas, Khartoum, Lois), a stream past the steelhead
+    #: regions (the Thompson's Nicola headwaters in Region 8) — user ruling 2026-10-02. A fact of the
+    #: WHOLE corpus, so only `reach.build.build_reaches` resolves it; `build_reach` alone (the review
+    #: app) leaves it unresolved `needs_corpus`.
+    STEELHEAD_WATERS = "steelhead_waters"  # the known steelhead waters minus siblings'  (0 splits)
 
 
 class Extent(BaseModel):
@@ -142,8 +153,9 @@ class Extent(BaseModel):
 
     siblings: List[str] = Field(
         default_factory=list,
-        description="op=rest only: the rule ids (same entry) whose sections this extent is the "
-        "COMPLEMENT of. 'Other parts' is the rest of the water after the rules that name parts; "
+        description="op=rest (and op=steelhead_waters) only: the rule ids (same entry) whose "
+        "sections this extent is the COMPLEMENT of — on steelhead_waters, the rule (or, on a "
+        "licensing record, the record) whose sections are taken out of the known steelhead waters. 'Other parts' is the rest of the water after the rules that name parts; "
         "each is listed explicitly so the complement never depends on rule order, and "
         "`CatalogueEntry` checks each exists and draws its place.",
     )
@@ -236,6 +248,19 @@ class Extent(BaseModel):
             if extra:
                 raise ValueError(f"op rest is the rest of the rule's water after its siblings — "
                                  f"it takes no {extra}")
+        elif self.op == Op.STEELHEAD_WATERS:
+            # THE KNOWN STEELHEAD WATERS, minus what the named siblings bind. Nothing that adds or
+            # cuts water: the set is the reach builder's, never shaped by hand. `outside_area_kind`
+            # is the one limit (the stamp stops at national parks, as its base does).
+            if len(set(self.siblings)) != len(self.siblings):
+                raise ValueError(f"siblings has duplicates: {self.siblings}")
+            extra = [k for k in ("splits", "item_id", "item_ids", "area_id", "area_kind",
+                                 "within_area", "outside_area", "outside_areas", "outside_items",
+                                 "watershed", "feature_types")
+                     if getattr(self, k)]
+            if extra:
+                raise ValueError(f"op steelhead_waters is the reach builder's known steelhead "
+                                 f"waters — it takes no {extra}")
         elif self.siblings:
             raise ValueError(f"siblings belongs to op rest, not {self.op.value}")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):

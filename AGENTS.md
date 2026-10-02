@@ -300,3 +300,24 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     the reference reader: per fish, per day, lifts, naming before place, water-vs-zone quota
     rulings. The export `guide` restates it; the app must match it. Change a ruling there and in
     the guide together.
+54. **Known steelhead waters carry the provincial steelhead set wherever they are.** (user
+    rulings 2026-10-01/02, `pipeline/atlas/reach/steelhead.py`.) The provincial and zone steelhead
+    rules bind STREAMS of Regions 1, 2, 3, 5 and 6 ("possible" where nothing more is known). A
+    KNOWN water — every water any rule of a steelhead row binds (a water row with a rule naming
+    `ST`, or flagged `anadromous_rainbow`: Tenas Lake via the Atnarko's spring closure), the
+    tributary streams of every flagged row in ANY region, and every water on the curated list with
+    its tributaries — carries the whole provincial set (annual hatchery 10, wild release, record
+    duty, stamp), through the TWINS `zp:steelhead` r1b/r2b/r4b and `steelhead_targeting_known`,
+    whose one extent is `{op: steelhead_waters, siblings: [<base>]}` (the reach builder's known set
+    minus the base's sections; only `build_reaches` resolves it — `build_reach` alone says
+    `needs_corpus`). Never put an item or region extent on a base steelhead rule: it changes its
+    competition key and ranks it as a water rule (`read.source_of`). A row that only WAIVES the
+    stamp ("Steelhead Stamp not required") is not a steelhead row. A row naming steelhead in a rule
+    but not flagged (the Fraser's per-region rows) makes its own water known and is not walked.
+    `anadromous_rainbow` holds on known STREAMS only.
+    **THE CURATED LIST** is `data/curated/regulations/steelhead_waters.json` (`CURATED.regulations.
+    steelhead_waters`): `{"$comment": …, "waters": [{"item_id": "wbk:…", "note": "…"},
+    {"name": "Cowichan River", "region": "1", "note": "…"}]}` — exactly one of `item_id`/`name`;
+    `region` ("1".."8") / `mu` ("1-4") choose among same-named waters. The reach builder refuses an unknown, ambiguous,
+    contradicted or duplicate entry; the bundle refuses a reach run made with a different list.
+    The export names such a water's source `"curated list"` (`waters[].steelhead_source`).

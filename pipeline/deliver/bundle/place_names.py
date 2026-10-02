@@ -174,6 +174,9 @@ class PlaceNamer:
             on = " and ".join(names)
         if op == "whole":
             place = on or False
+        elif op == "steelhead_waters":
+            # THE KNOWN STEELHEAD WATERS (`reach.steelhead`) — the reach builder's set, no one water
+            place = "known steelhead waters"
         elif op == "within":
             if x.get("area_id"):
                 aid = str(x["area_id"])

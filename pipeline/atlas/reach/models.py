@@ -60,6 +60,12 @@ class Reason(str, Enum):
     #: does not bind leaves the rest UNKNOWN — never guessed as the whole water.
     complement_unknown = "complement_unknown"
 
+    # --- a fact of the whole corpus ----------------------------------------------
+    #: `steelhead_waters` is the reach builder's KNOWN steelhead set (`reach.steelhead`) — every row
+    #: naming steelhead, their walks, the curated list. One entry alone cannot say it: only
+    #: `build_reaches` resolves it, so `build_reach` (the review app) leaves it here.
+    needs_corpus = "needs_corpus"
+
     # --- deliberately deferred -------------------------------------------------
     tributaries_pending = "tributaries_pending"      # direct part bound; no expander supplied
     no_tributaries = "no_tributaries"                # tributaries_only, but there are none

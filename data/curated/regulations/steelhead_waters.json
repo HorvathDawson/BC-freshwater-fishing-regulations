@@ -1,0 +1,14 @@
+{
+  "$comment": [
+    "THE KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02). Rivers that are steelhead water although no row of the book names steelhead on them (e.g. Cowichan, Squamish, Nass).",
+    "Each water listed here is made steelhead KNOWN by the reach builder (pipeline/atlas/reach/steelhead.py): the water itself and its tributaries (the same walk as a row flagged anadromous_rainbow: streams only, held to no region), so it carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the Steelhead Stamp) wherever it lies, its streams carry anadromous_rainbow (a rainbow over 50 cm is a steelhead), and the export records steelhead_source: \"curated list\".",
+    "FORMAT: \"waters\" is a list of objects, each with EXACTLY ONE of",
+    "  \"item_id\": a registry id (\"wbk:...\", \"gnis:...\", \"blk:...\") — exact, preferred;",
+    "  \"name\":    the water's name as the registry has it (its name or a name variant, case-insensitive),",
+    "plus, optionally, \"region\" (\"1\"..\"8\"; 7A/7B both read as 7) and/or \"mu\" (\"1-4\") to choose among several waters of that name, and a \"note\" (why it is on the list; not read by the build).",
+    "The build REFUSES an entry it cannot resolve to exactly one water: an unknown item_id or name, a name several waters share (add region or mu), a water listed twice, or an item_id whose name/region/mu disagree with what is written beside it.",
+    "Example: {\"name\": \"Cowichan River\", \"region\": \"1\", \"note\": \"winter steelhead\"} or {\"item_id\": \"gnis:12345\", \"note\": \"Squamish River\"}.",
+    "Reach run: python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out <reaches>; then the bundle. The list is recorded in the reach run's report (steelhead.curated) and the bundle refuses a run whose list differs from this file."
+  ],
+  "waters": []
+}

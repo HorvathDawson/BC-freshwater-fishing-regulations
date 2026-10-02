@@ -23,6 +23,7 @@ from pipeline.atlas.reach.models import (
 )
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
+from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_sections,
 )
@@ -51,7 +52,7 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None) -> ReachResult:
+                  covered_fn=None, steelhead_list=()) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -60,6 +61,10 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     Covered items come from `pipeline.atlas.reach.covered` — `entry.matched`, and nothing else;
     the review app reads the same function, so the bundle and the app never disagree about
     which water a rule is about. Pass `covered_fn(entry, registry)` to override.
+
+    `steelhead_list` is the user's known-steelhead list (`steelhead.load_list`; the CLI passes the
+    curated file): each water is resolved to one item or the run stops, and is made known with its
+    tributaries (`reach.steelhead`).
     """
     t0 = time.time()
     bindings: list[RuleBinding] = []
@@ -92,6 +97,16 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     tidal = tidal_sections(ents, registry)
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)
+    # THE CURATED KNOWN-STEELHEAD LIST: each water and its tributaries, held to no region.
+    presence.add_list(
+        _steelhead.resolve_list(list(steelhead_list or ()), registry),
+        lambda item: build_reach({"entry_id": _steelhead.CURATED_LIST, "matched": [item]},
+                                 dict(_steelhead.WALK_RULE), registry, graph, covered=[item],
+                                 outside=outside, regional=False, tidal=tidal, owned=owned))
+    #: rules / licensing records bound to the known steelhead waters (`Op.STEELHEAD_WATERS`): a
+    #: fact of the whole corpus, resolved after every row has bound (`_bind_steelhead_waters`)
+    steelhead_rules: list[tuple[dict, dict]] = []
+    steelhead_records: list[tuple[dict, dict]] = []
 
     for e in ents:
         report.n_entries += 1
@@ -114,6 +129,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
         for rule in e.get("rules") or []:
             report.n_rules += 1
+            if _steelhead.steelhead_waters_extent(rule) is not None:
+                steelhead_rules.append((e, rule))
+                continue
             binding, diags = build_reach(e, rule, registry, graph,
                                          covered=covered, clip=clip, outside=outside,
                                          shared=shared, tidal=tidal, owned=owned)
@@ -133,6 +151,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         # LICENSING, in the entry's own context: same covered items, same clip, same resolver.
         for rec in e.get("licensing") or []:
             if rec.get("kind") not in PLACED_KINDS:
+                continue
+            if _steelhead.steelhead_waters_extent(rec) is not None:
+                steelhead_records.append((e, rec))
                 continue
             # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
@@ -164,6 +185,17 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                     items = set(([x.get("item_id")] if x.get("item_id") else [])
                                 + list(x.get("item_ids") or []))
                     carved[(entry_id, rec["id"], i)] = (removed & mine, items)
+
+    # THE KNOWN STEELHEAD WATERS, now that every row has bound: the twins of the provincial
+    # steelhead set (user ruling 2026-10-02).
+    known = presence.close(bindings)
+    got_rules, got_records, sh_diags = _bind_steelhead_waters(
+        steelhead_rules, steelhead_records, known, bindings, licensing, registry)
+    bindings.extend(got_rules)
+    diagnostics.extend(d for d in sh_diags if not d.payload.get("record"))
+    licensing.extend(got_records)
+    lic_diags.extend(d for d in sh_diags if d.payload.get("record"))
+    twins = frozenset((b.entry_id, b.rule_id) for b in got_rules)
 
     # A water's own designation beats one inherited by another water's tributary walk.
     licensing, yielded = own_beats_inherited(licensing, designations)
@@ -217,8 +249,67 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     diagnostics.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
     licensing.sort(key=lambda p: (p.entry_id, p.record_id))
     lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
-    steelhead, report.steelhead = presence.finish(bindings)
+    steelhead, report.steelhead = presence.finish(bindings, twins)
     return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead)
+
+
+def _area_kind_sections(registry, kind: str) -> frozenset[str]:
+    """Every section of every `area:<kind>:*` item (`Extent.outside_area_kind`)."""
+    prefix = f"area:{kind}:"
+    return frozenset(s for k, it in registry.items() if str(k).startswith(prefix)
+                     for s in it.section_ids)
+
+
+def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry):
+    """THE KNOWN STEELHEAD WATERS (`Extent` op `steelhead_waters`, `reach.steelhead`) minus what
+    each named sibling binds, less any `outside_area_kind` (the stamp stops at national parks, as
+    its base does). Returns (rule bindings, licensing placements, diagnostics); a diagnostic about a
+    record carries `record: true`. A sibling that did not bind leaves the twin unresolved
+    `complement_unknown` — never the whole known set."""
+    rb = {(b.entry_id, b.rule_id): b for b in bindings}
+    lp = {(p.entry_id, p.record_id): p for p in licensing}
+    out_rules, out_recs, diags = [], [], []
+    for (e, x), is_rec in [((e, r), False) for e, r in rules] + [((e, r), True) for e, r in records]:
+        eid = e["entry_id"]
+        rid = x["id"] if is_rec else x["rule_id"]
+        ex = _steelhead.steelhead_waters_extent(x)
+        taken: set[str] = set()
+        counts: dict[str, int] = {}
+        missing = None
+        for sib in ex.get("siblings") or []:
+            got = (lp if is_rec else rb).get((eid, sib))
+            secs = tuple(getattr(got, "sections", ()) or ())
+            if got is None or not secs:
+                missing = sib
+                break
+            taken |= set(secs)
+            counts[sib] = len(secs)
+        cut = (_area_kind_sections(registry, ex["outside_area_kind"])
+               if ex.get("outside_area_kind") else frozenset())
+        kept = tuple(sorted(set(known) - taken - cut)) if missing is None else ()
+        diags.append(Diagnostic(eid, rid, "steelhead_waters", {
+            "known": len(known), "siblings": counts,
+            "outside_area_kind": len(set(known) & cut), "kept": len(kept),
+            **({"record": True} if is_rec else {}),
+            "why": "the known steelhead waters (reach.steelhead) the base rule does not bind"}))
+        if missing is not None:
+            reason, detail = (Reason.complement_unknown,
+                              f"steelhead_waters sibling {missing} does not bind — the known "
+                              f"waters it leaves are unknown until it does")
+        elif not kept:
+            reason, detail = (Reason.no_sections,
+                              "the siblings bind every known steelhead water — none remains")
+        else:
+            reason, detail = None, ""
+        if is_rec:
+            out_recs.append(LicensingPlacement(
+                eid, rid, x["kind"], "sections", sections=kept) if reason is None else
+                LicensingPlacement(eid, rid, x["kind"], "unresolved", reason=reason.value,
+                                   detail=detail))
+        else:
+            out_rules.append(RuleBinding(eid, rid, Outcome.bound, kept) if reason is None else
+                             RuleBinding(eid, rid, Outcome.unresolved, (), reason, detail))
+    return out_rules, out_recs, diags
 
 
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
@@ -268,6 +359,13 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         covered = _covered_ids(entry, registry)
     if outside is None:
         outside = outside_bc(registry, graph)
+    if _steelhead.steelhead_waters_extent(rule) is not None:
+        # THE KNOWN STEELHEAD WATERS are a fact of the whole corpus — only `build_reaches`, after
+        # every row has bound, can say them (`_bind_steelhead_waters`).
+        return RuleBinding(entry["entry_id"], rule.get("rule_id") or rule.get("id") or "",
+                           Outcome.unresolved, (), Reason.needs_corpus,
+                           "the known steelhead waters are resolved by the full reach run "
+                           "(build_reaches), not one entry alone"), []
     rest = _rest_of(rule)
     if rest is not None:
         return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,

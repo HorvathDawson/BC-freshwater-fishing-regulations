@@ -556,6 +556,10 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # it: `build.build_reach` resolves it against the rule's siblings.
         _fail("rest_needs_its_siblings", ",".join(ex.get("siblings") or ()))
         return None
+    if op == "steelhead_waters":
+        # THE KNOWN STEELHEAD WATERS are a fact of the whole corpus (`build.build_reaches`).
+        _fail("steelhead_waters_need_the_corpus", ",".join(ex.get("siblings") or ()))
+        return None
     if not universe and op != "within":
         # `within` is the one op that can answer without an item scope — an admin-area closure names
         # the area, not a water. Every other op selects FROM a water, so no water means no answer.
