@@ -1387,8 +1387,9 @@ def guide(d: dict) -> dict:
                              "every other trout and char (`counted_apart`). Perry Creek's 'brook "
                              "trout daily quota = 20' lifts the 5 for brook trout; Lois Lake's "
                              "'Rainbow trout/hatchery steelhead quota = 6 in the aggregate' lifts "
-                             "Region 2's 'Trout/char: 4' and its '2 hatchery steelhead' for "
-                             "rainbow and steelhead. A LARGER NUMBER ALSO OVERRIDES THE ZONE'S "
+                             "Region 2's 'Trout/char: 4' for rainbow and steelhead (the region's "
+                             "'2 hatchery steelhead' binds streams only and never reaches the "
+                             "lake). A LARGER NUMBER ALSO OVERRIDES THE ZONE'S "
                              "SIZE CLAUSE ('only 1 over 50 cm'), whether or not the row prints "
                              "'(any size)' (user ruling 2026-09-26): Jewel Lake's 'Brook trout "
                              "daily quota = 20' lifts Region 8's 5 AND its '1 over 50 cm' for "
@@ -1461,7 +1462,18 @@ def guide(d: dict) -> dict:
                                 "2's 'Trout/char: 4' keeps no rainbow over 50 cm there — that "
                                 "fish is a steelhead ('2 hatchery steelhead over 50 cm allowed', "
                                 "'All wild steelhead' released). Elsewhere a rainbow of any "
-                                "size is a rainbow.",
+                                "size is a rainbow. STEELHEAD RULES BIND STREAMS (user ruling "
+                                "2026-10-01): the province's steelhead rules (the annual "
+                                "hatchery quota of 10, 'All wild steelhead must be released', "
+                                "the record duty, the Conservation Surcharge Stamp) carry "
+                                "`water: stream` and bind only the streams of the regions whose "
+                                "own tables name steelhead (1, 2, 3, 5 and 6); each zone's "
+                                "steelhead rules bind the streams of its own area. A lake answers "
+                                "to a steelhead rule only when its own row prints steelhead "
+                                "(Khartoum and Lois lakes' 'Rainbow trout/hatchery steelhead "
+                                "quota = 6 in the aggregate'): a big lake rainbow falls under the "
+                                "rainbow size quota ('1 over 50 cm'), never the steelhead quota. "
+                                "The export refuses a steelhead rule on any other lake.",
         "region": "A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN (user rulings "
                   "2026-09-25). A STREAM PIECE that wanders across a region line binds only "
                   "its home region's zone rules: the region holding most of its length (a West "
@@ -3841,9 +3853,59 @@ def case_problems(doc: dict) -> list[str]:
     return out
 
 
+def is_steelhead_rule(x: dict) -> bool:
+    """A rule ABOUT STEELHEAD: its species names steelhead (`ST`), or it names no fish and its
+    sentence is about steelhead (Region 5's "steelhead fisheries within the Chilcotin River
+    Watershed may be closed"). A group rule whose fish include steelhead ("Trout/char: 5") is not
+    one — it is the rainbow/trout quota a big lake rainbow falls under."""
+    sp = x["fields"].get("species") or []
+    return "ST" in sp or (not sp and "steelhead" in str(x.get("verbatim") or "").lower())
+
+
+def is_steelhead_record(x: dict) -> bool:
+    """A licensing record about fishing for steelhead (`doing.species` names `ST`): the stamp."""
+    return "ST" in ((x["fields"].get("doing") or {}).get("species") or [])
+
+
+def steelhead_lake_problems(doc: dict) -> list[str]:
+    """A STEELHEAD RULE NEVER SHOWS ON A LAKE UNLESS THE LAKE'S OWN ROW MENTIONS STEELHEAD (user
+    ruling 2026-10-01). Big lake rainbow fall under the rainbow size quota, not the steelhead
+    quota, so the province's and the zones' steelhead rules bind streams only (`water: stream`).
+    Every lake water whose ruleset or licensing set carries a steelhead rule or stamp record
+    (`is_steelhead_rule`, `is_steelhead_record`) written by an entry that is not one of the lake's
+    own rows printing "steelhead" (Khartoum and Lois lakes: "Rainbow trout/hatchery steelhead quota
+    = 6 in the aggregate") is refused, and so is a steelhead record placed province-wide — it
+    would hold on every lake."""
+    R, L, E = doc["rules"], doc["licensing"], doc["entries"]
+    out = [f"steelhead record {i} is placed province-wide — it holds on every lake"
+           for i, x in L.items() if is_steelhead_record(x) and x.get("placement") == "province"]
+    bad: dict = {}
+    for item, w in sorted(doc["waters"].items()):
+        if w.get("kind") != "lake":
+            continue
+        own = {e for e in w.get("entries") or []
+               if "steelhead" in str((E.get(e) or {}).get("printed") or "").lower()}
+        for p in w["parts"]:
+            for table, known, test, key in (
+                    (doc["rulesets"], R, is_steelhead_rule, "ruleset"),
+                    (doc["licensing_sets"], L, is_steelhead_record, "licensing_set")):
+                for via, ids in (table.get(p[key]) or {}).items():
+                    if via == "sections":
+                        continue
+                    for i in ids:
+                        x = known.get(i)
+                        if x is not None and test(x) and x["entry_id"] not in own:
+                            bad.setdefault(i, []).append(item)
+    for i, items in sorted(bad.items()):
+        items = sorted(set(items))
+        out.append(f"steelhead rule {i} shows on {len(items)} lake(s) whose own row does not "
+                   f"mention steelhead, e.g. {', '.join(items[:3])}")
+    return out
+
+
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
-            + case_problems(doc) + record_link_problems(doc))
+            + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc))
 
 
 def dumps(doc: dict) -> str:

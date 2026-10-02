@@ -1106,13 +1106,46 @@
      ],
      "take": 10,
      "period": "annual",
+     "water": "stream",
      "origin": "hatchery",
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8)."
     },
     {
      "rule_id": "steelhead.r2",
@@ -1123,13 +1156,46 @@
      ],
      "take": 0,
      "may_target": true,
+     "water": "stream",
      "origin": "wild",
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8)."
     },
     {
      "rule_id": "steelhead.r4",
@@ -1139,13 +1205,46 @@
       "ST"
      ],
      "record_retention": true,
+     "water": "stream",
      "origin": "hatchery",
      "extents": [
       {
        "op": "within",
-       "area_kind": "region"
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8)."
     }
    ],
    "licensing": [
@@ -1172,11 +1271,48 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "region",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ],
+       "outside_area_kind": "national_parks"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ],
+       "outside_area_kind": "national_parks"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ],
+       "outside_area_kind": "national_parks"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ],
+       "outside_area_kind": "national_parks"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ],
        "outside_area_kind": "national_parks"
       }
      ],
+     "water": "stream",
      "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8).",
      "kind": "requirement"
     }
    ]

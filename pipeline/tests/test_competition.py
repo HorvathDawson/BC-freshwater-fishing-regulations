@@ -864,8 +864,11 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
     assert {f"{eid}::lois_lake.r1", f"{eid}::lois_lake.r4"} <= rb
     assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r2"} & rb, rb
     st = _kept(sid, (7, 1), "ST")
-    assert f"{eid}::lois_lake.r4" in st and f"{Z2}::trout_char_quota.r7" in st   # wild released
-    assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r3"} & st, st
+    # a lake answers only to its own steelhead rule (user ruling 2026-10-01): Region 2's
+    # steelhead lines ("2 hatchery steelhead", "All wild steelhead") bind streams only
+    assert f"{eid}::lois_lake.r4" in st
+    assert not {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r3",
+                f"{Z2}::trout_char_quota.r7"} & st, st
     assert {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r2"} <= _kept(sid, (7, 1), "CT")
 
 

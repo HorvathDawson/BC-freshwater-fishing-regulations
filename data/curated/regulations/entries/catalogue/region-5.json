@@ -963,7 +963,8 @@
      "review_reason": "the classified-water stamp period on reopening is implied by the note, not printed — unknown until an in-season notice states it",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:avalanche_lake@5-6",
@@ -2503,7 +2504,8 @@
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:cameron_creek@5-15",
@@ -3055,7 +3057,8 @@
      "verbatim": "Class II water Oct 1-May 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:chilko_lake@5-4",
@@ -3681,7 +3684,8 @@
      "verbatim": "Class II water**[Includes Tributaries]** Apr 1-May 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:cohen_lake@5-6",
@@ -4578,7 +4582,8 @@
      "verbatim": "Class II water June 16-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:deception_lake@5-15",
@@ -8033,7 +8038,8 @@
      "verbatim": "Class II water**[Includes Tributaries]**, Apr 1-May 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:klinaklini_river@5-6",
@@ -9437,7 +9443,8 @@
      "verbatim": "Class II water Apr 1-May 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r5:nimpo_lake@5-12",
@@ -13177,7 +13184,8 @@
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "z5:bass_illegal",
@@ -13649,11 +13657,14 @@
       {
        "op": "within",
        "area_id": "area:basin:100-342455-",
-       "within_area": "area:region:5"
+       "within_area": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
       }
      ],
      "extent_text": "Chilcotin River watershed",
-     "review_reason": "BOUND — watershed: the FWA basin of the Chilcotin (code 100-342455-) in Region 5. Conditional ('may be closed'). RECOVERED — absent from the corpus."
+     "review_reason": "BOUND — watershed: the FWA basin of the Chilcotin (code 100-342455-) in Region 5. Conditional ('may be closed'). RECOVERED — absent from the corpus. User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     }
    ]
   },
@@ -13773,9 +13784,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:5"
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "trout_char_quota.r7",

@@ -79,8 +79,10 @@ def test_a_rules_conditions_are_in_its_key(corpus):
     "Trout/char: 5" — or the region's number silences the release."""
     wild = _rule(corpus, "zp:steelhead", "steelhead.r2")
     region = _rule(corpus, "z6:trout_char_quota", "trout_char_quota.r1")
-    assert wild.dimension == "daily@origin=wild" and region.dimension == "daily"
-    assert _rule(corpus, "zp:steelhead", "steelhead.r4").dimension == "daily@origin=hatchery&record"
+    # streams only (user ruling 2026-10-01): the water kind is a condition of its own
+    assert wild.dimension == "daily@origin=wild&water=stream" and region.dimension == "daily"
+    assert _rule(corpus, "zp:steelhead", "steelhead.r4").dimension == \
+        "daily@origin=hatchery&water=stream&record"
     streams = _rule(corpus, "z5:trout_char_quota", "trout_char_quota.r3")      # "2 from streams"
     assert streams.dimension == "daily@water=stream"
     setline = _rule(corpus, "zp:set_lining", "set_lining.r3")
@@ -248,12 +250,16 @@ def test_national_parks_close_by_default_and_provincial_licences_do_not_bind_the
     assert not note.exempts
     for eid, lid in (("zp:basic_licence", "basic_licence"),
                      ("zp:basic_licence", "under_16_non_resident"),
-                     ("zp:steelhead", "steelhead_targeting"), ("zp:salmon_stamp", "salmon_stamp"),
+                     ("zp:salmon_stamp", "salmon_stamp"),
                      ("zp:licence_administration", "produce_licence"),
                      ("zp:licence_administration", "carry_paper_licence")):
         rec = next(x for x in corpus[eid].licensing if x.id == lid)
         assert rec.extents == [{"op": "within", "area_kind": "region",
                                 "outside_area_kind": "national_parks"}], (eid, lid)
+    # the steelhead stamp binds streams of the regions whose tables name steelhead (user ruling
+    # 2026-10-01), and still stops at a national park
+    st = next(x for x in corpus["zp:steelhead"].licensing if x.id == "steelhead_targeting")
+    assert st.extents and all(x.get("outside_area_kind") == "national_parks" for x in st.extents)
 
 
 def test_outside_area_kind_subtracts_the_family(tmp_path):
@@ -369,7 +375,8 @@ def test_stop_fishing_after_the_steelhead_quota_is_on_regions_2_and_6_only(corpu
                    for r in corpus["zp:steelhead"].rules)
     for reg in ("2", "6"):
         (r,) = corpus[f"z{reg}:hatchery_steelhead_stop"].rules
-        assert r.extents == [{"op": "within", "area_id": f"area:region:{reg}"}]
+        assert r.extents == [{"op": "within", "area_id": f"area:region:{reg}",
+                              "feature_types": ["stream"]}]          # streams (2026-10-01)
         assert label(r).startswith("Stop fishing the water for the rest of the day")
 
 

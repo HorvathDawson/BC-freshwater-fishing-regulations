@@ -941,7 +941,8 @@
       }
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r2:brunette_river_s_tributaries@2-8",
@@ -1328,7 +1329,8 @@
       }
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r2:case_lake@2-16",
@@ -2499,7 +2501,8 @@
       }
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r2:coquitlam_river@2-8",
@@ -10685,9 +10688,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     }
    ]
   },
@@ -11075,9 +11082,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "trout_char_quota.r4",
@@ -11172,9 +11183,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:2"
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "trout_char_quota.r8",

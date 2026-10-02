@@ -516,7 +516,8 @@
      "review_reason": "the printed reach ('from the juvenile fish counting weir … downstream to the Babine River's confluence with the Skeena') follows the stamp clause; whether it also bounds the Class I designation is not certain — a curator must confirm the Class I reach against the page 56 map",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:basalt_lake@6-1",
@@ -1538,7 +1539,8 @@
       "r6:telkwa_river@6-9"
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:casey_lake@6-4",
@@ -2137,7 +2139,8 @@
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:deep_creek@6-15",
@@ -2444,7 +2447,8 @@
      "verbatim": "Class II water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:endako_river@6-4",
@@ -2915,7 +2919,8 @@
      "verbatim": "Class I water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:glacier_redslide_creek_unnamed_tributary_to_nanika_river@6-9",
@@ -3702,7 +3707,8 @@
       "r6:skeena_river_kispiox_river_confluence@6-8"
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kiteen_river@6-15",
@@ -3972,7 +3978,8 @@
       "zp:steelhead"
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kitseguecla_river@6-9",
@@ -4066,7 +4073,8 @@
      "verbatim": "Class II water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kitsumkalum_kalum_river@6-15",
@@ -4183,7 +4191,8 @@
      "verbatim": "Class II water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kitwanga_river@6-30",
@@ -4278,7 +4287,8 @@
      "verbatim": "Class II water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:klahowya_lake@6-20",
@@ -4540,7 +4550,8 @@
      "verbatim": "Class II water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kowatua_creek@6-26",
@@ -4854,7 +4865,8 @@
      "verbatim": "Class II water Apr 1-Sept 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kwinageese_river@6-30",
@@ -4935,7 +4947,8 @@
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:kwinamass_river@6-14",
@@ -5345,7 +5358,8 @@
      "verbatim": "Class I water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:lean_to_creek@6-15",
@@ -5907,7 +5921,8 @@
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:morley_lake@6-25",
@@ -7701,7 +7716,8 @@
      "review_reason": "Skeena River Section 4 prints only its lower end (1.5 km upstream of Zymoetz River); bound upstream_of that point with no upper end, which runs to the headwaters — a curator must draw the upper bound from the page 54/55 maps",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:squirrel_lake@6-1",
@@ -8066,7 +8082,8 @@
      "verbatim": "Class I water all year",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:sustut_lakes@6-18",
@@ -8200,7 +8217,8 @@
      "verbatim": "Class I water Sept 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:swift_river@6-25",
@@ -8894,7 +8912,8 @@
      "verbatim": "Class II water Sept 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r6:teslin_lake@6-25",
@@ -9887,7 +9906,8 @@
      "verbatim": "Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "z6:first_nations_notice",
@@ -9945,9 +9965,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     }
    ]
   },
@@ -10911,9 +10935,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:6"
+       "area_id": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     }
    ]
   }

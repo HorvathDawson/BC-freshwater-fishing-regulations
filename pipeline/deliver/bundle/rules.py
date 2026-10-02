@@ -1137,11 +1137,16 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.86): the sections of the matched waters of
     # every row saying anadromous rainbow are found there. A flagged row whose waters place no
     # section would state the definition nowhere, so it stops the build.
+    # STREAMS ONLY (user ruling 2026-10-01): a lake is never steelhead water — a big lake
+    # rainbow falls under the rainbow size quota, not the steelhead quota — so a flagged row's
+    # lake items (Chilliwack/Vedder's "Vedder Canal", FWA kind lake) are left out.
     sw_rows = []
     for ce in ces:
         if not ce.anadromous_rainbow:
             continue
         got = sorted({sid[h] for it in ce.matched if it in registry
+                      and str(getattr(registry[it].kind, "value", registry[it].kind)
+                              or "").lower() == "stream"
                       for h in registry[it].section_ids if h in sid})
         if not got:
             raise SystemExit(f"steelhead_water: {ce.entry_id} says anadromous rainbow are found "

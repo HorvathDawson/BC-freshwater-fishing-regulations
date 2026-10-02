@@ -106,7 +106,8 @@
      "verbatim": "Class II water Apr 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:alice_lake@1-13",
@@ -2151,7 +2152,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:courtenay_river@1-6",
@@ -2981,7 +2983,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:davie_river@1-11",
@@ -3168,7 +3171,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:dickson_lake@1-7",
@@ -5802,7 +5806,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:ida_lake@1-11",
@@ -6232,7 +6237,8 @@
      "verbatim": "Class II water Apr 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:kemp_lake@1-2",
@@ -6393,7 +6399,8 @@
      "verbatim": "Class II water Apr 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:kokish_river@1-11",
@@ -7706,7 +7713,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:maple_lake@1-6",
@@ -9316,7 +9324,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:panther_lake@1-5",
@@ -10084,7 +10093,8 @@
       }
      ]
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:quennell_lake@1-5",
@@ -10790,7 +10800,8 @@
      "verbatim": "Class II water Aug 15-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:shawnigan_lake@1-2",
@@ -12114,7 +12125,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:tlools_lake@1-9",
@@ -13565,7 +13577,8 @@
      "verbatim": "Class II water Apr 1-Oct 31",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:weston_lake@1-1",
@@ -14045,7 +14058,8 @@
      "verbatim": "Class II water Sept 1-Apr 30",
      "kind": "designation"
     }
-   ]
+   ],
+   "anadromous_rainbow": true
   },
   {
    "entry_id": "r1:zeballos_lake@1-12",
@@ -14397,9 +14411,13 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:mu_group:management_units_6_12_and_6_13"
+       "area_id": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "hg_quota.r7",
@@ -14778,9 +14796,13 @@
       {
        "op": "within",
        "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "trout_quota.r4",
@@ -14821,9 +14843,13 @@
       {
        "op": "within",
        "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
       }
-     ]
+     ],
+     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     },
     {
      "rule_id": "trout_quota.r6",
