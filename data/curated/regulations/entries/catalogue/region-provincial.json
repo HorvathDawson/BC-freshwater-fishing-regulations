@@ -1148,6 +1148,34 @@
      "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8)."
     },
     {
+     "rule_id": "steelhead.r1b",
+     "type": "retention_limit",
+     "verbatim": "The annual province-wide quota for hatchery steelhead is 10.",
+     "species": [
+      "ST"
+     ],
+     "take": 10,
+     "period": "annual",
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:329197058",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329197063",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ],
+     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead.r1, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A rule of its own because an item extent on steelhead.r1 would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake)."
+    },
+    {
      "rule_id": "steelhead.r2",
      "type": "retention_limit",
      "verbatim": "All wild steelhead must be released.",
@@ -1272,6 +1300,33 @@
       }
      ],
      "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8)."
+    },
+    {
+     "rule_id": "steelhead.r4b",
+     "type": "retention_limit",
+     "verbatim": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+     "species": [
+      "ST"
+     ],
+     "record_retention": true,
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:329197058",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329197063",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ],
+     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead.r4, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A rule of its own because an item extent on steelhead.r4 would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake)."
     }
    ],
    "licensing": [
@@ -1340,6 +1395,46 @@
      "water": "stream",
      "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
      "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for all of B.C. (p.8).",
+     "kind": "requirement"
+    },
+    {
+     "id": "steelhead_targeting_lakes",
+     "satisfied_by": [
+      {
+       "hold": [
+        "steelhead_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "targeting",
+      "species": [
+       "ST"
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:329197058",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329197063",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
+     "review_reason": "User ask 2026-10-02 (\"all ones with steelhead rules get the steelhead provincial rules\"): the same line as steelhead_targeting, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the stamp); no other lake does. A record of its own because an item extent on steelhead_targeting would rank it as a water rule on every stream it binds (`read.source_of`); no `water` (the base's 'in streams' is not true on a lake).",
      "kind": "requirement"
     }
    ]

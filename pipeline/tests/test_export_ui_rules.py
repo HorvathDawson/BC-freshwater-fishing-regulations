@@ -575,6 +575,100 @@ def test_the_field_dictionary_is_exactly_what_ships(doc):
         assert all(fields.values()), kind
 
 
+#: EVERY KEY IN THE DATA HAS WORDS (user ask 2026-10-02): where each kind of key is explained.
+#: Read here from the OUTPUT, independently of `export_ui_rules.dictionary_gaps`, which must agree.
+_KEYED = {
+    "file": lambda doc: [doc],
+    "water": lambda doc: list(doc["waters"].values()),
+    "water.tidal": lambda doc: [w["tidal"] for w in doc["waters"].values() if "tidal" in w],
+    "water.parts[]": lambda doc: [p for w in doc["waters"].values() for p in w["parts"]],
+    "water.parts[].runs[]": lambda doc: [r for w in doc["waters"].values() for p in w["parts"]
+                                         for r in p["runs"]],
+    "rule": lambda doc: list(doc["rules"].values()),
+    "rule.fields": lambda doc: [x["fields"] for x in doc["rules"].values()],
+    "rule.provenance": lambda doc: [x["provenance"] for x in doc["rules"].values()],
+    "licensing": lambda doc: list(doc["licensing"].values()),
+    "licensing.provenance": lambda doc: [x["provenance"] for x in doc["licensing"].values()],
+    "licensing.period": lambda doc: [x["period"] for x in doc["licensing"].values()
+                                     if x.get("period")],
+}
+
+
+def _undescribed(doc) -> list[str]:
+    fd, out = doc["field_dictionary"], []
+    for section, records in _KEYED.items():
+        keys = {k for r in records(doc) for k in r}
+        out += [f"{section}.{k}" for k in sorted(keys) if not (fd.get(section) or {}).get(k)]
+    for x in doc["licensing"].values():
+        out += [f"licensing.fields.{x['kind']}.{k}" for k in x["fields"]
+                if not (fd["licensing.fields"].get(x["kind"]) or {}).get(k)]
+    return sorted(set(out))
+
+
+def test_every_key_in_the_data_has_a_field_dictionary_entry(doc):
+    """Every top-level key, and every field of a water, a part, a run, a rule (record, `fields`,
+    `provenance`) and a licensing record (record, `fields`, `provenance`, `period`), has a
+    non-empty `field_dictionary` entry — and `problems` says the same."""
+    assert _undescribed(doc) == []
+    assert X.dictionary_gaps(doc) == []
+    # the new water fields are there, in words
+    for k in ("steelhead", "steelhead_source", "tidal", "part_of", "outside_bc"):
+        assert doc["field_dictionary"]["water"][k], k
+    assert set(doc["field_dictionary"]["file"]) == set(doc)
+
+
+def _with(doc, path, value):
+    """A shallow copy of `doc` with one new key set at `path` (the containers copied on the way)."""
+    bad = dict(doc)
+    *head, last = path
+    cur = bad
+    for k in head:
+        nxt = copy.copy(cur[k])
+        cur[k] = nxt
+        cur = nxt
+    cur[last] = value
+    return bad
+
+
+def _first(d):
+    return next(iter(d))
+
+
+@pytest.mark.parametrize("where", ["top", "water", "part", "run", "rule", "rule.fields",
+                                   "licensing", "licensing.fields", "dictionary"])
+def test_an_undescribed_key_is_caught(doc, where):
+    """Mutation: a key nobody describes — at the top, on a water, a part, a run, a rule, a rule's
+    fields, a licensing record or its fields — or a dictionary entry removed, turns both checks
+    red."""
+    w = _first(doc["waters"])
+    r = _first(doc["rules"])
+    lr = _first(doc["licensing"])
+    if where == "top":
+        bad = dict(doc, surprise={})
+    elif where == "water":
+        bad = _with(doc, ["waters", w], dict(doc["waters"][w], surprise=1))
+    elif where in ("part", "run"):
+        parts = copy.deepcopy(doc["waters"][w]["parts"])
+        (parts[0] if where == "part" else parts[0]["runs"][0])["surprise"] = 1
+        bad = _with(doc, ["waters", w], dict(doc["waters"][w], parts=parts))
+    elif where == "rule":
+        bad = _with(doc, ["rules", r], dict(doc["rules"][r], surprise=1))
+    elif where == "rule.fields":
+        bad = _with(doc, ["rules", r], dict(doc["rules"][r],
+                                            fields=dict(doc["rules"][r]["fields"], surprise=1)))
+    elif where == "licensing":
+        bad = _with(doc, ["licensing", lr], dict(doc["licensing"][lr], surprise=1))
+    elif where == "licensing.fields":
+        bad = _with(doc, ["licensing", lr], dict(
+            doc["licensing"][lr], fields=dict(doc["licensing"][lr]["fields"], surprise=1)))
+    else:
+        fd = dict(doc["field_dictionary"])
+        fd["water"] = {k: v for k, v in fd["water"].items() if k != "steelhead_source"}
+        bad = dict(doc, field_dictionary=fd)
+    assert _undescribed(bad), where
+    assert X.dictionary_gaps(bad), where
+
+
 def test_every_guide_example_is_a_real_record_quoted_exactly(doc):
     found = []
 
@@ -884,6 +978,8 @@ KOOTENAY_MAIN = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19
 SHUSWAP_ROW = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 RECORD_PAIRS = {
     "zp:steelhead::steelhead.r1": "zp:steelhead::steelhead.r4",
+    # the lake copies on Khartoum and Lois (user ask 2026-10-02): their own pair
+    "zp:steelhead::steelhead.r1b": "zp:steelhead::steelhead.r4b",
     f"{KOOTENAY_MAIN}::kootenay_lake_main_body.r6":
         "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1",
     "z3:shuswap_annual::shuswap_annual.r1": "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1",

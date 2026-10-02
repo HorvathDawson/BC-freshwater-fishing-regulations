@@ -6,10 +6,15 @@ fishing after the hatchery quota" — reaches only STREAMS of the regions whose 
 steelhead (1, 2, 3, 5, 6): the province's by `within area:region:N` + `feature_types: [stream]`, each
 zone's of its own area. 295c4ac3 extended the wild release to every lake; the third ruling reverted
 that. THE EXCEPTION: a lake whose own row names steelhead (Khartoum and Lois lakes, "Rainbow
-trout/hatchery steelhead quota = 6 in the aggregate") carries the wild release too — added to the
-releases of its region as an extent of its own (`whole`, `item_id`, `feature_types: [lake]`). The
-release keeps its competition key (no `water`): keyed apart, the zone's "ALL STEELHEAD" stopped
-beating the water rows' trout/char quotas it beats by naming (a measured regression, 0114b4c2).
+trout/hatchery steelhead quota = 6 in the aggregate") carries the WHOLE provincial steelhead set
+(user ask 2026-10-02) — the annual hatchery 10, the wild release, the record duty and the stamp —
+and its region's wild release, through lake COPIES (`steelhead.r1b`/`r2b`/`r4b`,
+`trout_char_quota.r7b`, licensing `steelhead_targeting_lakes`: `whole`, `item_id`,
+`feature_types: [lake]`, no `water`), so the stream rules keep their extents and their competition
+keys (keyed apart, the zone's "ALL STEELHEAD" stopped beating the water rows' trout/char quotas it
+beats by naming — a measured regression, 0114b4c2). Every water whose own row names steelhead
+carries the set wherever the row's steelhead lines bind in Regions 1, 2, 3, 5 and 6, and no other
+place does (`province_set_problems`, over the whole bundle).
 
 `steelhead: known | possible` (`pipeline.atlas.reach.steelhead`): known = a stream of a row naming
 steelhead (`anadromous_rainbow`) or a tributary stream of one (the build's walk, region-agnostic),
@@ -41,7 +46,8 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 #: stream closure). 7A's one mention is the Stellako's "(Steelhead Stamp not required)" — a stamp
 #: waiver, no steelhead rule; 4, 7B and 8 print none.
 QUALIFYING = ("1", "2", "3", "5", "6")
-PROVINCE_RULES = ("steelhead.r1", "steelhead.r2", "steelhead.r2b", "steelhead.r4")
+PROVINCE_RULES = ("steelhead.r1", "steelhead.r1b", "steelhead.r2", "steelhead.r2b",
+                  "steelhead.r4", "steelhead.r4b")
 #: The wild-steelhead releases (the book prints each under "And you must release:"; p.8 for the
 #: province) — the steelhead rules an own-row steelhead lake carries.
 WILD_RELEASES = {
@@ -56,9 +62,15 @@ WILD_RELEASES = {
     ("zp:steelhead", "steelhead.r2b"),
     ("z2:trout_char_quota", "trout_char_quota.r7b"),
 }
-#: the twins, by the release they repeat
+#: the twins, by the rule they repeat — the wild releases (user ruling 2026-10-01), and the rest of
+#: the provincial set: the annual hatchery 10 and its record duty (user ask 2026-10-02). A twin of a
+#: rule keyed `water: stream` drops the key (it is on a lake).
 TWINS = {("zp:steelhead", "steelhead.r2b"): "steelhead.r2",
-         ("z2:trout_char_quota", "trout_char_quota.r7b"): "trout_char_quota.r7"}
+         ("z2:trout_char_quota", "trout_char_quota.r7b"): "trout_char_quota.r7",
+         ("zp:steelhead", "steelhead.r1b"): "steelhead.r1",
+         ("zp:steelhead", "steelhead.r4b"): "steelhead.r4"}
+#: the stamp's twin, bound to the own-row steelhead lakes
+STAMP_TWIN = "steelhead_targeting_lakes"
 #: Lakes whose own rows print "steelhead" ("Rainbow trout/hatchery steelhead quota = 6 in the
 #: aggregate"): the only lakes a steelhead rule may show on — and they carry the wild release.
 OWN_STEELHEAD_LAKES = {"r2:khartoum_lake@2-12", "r2:lois_lake@2-12"}
@@ -146,13 +158,16 @@ def steelhead_scope_problems(raw: dict) -> list[str]:
                 twins.add(twin)
                 base = next((x for x in e["rules"] if x["rule_id"] == twin), None)
                 same = base is not None and {k: v for k, v in base.items() if k not in (
-                    "rule_id", "extents", "review_reason")} == {k: v for k, v in r.items() if k not in (
-                        "rule_id", "extents", "review_reason")}
+                    "rule_id", "extents", "review_reason", "water")} == {
+                        k: v for k, v in r.items() if k not in (
+                            "rule_id", "extents", "review_reason", "water")}
                 if not same:
                     out.append(f"{tag}: not the same line as {twin}")
                 if not exts or exts != _lakes_of(raw, area):
                     out.append(f"{tag}: lakes {[x.get('item_id') for x in exts]} are not the "
                                f"own-row steelhead lakes of its area")
+                if r.get("water") is not None:
+                    out.append(f"{tag}: a lake twin keyed to water {r.get('water')!r}")
                 continue
             if not exts or any(x.get("feature_types") != ["stream"] for x in exts):
                 out.append(f"{tag}: an extent draws more than streams")
@@ -167,12 +182,30 @@ def steelhead_scope_problems(raw: dict) -> list[str]:
                     and _lakes_of(raw, area) and r["rule_id"] not in twins:
                 out.append(f"{eid}::{r['rule_id']}: the own-row steelhead lakes of its area have "
                            f"no twin of it")
+        stamps = set()
         for x in e.get("licensing") or []:
             if "ST" not in ((x.get("doing") or {}).get("species") or []):
+                continue
+            stamps.add(x["id"])
+            if x["id"] == STAMP_TWIN:
+                base = next((y for y in e["licensing"] if y["id"] == "steelhead_targeting"), None)
+                strip = lambda y: {k: v for k, v in (y or {}).items()          # noqa: E731
+                                   if k not in ("id", "extents", "review_reason", "water")}
+                if strip(base) != strip(x) or x.get("water") is not None \
+                        or x.get("extents") != _lakes_of(raw, area):
+                    out.append(f"{eid}#{x['id']}: not the stamp bound to the own-row steelhead "
+                               f"lakes")
                 continue
             want = _streams_in(regions, outside_area_kind="national_parks")
             if x.get("water") != "stream" or x.get("extents") != want:
                 out.append(f"{eid}#{x['id']}: not the streams of regions {regions}")
+        if eid.startswith("zp:") and stamps and _lakes_of(raw, area) and STAMP_TWIN not in stamps:
+            out.append(f"{eid}: the own-row steelhead lakes have no stamp")
+        if eid.startswith("zp:") and _lakes_of(raw, area):
+            ids = {r["rule_id"] for r in e.get("rules") or []}
+            for (te, tr), base in TWINS.items():
+                if te == eid and base in ids and tr not in ids:
+                    out.append(f"{eid}::{base}: the own-row steelhead lakes have no twin of it")
     return out
 
 
@@ -191,9 +224,12 @@ def test_every_provincial_and_zone_steelhead_rule_binds_streams_only(raw):
     model = C.CatalogueEntry.model_validate(e)
     dims = {r.rule_id: r.dimension for r in model.rules}
     assert dims == {"steelhead.r1": "annual@origin=hatchery&water=stream",
+                    "steelhead.r1b": "annual@origin=hatchery",      # its twin on the two lakes
                     "steelhead.r2": "daily@origin=wild",            # its key, kept
                     "steelhead.r2b": "daily@origin=wild",           # its twin on the two lakes
-                    "steelhead.r4": "daily@origin=hatchery&water=stream&record"}
+                    "steelhead.r4": "daily@origin=hatchery&water=stream&record",
+                    "steelhead.r4b": "daily@origin=hatchery&record"}
+    assert [x["id"] for x in e["licensing"]] == ["steelhead_targeting", STAMP_TWIN]
     # Khartoum and Lois are the only own-row steelhead lakes, both in Region 2
     assert own_steelhead_lakes(raw) == {"2": sorted([KHARTOUM, LOIS])}
     # every listed wild release is in the corpus, and is one
@@ -209,22 +245,33 @@ _STAVE = {"op": "whole", "item_id": "wbk:329291805", "feature_types": ["lake"]}
 
 
 @pytest.mark.parametrize("mutate", [
-    lambda raw: raw["zp:steelhead"]["rules"][1].update(
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r2").update(
         extents=[{"op": "within", "area_kind": "region"}]),     # the release in Regions 4, 7, 8
-    lambda raw: raw["zp:steelhead"]["rules"][1].update(water="stream"),   # its key moves
-    lambda raw: raw["zp:steelhead"]["rules"][1]["extents"][0].pop("feature_types"),  # R1 lakes
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r2").update(water="stream"),   # its key moves
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r2")["extents"][0].pop("feature_types"),
     lambda raw: _r(raw, "z6:trout_char_quota", "trout_char_quota.r9")["extents"][0].pop(
         "feature_types"),                                       # a zone release onto lakes
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2b")["extents"].append(_STAVE),  # a 3rd lake
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2b")["extents"].pop(),     # Khartoum loses it
-    lambda raw: raw["zp:steelhead"]["rules"].pop(2),                          # no twin at all
+    lambda raw: raw["zp:steelhead"].update(rules=[r for r in raw["zp:steelhead"]["rules"]
+                                                  if r["rule_id"] != "steelhead.r2b"]),  # no twin
+    lambda raw: raw["zp:steelhead"].update(rules=[r for r in raw["zp:steelhead"]["rules"]
+                                                  if r["rule_id"] != "steelhead.r1b"]),  # no 10
+    lambda raw: raw["zp:steelhead"].update(rules=[r for r in raw["zp:steelhead"]["rules"]
+                                                  if r["rule_id"] != "steelhead.r4b"]),  # no duty
+    lambda raw: raw["zp:steelhead"].update(licensing=[x for x in raw["zp:steelhead"]["licensing"]
+                                                      if x["id"] != STAMP_TWIN]),  # no lake stamp
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r1b").update(take=6),     # not the same line
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r4b").update(water="stream"),  # "in streams"
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r1b")["extents"].append(_STAVE),  # a 3rd lake
+    lambda raw: raw["zp:steelhead"]["licensing"][1]["extents"].append(_STAVE),  # stamp on Stave
     lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7b").update(take=1),
     lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7")["extents"].append(
         {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),  # the release, not a twin
     lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r3")["extents"].append(
         {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),    # hatchery 2 on a lake
-    lambda raw: raw["zp:steelhead"]["rules"][0].pop("water"),
-    lambda raw: raw["zp:steelhead"]["rules"][3]["extents"].append(
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r1").pop("water"),
+    lambda raw: _r(raw, "zp:steelhead", "steelhead.r4")["extents"].append(
         {"op": "within", "area_id": "area:region:4", "feature_types": ["stream"]}),
     lambda raw: raw["zp:steelhead"]["licensing"][0]["extents"][0].pop("feature_types"),
     lambda raw: _r(raw, "z6:hatchery_steelhead_stop", "hatchery_steelhead_stop.r1")[
@@ -272,8 +319,8 @@ def _requirements_on(db, sid: int) -> set[str]:
         "SELECT entry_id, req_id FROM requirement_section WHERE sid = ?", (sid,))}
 
 
-#: the provincial steelhead rules every steelhead-region stream carries (not the lakes' twin)
-PROVINCE = {f"zp:steelhead::{r}" for r in PROVINCE_RULES if r != "steelhead.r2b"}
+#: the provincial steelhead rules every steelhead-region stream carries (not the lakes' twins)
+PROVINCE = {f"zp:steelhead::{r}" for r in PROVINCE_RULES if not r.endswith("b")}
 STAMP = "zp:steelhead#steelhead_targeting"
 WILD = {f"{e}::{r}" for e, r in WILD_RELEASES}
 #: every provincial or zone rule about steelhead, by its id
@@ -293,39 +340,47 @@ def _steelhead_lakes(db) -> set[str]:
 
 def test_no_lake_carries_a_steelhead_rule_but_khartoum_and_lois(db):
     """No section of any lake the bundle names carries a provincial or zone steelhead rule — the
-    wild release included — except Khartoum and Lois lakes; no lake carries the stamp."""
+    wild release included — or the stamp, except Khartoum and Lois lakes."""
     assert len({x for (x,) in db.execute(STEELHEAD_RULES)} & WILD) == len(WILD)
     assert _steelhead_lakes(db) == {KHARTOUM, LOIS}
-    hit = db.execute(
-        "SELECT COUNT(DISTINCT i.item_id) FROM item i JOIN item_section s ON s.ord = i.ord "
+    hit = {i for (i,) in db.execute(
+        "SELECT DISTINCT i.item_id FROM item i JOIN item_section s ON s.ord = i.ord "
         "JOIN requirement_section q ON q.sid = s.sid "
-        "WHERE i.kind = 'lake' AND q.entry_id = 'zp:steelhead'").fetchone()[0]
-    assert hit == 0
+        "WHERE i.kind = 'lake' AND q.entry_id = 'zp:steelhead'")}
+    assert hit == {KHARTOUM, LOIS}
     # the stamp is placed on sections, never province-wide (which would hold on every lake)
     (placement,) = db.execute("SELECT placement FROM requirement WHERE entry_id = 'zp:steelhead' "
                               "AND req_id = 'steelhead_targeting'").fetchone()
     assert placement == "sections"
 
 
+#: the lake copies of the provincial set, and Region 2's release
+LAKE_SET = {"zp:steelhead::steelhead.r1b", "zp:steelhead::steelhead.r2b",
+            "zp:steelhead::steelhead.r4b", "z2:trout_char_quota::trout_char_quota.r7b"}
+
+
 @pytest.mark.parametrize("item_id,own", [(KHARTOUM, "r2:khartoum_lake@2-12::khartoum_lake.r5"),
                                          (LOIS, "r2:lois_lake@2-12::lois_lake.r4")])
-def test_khartoum_and_lois_get_the_wild_release(db, item_id, own):
-    """Their own rows name steelhead, so they carry the wild release (the province's and Region
-    2's "All wild steelhead") beside their own rule — and no other steelhead rule; asked about a
-    steelhead, a wild release speaks."""
+def test_khartoum_and_lois_get_the_provincial_set(db, item_id, own):
+    """Their own rows name steelhead, so they carry the whole provincial steelhead set — the annual
+    hatchery 10, the wild release, the record duty (the lake copies r1b, r2b, r4b) and the stamp
+    (`steelhead_targeting_lakes`) — and Region 2's "All wild steelhead", beside their own rule, and
+    no other steelhead rule (not Region 2's "2 hatchery steelhead", a stream rule); asked about a
+    steelhead, a wild release and the annual 10 speak."""
     from pipeline.deliver.bundle import read as R
     secs = _sections(db, item_id)
     assert secs
     ids = {x for (x,) in db.execute(STEELHEAD_RULES)}
     for sid in secs:
         on = _rules_on(db, sid)
-        assert {own, "zp:steelhead::steelhead.r2b",
-                "z2:trout_char_quota::trout_char_quota.r7b"} <= on
-        assert on & ids == {"zp:steelhead::steelhead.r2b",
-                            "z2:trout_char_quota::trout_char_quota.r7b"}, on & ids
+        assert {own} | LAKE_SET <= on
+        assert on & ids == LAKE_SET, on & ids
+        assert _requirements_on(db, sid) & {STAMP, f"zp:steelhead#{STAMP_TWIN}"} == {
+            f"zp:steelhead#{STAMP_TWIN}"}
         st = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "ST", str(BUNDLE))
               if x["state"] == "speaks"}
         assert st & WILD, st
+        assert "zp:steelhead::steelhead.r1b" in st, st
         assert R.steelhead_presence(db, sid) == "known"
         assert not db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone()
 
@@ -687,3 +742,333 @@ def test_a_lake_answers_to_no_steelhead_rule(db, item_id, name, over50):
                   if x["state"] == "speaks"}
             assert not st & ids, (name, day, st & ids)
             assert over50 in rb, (name, day, rb)
+
+
+# ================================================================================================
+# EVERY STEELHEAD ROW'S WATER CARRIES THE PROVINCIAL STEELHEAD SET — AND NOTHING ELSE DOES
+# (user ask 2026-10-02: "make sure all ones with steelhead rules get the steelhead provincial rules")
+# ================================================================================================
+#
+# Over the WHOLE corpus and the WHOLE bundle, by class of sections (one class per (rule set,
+# licensing set, lake item, steelhead code) the bundle's sections carry together):
+#
+#   FORWARD  every section a WATER row's steelhead line binds (a rule naming `ST`, or naming no
+#            fish and printing "steelhead") carries the four members of the provincial set — the
+#            annual hatchery 10, the wild release, the record duty, the stamp — unless the section
+#            is outside the steelhead regions (it carries no zone table of 1, 2, 3, 5 or 6).
+#   REVERSE  a section carrying any member of the set is in a steelhead region, is no lake but an
+#            own-row steelhead lake, and is marked known | possible (the presence pass, which reads
+#            the GRAPH's kind: a possible section is a stream).
+#
+# The members are read from the corpus by what each line SAYS (`province_member`), never by rule
+# id, so the lake copies count as the members they copy. The rows are read from the corpus too.
+# Tenas Lake (Atnarko/Bella Coola row) is bound by that row's spring closure ("upstream of
+# Tweedsmuir Park plus Tenas Lake") and NOT by its steelhead line ("No Fishing for steelhead"), so
+# it is not a steelhead row's water — pinned below.
+
+STEELHEAD_ZONES = {f"z{n}" for n in QUALIFYING}
+TENAS = "wbk:329021804"
+ATNARKO = "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
+SET_MEMBERS = ("annual hatchery quota", "wild release", "record duty", "stamp")
+
+
+def province_member(r: dict, licensing: bool = False):
+    """Which member of the provincial steelhead set a `zp:steelhead` line is (catalogue shape)."""
+    if licensing:
+        return "stamp" if "ST" in ((r.get("doing") or {}).get("species") or []) else None
+    if r.get("species") != ["ST"]:
+        return None
+    if r.get("period") == "annual" and r.get("origin") == "hatchery" and (r.get("take") or 0) > 0:
+        return "annual hatchery quota"
+    if is_wild_release(r):
+        return "wild release"
+    if r.get("record_retention"):
+        return "record duty"
+    return None
+
+
+def members_of(raw: dict) -> dict:
+    """id (`e::r` / `e#id`) -> member, for every line of the provincial steelhead entry."""
+    e = raw["zp:steelhead"]
+    out = {f"zp:steelhead::{r['rule_id']}": province_member(r) for r in e["rules"]}
+    out |= {f"zp:steelhead#{x['id']}": province_member(x, True) for x in e.get("licensing") or []}
+    return {k: v for k, v in out.items() if v}
+
+
+def steelhead_row_rules(raw: dict) -> set[str]:
+    """Every rule of a WATER row that names steelhead."""
+    return {f"{eid}::{r['rule_id']}" for eid, e in raw.items() if not eid.startswith("z")
+            for r in e.get("rules") or []
+            if "ST" in (r.get("species") or [])
+            or (not r.get("species") and "steelhead" in str(r.get("verbatim") or "").lower())}
+
+
+@pytest.fixture(scope="module")
+def classes(db):
+    """(rule set, licensing set, lake item or None, steelhead code or None) -> sections."""
+    rows = db.execute(
+        "SELECT rs, ls, lake, st, COUNT(*) FROM ("
+        " SELECT sr.sid, sr.set_id AS rs, sl.set_id AS ls,"
+        "  (SELECT i.item_id FROM item_section s JOIN item i ON i.ord = s.ord"
+        "   WHERE s.sid = sr.sid AND i.kind = 'lake' ORDER BY i.item_id LIMIT 1) AS lake,"
+        "  CASE WHEN EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid) THEN 1"
+        "   ELSE (SELECT h.code FROM steelhead_set h WHERE h.set_id = sr.set_id) END AS st"
+        " FROM section_ruleset sr LEFT JOIN section_licensing sl ON sl.sid = sr.sid)"
+        " GROUP BY 1, 2, 3, 4").fetchall()
+    return {(rs, ls, lake, st): n for rs, ls, lake, st, n in rows}
+
+
+@pytest.fixture(scope="module")
+def sets(db):
+    rules: dict = {}
+    for s, e, r in db.execute("SELECT set_id, entry_id, rule_id FROM ruleset"):
+        rules.setdefault(s, set()).add(f"{e}::{r}")
+    recs: dict = {}
+    for s, e, r in db.execute("SELECT set_id, entry_id, record_id FROM licensing_set"):
+        recs.setdefault(s, set()).add(f"{e}#{r}")
+    return rules, recs
+
+
+def province_set_problems(classes: dict, rules: dict, recs: dict, members: dict,
+                          rows: set, own_lakes: set) -> list[str]:
+    """FORWARD and REVERSE (above), one line per offending class."""
+    out = []
+    for (rs, ls, lake, st), n in sorted(classes.items(), key=lambda kv: str(kv[0])):
+        on = rules.get(rs, set())
+        held = on | recs.get(ls, set())
+        have = {members[i] for i in held if i in members}
+        region = any(i.split(":", 1)[0] in STEELHEAD_ZONES for i in on)
+        tag = f"set {rs}/{ls} lake {lake} ({n} sections)"
+        named = sorted(on & rows)
+        if named and region:
+            gone = [m for m in SET_MEMBERS if m not in have]
+            if gone:
+                out.append(f"{tag}: {named[0]} names steelhead, but the provincial "
+                           f"{', '.join(gone)} is missing")
+        if have and not region:
+            out.append(f"{tag}: provincial steelhead outside the steelhead regions")
+        if have and lake is not None and lake not in own_lakes:
+            out.append(f"{tag}: provincial steelhead on a lake whose own row does not name it")
+        if have and st is None:
+            out.append(f"{tag}: provincial steelhead on a section that is no steelhead stream "
+                       f"or own-row lake (no known | possible)")
+    return out
+
+
+def _inputs(raw, classes, sets):
+    rules, recs = sets
+    own = {i for v in own_steelhead_lakes(raw).values() for i in v}
+    return classes, rules, recs, members_of(raw), steelhead_row_rules(raw), own
+
+
+def test_the_provincial_set_is_four_members_and_the_rows_are_read_from_the_corpus(raw):
+    m = members_of(raw)
+    assert sorted(set(m.values())) == sorted(SET_MEMBERS)
+    assert m == {"zp:steelhead::steelhead.r1": "annual hatchery quota",
+                 "zp:steelhead::steelhead.r1b": "annual hatchery quota",
+                 "zp:steelhead::steelhead.r2": "wild release",
+                 "zp:steelhead::steelhead.r2b": "wild release",
+                 "zp:steelhead::steelhead.r4": "record duty",
+                 "zp:steelhead::steelhead.r4b": "record duty",
+                 "zp:steelhead#steelhead_targeting": "stamp",
+                 f"zp:steelhead#{STAMP_TWIN}": "stamp"}
+    rows = {r.split("::")[0] for r in steelhead_row_rules(raw)}
+    assert {"r2:khartoum_lake@2-12", "r2:lois_lake@2-12", "r2:capilano_river@2-8",
+            ATNARKO} <= rows
+    assert all(raw[e]["region"] in QUALIFYING for e in rows), sorted(rows)
+
+
+def test_every_steelhead_row_s_water_carries_the_provincial_set(raw, classes, sets):
+    """FORWARD and REVERSE over every section of the bundle."""
+    assert province_set_problems(*_inputs(raw, classes, sets)) == []
+
+
+def test_tenas_lake_is_bound_by_atnarko_s_closure_not_its_steelhead_line(db, raw):
+    """The one lake a steelhead row binds by another line: the Atnarko row's "No Fishing upstream
+    of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30" (every game fish). Its steelhead
+    line ("No Fishing for steelhead") does not bind the lake, so the lake is not a steelhead row's
+    water: no steelhead rule, no stamp, no steelhead attribute."""
+    from pipeline.deliver.bundle import read as R
+    secs = _sections(db, TENAS)
+    assert secs
+    st_rows = steelhead_row_rules(raw)
+    for sid in secs:
+        on = _rules_on(db, sid)
+        assert f"{ATNARKO}::atnarko_bella_coola_rivers.r1" in on
+        assert not on & st_rows and not any(i.startswith("zp:steelhead") for i in on)
+        assert not any(i.startswith("zp:steelhead") for i in _requirements_on(db, sid))
+        assert R.steelhead_presence(db, sid) is None
+
+
+def test_no_row_outside_the_steelhead_regions_has_a_steelhead_rule(raw):
+    """A row of Region 4, 7A, 7B or 8 that names steelhead would need deciding from the book. The
+    only one that prints the word is the Stellako's Zone 7A row (and its Region 6 twin), and it
+    prints a STAMP WAIVER on its Class II designation — "(Steelhead Stamp not required)" — not a
+    steelhead rule: nothing to add there (7A's tables name no steelhead)."""
+    outside = sorted(eid for eid, e in raw.items() if not eid.startswith("z")
+                     and str(e.get("region")) not in QUALIFYING
+                     and "steelhead" in str(e.get("regs_verbatim") or "").lower())
+    assert outside == ["r7:stellako_river@7-12"]
+    e = raw["r7:stellako_river@7-12"]
+    assert "Steelhead Stamp not required" in e["regs_verbatim"]
+    assert not any("ST" in (r.get("species") or []) or "steelhead" in r["verbatim"].lower()
+                   for r in e.get("rules") or [])
+    assert not {r for r in steelhead_row_rules(raw) if r.split("::")[0] in outside}
+
+
+def _class_of(classes, sets, test):
+    rules, recs = sets
+    return next(k for k in sorted(classes, key=str) if test(k, rules.get(k[0], set()),
+                                                            recs.get(k[1], set())))
+
+
+def _mutated(raw, classes, sets, fn):
+    cl, rules, recs, members, rows, own = _inputs(raw, classes, sets)
+    cl, rules, recs = dict(cl), {k: set(v) for k, v in rules.items()}, \
+        {k: set(v) for k, v in recs.items()}
+    rows = set(rows)
+    fn(cl, rules, recs, rows)
+    return province_set_problems(cl, rules, recs, members, rows, own)
+
+
+@pytest.mark.parametrize("name", [
+    "khartoum loses the annual 10", "lois loses the lake stamp", "capilano loses the record duty",
+    "a steelhead stream loses the stamp", "stave lake gains the annual 10",
+    "a region 4 stream gains the wild release", "a steelhead section with no presence code",
+])
+def test_the_set_check_catches_a_mutation(raw, classes, sets, name):
+    """Mutation: each way a steelhead row's water can miss the set, or the set can reach a place it
+    must not, turns the check red."""
+    rules, recs = sets
+    assert province_set_problems(*_inputs(raw, classes, sets)) == []
+
+    def drop(rule, lake):
+        def fn(cl, rules, recs, rows):
+            k = _class_of(classes, sets, lambda k, r, q: k[2] == lake)
+            (rules if "::" in rule else recs)[k[0] if "::" in rule else k[1]].discard(rule)
+        return fn
+
+    def capilano(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: any(
+            x.startswith("r2:capilano_river@2-8::") for x in r & rows))
+        rules[k[0]].discard("zp:steelhead::steelhead.r4")
+
+    def stream_stamp(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: k[2] is None and r & rows
+                      and STAMP in q)
+        recs[k[1]].discard(STAMP)
+
+    def stave(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: k[2] == "wbk:329291805")
+        rules[k[0]].add("zp:steelhead::steelhead.r1")
+
+    def region4(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: k[2] is None and any(
+            x.startswith("z4:") for x in r) and not any(x.split(":", 1)[0] in STEELHEAD_ZONES
+                                                       for x in r))
+        rules[k[0]].add("zp:steelhead::steelhead.r2")
+
+    def no_code(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: k[3] == 2)
+        cl[(k[0], k[1], k[2], None)] = cl.pop(k)
+
+    fns = {"khartoum loses the annual 10": drop("zp:steelhead::steelhead.r1b", KHARTOUM),
+           "lois loses the lake stamp": drop(f"zp:steelhead#{STAMP_TWIN}", LOIS),
+           "capilano loses the record duty": capilano,
+           "a steelhead stream loses the stamp": stream_stamp,
+           "stave lake gains the annual 10": stave,
+           "a region 4 stream gains the wild release": region4,
+           "a steelhead section with no presence code": no_code}
+    assert _mutated(raw, classes, sets, fns[name])
+
+
+def test_a_row_outside_the_regions_naming_steelhead_needs_no_set(raw, classes, sets):
+    """The exemption, pinned: a Region 4 stream whose row named steelhead would carry no
+    provincial set (the province's steelhead rules bind 1, 2, 3, 5 and 6) and is not reported —
+    that row is for a person to decide from the book (`test_no_row_outside_…`)."""
+    def fn(cl, rules, recs, rows):
+        k = _class_of(classes, sets, lambda k, r, q: any(x.startswith("r4:") for x in r))
+        rows |= {x for x in rules[k[0]] if x.startswith("r4:")}
+    assert _mutated(raw, classes, sets, fn) == []
+
+
+# ----------------------------------------------------------------------- the same, on the export
+def _export_bad(doc):
+    bad = {k: doc[k] for k in ("rules", "licensing", "entries", "waters")}
+    bad["rulesets"] = copy.deepcopy(doc["rulesets"])
+    bad["licensing_sets"] = copy.deepcopy(doc["licensing_sets"])
+    return bad
+
+
+def test_the_export_carries_the_provincial_set_on_every_steelhead_row_s_water(doc):
+    assert X.steelhead_set_problems(doc) == []
+    for item in (KHARTOUM, LOIS):
+        p = doc["waters"][item]["parts"][0]
+        rules = X._members(doc["rulesets"], p["ruleset"], doc["rules"])
+        recs = X._members(doc["licensing_sets"], p["licensing_set"], doc["licensing"])
+        assert X.province_set_missing(rules, recs, doc["rules"], doc["licensing"]) == []
+        assert f"zp:steelhead#{STAMP_TWIN}" in recs
+
+
+@pytest.mark.parametrize("item,where,drop,expect", [
+    (LOIS, "ruleset", "zp:steelhead::steelhead.r1b", "annual hatchery quota"),
+    (KHARTOUM, "licensing_set", f"zp:steelhead#{STAMP_TWIN}", "stamp"),
+    ("gnis:5922", "licensing_set", STAMP, "stamp"),                       # Capilano River
+    ("gnis:5922", "ruleset", "zp:steelhead::steelhead.r4", "record duty"),
+])
+def test_the_export_set_check_catches_a_missing_member(doc, item, where, drop, expect):
+    bad = _export_bad(doc)
+    part = next(p for p in bad["waters"][item]["parts"] if p[where] and any(
+        drop in v for v in bad["rulesets" if where == "ruleset" else "licensing_sets"][
+            p[where]].values() if isinstance(v, list)))
+    table = bad["rulesets" if where == "ruleset" else "licensing_sets"][part[where]]
+    for via, v in table.items():
+        if isinstance(v, list):
+            table[via] = [i for i in v if i != drop]
+    got = X.steelhead_set_problems(bad) + X.steelhead_lake_problems(bad)
+    assert any(item in g and expect in g for g in got), got
+
+
+@pytest.mark.parametrize("item,where,add,expect", [
+    ("gnis:16880", "ruleset", "zp:steelhead::steelhead.r1", "outside the steelhead regions"),
+    ("wbk:329291805", "licensing_set", STAMP, "whose own row does not"),        # Stave Lake
+])
+def test_the_export_set_check_catches_the_set_where_it_must_not_be(doc, item, where, add, expect):
+    bad = _export_bad(doc)
+    bad["waters"] = dict(bad["waters"], **{item: copy.deepcopy(doc["waters"][item])})
+    part = next(p for p in bad["waters"][item]["parts"] if p["ruleset"])
+    tables = bad["rulesets" if where == "ruleset" else "licensing_sets"]
+    if part[where] is None:                  # a lake with no licensing set: give it one
+        part[where] = "mutant"
+        tables["mutant"] = {"sections": part["sections"]}
+    tables[part[where]].setdefault("reach", []).append(add)
+    got = X.steelhead_set_problems(bad) + X.steelhead_lake_problems(bad)
+    assert any(item in g and expect in g for g in got) or any(
+        add in g and item in g for g in got), got
+
+
+def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
+    """`guide.cases`: a known steelhead stream (a row's own water), a possible one, a lake of a
+    steelhead region with no steelhead rule, and Khartoum or Lois — each with its `steelhead` and
+    a reference answer that shows (or does not show) the provincial steelhead rules."""
+    got = {c["mechanism"]: c for c in doc["guide"]["cases"]["cases"]}
+    k, p = got["steelhead_known"], got["steelhead_possible"]
+    lake, own = got["lake_no_steelhead"], got["own_row_steelhead_lake"]
+    assert (k["steelhead"], k["water"]["kind"], k.get("anadromous_rainbow")) == (
+        "known", "stream", True)
+    assert set(doc["waters"][k["water"]["item_id"]]["entries"]) & set(
+        doc["waters"][k["water"]["item_id"]]["steelhead_source"])
+    assert (p["steelhead"], p["water"]["kind"], p.get("anadromous_rainbow")) == (
+        "possible", "stream", None)
+    assert lake["water"]["kind"] == "lake" and "steelhead" not in lake
+    assert own["water"]["item_id"] in (KHARTOUM, LOIS) and own["steelhead"] == "known"
+    for c in (k, p, own):
+        speaks = {a["id"] for a in c["expect"] if a["state"] == "speaks"}
+        assert any(i.startswith("zp:steelhead::") for i in speaks), c["mechanism"]
+        assert any(i.startswith("zp:steelhead#") for i in c["expect_licensing"]), c["mechanism"]
+    assert not any(X.is_steelhead_rule(doc["rules"][a["id"]]) for a in lake["expect"])
+    assert not any(i.startswith("zp:steelhead#") for i in lake["expect_licensing"])
+    assert "zp:steelhead::steelhead.r1b" in {a["id"] for a in own["expect"]}
+    for m in ("steelhead_known", "steelhead_possible", "lake_no_steelhead",
+              "own_row_steelhead_lake"):
+        assert got[m]["what_to_show"] and m in doc["guide"]["cases"]["mechanisms"]
