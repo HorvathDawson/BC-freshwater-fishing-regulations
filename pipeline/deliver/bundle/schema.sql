@@ -72,6 +72,37 @@ CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 CREATE TABLE section_touch (a INTEGER NOT NULL, b INTEGER NOT NULL,
                            PRIMARY KEY (a, b)) WITHOUT ROWID;
 
+-- WHERE EACH SECTION OF A STREAM WATER LIES ALONG IT, AND WHAT ENDS IT. One row per section of
+-- every named STREAM (`item.kind = 'stream'`; a section belongs to one water, so `sid` is the key and
+-- a second would fail the build); lakes and wetlands are one polygon each and have none. Written by `pipeline/deliver/bundle/spans.py` from the atlas graph's own section
+-- bounds (`StreamNode.lower_bound` / `upper_bound`) — it reports the cuts the sectionizer made and
+-- infers nothing.
+--   lo_m, hi_m  metres along the water's MAIN STEM (the blue line carrying most of its length),
+--               FROM THE MOUTH (the FWA route measure: 0 at the line's downstream end). A section
+--               off the stem (side channel, braid; `off_stem` = 1) carries the stem measure where
+--               it flows back in, at both ends, or NULL when it never does.
+--   lo, hi      what ends it downstream / upstream: an END TOKEN (spans.py) — a split id (`split`
+--               below), `region_line:<region>`, `bc_border`, `lake_inlet:<item_id>`,
+--               `lake_outlet:<item_id>`, `confluence:<item_id>`, `mouth`, `source` — interned in
+--               `span_end` (2.5 MB as text, ~1 MB interned).
+-- WHY IT IS HERE. The UI export says where each part of a water runs (`parts[].runs`: from, to,
+-- km). The graph is an atlas artifact and a reader opens only the bundle. HANDLES, so AGENTS 5
+-- holds: the export composes runs from these rows and ships no section.
+CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT NOT NULL);
+CREATE TABLE section_span (sid INTEGER PRIMARY KEY,
+                           lo_m INTEGER, hi_m INTEGER, lo INTEGER NOT NULL, hi INTEGER NOT NULL,
+                           off_stem INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
+
+-- THE CUTS, BY NAME. Every split the atlas resolved (`splits.resolved.json`: the curated splits'
+-- own labels, gauges, area boundaries), once per id: `name` is short and human ("boundary signs",
+-- "Thompson River confluence", "Garibaldi Park boundary"), `kind` the anchor it was cut at
+-- (point | line | lake | confluence | area | gauge), and `at` a JSON list of [item_id, km] — every
+-- position on a named water's main stem, km from the mouth. An area boundary crosses hundreds of
+-- waters, so its `at` is []: the run that ends there carries the km. Region lines are not rows:
+-- a run names them `region_line:<region>`.
+CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
+                    at TEXT NOT NULL) WITHOUT ROWID;
+
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
 -- "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)".

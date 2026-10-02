@@ -73,6 +73,11 @@ def _bundle(tmp: Path, sets: dict[int, int | None], touch: list[tuple[int, int]]
     db.executemany("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
                    [(s, r) for s, r in sets.items() if r is not None])
     db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", touch)
+    # every stream section says where it lies (`section_span`) or the export refuses the bundle:
+    # here, one km per handle, ending at the river's own mouth and source
+    db.execute("INSERT INTO span_end (eid, token) VALUES (1, 'mouth'), (2, 'source')")
+    db.executemany("INSERT INTO section_span (sid, lo_m, hi_m, lo, hi) VALUES (?,?,?,1,2)",
+                   [(s, 1000 * s, 1000 * s + 1000) for s in sets])
     db.commit()
     db.close()
     return path

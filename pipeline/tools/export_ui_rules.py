@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sqlite3
 import sys
 import typing
@@ -33,6 +34,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from pipeline.common.curated import GENERATED
+from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
@@ -56,7 +58,10 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "item": ("part_of",), "outside_bc": ("sid",), "tidal": ("sid", "entry_id"),
                     "section_touch": ("a", "b"),
                     "province_except": ("area_kind", "sid"),
-                    "steelhead_water": ("sid", "entry_id")}
+                    "steelhead_water": ("sid", "entry_id"),
+                    "section_span": ("sid", "lo_m", "hi_m", "lo", "hi", "off_stem"),
+                    "span_end": ("eid", "token"),
+                    "split": ("split_id", "name", "kind", "at")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -92,8 +97,9 @@ def _need(db: sqlite3.Connection) -> None:
             f"`pipeline/deliver/bundle/rules.py` that writes `entry.matched` (every matched "
             f"item, JSON), `rule.unresolved` (the reach run's 'reason: detail', NULL when "
             f"bound), `rule.exempts` (each lift resolved to its entry, JSON), `item.part_of`, "
-            f"the `outside_bc` table (the sections B.C. does not govern) and `section_touch` "
-            f"(which sections of a water border each other).")
+            f"the `outside_bc` table (the sections B.C. does not govern), `section_touch` "
+            f"(which sections of a water border each other), and `section_span` / `span_end` / "
+            f"`split` (where each section lies along its water, what ends it, the cuts by name).")
 
 
 # --------------------------------------------------------------------------------------------
@@ -318,16 +324,61 @@ _LIC_TABLES = (("designation", "designation_id", True), ("not_classified", "not_
 NOT_PLACED = "not_placed"
 
 
+#: THE CLASSIFIED PERIOD, said on every designation. 35 of 74 print no dates: "Class II water when
+#: open" (Elk, Bull, Michel, Wigwam, St. Mary, White, Skookumchuck, Stellako …) or "Class I water
+#: all year" (Lakelse, Gitnadoix, Kitsumkalum, Suskwa …), and a page reading only `fields.when` said
+#: "during its classified period" with no dates. "When open" has no `when` BY DESIGN (licensing
+#: decision 6: licensing is consulted only while the water is open, so the designation's period is
+#: the water's open time); this says so explicitly, derived from the record's own verbatim and
+#: `when`, and refuses a designation whose period cannot be read off it.
+_WHEN_OPEN = re.compile(r"\bwhen(?:/where)?\s+open\b", re.I)
+_ALL_YEAR = re.compile(r"\ball\s+year\b", re.I)
+_PRINTS_DATES = re.compile(r"\b(?:jan|feb|mar|apr|may|june?|july?|aug|sept?|oct|nov|dec)[a-z]*\.?\s*\d",
+                           re.I)
+
+
+def designation_period(rid: str, fields: dict, verbatim: str, parts: dict) -> dict:
+    """`{kind: when_open | all_year | dates, dates?, says}` for one designation, from its own
+    verbatim and `when`. Exactly one reading must hold: dates in `when` and printed in the verbatim
+    (and no 'when open' / 'all year'), or no `when` and the verbatim printing exactly one of 'when
+    open' ('when/where open') and 'all year'. Anything else is refused."""
+    cls = fields.get("classified")
+    when = fields.get("when")
+    v = str(verbatim or "")
+    is_open, all_year, dated = bool(_WHEN_OPEN.search(v)), bool(_ALL_YEAR.search(v)), \
+        bool(_PRINTS_DATES.search(v))
+    if when:
+        if set(when) != {"dates"} or not when["dates"]:
+            raise SystemExit(f"designation {rid}: its `when` is not plain dates ({when}) — a "
+                             f"classified period is a set of dates, all year, or 'when open'")
+        if is_open or all_year or not dated:
+            raise SystemExit(f"designation {rid}: `when` has dates but the verbatim "
+                             f"{'says when open' if is_open else 'says all year' if all_year else 'prints none'}"
+                             f": {v!r}")
+        return {"kind": "dates", "dates": when["dates"],
+                "says": f"Classified (Class {cls}) {parts.get('when') or ''}".strip()}
+    if dated or is_open == all_year:
+        raise SystemExit(f"designation {rid}: no classified period can be read — no `when`, and "
+                         f"the verbatim {'prints dates' if dated else 'says both' if is_open else 'says neither when open nor all year'}"
+                         f": {v!r}")
+    if is_open:
+        return {"kind": "when_open", "says": f"Classified (Class {cls}) whenever this water is open"}
+    return {"kind": "all_year", "says": f"Class {cls} all year"}
+
+
 def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str) -> dict:
     rec = _j(r["record"])
     if rec.get("kind") != kind or rec.get("id") != r[idcol]:
         raise SystemExit(f"{r['entry_id']}#{r[idcol]}: the `record` JSON is a "
                          f"{rec.get('kind')} {rec.get('id')!r}, the row a {kind} {r[idcol]!r}")
     fields = {k: v for k, v in rec.items() if k not in ("kind", "id", "verbatim")}
+    parts = _j(r["parts"], {})
     return {
         "id": f"{r['entry_id']}#{r[idcol]}",
         "entry_id": r["entry_id"], "record_id": r[idcol], "kind": kind,
-        "label": r["label"], "parts": _j(r["parts"], {}), "verbatim": r["verbatim"],
+        "label": r["label"], "parts": parts, "verbatim": r["verbatim"],
+        **({"period": designation_period(f"{r['entry_id']}#{r[idcol]}", fields, r["verbatim"],
+                                         parts)} if kind == "designation" else {}),
         "fields": dict(sorted(fields.items())),
         "placement": r["placement"] if placed else NOT_PLACED,
         "provenance": {
@@ -467,6 +518,25 @@ def read(bundle: Path) -> dict:
                 touching |= {(item_id, pa, pb), (item_id, pb, pa)}
     for item_id, pa, pb in sorted(touching):
         waters[item_id]["parts"][pa]["touches"].append(pb)
+    # WHERE EACH PART RUNS (`runs`): its stretches, upstream to downstream, each between two
+    # cut points or natural ends, with km from the mouth — composed from `section_span` by the
+    # bundle's own `spans.compose_runs`. A lake (or wetland) part is its polygon: one run with no
+    # ends. The sections stay here; only the runs leave.
+    splits = read_splits(db)
+    span = {s: (a, b, lo, hi, off) for s, a, b, lo, hi, off in db.execute(
+        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem FROM section_span s "
+        "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
+    touch_of: dict[int, set[int]] = defaultdict(set)
+    for a, b in db.execute("SELECT a, b FROM section_touch"):
+        touch_of[a].add(b)
+        touch_of[b].add(a)
+    members: dict[tuple[str, int], list[int]] = defaultdict(list)
+    for s, ps in section_part.items():
+        for item_id, pi in ps:
+            members[(item_id, pi)].append(s)
+    for (item_id, pi), sids in sorted(members.items()):
+        w = waters[item_id]
+        w["parts"][pi]["runs"] = part_runs(item_id, w, sorted(sids), span, touch_of)
     # WATER B.C. DOES NOT GOVERN — the sections of each water that lie outside the province. They
     # carry no set (the build refuses one that does), so they are among the parts with
     # `ruleset: null`; this count says why they have none.
@@ -504,7 +574,47 @@ def read(bundle: Path) -> dict:
             rules[cands[0]].setdefault("records_for", []).append(q)
     return {"meta": meta, "entries": entries, "rules": rules, "licensing": licensing,
             "licences": licences, "rulesets": rulesets, "licensing_sets": licensing_sets,
-            "waters": waters, "sections": sections}
+            "waters": waters, "sections": sections, "splits": splits}
+
+
+#: A region line is not a `split` row (a region boundary crosses hundreds of waters at hundreds of
+#: places, all one line); its runs name it `region_line:<region>`.
+REGIONS = ("1", "2", "3", "4", "5", "6", "7A", "7B", "8")
+
+
+def read_splits(db) -> dict:
+    """THE CUTS BY NAME — every split the atlas resolved, `id -> {name, kind, water_id, km}`, and
+    the nine region lines. `water_id` / `km` (from the mouth of that water's main stem) are set
+    when the cut stands at ONE place on a named water's main stem; a cut at several places lists
+    them all in `at` and leaves both null; an area boundary (which crosses hundreds of waters) has
+    neither — the run ending there carries the km."""
+    out = {}
+    for sid, name, kind, at in db.execute("SELECT split_id, name, kind, at FROM split "
+                                          "ORDER BY split_id"):
+        at = _j(at, [])
+        one = at[0] if len(at) == 1 else None
+        out[sid] = {"name": name, "kind": kind,
+                    "water_id": one[0] if one else None, "km": one[1] if one else None,
+                    **({"at": [{"water_id": w, "km": k} for w, k in at]} if len(at) > 1 else {})}
+    for r in REGIONS:
+        out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
+                                   "water_id": None, "km": None}
+    return dict(sorted(out.items()))
+
+
+def part_runs(item_id: str, water: dict, sids: list[int], span: dict, touch: dict) -> list[dict]:
+    """One part's `runs`, upstream to downstream. A stream section with no span row is refused:
+    a part whose stretches cannot be said would ship a run that covers less than the part."""
+    if water["kind"] != "stream":
+        return [{"from": None, "to": None, "km_from": None, "km_to": None,
+                 "polygon": water["name"] if water.get("part_of") else "whole"}]
+    missing = [s for s in sids if s not in span]
+    if missing:
+        raise SystemExit(f"export_ui_rules: {len(missing)} section(s) of stream {item_id} have no "
+                         f"`section_span` row — the bundle cannot say where its parts run. "
+                         f"Rebuild it with `pipeline/deliver/bundle/spans.py`.")
+    return [{k: v for k, v in r.items() if k != "sids"}
+            for r in SP.compose_runs(span, touch, sids)]
 
 
 # --------------------------------------------------------------------------------------------
@@ -552,6 +662,75 @@ WATER_PART_TEXT = {
                        "requirement stops there, whatever its record names)",
     "anadromous_rainbow": "present (true) where a rainbow over 50 cm is a steelhead",
     "touches": TOUCHES_TEXT,
+    "runs": "WHERE THE PART RUNS: its stretches, upstream to downstream — [{from, to, km_from, "
+            "km_to}] (see `water.parts[].runs[]`, and `placement.runs`). A part of several "
+            "stretches has several runs. A lake or wetland part is its polygon: one run with no "
+            "ends",
+}
+
+#: One run of a part, field by field.
+RUN_TEXT = {
+    "from": "the run's UPSTREAM end: an end token (`placement.runs.ends`) — a cut-point id (a key "
+            "of `splits`), or a named natural end. null on a lake or wetland (a polygon has no "
+            "ends)",
+    "to": "the run's DOWNSTREAM end, the same way. Water flows from `from` to `to`",
+    "km_from": "km from the water's MOUTH, along its main stem, at `from` (the larger number). "
+               "null on a lake; on a `branch`, the point where the branch rejoins the main stem, "
+               "or null when it never does",
+    "km_to": "km from the mouth at `to` (km_to <= km_from). A run covers km_to..km_from of the "
+             "main stem",
+    "branch": "present (true) on a run that lies OFF the water's main stem — a side channel or "
+              "braid of the same water whose sets differ from the stem beside it. Its ends are its "
+              "own (its `source` and `mouth` are where it leaves and rejoins), and both km are the "
+              "point it rejoins the stem",
+    "polygon": "ONLY on a lake or wetland: `whole` (the run is the whole polygon), or — on a lake "
+               "PART (`part_of`) — the part's own name ('Williston Lake — Nation Arm')",
+}
+
+#: The end tokens a run's `from` / `to` take. One vocabulary with `spans.end_token`.
+END_TEXT = {
+    "<split id>": "a cut the pipeline made at a curated split or a gauge station, by the SAME id "
+                  "the rule extents use (`thompson_river__cnr_bridge`); its name and place are in "
+                  "`splits`",
+    "area:<name>": "an area boundary that is not a region (a park, an ecological reserve, a group "
+                   "of management units) — also a key of `splits`. A run with this at BOTH ends "
+                   "lies inside the area",
+    "region_line:<region>": "a region boundary (`region_line:6`); a key of `splits`",
+    "bc_border": "the provincial (or national) border: the water runs on outside B.C.",
+    "lake_inlet:<item_id>": "the run ends where it flows INTO that lake (a key of `waters`; "
+                            "`lake_inlet` alone: a lake that is not a named water)",
+    "lake_outlet:<item_id>": "the run begins where it flows OUT of that lake (`lake_outlet` "
+                             "alone: unnamed)",
+    "confluence:<item_id>": "a cut the atlas made where that tributary (a key of `waters`) flows "
+                            "in. Say it '<tributary name> confluence'",
+    "mouth": "the water's own downstream end — into the sea, another river or a lake it ends in "
+             "— with no cut",
+    "source": "the water's own upstream end with no cut — its source, or where it takes its "
+              "name (the Thompson at Kamloops)",
+}
+
+#: One cut in `splits`, field by field.
+SPLIT_TEXT = {
+    "name": "a short human name for the place: 'boundary signs', 'CNR bridge', 'Thompson River "
+            "confluence', 'Garibaldi Park boundary' — the curated split's own label",
+    "kind": "how the cut was placed: point | line | confluence | lake (a lake's inlet or outlet, "
+            "with an offset) | gauge (a hydrometric station) | area (an area's boundary) | "
+            "region_line",
+    "water_id": "the named water whose main stem it stands on, when it stands at ONE place on "
+                "one; null otherwise (an area boundary, or several places — see `at`)",
+    "km": "km from that water's MOUTH along its main stem; null with `water_id`",
+    "at": "ONLY on a cut at several places on named waters' main stems: every [{water_id, km}]",
+}
+
+#: A designation's classified period (`licensing[*].period`, designations only).
+PERIOD_TEXT = {
+    "kind": "when_open: the water is Classified whenever it is open (the book prints 'Class II "
+            "water when open' or 'when/where open' — no dates, by design: licensing is consulted "
+            "only while the water is open) | all_year: Classified every day ('Class I water all "
+            "year') | dates: only on `dates`",
+    "dates": "ONLY with kind `dates`: the designation's own `fields.when.dates`, as printed",
+    "says": "the sentence to show: 'Classified (Class II) whenever this water is open', 'Class I "
+            "all year', or 'Classified (Class II) Sep 1-Apr 30'",
 }
 
 TYPE_TEXT = {
@@ -848,6 +1027,9 @@ LICENSING_RECORD_TEXT = {
     "verbatim": "the sentence from the printed book",
     "fields": "the record's own fields, as the bundle ships them",
     "placement": "sections | province | on_designation | unresolved | not_placed",
+    "period": "ONLY on a designation: its classified period, said outright — {kind: when_open | "
+              "all_year | dates, dates?, says} (see `licensing.period`). Derived from the record's "
+              "own verbatim and `when`; never absent on a designation",
     "provenance": "entry_name, and for an unresolved record `uncertain` and `why`",
 }
 
@@ -1912,6 +2094,9 @@ def guide(d: dict) -> dict:
             "A designation obliges nothing on its own; requirements with `on` fire where it is "
             "in force, and the classified-water steelhead stamp runs during "
             "`steelhead_stamp_during`, unless `steelhead_stamp_waived`.",
+            "A designation's classified period is its `period`, never inferred from a missing "
+            "`when`: `when_open` (Classified whenever the water is open), `all_year`, or "
+            "`dates`. Show `period.says`.",
             "An unresolved record renders as 'check', never as 'none needed'.",
         ],
         "kinds": lkinds,
@@ -1948,6 +2133,23 @@ def guide(d: dict) -> dict:
             "on_designation": lpick(lambda x: bool(x["fields"].get("on")), "on", "doing",
                                     "satisfied_by", n=1),
         },
+        "period": {
+            "reading": "Every designation says when it is in force in `period`. 'Class II water "
+                       "when open' prints no dates on purpose: licensing is consulted only while "
+                       "the water is open, so the period is the water's own open time — show "
+                       "'Classified (Class II) whenever this water is open', never 'during its "
+                       "classified period'. 'Class I water all year' is every day. Otherwise the "
+                       "period is `dates` (the record's own `when`).",
+            "fields": PERIOD_TEXT,
+            # Lists, not dicts keyed by kind: `when_open` is a retired FIELD name (licensing
+            # decision 6), so it may be a value here and never a key.
+            "counts": [{"kind": k, "designations": n} for k, n in sorted(Counter(
+                x["period"]["kind"] for x in lic.values() if x["kind"] == "designation").items())],
+            "examples": [dict(e, period=lic[e["id"]]["period"])
+                         for k in ("when_open", "all_year", "dates")
+                         for e in lpick(lambda x, k=k: x["kind"] == "designation"
+                                        and x["period"]["kind"] == k, "classified", "when", n=1)],
+        },
         "field_text": {k: LICENSING_FIELD_TEXT.get(k) for k in sorted(
             {f for m in lmodels.values() for f in _fields(m)} - {"kind", "id", "verbatim"})},
         "documents": "See `licences`: the register, `provincial` = sold to an angler under the "
@@ -1977,6 +2179,41 @@ def guide(d: dict) -> dict:
                    "through it. Set ids are local to this file and change with every "
                    "build; never store one. Section handles never leave the bundle.",
         "touches": TOUCHES_TEXT,
+        "runs": {
+            "reading": "WHERE EACH PART RUNS. A part's `runs` are its stretches, UPSTREAM TO "
+                       "DOWNSTREAM: each from one end (`from`, upstream) to another (`to`, "
+                       "downstream), with `km_from` / `km_to` measured from the water's MOUTH "
+                       "along its main stem (the blue line carrying most of its length), so "
+                       "km_from >= km_to and the runs' km fall as you read down the list. Say a run "
+                       "'from <from> to <to>' with each end's name: a cut-point id or region line "
+                       "is a key of `splits` (its `name`); `lake_inlet:` / `lake_outlet:` / "
+                       "`confluence:` name a water (`waters[id].name`); `mouth`, `source` and "
+                       "`bc_border` are the water's own ends. A run between the same cut on both "
+                       "ends lies inside an area ('within Chilliwack River Ecological Reserve'). "
+                       "The pipeline cut the water at exactly these points: this reports them and "
+                       "infers nothing. Use km_from / km_to to draw or order a stretch. A river "
+                       "runs through a lake as two runs (one ending at `lake_inlet`, the next "
+                       "starting at `lake_outlet`) — the lake is its own water.",
+            "lakes": "A lake or wetland part is its polygon: ONE run with from, to, km_from and "
+                     "km_to all null, and `polygon`: `whole`, or a lake PART's own name. A lake "
+                     "has no ends to name; the polygon is the place.",
+            "branches": "A run with `branch: true` lies off the main stem (a side channel or braid "
+                        "of the same water whose sets differ from the stem beside it); both its km "
+                        "are where it rejoins the stem (null when it never does).",
+            "ends": END_TEXT,
+            "fields": RUN_TEXT,
+            "counts": {
+                "stream_parts": sum(1 for w in d["waters"].values() if w["kind"] == "stream"
+                                    for p in w["parts"]),
+                "runs": sum(len(p["runs"]) for w in d["waters"].values() for p in w["parts"]),
+                "parts_with_several_runs": sum(1 for w in d["waters"].values()
+                                               for p in w["parts"] if len(p["runs"]) > 1),
+                "branch_runs": sum(1 for w in d["waters"].values() for p in w["parts"]
+                                   for r in p["runs"] if r.get("branch")),
+            },
+            "splits": "`splits` (top level) names every cut: id -> {name, kind, water_id, km}, "
+                      "km from that water's mouth. See `field_dictionary.splits`.",
+        },
         "outside_bc": "A water's `outside_bc` counts its sections outside British Columbia — "
                       "past the border, or in no region. No B.C. regulation applies there and "
                       "the book does not govern them: they carry no set (the build refuses one "
@@ -2203,9 +2440,10 @@ def guide(d: dict) -> dict:
         "exempts": "how a rule lifts another",
         "standing": "rules everywhere at places nobody can draw",
         "angler_closure": "closures to one kind of angler",
-        "licensing": "kinds, who, doing, paths, designations, and the rules of reading",
-        "placement": "sets, waters and their parts, outside B.C., via, placement, binds (and "
-                     "undrawn parts: not_yet_mapped), uncertain",
+        "licensing": "kinds, who, doing, paths, designations and their classified `period`, and "
+                     "the rules of reading",
+        "placement": "sets, waters and their parts (where each runs: `runs`), outside B.C., "
+                     "via, placement, binds (and undrawn parts: not_yet_mapped), uncertain",
         "gotchas": "where a page is easy to get wrong: size-clause overrides, places not yet "
                    "mapped, trout includes char, bull trout is Dolly Varden, source artefacts",
         "cases": "SAMPLE WATERS to build the page against while it is built out — one or more "
@@ -2223,9 +2461,11 @@ def guide(d: dict) -> dict:
                 "waters": "every named water (by durable item_id): its `parts` (the (ruleset, "
                           "licensing_set) pairs its sections carry together, with "
                           "`province_except` and `anadromous_rainbow` where they hold, and "
-                          "`touches`: the other parts each borders), its "
-                          "`outside_bc` "
+                          "`touches`: the other parts each borders, and `runs`: where each "
+                          "runs, between which cuts), its `outside_bc` "
                           "count, and `part_of` for a lake part",
+                "splits": "every cut a run can end at, by id: its name, and where it stands "
+                          "(water and km from the mouth)",
                 "species": "the book's species list (p.86) under its headings, and the groups "
                            "and open subjects a rule may name",
                 "field_dictionary": "every field in the file, and what it means",
@@ -3565,8 +3805,12 @@ def field_dictionary(d: dict) -> dict:
                              for k, fs in lic_keys.items()},
         "licensing.provenance": {k: PROVENANCE_TEXT[k] for k in ("entry_name", "uncertain",
                                                                    "why")},
+        "licensing.period": PERIOD_TEXT,
         "entry": ENTRY_TEXT,
         "water.parts[]": WATER_PART_TEXT,
+        "water.parts[].runs[]": RUN_TEXT,
+        "run ends (from / to)": END_TEXT,
+        "splits": SPLIT_TEXT,
     }
 
 
@@ -3594,6 +3838,7 @@ def build(bundle: Path = BUNDLE) -> dict:
         "rulesets": len(d["rulesets"]),
         "licensing_sets": len(d["licensing_sets"]),
         "waters": len(d["waters"]),
+        "splits": len(d["splits"]),
         "sections": d["sections"],
     }
     doc = {
@@ -3615,6 +3860,7 @@ def build(bundle: Path = BUNDLE) -> dict:
         "rulesets": d["rulesets"],
         "licensing_sets": d["licensing_sets"],
         "waters": d["waters"],
+        "splits": d["splits"],
         "index": index(d),
     }
     doc["about"]["unresolved_references"] = corpus_references(doc)
@@ -3903,9 +4149,70 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
     return out
 
 
+def valid_end(token, doc: dict) -> bool:
+    """An end token a run may carry: a key of `splits`, a bare natural end, or a prefixed one
+    naming a water the file holds (a lake's ends name a lake or wetland)."""
+    if token in doc["splits"] or token in SP.NATURAL_ENDS:
+        return True
+    head, _, item = str(token).partition(":")
+    w = doc["waters"].get(item)
+    if head in ("lake_inlet", "lake_outlet"):
+        return w is not None and w["kind"] in ("lake", "wetland")
+    return head == "confluence" and w is not None
+
+
+def run_problems(doc: dict) -> list[str]:
+    """Every part says where it runs, in ends the file can name, upstream to downstream."""
+    out = []
+    for item, w in doc["waters"].items():
+        for i, p in enumerate(w["parts"]):
+            runs, tag = p.get("runs"), f"water {item} part {i}"
+            if not runs:
+                out.append(f"{tag}: no runs")
+                continue
+            if w["kind"] != "stream":
+                if len(runs) != 1 or any(runs[0][k] is not None for k in
+                                         ("from", "to", "km_from", "km_to")):
+                    out.append(f"{tag}: a polygon is one run with no ends")
+                continue
+            for r in runs:
+                for k in ("from", "to"):
+                    if not valid_end(r[k], doc):
+                        out.append(f"{tag}: {k} {r[k]!r} is no cut or end the file can name")
+                if r["km_from"] is not None and r["km_to"] is not None \
+                        and r["km_from"] < r["km_to"]:
+                    out.append(f"{tag}: runs uphill ({r['km_to']} -> {r['km_from']})")
+                if not r.get("branch") and (r["km_from"] is None or r["km_to"] is None):
+                    out.append(f"{tag}: a main-stem run with no km")
+            km = [r["km_from"] for r in runs if r["km_from"] is not None]
+            if km != sorted(km, reverse=True):
+                out.append(f"{tag}: runs not ordered upstream to downstream ({km})")
+    return out
+
+
+def period_problems(doc: dict) -> list[str]:
+    """Every designation carries a period that agrees with its own `when`."""
+    out = []
+    for i, x in doc["licensing"].items():
+        per = x.get("period")
+        if x["kind"] != "designation":
+            if per is not None:
+                out.append(f"{i}: a period on a {x['kind']}")
+            continue
+        when = x["fields"].get("when")
+        if not per or per.get("kind") not in ("when_open", "all_year", "dates") \
+                or not per.get("says"):
+            out.append(f"designation {i}: no period")
+        elif (per["kind"] == "dates") != bool(when) or \
+                (when and per.get("dates") != when.get("dates")):
+            out.append(f"designation {i}: period {per['kind']} disagrees with its when {when}")
+    return out
+
+
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
-            + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc))
+            + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
+            + run_problems(doc) + period_problems(doc))
 
 
 def dumps(doc: dict) -> str:

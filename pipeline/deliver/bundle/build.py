@@ -320,9 +320,13 @@ def _section_touch(db: sqlite3.Connection, build_dir: Path, cov: Coverage) -> No
         waters_of.setdefault(s, set()).add(ord_)
     graph = read_artifact(str(graph_path))
     pairs = touching_pairs(((e.from_node, e.to_node) for e in graph.edges), sid, waters_of)
-    del graph
     db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", pairs)
     cov.filled("section_touch", len(pairs))
+    # The same graph says where each section lies along its water and what ends it — the cuts
+    # a part's runs go between (`section_span`, `split`). Read here so it loads once.
+    from pipeline.deliver.bundle import spans as _spans
+    _spans.write(db, graph, build_dir, cov)
+    del graph
 
 
 def _place_id(p: dict) -> str:
