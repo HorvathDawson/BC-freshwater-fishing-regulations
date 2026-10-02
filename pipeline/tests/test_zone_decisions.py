@@ -79,8 +79,9 @@ def test_a_rules_conditions_are_in_its_key(corpus):
     "Trout/char: 5" — or the region's number silences the release."""
     wild = _rule(corpus, "zp:steelhead", "steelhead.r2")
     region = _rule(corpus, "z6:trout_char_quota", "trout_char_quota.r1")
-    # streams only (user ruling 2026-10-01): the water kind is a condition of its own
-    assert wild.dimension == "daily@origin=wild&water=stream" and region.dimension == "daily"
+    # the wild release binds lakes and streams (user ruling 2026-10-01): no water kind in its key;
+    # the record duty stays streams-only, and the water kind is a condition of its own
+    assert wild.dimension == "daily@origin=wild" and region.dimension == "daily"
     assert _rule(corpus, "zp:steelhead", "steelhead.r4").dimension == \
         "daily@origin=hatchery&water=stream&record"
     streams = _rule(corpus, "z5:trout_char_quota", "trout_char_quota.r3")      # "2 from streams"

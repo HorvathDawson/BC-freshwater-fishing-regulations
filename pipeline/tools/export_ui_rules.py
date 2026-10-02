@@ -1571,7 +1571,8 @@ def guide(d: dict) -> dict:
                              "'Rainbow trout/hatchery steelhead quota = 6 in the aggregate' lifts "
                              "Region 2's 'Trout/char: 4' for rainbow and steelhead (the region's "
                              "'2 hatchery steelhead' binds streams only and never reaches the "
-                             "lake). A LARGER NUMBER ALSO OVERRIDES THE ZONE'S "
+                             "lake; its 'All wild steelhead' release does). A LARGER NUMBER ALSO "
+                             "OVERRIDES THE ZONE'S "
                              "SIZE CLAUSE ('only 1 over 50 cm'), whether or not the row prints "
                              "'(any size)' (user ruling 2026-09-26): Jewel Lake's 'Brook trout "
                              "daily quota = 20' lifts Region 8's 5 AND its '1 over 50 cm' for "
@@ -1646,16 +1647,24 @@ def guide(d: dict) -> dict:
                                 "'All wild steelhead' released). Elsewhere a rainbow of any "
                                 "size is a rainbow. STEELHEAD RULES BIND STREAMS (user ruling "
                                 "2026-10-01): the province's steelhead rules (the annual "
-                                "hatchery quota of 10, 'All wild steelhead must be released', "
-                                "the record duty, the Conservation Surcharge Stamp) carry "
-                                "`water: stream` and bind only the streams of the regions whose "
-                                "own tables name steelhead (1, 2, 3, 5 and 6); each zone's "
-                                "steelhead rules bind the streams of its own area. A lake answers "
-                                "to a steelhead rule only when its own row prints steelhead "
-                                "(Khartoum and Lois lakes' 'Rainbow trout/hatchery steelhead "
-                                "quota = 6 in the aggregate'): a big lake rainbow falls under the "
-                                "rainbow size quota ('1 over 50 cm'), never the steelhead quota. "
-                                "The export refuses a steelhead rule on any other lake.",
+                                "hatchery quota of 10, the record duty, the Conservation "
+                                "Surcharge Stamp) carry `water: stream` and bind only the "
+                                "streams of the regions whose own tables name steelhead (1, 2, "
+                                "3, 5 and 6); each zone's hatchery steelhead quota and 'stop "
+                                "fishing after the hatchery quota' bind the streams of its own "
+                                "area. THE WILD-STEELHEAD RELEASE BINDS LAKES TOO (user ruling "
+                                "2026-10-01, 'You must release all wild steelhead' applies in "
+                                "lakes and streams): the province's 'All wild steelhead must be "
+                                "released' binds every water of Regions 1, 2, 3, 5 and 6, and "
+                                "each zone's release line ('All wild steelhead', Regions 3 and "
+                                "5's 'ALL STEELHEAD') every water of its area. A lake is never "
+                                "steelhead water, so there that release answers a STEELHEAD "
+                                "question only: a big lake rainbow falls under the rainbow size "
+                                "quota ('1 over 50 cm'), never a steelhead rule. Any other "
+                                "steelhead rule shows on a lake only when the lake's own row "
+                                "prints steelhead (Khartoum and Lois lakes' 'Rainbow "
+                                "trout/hatchery steelhead quota = 6 in the aggregate'); the "
+                                "export refuses it on any other lake.",
         "region": "A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN (user rulings "
                   "2026-09-25). A STREAM PIECE that wanders across a region line binds only "
                   "its home region's zone rules: the region holding most of its length (a West "
@@ -4108,6 +4117,23 @@ def is_steelhead_rule(x: dict) -> bool:
     return "ST" in sp or (not sp and "steelhead" in str(x.get("verbatim") or "").lower())
 
 
+def is_wild_steelhead_release(x: dict) -> bool:
+    """The RELEASE of wild steelhead, outright (user ruling 2026-10-01: "You must release all wild
+    steelhead" applies in lakes and streams): a retention_limit of steelhead alone, take 0, the fish
+    may be fished for (not a closure), every wild fish (origin wild, or no origin — Regions 3 and 5
+    print "ALL STEELHEAD"), with no date, size, water kind, record duty or quota clause. The
+    province's "All wild steelhead must be released" and the zones' "And you must release: All wild
+    steelhead" lines are these; a hatchery quota, the annual 10, the record duty, "stop fishing
+    after the hatchery quota" and the Region 6 stream closure are not."""
+    f = x["fields"]
+    return (x.get("type") == "retention_limit" and (f.get("species") or []) == ["ST"]
+            and f.get("take") == 0 and f.get("may_target") is True
+            and f.get("origin") in (None, "wild")
+            and not any(f.get(k) for k in ("when", "lengths", "water", "record_retention",
+                                           "within", "while", "when_targeting"))
+            and f.get("period") in (None, "daily"))
+
+
 def is_steelhead_record(x: dict) -> bool:
     """A licensing record about fishing for steelhead (`doing.species` names `ST`): the stamp."""
     return "ST" in ((x["fields"].get("doing") or {}).get("species") or [])
@@ -4117,11 +4143,14 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
     """A STEELHEAD RULE NEVER SHOWS ON A LAKE UNLESS THE LAKE'S OWN ROW MENTIONS STEELHEAD (user
     ruling 2026-10-01). Big lake rainbow fall under the rainbow size quota, not the steelhead
     quota, so the province's and the zones' steelhead rules bind streams only (`water: stream`).
-    Every lake water whose ruleset or licensing set carries a steelhead rule or stamp record
-    (`is_steelhead_rule`, `is_steelhead_record`) written by an entry that is not one of the lake's
-    own rows printing "steelhead" (Khartoum and Lois lakes: "Rainbow trout/hatchery steelhead quota
-    = 6 in the aggregate") is refused, and so is a steelhead record placed province-wide — it
-    would hold on every lake."""
+    THE ONE EXCEPTION is the wild-steelhead release (`is_wild_steelhead_release`; second ruling
+    2026-10-01: "You must release all wild steelhead" applies in lakes and streams): it may show on
+    any lake. A lake is never steelhead water, so there it answers only a steelhead question.
+    Every lake water whose ruleset or licensing set carries any other steelhead rule or stamp
+    record (`is_steelhead_rule`, `is_steelhead_record`) written by an entry that is not one of the
+    lake's own rows printing "steelhead" (Khartoum and Lois lakes: "Rainbow trout/hatchery
+    steelhead quota = 6 in the aggregate") is refused, and so is a steelhead record placed
+    province-wide — it would hold on every lake."""
     R, L, E = doc["rules"], doc["licensing"], doc["entries"]
     out = [f"steelhead record {i} is placed province-wide — it holds on every lake"
            for i, x in L.items() if is_steelhead_record(x) and x.get("placement") == "province"]
@@ -4140,7 +4169,8 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
                         continue
                     for i in ids:
                         x = known.get(i)
-                        if x is not None and test(x) and x["entry_id"] not in own:
+                        if (x is not None and test(x) and x["entry_id"] not in own
+                                and not (key == "ruleset" and is_wild_steelhead_release(x))):
                             bad.setdefault(i, []).append(item)
     for i, items in sorted(bad.items()):
         items = sorted(set(items))

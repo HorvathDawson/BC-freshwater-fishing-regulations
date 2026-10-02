@@ -11271,13 +11271,10 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:region:3",
-       "feature_types": [
-        "stream"
-       ]
+       "area_id": "area:region:3"
       }
      ],
-     "review_reason": "User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
+     "review_reason": "User ruling 2026-10-01 (wild release): \"You must release all wild steelhead\" applies in LAKES AND STREAMS, so the wild-steelhead release binds every water of the zone's own area; every other steelhead rule (hatchery quotas, the annual 10, the record duty, the stamp, stop-after-quota) stays streams-only. Lakes never carry anadromous_rainbow, so on a lake this release answers only a steelhead question, never a big rainbow's."
     },
     {
      "rule_id": "trout_char_quota.r6",
