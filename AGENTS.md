@@ -300,24 +300,43 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     the reference reader: per fish, per day, lifts, naming before place, water-vs-zone quota
     rulings. The export `guide` restates it; the app must match it. Change a ruling there and in
     the guide together.
-54. **Known steelhead waters carry the provincial steelhead set wherever they are.** (user
-    rulings 2026-10-01/02, `pipeline/atlas/reach/steelhead.py`.) The provincial and zone steelhead
-    rules bind STREAMS of Regions 1, 2, 3, 5 and 6 ("possible" where nothing more is known). A
-    KNOWN water — every water any rule of a steelhead row binds (a water row with a rule naming
-    `ST`, or flagged `anadromous_rainbow`: Tenas Lake via the Atnarko's spring closure), the
-    tributary streams of every flagged row in ANY region, and every water on the curated list with
-    its tributaries — carries the whole provincial set (annual hatchery 10, wild release, record
-    duty, stamp), through the TWINS `zp:steelhead` r1b/r2b/r4b and `steelhead_targeting_known`,
-    whose one extent is `{op: steelhead_waters, siblings: [<base>]}` (the reach builder's known set
-    minus the base's sections; only `build_reaches` resolves it — `build_reach` alone says
-    `needs_corpus`). Never put an item or region extent on a base steelhead rule: it changes its
-    competition key and ranks it as a water rule (`read.source_of`). A row that only WAIVES the
-    stamp ("Steelhead Stamp not required") is not a steelhead row. A row naming steelhead in a rule
-    but not flagged (the Fraser's per-region rows) makes its own water known and is not walked.
-    `anadromous_rainbow` holds on known STREAMS only.
+54. **Steelhead regulations come only from the book; the curated list is a presence indicator.**
+    (user rulings 2026-10-01/02, `pipeline/atlas/reach/steelhead.py`.) The provincial and zone
+    steelhead rules bind STREAMS of Regions 1, 2, 3, 5 and 6. A STEELHEAD ROW is a water row with a
+    rule naming `ST`, flagged `anadromous_rainbow`, or with a licensing record speaking of the
+    Steelhead Stamp (`steelhead_stamp_during`, or the waiver `steelhead_stamp_waived` — Chilko,
+    Horsefly, West Road and both Stellako rows count: steelhead are mentioned). A steelhead row's OWN
+    water (its matched waters within its scope, held as its rules are) and every section ANY rule
+    of it binds are BOOK-KNOWN (Tenas Lake via the Atnarko's spring closure; the Stellako in 7A; the
+    Kingcome, whose row has no rule, only its Class II water). **There is no tributary walk.** Book-known water carries the whole provincial set
+    (annual hatchery 10, wild release, record duty, stamp) through the TWINS `zp:steelhead`
+    r1b/r2b/r4b and `steelhead_targeting_known`, whose one extent is `{op: steelhead_waters,
+    siblings: [<base>]}` (book-known minus the base's sections; only `build_reaches` resolves it —
+    `build_reach` alone says `needs_corpus`); a book-known LAKE also gets its region's zone wild
+    release through that line's twin `<release>b` (`z1` r5b, `z1:hg_quota` r6b, `z2` r7b, `z3` r5b,
+    `z5` r6b, `z6` r9b), whose extent adds the zone's `area_id`/`outside_area`. Never put an item or
+    region extent on a base steelhead rule: it changes its competition key and ranks it as a water
+    rule (`read.source_of`). `anadromous_rainbow` (a rainbow over 50 cm is a steelhead) holds on the
+    book-known FLOWING sections only (`steelhead.flows`: a stream, or a lake-typed water whose name
+    says it flows — the Vedder Canal; the generator below shares the definition).
+    **The stamp waiver** lifts only the classified-water stamp (`Designation` docstring); the
+    provincial "stamp if you fish for steelhead" (`steelhead_targeting`, and its twin on a
+    waiver row's water past the steelhead regions — the Stellako in 7A) is a different requirement.
     **THE CURATED LIST** is `data/curated/regulations/steelhead_waters.json` (`CURATED.regulations.
-    steelhead_waters`): `{"$comment": …, "waters": [{"item_id": "wbk:…", "note": "…"},
-    {"name": "Cowichan River", "region": "1", "note": "…"}]}` — exactly one of `item_id`/`name`;
-    `region` ("1".."8") / `mu` ("1-4") choose among same-named waters. The reach builder refuses an unknown, ambiguous,
-    contradicted or duplicate entry; the bundle refuses a reach run made with a different list.
-    The export names such a water's source `"curated list"` (`waters[].steelhead_source`).
+    steelhead_waters`): `{"$comment": …, "generated": {source, generator, date, fingerprint},
+    "waters": [{"item_id": "wbk:…", "note": "…"}, {"name": "Cowichan River", "region": "1"}]}` —
+    exactly one of `item_id`/`name`; `region` ("1".."8") / `mu` ("1-4") choose among same-named
+    waters. **It changes no regulation**: it makes its waters' own sections `steelhead: known`
+    (`steelhead_source` `"curated list"`) and nothing else — no rule binding, twin, stamp,
+    `anadromous_rainbow` or `effective_rules` answer. In the steelhead regions it turns "possible"
+    into "known"; elsewhere (the Okanagan River, Region 8) a listed water is known and carries no
+    steelhead rule. The reach builder refuses an unknown, ambiguous, contradicted or duplicate entry;
+    the bundle refuses a reach run made with a different list. The export's
+    `waters[].steelhead_source` is `"regulations"` and/or `"curated list"`; `steelhead_rows` names
+    the rows. **THE LIST IS GENERATED BY A SEPARATE STEP**, `python -m
+    pipeline.regs.steelhead.known_waters` — NOT part of the atlas build, the reach run or the
+    bundle. It fetches once into `data/source/steelhead/` (cached; `fetched.json`), keeps its hand
+    review in the module (`HAND`, `REVIEW`: REVIEWED data, rule 35 — edit by hand, never
+    regenerate), writes `data/generated/steelhead/`, and a HUMAN copies `steelhead_waters.json` to
+    the curated path. `test_steelhead_waters.py` fails while the curated copy's fingerprint and the
+    generated file disagree. Do not run it to "check something" (rule 38).

@@ -16,6 +16,9 @@ source/*.pmtiles
 # tile cache is not: 748 binary tiles that `pipeline.runtiming.fetch.boundaries` re-fetches
 # in about a minute, and that nothing reads except the polygon stitcher.
 source/runtiming/cu_tiles/
+# Steelhead evidence (pipeline/regs/steelhead/known_waters.py): the accessibility model (6.6 GB)
+# and ~17,000 DataBC records, both re-fetched by the script when missing.
+source/steelhead/
 *.gpkg
 *.pmtiles
 

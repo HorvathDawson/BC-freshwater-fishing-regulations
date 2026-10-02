@@ -63,7 +63,8 @@ def main() -> int:
     # against a scratch path would otherwise stop matching its own atlas the moment it is
     # promoted — see `BuildReport.handles`.
     from pipeline.common.section_handles import digest_for
-    # THE USER'S KNOWN-STEELHEAD LIST (curated; a missing file raises) — `reach.steelhead`.
+    # THE USER'S KNOWN-STEELHEAD LIST (curated; a missing file raises) — `reach.steelhead`: a
+    # presence indicator, it binds no rule.
     from pipeline.atlas.reach.steelhead import load_list
     result = build_reaches(entries, registry, graph, build=build.name,
                            handles=digest_for(build), steelhead_list=load_list())
@@ -79,9 +80,10 @@ def main() -> int:
     if r.steelhead:
         print("  steelhead    " + " · ".join(f"{k} {v:,}" for k, v in r.steelhead.items()
                                            if isinstance(v, int)))
-        for c in r.steelhead.get("curated") or []:
-            print(f"    curated list: {c['listed']} -> {c['item_id']} (own {c['own']:,}, "
-                  f"tributaries {c['trib']:,})")
+        cur = r.steelhead.get("curated") or []
+        if cur:
+            print(f"    curated list (a presence indicator): {len(cur):,} waters, "
+                  f"{sum(c['sections'] for c in cur):,} sections")
     if r.licensing:
         print("  licensing")
         for k, v in sorted(r.licensing.items()):

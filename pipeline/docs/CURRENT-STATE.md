@@ -39,10 +39,10 @@ Entry-level fields beside those: `extents` (narrows the row, never gives a rule 
   the export tags them `alias` 34, `see` 32, `twin` 7 (*export* `entries[].see[].relation`).
   52 water entries hold only a pointer and no rules. A pointer never moves a water to the
   target's region (Mara Lake).
-- **`anadromous_rainbow`** — the p.86 steelhead-water flag. **1 entry** sets it
-  (`r2:chilliwack_vedder_rivers…@2-4`, *catalogue*); the bundle's `steelhead_water` table covers
-  **26 sections** (*export* `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow
-  over 50 cm is a steelhead (`read.as_rainbow`).
+- **`anadromous_rainbow`** — the p.86 steelhead-water flag on a row. Since 2026-10-02 the bundle's
+  `steelhead_water` (a view) is the FLOWING water any rule of a steelhead row binds (AGENTS 54;
+  ~72,800 sections, *export* `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow
+  over 50 cm is a steelhead (`read.as_rainbow`). The curated known-steelhead list never sets it.
 
 Water entries by rule count (*catalogue*): 0 rules 59 (7 licensing-only, 52 pointer-only),
 1 rule 642, 2 rules 225, 3 rules 232, 4 rules 129, 5+ rules 106. Water rows hold 2,987 rules and
@@ -366,7 +366,7 @@ From the 2026-09-24 version's §3/§5, checked against the artifacts above:
 Still open beyond that list: the 40 unresolved water rules (§4), ambiguous cuts (75 rules) and
 unclassified straddling pieces (108 rules), both reported only in `rule_diagnostic.jsonl`; the
 reach build is not deterministic run-to-run (memory note, not re-measured); the steelhead
-definitional size is applied only on `steelhead_water` sections (1 entry, 26 sections).
+definitional size is applied only on `steelhead_water` sections (AGENTS 54).
 
 ---
 

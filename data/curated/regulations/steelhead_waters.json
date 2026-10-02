@@ -1,14 +1,2716 @@
 {
-  "$comment": [
-    "THE KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02). Rivers that are steelhead water although no row of the book names steelhead on them (e.g. Cowichan, Squamish, Nass).",
-    "Each water listed here is made steelhead KNOWN by the reach builder (pipeline/atlas/reach/steelhead.py): the water itself and its tributaries (the same walk as a row flagged anadromous_rainbow: streams only, held to no region), so it carries the whole provincial steelhead set (the annual hatchery 10, the wild release, the record duty, the Steelhead Stamp) wherever it lies, its streams carry anadromous_rainbow (a rainbow over 50 cm is a steelhead), and the export records steelhead_source: \"curated list\".",
-    "FORMAT: \"waters\" is a list of objects, each with EXACTLY ONE of",
-    "  \"item_id\": a registry id (\"wbk:...\", \"gnis:...\", \"blk:...\") — exact, preferred;",
-    "  \"name\":    the water's name as the registry has it (its name or a name variant, case-insensitive),",
-    "plus, optionally, \"region\" (\"1\"..\"8\"; 7A/7B both read as 7) and/or \"mu\" (\"1-4\") to choose among several waters of that name, and a \"note\" (why it is on the list; not read by the build).",
-    "The build REFUSES an entry it cannot resolve to exactly one water: an unknown item_id or name, a name several waters share (add region or mu), a water listed twice, or an item_id whose name/region/mu disagree with what is written beside it.",
-    "Example: {\"name\": \"Cowichan River\", \"region\": \"1\", \"note\": \"winter steelhead\"} or {\"item_id\": \"gnis:12345\", \"note\": \"Squamish River\"}.",
-    "Reach run: python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out <reaches>; then the bundle. The list is recorded in the reach run's report (steelhead.curated) and the bundle refuses a run whose list differs from this file."
-  ],
-  "waters": []
+ "$comment": [
+  "THE KNOWN-STEELHEAD LIST (reviewed data; user rulings 2026-10-02). A PRESENCE INDICATOR FOR DISPLAY, nothing more: each water listed here is steelhead KNOWN (`steelhead: known`, `steelhead_source: \"curated list\"`) on its own sections. It changes NO regulation: no rule binds through it, it adds no provincial steelhead rule, no stamp, no anadromous_rainbow (a rainbow over 50 cm stays a rainbow unless the book makes the water steelhead water), and no effective_rules answer. In the steelhead regions (1, 2, 3, 5, 6) it flips a stream from \"possible\" to \"known\"; elsewhere (the Okanagan River in Region 8) it marks steelhead as present on a water that carries no steelhead rule. Regulations come only from the book.",
+  "WHERE IT COMES FROM: a human copies data/generated/steelhead/steelhead_waters.json, written by the separate generator `python -m pipeline.regs.steelhead.known_waters` (BC Fish Observations of steelhead on water sea-run steelhead can reach, the provincial accessibility model, blocking dams, the route to the sea, a per-water hand review; no lakes — sloughs, canals and channels count as streams). The generator is NOT part of the atlas build. `generated` below records the copy: the generated file and the fingerprint of its `waters` (`pipeline.atlas.reach.steelhead.fingerprint`); test_steelhead_waters.py checks the copy against it.",
+  "FORMAT: \"waters\" is a list of objects, each with EXACTLY ONE of",
+  "  \"item_id\": a registry id (\"wbk:...\", \"gnis:...\", \"blk:...\") — exact, preferred;",
+  "  \"name\":    the water's name as the registry has it (its name or a name variant, case-insensitive),",
+  "plus, optionally, \"region\" (\"1\"..\"8\"; 7A/7B both read as 7) and/or \"mu\" (\"1-4\") to choose among several waters of that name, and a \"note\" (why it is on the list; not read by the build).",
+  "The reach build REFUSES an entry it cannot resolve to exactly one water: an unknown item_id or name, a name several waters share (add region or mu), a water listed twice, or an item_id whose region/mu disagree with what is written beside it.",
+  "Reach run: python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out <reaches>; then the bundle. The list is recorded in the reach run's report (steelhead.curated) and the bundle refuses a run whose list differs from this file."
+ ],
+ "generated": {
+  "source": "data/generated/steelhead/steelhead_waters.json",
+  "generator": "pipeline.regs.steelhead.known_waters (first run as pipeline/hack/steelhead_waters.py)",
+  "date": "2026-10-02",
+  "fingerprint": "c846144ee090f3df"
+ },
+ "waters": [
+  {
+   "item_id": "gnis:2521",
+   "note": "Goldstream River: 36 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:28136",
+   "note": "Adam River: 68 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:5480",
+   "note": "Amor De Cosmos Creek: 64 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:30518",
+   "note": "Catherine Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:30071",
+   "note": "Consort Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:38229",
+   "note": "Elk Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:31112",
+   "note": "Eve River: 35 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:35904",
+   "note": "Grilse Creek: 14 steelhead record(s), latest 2013"
+  },
+  {
+   "item_id": "gnis:38667",
+   "note": "Kay Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:28041",
+   "note": "Memekay River: 13 steelhead record(s), latest 2013"
+  },
+  {
+   "item_id": "gnis:28051",
+   "note": "Menzies Creek: 3 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:5316",
+   "note": "Mohun Creek: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2628",
+   "note": "Salmon River: 11 steelhead record(s), latest 2013"
+  },
+  {
+   "item_id": "gnis:27415",
+   "note": "Snowdon Creek: 1 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:38462",
+   "note": "South Elk Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:5379",
+   "note": "Tsitika River: 31 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:2923",
+   "note": "White River: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:27883",
+   "note": "Quinsam River: 155 steelhead record(s), latest 2019"
+  },
+  {
+   "item_id": "gnis:39532",
+   "note": "Campbell River: 98 steelhead record(s), latest 2019"
+  },
+  {
+   "item_id": "gnis:28197",
+   "note": "Atluck Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:29055",
+   "note": "Bonanza River: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:6655",
+   "note": "Davie River: 24 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:30668",
+   "note": "Kaipit Creek: 1 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:30702",
+   "note": "Kilpala River: 2 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:30726",
+   "note": "Kokish River: 54 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:31421",
+   "note": "Mukwilla Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:21141",
+   "note": "Nimpkish River: 115 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:3033",
+   "note": "Sebalhall Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:29830",
+   "note": "Thiemer Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:30105",
+   "note": "Tsulton River: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:28190",
+   "note": "Artlish River: 34 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:29103",
+   "note": "Buck Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:30031",
+   "note": "Clanninick Creek: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:19329",
+   "note": "Conuma River: 1 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:31069",
+   "note": "East Creek: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:17899",
+   "note": "Espinosa Creek: 4 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:30676",
+   "note": "Kaouk River: 32 steelhead record(s), latest 2011"
+  },
+  {
+   "item_id": "gnis:1919",
+   "note": "Kashutl River: 2 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:30680",
+   "note": "Kauwinch River: 3 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:30685",
+   "note": "Keith River: 2 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:30722",
+   "note": "Klaskish River: 6 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:13374",
+   "note": "Kleeptee Creek: 3 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:9508",
+   "note": "Leiner River: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:16993",
+   "note": "Little Zeballos River: 14 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:30814",
+   "note": "Malksope River: 4 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:22860",
+   "note": "McCurdy Creek: 6 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:20438",
+   "note": "Nesook River: 8 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:23356",
+   "note": "Nomash River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:29506",
+   "note": "Ououkinsh River: 9 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:22620",
+   "note": "Park River: 2 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:14746",
+   "note": "Perry River: 24 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:32082",
+   "note": "Power River: 5 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:2650",
+   "note": "Santiago Creek: 7 steelhead record(s), latest 1976"
+  },
+  {
+   "item_id": "gnis:2478",
+   "note": "Sucwoa River: 27 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:6591",
+   "note": "Tahsis River: 33 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:29803",
+   "note": "Tahsish River: 25 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:25916",
+   "note": "Tlupana River: 23 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:29271",
+   "note": "Tsowwin River: 21 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:30471",
+   "note": "Zeballos River: 37 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:28247",
+   "note": "Benson River: 25 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:30524",
+   "note": "Cayeghle Creek: 26 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:30049",
+   "note": "Cluxewe River: 126 steelhead record(s), latest 2020"
+  },
+  {
+   "item_id": "gnis:30061",
+   "note": "Colonial Creek: 14 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:30602",
+   "note": "Denad Creek: 4 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:31319",
+   "note": "Goodspeed River: 41 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:31942",
+   "note": "Hathaway Creek: 2 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:31247",
+   "note": "Jenkinson Creek: 1 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:30697",
+   "note": "Keogh River: 464 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:30723",
+   "note": "Klootchlimmis Creek: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:30729",
+   "note": "Koprino River: 9 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:34229",
+   "note": "Macjack River: 14 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:30809",
+   "note": "Mahatta Creek: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:30821",
+   "note": "Marble River: 1 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:29435",
+   "note": "Nahwitti River: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:32101",
+   "note": "Quatse River: 140 steelhead record(s), latest 2020"
+  },
+  {
+   "item_id": "gnis:28347",
+   "note": "Raging River: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:28407",
+   "note": "Rupert Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:34700",
+   "note": "San Josef River: 29 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:29167",
+   "note": "Shushartie River: 4 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:29755",
+   "note": "Stephens Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:35816",
+   "note": "Strandby River: 15 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:30106",
+   "note": "Tsulquate River: 28 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:30617",
+   "note": "Waukwaas Creek: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:28141",
+   "note": "Ahta River: 1 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:31016",
+   "note": "Atlatzi River: 12 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:31019",
+   "note": "Atwaykellesse River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:30538",
+   "note": "Charles Creek: 5 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:31701",
+   "note": "Clear River: 6 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:30705",
+   "note": "Kingcome River: 15 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:31813",
+   "note": "Wahpeeto Creek: 2 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:31815",
+   "note": "Wakeman River: 1 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:9105",
+   "note": "Ahnuhati River: 19 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:10567",
+   "note": "Apple River: 9 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:13671",
+   "note": "Blind Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:34353",
+   "note": "Devereux Creek: 4 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:10450",
+   "note": "Glendale Creek: 10 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:11294",
+   "note": "Kakweiken River: 24 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:35962",
+   "note": "Kwalate Creek: 6 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:14272",
+   "note": "Matsiu Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:14516",
+   "note": "Stafford River: 20 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:8561",
+   "note": "Tom Browne Creek: 1 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:35676",
+   "note": "West Klinaklini River: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3273",
+   "note": "Klinaklini River: 2 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:4957",
+   "note": "Charters River: 2 steelhead record(s), latest 1980"
+  },
+  {
+   "item_id": "gnis:6035",
+   "note": "De Mamiel Creek: 32 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:9483",
+   "note": "Leech River: 2 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:15811",
+   "note": "Muir Creek: 66 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:22077",
+   "note": "Shawnigan Creek: 6 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:25725",
+   "note": "Sooke River: 90 steelhead record(s), latest 2012"
+  },
+  {
+   "item_id": "gnis:29309",
+   "note": "Tugwell Creek: 15 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:19515",
+   "note": "Bavis Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:13701",
+   "note": "Blue Creek: 1 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:18401",
+   "note": "Carmanah Creek: 6 steelhead record(s), latest 1976"
+  },
+  {
+   "item_id": "gnis:18410",
+   "note": "Carnation Creek: 4 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:11710",
+   "note": "Caycuse River: 48 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:13008",
+   "note": "Cheewhat River: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:19322",
+   "note": "Consinka Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:18578",
+   "note": "Fairy Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:18604",
+   "note": "Falls Creek: 1 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:19856",
+   "note": "Fleet River: 4 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:18167",
+   "note": "Gordon River: 50 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:15312",
+   "note": "Harris Creek: 47 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:20701",
+   "note": "Hemmingsen Creek: 19 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:21456",
+   "note": "Hobiton Creek: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:19118",
+   "note": "Jordan River: 23 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2303",
+   "note": "Kirby Creek: 29 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:7741",
+   "note": "Klanawa River: 31 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17279",
+   "note": "Lens Creek: 27 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:14968",
+   "note": "Mosquito Creek: 1 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:21882",
+   "note": "Pachena River: 23 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:28844",
+   "note": "Red Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:25044",
+   "note": "Renfrew Creek: 2 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:25826",
+   "note": "Ritherdon Creek: 3 steelhead record(s), latest 1972"
+  },
+  {
+   "item_id": "gnis:21201",
+   "note": "San Juan River: 47 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:21238",
+   "note": "Sarita River: 81 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:25708",
+   "note": "Sombrio River: 4 steelhead record(s), latest 1972"
+  },
+  {
+   "item_id": "gnis:26507",
+   "note": "South Sarita River: 3 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:22491",
+   "note": "Walbran Creek: 6 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:23318",
+   "note": "Nitinat River: 39 steelhead record(s), latest 2005"
+  },
+  {
+   "item_id": "gnis:32356",
+   "note": "Bear Creek: 4 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:12171",
+   "note": "Cottonwood Creek: 4 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:12227",
+   "note": "Cowichan River: 203 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:18569",
+   "note": "Fairservice Creek: 3 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:23775",
+   "note": "Holt Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:11450",
+   "note": "Kelvin Creek: 3 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:14076",
+   "note": "Koksilah River: 37 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:10876",
+   "note": "Little Nitinat River: 19 steelhead record(s), latest 2005"
+  },
+  {
+   "item_id": "gnis:29025",
+   "note": "Millar Creek: 4 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:21158",
+   "note": "Nineteen Creek: 3 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:22594",
+   "note": "Parker Creek: 12 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:2972",
+   "note": "Quamichan Creek: 5 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:28795",
+   "note": "Raymond Creek: 3 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:6402",
+   "note": "Robertson River: 30 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:22068",
+   "note": "Shaw Creek: 5 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:14547",
+   "note": "Stanley Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:29390",
+   "note": "Worthless Creek: 4 steelhead record(s), latest 1982"
+  },
+  {
+   "item_id": "gnis:13076",
+   "note": "Bings Creek: 3 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:10266",
+   "note": "Inwood Creek: 3 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:25752",
+   "note": "Richards Creek: 1 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:16714",
+   "note": "Bush Creek: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:12978",
+   "note": "Chase River: 20 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:39267",
+   "note": "Chemainus River: 44 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:13775",
+   "note": "Chipman Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:17355",
+   "note": "Englishman River: 33 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:44111",
+   "note": "French Creek: 34 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:16090",
+   "note": "Haslam Creek: 25 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:23744",
+   "note": "Holland Creek: 8 steelhead record(s), latest 1980"
+  },
+  {
+   "item_id": "gnis:21650",
+   "note": "Humbird Creek: 1 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:29529",
+   "note": "Millstone River: 23 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:14913",
+   "note": "Moriarty Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:5749",
+   "note": "Morison Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:16505",
+   "note": "Nanaimo River: 123 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:16525",
+   "note": "Nanoose Creek: 7 steelhead record(s), latest 1984"
+  },
+  {
+   "item_id": "gnis:23459",
+   "note": "North Nanaimo River: 8 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:26468",
+   "note": "South Englishman River: 5 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:26496",
+   "note": "South Nanaimo River: 4 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:20907",
+   "note": "Swane Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:13152",
+   "note": "Black Creek: 29 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:9726",
+   "note": "Browns River: 33 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:37769",
+   "note": "Cook Creek: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:12206",
+   "note": "Courtenay River: 33 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:12788",
+   "note": "Cowie Creek: 9 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:21542",
+   "note": "Dove Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:44160",
+   "note": "Glen Urquhart Creek: 1 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:15344",
+   "note": "Hart Creek: 4 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:16188",
+   "note": "Headquarters Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:10307",
+   "note": "Iron River: 14 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:12643",
+   "note": "Kinkade Creek: 4 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:10879",
+   "note": "Little Oyster River: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:10886",
+   "note": "Little Qualicum River: 169 steelhead record(s), latest 2011"
+  },
+  {
+   "item_id": "gnis:10888",
+   "note": "Little River: 7 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2907",
+   "note": "McNaughton Creek: 2 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:1893",
+   "note": "Millard Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:5751",
+   "note": "Morrison Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:21124",
+   "note": "Nile Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:21875",
+   "note": "Oyster River: 65 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:8063",
+   "note": "Piercy Creek: 1 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:22728",
+   "note": "Portuguese Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:27060",
+   "note": "Puntledge River: 173 steelhead record(s), latest 2021"
+  },
+  {
+   "item_id": "gnis:27804",
+   "note": "Qualicum River: 94 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:27478",
+   "note": "Rosewall Creek: 28 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:27647",
+   "note": "Trent River: 37 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:28508",
+   "note": "Tsable River: 38 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:29265",
+   "note": "Tsolum River: 4 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:25235",
+   "note": "Waterloo Creek: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:27727",
+   "note": "Wilfred Creek: 16 steelhead record(s), latest 2011"
+  },
+  {
+   "item_id": "gnis:28531",
+   "note": "Willow Creek: 2 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:29338",
+   "note": "Woodhus Creek: 7 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:17161",
+   "note": "Ash River: 46 steelhead record(s), latest 2012"
+  },
+  {
+   "item_id": "gnis:13021",
+   "note": "Cherry Creek: 4 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:13740",
+   "note": "Child Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:13761",
+   "note": "China Creek: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17074",
+   "note": "Clemens Creek: 3 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:30058",
+   "note": "Cold Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:18074",
+   "note": "Coleman Creek: 27 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:20045",
+   "note": "Corrigan Creek: 2 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:12207",
+   "note": "Cous Creek: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2292",
+   "note": "Franklin River: 31 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:50865",
+   "note": "Hucuktlis River: 5 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:12692",
+   "note": "Kitsucksus Creek: 32 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:12058",
+   "note": "Macktush Creek: 4 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:16478",
+   "note": "Nahmint River: 41 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:22634",
+   "note": "Parsons Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:25870",
+   "note": "Robertson Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:25707",
+   "note": "Somass River: 227 steelhead record(s), latest 2026"
+  },
+  {
+   "item_id": "gnis:25640",
+   "note": "Sproat River: 36 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14533",
+   "note": "Stamp River: 50 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:24672",
+   "note": "Taylor River: 30 steelhead record(s), latest 2008"
+  },
+  {
+   "item_id": "gnis:17199",
+   "note": "Atleo River: 1 steelhead record(s), latest 1978"
+  },
+  {
+   "item_id": "gnis:11575",
+   "note": "Bedwell River: 13 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9695",
+   "note": "Brother Creek: 6 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:10591",
+   "note": "Bulson Creek: 3 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:17809",
+   "note": "Canoe Creek: 1 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:11691",
+   "note": "Cats Ears Creek: 1 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:10431",
+   "note": "Clayoquot River: 3 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:17590",
+   "note": "Coeur d'Alene Creek: 3 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:14352",
+   "note": "Cypre River: 24 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:21565",
+   "note": "Draw Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:10682",
+   "note": "Effingham River: 12 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:17883",
+   "note": "Escalante River: 9 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:24610",
+   "note": "Houston River: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:9445",
+   "note": "Ice River: 5 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:2263",
+   "note": "Kennedy River: 24 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14096",
+   "note": "Kootowis Creek: 19 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:18015",
+   "note": "Lost Shoe Creek: 3 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:37390",
+   "note": "Lucky Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:12100",
+   "note": "Maggie River: 27 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2939",
+   "note": "Megin River: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14889",
+   "note": "Mooyah River: 3 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:15776",
+   "note": "Moyeha River: 16 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:20596",
+   "note": "Sand River: 2 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:26277",
+   "note": "Silverado Creek: 7 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:27342",
+   "note": "Smith Creek: 2 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:23870",
+   "note": "Talbot Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:26692",
+   "note": "Tofino Creek: 2 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:2915",
+   "note": "Toquaht River: 74 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:27598",
+   "note": "Tranquil Creek: 6 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:30298",
+   "note": "Ursus Creek: 3 steelhead record(s), latest 1971"
+  },
+  {
+   "item_id": "gnis:10631",
+   "note": "Burman River: 1 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:17593",
+   "note": "Gold River: 38 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:20215",
+   "note": "Heber River: 40 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:15784",
+   "note": "Muchalat River: 32 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:24229",
+   "note": "Oktwanch River: 11 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:23512",
+   "note": "Saunders Creek: 2 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:29708",
+   "note": "Ucona River: 1 steelhead record(s), latest 1983"
+  },
+  {
+   "item_id": "gnis:30261",
+   "note": "Upana River: 4 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:13103",
+   "note": "Birkenhead River: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:10313",
+   "note": "Lillooet River: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:15333",
+   "note": "Harrison River: 5 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:9657",
+   "note": "Brittain River: 24 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:16320",
+   "note": "Lang Creek: 43 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17062",
+   "note": "Lois River: 2 steelhead record(s), latest 1981"
+  },
+  {
+   "item_id": "gnis:21687",
+   "note": "Theodosia River: 9 steelhead record(s), latest 1980"
+  },
+  {
+   "item_id": "gnis:27231",
+   "note": "Skwawka River: 11 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9238",
+   "note": "Brem River: 43 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:13389",
+   "note": "Klite River: 13 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17474",
+   "note": "Little Toba River: 8 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:25929",
+   "note": "Toba River: 11 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:24864",
+   "note": "Orford River: 11 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:27842",
+   "note": "Quatam River: 32 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:26476",
+   "note": "Southgate River: 18 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:11072",
+   "note": "Bear River: 22 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:38411",
+   "note": "Phillips River: 23 steelhead record(s), latest 2016"
+  },
+  {
+   "item_id": "gnis:8173",
+   "note": "Homathko River: 5 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:19983",
+   "note": "Coquihalla River: 129 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:26528",
+   "note": "Sowaqua Creek: 10 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:17321",
+   "note": "Emory Creek: 10 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:39325",
+   "note": "Fraser River: 511 steelhead record(s), latest 2020"
+  },
+  {
+   "item_id": "gnis:9979",
+   "note": "American Creek: 4 steelhead record(s), latest 1981"
+  },
+  {
+   "item_id": "wbk:329178010",
+   "note": "Maria Slough: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:27551",
+   "note": "Ruby Creek: 13 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:26290",
+   "note": "Silverhope Creek: 50 steelhead record(s), latest 2020"
+  },
+  {
+   "item_id": "gnis:25658",
+   "note": "Spuzzum Creek: 15 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:13015",
+   "note": "Chehalis River: 167 steelhead record(s), latest 2026"
+  },
+  {
+   "item_id": "gnis:14936",
+   "note": "Morris Creek: 60 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:25951",
+   "note": "Weaver Creek: 39 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:8940",
+   "note": "Borden Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:11757",
+   "note": "Centre Creek: 8 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:13777",
+   "note": "Chipmunk Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:19929",
+   "note": "Foley Creek: 8 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:12564",
+   "note": "Frosst Creek: 3 steelhead record(s), latest 2022"
+  },
+  {
+   "item_id": "blk:355992187",
+   "note": "Herrling Island Side Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:3524",
+   "note": "Hunter Creek: 10 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:2500",
+   "note": "Liumchen Creek: 4 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:20432",
+   "note": "Nesakwatch Creek: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2978",
+   "note": "Slesse Creek: 10 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2773",
+   "note": "Tamihi Creek: 7 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:22472",
+   "note": "Wahleach Creek: 9 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:8634",
+   "note": "Chilliwack River: 7 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:23072",
+   "note": "Sweltzer River: 70 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:10012",
+   "note": "Anderson Creek: 7 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:10494",
+   "note": "Annacis Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:12382",
+   "note": "Bertrand Creek: 7 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:7250",
+   "note": "Campbell River: 117 steelhead record(s), latest 2023"
+  },
+  {
+   "item_id": "gnis:17805",
+   "note": "Cannery Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "wbk:329083360",
+   "note": "Gravel Slough: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:12114",
+   "note": "Mahood Creek: 13 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:1860",
+   "note": "Marshall Creek: 14 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:14275",
+   "note": "Matsqui Slough: 24 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:14905",
+   "note": "Morey Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:7892",
+   "note": "Nathan Creek: 24 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:21100",
+   "note": "Nicomekl River: 97 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:20523",
+   "note": "Salmon River: 41 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:24978",
+   "note": "Serpentine River: 69 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "wbk:329707189",
+   "note": "Vedder Canal: 263 steelhead record(s), latest 2026"
+  },
+  {
+   "item_id": "gnis:3062",
+   "note": "Vedder River: 2 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:11566",
+   "note": "Bedford Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:17368",
+   "note": "Enterprise Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:22631",
+   "note": "Parsons Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:7551",
+   "note": "Pitt River: 40 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:21224",
+   "note": "Sapperton Channel: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:26216",
+   "note": "Sumas River: 34 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:9164",
+   "note": "Box Canyon Creek: 5 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:12936",
+   "note": "Chapman Creek: 43 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:15195",
+   "note": "Dakota Creek: 19 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:10993",
+   "note": "Gray Creek: 27 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:16321",
+   "note": "Langdale Creek: 7 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:26422",
+   "note": "McNab Creek: 32 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:26425",
+   "note": "McNair Creek: 11 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:22742",
+   "note": "Potlatch Creek: 5 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:28701",
+   "note": "Rainy River: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:25862",
+   "note": "Roberts Creek: 27 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:6238",
+   "note": "Sechelt Creek: 16 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:30354",
+   "note": "Tzoonie River: 33 steelhead record(s), latest 2008"
+  },
+  {
+   "item_id": "gnis:29626",
+   "note": "Vancouver River: 41 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:8342",
+   "note": "ts'uḵw'um: 18 steelhead record(s), latest 2018"
+  },
+  {
+   "item_id": "gnis:21297",
+   "note": "ts’unay stulu: 6 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:17155",
+   "note": "Ashlu Creek: 61 steelhead record(s), latest 2010"
+  },
+  {
+   "item_id": "gnis:10716",
+   "note": "Elaho River: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:8234",
+   "note": "Shovelnose Creek: 8 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:12999",
+   "note": "Cheakamus River: 109 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:25671",
+   "note": "Squamish River: 128 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:7583",
+   "note": "Brohm River: 12 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:39163",
+   "note": "Tenderfoot Creek: 3 steelhead record(s), latest 2015"
+  },
+  {
+   "item_id": "gnis:12746",
+   "note": "Mamquam River: 43 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9630",
+   "note": "Alouette River: 646 steelhead record(s), latest 2026"
+  },
+  {
+   "item_id": "wbk:329292631",
+   "note": "Alouette River: 1 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9694",
+   "note": "Brothers Creek: 8 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:10070",
+   "note": "Brunette River: 45 steelhead record(s), latest 2013"
+  },
+  {
+   "item_id": "gnis:5922",
+   "note": "Capilano River: 325 steelhead record(s), latest 2025"
+  },
+  {
+   "item_id": "gnis:19986",
+   "note": "Coquitlam River: 282 steelhead record(s), latest 2020"
+  },
+  {
+   "item_id": "gnis:16088",
+   "note": "De Boville Slough: 9 steelhead record(s), latest 1984"
+  },
+  {
+   "item_id": "gnis:16098",
+   "note": "Hastings Creek: 18 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9837",
+   "note": "Indian River: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:11318",
+   "note": "Kanaka Creek: 56 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:19230",
+   "note": "Lynn Creek: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:21105",
+   "note": "Nicomen Slough: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:23402",
+   "note": "Norrish Creek: 42 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:39404",
+   "note": "North Alouette River: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:6105",
+   "note": "Seymour River: 333 steelhead record(s), latest 2026"
+  },
+  {
+   "item_id": "gnis:14589",
+   "note": "Stave River: 149 steelhead record(s), latest 2025"
+  },
+  {
+   "item_id": "gnis:39479",
+   "note": "Stawamus River: 16 steelhead record(s), latest 2012"
+  },
+  {
+   "item_id": "gnis:5366",
+   "note": "Whonnock Creek: 29 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:2966",
+   "note": "Widgeon Creek: 18 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:27696",
+   "note": "Widgeon Slough: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:39400",
+   "note": "Nicola River: 25 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:10909",
+   "note": "Clapperton Creek: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:9679",
+   "note": "Brook Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:18066",
+   "note": "Coldwater River: 33 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:12699",
+   "note": "Maka Creek: 13 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:24082",
+   "note": "Nuaitch Creek: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:22014",
+   "note": "Shakan Creek: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:23016",
+   "note": "Spius Creek: 5 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:39492",
+   "note": "Thompson River: 93 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2286",
+   "note": "Guichon Creek: 5 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:27216",
+   "note": "Skuhun Creek: 6 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:10030",
+   "note": "Anderson River: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:16471",
+   "note": "Nahatlatch River: 39 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:7776",
+   "note": "Kookipi Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:14172",
+   "note": "Kwoiek Creek: 1 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:17055",
+   "note": "Log Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:37767",
+   "note": "Cayoosh Creek: 16 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:15377",
+   "note": "Stein River: 30 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:6291",
+   "note": "Seton River: 36 steelhead record(s), latest 2014"
+  },
+  {
+   "item_id": "gnis:39346",
+   "note": "Hat Creek: 5 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:38393",
+   "note": "Bonaparte River: 80 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:4945",
+   "note": "Bridge River: 183 steelhead record(s), latest 2015"
+  },
+  {
+   "item_id": "gnis:36167",
+   "note": "Criss Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:30592",
+   "note": "Deadman River: 14 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:34069",
+   "note": "Loon Creek: 7 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:30009",
+   "note": "Yalakom River: 8 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:23858",
+   "note": "Takia River: 5 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:16075",
+   "note": "Dean River: 42 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17209",
+   "note": "Atnarko River: 58 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:24591",
+   "note": "Hotnarko River: 8 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:11611",
+   "note": "Bella Coola River: 5 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:2100",
+   "note": "Burnt Bridge Creek: 22 steelhead record(s), latest 2013"
+  },
+  {
+   "item_id": "gnis:2770",
+   "note": "Talchako River: 15 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:13744",
+   "note": "Chilcotin River: 57 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:32777",
+   "note": "Elkin Creek: Elkin Creek: Chilcotin summer-steelhead spawning stream (COSEWIC 2018/2020)"
+  },
+  {
+   "item_id": "gnis:23935",
+   "note": "Taseko River: Taseko River: route from the Chilko to Elkin Creek; 19 records to 1998"
+  },
+  {
+   "item_id": "gnis:13741",
+   "note": "Chilko River: 42 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:31700",
+   "note": "Chuckwalla River: 36 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:31730",
+   "note": "Dallery Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:32242",
+   "note": "Ellen Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:32024",
+   "note": "Genesee Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:32294",
+   "note": "House Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:8457",
+   "note": "Johns Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:2271",
+   "note": "Kilbella River: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:8436",
+   "note": "Krantz Creek: 2 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:31504",
+   "note": "Lemolo Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:31518",
+   "note": "Machmell River: 4 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:3155",
+   "note": "Macks Creek: 1 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:31522",
+   "note": "Mallon Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:31587",
+   "note": "Neechanz River: 8 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:31586",
+   "note": "Nekite River: 25 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:8440",
+   "note": "Piper River: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:31921",
+   "note": "Sheemahant River: 1 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:35937",
+   "note": "Smoker Creek: 1 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:3161",
+   "note": "Wannock River: 1 steelhead record(s), latest 1980"
+  },
+  {
+   "item_id": "gnis:17543",
+   "note": "Clyak River: 22 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:31492",
+   "note": "Koeye River: 19 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:14163",
+   "note": "Kwatna River: 7 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:31563",
+   "note": "Milton River: 4 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:23341",
+   "note": "Noeick River: 19 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:23362",
+   "note": "Nooklikonnik Creek: 7 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:6183",
+   "note": "Noomst Creek: 2 steelhead record(s), latest 1983"
+  },
+  {
+   "item_id": "gnis:23368",
+   "note": "Noosgulch River: 11 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:6220",
+   "note": "Nusatsum River: 7 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:24126",
+   "note": "Oak Beck Creek: 10 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:2624",
+   "note": "Salloomt River: 18 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:27398",
+   "note": "Snooka Creek: 4 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:6455",
+   "note": "Snootli Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:2771",
+   "note": "Taleomey River: 7 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:6210",
+   "note": "Tastsquan Creek: 1 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:22431",
+   "note": "Thorsen Creek: 4 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:12519",
+   "note": "Frenchman Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:11283",
+   "note": "Kainet Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:12611",
+   "note": "Kimsquit River: 18 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:14215",
+   "note": "Martin River: 2 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:23367",
+   "note": "Nooskulla Creek: 2 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:3508",
+   "note": "Gitnadoix River: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4072",
+   "note": "Khtada River: 4 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:3980",
+   "note": "Dasque Creek: 1 steelhead record(s), latest 2010"
+  },
+  {
+   "item_id": "gnis:4076",
+   "note": "Khyex River: 25 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2936",
+   "note": "Skeena River: 198 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:3499",
+   "note": "Exchamsiks River: 30 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3498",
+   "note": "Exstew River: 22 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4078",
+   "note": "Kasiks River: 31 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:7106",
+   "note": "Kwinitsa Creek: 2 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:35716",
+   "note": "Aveling Creek: 1 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:3480",
+   "note": "Bish Creek: 25 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:4638",
+   "note": "Clearwater Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:3986",
+   "note": "Ecstall River: 11 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4415",
+   "note": "Foote Creek: 21 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4166",
+   "note": "Herman Creek: 2 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:2031",
+   "note": "Johnston Creek: 1 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:3675",
+   "note": "Kitkiata Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:4903",
+   "note": "Lakelse River: 2 steelhead record(s), latest 1976"
+  },
+  {
+   "item_id": "gnis:4095",
+   "note": "Little Wedeene River: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:34660",
+   "note": "Oona River: 4 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:4622",
+   "note": "Quaal River: Quaal River: BC Parks Kwaal Conservancy names steelhead; record 1990"
+  },
+  {
+   "item_id": "gnis:3813",
+   "note": "Wedeene River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:3819",
+   "note": "White Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:28176",
+   "note": "Antigonish Creek: 2 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:4103",
+   "note": "McNeil River: 1 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:3942",
+   "note": "Kitsumkalum River: 58 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3189",
+   "note": "Shames River: 15 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:3812",
+   "note": "Zymagotitz River: 16 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3518",
+   "note": "Hirsch Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2046",
+   "note": "Humphrys Creek: 4 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:3225",
+   "note": "Kitimat River: 145 steelhead record(s), latest 2019"
+  },
+  {
+   "item_id": "gnis:8569",
+   "note": "Thornhill Creek: 2 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:3820",
+   "note": "Williams Creek: 1 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:33991",
+   "note": "Copper Creek: 36 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:6912",
+   "note": "Deena Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:4405",
+   "note": "Flat Creek: 3 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:33603",
+   "note": "Haans Creek: 20 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:8504",
+   "note": "Mathers Creek: 16 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:8515",
+   "note": "Pallant Creek: 39 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3446",
+   "note": "Skedans Creek: 10 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:35172",
+   "note": "Tasu Creek: 4 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:32409",
+   "note": "Ain River: 17 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:8468",
+   "note": "Awun River: 9 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:33736",
+   "note": "Cave Creek: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:33899",
+   "note": "Chinukundl Creek: 2 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:3344",
+   "note": "Datlamen Creek: 14 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:34203",
+   "note": "Davidson Creek: 7 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:6848",
+   "note": "Ghost Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:33450",
+   "note": "Gold Creek: 1 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:3326",
+   "note": "Hiellen River: 32 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:33832",
+   "note": "Honna River: 31 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:9824",
+   "note": "Indian Cabin Creek: 1 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:33022",
+   "note": "King Creek: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:33393",
+   "note": "Lignite Creek: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:34252",
+   "note": "Mamin River: 37 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:6918",
+   "note": "Mountain Creek: 1 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:34421",
+   "note": "Naden River: 23 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:35018",
+   "note": "Riley Creek: 3 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:3390",
+   "note": "Sangan River: 21 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3448",
+   "note": "Skonun River: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:35384",
+   "note": "Slatechuck Creek: 3 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:35125",
+   "note": "Survey Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:35170",
+   "note": "Tarundl Creek: 3 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:35583",
+   "note": "Tlell River: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3485",
+   "note": "Yakoun River: 36 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:36502",
+   "note": "Ansedagan Creek: 2 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:4943",
+   "note": "Bear River: 20 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:4248",
+   "note": "Bonanza Creek: 5 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3968",
+   "note": "Cedar Creek: 31 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3971",
+   "note": "Chambers Creek: 10 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:4364",
+   "note": "Ensheshese River: 14 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:4205",
+   "note": "Illiance River: 4 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:4074",
+   "note": "Khutzeymateen River: 5 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:3680",
+   "note": "Kitsault River: 15 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:3696",
+   "note": "Kloiya River: 41 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:36327",
+   "note": "Ksemamaith Creek: 1 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:3924",
+   "note": "Kshwan River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:7071",
+   "note": "Ksi Gingolx: 6 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4069",
+   "note": "Ksi Hlginx: 8 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:36374",
+   "note": "Ksi Ts'oohl Ts'ap: 5 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:3815",
+   "note": "Ksi X'anmas: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:36446",
+   "note": "Kwinyarh Creek: 2 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:4089",
+   "note": "Lachmach River: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:3182",
+   "note": "Stagoo Creek: 1 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:3562",
+   "note": "Sutton River: 1 steelhead record(s), latest 1975"
+  },
+  {
+   "item_id": "gnis:36595",
+   "note": "Xnukw: 2 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:3828",
+   "note": "Ksi Sii Aks: 38 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3206",
+   "note": "Nass River: 78 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:35710",
+   "note": "Arden Creek: 4 steelhead record(s), latest 1994"
+  },
+  {
+   "item_id": "gnis:3970",
+   "note": "Cedar River: 5 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3974",
+   "note": "Clear Creek: 2 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:3983",
+   "note": "Deep Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:4081",
+   "note": "Fiddler Creek: 7 steelhead record(s), latest 1978"
+  },
+  {
+   "item_id": "gnis:3674",
+   "note": "Kiteen River: 36 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:4791",
+   "note": "Ksi Sgasginist: 7 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3723",
+   "note": "Lean-to Creek: 3 steelhead record(s), latest 1987"
+  },
+  {
+   "item_id": "gnis:4094",
+   "note": "Little Cedar River: 2 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:4097",
+   "note": "Maroon Creek: 1 steelhead record(s), latest 2007"
+  },
+  {
+   "item_id": "gnis:4847",
+   "note": "Spring Creek: 1 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:4674",
+   "note": "Cranberry River: 38 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3687",
+   "note": "Kitwancool Creek: 15 steelhead record(s), latest 1983"
+  },
+  {
+   "item_id": "gnis:3227",
+   "note": "Kitwanga River: 40 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:8592",
+   "note": "Lorne Creek: 3 steelhead record(s), latest 1976"
+  },
+  {
+   "item_id": "gnis:9160",
+   "note": "Bowser River: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3671",
+   "note": "Kinskuch River: 2 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:20862",
+   "note": "Surveyors Creek: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3582",
+   "note": "Tchitin River: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2504",
+   "note": "Cleft Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:11623",
+   "note": "Bell-Irving River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:28108",
+   "note": "Meziadin River: 33 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2439",
+   "note": "Damdochax Creek: 30 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:1933",
+   "note": "Slamgeesh River: 1 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:2343",
+   "note": "Kluatantan River: 26 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:19626",
+   "note": "Asitka River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:15535",
+   "note": "Bear River: 6 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:15557",
+   "note": "Birdflat Creek: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:22098",
+   "note": "Darb Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:15684",
+   "note": "Johanson Creek: 13 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:13411",
+   "note": "Kluayaz Creek: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:20931",
+   "note": "Moosevale Creek: 2 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:20936",
+   "note": "Mosque River: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:30767",
+   "note": "Red Creek: 1 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:32199",
+   "note": "Two Lake Creek: 3 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:25386",
+   "note": "Sustut River: 9 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:15430",
+   "note": "Stikine River: 30 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:7397",
+   "note": "Craig River: 1 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:10765",
+   "note": "Iskut River: 32 steelhead record(s), latest 2019"
+  },
+  {
+   "item_id": "gnis:23163",
+   "note": "Tahltan River: 34 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:13157",
+   "note": "Hackett River: 4 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:25300",
+   "note": "Nahlin River: 7 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:11236",
+   "note": "Inklin River: 39 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:30926",
+   "note": "King Salmon Creek: 5 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:20356",
+   "note": "Kowatua Creek: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:22821",
+   "note": "Sheslay River: 8 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:32181",
+   "note": "Taaltsux̱éi Héen: 2 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:8231",
+   "note": "Taku River: 27 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:25405",
+   "note": "Tatsatua Creek: 15 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:3988",
+   "note": "Aaltanhash River: 2 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:36666",
+   "note": "Canoona River: 30 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3972",
+   "note": "Chist Creek: 5 steelhead record(s), latest 1982"
+  },
+  {
+   "item_id": "gnis:4688",
+   "note": "Dala River: 20 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:3982",
+   "note": "Davies Creek: 1 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:2238",
+   "note": "Kemano River: 27 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:36313",
+   "note": "Khutze River: Khutze River: coastal river, 5 records to 2000"
+  },
+  {
+   "item_id": "gnis:8573",
+   "note": "Kildala River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:3665",
+   "note": "Kiltuish River: 6 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:12681",
+   "note": "Kitlope River: 7 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3702",
+   "note": "Kowesas River: 8 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:4555",
+   "note": "Paril River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:24338",
+   "note": "Seekwyakin Creek: 2 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:3608",
+   "note": "Triumph River: 3 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:29220",
+   "note": "Tsaytis River: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:38622",
+   "note": "Wahoo Creek: 3 steelhead record(s), latest 2003"
+  },
+  {
+   "item_id": "gnis:3765",
+   "note": "Weewanie Creek: 7 steelhead record(s), latest 1989"
+  },
+  {
+   "item_id": "gnis:36512",
+   "note": "Axnegrelga Creek: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:14292",
+   "note": "Cullon Creek: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:15275",
+   "note": "Date Creek: 4 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:36600",
+   "note": "Ironside Creek: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:2308",
+   "note": "Kispiox River: 57 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14170",
+   "note": "Kwinageese River: 22 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:2716",
+   "note": "McCully Creek: 8 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:36775",
+   "note": "Moonlit Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:36785",
+   "note": "Nangeese River: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:36953",
+   "note": "Stephens Creek: 9 steelhead record(s), latest 1991"
+  },
+  {
+   "item_id": "gnis:36258",
+   "note": "Sweetin River: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:25498",
+   "note": "Sicintine River: 2 steelhead record(s), latest 1984"
+  },
+  {
+   "item_id": "gnis:22777",
+   "note": "Shegunia River: 7 steelhead record(s), latest 1990"
+  },
+  {
+   "item_id": "gnis:2195",
+   "note": "Bulkley River: 108 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:12684",
+   "note": "Kitseguecla River: 35 steelhead record(s), latest 1999"
+  },
+  {
+   "item_id": "gnis:18310",
+   "note": "Barger Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:17687",
+   "note": "Babine River: 38 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:21132",
+   "note": "Nilkitkwa River: 7 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:8138",
+   "note": "Shelagyote River: 2 steelhead record(s), latest 2002"
+  },
+  {
+   "item_id": "gnis:18810",
+   "note": "Barren Creek: 5 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14501",
+   "note": "Blunt Creek: 2 steelhead record(s), latest 1976"
+  },
+  {
+   "item_id": "gnis:43736",
+   "note": "Boucher Creek: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:44040",
+   "note": "Byman Creek: 2 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:17831",
+   "note": "Canyon Creek: 2 steelhead record(s), latest 1986"
+  },
+  {
+   "item_id": "gnis:15303",
+   "note": "Harold Price Creek: 16 steelhead record(s), latest 1988"
+  },
+  {
+   "item_id": "gnis:5952",
+   "note": "Johnny David Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:12129",
+   "note": "Maish Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:27248",
+   "note": "McQuarrie Creek: 8 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:14735",
+   "note": "Perow Creek: 5 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:8249",
+   "note": "Richfield Creek: 7 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:2637",
+   "note": "Suskwa River: 54 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:10106",
+   "note": "Buck Creek: 16 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:20178",
+   "note": "Deep Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:24733",
+   "note": "Telkwa River: 35 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:25932",
+   "note": "Toboggan Creek: 11 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:28476",
+   "note": "Trout Creek: 28 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:8408",
+   "note": "Tyhee Creek: 1 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:9123",
+   "note": "Aitken Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:4998",
+   "note": "Boulder Creek: 6 steelhead record(s), latest 1983"
+  },
+  {
+   "item_id": "gnis:10641",
+   "note": "Burnie River: 2 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:2518",
+   "note": "Clore River: 5 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:17552",
+   "note": "Coal Creek: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:14296",
+   "note": "Cumming Creek: 1 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:22258",
+   "note": "Dungate Creek: 3 steelhead record(s), latest 1997"
+  },
+  {
+   "item_id": "gnis:9943",
+   "note": "Glass Creek: 2 steelhead record(s), latest 1979"
+  },
+  {
+   "item_id": "gnis:18182",
+   "note": "Gosnell Creek: 10 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:20693",
+   "note": "Helps Creek: 1 steelhead record(s), latest undated"
+  },
+  {
+   "item_id": "gnis:8204",
+   "note": "Houston Tommy Creek: 3 steelhead record(s), latest 1996"
+  },
+  {
+   "item_id": "gnis:11364",
+   "note": "Kathlyn Creek: 6 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:12682",
+   "note": "Kitnayakwa River: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:3224",
+   "note": "Kleanza Creek: 30 steelhead record(s), latest 1998"
+  },
+  {
+   "item_id": "gnis:15083",
+   "note": "Lamprey Creek: 5 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:29018",
+   "note": "Miligit Creek: 1 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:14918",
+   "note": "Morice River: 62 steelhead record(s), latest 2017"
+  },
+  {
+   "item_id": "gnis:16517",
+   "note": "Nanika River: 6 steelhead record(s), latest 1983"
+  },
+  {
+   "item_id": "gnis:20597",
+   "note": "Sandstone Creek: 1 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:24963",
+   "note": "Serb Creek: 3 steelhead record(s), latest 1995"
+  },
+  {
+   "item_id": "gnis:22080",
+   "note": "Shea Creek: 5 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:26334",
+   "note": "Simpson Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:4817",
+   "note": "Singlehurst Creek: on the route to confirmed records"
+  },
+  {
+   "item_id": "gnis:2404",
+   "note": "Station Creek: 5 steelhead record(s), latest 2000"
+  },
+  {
+   "item_id": "gnis:21723",
+   "note": "Tenas Creek: 4 steelhead record(s), latest 1985"
+  },
+  {
+   "item_id": "gnis:31345",
+   "note": "Thautil River: 6 steelhead record(s), latest 1993"
+  },
+  {
+   "item_id": "gnis:2664",
+   "note": "Thomas Creek: 3 steelhead record(s), latest 1982"
+  },
+  {
+   "item_id": "gnis:2955",
+   "note": "Treasure Creek: 2 steelhead record(s), latest 1992"
+  },
+  {
+   "item_id": "gnis:3137",
+   "note": "Zymoetz River: 43 steelhead record(s), latest 2001"
+  },
+  {
+   "item_id": "gnis:10228",
+   "note": "Inkaneep Creek: Inkaneep Creek: 10 steelhead redds 2006"
+  },
+  {
+   "item_id": "gnis:29653",
+   "note": "Vaseux Creek: Vaseux Creek: 10 steelhead redds 2006"
+  },
+  {
+   "item_id": "gnis:32069",
+   "note": "Okanagan River: Okanagan River: Upper Columbia summer steelhead (2006 redd survey)"
+  }
+ ]
 }

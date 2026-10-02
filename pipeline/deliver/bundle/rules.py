@@ -1137,12 +1137,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
     # IS A STEELHEAD (p.86, `steelhead_water`). Both from the reach run's `steelhead_presence`
     # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
-    # of a row naming steelhead binds, the tributaries of every row flagged `anadromous_rainbow`,
-    # and the curated known-steelhead list with its tributaries — anywhere in the province;
-    # `possible` every other stream the provincial steelhead rules bind. The definition holds on
-    # the KNOWN STREAMS only — never a lake, never "possible". A flagged row the run placed nowhere
-    # would state the definition nowhere, so it stops the build; so does a run that predates the
-    # table, or disagrees with the corpus or the curated list.
+    # of a steelhead row binds, and every water on the curated known-steelhead list (a presence
+    # indicator: it binds no rule); `possible` every other stream the provincial steelhead rules
+    # bind. The definition holds on the BOOK's flowing known sections only — never a lake, never
+    # "possible", never from the list. A flagged row the run placed nowhere would state the
+    # definition nowhere, so it stops the build; so does a run that predates the table, or
+    # disagrees with the corpus or the curated list.
     write_steelhead_presence(db, reaches, ces, sid, cov, registry)
     if namer.unnamed:
         print(f"     labels: {len(namer.unnamed)} cut-point(s) have no book name, so the rules "
@@ -1166,11 +1166,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     """`steelhead_known`, `steelhead_set` and `steelhead_source` from the reach run's
     `steelhead_presence` (`pipeline.atlas.reach.steelhead`), checked against the corpus (every row
-    flagged `anadromous_rainbow` was placed, and no other) and against itself: the view
-    `section_steelhead` must give every section exactly the code the run gave it."""
+    flagged `anadromous_rainbow` was placed, and only steelhead rows were) and against itself: the
+    view `section_steelhead` must give every section exactly the code the run gave it, and
+    `steelhead_water` exactly the run's `anadromous` sections."""
     import json as _json
     from pipeline.atlas.reach.io import STEELHEAD_TABLE
-    from pipeline.atlas.reach.steelhead import CURATED_LIST, KNOWN, POSSIBLE, load_list, resolve_list
+    from pipeline.atlas.reach.steelhead import (CURATED_LIST, KNOWN, POSSIBLE, fingerprint,
+                                                load_list, steelhead_row)
     CODE = {KNOWN: 1, POSSIBLE: 2}
     path = Path(reaches) / f"{STEELHEAD_TABLE}.jsonl"
     report = Path(reaches) / "report.json"
@@ -1181,24 +1183,24 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     sh_report = _json.loads(report.read_text(encoding="utf-8")).get("steelhead") or {}
     by_entry = sh_report.get("by_entry") or {}
     flagged = {ce.entry_id for ce in ces if ce.anadromous_rainbow}
-    placed = {e for e, n in by_entry.items()
-              if e != CURATED_LIST and (n.get("reach") or n.get("trib"))}
-    # THE CURATED LIST the run was given must be the list on disk now (resolved the same way).
-    if registry is not None:
-        want = [i for _, i in resolve_list(load_list(), registry)]
-        ran = [c.get("item_id") for c in sh_report.get("curated") or []]
-        if want != ran:
-            raise SystemExit(
-                f"steelhead: the reach run's curated known-steelhead list {ran[:5]} is not the "
-                f"list on disk {want[:5]} — re-run the reach builder:\n    python -m "
-                f"pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
-    if flagged - placed or placed - flagged:
+    rows = {ce.entry_id for ce in ces if steelhead_row(ce)}
+    placed = {e for e, n in by_entry.items() if (n.get("sections") or 0) > 0}
+    # THE CURATED LIST the run was given must be the list on disk now (its fingerprint).
+    want, ran = fingerprint(load_list()), sh_report.get("list_fingerprint")
+    if want != ran:
+        raise SystemExit(
+            f"steelhead: the reach run was made with curated known-steelhead list {ran!r}, not the "
+            f"list on disk ({want}) — re-run the reach builder:\n    python -m "
+            f"pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+    if flagged - placed or placed - rows:
         raise SystemExit(
             f"steelhead_water: the reach run and the corpus disagree — flagged rows placing no "
-            f"stream {sorted(flagged - placed)[:5]}, placed rows not flagged "
-            f"{sorted(placed - flagged)[:5]}. Re-run the reach builder.")
+            f"section {sorted(flagged - placed)[:5]}, placed rows that are no steelhead row "
+            f"{sorted(placed - rows)[:5]}. Re-run the reach builder.")
     code: dict[int, int] = {}
-    known: dict[int, str] = {}
+    anadromous: set[int] = set()
+    kind: dict[int, str] = {}
+    source: dict[int, set[str]] = {}
     unknown = []
     with path.open(encoding="utf-8") as fh:
         for line in fh:
@@ -1212,36 +1214,59 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
             if r["steelhead"] not in CODE:
                 raise SystemExit(f"steelhead_presence: {r['steelhead']!r} on {r['section_id']}")
             code[s] = CODE[r["steelhead"]]
-            if r["steelhead"] == KNOWN and r["kind"] == "stream":
-                known[s] = r["entry_id"]
+            kind[s] = r["kind"]
+            if r.get("anadromous"):
+                if r["steelhead"] != KNOWN or not r.get("regulations"):
+                    raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
+                                     f"which no steelhead row binds")
+                anadromous.add(s)
+            if r["steelhead"] == KNOWN:
+                got = source.setdefault(s, set())
+                if r.get("regulations"):
+                    got.add(r["entry_id"])
+                if r.get("listed"):
+                    got.add(CURATED_LIST)
     if unknown:
         raise SystemExit(f"steelhead_presence: {len(unknown):,} sections are not in the handle "
                          f"table (e.g. {unknown[:3]}) — the reach run and the atlas disagree")
-    # EVERY OTHER SECTION'S CODE IS ITS RULE SET'S: one code (or none) per set, or the build stops.
+    # PER SECTION: every known stream, every steelhead-water section, and any known section with
+    # no rule set. Every other section's code is its RULE SET's: one code (or none) per set; a set
+    # whose sections disagree only because some are known keeps those known ones per section.
     set_of = dict(db.execute("SELECT sid, set_id FROM section_ruleset"))
-    loose = sorted(s for s in code if s not in known and s not in set_of)
+    loose = sorted(s for s, c in code.items() if c != 1 and s not in set_of)
     if loose:
         raise SystemExit(f"steelhead_presence: {len(loose)} section(s) with a code and no rule set "
                          f"(e.g. {loose[:3]}) — the code cannot be carried by its set")
+    own = {s for s, c in code.items() if c == 1 and (kind[s] == "stream" or s in anadromous
+                                                     or s not in set_of)}
     per_set: dict[int, set] = {}
     for s, k in set_of.items():
-        if s not in known:
+        if s not in own:
             per_set.setdefault(k, set()).add(code.get(s))
-    mixed = sorted(k for k, v in per_set.items() if len(v) > 1)
+    mixed = {k for k, v in per_set.items() if len(v) > 1}
     if mixed:
-        raise SystemExit(f"steelhead_presence: {len(mixed)} rule set(s) whose sections carry "
-                         f"different codes (e.g. set {mixed[0]}: {sorted(map(str, per_set[mixed[0]]))})"
-                         f" — the code is not a fact of the set; store it per section")
+        own |= {s for s, k in set_of.items() if k in mixed and code.get(s) == 1}
+        per_set = {}
+        for s, k in set_of.items():
+            if s not in own:
+                per_set.setdefault(k, set()).add(code.get(s))
+        still = sorted(k for k, v in per_set.items() if len(v) > 1)
+        if still:
+            raise SystemExit(
+                f"steelhead_presence: {len(still)} rule set(s) whose sections carry different "
+                f"codes (e.g. set {still[0]}: {sorted(map(str, per_set[still[0]]))}) — the code is "
+                f"not a fact of the set; store it per section")
     set_rows = sorted((k, v.pop()) for k, v in per_set.items() if None not in v)
-    db.executemany("INSERT INTO steelhead_known (sid) VALUES (?)", [(s,) for s in sorted(known)])
-    cov.filled("steelhead_known", len(known))
+    db.executemany("INSERT INTO steelhead_known (sid, anadromous) VALUES (?,?)",
+                   [(s, int(s in anadromous)) for s in sorted(own)])
+    cov.filled("steelhead_known", len(own))
     db.executemany("INSERT INTO steelhead_set (set_id, code) VALUES (?,?)", set_rows)
     cov.filled("steelhead_set", len(set_rows))
-    # which rows make each NAMED water's steelhead known (per water, not per section)
+    # why each NAMED water's steelhead is known (per water, not per section)
     ord_of: dict[int, list[int]] = {}
     for o, s in db.execute("SELECT ord, sid FROM item_section"):
         ord_of.setdefault(s, []).append(o)
-    src = sorted({(o, e) for s, e in known.items() for o in ord_of.get(s, ())})
+    src = sorted({(o, e) for s, es in source.items() for e in es for o in ord_of.get(s, ())})
     db.executemany("INSERT INTO steelhead_source (ord, entry_id) VALUES (?,?)", src)
     cov.filled("steelhead_source", len(src))
     got = dict(db.execute("SELECT sid, code FROM section_steelhead"))
@@ -1249,6 +1274,10 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
         bad = sorted(set(got.items()) ^ set(code.items()))
         raise SystemExit(f"section_steelhead: the stored form does not reproduce the reach run on "
                          f"{len(bad)} section(s) (e.g. {bad[:3]})")
+    sw = {s for (s,) in db.execute("SELECT sid FROM steelhead_water")}
+    if sw != anadromous:
+        raise SystemExit(f"steelhead_water: the stored form does not reproduce the reach run's "
+                         f"anadromous sections ({len(sw ^ anadromous)} differ)")
 
 
 def tidal_rows(ces, registry, sid) -> list[tuple[int, str]]:

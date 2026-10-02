@@ -274,26 +274,31 @@ CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 -- under the general rules".
 CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROWID;
 
--- HOW SURE WE ARE THAT STEELHEAD ARE HERE (user ruling 2026-10-01; `pipeline.atlas.reach.steelhead`).
--- Every stream of Regions 1, 2, 3, 5 and 6 carries the steelhead rules; this says which ones the book
--- names steelhead on. Read it through the view `section_steelhead (sid, code)`:
---   code 1  KNOWN     a stream of a row naming steelhead (`CatalogueEntry.anadromous_rainbow`) or a
---                     tributary stream of one, where the steelhead rules apply; or a lake whose own
---                     row names steelhead (Khartoum, Lois).
+-- HOW SURE WE ARE THAT STEELHEAD ARE HERE (user rulings 2026-10-01/02; `pipeline.atlas.reach.steelhead`).
+-- A PRESENCE INDICATOR for display. Read it through the view `section_steelhead (sid, code)`:
+--   code 1  KNOWN     the book names steelhead here — a STEELHEAD ROW's own water, or a rule of one
+--                     binds it (a water row
+--                     naming steelhead, flagged `anadromous_rainbow`, or speaking of the Steelhead
+--                     Stamp: Tenas, Khartoum and Lois lakes too) — or the curated known-steelhead list
+--                     names the water (`data/curated/regulations/steelhead_waters.json`). The list
+--                     changes this code and nothing else: no rule, no stamp, no steelhead water.
 --   code 2  POSSIBLE  any other stream the provincial steelhead rules bind: "steelhead rules apply;
 --                     steelhead may not be present in this water".
---   absent            neither (lakes, and the regions whose tables name no steelhead).
+--   absent            neither.
 -- STORED COMPACTLY, because the app downloads this file: 750,000 sections carry a code, and one
--- row each cost 6.5-12 MB. Only the KNOWN STREAMS are listed (`steelhead_known`, ~149,000 sids,
--- ~1.1 MB); every other section's code is a fact of its RULE SET (`steelhead_set`: the sets whose
--- sections, the known streams aside, are all possible — those carrying the provincial steelhead
--- quota — or all known — Khartoum's and Lois's). The bundler proves the derivation reproduces the
--- reach run's code on every section, or stops.
-CREATE TABLE steelhead_known (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
+-- row each cost 6.5-12 MB. `steelhead_known` lists the known STREAMS, every section where a rainbow
+-- over 50 cm is a steelhead (`anadromous` = 1, below), and any other known section its rule set
+-- cannot carry; every other section's code is a fact of its RULE SET (`steelhead_set`: the sets
+-- whose remaining sections are all possible — those carrying the provincial steelhead quota — or
+-- all known — Khartoum's and Lois's). The bundler proves the derivation reproduces the reach run's
+-- code on every section, or stops.
+CREATE TABLE steelhead_known (sid INTEGER PRIMARY KEY,
+                              anadromous INTEGER NOT NULL CHECK (anadromous IN (0, 1)))
+                              WITHOUT ROWID;
 CREATE TABLE steelhead_set (set_id INTEGER PRIMARY KEY,
                             code INTEGER NOT NULL CHECK (code IN (1, 2))) WITHOUT ROWID;
--- WHICH ROWS MAKE A WATER'S STEELHEAD KNOWN, per named water (`item.ord`): the rows naming steelhead
--- whose own stretch or tributary walk reaches its known sections. Per water, not per section.
+-- WHY A WATER'S STEELHEAD IS KNOWN, per named water (`item.ord`): each steelhead row whose rules
+-- bind its known sections, and `curated list` where the list names it. Per water, not per section.
 CREATE TABLE steelhead_source (ord INTEGER NOT NULL, entry_id TEXT NOT NULL,
                                PRIMARY KEY (ord, entry_id)) WITHOUT ROWID;
 CREATE VIEW section_steelhead (sid, code) AS
@@ -303,13 +308,14 @@ CREATE VIEW section_steelhead (sid, code) AS
     WHERE NOT EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid);
 
 -- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.86: "steelhead: a rainbow
--- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on the KNOWN
--- STEELHEAD STREAMS: the streams of every row that says anadromous rainbow are found there AND THEIR
--- TRIBUTARIES, where the steelhead rules apply (user ruling 2026-10-01). Never a lake (Khartoum and
--- Lois are known, through `steelhead_set`, and not steelhead water), never a possible stream. There
--- a rainbow over 50 cm is asked about as a steelhead, and a rainbow rule speaks only for rainbow of
--- 50 cm or less (`read.effective_rules`).
-CREATE VIEW steelhead_water (sid) AS SELECT sid FROM steelhead_known;
+-- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on the BOOK'S
+-- steelhead streams: the flowing sections of a steelhead row's own water or that a rule of one binds
+-- — a stream, or a lake-typed
+-- water whose name says it flows (the Vedder Canal; `steelhead.flows`, user ruling 2026-10-02).
+-- Never a lake (Khartoum, Lois, Tenas are known and not steelhead water), never a possible stream,
+-- and never from the curated list. There a rainbow over 50 cm is asked about as a steelhead, and a
+-- rainbow rule speaks only for rainbow of 50 cm or less (`read.effective_rules`).
+CREATE VIEW steelhead_water (sid) AS SELECT sid FROM steelhead_known WHERE anadromous = 1;
 
 -- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;
 -- one whose extent carries `outside_area_kind` (its `record`) holds everywhere EXCEPT the

@@ -61,8 +61,8 @@ class Reason(str, Enum):
     complement_unknown = "complement_unknown"
 
     # --- a fact of the whole corpus ----------------------------------------------
-    #: `steelhead_waters` is the reach builder's KNOWN steelhead set (`reach.steelhead`) — every row
-    #: naming steelhead, their walks, the curated list. One entry alone cannot say it: only
+    #: `steelhead_waters` is the reach builder's BOOK-KNOWN steelhead set (`reach.steelhead`) — every
+    #: section a rule of a steelhead row binds. One entry alone cannot say it: only
     #: `build_reaches` resolves it, so `build_reach` (the review app) leaves it here.
     needs_corpus = "needs_corpus"
 

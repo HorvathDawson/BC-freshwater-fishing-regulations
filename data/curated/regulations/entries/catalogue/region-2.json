@@ -11203,21 +11203,18 @@
      "origin": "wild",
      "extents": [
       {
-       "op": "whole",
-       "item_id": "wbk:329197058",
+       "op": "steelhead_waters",
+       "siblings": [
+        "trout_char_quota.r7"
+       ],
+       "area_id": "area:region:2",
        "feature_types": [
-        "lake"
-       ]
-      },
-      {
-       "op": "whole",
-       "item_id": "wbk:329197063",
-       "feature_types": [
-        "lake"
+        "lake",
+        "wetland"
        ]
       }
      ],
-     "review_reason": "User ruling 2026-10-01 (third): the same line as trout_char_quota.r7, bound to the lakes whose own row names steelhead (Khartoum and Lois lakes: 'Rainbow trout/hatchery steelhead quota = 6 in the aggregate') — they carry the wild release; no other lake does. A rule of its own because an item extent on trout_char_quota.r7 would rank it as a water rule on every stream it binds (`read.source_of`)."
+     "review_reason": "User ruling 2026-10-02: a lake (or other non-stream water) a STEELHEAD ROW is written for or binds — by any rule of a water row that names steelhead, flags anadromous rainbow or speaks of the Steelhead Stamp — gets its region's zone steelhead release too (Tenas Lake, by the Atnarko/Bella Coola spring closure, gets Region 5's; Khartoum and Lois get Region 2's). The same line as trout_char_quota.r7, bound to the book-known steelhead LAKES (and wetlands) inside the zone's own area that trout_char_quota.r7 does not bind (op steelhead_waters: the reach builder's book-known set, never the curated steelhead list, within area:region:2, lakes and wetlands only — a stream piece answers to the zone it is homed in, which trout_char_quota.r7 already decides — minus trout_char_quota.r7's sections). A rule of its own because a non-area extent on trout_char_quota.r7 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water`, as trout_char_quota.r7 has none."
     },
     {
      "rule_id": "trout_char_quota.r8",

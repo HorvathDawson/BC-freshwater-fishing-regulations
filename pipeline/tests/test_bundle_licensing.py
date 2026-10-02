@@ -23,6 +23,16 @@ from pipeline.deliver.bundle import rules as bundle_rules
 from pipeline.deliver.bundle.build import SCHEMA
 from pipeline.regs.parsing.catalogue import CatalogueEntry
 
+
+
+def _the_list() -> str:
+    from pipeline.atlas.reach.steelhead import fingerprint, load_list
+    return fingerprint(load_list())
+
+
+#: the curated known-steelhead list's fingerprint, as a reach run over it records it
+_LIST = _the_list()
+
 # --------------------------------------------------------------------------- the reach side
 
 
@@ -296,7 +306,8 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "licensing_section.jsonl").write_text("")
     # no row names steelhead either: an empty steelhead presence, and the run's report saying so
     (run / "steelhead_presence.jsonl").write_text("")
-    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {}}}))
+    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {},
+                                                               "list_fingerprint": _LIST}}))
     build = tmp / "atlas"
     build.mkdir()
     (build / "section_handles.txt").write_text("s:1\ns:2\ns:3\n")
@@ -558,6 +569,15 @@ def test_a_requirement_whose_place_and_on_never_meet_stops_the_build(tmp_path, m
 
 
 # ------------------------------------------- steelhead presence (user ruling 2026-10-01)
+def test_a_run_made_with_another_curated_list_is_refused(tmp_path):
+    """The run records the fingerprint of the curated list it was given; a bundle over a run made
+    with another list (or before the list changed) stops."""
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {},
+                                                               "list_fingerprint": "0" * 16}}))
+    with pytest.raises(SystemExit, match="curated known-steelhead list"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
 
 def test_a_run_without_steelhead_presence_is_refused(tmp_path):
     db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
@@ -585,10 +605,10 @@ def test_known_streams_are_steelhead_water_and_possible_are_not(tmp_path):
     doc["entries"][0]["anadromous_rainbow"] = True
     f.write_text(json.dumps(doc))
     (run / "report.json").write_text(json.dumps(
-        {"steelhead": {"by_entry": {"r1:x@1-1": {"reach": 1, "trib": 0}}}}))
+        {"steelhead": {"by_entry": {"r1:x@1-1": {"sections": 1}}, "list_fingerprint": _LIST}}))
     (run / "steelhead_presence.jsonl").write_text(json.dumps(
-        {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "scope": "reach",
-         "kind": "stream"}) + "\n")
+        {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "regulations": True,
+         "listed": False, "anadromous": True, "kind": "stream"}) + "\n")
     bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
     assert db.execute("SELECT sid, code FROM section_steelhead ORDER BY sid").fetchall() == [
         (2, 1)]

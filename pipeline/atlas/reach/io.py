@@ -26,7 +26,9 @@ TABLES = ("rule_section", "rule_unresolved", "rule_extent", "rule_diagnostic")
 #: reader that joined the two on (entry_id, id) would be joining different namespaces.
 LICENSING_TABLES = ("licensing_placement", "licensing_section", "licensing_diagnostic")
 #: `steelhead: known | possible` per section (`pipeline.atlas.reach.steelhead`): one row per section
-#: that has the attribute, with the row that makes it known (or `zp:steelhead` for possible).
+#: that has the attribute — the steelhead row that binds it (or `curated list`, or `zp:steelhead` for
+#: possible), whether the book (`regulations`) or the curated list (`listed`) makes it known, and
+#: whether a rainbow over 50 cm is a steelhead there (`anadromous`).
 STEELHEAD_TABLE = "steelhead_presence"
 
 

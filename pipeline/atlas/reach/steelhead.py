@@ -1,39 +1,43 @@
-"""HOW SURE WE ARE THAT STEELHEAD ARE HERE — `steelhead: known | possible` per section — and THE
-KNOWN STEELHEAD WATERS the provincial steelhead set reaches (`Extent` op `steelhead_waters`).
+"""HOW SURE WE ARE THAT STEELHEAD ARE HERE — `steelhead: known | possible` per section — THE
+WATERS THE BOOK MAKES STEELHEAD WATER (`Extent` op `steelhead_waters`), and WHERE A RAINBOW OVER
+50 CM IS A STEELHEAD (`anadromous`).
 
-User rulings 2026-10-01 (third) and 2026-10-02. Every STREAM of Regions 1, 2, 3, 5 and 6 carries the
-steelhead rules (the wild release, the annual hatchery 10, the record duty, the stamp), but the book
-names steelhead on few of them. The attribute tells a reader which:
+User rulings 2026-10-01 (third) and 2026-10-02 (revised). Two different things, kept apart:
 
-  known     anywhere in the province (2026-10-02: known waters carry the set WHEREVER they are):
-            - every section ANY rule of a STEELHEAD ROW binds (`steelhead_row`: a water row flagged
-              `CatalogueEntry.anadromous_rainbow`, or with a rule whose fish names steelhead `ST`) —
-              streams, lakes and wetlands alike: Tenas Lake, reached only by the Atnarko/Bella
-              Coola spring closure; Khartoum and Lois lakes; the Vedder Canal;
-            - the TRIBUTARIES of every row flagged `anadromous_rainbow` — the same walk every
-              "including tributaries" rule takes (`build.build_reach`: the row's own scope,
-              `tributaries.expand`, streams only), held to no region (`regional=False`: water rows
-              are region-agnostic), so the Thompson's walk into the Nicola headwaters of Region 8
-              and the Skeena's into Zone 7A are known. The walk is the HYDROLOGY, not the row's
-              regulation: it walks whether or not the row says "including tributaries", and no
-              carve-out (`tributary_excludes`) stops it. A row that only NAMES steelhead in a rule
-              and is not flagged (the Fraser's per-region rows: "No Fishing for steelhead") makes
-              its own water known but is not walked — its tributaries are the whole Fraser basin;
-            - every water on the user's CURATED LIST (`data/curated/regulations/steelhead_waters.json`,
-              `load_list` / `resolve_list`) and its tributaries, by the same walk.
-  possible  any other stream section a provincial steelhead rule binds (`zp:steelhead`, whose base
-            rules bind the streams of the steelhead regions): "steelhead rules apply; steelhead may
-            not be present in this water".
+REGULATIONS COME ONLY FROM THE BOOK. A STEELHEAD ROW (`steelhead_row`) is a water row that names
+steelhead: flagged `CatalogueEntry.anadromous_rainbow`, a rule whose fish names steelhead `ST`, or a
+licensing record that speaks of the Steelhead Stamp (`steelhead_stamp_during`, or the waiver
+`steelhead_stamp_waived` — Chilko, Horsefly, West Road, both Stellako rows: steelhead are mentioned).
+A steelhead row's OWN WATER (`OWN_WATER_RULE`: its matched waters within its scope, held as its rules
+are — no tributaries) and every section ANY rule of it binds are BOOK-KNOWN (`Presence.close`) —
+streams, lakes and wetlands alike: Tenas Lake, reached only by the Atnarko/Bella Coola spring
+closure; Khartoum and Lois lakes; the Vedder Canal; the Kingcome, whose row prints only its Class II
+water and 'Steelhead Stamp mandatory'. There is NO tributary walk: a row's tributaries are
+book-known only where one of its own rules binds them. The book-known set is what the `steelhead_waters` twins bind
+(the provincial set beyond the steelhead-region streams, each zone's wild release on its region's
+book-known lakes), and its FLOWING sections (`flows`: a stream, or a lake-typed water whose name
+says it flows — Vedder Canal, Gravel Slough) are where a rainbow over 50 cm is a steelhead
+(`anadromous`, the bundle's `steelhead_water`, p.86).
+
+THE CURATED LIST IS A PRESENCE INDICATOR FOR DISPLAY, nothing more
+(`data/curated/regulations/steelhead_waters.json`, `load_list` / `resolve_list`): each listed
+water's own sections are KNOWN. It binds no rule, adds no twin, no stamp, no `anadromous`, and
+changes no `effective_rules` answer. In the steelhead regions (1, 2, 3, 5, 6) it flips a stream from
+"possible" to "known"; elsewhere (the Okanagan River in Region 8) it marks steelhead as present on a
+water that carries no steelhead rule. The front end decides what to show.
+
+  known     book-known (above) or listed; each row says which (`regulations`, `listed`).
+  possible  any other stream section a provincial steelhead base rule binds (`zp:steelhead`, the
+            streams of the steelhead regions): "steelhead rules apply; steelhead may not be present
+            in this water".
   absent    everywhere else.
 
-THE PROVINCIAL SET ON A KNOWN WATER. The base rules bind streams of the steelhead regions only; a
-known water they miss (a lake, a stream past those regions) is bound by the base's TWIN, whose one
-extent is `{op: steelhead_waters, siblings: [<base>]}` — the known set minus the base's sections
-(`build.build_reaches` resolves it after every row, `bind_steelhead_waters`). A twin of its own, so
-the base's competition key and extents never change (S/SHK, S/SHC).
-
-`anadromous_rainbow` (a rainbow over 50 cm IS a steelhead, p.86) holds on the KNOWN STREAM sections
-only — the bundle's `steelhead_water` — never on a lake and never on a "possible" stream.
+THE PROVINCIAL SET ON A BOOK-KNOWN WATER. The base rules bind streams of the steelhead regions only;
+a book-known water they miss (a lake, a stream past those regions) is bound by the base's TWIN,
+whose one extent is `{op: steelhead_waters, siblings: [<base>]}` — the book-known set minus the
+base's sections (`build.build_reaches` resolves it after every row, `_bind_steelhead_waters`); a
+zone's twin also names its own area (`area_id`, `outside_area`). A twin of its own, so the base's
+competition key and extents never change (S/SHK, S/SHC).
 
 Kept apart from the rule bindings (and their digest): this is a fact about the water, not a rule.
 """
@@ -61,25 +65,58 @@ CURATED_LIST = "curated list"
 #: The op of the twins' one extent (`entry_models.Op.STEELHEAD_WATERS`).
 STEELHEAD_WATERS = "steelhead_waters"
 
-#: The rule the walk is run as — the row's whole water, clipped by the row's own scope, with its
-#: tributaries. Only what resolution reads.
-WALK_RULE = {"rule_id": "steelhead_presence", "type": "steelhead_presence",
-             "extents": [{"op": "whole"}], "includes_tributaries": True,
-             "tributary_excludes": []}
+#: A LAKE-TYPED WATER WHOSE NAME SAYS IT FLOWS is flowing water (user ruling 2026-10-02: sloughs,
+#: canals and channels are streams — Vedder Canal, Gravel Slough, Maria Slough). The ONE definition:
+#: the reach builder's `anadromous` and the known-waters generator (`pipeline.regs.steelhead.
+#: known_waters`) both read `flows`.
+FLOWING = re.compile(r"\b(slough|canal|channel|river|creek)\b", re.I)
 
 
-def names_steelhead(e: dict) -> bool:
+def flows(kind, name) -> bool:
+    """Flowing water: a stream, or a water of another kind whose name says it flows (`FLOWING`)."""
+    return str(kind or "").lower() == "stream" or bool(FLOWING.search(str(name or "")))
+
+
+#: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
+#: region, its border) — the water the row is written for, with NO tributaries. Only what
+#: resolution reads.
+OWN_WATER_RULE = {"rule_id": "steelhead_own_water", "type": "steelhead_presence",
+                  "extents": [{"op": "whole"}], "includes_tributaries": False,
+                  "tributary_excludes": []}
+
+
+def _kind(item) -> str:
+    k = getattr(item, "kind", "")
+    return str(getattr(k, "value", k) or "").lower()
+
+
+def _get(x, k):
+    return x.get(k) if isinstance(x, dict) else getattr(x, k, None)
+
+
+def names_steelhead(e) -> bool:
     """A water row (not a zone or provincial entry) with a rule whose fish names steelhead."""
-    return (not str(e.get("entry_id") or "").startswith("z")
-            and any("ST" in (r.get("species") or []) for r in e.get("rules") or []))
+    return (not str(_get(e, "entry_id") or "").startswith("z")
+            and any("ST" in (_get(r, "species") or []) for r in _get(e, "rules") or []))
 
 
-def steelhead_row(e: dict) -> bool:
-    """A STEELHEAD ROW: a water row flagged `anadromous_rainbow`, or one with a rule naming
-    steelhead. A row that mentions steelhead only to waive the stamp ("Steelhead Stamp not
-    required": Chilko, Horsefly, West Road, Stellako) is neither, and is not one."""
-    return (not str(e.get("entry_id") or "").startswith("z")
-            and (bool(e.get("anadromous_rainbow")) or names_steelhead(e)))
+def speaks_of_the_stamp(e) -> bool:
+    """A water row with a licensing record that speaks of the Steelhead Stamp: it runs here
+    (`steelhead_stamp_during`) or is not required here (`steelhead_stamp_waived`)."""
+    return (not str(_get(e, "entry_id") or "").startswith("z")
+            and any(_get(x, "steelhead_stamp_during") is not None
+                    or _get(x, "steelhead_stamp_waived") is not None
+                    for x in _get(e, "licensing") or []))
+
+
+def steelhead_row(e) -> bool:
+    """A STEELHEAD ROW: a water row flagged `anadromous_rainbow`, with a rule naming steelhead, or
+    with a licensing record speaking of the Steelhead Stamp — the stamp-waiver rows ("Steelhead
+    Stamp not required": Chilko, Horsefly, West Road, Stellako) count, because steelhead are
+    mentioned (user ruling 2026-10-02). A dict (the corpus) or a `CatalogueEntry`."""
+    return (not str(_get(e, "entry_id") or "").startswith("z")
+            and (bool(_get(e, "anadromous_rainbow")) or names_steelhead(e)
+                 or speaks_of_the_stamp(e)))
 
 
 def steelhead_waters_extent(rule: dict) -> dict | None:
@@ -120,23 +157,52 @@ class ListWater(BaseModel):
         return (self.item_id or repr(self.name)) + (f" ({where})" if where else "")
 
 
+class Generated(BaseModel):
+    """Where a copied list came from: the generator's output (`pipeline.regs.steelhead.
+    known_waters` writes `data/generated/steelhead/steelhead_waters.json`) and the FINGERPRINT of
+    its `waters` (`fingerprint`). A human copies the output here; the test compares the two."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    source: str
+    generator: str
+    date: str
+    fingerprint: str = Field(..., pattern=r"^[0-9a-f]{16}$")
+
+
 class SteelheadList(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     comment: object = Field(default=None, alias="$comment")
+    #: present when the list was copied from the generator's output
+    generated: Optional[Generated] = None
     waters: List[ListWater]
 
 
-def load_list(path: Path | None = None) -> list[ListWater]:
-    """The curated list. A missing file RAISES (AGENTS 37: absent curated data is a bug)."""
+def fingerprint(waters) -> str:
+    """The list's identity: sha256 of its `waters` (canonical JSON), 16 hex. The same for the
+    generator's output and the curated copy of it."""
+    import hashlib
+    rows = [w.model_dump(exclude_none=True) if isinstance(w, BaseModel) else w for w in waters]
+    rows = [{k: v for k, v in r.items() if v not in (None, "") or k == "note"} for r in rows]
+    return hashlib.sha256(json.dumps(rows, sort_keys=True, ensure_ascii=False,
+                                     separators=(",", ":")).encode()).hexdigest()[:16]
+
+
+def load_document(path: Path | None = None) -> SteelheadList:
+    """The curated list's whole document. A missing file RAISES (AGENTS 37)."""
     if path is None:
         from pipeline.common.curated import CURATED
         path = CURATED.regulations.steelhead_waters
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(f"the known-steelhead list {path} is missing")
-    return list(SteelheadList.model_validate(
-        json.loads(path.read_text(encoding="utf-8"))).waters)
+    return SteelheadList.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def load_list(path: Path | None = None) -> list[ListWater]:
+    """The curated list. A missing file RAISES (AGENTS 37: absent curated data is a bug)."""
+    return list(load_document(path).waters)
 
 
 def _norm(s: str) -> str:
@@ -205,105 +271,95 @@ def resolve_list(waters, registry) -> list[tuple[ListWater, str]]:
 
 # ----------------------------------------------------------------------------- presence
 class Presence:
-    """Collects the known sections: entry by entry (`add_row`, from inside `build_reaches`' loop, in
-    each entry's own context), the curated list (`add_list`), then the rows' bound sections
-    (`close`, after every row has bound) — and the possible ones from the final bindings
-    (`finish`)."""
+    """Collects the steelhead rows (`add_row`, inside `build_reaches`' loop), the curated list
+    (`add_list`), then the BOOK-KNOWN sections — each steelhead row's own water and every section
+    a rule of one binds
+    (`close`, after every row has bound) — and the attribute (`finish`)."""
 
     def __init__(self, registry, graph):
         self.registry, self.graph = registry, graph
-        #: section -> (rank, source order, source, scope); the lowest wins: a water's own sections
-        #: (0) before a tributary (1), a row before the curated list, then the entry id
-        self.known: dict[str, tuple[int, int, str, str]] = {}
-        self.by_entry: dict[str, dict[str, int]] = {}
-        #: the steelhead rows (`steelhead_row`) — whose bound sections `close` adds
+        #: the steelhead rows (`steelhead_row`)
         self.rows: set[str] = set()
+        #: each steelhead row's own water (`OWN_WATER_RULE`)
+        self.own: dict[str, frozenset[str]] = {}
+        #: sections the curated list names (its waters' own sections — no walk)
+        self.listed: set[str] = set()
         self.curated: list[dict] = []
-        self._closed: frozenset[str] | None = None
+        #: the list the run was given (`fingerprint`) — the bundle refuses a run made with another
+        self.list_fingerprint: str = fingerprint([])
+        #: section -> the steelhead row that binds it (the lowest entry id)
+        self._book: dict[str, str] | None = None
+        self.by_entry: dict[str, dict[str, int]] = {}
+        self._flowing: frozenset[str] | None = None
 
-    def _put(self, s: str, rank: int, eid: str, scope: str) -> None:
-        key = (rank, 1 if eid == CURATED_LIST else 0, eid, scope)
-        cur = self.known.get(s)
-        if cur is None or key[:3] < cur[:3]:
-            self.known[s] = key
-
-    def _walk(self, binding, eid: str, own: frozenset[str], scope: str) -> dict[str, int]:
-        """The walk's sections: the water's own (any kind) and its stream tributaries."""
-        trib = frozenset(binding.via_tributary)
-        n = {scope: 0, "trib": 0}
-        for s in binding.sections:
-            mine = s in own and s not in trib
-            if not mine and _resolve._kind_of(self.graph, s) != "stream":
-                continue
-            k = scope if mine else "trib"
-            n[k] += 1
-            self._put(s, 0 if mine else 1, eid, k)
-        return n
-
-    def add_row(self, e: dict, covered, reach) -> None:
-        """`reach(rule)` is `build_reach` bound to this entry's covered items, clip, border and
-        tidal water, with `regional=False`."""
+    def add_row(self, e: dict, own=None) -> None:
+        """`own()` is `build_reach` of `OWN_WATER_RULE` in this entry's own context (covered items,
+        scope, region limit, border, tidal water): the row's own water, no tributaries."""
         if not steelhead_row(e):
             return
-        eid = e["entry_id"]
-        self.rows.add(eid)
-        if e.get("anadromous_rainbow"):
-            binding, _ = reach(dict(WALK_RULE))
+        self.rows.add(e["entry_id"])
+        if own is not None:
+            binding, _ = own()
             trib = frozenset(binding.via_tributary)
-            own = frozenset(s for s in binding.sections if s not in trib
-                            and _resolve._kind_of(self.graph, s) == "stream")
-            self.by_entry[eid] = self._walk(binding, eid, own, "reach")
+            self.own[e["entry_id"]] = frozenset(s for s in binding.sections if s not in trib)
 
-    def add_list(self, resolved, reach_item) -> None:
-        """The curated list: each water's own sections and its tributaries. `reach_item(item_id)`
-        is `build_reach` of `WALK_RULE` on that one water (`regional=False`)."""
-        n = {"own": 0, "trib": 0}
+    def add_list(self, resolved, outside=frozenset()) -> None:
+        """The curated list: each water's own sections in B.C. (`outside` — the border, as every
+        binding has it: the Taku's Alaska reach is not marked). A presence indicator only."""
+        self.list_fingerprint = fingerprint([w for w, _ in resolved])
         for w, item in resolved:
-            binding, _ = reach_item(item)
-            own = frozenset(self.registry[item].section_ids)
-            got = self._walk(binding, CURATED_LIST, own, "own")
-            self.curated.append({"item_id": item, "listed": w.label, "own": got["own"],
-                                 "trib": got["trib"]})
-            n["own"] += got["own"]
-            n["trib"] += got["trib"]
-        if resolved:
-            self.by_entry[CURATED_LIST] = n
+            secs = tuple(s for s in self.registry[item].section_ids if s not in outside)
+            self.listed.update(secs)
+            self.curated.append({"item_id": item, "listed": w.label, "sections": len(secs)})
 
     def close(self, bindings) -> frozenset[str]:
-        """Every section any rule of a steelhead row binds is known too. Called once, after every
-        row has bound; the KNOWN set the `steelhead_waters` twins bind (less their siblings)."""
-        if self._closed is not None:
-            return self._closed
-        # Only sections no walk or list has made known: a section already known keeps the source
-        # it had (a tributary keeps the row it is a tributary of), so this adds water, never
-        # re-attributes it.
-        add: dict[str, str] = {}
-        for b in bindings:
-            if b.entry_id in self.rows and b.sections:
-                for s in b.sections:
-                    if s not in self.known and (s not in add or b.entry_id < add[s]):
-                        add[s] = b.entry_id
-        for s, eid in add.items():
-            n = self.by_entry.setdefault(eid, {"reach": 0, "trib": 0})
-            n["rules"] = n.get("rules", 0) + 1
-            self._put(s, 0, eid, "rules")
-        self._closed = frozenset(self.known)
-        return self._closed
+        """THE BOOK-KNOWN SET: every steelhead row's own water and every section any rule of one
+        binds. Called once, after every row has bound; what the `steelhead_waters` twins bind (less
+        their siblings)."""
+        if self._book is None:
+            book: dict[str, str] = {}
+            per_row: dict[str, set[str]] = {e: set(v) for e, v in self.own.items() if v}
+            for b in bindings:
+                if b.entry_id in self.rows and b.sections:
+                    per_row.setdefault(b.entry_id, set()).update(b.sections)
+            for eid in sorted(per_row):
+                for s in per_row[eid]:
+                    book.setdefault(s, eid)
+            self.by_entry = {e: {"sections": len(v)} for e, v in sorted(per_row.items())}
+            self._book = book
+        return frozenset(self._book)
+
+    def flowing(self, s: str) -> bool:
+        """`flows` for a section: a stream of the graph, or a section of a non-stream water whose
+        name says it flows (the Vedder Canal's lake section)."""
+        if self._flowing is None:
+            self._flowing = frozenset(
+                x for k, it in self.registry.items() if not str(k).startswith("area:")
+                and _kind(it) != "stream" and flows(_kind(it), getattr(it, "name", ""))
+                for x in it.section_ids)
+        return _resolve._kind_of(self.graph, s) == "stream" or s in self._flowing
 
     def finish(self, bindings, twins=frozenset()) -> tuple[list[dict], dict]:
         """Every section's row, sorted, and the report's counts. `twins` are the (entry, rule)
-        keys of the `steelhead_waters` rules — they bind known water, so not "possible" water."""
-        known = self.close(bindings)
+        keys of the `steelhead_waters` rules — they bind book-known water, so not "possible"."""
+        self.close(bindings)
+        book = self._book or {}
+        known = set(book) | self.listed
         # the BASE provincial rules (streams of the steelhead regions)
         base = {s for b in bindings if b.entry_id == PROVINCE_STEELHEAD
                 and (b.entry_id, b.rule_id) not in twins for s in b.sections}
         possible = {s for s in base if s not in known
                     and _resolve._kind_of(self.graph, s) == "stream"}
-        rows = [{"section_id": s, "steelhead": KNOWN, "entry_id": eid, "scope": scope,
-                 "kind": _resolve._kind_of(self.graph, s)}
-                for s, (_, _o, eid, scope) in self.known.items()]
+        rows = []
+        for s in known:
+            rows.append({"section_id": s, "steelhead": KNOWN,
+                         "entry_id": book.get(s, CURATED_LIST),
+                         "regulations": s in book, "listed": s in self.listed,
+                         "anadromous": s in book and self.flowing(s),
+                         "kind": _resolve._kind_of(self.graph, s)})
         rows += [{"section_id": s, "steelhead": POSSIBLE, "entry_id": PROVINCE_STEELHEAD,
-                  "scope": "rules", "kind": "stream"} for s in possible]
+                  "regulations": False, "listed": False, "anadromous": False, "kind": "stream"}
+                 for s in possible]
         rows.sort(key=lambda r: r["section_id"])
         kinds: dict[str, int] = {}
         for r in rows:
@@ -311,13 +367,20 @@ class Presence:
                 kinds[str(r["kind"])] = kinds.get(str(r["kind"]), 0) + 1
         report = {
             "known": len(known),
+            #: known by the book (a steelhead row's rule binds it) — the twins' water
+            "known_regulations": len(book),
+            #: known by the curated list alone: the presence indicator, no rule
+            "known_list_only": len(self.listed - set(book)),
             "known_streams": kinds.get("stream", 0),
             "known_lakes": kinds.get("lake", 0),
             "known_other": sum(v for k, v in kinds.items() if k not in ("stream", "lake")),
-            #: known sections the stream-only base rules do not bind — the twins' water
-            "known_beyond_the_base": sum(1 for s in known if s not in base),
+            #: where a rainbow over 50 cm is a steelhead (book-known flowing water)
+            "anadromous": sum(1 for r in rows if r["anadromous"]),
+            #: book-known sections the stream-only base rules do not bind — the twins' water
+            "known_beyond_the_base": sum(1 for s in book if s not in base),
             "possible": len(possible),
             "steelhead_rows": len(self.rows),
+            "list_fingerprint": self.list_fingerprint,
             "curated": list(self.curated),
             "by_entry": {k: self.by_entry[k] for k in sorted(self.by_entry)},
         }
