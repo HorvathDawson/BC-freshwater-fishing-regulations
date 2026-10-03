@@ -870,7 +870,11 @@ def test_the_species_section_is_the_book_s_list(doc):
     assert "CH" not in sp["fish"] and sp["salmon"]["CH"] == {"name": "Chinook", "group": "SALMON",
                                                              "game_fish": False}
     assert "DFO" in sp["salmon_note"]
-    named = set(sp["fish"]) | set(sp["groups"]) | set(sp["salmon"])
+    # the protected fish the book names, never game fish (2026-10-03)
+    assert not set(sp["protected"]) & set(sp["fish"])
+    assert all(v["group"] == "PROTECTED_SPECIES" and v["game_fish"] is False
+               for v in sp["protected"].values())
+    named = set(sp["fish"]) | set(sp["groups"]) | set(sp["salmon"]) | set(sp["protected"])
     assert used <= named, used - named
 
 

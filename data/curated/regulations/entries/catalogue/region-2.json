@@ -10767,7 +10767,10 @@
      "type": "retention_limit",
      "verbatim": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
      "species": [
-      "PROTECTED_SPECIES"
+      "NOOKSACK_DACE",
+      "SALISH_SUCKER",
+      "GREEN_STURGEON",
+      "CULTUS_LAKE_SCULPIN"
      ],
      "take": 0,
      "may_target": false,
@@ -10778,7 +10781,7 @@
       }
      ],
      "authority": "superior",
-     "review_reason": "Region 2 ADDS Green sturgeon to the provincial list, so zp:protected_species is a floor, not the complete set. The four taxa are not game-fish codes. SPECIES (2026-09-26): Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin are not on the book's species list (p.86), so the rule names PROTECTED_SPECIES; which taxa Region 2 protects is in the verbatim."
+     "review_reason": "THE FISH BY NAME (UI consumer's report, 2026-10-03): the rule names the 4 protected fish its row prints (p.21) as members of the PROTECTED_SPECIES group (`catalogue.PROTECTED_FISH`) — not game fish, so not on p.86's list; the white sturgeon member is the four protected populations, never the game fish WSG."
     }
    ]
   },

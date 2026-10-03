@@ -110,6 +110,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
     from pipeline.regs.parsing.catalogue import (
         PROVINCIAL_ANGLER_DOCUMENTS, _DOC_WORDS, Alternative, Designation, Document, Exemption,
         LicenceTerms, NotClassified, Requirement, compose_licensing, licensing_parts,
+        recorded_fish,
     )
 
     placements_file = reaches / "licensing_placement.jsonl"
@@ -130,6 +131,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
             if isinstance(x, Designation):
                 units.setdefault(x.unit, x.unit_name)
     refs = {k: x for k, (_, x) in records.items()}
+    # THE FISH WHOSE RETENTION MUST BE RECORDED, derived from the corpus's `record_retention`
+    # rules — what the "carry your paper licence" duty is about (`catalogue.recorded_fish`).
+    recorded = [w for w, _ in recorded_fish(entries)]
 
     # ---- the placements, checked against the corpus BOTH WAYS ----------------------------
     placed = {(p["entry_id"], p["record_id"]): p for p in _jsonl(placements_file)}
@@ -221,7 +225,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
     for (eid, rid), (ce, x) in sorted(records.items()):
         sib = {r.rule_id: r for r in ce.rules}
         # THE PARTS, and the one preview composed from them (`catalogue.compose_licensing`).
-        parts = licensing_parts(x, sib, units=units, refs=refs)
+        parts = licensing_parts(x, sib, units=units, refs=refs, recorded=recorded)
         placement, uncertain, unres = place((eid, rid))
         # in the model's order (`LICENSING_PARTS`), which `_j` would sort away
         common = (compose_licensing(parts),

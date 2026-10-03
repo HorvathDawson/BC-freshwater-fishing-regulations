@@ -9012,11 +9012,17 @@
      ],
      "take": 5,
      "period": "annual",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "ONE LIMIT, READ TWICE (UI consumer's report, 2026-10-03): Region 3 (p.28) prints the same annual quota for Shuswap Lake — 'Rainbow trout: 5 over 50 cm' — and the stamp (p.7) names Shuswap char as 'Lake trout and Bull trout'. Read as every rainbow trout at any size, this row's 'annual quota = 5' was a different statement from the zone's and both spoke; it now says exactly what the zone says, so the water's number replaces the zone's (same statement, read.effective_rules) — one limit on the page. The size is the row's own daily 'none under 50 cm'."
     },
     {
      "rule_id": "shuswap_lake.r9",
@@ -9046,15 +9052,22 @@
      "type": "retention_limit",
      "verbatim": "annual quota = 5",
      "species": [
-      "CHAR"
+      "LT",
+      "DV"
      ],
      "take": 5,
      "period": "annual",
+     "lengths": [
+      {
+       "min_cm": 60
+      }
+     ],
      "extents": [
       {
        "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "ONE LIMIT, READ TWICE (UI consumer's report, 2026-10-03): Region 3 (p.28) prints the same annual quota for Shuswap Lake — 'Char-Lake trout and Bull trout (Dolly Varden): 5 over 60 cm' — and the stamp (p.7) names Shuswap char as 'Lake trout and Bull trout'. Read as every char (brook trout too) at any size, this row's 'annual quota = 5' was a different statement from the zone's and both spoke; it now says exactly what the zone says, so the water's number replaces the zone's (same statement, read.effective_rules) — one limit on the page. The size is the row's own daily 'none under 60 cm'."
     },
     {
      "rule_id": "shuswap_lake.r11",

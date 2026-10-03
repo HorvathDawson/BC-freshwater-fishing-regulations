@@ -2679,7 +2679,11 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:wma:creston_valley_wildlife_management_area"
+       "area_id": "area:wma:creston_valley_wildlife_management_area",
+       "outside_items": [
+        "wbk:-20",
+        "wbk:328974235"
+       ]
       }
      ],
      "restates": {
@@ -2687,6 +2691,7 @@
       "id": "creston_valley_wma_permit"
      },
      "verbatim": "Permit required see note on page 34",
+     "review_reason": "STRADDLING, marked not cut (UI consumer's report, 2026-10-03): a lake is one section and area membership is by intersection, so bound by the WMA this permit held on ALL of Kootenay Lake — Main Body (wbk:-20, 389 km², 1.2% inside the WMA) and the whole-lake polygon (wbk:328974235, 1.1% inside). Both are taken out (`outside_items`), as the CVWMA rules take them out; the permit stands on the Main Body as a part not yet mapped (z4:creston_valley_permit #creston_valley_wma_permit_kootenay_lake).",
      "kind": "requirement"
     }
    ]
@@ -15200,11 +15205,38 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:wma:creston_valley_wildlife_management_area"
+       "area_id": "area:wma:creston_valley_wildlife_management_area",
+       "outside_items": [
+        "wbk:-20",
+        "wbk:328974235"
+       ]
       }
      ],
      "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
-     "review_reason": "STRADDLING, marked not cut: a lake is one section and area membership is by intersection, so this permit binds all of Kootenay Lake — Main Body (wbk:-20, 389 km²) though only the lake's south end lies in the WMA. It needs the per-(record, section) 'partial' marker the straddling-sections work plans; never widen further, never cut the lake for it.",
+     "review_reason": "STRADDLING, marked not cut (UI consumer's report, 2026-10-03): a lake is one section and area membership is by intersection, so bound by the WMA this permit held on ALL of Kootenay Lake — Main Body (wbk:-20, 389 km², 1.2% inside the WMA) and the whole-lake polygon (wbk:328974235, 1.1% inside). Both are taken out (`outside_items`), as the CVWMA rules take them out; the permit stands on the Main Body as a part not yet mapped (z4:creston_valley_permit #creston_valley_wma_permit_kootenay_lake).",
+     "kind": "requirement"
+    },
+    {
+     "id": "creston_valley_wma_permit_kootenay_lake",
+     "satisfied_by": [
+      {
+       "hold": [
+        "creston_valley_wma_permit"
+       ]
+      }
+     ],
+     "doing": {
+      "act": "fishing"
+     },
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:-20"
+      }
+     ],
+     "undrawn_part": "only the south end, within the Creston Valley Wildlife Management Area",
+     "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+     "review_reason": "STRADDLING, marked not cut (UI consumer's report, 2026-10-03; memory straddling-sections-mark-not-cut): only the south end of Kootenay Lake's Main Body lies in the Creston Valley WMA (1.2% of wbk:-20 by area), and a lake is never cut. Shown on the Main Body as a part not yet mapped, never required of the whole lake. Needs a curated part of the lake drawn from the WMA boundary to be placed.",
      "kind": "requirement"
     }
    ]

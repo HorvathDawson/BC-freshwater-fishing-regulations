@@ -141,6 +141,54 @@ def _title(name: str) -> str:
     return display_case(name)
 
 
+#: A CURATED LABEL IN TWO PARTS, "<place> — <what>": "Kitimat Hatchery outfall — d/s sign". Read
+#: aloud in a run ("from the mouth up to the Kitimat Hatchery outfall — downstream sign, and from
+#: the Kitimat Hatchery outfall — upstream sign") the place repeats and the dash reads as a pause
+#: (UI consumer's report, 2026-10-03). `cut_name` says it as one phrase, the thing first.
+_TWO_PART = re.compile(r"^(?P<place>.+?)\s+—\s+(?P<what>.+)$")
+#: The curator's shorthand for a direction, spelled out as the book spells it.
+_DIRECTION = ((re.compile(r"\bd/s\b"), "downstream"), (re.compile(r"\bu/s\b"), "upstream"))
+
+
+def cut_name(label: str) -> str:
+    """A curated cut-point label as a reader says it. "<place> — <what>" becomes "<what> at
+    <place>" — "Kitimat Hatchery outfall — d/s sign" is "downstream sign at the Kitimat Hatchery
+    outfall": the direction spelled out, and "the" before a place named by a common noun (its last
+    word in lower case: "outfall", "bridge"), never before a proper name ("Maple Street"). Any
+    other label — and a part's name, "Kootenay Lake — Main Body", whose second half is a proper
+    name — is returned as it is. ONE function, read by the split table (`spans.split_rows`)
+    and by a rule's place (`PlaceNamer.point`), so a run and a label name a cut alike."""
+    m = _TWO_PART.match(label or "")
+    if not m or not m["what"][:1].islower():
+        # "Kootenay Lake — Main Body" is a lake PART's name, not a thing at a place: only a
+        # marker named by a common noun ("d/s sign", "u/s sign") is said "at" its place.
+        return label
+    place, what = m["place"].strip(), m["what"].strip()
+    for pat, word in _DIRECTION:
+        what = pat.sub(word, what)
+    words = place.split()
+    if not place.lower().startswith("the ") and words and words[-1][:1].islower():
+        place = f"the {place}"
+    return f"{what} at {place}"
+
+
+def area_boundary_name(area: str) -> tuple[str, str | None]:
+    """(the name a reader sees, the source spelling when it differs) for an AREA's boundary cut,
+    without " boundary". An area named "<water> — <zone>" ("Fraser River — Landstrom Bar sign
+    zone") is on that water, so the cut says the zone alone ("Landstrom Bar sign zone") — said in
+    a run on the Fraser, "from the Fraser River — Landstrom Bar sign zone boundary" repeats the
+    river (UI consumer's report, 2026-10-03)."""
+    shown = area_display(area)
+    two = _TWO_PART.match(shown)
+    if two:
+        shown = two["what"]
+    return shown, (area if shown != area else None)
+
+
+#: "<what> at <place>" — two cut-points at one place say the place once (`_between`).
+_AT_PLACE = re.compile(r"^(?P<what>.+?) at (?P<place>.+)$")
+
+
 def _named(label: str, bid: str) -> bool:
     return bool(label) and label != bid and not _GAUGE_LABEL.match(label) \
         and not _NO_NAME.match(label) and not _SHORTHAND.search(label)
@@ -162,6 +210,12 @@ def _between(a: str, b: str) -> str:
         if off_a and off_b:
             return f"from {off_a} to {off_b} of {base_a}"
         return f"from {base_a} to {off_a or off_b}"
+    pa, pb = _AT_PLACE.match(a), _AT_PLACE.match(b)
+    if pa and pb and _bare(pa["place"]) == _bare(pb["place"]) \
+            and _bare(pa["what"]) != _bare(pb["what"]):
+        # TWO THINGS AT ONE PLACE say the place once: "between the downstream sign and the
+        # upstream sign at the Kitimat Hatchery outfall" (`cut_name`).
+        return f"between the {_bare(pa['what'])} and the {_bare(pb['what'])} at {pa['place']}"
     return f"between {a} and {b}"
 
 
@@ -206,6 +260,7 @@ class PlaceNamer:
                               for a in (getattr(b, "aliases", None) or ())]
         if sid != b.id:
             labels.append(self.split_labels.get(b.id, ""))
+        labels = [cut_name(x) for x in labels]
         name = next((x for x in labels if _named(x, b.id)), None)
         if name is None:
             self.unnamed.add((sid, f"no book name (atlas label {b.label!r})"))

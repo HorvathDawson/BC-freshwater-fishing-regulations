@@ -298,7 +298,10 @@ def test_the_species_are_the_book_s_list_and_nothing_else():
             "KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA"]   # OTHER
     assert list(C.BOOK_SPECIES) == book
     # and the one salmon the book names, which is no game fish (user ruling 2026-09-28)
-    assert set(C.KNOWN_SPECIES) - set(C.SPECIES_GROUPS) == set(book) | {"CH"}
+    # and the protected fish the book names (p.9, p.21), none a game fish (2026-10-03)
+    assert set(C.KNOWN_SPECIES) - set(C.SPECIES_GROUPS) == set(book) | {"CH"} | set(
+        C.PROTECTED_FISH)
+    assert not set(C.PROTECTED_FISH) & set(book)
     assert set(C.SPECIES_GROUPS) == {"TROUT_CHAR", "CHAR", "WHITEFISH", "BASS", "ALL_GAME_FISH",
                                      "ALL_FIN_FISH", "PROTECTED_SPECIES", "SALMON"}
     assert list(C.SPECIES_GROUPS["ALL_GAME_FISH"]) == book

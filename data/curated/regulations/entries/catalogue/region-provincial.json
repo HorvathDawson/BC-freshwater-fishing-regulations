@@ -987,7 +987,18 @@
      "type": "retention_limit",
      "verbatim": "It is illegal to fish for, or catch and retain any of the fish listed below.",
      "species": [
-      "PROTECTED_SPECIES"
+      "CULTUS_LAKE_SCULPIN",
+      "ENOS_LAKE_STICKLEBACK",
+      "MISTY_LAKE_STICKLEBACK",
+      "NOOKSACK_DACE",
+      "PAXTON_LAKE_STICKLEBACK",
+      "ROCKY_MOUNTAIN_SCULPIN",
+      "SHORTHEAD_SCULPIN",
+      "SALISH_SUCKER",
+      "VANANDA_CREEK_STICKLEBACK",
+      "VANCOUVER_LAMPREY",
+      "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+      "WHITE_STURGEON_PROTECTED_POPULATIONS"
      ],
      "take": 0,
      "may_target": false,
@@ -998,7 +1009,7 @@
       }
      ],
      "authority": "superior",
-     "review_reason": "species were ALL_GAME_FISH because the eleven named taxa had no codes; PROTECTED_SPECIES now names them. Region 2 adds green sturgeon, so this list is a floor, not the whole set."
+     "review_reason": "THE FISH BY NAME (UI consumer's report, 2026-10-03): the rule names the 12 protected fish its row prints (p.9) as members of the PROTECTED_SPECIES group (`catalogue.PROTECTED_FISH`) — not game fish, so not on p.86's list; the white sturgeon member is the four protected populations, never the game fish WSG."
     },
     {
      "rule_id": "protected_species.r3",
@@ -2938,6 +2949,268 @@
        ]
       }
      ]
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:licence_fees",
+   "name": "Licence fees",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "All annual licences are valid for the current licence year, April 1st to March 31st, commencing on the date purchased. Licences are not transferrable. Taxes not included in fees listed below. LICENCE TYPE RESIDENT* NON-RESIDENT* NON-RESIDENT ALIEN* Basic Licences Annual Angling Licence $41.15 $62.87 $91.44 One Day Angling Licence $11.43 $22.86 $22.86 Eight Day Angling Licence $22.86 $41.15 $57.14 Annual Licence for Disabled $1.14 ★ ★ Annual Licence for Age 65 Plus $5.71** ★ ★ Conservation Surcharge Stamps (see page 7) Steelhead $28.57 $68.57 $68.57 Non-Tidal Salmon $17.14 $34.29 $34.29 Kootenay Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Char $11.43 $22.86 $22.86 White Sturgeon Conservation Licences (see page 7) Annual $28.57 $68.58 $68.58 One Day $9.14 $17.14 $17.14 Eight Day $17.14 $34.29 $34.29 Classified Waters Licences (see page 7) Classified Waters Licence (annual) $17.15 ★ ★ Class I Waters Licence ★ $45.72/day $45.72/day Class II Waters Licence ★ $22.86/day $22.86/day ★ Not available. ** BC resident anglers aged 65 and over have the option to purchase an annual basic licence at the reduced rate of $5.71 or at the full BC resident rate of $41.15. NOTES: You may buy as many One Day and Eight Day Licences (covering 8 consecutive days) as you need, but only ONE Annual Licence.",
+   "source_pages": [
+    5
+   ],
+   "licensing": [
+    {
+     "id": "basic_annual",
+     "document": "basic_licence",
+     "sold": "per_licence_year",
+     "name": "Annual Angling Licence",
+     "fees_cad": {
+      "resident": 41.15,
+      "non_resident": 62.87,
+      "non_resident_alien": 91.44
+     },
+     "verbatim": "Annual Angling Licence $41.15 $62.87 $91.44",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_one_day",
+     "document": "basic_licence",
+     "name": "One Day Angling Licence",
+     "valid_days": 1,
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "One Day Angling Licence $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_eight_day",
+     "document": "basic_licence",
+     "name": "Eight Day Angling Licence",
+     "valid_days": 8,
+     "fees_cad": {
+      "resident": 22.86,
+      "non_resident": 41.15,
+      "non_resident_alien": 57.14
+     },
+     "verbatim": "Eight Day Angling Licence $22.86 $41.15 $57.14",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_annual_disabled",
+     "document": "basic_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ],
+      "status": [
+       "disabled"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Annual Licence for Disabled",
+     "fees_cad": {
+      "resident": 1.14
+     },
+     "verbatim": "Annual Licence for Disabled $1.14 ★ ★",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_annual_65_plus",
+     "document": "basic_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ],
+      "status": [
+       "aged_65_plus"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Annual Licence for Age 65 Plus",
+     "fees_cad": {
+      "resident": 5.71
+     },
+     "verbatim": "Annual Licence for Age 65 Plus $5.71** ★ ★",
+     "review_reason": "p.5 '**': a B.C. resident 65 or over may buy this at $5.71 or the Annual Angling Licence at the full resident rate ($41.15); the angling is the same. Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "steelhead_stamp",
+     "document": "steelhead_stamp",
+     "sold": "per_licence_year",
+     "name": "Steelhead",
+     "fees_cad": {
+      "resident": 28.57,
+      "non_resident": 68.57,
+      "non_resident_alien": 68.57
+     },
+     "verbatim": "Steelhead $28.57 $68.57 $68.57",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "salmon_stamp",
+     "document": "salmon_stamp",
+     "sold": "per_licence_year",
+     "name": "Non-Tidal Salmon",
+     "fees_cad": {
+      "resident": 17.14,
+      "non_resident": 34.29,
+      "non_resident_alien": 34.29
+     },
+     "verbatim": "Non-Tidal Salmon $17.14 $34.29 $34.29",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "kootenay_rainbow_stamp",
+     "document": "kootenay_rainbow_stamp",
+     "sold": "per_licence_year",
+     "name": "Kootenay Lake Rainbow Trout",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Kootenay Lake Rainbow Trout $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "shuswap_rainbow_stamp",
+     "document": "shuswap_rainbow_stamp",
+     "sold": "per_licence_year",
+     "name": "Shuswap Lake Rainbow Trout",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Shuswap Lake Rainbow Trout $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "shuswap_char_stamp",
+     "document": "shuswap_char_stamp",
+     "sold": "per_licence_year",
+     "name": "Shuswap Lake Char",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Shuswap Lake Char $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_annual",
+     "document": "white_sturgeon_licence",
+     "sold": "per_licence_year",
+     "name": "Annual",
+     "fees_cad": {
+      "resident": 28.57,
+      "non_resident": 68.58,
+      "non_resident_alien": 68.58
+     },
+     "verbatim": "Annual $28.57 $68.58 $68.58",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_one_day",
+     "document": "white_sturgeon_licence",
+     "name": "One Day",
+     "valid_days": 1,
+     "fees_cad": {
+      "resident": 9.14,
+      "non_resident": 17.14,
+      "non_resident_alien": 17.14
+     },
+     "verbatim": "One Day $9.14 $17.14 $17.14",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_eight_day",
+     "document": "white_sturgeon_licence",
+     "name": "Eight Day",
+     "valid_days": 8,
+     "fees_cad": {
+      "resident": 17.14,
+      "non_resident": 34.29,
+      "non_resident_alien": 34.29
+     },
+     "verbatim": "Eight Day $17.14 $34.29 $34.29",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_annual",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Classified Waters Licence (annual)",
+     "fees_cad": {
+      "resident": 17.15
+     },
+     "verbatim": "Classified Waters Licence (annual) $17.15 ★ ★",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_class_i_day",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ]
+     },
+     "classified": "I",
+     "sold": "per_day",
+     "name": "Class I Waters Licence",
+     "fees_cad": {
+      "non_resident": 45.72,
+      "non_resident_alien": 45.72
+     },
+     "verbatim": "Class I Waters Licence ★ $45.72/day $45.72/day",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_class_ii_day",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ]
+     },
+     "classified": "II",
+     "sold": "per_day",
+     "name": "Class II Waters Licence",
+     "fees_cad": {
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Class II Waters Licence ★ $22.86/day $22.86/day",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
     }
    ]
   }

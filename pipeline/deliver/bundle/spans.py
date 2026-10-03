@@ -43,7 +43,7 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
-from pipeline.deliver.bundle.place_names import area_display, display_case
+from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
 
 NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet")
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
@@ -387,8 +387,9 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         if kind == "area_boundary":
             area = label[len("within "):] if label.startswith("within ") else label
             area = area[:-len(" boundary")] if area.endswith(" boundary") else area
-            shown = area_display(area)
-            official = area if shown != area else None
+            # "Fraser River — Landstrom Bar sign zone" says the zone alone
+            # (`place_names.area_boundary_name`); the official name keeps the source spelling
+            shown, official = area_boundary_name(area)
             name = f"{shown} boundary"
         elif sid.startswith("length:"):
             name, landmark = _length_name(f, blk, m, own)
@@ -396,7 +397,9 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
             name = _confluence_name(label, {f.item_name.get(i, "") for i in own},
                                     f.offsets.get(sid))
         else:
-            name = label
+            # "Kitimat Hatchery outfall — d/s sign" -> "downstream sign at the Kitimat Hatchery
+            # outfall" (`place_names.cut_name`)
+            name = cut_name(label)
         at = []
         if not sid.startswith("area:"):
             at = sorted({(item, round(r["route_measure"] / 1000, 2))

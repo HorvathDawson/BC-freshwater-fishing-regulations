@@ -795,6 +795,20 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                 return False
         return True
 
+    def zone_line_restated(o, k) -> bool:
+        """A ZONE TABLE'S LINE ABOUT ONE WATER, SAID AGAIN BY THAT WATER'S ROW (UI consumer's report,
+        2026-10-03). Region 3 prints "Annual catch quota for Shuswap Lake: … Char-Lake trout and
+        Bull trout (Dolly Varden): 5 over 60 cm" (p.28) and the Shuswap row "Char daily quota = 1
+        (none under 60 cm), annual quota = 5" (p.32): one limit, printed twice. The zone line names
+        the lake (an item extent), so it ranks as the water's own and neither displaced the other —
+        the page showed the annual 5 twice. When a zone table's (`z<region>:`) keeping quota and
+        the water row's (`r…`) are the SAME STATEMENT (`rules.same_statement`), the row's speaks,
+        as a water's number replaces the zone's (`water_and_zone`)."""
+        return (str(o[0]).startswith("r") and base_region(k[0]) is not None
+                and water_side(o) and water_side(k)
+                and bool(yields_to_release(every[o])) and bool(yields_to_release(every[k]))
+                and same_statement(every[o], every[k]))
+
     def beats(o, k) -> bool:
         """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
 
@@ -832,6 +846,8 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
             return water_side(o) and same_statement(every[o], every[k])
         if water_side(o) and yields_to_release(every[o]) and dated_zone_release(k):
             return exact_same(o, k)
+        if zone_line_restated(o, k):
+            return True
         return order(o) < order(k)
 
     def base(k) -> str | None:
@@ -1050,7 +1066,12 @@ def requirements_in_force(db, section: int, on) -> dict:
     A requirement holds where it is placed (`requirement_section`; `province` everywhere but its
     `province_except` kind and tidal water; `on_designation` wherever a designation satisfying its
     `on` is in force), on the days of its `when`; one with `on` and sections needs that designation
-    in force too. `waived_where: steelhead_stamp_waived` lifts it where `stamp_waived_here` holds."""
+    in force too. `waived_where: steelhead_stamp_waived` lifts it where `stamp_waived_here` holds.
+
+    A REQUIREMENT IN A PART NOBODY HAS DRAWN (`undrawn_part`: the Creston Valley WMA permit on
+    the south end of Kootenay Lake's Main Body) never holds of the section: it is listed under
+    `"not_yet_mapped"`, `{entry_id#req_id: part}`, to be SHOWN on the water, as a rule in an undrawn
+    part is (`not_yet_mapped`)."""
     desig = _designations_in_force(db, section, on)
     have = {"classified_period": bool(desig),
             "steelhead_period": any(
@@ -1064,6 +1085,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     waivers = stamp_waived_here(db, section, on)
     holds: dict[str, str] = {}
     waived: dict[str, list[str]] = {}
+    undrawn: dict[str, str] = {}
     for eid, rid, placement, rec in db.execute(
             "SELECT entry_id, req_id, placement, record FROM requirement"):
         r = json.loads(rec)
@@ -1085,8 +1107,11 @@ def requirements_in_force(db, section: int, on) -> dict:
         if in_force(r.get("when"), on) == "no":
             continue
         key = f"{eid}#{rid}"
+        if not_yet_mapped(r):
+            undrawn[key] = str(r["undrawn_part"]).strip()
+            continue
         if r.get("waived_where") == "steelhead_stamp_waived" and waivers:
             waived[key] = waivers
             continue
         holds[key] = why
-    return {"holds": holds, "waived": waived}
+    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn}

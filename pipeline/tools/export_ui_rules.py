@@ -411,6 +411,175 @@ def add_stamp_waivers(licensing: dict, names: dict) -> None:
                              "verbatim": w["verbatim"], "says": says}
 
 
+def recorded_rules(rules: dict) -> list[str]:
+    """Every `record_retention` rule (`entry_id::rule_id`), sorted — the fish you must record."""
+    return sorted(k for k, x in rules.items() if x["fields"].get("record_retention"))
+
+
+def add_recorded(licensing: dict, rules: dict) -> None:
+    """`records` on the "carry your paper licence" duty (`doing.act: retaining_recorded`): WHICH
+    fish it is about — every record-duty rule, DERIVED, never typed (UI consumer's report,
+    2026-10-03). The bundle's `parts.records` says the same fish in words."""
+    got = recorded_rules(rules)
+    for x in licensing.values():
+        if (x["fields"].get("doing") or {}).get("act") == "retaining_recorded":
+            x["records"] = list(got)
+
+
+def protected_problems(doc: dict) -> list[str]:
+    """Every protected fish a rule names is in `species.protected`, and every protected-species
+    rule names at least one fish (the group alone, with no members, is what hid them). Run on the
+    OUTPUT."""
+    out, known = [], set(doc["species"].get("protected") or {})
+    for k, x in doc["rules"].items():
+        sp = x["fields"].get("species") or []
+        if "PROTECTED_SPECIES" in sp:
+            out.append(f"{k}: names PROTECTED_SPECIES, not the protected fish its row prints")
+        bad = [c for c in sp if c in C.PROTECTED_FISH and c not in known]
+        if bad:
+            out.append(f"{k}: protected fish {bad} missing from species.protected")
+    if not any(c in C.PROTECTED_FISH for x in doc["rules"].values()
+               for c in x["fields"].get("species") or []):
+        out.append("no rule names a protected fish")
+    return out
+
+
+def paper_licence_problems(doc: dict) -> list[str]:
+    """The paper-licence duty names every record-duty rule and nothing else, and says them in its
+    line. Run on the OUTPUT."""
+    out, want = [], recorded_rules(doc["rules"])
+    duties = [x for x in doc["licensing"].values()
+              if (x["fields"].get("doing") or {}).get("act") == "retaining_recorded"]
+    if not duties:
+        out.append("no 'carry your paper licence' duty (doing.act retaining_recorded)")
+    for x in duties:
+        if x.get("records") != want:
+            out.append(f"{x['id']}: records {x.get('records')} != the record-duty rules {want}")
+        if not (x.get("parts") or {}).get("records"):
+            out.append(f"{x['id']}: its line does not say which fish (parts.records)")
+    for x in doc["licensing"].values():
+        if "records" in x and x not in duties:
+            out.append(f"{x['id']}: records on a record that is not the paper-licence duty")
+    return out
+
+
+#: WHAT BAIT IS, AND WHAT A BAIT BAN COVERS (UI consumer's report, 2026-10-03: worms have no entry
+#: of their own and a page assumed them). The book's definitions, quoted, and what each `bait`
+#: member of the model means. `unexplained` refuses a bait member a rule uses that this does not
+#: explain.
+BAIT_GUIDE = {
+    "book": {
+        "bait": {"page": 8, "text": "“Bait” is any foodstuff or natural substance used to attract "
+                 "fish, other than wood, cotton, wool, hair, fur or feathers. It does not include "
+                 "fin fish, other than roe. It includes roe, worms and other edible substances, "
+                 "as well as scents and flavourings containing natural substances or nutrients."},
+        "bait_ban": {"page": 4, "text": "Bait Ban: the use of natural bait (see the definition "
+                     "of bait on page 8) is prohibited in waters with a bait ban."},
+        "invertebrates": {"page": 8, "text": "Aquatic invertebrates… you may use freshwater "
+                          "invertebrates (e.g., aquatic insects and crayfish) in streams as bait "
+                          "unless a bait ban applies. No person shall use as bait or possess for "
+                          "that purpose any freshwater invertebrate (this includes the aquatic "
+                          "stage of any insect, such as dragonfly nymphs or caddisfly larvae) at "
+                          "a lake."},
+        "fin_fish": {"page": 8, "text": "The use of fin fish (dead or alive) or parts of fin fish "
+                     "other than roe is prohibited throughout the province, with the following "
+                     "exceptions: …"},
+        "live_fish": {"page": 8, "text": "… never use live fish as bait …"},
+    },
+    "members": {
+        "any_bait": "EVERY bait — roe, worms and other edible substances, scents and flavourings "
+                    "containing natural substances or nutrients (p.8). A BAIT BAN is `ban: "
+                    "[any_bait]`: it bans all of them, worms included, for every species and "
+                    "every angler the rule names. It never reaches artificial flies or lures, or "
+                    "wood, cotton, wool, hair, fur and feathers, which are not bait.",
+        "roe": "fish eggs — bait (p.8), the one part of a fin fish that is; possession for bait "
+               "is capped at 1 kg (`bait_possession_kg`)",
+        "invertebrate": "a FRESHWATER invertebrate: aquatic insects at any aquatic stage "
+                        "(dragonfly nymphs, caddisfly larvae) and crayfish (p.8). Allowed in "
+                        "streams unless a bait ban applies; banned at lakes",
+        "fin_fish": "fin fish, dead or alive, or parts of them — banned as bait province-wide, "
+                    "except roe (`except: [roe]`)",
+        "dead_fin_fish": "the head or headless body of a fin fish — allowed only when sport "
+                         "fishing for sturgeon on the lower Fraser, Pitt and Harrison (Region 2), "
+                         "or set lining in lakes of Region 6 and Zone A of Region 7 (p.8)",
+        "live_fin_fish": "a live fish — never bait anywhere (p.8)",
+    },
+    "worms": {
+        "says": "Worms have no rule of their own because the book names them only as BAIT (p.8, "
+                "'It includes roe, worms …'). A bait ban (`any_bait`) bans them. The lake ban on "
+                "invertebrates is about FRESHWATER invertebrates — aquatic insects and crayfish "
+                "— and a worm sold or dug for bait is not one, so it does not reach worms. So: "
+                "worms may be used on a lake or a stream where no bait ban applies, and may not "
+                "where one does.",
+        "reading": "an interpretation: the book never says 'worms are not freshwater "
+                   "invertebrates'; it lists worms as bait and defines the invertebrates it bans "
+                   "at lakes as aquatic. An aquatic worm (a leech, a freshwater worm taken from "
+                   "the water) would be one.",
+    },
+    "what_a_bait_ban_covers": "Everything in `members.any_bait`, for every species, whatever you "
+                              "fish for, unless the rule's own `when_targeting` or a clause's "
+                              "`when` narrows it. Artificial flies and lures are untouched.",
+}
+
+
+def licence_classes(lic: dict) -> dict:
+    """THE LICENCE CLASSES THE BOOK SELLS (p.5, "Licence Fees"; UI consumer's report 2026-10-03):
+    each `licence_terms` record carrying a `name` — the document, who may buy it (a residency the
+    table marks ★ is left out of `who`), how long it runs, and the printed fee per residency. The
+    angler stays unknown: every class is said for the anglers it is sold to."""
+    classes = []
+    for k, x in sorted(lic.items()):
+        f = x["fields"]
+        if x["kind"] != "licence_terms" or not f.get("name"):
+            continue
+        classes.append({"id": k, "document": f["document"], "name": f["name"],
+                        "who": f.get("who"), "classified": f.get("classified"),
+                        "runs": ("licence_year" if f.get("sold") == "per_licence_year" else
+                                 "per_day" if f.get("sold") == "per_day" else
+                                 f"{f['valid_days']}_days" if f.get("valid_days") else None),
+                        "fees_cad": f.get("fees_cad"), "label": x["label"]})
+    return {
+        "reading": "One record per class the fee table prints (p.5). `who` is who may buy it — "
+                   "the table's ★ ('Not available') is a residency left out; `runs` is "
+                   "licence_year (April 1 to March 31, from the date bought), per_day (a "
+                   "Classified Waters day licence, at most 8 consecutive days each), or a fixed "
+                   "run of days (1_days: One Day; 8_days: Eight Day, 'covering 8 consecutive "
+                   "days'); `fees_cad` the printed fee for each residency. Say every class "
+                   "conditionally ('if you are a non-resident …') — the angler is unknown.",
+        "fees": "As printed in the 2025-2027 synopsis, taxes not included. FEES CHANGE from year "
+                "to year and may change during the synopsis's term: show them as the book's, "
+                "with its date, and send the angler to www.gov.bc.ca/fish-licence for today's.",
+        "notes": [
+            "You may buy as many One Day and Eight Day Licences as you need, but only ONE Annual "
+            "Licence (p.5).",
+            "Members of the Canadian military, students returning to B.C., and youth under 18 "
+            "returning to B.C. to reside with a parent or guardian who is a resident, may be "
+            "eligible to purchase licences at the resident rate (p.5).",
+            "B.C. residents aged 65 and over may buy the annual basic licence at $5.71 or at the "
+            "full resident rate; the angling is the same (p.5).",
+            "Under 16: a B.C. resident needs no licence or stamp; a non-resident needs none but "
+            "must be accompanied by a licence holder 16 or older, whose quota their catch counts "
+            "toward, unless they buy their own (p.6, `zp:basic_licence`).",
+            "Stamps (Conservation Surcharge Stamps) and the White Sturgeon Conservation Licence "
+            "validate a basic licence; up to five annual stamps per licence (p.6).",
+        ],
+        "residency": {
+            "page": 80,
+            "resident": "your primary residence is in British Columbia, AND (a) you are a "
+                        "Canadian citizen or landed immigrant and have been physically present in "
+                        "B.C. for the greater portion of each of 6 calendar months out of the 12 "
+                        "immediately preceding, OR (b) you are not a Canadian citizen or landed "
+                        "immigrant but have been physically present in B.C. for the greater "
+                        "portion of each of the immediately preceding 12 calendar months",
+            "non_resident": "you are not a 'resident', but (a) you are a Canadian citizen or "
+                            "landed immigrant, OR (b) your primary residence is in Canada and "
+                            "you have resided in Canada for the preceding 12 months",
+            "non_resident_alien": "you are neither a 'resident' nor a 'non-resident'",
+        },
+        "classes": classes,
+    }
+
+
 def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str) -> dict:
     rec = _j(r["record"])
     if rec.get("kind") != kind or rec.get("id") != r[idcol]:
@@ -424,6 +593,8 @@ def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: 
         "label": r["label"], "parts": parts, "verbatim": r["verbatim"],
         **({"period": designation_period(f"{r['entry_id']}#{r[idcol]}", fields, r["verbatim"],
                                          parts)} if kind == "designation" else {}),
+        **({"not_yet_mapped": not_yet_mapped(fields)}
+           if str(fields.get("undrawn_part") or "").strip() else {}),
         "fields": dict(sorted(fields.items())),
         "placement": r["placement"] if placed else NOT_PLACED,
         "provenance": {
@@ -480,6 +651,7 @@ def read(bundle: Path) -> dict:
     for e in entries.values():
         e["licensing"].sort()
     add_stamp_waivers(licensing, names)
+    add_recorded(licensing, rules)
 
     licences = {d: {"name": n, "provincial": bool(p)}
                 for d, n, p in db.execute("SELECT doc_id, name, provincial FROM licence "
@@ -1242,6 +1414,13 @@ LICENSING_PART_TEXT = {
     "except": "anglers taken out of `who`",
     "suspended": "not in force while the named closure applies",
     "note": "a superior authority's note ('provincial licences are not valid here')",
+    "records": "ONLY on the 'carry your paper licence' duty (`doing.act: retaining_recorded`): "
+               "the fish whose retention must be recorded on the licence, in words, DERIVED from "
+               "every `record_retention` rule (catalogue.recorded_fish) — 'hatchery steelhead, "
+               "adult chinook, …'. The rules themselves are the record's `records`",
+    "in_part": "the part of the water a requirement holds in, which nothing draws "
+               "(`fields.undrawn_part`) — shown as a place not yet mapped, never required of the "
+               "whole water",
 }
 
 #: Keys on an exported rule record outside `fields`.
@@ -1302,6 +1481,17 @@ LICENSING_RECORD_TEXT = {
               "all_year | dates, dates?, says} (see `licensing.period`). Derived from the record's "
               "own verbatim and `when`; never absent on a designation",
     "provenance": "entry_name, and for an unresolved record `uncertain` and `why`",
+    "records": "ONLY on the 'carry your paper licence' duty (`fields.doing.act: "
+               "retaining_recorded`): every `record_retention` rule (`entry_id::rule_id`) — the "
+               "fish you must record on your licence, and so keep only with a PAPER licence on "
+               "you (p.6). Derived from the rules, never typed; `parts.records` says them in "
+               "words",
+    "not_yet_mapped": "ONLY on a requirement that holds in a part nothing draws "
+                      "(`fields.undrawn_part`; the Creston Valley WMA permit on the south end of "
+                      "Kootenay Lake's Main Body): {display, part, identified, says}, as on a rule. "
+                      "Show it on the water as a place not yet mapped; it is NEVER required of "
+                      "the whole water (`read.requirements_in_force` lists it under "
+                      "`not_yet_mapped`, never `holds`)",
     "stamp_waiver": "ONLY on a designation that waives the Steelhead Stamp: {outright, lifts, "
                     "verbatim, says} (see `licensing.stamp_waiver`). `outright` "
                     "('(Steelhead Stamp not required)'): NO steelhead stamp on its sections while "
@@ -1377,7 +1567,19 @@ LICENSING_FIELD_TEXT = {
     "unlimited_days": "no day limit, said outright",
     "allocation": "open | booking | draw",
     "needs": "what a buyer must supply (angling_guide_number)",
-    "fee_cad": "the fee in dollars",
+    "fee_cad": "the fee in dollars (one fee: the disabled resident's reduced fee, p.6)",
+    "name": "the licence class as the fee table prints it (p.5): 'Annual Angling Licence', "
+            "'One Day Angling Licence', 'Annual Licence for Age 65 Plus', 'Steelhead', 'Class I "
+            "Waters Licence' — see `licensing.classes`",
+    "valid_days": "a short-term licence's fixed run of consecutive days: 1 (One Day) or 8 "
+                  "(Eight Day, 'covering 8 consecutive days'); an annual one says `sold: "
+                  "per_licence_year` instead (April 1 to March 31)",
+    "fees_cad": "{residency: dollars} — the fee table's price for each residency that may buy "
+                "the class (p.5); a residency left out is one the table marks ★ 'Not "
+                "available'. As printed for 2025-2027, taxes not included; fees change from year "
+                "to year — see `licensing.classes.fees`",
+    "undrawn_part": "ONLY on a requirement: the part of its water it holds in, in the book's "
+                    "words, which nothing draws — see the record's `not_yet_mapped`",
     "documents": "the documents released",
     "presumes": "a conduct duty ABOUT these documents ('produce your angling licence'): it binds "
                 "only an angler who must hold them, so an exemption releasing all of them "
@@ -1474,7 +1676,8 @@ WHO_TEXT = {
                  "or permanent resident, or living in Canada) | non_resident_alien (neither)",
     "age": "under_16 | 16_plus",
     "guidance": "guided | non_guided",
-    "status": "indian_bc_resident | metis | disabled",
+    "status": "indian_bc_resident | metis | disabled | aged_65_plus (65 and over — inside "
+              "16_plus, so a status, not an age: the 'Annual Licence for Age 65 Plus', p.5)",
     "role": "companion — fishing as the companion of an authorized angler on a Youth/Disabled "
             "Accompanied Water (printed p.4); not a partition: most anglers are no one's companion",
 }
@@ -1851,7 +2054,11 @@ def guide(d: dict) -> dict:
                              "the two. Tranquille Lake's 'kokanee daily quota = 10' replaces Region "
                              "3's 'Kokanee: 5' (10 may be kept); Teslin Lake's 'Arctic grayling "
                              "daily and possession quotas = 4' replaces Region 6's 'Arctic "
-                             "grayling: 3'. The water always overrides the same statement. "
+                             "grayling: 3'. The water always overrides the same statement — "
+                             "also when the zone table's line names the water itself: Region 3's "
+                             "'Annual catch quota for Shuswap Lake … 5 over 60 cm' and the "
+                             "Shuswap row's 'annual quota = 5' are one limit, and the row's "
+                             "speaks (`read.effective_rules`, `zone_line_restated`). "
                              "(2) A LARGER NUMBER FOR A FISH than the zone gives it: the water's "
                              "number REPLACES the zone's for that fish, and the data says so with a "
                              "lift (`exempts`, `species`), never by comparing numbers. Kootenay "
@@ -2175,6 +2382,7 @@ def guide(d: dict) -> dict:
                      "(`do_not_waste_catch`). The wording below is the model's own.",
             "acts": acts,
         },
+        "bait": BAIT_GUIDE,
         "first_match_per_slot": {
             "means": "Two clauses on one slot: the narrow one first, the general one last.",
             "examples": pick(same_slot, "gear"),
@@ -2453,8 +2661,28 @@ def guide(d: dict) -> dict:
             "`when`: `when_open` (Classified whenever the water is open), `all_year`, or "
             "`dates`. Show `period.says`.",
             "An unresolved record renders as 'check', never as 'none needed'.",
+            "A requirement with `not_yet_mapped` (`fields.undrawn_part`) holds only in a part of "
+            "its water that nothing draws — the Creston Valley WMA permit on the south end of "
+            "Kootenay Lake's Main Body. Show it on the water as a place not yet mapped "
+            "(`not_yet_mapped.says`); NEVER tell an angler the whole water needs it. "
+            "`read.requirements_in_force` lists it under `not_yet_mapped`, never `holds`.",
+            "THE PAPER LICENCE. 'Carry your paper licence' (`doing.act: retaining_recorded`) is "
+            "about the fish whose retention you must record on the licence: the record's "
+            "`records` (every `record_retention` rule) and, in words, `parts.records`. Say "
+            "them; never type the list.",
         ],
         "kinds": lkinds,
+        "classes": licence_classes(lic),
+        "paper_licence": {
+            "reading": "Electronic licences are acceptable, but a PAPER licence is required "
+                       "when keeping a fish whose retention you must record on it (p.6). Which "
+                       "fish is DERIVED from the record-duty rules (`record_retention`), so a "
+                       "duty added to the corpus reaches this line by itself.",
+            "duties": [{"id": k, "records": x.get("records", []),
+                        "says": (x.get("parts") or {}).get("records")}
+                       for k, x in lic.items()
+                       if (x["fields"].get("doing") or {}).get("act") == "retaining_recorded"],
+        },
         "who": {
             "reading": "A set on every axis: the members listed are IN. An axis left out means "
                        "ANY member. `who` absent means every angler.",
@@ -2762,7 +2990,10 @@ def guide(d: dict) -> dict:
         },
         "open_subjects": {
             "says": "`ALL_FIN_FISH`, `PROTECTED_SPECIES` and `SALMON` have empty member lists "
-                    "on purpose. An empty list is not 'no fish'.",
+                    "on purpose. An empty list is not 'no fish'. The fish the book NAMES inside "
+                    "two of them are listed apart: chinook (`species.salmon`) and the protected "
+                    "fish (`species.protected`); a protected-species rule names its fish in "
+                    "`fields.species`.",
             "key_on": "species.groups[*].open",
         },
         "source_artefacts": {
@@ -4330,6 +4561,18 @@ def species_table() -> dict:
             # A SALMON THE BOOK NAMES — not a game fish, not in `fish` (user ruling 2026-09-28)
             "salmon": {c: {"name": _name(c), "group": g, "game_fish": False}
                        for c, g in sorted(C.SALMON_FISH.items())},
+            # THE PROTECTED FISH THE BOOK NAMES — not game fish, not in `fish` (2026-10-03)
+            "protected": {c: {"name": n, "group": "PROTECTED_SPECIES", "game_fish": False}
+                          for c, (n, _) in C.PROTECTED_FISH.items()},
+            "protected_note": "The fish it is illegal to fish for or keep (p.9; Region 2 adds "
+                              "green sturgeon, p.21) are named members of the PROTECTED_SPECIES "
+                              "group, as chinook is of SALMON — not game fish, never on p.86's "
+                              "list, and PROTECTED_SPECIES stays an open group that speaks for "
+                              "no game fish. Each protected-species rule names the fish its row "
+                              "prints in `fields.species` (zp:protected_species: twelve; "
+                              "z2:protected_species: four). The white sturgeon member is the four "
+                              "protected POPULATIONS (Nechako, Upper Fraser, Kootenay, Columbia), "
+                              "not the game fish WSG.",
             "salmon_note": "Chinook is a named fish in the SALMON group — not a game fish and "
                            "not on the book's game-fish list (p.86); SALMON stays an open group "
                            "(it speaks for every salmon, named or not). The synopsis says little "
@@ -4560,6 +4803,10 @@ def unexplained(doc: dict) -> list[str]:
     for a in C.CONDUCT_ACTS:
         if not (g["gear"]["conduct"]["acts"].get(a) or {}).get("means"):
             out.append(f"conduct {a}")
+    used = {m for x in doc["rules"].values() for c in _gear(x) if c.get("slot") == "bait"
+            for k in ("allow", "only", "ban", "except", "of") for m in c.get(k) or []}
+    out += [f"gear.bait does not explain the bait member {m}"
+            for m in sorted(used - set(g["gear"]["bait"]["members"]))]
     for k in _licensing_models():
         if not (g["licensing"]["kinds"].get(k) or {}).get("means"):
             out.append(f"licensing kind {k}")
@@ -5119,7 +5366,8 @@ def problems(doc: dict) -> list[str]:
             + dictionary_gaps(doc)
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
             + steelhead_presence_problems(doc) + steelhead_set_problems(doc)
-            + run_problems(doc) + period_problems(doc) + name_problems(doc))
+            + run_problems(doc) + period_problems(doc) + name_problems(doc)
+            + paper_licence_problems(doc) + protected_problems(doc))
 
 
 def dumps(doc: dict) -> str:

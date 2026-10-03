@@ -407,10 +407,10 @@ def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
 #:                      and crustaceans"): every fish, game or not — never crayfish, which the book
 #:                      names beside fin fish ("fin fish AND crayfish").
 #:   PROTECTED_SPECIES  "It is illegal to fish for … any of the fish listed below" (p.9): eleven
-#:                      sculpins, sticklebacks, dace, suckers and lampreys, and Region 2 adds green
-#:                      sturgeon (p.21). None is a game fish, so none has a code; the list is in
-#:                      the rule's `verbatim`. (White Sturgeon's four populations are stated by the
-#:                      regional closures that name `WSG`.)
+#:                      sculpins, sticklebacks, dace, suckers and lampreys and four white sturgeon
+#:                      populations, and Region 2 adds green sturgeon (p.21). None is a game fish;
+#:                      each is a NAMED MEMBER of this group (`PROTECTED_FISH`), as chinook is of
+#:                      SALMON, and a protected-species rule names the members its row prints.
 #:   SALMON             Pacific salmon: federal, not on the provincial list, NOT in
 #:                      ALL_GAME_FISH. The book names them (the salmon stamp, "no spear fishing of
 #:                      Pacific salmon"); kokanee, a land-locked sockeye, is the game fish `KO`.
@@ -430,10 +430,50 @@ for _s in OPEN_SUBJECTS:
 #: implementation (`pipeline.regs.dfo_salmon`, `FEDERAL_SALMON`).
 SALMON_FISH: dict[str, str] = {"CH": "SALMON"}
 
-#: Every code a synopsis rule may name: the book's fish, the salmon it names, its groups, and the
-#: open subjects. A rule naming anything else is refused at validation rather than printing a
-#: raw code.
-KNOWN_SPECIES = frozenset(set(BOOK_SPECIES) | set(SALMON_FISH) | set(SPECIES_GROUPS))
+#: THE PROTECTED FISH, BY NAME (UI consumer's report, 2026-10-03). "It is illegal to fish for, or
+#: catch and retain any of the fish listed below" (p.9) — and the rule named only the group, which
+#: has no members, so no reader could see WHICH fish are protected. They are not game fish (p.86's
+#: list is closed, AGENTS 45), so they cannot join `BOOK_SPECIES`; like chinook in SALMON they are
+#: NAMED MEMBERS of the open group `PROTECTED_SPECIES`, which still speaks for no game fish
+#: (`read.speaks_for`). Each protected-species rule names the members its OWN row prints
+#: (`CatalogueEntry._protected_fish_printed`): the province's twelve (p.9), Region 2's four (p.21:
+#: Nooksack dace, Salish sucker, green sturgeon, Cultus Lake sculpin — green sturgeon is on no
+#: other list).
+#:
+#: The white sturgeon member is the four protected POPULATIONS, not the game fish `WSG`: the Lower
+#: Fraser's white sturgeon is a catch-and-release game fish (p.7), and naming `WSG` here would close
+#: it province-wide. The value is (the name a reader sees, the words the book prints it with).
+PROTECTED_FISH: dict[str, tuple[str, str]] = {
+    "CULTUS_LAKE_SCULPIN": ("Cultus Lake sculpin", r"cultus lake sculpin"),
+    "ENOS_LAKE_STICKLEBACK": ("Enos Lake stickleback", r"enos lake stickleback"),
+    "MISTY_LAKE_STICKLEBACK": ("Misty Lake stickleback", r"misty lake stickleback"),
+    "NOOKSACK_DACE": ("Nooksack dace", r"nooksack dace"),
+    "PAXTON_LAKE_STICKLEBACK": ("Paxton Lake stickleback", r"paxton lake stickleback"),
+    "ROCKY_MOUNTAIN_SCULPIN": ("Rocky Mountain sculpin", r"rocky mountain sculpin"),
+    "SHORTHEAD_SCULPIN": ("Shorthead sculpin", r"shorthead sculpin"),
+    "SALISH_SUCKER": ("Salish sucker", r"salish sucker"),
+    "VANANDA_CREEK_STICKLEBACK": ("Vananda Creek stickleback", r"vananda creek stickleback"),
+    "VANCOUVER_LAMPREY": ("Vancouver lamprey", r"vancouver lamprey"),
+    "WESTERN_BROOK_LAMPREY_MORRISON_CREEK": (
+        "Western brook lamprey (Morrison Creek population)",
+        r"western brook lamprey \(morrison creek population\)"),
+    "WHITE_STURGEON_PROTECTED_POPULATIONS": (
+        "White sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)",
+        r"white sturgeon \(nechako, upper fraser, kootenay and columbia populations\)"),
+    "GREEN_STURGEON": ("Green sturgeon", r"green sturgeon"),
+}
+
+#: Every code a synopsis rule may name: the book's fish, the salmon it names, the protected fish
+#: it names, its groups, and the open subjects. A rule naming anything else is refused at
+#: validation rather than printing a raw code.
+KNOWN_SPECIES = frozenset(set(BOOK_SPECIES) | set(SALMON_FISH) | set(PROTECTED_FISH)
+                          | set(SPECIES_GROUPS))
+
+
+def protected_fish_printed(text: str) -> list[str]:
+    """The protected fish (`PROTECTED_FISH` codes) a text prints, in `PROTECTED_FISH` order."""
+    t = squash(text)
+    return [c for c, (_, pat) in PROTECTED_FISH.items() if re.search(pat, t)]
 
 #: CODES THAT ARE REFUSED, each with what to write instead. The two the corpus used carry the
 #: book's reason; every other unknown code is "not on the book's list (p.86)".
@@ -837,7 +877,7 @@ class _Terse(BaseModel):
     @model_serializer(mode="wrap")
     def _terse(self, handler):
         return {k: v for k, v in handler(self).items()
-                if v != [] and v != "" and v is not None and v is not False}
+                if v != [] and v != {} and v != "" and v is not None and v is not False}
 
 
 class When(_Terse):
@@ -1323,7 +1363,10 @@ WHO_AXES: dict[str, tuple[str, ...]] = {
     "residency": ("resident", "non_resident", "non_resident_alien"),
     "age": ("under_16", "16_plus"),
     "guidance": ("guided", "non_guided"),
-    "status": ("indian_bc_resident", "metis", "disabled"),
+    #: `aged_65_plus` (2026-10-03): "Annual Licence for Age 65 Plus" (p.5) is sold to B.C.
+    #: residents 65 and over. Not an `age` member — `age` is a partition (under 16 / 16 and over)
+    #: and 65-plus lies inside 16-plus — so it is a status, like `disabled`.
+    "status": ("indian_bc_resident", "metis", "disabled", "aged_65_plus"),
     #: WHAT THE ANGLER IS DOING FOR SOMEONE ELSE. A Youth/Disabled Accompanied Water (printed
     #: p.4) is closed to every angler who is not an "authorized angler" (under 16, or a disabled
     #: resident) or "a companion to an authorized angler" — and a companion is not a residency,
@@ -1339,7 +1382,7 @@ _PARTITION_AXES = ("residency", "age", "guidance")
 Residency = Literal["resident", "non_resident", "non_resident_alien"]
 Age = Literal["under_16", "16_plus"]
 Guidance = Literal["guided", "non_guided"]
-Status = Literal["indian_bc_resident", "metis", "disabled"]
+Status = Literal["indian_bc_resident", "metis", "disabled", "aged_65_plus"]
 Role = Literal["companion"]
 
 
@@ -1393,14 +1436,19 @@ class Who(_Terse):
         res = {"resident": "B.C. residents", "non_resident": "non-residents",
                "non_resident_alien": "non-resident aliens"}
         st_noun = {"indian_bc_resident": "Indians resident in B.C.", "metis": "Métis anglers",
-                   "disabled": "disabled anglers"}
+                   "disabled": "disabled anglers", "aged_65_plus": "anglers aged 65 and over"}
         st_adj = {"indian_bc_resident": "Indian", "metis": "Métis", "disabled": "disabled"}
+        # "aged 65 and over" FOLLOWS the noun: "B.C. residents aged 65 and over"
+        aged = "aged 65 and over" if "aged_65_plus" in self.status else ""
+        pre = [x for x in self.status if x != "aged_65_plus"]
         adj = " or ".join({"guided": "guided", "non_guided": "non-guided"}[g]
                           for g in self.guidance)
         if self.residency:
             noun = " or ".join(res[r] for r in self.residency)
-            if self.status:
-                noun = " or ".join(st_adj[s] for s in self.status) + " " + noun
+            if pre:
+                noun = " or ".join(st_adj[s] for s in pre) + " " + noun
+            if aged:
+                noun = f"{noun} {aged}"
         elif self.status:
             noun = " or ".join(st_noun[s] for s in self.status)
         elif self.role:
@@ -2255,12 +2303,23 @@ class Requirement(_Terse):
     authority: Optional[Literal["superior"]] = None
     when: Optional[When] = None
     restates: Optional[Ref] = None
+    #: THIS REQUIREMENT HOLDS ONLY IN A PART OF WHAT ITS EXTENTS DRAW, AND THE PART IS NOT DRAWN —
+    #: the rule's `undrawn_part`, for a licensing record (UI consumer's report, 2026-10-03). The
+    #: Creston Valley WMA permit holds on "all waters within the Creston Valley Wildlife Management
+    #: Area"; only the south end of Kootenay Lake's Main Body lies in it, and a lake is never cut
+    #: (AGENTS 13, memory straddling-sections-mark-not-cut). Bound by the area it bound the whole
+    #: 389 km² lake. So the area record takes the lake out (`outside_items`) and a second record
+    #: binds the lake with this part: it is SHOWN on the lake as a place not yet mapped and never
+    #: required of the whole lake (`read.requirements_in_force` lists it under `not_yet_mapped`).
+    undrawn_part: str = ""
     verbatim: str = Field(..., min_length=1)
     review_reason: str = ""
 
     @model_validator(mode="after")
     def _check(self) -> "Requirement":
         e: List[str] = []
+        if self.undrawn_part.strip() and not self.extents:
+            e.append("undrawn_part names a part OF the water its extents draw — it needs extents")
         if bool(self.satisfied_by) == bool(self.conduct):
             e.append("exactly one of satisfied_by (what to hold) or conduct (what to do)")
         for act in self.conduct:
@@ -2338,15 +2397,43 @@ class LicenceTerms(_Terse):
     allocation: Optional[Literal["open", "booking", "draw"]] = None
     needs: List[Literal["angling_guide_number"]] = Field(default_factory=list)
     fee_cad: Optional[float] = Field(default=None, gt=0)
+    #: THE LICENCE CLASSES THE BOOK SELLS (p.5, "Licence Fees"; UI consumer's report 2026-10-03).
+    #: `name` is the class as the table prints it ("One Day Angling Licence", "Annual Licence for
+    #: Age 65 Plus"); `valid_days` the fixed run of consecutive days a short-term licence covers
+    #: (One Day = 1, Eight Day = 8 — "covering 8 consecutive days"), never beside `sold:
+    #: per_licence_year`; `fees_cad` the printed fee FOR EACH RESIDENCY that may buy it (a ★
+    #: "Not available" cell is a residency left out of `who`). Fees are the synopsis's, taxes not
+    #: included, and change from year to year — the export says so (`guide.licensing.classes`).
+    name: str = ""
+    valid_days: Optional[int] = Field(default=None, gt=0)
+    fees_cad: dict[Residency, float] = Field(default_factory=dict)
     verbatim: str = Field(..., min_length=1)
     review_reason: str = ""
 
     @model_validator(mode="after")
     def _check(self) -> "LicenceTerms":
         e: List[str] = []
+        if self.valid_days is not None and self.sold == "per_licence_year":
+            e.append("valid_days is a short-term licence's run of days — not on one sold per "
+                     "licence year")
+        if self.fees_cad:
+            if self.fee_cad is not None:
+                e.append("fee_cad and fees_cad both — one fee, or one per residency")
+            if any(v <= 0 for v in self.fees_cad.values()):
+                e.append("fees_cad: a fee is a positive amount")
+            sold_to = set(self.who.residency) if self.who is not None and self.who.residency \
+                else set(WHO_AXES["residency"])
+            extra = sorted(set(self.fees_cad) - sold_to)
+            if extra:
+                e.append(f"fees_cad prices {extra}, to whom `who` does not sell it")
+            missing = sorted(sold_to - set(self.fees_cad))
+            if missing:
+                e.append(f"fees_cad has no fee for {missing}, to whom `who` sells it — leave a "
+                         f"residency the table marks ★ out of `who`")
         terms = (self.sold, self.covers, self.max_consecutive_days,
                  self.max_days_per_licence_year, self.max_per_licence_year,
-                 self.max_units_per_licence_year, self.allocation, self.fee_cad)
+                 self.max_units_per_licence_year, self.allocation, self.fee_cad,
+                 self.valid_days, self.fees_cad or None)
         if all(t is None for t in terms) and not self.needs and not self.unlimited_days:
             e.append("terms that set nothing say nothing")
         if self.unlimited_days and (self.max_consecutive_days or self.max_days_per_licence_year):
@@ -3251,6 +3338,8 @@ _SPECIES_WORDS = {
     "ALL_FIN_FISH": "All fish", "PROTECTED_SPECIES": "Protected species", "SALMON": "Salmon",
     # a salmon the book names (`SALMON_FISH`) — not a game fish
     "CH": "Chinook",
+    # the protected fish the book names (`PROTECTED_FISH`) — not game fish
+    **{c: n for c, (n, _) in PROTECTED_FISH.items()},
     # trout (p.86). GB is Brown Trout (Salmo trutta) in the official table.
     "RB": "Rainbow trout", "ST": "Steelhead", "CT": "Cutthroat trout", "GB": "Brown trout",
     # char. ONE fish for Dolly Varden and bull trout: "Any bull trout that you catch and keep must
@@ -3303,7 +3392,9 @@ def species_menu() -> str:
              "CHAR": "'char' — Dolly Varden/bull trout, lake trout, brook trout",
              "ALL_FIN_FISH": ("\"any fish\" / \"fin fish\" — game fish, salmon AND non-game; never "
                               "crayfish"),
-             "PROTECTED_SPECIES": "the protected list (p.9; Region 2 adds green sturgeon)",
+             "PROTECTED_SPECIES": ("the protected list (p.9; Region 2 adds green sturgeon) — a "
+                                   "protected-species rule names the members its row prints: "
+                                   + ", ".join(f"`{c}`" for c in PROTECTED_FISH)),
              "SALMON": ("Pacific salmon — federal, not part of ALL_GAME_FISH (kokanee is `KO`); "
                         "the one salmon the book names, chinook, is `CH` — a salmon, never a "
                         "game fish")}
@@ -3332,9 +3423,18 @@ def species_menu() -> str:
     return "\n".join(out)
 
 
+def is_protected_list(codes) -> bool:
+    """A species list made only of protected fish (`PROTECTED_FISH`) — a protected-species rule."""
+    return bool(codes) and all(c in PROTECTED_FISH for c in codes)
+
+
 def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
     if not codes:
         return ""
+    if is_protected_list(codes):
+        # THE PROTECTED LIST IS SAID AS ONE, with its names as the book cases them ("Cultus Lake
+        # sculpin") — `protected_words`; a caller lower-casing a fish name must not reach these.
+        return protected_words(codes)
     # "TROUT" WITH CHAR EXCLUDED BY ITS ROW (`trout_scope_problems`) is the book's word, "Trout" —
     # never "Trout and char other than char".
     trout_only = "TROUT_CHAR" in codes and "CHAR" in (excepts or [])
@@ -3347,6 +3447,23 @@ def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
         ex = [_SPECIES_WORDS.get(c, c).lower() for c in excepts]
         out += " other than " + (ex[0] if len(ex) == 1 else ", ".join(ex[:-1]) + " and " + ex[-1])
     return out
+
+
+def protected_words(codes) -> str:
+    """"Protected species: Cultus Lake sculpin, Nooksack dace, … and Salish sucker" — the group's
+    word and every member the rule names, in the rule's order. Never lower-cased: the names carry
+    places ("Cultus Lake", "Morrison Creek")."""
+    names = [_SPECIES_WORDS[c] for c in codes]
+    listed = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+    return f"Protected species: {listed}"
+
+
+def _lower_fish(sp: str) -> str:
+    """A species phrase inside a sentence ("No fishing for rainbow trout"). The protected list keeps
+    its own casing after its first word ("protected species: Cultus Lake sculpin, …")."""
+    if sp.startswith("Protected species: "):
+        return "p" + sp[1:]
+    return sp.lower()
 
 
 def _gear_words(r: CatalogueRule) -> str:
@@ -3804,7 +3921,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
                 fish = "game fish" if sp in ("", "All game fish") else sp.lower()
                 head = f"No {' or '.join(m.replace('_', ' ') for m in r.while_)} for {fish}"
             else:
-                head = f"No fishing for {sp.lower()}"
+                head = f"No fishing for {_lower_fish(sp)}"
             if r.water:                     # "in streams" reads as part of the phrase
                 head += f" in {r.water.value}s"
             if r.while_ and sp == "All game fish" and r.species_except:
@@ -4041,12 +4158,47 @@ def _doing_words(d: "Doing") -> str:
 #:   except      anglers taken out of `who`
 #:   suspended   "not in force while “<closure>” applies"
 #:   note        "provincial licences are not valid here" (a superior authority)
-LICENSING_PARTS = ("who", "what", "need", "must", "way", "doing", "where", "when", "unit", "stamp",
-                   "waived", "terms", "instead", "except", "suspended", "note")
+#:   records     the fish whose retention must be recorded — on the "carry your paper licence"
+#:               duty (`retaining_recorded`), DERIVED from the corpus's `record_retention` rules
+#:               (`recorded_fish`), never typed: "hatchery steelhead, adult chinook, …"
+#:   in_part     the undrawn part a requirement holds in (`Requirement.undrawn_part`): a note on
+#:               the water, never required of all of it
+LICENSING_PARTS = ("who", "what", "need", "must", "way", "doing", "records", "where", "when",
+                   "unit", "stamp", "waived", "terms", "instead", "except", "suspended", "note",
+                   "in_part")
+
+
+def recorded_fish(entries) -> list[tuple[str, list[str]]]:
+    """THE FISH WHOSE RETENTION MUST BE RECORDED ON THE LICENCE, derived from the corpus (UI
+    consumer's report, 2026-10-03): every `record_retention` rule, said as the fish it is about —
+    life stage, origin, species, size, and the water when the rule names one ("rainbow trout over
+    50 cm (Main body of Kootenay Lake)"). Rules saying the same thing (`zp:steelhead` r4 and its
+    twin r4b) are one entry. Returns [(words, ["entry_id::rule_id", …])], in corpus order.
+
+    This is what "paper licences are required when retaining hatchery steelhead, chinook, Shuswap
+    Lake char or rainbow trout, or Kootenay Lake rainbow trout" (p.6) refers to; the list is never
+    typed, so a record duty added to the corpus reaches the paper-licence line by itself."""
+    out: dict[str, list[str]] = {}
+    for ce in entries:
+        for r in ce.rules:
+            if not r.record_retention:
+                continue
+            sp = species_words(list(r.species), list(r.species_except))
+            sp = sp[:1].lower() + sp[1:]          # "lake trout and Dolly Varden/bull trout"
+            if r.life_stage is not None:
+                sp = f"{r.life_stage.value} {sp}"
+            if r.origin is not None:
+                sp = f"{r.origin.value} {sp}"
+            size = _size(r).strip().strip("()")
+            words = f"{sp} {size}".strip() if size else sp
+            if any(isinstance(x, dict) and x.get("item_id") for x in r.extents or []):
+                words += f" ({ce.display_name or ce.name})"
+            out.setdefault(words, []).append(f"{ce.entry_id}::{r.rule_id}")
+    return [(w, ids) for w, ids in out.items()]
 
 
 def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
-                    refs: Optional[dict] = None) -> dict:
+                    refs: Optional[dict] = None, recorded: Optional[list] = None) -> dict:
     """One licensing record's line, as PARTS — see `LICENSING_PARTS`; `compose_licensing` joins.
 
     Context a record cannot carry itself, all optional:
@@ -4055,7 +4207,9 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
       units     {unit: unit_name} across the corpus, so terms name a licence unit the way the
                 page prints it ("Dean River Class I - Main Section"), never as a slug;
       refs      {(entry_id, id): record} across the corpus, so an alternative says WHICH
-                licence it stands in for, never an id.
+                licence it stands in for, never an id;
+      recorded  the words of `recorded_fish(entries)`, so the "carry your paper licence" duty
+                (`retaining_recorded`) says WHICH fish it is about.
     """
     p: dict = {}
     if isinstance(rec, Designation):
@@ -4108,6 +4262,11 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
         else:
             # A path that is not a document is an instruction: "…: to fish, be accompanied by …".
             p["way"] = ", or ".join(_path_words(q) for q in rec.satisfied_by)
+        if rec.doing.act == "retaining_recorded" and recorded:
+            p["records"] = (", ".join(recorded[:-1]) + " or " + recorded[-1]
+                            if len(recorded) > 1 else recorded[0])
+        if rec.undrawn_part.strip():
+            p["in_part"] = part_words(rec.undrawn_part)
         if rec.waived_where is not None:
             p["waived"] = ("not on a Classified Water whose row says “Steelhead Stamp not "
                            "required”, while it is in force")
@@ -4121,6 +4280,13 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
             doc = f"Class {rec.classified} {doc}"
         if rec.sold == "per_licence_year":
             doc = "annual " + doc
+        if rec.name:
+            # THE CLASS AS THE TABLE PRINTS IT ("One Day Angling Licence") — the document it is
+            # follows, so a stamp's row ("Steelhead") still says what it is.
+            plain = _docs([rec.document])
+            plain = plain[2:] if plain.startswith("a ") else plain[3:] if plain.startswith(
+                "an ") else plain
+            doc = rec.name if plain.lower() in rec.name.lower() else f"{rec.name} ({plain})"
         p["what"] = _cap(doc) + (f" for {rec.who.words()}" if rec.who is not None else "")
         if rec.units:
             # Semicolons, because a printed unit name may carry its own comma ("Dean River
@@ -4150,8 +4316,19 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
                          "draw": "by annual limited-entry draw"}[rec.allocation])
         if rec.needs:
             bits.append("needs your angling guide's number")
+        if rec.name and rec.sold == "per_licence_year":
+            bits.append("valid for the licence year (April 1 to March 31)")
+        if rec.valid_days is not None:
+            bits.append("valid for 1 day" if rec.valid_days == 1
+                        else f"valid for {rec.valid_days} consecutive days")
         if rec.fee_cad is not None:
             bits.append(f"reduced fee ${rec.fee_cad:.2f}")
+        if rec.fees_cad:
+            res = {"resident": "B.C. residents", "non_resident": "non-residents",
+                   "non_resident_alien": "non-resident aliens"}
+            bits.append("fee " + ", ".join(f"${rec.fees_cad[r]:.2f} ({res[r]})"
+                                           for r in WHO_AXES["residency"] if r in rec.fees_cad)
+                        + " as printed for 2025-2027, before tax")
         p["terms"] = "; ".join(bits)
     elif isinstance(rec, Exemption):
         p["who"] = _cap(rec.who.words())
@@ -4174,8 +4351,10 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
 def compose_licensing(parts: dict) -> str:
     """ONE sentence from a licensing record's parts — the one composer (see `compose`)."""
     g = parts.get
-    tail = ((f" {g('where')}" if g("where") else "") + (f", {g('when')}" if g("when") else "")
-            + (f" ({g('waived')})" if g("waived") else ""))
+    tail = ((f": {g('records')}" if g("records") else "")
+            + (f" {g('where')}" if g("where") else "") + (f", {g('when')}" if g("when") else "")
+            + (f" ({g('waived')})" if g("waived") else "")
+            + (f" — in part: {g('in_part')}" if g("in_part") else ""))
     if g("need") is not None:
         out = f"{g('who') or 'You'} need {g('need')}" + (f" {g('doing')}" if g("doing") else "")
         out += tail
@@ -4333,6 +4512,30 @@ class CatalogueEntry(BaseModel):
                 if c.when is not None:
                     bad += species_problems(set(c.when.targeting),
                                             f"{r.rule_id}.gear.when.targeting")
+        if bad:
+            raise ValueError("; ".join(bad))
+        return self
+
+    @model_validator(mode="after")
+    def _protected_fish_printed(self) -> "CatalogueEntry":
+        """A PROTECTED-SPECIES RULE NAMES EXACTLY THE PROTECTED FISH ITS ROW PRINTS (`PROTECTED_FISH`,
+        2026-10-03). The list is the book's, so it is read off the row's own words both ways: a fish
+        named and not printed is invented, a fish printed and not named is the empty group again.
+        A protected fish never shares a rule with a game fish or a group — the list is said as one
+        ("Protected species: …"), and a game fish beside it would be closed by a superior rule."""
+        bad = []
+        printed = protected_fish_printed(self.regs_verbatim)
+        for r in self.rules:
+            named = [c for c in r.species if c in PROTECTED_FISH]
+            if not named:
+                continue
+            if len(named) != len(r.species) or r.species_except:
+                bad.append(f"{r.rule_id}: protected fish {named} share the rule with "
+                           f"{[c for c in r.species if c not in PROTECTED_FISH]} / except "
+                           f"{list(r.species_except)} — a protected-species rule names only them")
+            if set(named) != set(printed) or len(set(named)) != len(named):
+                bad.append(f"{r.rule_id}: names protected fish {named}, its row prints {printed} "
+                           f"— name exactly the fish the row prints, each once")
         if bad:
             raise ValueError("; ".join(bad))
         return self

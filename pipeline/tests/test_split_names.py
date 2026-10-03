@@ -208,7 +208,7 @@ def test_no_confluence_is_named_after_its_own_water(doc):
 def official_name_problems(splits: dict) -> list[str]:
     """An AREA boundary's `name` is its source name as a reader sees it (`area_display`) +
     " boundary", and `official_name` is the source spelling exactly when the two differ."""
-    from pipeline.deliver.bundle.place_names import area_display
+    from pipeline.deliver.bundle.place_names import area_boundary_name
     out = []
     for k, x in splits.items():
         if x.get("kind") != "area" or not k.startswith("area:"):
@@ -216,7 +216,7 @@ def official_name_problems(splits: dict) -> list[str]:
                 out.append(f"{k}: official_name on a {x.get('kind')} cut")
             continue
         src = k.split(":", 1)[1]
-        shown = area_display(src)
+        shown, _ = area_boundary_name(src)
         if x["name"] != f"{shown} boundary":
             out.append(f"{k}: name {x['name']!r}, want {shown + ' boundary'!r}")
         if x.get("official_name") != (src if shown != src else None):
