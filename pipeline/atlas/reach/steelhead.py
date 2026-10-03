@@ -4,10 +4,13 @@ WATERS THE BOOK MAKES STEELHEAD WATER (`Extent` op `steelhead_waters`), and WHER
 
 User rulings 2026-10-01 (third) and 2026-10-02 (revised). Two different things, kept apart:
 
-REGULATIONS COME ONLY FROM THE BOOK. A STEELHEAD ROW (`steelhead_row`) is a water row that names
-steelhead: flagged `CatalogueEntry.anadromous_rainbow`, a rule whose fish names steelhead `ST`, or a
-licensing record that speaks of the Steelhead Stamp (`steelhead_stamp_during`, or the waiver
-`steelhead_stamp_waived` — Chilko, Horsefly, West Road, both Stellako rows: steelhead are mentioned).
+REGULATIONS COME ONLY FROM THE BOOK. A STEELHEAD ROW (`steelhead_row`) is a water row that PRINTS
+steelhead in any rule or licensing record (`prints_steelhead`): a rule naming steelhead `ST`, or the
+Steelhead Stamp in any form — "Steelhead Stamp mandatory <dates>" (Kingcome, Babine, ...), the
+outright waiver "(Steelhead Stamp not required)" (Chilko, Dean, Horsefly, West Road, Stellako),
+"not required unless fishing for steelhead" (Seymour, Ecstall, Skeena) — or one flagged
+`CatalogueEntry.anadromous_rainbow` (Chilliwack/Vedder). A Classified Water designation that prints
+no steelhead (Region 4's "Class II water when open") is not one.
 A steelhead row's OWN WATER (`OWN_WATER_RULE`: its matched waters within its scope, held as its rules
 are — no tributaries) and every section ANY rule of it binds are BOOK-KNOWN (`Presence.close`) —
 streams, lakes and wetlands alike: Tenas Lake, reached only by the Atnarko/Bella Coola spring
@@ -100,23 +103,41 @@ def names_steelhead(e) -> bool:
             and any("ST" in (_get(r, "species") or []) for r in _get(e, "rules") or []))
 
 
-def speaks_of_the_stamp(e) -> bool:
-    """A water row with a licensing record that speaks of the Steelhead Stamp: it runs here
-    (`steelhead_stamp_during`) or is not required here (`steelhead_stamp_waived`)."""
-    return (not str(_get(e, "entry_id") or "").startswith("z")
-            and any(_get(x, "steelhead_stamp_during") is not None
-                    or _get(x, "steelhead_stamp_waived") is not None
-                    for x in _get(e, "licensing") or []))
+def _says_steelhead(text) -> bool:
+    return "steelhead" in str(text or "").lower()
+
+
+def prints_steelhead(e) -> bool:
+    """A water row ANY of whose rules or licensing records PRINTS steelhead: a rule whose fish names
+    `ST` or whose words say "steelhead", or a licensing record whose words do — the Steelhead Stamp
+    in every form: "Steelhead Stamp mandatory <dates>" (`steelhead_stamp_during`), the outright
+    waiver "(Steelhead Stamp not required)" and "not required unless fishing for steelhead"
+    (`steelhead_stamp_waived`). A Classified Water designation that prints no steelhead ("Class
+    II water when open, including tributaries" — the Elk, the Bull, the Kootenay) does not."""
+    if str(_get(e, "entry_id") or "").startswith("z"):
+        return False
+    for r in _get(e, "rules") or []:
+        if "ST" in (_get(r, "species") or []) or _says_steelhead(_get(r, "verbatim")):
+            return True
+    for x in _get(e, "licensing") or []:
+        quotes = [_get(x, "verbatim")] + [_get(_get(x, k), "verbatim") for k in (
+            "steelhead_stamp_during", "steelhead_stamp_waived") if _get(x, k) is not None]
+        if _get(x, "steelhead_stamp_during") is not None \
+                or _get(x, "steelhead_stamp_waived") is not None \
+                or any(_says_steelhead(q) for q in quotes):
+            return True
+    return False
 
 
 def steelhead_row(e) -> bool:
-    """A STEELHEAD ROW: a water row flagged `anadromous_rainbow`, with a rule naming steelhead, or
-    with a licensing record speaking of the Steelhead Stamp — the stamp-waiver rows ("Steelhead
-    Stamp not required": Chilko, Horsefly, West Road, Stellako) count, because steelhead are
-    mentioned (user ruling 2026-10-02). A dict (the corpus) or a `CatalogueEntry`."""
+    """A STEELHEAD ROW: a water row that PRINTS steelhead (`prints_steelhead`: any rule or
+    licensing record — stamp wording included, "Steelhead Stamp mandatory", "(Steelhead Stamp not
+    required)", "not required unless fishing for steelhead"; user ruling 2026-10-02 as corrected),
+    or one flagged `anadromous_rainbow` (the Chilliwack/Vedder, by ruling: its row prints no
+    steelhead). A Classified Water designation printing no steelhead is not one. A dict (the
+    corpus) or a `CatalogueEntry`."""
     return (not str(_get(e, "entry_id") or "").startswith("z")
-            and (bool(_get(e, "anadromous_rainbow")) or names_steelhead(e)
-                 or speaks_of_the_stamp(e)))
+            and (bool(_get(e, "anadromous_rainbow")) or prints_steelhead(e)))
 
 
 def steelhead_waters_extent(rule: dict) -> dict | None:

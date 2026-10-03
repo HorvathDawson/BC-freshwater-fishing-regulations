@@ -187,6 +187,34 @@ def test_a_designation_agrees_with_the_class_its_sentence_prints():
         _desig(verbatim="Class 1 water Sept 1-Apr 30")
 
 
+def test_an_outright_waiver_is_one_with_no_unless():
+    assert _desig(steelhead_stamp_waived={"verbatim": "Steelhead Stamp not required"}
+                  ).waives_every_stamp
+    assert not _desig(steelhead_stamp_waived={
+        "verbatim": "Steelhead Stamp not required unless fishing for steelhead"}).waives_every_stamp
+    assert not _desig().waives_every_stamp
+
+
+def test_waived_where_lifts_only_a_steelhead_stamp_requirement():
+    """A stamp waiver can lift only a requirement to hold the Steelhead Stamp: on the Classified
+    Waters Licence it would tell a Chilko angler in June that Class II water needs no licence."""
+    st = {"doing": {"act": "targeting", "species": ["ST"]},
+          "satisfied_by": [{"hold": ["steelhead_stamp"]}],
+          "verbatim": "a Conservation Surcharge Stamp if you fish for steelhead"}
+    assert _req(**st, waived_where="steelhead_stamp_waived").waived_where
+    with pytest.raises(ValueError, match="waived_where"):
+        _req(waived_where="steelhead_stamp_waived")                      # the basic licence
+    with pytest.raises(ValueError, match="waived_where"):
+        _req(satisfied_by=[{"hold": ["classified_waters_licence"]}], on="classified_period",
+             waived_where="steelhead_stamp_waived")
+    with pytest.raises(ValueError, match="waived_where"):
+        _req(**dict(st, satisfied_by=[{"hold": ["steelhead_stamp"]},
+                                      {"hold": ["basic_licence"]}]),
+             waived_where="steelhead_stamp_waived")
+    with pytest.raises(ValueError):
+        _req(**st, waived_where="classified_waters_licence")
+
+
 def test_a_waiver_must_quote_a_waiver_and_a_stamp_period_must_quote_a_mandate():
     with pytest.raises(ValueError, match="must quote"):
         _desig(steelhead_stamp_waived={"verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30"})
@@ -435,17 +463,33 @@ def test_the_kootenay_named_licences_bind_every_angler(corpus):
     assert cwl.on == "classified_period" and cwl.who == Who(age=["16_plus"])
 
 
-def test_a_waiver_cannot_reach_the_steelhead_angler(corpus):
+def test_only_an_outright_waiver_reaches_the_steelhead_angler(corpus):
     """Chilko, Dean upper, Horsefly, Seymour, Ecstall, Skeena 2, West Road, both Stellakos: the
-    waiver is a designation fact; the provincial 'stamp if you fish for steelhead' is a separate
-    requirement with a separate trigger."""
-    waived = [(e.entry_id, x.unit) for e in corpus.values() for x in e.licensing
-              if isinstance(x, Designation) and x.steelhead_stamp_waived is not None]
+    waiver is a designation fact. An OUTRIGHT one ("(Steelhead Stamp not required)") also lifts
+    the provincial 'stamp if you fish for steelhead' — which consents to it (`waived_where`) — on
+    the designation's sections while it is in force (user ruling 2026-10-02); one "unless fishing
+    for steelhead" (Seymour, Ecstall, Skeena River 2) cannot."""
+    waived = {(e.entry_id.split("@")[0], x.unit): x.waives_every_stamp
+              for e in corpus.values() for x in e.licensing
+              if isinstance(x, Designation) and x.steelhead_stamp_waived is not None}
     assert len(waived) == 9, waived
-    st = _rec(corpus, "zp:steelhead", "steelhead_targeting")
-    assert st.doing.act == "targeting" and st.doing.species == ["ST"]
-    assert [p.hold for p in st.satisfied_by] == [["steelhead_stamp"]]
-    assert st.on is None and st.restates is None       # nothing a designation can switch off
+    assert sorted(k for k, v in waived.items() if not v) == [
+        ("r1:seymour_river", "seymour_river"), ("r6:ecstall_river", "ecstall_river"),
+        ("r6:skeena_river_mainstem_only", "skeena_river_2")]
+    assert sorted(k[1] for k, v in waived.items() if v) == [
+        "chilko_river", "dean_river_class_ii_upper", "horsefly_river", "stellako_river",
+        "stellako_river", "west_road_river"]
+    for rid in ("steelhead_targeting", "steelhead_targeting_known"):
+        st = _rec(corpus, "zp:steelhead", rid)
+        assert st.doing.act == "targeting" and st.doing.species == ["ST"]
+        assert [p.hold for p in st.satisfied_by] == [["steelhead_stamp"]]
+        assert st.on is None and st.restates is None
+        assert st.waived_where == "steelhead_stamp_waived"
+    # NOTHING ELSE consents: the Classified Waters Licence is still required on Class II water
+    others = [(e.entry_id, x.id) for e in corpus.values() for x in e.licensing
+              if isinstance(x, Requirement) and x.waived_where is not None]
+    assert others == [("zp:steelhead", "steelhead_targeting"),
+                      ("zp:steelhead", "steelhead_targeting_known")]
     skeena = _find(corpus, "r6:skeena_river_mainstem_only")
     two = next(x for x in skeena.licensing if x.unit == "skeena_river_2")
     four = next(x for x in skeena.licensing if x.unit == "skeena_river_section_4")

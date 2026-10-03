@@ -43,6 +43,14 @@ Entry-level fields beside those: `extents` (narrows the row, never gives a rule 
   `steelhead_water` (a view) is the FLOWING water any rule of a steelhead row binds (AGENTS 54;
   ~72,800 sections, *export* `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow
   over 50 cm is a steelhead (`read.as_rainbow`). The curated known-steelhead list never sets it.
+  A steelhead row is one any of whose rules or licensing records PRINTS steelhead (stamp wording
+  included) or that is flagged: 57 rows (`steelhead.prints_steelhead`).
+- **The outright stamp waiver** — "(Steelhead Stamp not required)" on six designations (Chilko
+  upstream of Brittany Creek, Dean Anahim Lake–Iltasyuko, Horsefly, West Road, both Stellako rows)
+  lifts every steelhead stamp on the designation's sections while it is in force: the provincial
+  `steelhead_targeting`/`steelhead_targeting_known` carry `waived_where: steelhead_stamp_waived`,
+  read per section and day by `read.requirements_in_force`; the export says it in
+  `licensing[].stamp_waiver`. The Classified Waters Licence and the steelhead rules still apply.
 
 Water entries by rule count (*catalogue*): 0 rules 59 (7 licensing-only, 52 pointer-only),
 1 rule 642, 2 rules 225, 3 rules 232, 4 rules 129, 5+ rules 106. Water rows hold 2,987 rules and

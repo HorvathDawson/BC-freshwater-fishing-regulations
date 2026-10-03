@@ -389,11 +389,11 @@ def test_a_lake_typed_water_named_as_flowing_is_steelhead_water():
 
 
 def test_a_stamp_waiver_row_is_a_steelhead_row():
-    """"Steelhead Stamp not required" mentions steelhead: the Stellako row is a steelhead row, so
+    """"Steelhead Stamp not required" PRINTS steelhead: the Stellako row is a steelhead row, so
     its water in Zone 7A (no steelhead region) is book-known, carries the provincial set through the
     twins and the stamp twin, and a big rainbow there is a steelhead."""
     e = _stellako()
-    assert SH.steelhead_row(e) and SH.speaks_of_the_stamp(e) and not SH.names_steelhead(e)
+    assert SH.steelhead_row(e) and SH.prints_steelhead(e) and not SH.names_steelhead(e)
     assert SH.steelhead_row(CatalogueEntry.model_validate({
         **e, "name": "Stellako River", "regs_verbatim": "Rainbow trout catch and release "
         "Class II water when open (Steelhead Stamp not required)"}))
@@ -461,6 +461,28 @@ def test_a_flagged_row_with_no_rule_makes_its_own_water_known():
     assert got.report.steelhead["by_entry"]["r8:mill_creek@8-3"] == {"sections": 1}
     # without the flag (and nothing else naming steelhead) the water is nobody's steelhead water
     got = _run([_province(), dict(row, anadromous_rainbow=False, licensing=[])])
+    assert _code(got, "m8") is None
+    # EVERY STAMP WORDING PRINTS STEELHEAD (user ruling 2026-10-02, as corrected): a row with only
+    # its Class II water and "Steelhead Stamp mandatory <dates>", or a waiver "unless fishing for
+    # steelhead", is a steelhead row unflagged; a designation printing no steelhead is not
+    cw = dict(row, anadromous_rainbow=False)
+    assert SH.steelhead_row(cw) and SH.prints_steelhead(cw)
+    got = _run([_province(), cw])
+    assert _code(got, "m8") == "known" and _row(got, "m8")["anadromous"] is True
+    during = dict(cw, licensing=[dict(cw["licensing"][0], when={"dates": [
+        {"from_month": 4, "from_day": 1, "to_month": 10, "to_day": 31}]},
+        verbatim="Class II water Apr 1-Oct 31", steelhead_stamp_during={
+            "when": {"dates": [{"from_month": 4, "from_day": 1, "to_month": 6, "to_day": 30}]},
+            "verbatim": "Steelhead Stamp mandatory Apr 1-June 30"})])
+    del during["licensing"][0]["steelhead_stamp_waived"]
+    assert SH.steelhead_row(during)
+    assert SH.steelhead_row(CatalogueEntry.model_validate(
+        {**during, "name": "Mill Creek", "regs_verbatim": "Class II water Apr 1-Oct 31; "
+         "Steelhead Stamp mandatory Apr 1-June 30", "extents": [{"op": "whole"}]}))
+    plain = dict(cw, licensing=[{k: v for k, v in cw["licensing"][0].items()
+                                 if k != "steelhead_stamp_waived"}])
+    assert not SH.steelhead_row(plain) and not SH.prints_steelhead(plain)
+    got = _run([_province(), plain])
     assert _code(got, "m8") is None
 
 

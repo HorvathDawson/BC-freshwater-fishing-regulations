@@ -278,8 +278,8 @@ CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROW
 -- A PRESENCE INDICATOR for display. Read it through the view `section_steelhead (sid, code)`:
 --   code 1  KNOWN     the book names steelhead here — a STEELHEAD ROW's own water, or a rule of one
 --                     binds it (a water row
---                     naming steelhead, flagged `anadromous_rainbow`, or speaking of the Steelhead
---                     Stamp: Tenas, Khartoum and Lois lakes too) — or the curated known-steelhead list
+--                     naming steelhead, flagged `anadromous_rainbow`, or printing the Steelhead
+--                     Stamp in any wording: Tenas, Khartoum and Lois lakes too) — or the curated known-steelhead list
 --                     names the water (`data/curated/regulations/steelhead_waters.json`). The list
 --                     changes this code and nothing else: no rule, no stamp, no steelhead water.
 --   code 2  POSSIBLE  any other stream the provincial steelhead rules bind: "steelhead rules apply;
@@ -388,6 +388,10 @@ CREATE TABLE not_classified (entry_id TEXT NOT NULL, not_classified_id TEXT NOT 
 -- An obligation, stated once. `on_designation` (classified_period | steelhead_period) means it
 -- holds wherever a designation is in force; with `placement = sections` it holds only where
 -- BOTH are true. `authority = superior` (a National Park) displaces every provincial one.
+-- `record.waived_where = "steelhead_stamp_waived"` (the provincial stamp to fish for steelhead): it
+-- does NOT hold on a section, on a day, where a designation bound there is in force and waives the
+-- Steelhead Stamp outright, "(Steelhead Stamp not required)" (user ruling 2026-10-02;
+-- `read.requirements_in_force`).
 CREATE TABLE requirement (entry_id TEXT NOT NULL, req_id TEXT NOT NULL,
                           on_designation TEXT, authority TEXT, water TEXT,
                           placement TEXT NOT NULL, uncertain INTEGER NOT NULL DEFAULT 0,

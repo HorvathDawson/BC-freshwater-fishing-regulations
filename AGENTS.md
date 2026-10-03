@@ -302,13 +302,17 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     the guide together.
 54. **Steelhead regulations come only from the book; the curated list is a presence indicator.**
     (user rulings 2026-10-01/02, `pipeline/atlas/reach/steelhead.py`.) The provincial and zone
-    steelhead rules bind STREAMS of Regions 1, 2, 3, 5 and 6. A STEELHEAD ROW is a water row with a
-    rule naming `ST`, flagged `anadromous_rainbow`, or with a licensing record speaking of the
-    Steelhead Stamp (`steelhead_stamp_during`, or the waiver `steelhead_stamp_waived` — Chilko,
-    Horsefly, West Road and both Stellako rows count: steelhead are mentioned). A steelhead row's OWN
+    steelhead rules bind STREAMS of Regions 1, 2, 3, 5 and 6. A STEELHEAD ROW is a water row ANY of
+    whose rules or licensing records PRINTS steelhead (`steelhead.prints_steelhead`): a rule naming
+    `ST` or saying "steelhead", or the Steelhead Stamp in any wording — "Steelhead Stamp mandatory
+    <dates>" (Kingcome, Babine …), "(Steelhead Stamp not required)" (Chilko …), "not required unless
+    fishing for steelhead" (Seymour, Ecstall, Skeena) — or one flagged `anadromous_rainbow`
+    (Chilliwack/Vedder, by ruling). A Classified Water designation that prints no steelhead (Region
+    4's 25 "Class II water when open" rows) is not one. 57 rows (user ruling 2026-10-02, as
+    corrected). A steelhead row's OWN
     water (its matched waters within its scope, held as its rules are) and every section ANY rule
     of it binds are BOOK-KNOWN (Tenas Lake via the Atnarko's spring closure; the Stellako in 7A; the
-    Kingcome, whose row has no rule, only its Class II water). **There is no tributary walk.** Book-known water carries the whole provincial set
+    Kingcome, whose row has no rule, only its Class II water and stamp). **There is no tributary walk.** Book-known water carries the whole provincial set
     (annual hatchery 10, wild release, record duty, stamp) through the TWINS `zp:steelhead`
     r1b/r2b/r4b and `steelhead_targeting_known`, whose one extent is `{op: steelhead_waters,
     siblings: [<base>]}` (book-known minus the base's sections; only `build_reaches` resolves it —
@@ -319,9 +323,14 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     rule (`read.source_of`). `anadromous_rainbow` (a rainbow over 50 cm is a steelhead) holds on the
     book-known FLOWING sections only (`steelhead.flows`: a stream, or a lake-typed water whose name
     says it flows — the Vedder Canal; the generator below shares the definition).
-    **The stamp waiver** lifts only the classified-water stamp (`Designation` docstring); the
-    provincial "stamp if you fish for steelhead" (`steelhead_targeting`, and its twin on a
-    waiver row's water past the steelhead regions — the Stellako in 7A) is a different requirement.
+    **The stamp waiver.** An OUTRIGHT waiver ("(Steelhead Stamp not required)") means NO steelhead
+    stamp on that designation's sections while it is in force (user ruling 2026-10-02): the
+    classified-water stamp, and every requirement carrying `waived_where: steelhead_stamp_waived`
+    — the provincial `steelhead_targeting` and its twin `steelhead_targeting_known`. A dated lift
+    the reader applies per section and day (`read.requirements_in_force`; the export's
+    `stamp_waiver`). The Classified Waters Licence and every steelhead rule still apply there. A
+    waiver "unless fishing for steelhead" (Seymour, Ecstall, Skeena River 2) lifts the
+    classified-water stamp only.
     **THE CURATED LIST** is `data/curated/regulations/steelhead_waters.json` (`CURATED.regulations.
     steelhead_waters`): `{"$comment": …, "generated": {source, generator, date, fingerprint},
     "waters": [{"item_id": "wbk:…", "note": "…"}, {"name": "Cowichan River", "region": "1"}]}` —

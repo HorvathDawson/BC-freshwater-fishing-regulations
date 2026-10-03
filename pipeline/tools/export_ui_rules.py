@@ -369,6 +369,46 @@ def designation_period(rid: str, fields: dict, verbatim: str, parts: dict) -> di
     return {"kind": "all_year", "says": f"Class {cls} all year"}
 
 
+#: "(Steelhead Stamp not required)" with no "unless" — `catalogue.Designation.waives_every_stamp`.
+_UNLESS = re.compile(r"\bunless\b", re.I)
+_MARKUP = re.compile(r"\*\*|\[[^\]]*\]")
+
+
+def add_stamp_waivers(licensing: dict, names: dict) -> None:
+    """THE STAMP WAIVER, said on the designation that prints it (user ruling 2026-10-02):
+    `stamp_waiver: {outright, lifts, says}`. OUTRIGHT ("(Steelhead Stamp not required)") lifts every
+    steelhead stamp on the designation's sections while it is in force — the classified-water stamp
+    and each requirement that consents (`fields.waived_where`: the provincial stamp to fish for
+    steelhead); a waiver "unless fishing for steelhead" lifts the classified-water stamp only.
+    Neither lifts the Classified Waters Licence or a steelhead rule. Derived, like `period`, from
+    the record's own fields; never authored."""
+    consents = sorted(k for k, x in licensing.items() if x["kind"] == "requirement"
+                      and x["fields"].get("waived_where") == "steelhead_stamp_waived")
+    for k, x in licensing.items():
+        w = x["fields"].get("steelhead_stamp_waived") if x["kind"] == "designation" else None
+        if not w:
+            continue
+        outright = not _UNLESS.search(w["verbatim"])
+        per = x["period"]
+        when = ("whenever this water is open" if per["kind"] == "when_open"
+                else "all year" if per["kind"] == "all_year" else x["parts"].get("when", ""))
+        row = re.sub(r"\s+", " ", _MARKUP.sub("", x["verbatim"])).strip()
+        name = names.get(x["entry_id"], "") or x["provenance"]["entry_name"]
+        unit = x["fields"].get("unit_name") or ""
+        if unit and unit.lower() != name.lower():
+            name = f"{name} ({unit})"            # the Dean's "Anahim Lake to Iltasyuko River"
+        says = (f"{name}: no Steelhead Stamp is required where this designation holds "
+                f"(“{row}”), {when} — neither the classified-water stamp nor the Conservation "
+                f"Surcharge Stamp to fish for steelhead. The Classified Waters Licence and the "
+                f"steelhead rules still apply." if outright else
+                f"{name}: the classified-water Steelhead Stamp is not required where this "
+                f"designation holds (“{row}”), {when}, unless you fish for steelhead — then the "
+                f"Conservation Surcharge Stamp is required as everywhere.")
+        x["stamp_waiver"] = {"outright": outright,
+                             "lifts": consents if outright else [],
+                             "verbatim": w["verbatim"], "says": says}
+
+
 def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str) -> dict:
     rec = _j(r["record"])
     if rec.get("kind") != kind or rec.get("id") != r[idcol]:
@@ -433,6 +473,7 @@ def read(bundle: Path) -> dict:
     licensing = dict(sorted(licensing.items()))
     for e in entries.values():
         e["licensing"].sort()
+    add_stamp_waivers(licensing, names)
 
     licences = {d: {"name": n, "provincial": bool(p)}
                 for d, n, p in db.execute("SELECT doc_id, name, provincial FROM licence "
@@ -693,9 +734,10 @@ STEELHEAD_TEXT = (
     "steelhead are known to be here, for one of two reasons (`steelhead_source`). "
     "\"regulations\": the book names steelhead on this water — it is a STEELHEAD ROW's own water, "
     "or a rule of one binds it "
-    "(a row with a rule naming steelhead, flagged `anadromous_rainbow`, or speaking of the "
-    "Steelhead Stamp, its waiver included: a steelhead quota, release or closure, 'Steelhead "
-    "Stamp mandatory', 'Steelhead Stamp not required'), by any line of that row (Tenas Lake, by "
+    "(a row any of whose rules or licensing records PRINTS steelhead: a steelhead quota, release "
+    "or closure, 'Steelhead Stamp mandatory', 'Steelhead Stamp not required', 'not required "
+    "unless fishing for steelhead' — or one flagged `anadromous_rainbow`; a Classified Water "
+    "designation printing no steelhead is not one), by any line of that row (Tenas Lake, by "
     "the Atnarko/Bella Coola spring closure). Such a water carries the WHOLE PROVINCIAL STEELHEAD "
     "SET wherever it lies, lake or stream, and a lake also its region's wild-steelhead release. "
     "\"curated list\": the water is on the curated known-steelhead list "
@@ -854,6 +896,20 @@ SPLIT_TEXT = {
 }
 
 #: A designation's classified period (`licensing[*].period`, designations only).
+#: `licensing[].stamp_waiver` — see `add_stamp_waivers`.
+STAMP_WAIVER_TEXT = {
+    "outright": "true: '(Steelhead Stamp not required)' — NO steelhead stamp on the designation's "
+                "sections while it is in force. false: 'not required unless fishing for "
+                "steelhead' — the classified-water stamp only",
+    "lifts": "the requirements (`entry_id#record_id`, each with `waived_where`) that do not hold "
+             "there and then: the provincial Conservation Surcharge Stamp to fish for steelhead. "
+             "[] for a conditional waiver",
+    "verbatim": "the waiver as the row prints it",
+    "says": "the sentence to show: the stamp is not required on <the designation's reach> "
+            "<its dates>, per the row; the Classified Waters Licence and the steelhead rules "
+            "still apply",
+}
+
 PERIOD_TEXT = {
     "kind": "when_open: the water is Classified whenever it is open (the book prints 'Class II "
             "water when open' or 'when/where open' — no dates, by design: licensing is consulted "
@@ -1096,7 +1152,10 @@ LICENSING_PART_TEXT = {
     "where": "on which water, or during which designation's period",
     "when": "the dates, days and hours it holds",
     "unit": "the licence unit(s), as the page names them",
-    "stamp": "the classified-water Steelhead Stamp here: its period, or its waiver",
+    "stamp": "the classified-water Steelhead Stamp here: its period, or its waiver (an outright "
+             "waiver: no steelhead stamp of any kind)",
+    "waived": "where a requirement does not hold: on a Classified Water whose row waives the "
+              "Steelhead Stamp outright, while that designation is in force",
     "terms": "how a document is sold",
     "instead": "what an alternative stands in for",
     "except": "anglers taken out of `who`",
@@ -1162,6 +1221,13 @@ LICENSING_RECORD_TEXT = {
               "all_year | dates, dates?, says} (see `licensing.period`). Derived from the record's "
               "own verbatim and `when`; never absent on a designation",
     "provenance": "entry_name, and for an unresolved record `uncertain` and `why`",
+    "stamp_waiver": "ONLY on a designation that waives the Steelhead Stamp: {outright, lifts, "
+                    "verbatim, says} (see `licensing.stamp_waiver`). `outright` "
+                    "('(Steelhead Stamp not required)'): NO steelhead stamp on its sections while "
+                    "it is in force — the classified-water stamp and every requirement in "
+                    "`lifts` (the provincial stamp to fish for steelhead). Otherwise ('unless "
+                    "fishing for steelhead') only the classified-water stamp; `lifts` is []. "
+                    "Neither lifts the Classified Waters Licence or a steelhead rule",
 }
 
 LICENSING_KIND_TEXT = {
@@ -1198,7 +1264,14 @@ LICENSING_FIELD_TEXT = {
     "tributary_excludes": "waters the tributary walk must not enter",
     "steelhead_stamp_during": "{when, verbatim}: the classified-water steelhead stamp runs here "
                               "then, whatever you fish for",
-    "steelhead_stamp_waived": "{verbatim}: that stamp is not required here",
+    "steelhead_stamp_waived": "{verbatim}: the classified-water stamp is not required here; "
+                              "with no 'unless' (an OUTRIGHT waiver, '(Steelhead Stamp not "
+                              "required)') no steelhead stamp at all — see the record's "
+                              "`stamp_waiver`",
+    "waived_where": "steelhead_stamp_waived: this requirement does NOT hold on a section, on a "
+                    "day, where a designation bound there is in force and waives the Steelhead "
+                    "Stamp outright (its `stamp_waiver.outright`; Chilko upstream of Brittany "
+                    "Creek Jun 11-Oct 31). Outside those dates or sections it holds as written",
     "suspended_while": "[{rule_id, verbatim}]: dormant while that closure rule (same entry) "
                        "binds",
     "review_reason": "what a curator still has to settle",
@@ -1775,7 +1848,8 @@ def guide(d: dict) -> dict:
                                 "STEELHEAD ROW is written for or any rule of it binds (a row "
                                 "naming steelhead, flagged "
                                 "`CatalogueEntry.anadromous_rainbow` — Chilliwack/Vedder by "
-                                "ruling — or speaking of the Steelhead Stamp; flowing: a stream, "
+                                "ruling — or printing the Steelhead Stamp; flowing: a "
+                                "stream, "
                                 "or a lake-typed water named as flowing, the Vedder Canal) — the "
                                 "parts that carry `anadromous_rainbow: true` (user rulings "
                                 "2026-10-01/02). No tributary walk, and NEVER the curated "
@@ -1805,9 +1879,11 @@ def guide(d: dict) -> dict:
                                 "RULE OF ONE BINDS, "
                                 "wherever it lies — a lake, a wetland, a stream of another "
                                 "region. A STEELHEAD ROW is a row whose own line names "
-                                "steelhead, flagged `anadromous_rainbow`, or speaking of the "
-                                "Steelhead Stamp (its waiver included: Chilko, Horsefly, West "
-                                "Road, the Stellako): Tenas Lake, reached only by the Atnarko/"
+                                "steelhead, flagged `anadromous_rainbow`, or printing the "
+                                "Steelhead Stamp in any wording ('mandatory', 'not required', "
+                                "'not required unless fishing for steelhead': the Kingcome, the "
+                                "Chilko, the Stellako) — never a Classified Water designation "
+                                "that prints no steelhead (user ruling 2026-10-02): Tenas Lake, reached only by the Atnarko/"
                                 "Bella Coola spring closure; Khartoum and Lois lakes; the Vedder "
                                 "Canal; the Stellako in Zone 7A. No tributary walk: a row's "
                                 "tributaries are its water only where one of its own rules binds "
@@ -2269,6 +2345,18 @@ def guide(d: dict) -> dict:
             "A designation obliges nothing on its own; requirements with `on` fire where it is "
             "in force, and the classified-water steelhead stamp runs during "
             "`steelhead_stamp_during`, unless `steelhead_stamp_waived`.",
+            "THE STAMP WAIVER (user ruling 2026-10-02). A designation whose `stamp_waiver.outright` "
+            "is true ('(Steelhead Stamp not required)': Chilko upstream of Brittany Creek Jun "
+            "11-Oct 31, Dean from Anahim Lake to the Iltasyuko, Horsefly, West Road mainstem, "
+            "Stellako) means NO steelhead stamp on its sections while it is in force: a "
+            "requirement with `waived_where: steelhead_stamp_waived` (the provincial stamp to "
+            "fish for steelhead, `stamp_waiver.lifts`) does not hold there and then. Say "
+            "`stamp_waiver.says`. Outside the designation's dates, or off its sections, the "
+            "stamp is required as written. The Classified Waters Licence still applies (it is "
+            "Class II water), and so do the steelhead rules — release wild steelhead, the annual "
+            "10, the record duty. A waiver 'unless fishing for steelhead' (Seymour, Ecstall, "
+            "Skeena River 2) lifts only the classified-water stamp. "
+            "`pipeline.deliver.bundle.read.requirements_in_force` is the reference reader.",
             "A designation's classified period is its `period`, never inferred from a missing "
             "`when`: `when_open` (Classified whenever the water is open), `all_year`, or "
             "`dates`. Show `period.says`.",
@@ -2305,8 +2393,27 @@ def guide(d: dict) -> dict:
                                   "classified", "when", "steelhead_stamp_during", n=1),
             "stamp_waived": lpick(lambda x: bool(x["fields"].get("steelhead_stamp_waived")),
                                   "classified", "steelhead_stamp_waived", n=1),
+            "stamp_waived_outright": [
+                dict(e, stamp_waiver=lic[e["id"]]["stamp_waiver"]) for e in lpick(
+                    lambda x: (x.get("stamp_waiver") or {}).get("outright") is True,
+                    "classified", "when", "steelhead_stamp_waived", n=1)],
+            "waived_where": lpick(lambda x: bool(x["fields"].get("waived_where")),
+                                  "waived_where", "doing", "satisfied_by", n=2),
             "on_designation": lpick(lambda x: bool(x["fields"].get("on")), "on", "doing",
                                     "satisfied_by", n=1),
+        },
+        "stamp_waiver": {
+            "reading": "A designation that waives the Steelhead Stamp carries `stamp_waiver`. "
+                       "OUTRIGHT ('(Steelhead Stamp not required)', user ruling 2026-10-02): on "
+                       "its sections, on the days it is in force, no steelhead stamp is required "
+                       "— neither the classified-water stamp nor the requirements in `lifts` "
+                       "(`waived_where: steelhead_stamp_waived`, the provincial stamp to fish for "
+                       "steelhead). On other days, or other sections, they hold as written. The "
+                       "Classified Waters Licence and every steelhead rule still apply. A waiver "
+                       "'unless fishing for steelhead' lifts only the classified-water stamp.",
+            "fields": STAMP_WAIVER_TEXT,
+            "designations": [{"id": k, **x["stamp_waiver"]} for k, x in lic.items()
+                             if x.get("stamp_waiver")],
         },
         "period": {
             "reading": "Every designation says when it is in force in `period`. 'Class II water "
@@ -4154,6 +4261,7 @@ def field_dictionary(d: dict) -> dict:
         "licensing.provenance": {k: PROVENANCE_TEXT[k] for k in ("entry_name", "uncertain",
                                                                    "why")},
         "licensing.period": PERIOD_TEXT,
+        "licensing.stamp_waiver": STAMP_WAIVER_TEXT,
         "entry": ENTRY_TEXT,
         "water": WATER_TEXT,
         "water.tidal": TIDAL_TEXT,
@@ -4185,6 +4293,8 @@ _DICTIONARY_SCOPES = (
      lambda doc: [x["provenance"] for x in doc["licensing"].values()]),
     ("licensing period key", ("licensing.period",),
      lambda doc: [x["period"] for x in doc["licensing"].values() if x.get("period")]),
+    ("licensing stamp_waiver key", ("licensing.stamp_waiver",),
+     lambda doc: [x["stamp_waiver"] for x in doc["licensing"].values() if x.get("stamp_waiver")]),
     ("entry field", ("entry",), lambda doc: doc["entries"].values()),
     ("set key", ("rulesets{} / licensing_sets{}",),
      lambda doc: list(doc["rulesets"].values()) + list(doc["licensing_sets"].values())),
@@ -4579,7 +4689,7 @@ def province_set_missing(rule_ids, record_ids, R: dict, L: dict) -> list[str]:
 def steelhead_rows(doc: dict) -> set[str]:
     """THE STEELHEAD ROWS, read from the output: every water row (`r…`) with a rule naming
     steelhead (`ST`), and every row a water's `steelhead_rows` names (the rows flagged
-    `anadromous_rainbow` or speaking of the Steelhead Stamp, whose own lines may name no fish)."""
+    `anadromous_rainbow` or printing the Steelhead Stamp, whose own lines may name no fish)."""
     R = doc["rules"]
     got = {x["entry_id"] for x in R.values() if x["entry_id"].startswith("r")
            and "ST" in (x["fields"].get("species") or [])}

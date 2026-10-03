@@ -541,7 +541,8 @@ def test_an_interior_cariboo_stream_is_possible(db, item_id, name):
         assert not db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone()
 
 
-#: the stamp-waiver rows ("Steelhead Stamp not required"): steelhead rows (user ruling 2026-10-02)
+#: the OUTRIGHT stamp-waiver rows ("(Steelhead Stamp not required)"): steelhead rows by that
+#: alone (user ruling 2026-10-02; the Dean's waiver row is flagged as well)
 WAIVER_ROWS = {"r5:chilko_river@5-5": "gnis:13741",
                "r5:horsefly_river_from_quesnel_lake_to_horsefly_river_falls@5-2": "gnis:24531",
                "r5:west_road_blackwater_river@5-12+5-13": "gnis:26104",
@@ -549,14 +550,14 @@ WAIVER_ROWS = {"r5:chilko_river@5-5": "gnis:13741",
 
 
 def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
-    """"Steelhead Stamp not required" mentions steelhead (user ruling 2026-10-02): the Chilko,
+    """"(Steelhead Stamp not required)" prints steelhead (user ruling 2026-10-02): the Chilko,
     Horsefly, West Road and both Stellako rows are steelhead rows. Every section their rules bind is
     known, carries the provincial set, and — a stream — is steelhead water. The Horsefly row binds
     the river below the falls; above them the river stays "possible"."""
     from pipeline.atlas.reach import steelhead as SH
     for eid in WAIVER_ROWS:
         e = raw[eid]
-        assert SH.steelhead_row(e) and SH.speaks_of_the_stamp(e), eid
+        assert SH.steelhead_row(e) and SH.prints_steelhead(e), eid
         assert not SH.names_steelhead(e) and not e.get("anadromous_rainbow"), eid
         secs = {s for (s,) in db.execute(
             "SELECT DISTINCT sr.sid FROM section_ruleset sr JOIN ruleset r ON r.set_id = sr.set_id "
@@ -575,8 +576,10 @@ def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
 def test_the_stellako_in_zone_7a_carries_the_set_by_its_waiver_row(db):
     """The Stellako's Zone 7A pieces lie past the steelhead regions; the waiver rows bind them, so
     they carry the provincial set through the twins and the stamp twin, and are steelhead water.
-    The stamp twin is the provincial "stamp if you fish for steelhead" — not the classified-water
-    stamp the row waives (`Designation.steelhead_stamp_waived` lifts only that one)."""
+    The stamp twin is PLACED there, and the row's outright waiver ("Class II water when open
+    (Steelhead Stamp not required)") lifts it whenever the water is open (user ruling 2026-10-02:
+    no steelhead stamp of any kind; `read.requirements_in_force`)."""
+    from pipeline.deliver.bundle import read as R
     secs = _sections(db, "gnis:7836")
     beyond = [s for s in secs if not any(r.startswith(QUALIFYING_ZONES) for r in _rules_on(db, s))]
     assert beyond
@@ -586,6 +589,9 @@ def test_the_stellako_in_zone_7a_carries_the_set_by_its_waiver_row(db):
         assert twins <= on and not on & PROVINCE, on
         assert f"zp:steelhead#{STAMP_TWIN}" in _requirements_on(db, sid)
         assert _steelhead_water(db, sid)
+        got = R.requirements_in_force(db, sid, (7, 1))
+        assert f"zp:steelhead#{STAMP_TWIN}" in got["waived"], got
+        assert not any(k.startswith("zp:steelhead#") for k in got["holds"]), got
 
 
 def test_a_region_4_stream_and_a_lake_are_absent(db):
@@ -1042,14 +1048,29 @@ def members_of(raw: dict) -> dict:
 
 
 def steelhead_rows(raw: dict) -> set[str]:
-    """THE STEELHEAD ROWS: water rows with a rule naming steelhead (`ST`), flagged
-    `anadromous_rainbow`, or with a licensing record speaking of the Steelhead Stamp — the
-    stamp-waiver rows count (user ruling 2026-10-02). Read here from the corpus, by hand."""
+    """THE STEELHEAD ROWS: water rows any of whose rules or licensing records PRINTS steelhead (a
+    rule naming `ST` or saying "steelhead"; the Steelhead Stamp in any wording), or flagged
+    `anadromous_rainbow` (user ruling 2026-10-02, as corrected). Read here from the corpus, by
+    hand: the words, not the model's fields."""
     return {eid for eid, e in raw.items() if not eid.startswith("z")
             and (e.get("anadromous_rainbow")
-                 or any("ST" in (r.get("species") or []) for r in e.get("rules") or [])
-                 or any(x.get("steelhead_stamp_waived") or x.get("steelhead_stamp_during")
+                 or any("ST" in (r.get("species") or []) or "steelhead" in r["verbatim"].lower()
+                        for r in e.get("rules") or [])
+                 or any("steelhead" in json.dumps(x).lower()
+                        .replace("steelhead_stamp_during", "").replace("steelhead_stamp_waived", "")
                         for x in e.get("licensing") or []))}
+
+
+def test_the_steelhead_rows_are_57_and_no_designation_without_steelhead_words_is_one(raw):
+    """57 steelhead rows; the 25 Classified Water rows whose designation prints no steelhead (all in
+    Region 4: "Class II water when open, including tributaries") are none of them."""
+    from pipeline.atlas.reach import steelhead as SH
+    rows = steelhead_rows(raw)
+    assert rows == {k for k, e in raw.items() if SH.steelhead_row(e)} and len(rows) == 57
+    plain = {k for k, e in raw.items() if not k.startswith("z")
+             and any(x.get("kind") == "designation" for x in e.get("licensing") or [])
+             and k not in rows}
+    assert len(plain) == 25 and all(k.startswith("r4:") for k in plain), sorted(plain)
 
 
 def steelhead_row_rules(raw: dict) -> set[str]:
@@ -1187,7 +1208,7 @@ def test_no_row_outside_the_steelhead_regions_has_a_steelhead_rule(raw):
     assert "Steelhead Stamp not required" in e["regs_verbatim"]
     assert not any("ST" in (r.get("species") or []) or "steelhead" in r["verbatim"].lower()
                    for r in e.get("rules") or [])
-    assert SH.steelhead_row(e) and SH.speaks_of_the_stamp(e)
+    assert SH.steelhead_row(e) and SH.prints_steelhead(e)
     assert {r for r in steelhead_row_rules(raw) if r.split("::")[0] in outside}
 
 

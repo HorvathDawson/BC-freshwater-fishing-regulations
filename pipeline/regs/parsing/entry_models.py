@@ -57,8 +57,8 @@ class Op(str, Enum):
     REST = "rest"                   # the water minus the named siblings' sections   (0 splits)
     #: THE BOOK'S STEELHEAD WATERS — a STEELHEAD ROW's own water (no tributaries) and every section
     #: any rule of it binds (a water row
-    #: flagged `anadromous_rainbow`, with a rule naming steelhead, or speaking of the Steelhead
-    #: Stamp; `pipeline.atlas.reach.steelhead`), never the curated steelhead list (a presence
+    #: flagged `anadromous_rainbow`, with a rule naming steelhead, or printing the Steelhead Stamp
+    #: in any wording; `pipeline.atlas.reach.steelhead`), never the curated steelhead list (a presence
     #: indicator that binds no rule) — inside `area_id` (less `outside_area`) when the extent names
     #: one, and of `feature_types` when it names them, MINUS every section the named `siblings` bind
     #: (the rule or licensing record this one is the twin of). How the provincial steelhead set (zp:steelhead r1b/r2b/r4b and the stamp twin)

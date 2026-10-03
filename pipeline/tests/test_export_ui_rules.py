@@ -591,6 +591,8 @@ _KEYED = {
     "licensing.provenance": lambda doc: [x["provenance"] for x in doc["licensing"].values()],
     "licensing.period": lambda doc: [x["period"] for x in doc["licensing"].values()
                                      if x.get("period")],
+    "licensing.stamp_waiver": lambda doc: [x["stamp_waiver"] for x in doc["licensing"].values()
+                                           if x.get("stamp_waiver")],
 }
 
 

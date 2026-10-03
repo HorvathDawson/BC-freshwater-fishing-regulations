@@ -1971,6 +1971,9 @@ def _days(ranges: List["DateRange"]) -> set:
 _CLASS_SAID = re.compile(r"\bclass (ii|i|1|2) waters?\b")
 _WAIVED_SAID = re.compile(r"steelhead stamp not (?:required|mandatory)")
 _DURING_SAID = re.compile(r"steelhead stamp (?:is )?mandatory|until\s+reopened")
+#: "Steelhead Stamp not required UNLESS fishing for steelhead" — a waiver of the classified-water
+#: stamp only (`Designation.waives_every_stamp`).
+_CONDITIONAL_WAIVER = re.compile(r"\bunless\b")
 _UNIT_SAID = re.compile(r"([a-z][a-z .']*?) classified licence required for non-resident")
 
 
@@ -1982,9 +1985,18 @@ class Designation(_Terse):
     when fishing on a stream during the period when it is classified") fires on it, and so does the
     classified-water steelhead stamp during `steelhead_stamp_during`.
 
-    `steelhead_stamp_waived` LIFTS ONLY THAT STAMP. The provincial "stamp if you fish for steelhead"
-    is a different requirement with a different trigger, so the waiver has no field that could
-    reach it — which is the Chilko/Dean/Horsefly/Skeena-2 defect, made unwriteable.
+    `steelhead_stamp_waived` comes in two kinds, read off its own quote (`waives_every_stamp`):
+      * OUTRIGHT — "(Steelhead Stamp not required)": Chilko upstream of Brittany Creek June 11-Oct
+        31, Horsefly, West Road mainstem, both Stellako rows, the Dean from Anahim Lake to the
+        Iltasyuko. NO steelhead stamp at all on this designation's sections while it is in force
+        (user ruling 2026-10-02): the classified-water stamp, AND the provincial "stamp if you
+        fish for steelhead" — which says so itself (`Requirement.waived_where`), so a waiver can
+        lift only a requirement that consents to it. The steelhead RULES still hold there (release
+        wild, the annual 10, the record duty), and so does the Classified Waters Licence: it is
+        still Class II water.
+      * CONDITIONAL — "not required unless fishing for steelhead" (Seymour, Ecstall, Skeena River
+        2): the classified-water stamp only; whoever fishes for steelhead still needs the
+        provincial stamp.
 
     `unit` is what a non-resident's per-day licence NAMES. "Class II water when open, including
     tributaries - Michel Creek classified licence required for non-resident anglers" made two
@@ -2068,6 +2080,14 @@ class Designation(_Terse):
         if e:
             raise ValueError(f"designation {self.id}: " + "; ".join(e))
         return self
+
+    @property
+    def waives_every_stamp(self) -> bool:
+        """An OUTRIGHT waiver — "(Steelhead Stamp not required)", with no "unless": no steelhead
+        stamp of any kind on these sections while the designation is in force (see the class).
+        "Not required unless fishing for steelhead" waives only the classified-water stamp."""
+        return (self.steelhead_stamp_waived is not None
+                and not _CONDITIONAL_WAIVER.search(squash(self.steelhead_stamp_waived.verbatim)))
 
 
 class NotClassified(_Terse):
@@ -2191,6 +2211,17 @@ class Requirement(_Terse):
     `on`: `classified_period` is met wherever a designation is in force on a stream,
     `steelhead_period` wherever its `steelhead_stamp_during` also holds. Both together means both.
 
+    `waived_where: steelhead_stamp_waived` is the one place a designation can LIFT a requirement,
+    and the requirement consents to it by saying so: it does not hold on a section, on a day, where
+    a designation bound to that section is in force (its `when`, and not asleep under
+    `suspended_while`) and waives the Steelhead Stamp OUTRIGHT (`Designation.waives_every_stamp`:
+    "(Steelhead Stamp not required)" — Chilko upstream of Brittany Creek June 11-Oct 31). User
+    ruling 2026-10-02: such a waiver means no steelhead stamp at all there, the provincial
+    "Conservation Surcharge Stamp to fish for steelhead" included (`zp:steelhead`
+    `steelhead_targeting` and its twin). Only a requirement whose every path holds the Steelhead
+    Stamp may carry it. Outside the designation's dates, or off its sections, the requirement holds
+    as written. The reader is `read.requirements_in_force`.
+
     There is no `required` and no `permitted`. A requirement that does not apply to someone is
     `who` / `who_except`, an `Exemption`, or a designation fact — never "not required" as a value.
 
@@ -2219,6 +2250,8 @@ class Requirement(_Terse):
     includes_tributaries: Optional[bool] = None
     water: Optional[WaterKind] = None
     on: Optional[Literal["classified_period", "steelhead_period"]] = None
+    #: Lifted where an OUTRIGHT stamp waiver is in force (see the class docstring).
+    waived_where: Optional[Literal["steelhead_stamp_waived"]] = None
     authority: Optional[Literal["superior"]] = None
     when: Optional[When] = None
     restates: Optional[Ref] = None
@@ -2240,6 +2273,17 @@ class Requirement(_Terse):
                      "them in satisfied_by")
         if len(set(self.presumes)) != len(self.presumes):
             e.append("presumes names a document twice")
+        # A WAIVER OF THE STEELHEAD STAMP LIFTS ONLY A STEELHEAD-STAMP REQUIREMENT: one whose every
+        # path holds the stamp. On the Classified Waters Licence it would tell a Chilko angler
+        # in June that Class II water needs no licence.
+        if self.waived_where is not None and (
+                not self.satisfied_by
+                or any(Document.steelhead_stamp not in q.hold for q in self.satisfied_by)):
+            e.append("waived_where: steelhead_stamp_waived lifts only a requirement to hold the "
+                     "Steelhead Stamp (every path holds it)")
+        if self.waived_where is not None and self.on == "steelhead_period":
+            e.append("waived_where on a steelhead_period requirement: a waiver and a stamp period "
+                     "are never on one designation, so it lifts nothing")
         bound = sorted(a for a in self.conduct if a in DOCUMENT_ACTS)
         if bound and not self.presumes:
             e.append(f"conduct {bound} is a duty about a document — name it in `presumes`, or an "
@@ -3988,14 +4032,17 @@ def _doing_words(d: "Doing") -> str:
 #:   where       "on a classified stream during its classified period", "on streams"
 #:   when        the dates, days and hours it holds
 #:   unit        the licence unit(s), as the page names them
-#:   stamp       the classified-water Steelhead Stamp: its period here, or its waiver
+#:   stamp       the classified-water Steelhead Stamp: its period here, or its waiver (an
+#:               OUTRIGHT waiver says no steelhead stamp of any kind is needed)
+#:   waived      where a requirement does not hold: on a Classified Water whose row waives the
+#:               Steelhead Stamp outright, while it is in force (`Requirement.waived_where`)
 #:   terms       how a document is sold — "sold by the day; at most 8 days per licence year"
 #:   instead     what an alternative stands in for — "in place of a basic angling licence"
 #:   except      anglers taken out of `who`
 #:   suspended   "not in force while “<closure>” applies"
 #:   note        "provincial licences are not valid here" (a superior authority)
 LICENSING_PARTS = ("who", "what", "need", "must", "way", "doing", "where", "when", "unit", "stamp",
-                   "terms", "instead", "except", "suspended", "note")
+                   "waived", "terms", "instead", "except", "suspended", "note")
 
 
 def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dict] = None,
@@ -4020,6 +4067,14 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
             w = rec.steelhead_stamp_during.when
             p["stamp"] = ("Steelhead Stamp required whatever you fish for"
                           + (f", {w.words()}" if not w.is_empty() else ""))
+        elif rec.waives_every_stamp:
+            # user ruling 2026-10-02: no steelhead stamp of any kind — the Classified Waters
+            # Licence is still required (it is still Class II water)
+            p["stamp"] = ("No Steelhead Stamp required here"
+                          + (f", {rec.when.words()}" if rec.when and not rec.when.is_empty()
+                             else "")
+                          + " — neither the classified-water stamp nor the stamp to fish for "
+                            "steelhead")
         elif rec.steelhead_stamp_waived is not None:
             p["stamp"] = "Steelhead Stamp not required here unless you fish for steelhead"
         said = []
@@ -4053,6 +4108,9 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
         else:
             # A path that is not a document is an instruction: "…: to fish, be accompanied by …".
             p["way"] = ", or ".join(_path_words(q) for q in rec.satisfied_by)
+        if rec.waived_where is not None:
+            p["waived"] = ("not on a Classified Water whose row says “Steelhead Stamp not "
+                           "required”, while it is in force")
         if rec.who_except is not None:
             p["except"] = f"except {rec.who_except.words()}"
         if rec.authority == "superior":
@@ -4116,7 +4174,8 @@ def licensing_parts(rec, siblings: Optional[dict] = None, *, units: Optional[dic
 def compose_licensing(parts: dict) -> str:
     """ONE sentence from a licensing record's parts — the one composer (see `compose`)."""
     g = parts.get
-    tail = (f" {g('where')}" if g("where") else "") + (f", {g('when')}" if g("when") else "")
+    tail = ((f" {g('where')}" if g("where") else "") + (f", {g('when')}" if g("when") else "")
+            + (f" ({g('waived')})" if g("waived") else ""))
     if g("need") is not None:
         out = f"{g('who') or 'You'} need {g('need')}" + (f" {g('doing')}" if g("doing") else "")
         out += tail

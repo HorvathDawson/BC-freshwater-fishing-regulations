@@ -992,3 +992,100 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     return [dict({a: b for a, b in orig[k].items() if a != "_rank"}, state=said(k),
                  **({"partly_lifted": True} if k in partly else {}))
             for k in sorted(out_, key=lambda k: f"{k[0]}::{k[1]}")]
+
+
+# --------------------------------------------------------------------------------------------
+# Licensing: which requirements are in force on a section, on a day
+# --------------------------------------------------------------------------------------------
+# The reference reader for WHERE AND WHEN a requirement holds — the angler is unknown, so `who`
+# and `doing` are left for the sentence (app/packages/core/src/regulations.ts) and every record
+# that holds is returned. Licensing never votes on open/closed: this answers what holds while the
+# water is open, and a closed water needs no licence by construction.
+
+
+def _designations_in_force(db, section: int, on) -> list[dict]:
+    """The designations bound to `section` that are in force on the day: their `when` holds
+    (a `part` day counts — it holds at some hours), and no `suspended_while` closure of their entry
+    binds the section that day. Each is its record, with `entry_id`."""
+    out = []
+    rules_here: set | None = None
+    for eid, did, rec in db.execute(
+            "SELECT d.entry_id, d.designation_id, d.record FROM designation_section ds "
+            "JOIN designation d ON d.entry_id = ds.entry_id AND d.designation_id = "
+            "ds.designation_id WHERE ds.sid = ?", (section,)):
+        r = json.loads(rec)
+        if in_force(r.get("when"), on) == "no":
+            continue
+        asleep = False
+        for s in r.get("suspended_while") or []:
+            if rules_here is None:
+                rules_here = {(e, x) for e, x in db.execute(
+                    "SELECT rs.entry_id, rs.rule_id FROM section_ruleset sr JOIN ruleset rs "
+                    "ON rs.set_id = sr.set_id WHERE sr.sid = ?", (section,))}
+            if (eid, s["rule_id"]) in rules_here:
+                w = db.execute("SELECT when_ FROM rule WHERE entry_id = ? AND rule_id = ?",
+                               (eid, s["rule_id"])).fetchone()
+                if in_force(json.loads(w[0]) if w and w[0] else None, on) == "yes":
+                    asleep = True
+        if not asleep:
+            out.append(dict(r, entry_id=eid, id=did))
+    return out
+
+
+def stamp_waived_here(db, section: int, on) -> list[str]:
+    """The designations (`entry_id#id`) that waive the Steelhead Stamp OUTRIGHT on this section
+    on this day — "(Steelhead Stamp not required)", in force (`Designation.waives_every_stamp`).
+    Where one holds, no steelhead stamp is required (user ruling 2026-10-02)."""
+    from pipeline.regs.parsing.catalogue import Designation
+    return sorted(f"{d['entry_id']}#{d['id']}" for d in _designations_in_force(db, section, on)
+                  if Designation.model_validate({k: v for k, v in d.items()
+                                                 if k != "entry_id"}).waives_every_stamp)
+
+
+def requirements_in_force(db, section: int, on) -> dict:
+    """Every requirement in force on `section` on the day, `{entry_id#req_id: why}`, and the ones
+    an outright stamp waiver lifts there, under `"waived"`: `{entry_id#req_id: [designation]}`.
+
+    A requirement holds where it is placed (`requirement_section`; `province` everywhere but its
+    `province_except` kind and tidal water; `on_designation` wherever a designation satisfying its
+    `on` is in force), on the days of its `when`; one with `on` and sections needs that designation
+    in force too. `waived_where: steelhead_stamp_waived` lifts it where `stamp_waived_here` holds."""
+    desig = _designations_in_force(db, section, on)
+    have = {"classified_period": bool(desig),
+            "steelhead_period": any(
+                d.get("steelhead_stamp_during") is not None
+                and in_force(d["steelhead_stamp_during"].get("when"), on) != "no" for d in desig)}
+    placed = {(e, r) for e, r in db.execute(
+        "SELECT entry_id, req_id FROM requirement_section WHERE sid = ?", (section,))}
+    tidal = db.execute("SELECT 1 FROM tidal WHERE sid = ?", (section,)).fetchone() is not None
+    excepted = {k for (k,) in db.execute(
+        "SELECT area_kind FROM province_except WHERE sid = ?", (section,))}
+    waivers = stamp_waived_here(db, section, on)
+    holds: dict[str, str] = {}
+    waived: dict[str, list[str]] = {}
+    for eid, rid, placement, rec in db.execute(
+            "SELECT entry_id, req_id, placement, record FROM requirement"):
+        r = json.loads(rec)
+        if placement == "sections":
+            if (eid, rid) not in placed:
+                continue
+            why = "sections"
+        elif placement == "province":
+            kinds = {x.get("outside_area_kind") for x in r.get("extents") or []} - {None}
+            if tidal or kinds & excepted:
+                continue
+            why = "province"
+        elif placement == "on_designation":
+            why = "on_designation"
+        else:
+            continue                                     # unresolved: the reader says "check"
+        if r.get("on") and not have[r["on"]]:
+            continue
+        if in_force(r.get("when"), on) == "no":
+            continue
+        key = f"{eid}#{rid}"
+        if r.get("waived_where") == "steelhead_stamp_waived" and waivers:
+            waived[key] = waivers
+            continue
+        holds[key] = why
+    return {"holds": holds, "waived": waived}
