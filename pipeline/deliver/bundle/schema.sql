@@ -100,8 +100,15 @@ CREATE TABLE section_span (sid INTEGER PRIMARY KEY,
 -- position on a named water's main stem, km from the mouth. An area boundary crosses hundreds of
 -- waters, so its `at` is []: the run that ends there carries the km. Region lines are not rows:
 -- a run names them `region_line:<region>`.
+-- `name` is unique among the PLACES of each water it stands on (`spans._unique_per_water`): a
+-- length cut is named for the water joining there (or "side channel" / "unnamed tributary", placed
+-- by the nearest named water), an offset cut says its offset ("5 km upstream of the Halfway River
+-- confluence"), and a repeated label is placed by its nearest named landmark. `official_name` is
+-- an area's name as its source spells it ("CLAYHURST ECOLOGICAL RESERVE") when `name` re-cases it;
+-- `same_place_as` is the id of the cut at the SAME place (one curated cut authored under two
+-- waters), which shares this one's name.
 CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
-                    at TEXT NOT NULL) WITHOUT ROWID;
+                    at TEXT NOT NULL, official_name TEXT, same_place_as TEXT) WITHOUT ROWID;
 
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:

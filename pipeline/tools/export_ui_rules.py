@@ -35,6 +35,7 @@ from pathlib import Path
 
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import spans as SP
+from pipeline.deliver.bundle.place_names import display_case
 from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
@@ -64,7 +65,8 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "steelhead_source": ("ord", "entry_id"),
                     "section_span": ("sid", "lo_m", "hi_m", "lo", "hi", "off_stem"),
                     "span_end": ("eid", "token"),
-                    "split": ("split_id", "name", "kind", "at")}
+                    "split": ("split_id", "name", "kind", "at", "official_name",
+                              "same_place_as")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -444,11 +446,15 @@ def read(bundle: Path) -> dict:
     entries, names = {}, {}
     for e in _rows(db, "SELECT * FROM entry ORDER BY entry_id"):
         extents = _j(e["extents"], [])
-        names[e["entry_id"]] = e["name"] or ""
+        # A DISPLAYED NAME NEVER SHOUTS: a row the book prints in capitals ("ENDAKO RIVER") is
+        # shown "Endako River" (`display_case`); `official_name` keeps the spelling it came with.
+        name = display_case(e["name"]) if e["name"] else e["name"]
+        names[e["entry_id"]] = name or ""
         entries[e["entry_id"]] = {
             "kind": _entry_kind(e["entry_id"], extents),
             "chapter": e["entry_id"].split(":", 1)[0],
-            "name": e["name"], "full_name": e["full_name"],
+            "name": name, **({"official_name": e["name"]} if name != e["name"] else {}),
+            "full_name": e["full_name"],
             "item_id": e["item_id"], "matched": _j(e["matched"], []),
             "mus": _j(e["mus"], []), "pages": _j(e["pages"], []),
             "symbols": _j(e["symbols"], []), "scope_note": e["scope_note"],
@@ -505,7 +511,9 @@ def read(bundle: Path) -> dict:
     for item_id, name, kind, part_of, n in db.execute(
             "SELECT i.item_id, i.name, i.kind, i.part_of, COUNT(*) FROM item i "
             "JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
-        waters[item_id] = {"name": name, "kind": kind, "sections": n,
+        shown = display_case(name) if name else name
+        waters[item_id] = {"name": shown, **({"official_name": name} if shown != name else {}),
+                           "kind": kind, "sections": n,
                            "entries": sorted(by_item.get(item_id, [])),
                            "parts": [], "outside_bc": 0}
         if part_of:
@@ -666,13 +674,16 @@ def read_splits(db) -> dict:
     them all in `at` and leaves both null; an area boundary (which crosses hundreds of waters) has
     neither — the run ending there carries the km."""
     out = {}
-    for sid, name, kind, at in db.execute("SELECT split_id, name, kind, at FROM split "
-                                          "ORDER BY split_id"):
+    for sid, name, kind, at, official, same in db.execute(
+            "SELECT split_id, name, kind, at, official_name, same_place_as FROM split "
+            "ORDER BY split_id"):
         at = _j(at, [])
         one = at[0] if len(at) == 1 else None
         out[sid] = {"name": name, "kind": kind,
                     "water_id": one[0] if one else None, "km": one[1] if one else None,
-                    **({"at": [{"water_id": w, "km": k} for w, k in at]} if len(at) > 1 else {})}
+                    **({"at": [{"water_id": w, "km": k} for w, k in at]} if len(at) > 1 else {}),
+                    **({"official_name": official} if official else {}),
+                    **({"same_place_as": same} if same else {})}
     for r in REGIONS:
         out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
                                    "water_id": None, "km": None}
@@ -781,8 +792,18 @@ FILE_TEXT = {
 }
 
 #: A water, key by key (`waters[item_id]`).
+#: THE CASING RULE every displayed name follows — one text for waters, entries and splits.
+OFFICIAL_NAME_TEXT = (
+    "ONLY where `name` was re-cased: the name exactly as its source spells it, in capitals "
+    "('CLAYHURST ECOLOGICAL RESERVE', 'MITE LAKE', 'ENDAKO RIVER'). A displayed name never shouts: "
+    "an all-capitals name is shown as a reader writes it ('Clayhurst Ecological Reserve') — small "
+    "words lower after the first ('Dewdney and Glide Islands'), acronyms kept ('CNR', 'CFB', "
+    "'CVWMA'), 'Mc' and an O'/D'/L' prefix kept ('McKenny', 'O'Rourke'), lower case after any "
+    "other apostrophe ('Field's Lease'). A name that has any lower-case letter is shown as written")
+
 WATER_TEXT = {
-    "name": "the water's name",
+    "name": "the water's name, as a reader writes it (never all capitals — see `official_name`)",
+    "official_name": OFFICIAL_NAME_TEXT,
     "kind": "stream | lake | wetland, as the atlas types the water",
     "sections": "how many sections the water has; its parts' `sections` sum to it",
     "entries": "the synopsis rows that MATCH this water (their `matched` lists it) — not every "
@@ -867,7 +888,9 @@ END_TEXT = {
                   "`splits`",
     "area:<name>": "an area boundary that is not a region (a park, an ecological reserve, a group "
                    "of management units) — also a key of `splits`. A run with this at BOTH ends "
-                   "lies inside the area",
+                   "lies inside the area. The token is an ID and keeps its source's spelling "
+                   "('area:CLAYHURST ECOLOGICAL RESERVE'); show its `splits` name ('Clayhurst "
+                   "Ecological Reserve boundary'), never the token",
     "region_line:<region>": "a region boundary (`region_line:6`); a key of `splits`",
     "bc_border": "the provincial (or national) border: the water runs on outside B.C.",
     "lake_inlet:<item_id>": "the run ends where it flows INTO that lake (a key of `waters`; "
@@ -875,7 +898,7 @@ END_TEXT = {
     "lake_outlet:<item_id>": "the run begins where it flows OUT of that lake (`lake_outlet` "
                              "alone: unnamed)",
     "confluence:<item_id>": "a cut the atlas made where that tributary (a key of `waters`) flows "
-                            "in. Say it '<tributary name> confluence'",
+                            "in. Say it '<tributary name> confluence' (the tributary's `name`)",
     "mouth": "the water's own downstream end — into the sea, another river or a lake it ends in "
              "— with no cut",
     "source": "the water's own upstream end with no cut — its source, or where it takes its "
@@ -884,8 +907,28 @@ END_TEXT = {
 
 #: One cut in `splits`, field by field.
 SPLIT_TEXT = {
-    "name": "a short human name for the place: 'boundary signs', 'CNR bridge', 'Thompson River "
-            "confluence', 'Garibaldi Park boundary' — the curated split's own label",
+    "name": "a short human name for the place, UNIQUE among the places of each water it stands on: "
+            "'boundary signs', 'Thompson River confluence', 'Garibaldi Park boundary' — the curated "
+            "split's own label. A CONFLUENCE is named for the OTHER water that joins there (on the "
+            "receiving river the tributary, on the tributary the receiving river), never the water "
+            "it stands on; an offset cut says its offset from the curated split ('5 km upstream "
+            "of the Halfway River confluence'); a length cut where a lake drains straight in is "
+            "'<lake> outlet'. A length cut the atlas made where a SIDE CHANNEL of "
+            "the same water flows back in is 'side channel', and one at a tributary with no name "
+            "'unnamed tributary' — both placed by the nearest named water joining the river ('side "
+            "channel above Elbow Creek'). A label that repeats at two places of one water is "
+            "placed the same way ('CNR bridge below Deadman River' / 'CNR bridge above Bonaparte "
+            "River'), then by its distance from that landmark, then 'lower' / 'upper'. An area is "
+            "never all capitals ('Clayhurst Ecological Reserve boundary', see `official_name`)",
+    "official_name": "ONLY on an area boundary whose name was re-cased: the area's name exactly as "
+                     "its source layer spells it ('CLAYHURST ECOLOGICAL RESERVE'). The id keeps "
+                     "that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never change, and "
+                     "extents bind by them; show `name`, never the id",
+    "same_place_as": "ONLY on a cut at the SAME place as another cut of the same water (one "
+                     "curated cut authored under two waters' lists — the Thompson River confluence "
+                     "on the Fraser, as `fraser_river__…` and `thompson_river__…`): that other "
+                     "cut's id. The two share a name because they are one place; treat them as "
+                     "one",
     "kind": "how the cut was placed: point | line | confluence | lake (a lake's inlet or outlet, "
             "with an offset) | gauge (a hydrometric station) | area (an area's boundary) | "
             "region_line",
@@ -1441,7 +1484,9 @@ ENTRY_TEXT = {
     "kind": "province | zone | area | water — see `entries`",
     "chapter": "the id prefix: zp (province), z<region> (a region's chapter), r<region> "
                "(a water in that region)",
-    "name": "the display name", "full_name": "the heading as printed",
+    "name": "the display name, as a reader writes it (never all capitals)",
+    "official_name": OFFICIAL_NAME_TEXT,
+    "full_name": "the heading as printed",
     "item_id": "the first water it matched", "matched": "every water it matched",
     "mus": "the management units the row was printed under",
     "pages": "the synopsis pages it is printed on", "symbols": "the printed glyphs, 1:1",
@@ -2496,7 +2541,11 @@ def guide(d: dict) -> dict:
                                    for r in p["runs"] if r.get("branch")),
             },
             "splits": "`splits` (top level) names every cut: id -> {name, kind, water_id, km}, "
-                      "km from that water's mouth. See `field_dictionary.splits`.",
+                      "km from that water's mouth. A name is unique among the places of each "
+                      "water, a confluence is named for the OTHER water that joins there, and no "
+                      "name is all capitals; two ids at one place share a name and the second "
+                      "says `same_place_as`. Show `name`, never an id. See "
+                      "`field_dictionary.splits`.",
         },
         "outside_bc": "A water's `outside_bc` counts its sections outside British Columbia — "
                       "past the border, or in no region. No B.C. regulation applies there and "
@@ -4909,12 +4958,71 @@ def period_problems(doc: dict) -> list[str]:
     return out
 
 
+def _split_waters(x: dict) -> list[tuple[str, float]]:
+    """(water_id, km) of every place a cut stands on a named water's main stem."""
+    if x.get("water_id"):
+        return [(x["water_id"], x["km"])]
+    return [(a["water_id"], a["km"]) for a in x.get("at", ())]
+
+
+def name_problems(doc: dict) -> list[str]:
+    """THE NAMES A PAGE SHOWS. (1) Within each water, a cut's name is unique among its places — a
+    second id at the SAME place says so (`same_place_as`) and shares the name. (2) A confluence is
+    never named after the water it stands on. (3) No displayed name is all capitals
+    (`place_names.is_shouting`; acronyms allowed): a water's, an entry's, a cut's, a lake part's."""
+    from pipeline.deliver.bundle.place_names import is_shouting
+    out = []
+    S, W = doc["splits"], doc["waters"]
+    seen: dict[tuple[str, str], list[tuple[float, str]]] = defaultdict(list)
+    for sid, x in sorted(S.items()):
+        for w, km in _split_waters(x):
+            seen[(w, x["name"])].append((km, sid))
+        same = x.get("same_place_as")
+        if same is not None:
+            y = S.get(same)
+            if y is None or y["name"] != x["name"] or \
+                    not set(_split_waters(x)) & set(_split_waters(y)):
+                out.append(f"split {sid}: same_place_as {same!r} is no cut at its place by its name")
+    for (w, name), at in sorted(seen.items()):
+        places = []
+        for km, sid in sorted(at):
+            if not places or abs(km - places[-1][0]) > 0.01:
+                places.append((km, [sid]))
+            else:
+                places[-1][1].append(sid)
+        if len(places) > 1 and len({sid for _, ids in places for sid in ids}) > 1:
+            # (one cut at two places of a water — Adams Lake's inlet and outlet — is one name)
+            out.append(f"water {w}: the name {name!r} stands at {len(places)} places "
+                       f"({', '.join(ids[0] for _, ids in places)})")
+        for _, ids in places:
+            for sid in ids[1:]:
+                if S[sid].get("same_place_as") not in ids:
+                    out.append(f"water {w}: {sid} shares {name!r} and its place with {ids[0]} "
+                               f"but says no `same_place_as`")
+    for sid, x in sorted(S.items()):
+        if x["kind"] != "confluence":
+            continue
+        for w, _ in _split_waters(x):
+            own = (W.get(w) or {}).get("name") or ""
+            n = x["name"].lower()
+            if own and (n == own.lower() or n == f"{own.lower()} confluence"
+                        or n.endswith(f" of the {own.lower()} confluence")):
+                out.append(f"split {sid}: a confluence on {w} named after that water ({x['name']!r})")
+    shown = ([(f"water {i}", w["name"]) for i, w in W.items()]
+             + [(f"entry {i}", e["name"]) for i, e in doc["entries"].items()]
+             + [(f"split {i}", x["name"]) for i, x in S.items()]
+             + [(f"water {i} part", r["polygon"]) for i, w in W.items() for p in w["parts"]
+                for r in p["runs"] if r.get("polygon") not in (None, "whole")])
+    out += [f"{where}: the name {n!r} is all capitals" for where, n in shown if is_shouting(n)]
+    return out
+
+
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
             + dictionary_gaps(doc)
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
             + steelhead_presence_problems(doc) + steelhead_set_problems(doc)
-            + run_problems(doc) + period_problems(doc))
+            + run_problems(doc) + period_problems(doc) + name_problems(doc))
 
 
 def dumps(doc: dict) -> str:

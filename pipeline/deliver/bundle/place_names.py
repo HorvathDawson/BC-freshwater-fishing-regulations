@@ -44,13 +44,84 @@ _AREA_KIND_WORDS = {
 }
 
 
+#: Words that are acronyms or numerals in a name and stay in capitals when the name is re-cased
+#: ("CNR bridge", "CFB Comox", "Creston Valley Wildlife Management Area (CVWMA) Waters"). Also the
+#: allowlist of the "no displayed name is all caps" check (`is_shouting`).
+ACRONYMS = frozenset({
+    "BC", "BCR", "CFB", "CFS", "CNR", "CPR", "CVWMA", "FSR", "IPP", "MF", "MU", "MUS", "OSM", "PGE",
+    "QFN", "RTA", "UBC", "US", "USA", "WMA", "WSC", "II", "III", "IV", "VI", "VII", "VIII", "IX"})
+#: Small words a title keeps in lower case after its first word.
+_SMALL = frozenset({"a", "an", "and", "at", "by", "de", "du", "for", "in", "la", "le", "of", "on",
+                    "or", "the", "to"})
+#: One run of letters (any script: "Nqw'elqw'elusten", "Brulé").
+_WORD = re.compile(r"[^\W\d_]+")
+#: Two or more consecutive all-capitals words (letters, apostrophes, hyphens; 2+ letters each) in a
+#: name that is otherwise written in mixed case.
+_SHOUTED_RUN = re.compile(r"\b[A-Z][A-Z'\-]+(?:\s+[A-Z][A-Z'\-]+)+\b")
+
+
+def display_case(name: str) -> str:
+    """An ALL-CAPITALS name as a reader writes it, and every other name unchanged:
+    "CLAYHURST ECOLOGICAL RESERVE" -> "Clayhurst Ecological Reserve".
+
+    Small words stay small after the first ("Dewdney and Glide Islands"); acronyms stay capitals
+    (`ACRONYMS`); a word after "-", "/", "(" or a quote starts a word ("Tsi-Ezish", "Blue/Dease
+    Rivers"); "Mc" keeps its capital ("McKenny"); after an apostrophe the word goes on in lower
+    case ("Field's Lease", "Arrow Lakes' Tributaries", an Indigenous "K'ómoks") except after an
+    O', D' or L' prefix ("O'Rourke Lake"). A name with lower-case letters keeps them, and only its
+    runs of two or more all-capitals words are re-cased — a book heading with a curator's note
+    after it: "HART LAKE (Fort St. James)" -> "Hart Lake (Fort St. James)". A lone word of four
+    letters or fewer is an acronym and stays one ("CPR")."""
+    if not name or not any(c.isalpha() for c in name):
+        return name
+    if name != name.upper():
+        return _SHOUTED_RUN.sub(lambda m: display_case(m.group(0)), name)
+    if len(name.split()) == 1 and len(name) <= 4:
+        return name
+
+    def one(m: re.Match) -> str:
+        w, i = m.group(0), m.start()
+        prev = name[i - 1] if i else ""
+        if w in ACRONYMS:
+            return w
+        if prev == "'":
+            head = _WORD.findall(name[:i - 1])
+            stem = head[-1] if head and name[:i - 1].endswith(head[-1]) else ""
+            return w.capitalize() if stem in ("O", "D", "L") else w.lower()
+        low = w.lower()
+        if low in _SMALL and i and prev == " " and name[:i].strip():
+            return low
+        if low.startswith("mc") and len(w) > 2:
+            return "Mc" + w[2:].capitalize()
+        return w.capitalize()
+
+    return _WORD.sub(one, name)
+
+
+def is_shouting(name: str) -> bool:
+    """True when a displayed name still shouts: two or more consecutive all-capitals words of two
+    or more letters that are not acronyms ("MITE LAKE", "CLAYHURST ECOLOGICAL RESERVE boundary").
+    "CNR bridge", "CFB Comox" and "Creston Valley … (CVWMA) Waters" do not. A name with no
+    lower-case letter at all shouts as soon as it has one such word ("BLUEY 1"), unless it is a
+    lone short word `display_case` keeps as an acronym."""
+    if name and name == name.upper() and display_case(name) != name:
+        return True
+    run = 0
+    for w in re.findall(r"[^\W\d_]+(?:'[^\W\d_]+)?", name or ""):
+        bare = w.replace("'", "")
+        if len(bare) >= 2 and bare == bare.upper() and bare not in ACRONYMS:
+            run += 1
+            if run >= 2:
+                return True
+        else:
+            run = 0
+    return False
+
+
 def _title(name: str) -> str:
-    """An all-capitals name as a reader writes it: "TWEEDSMUIR PARK" -> "Tweedsmuir Park". A lone
-    short word is an acronym and stays one: "CPR", not "Cpr"."""
-    if name and name == name.upper() and any(c.isalpha() for c in name) \
-            and not (len(name.split()) == 1 and len(name) <= 4):
-        return " ".join(w.capitalize() if w.isalpha() else w.title() for w in name.split())
-    return name
+    """An all-capitals name as a reader writes it: "TWEEDSMUIR PARK" -> "Tweedsmuir Park" — the
+    one casing rule, `display_case`."""
+    return display_case(name)
 
 
 def _named(label: str, bid: str) -> bool:
