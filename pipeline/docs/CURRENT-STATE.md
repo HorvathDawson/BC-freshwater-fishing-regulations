@@ -40,11 +40,15 @@ Entry-level fields beside those: `extents` (narrows the row, never gives a rule 
   52 water entries hold only a pointer and no rules. A pointer never moves a water to the
   target's region (Mara Lake).
 - **`anadromous_rainbow`** — the p.86 steelhead-water flag on a row. Since 2026-10-02 the bundle's
-  `steelhead_water` (a view) is the FLOWING water any rule of a steelhead row binds (AGENTS 54;
-  ~72,800 sections, *export* `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow
-  over 50 cm is a steelhead (`read.as_rainbow`). The curated known-steelhead list never sets it.
+  `steelhead_water` (a view) is KNOWN ∧ STREAM ∧ STEELHEAD RULES APPLY (the provincial set binds
+  it) — a steelhead row's water or the curated list's (AGENTS 54, *export*
+  `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow over 50 cm is a steelhead
+  (`read.as_rainbow`). A known water no steelhead rule applies to (the Okanagan River, the Fraser in
+  7A) carries `steelhead_rules: false` in the export: rainbow rules answer for every rainbow there.
   A steelhead row is one any of whose rules or licensing records PRINTS steelhead (stamp wording
   included) or that is flagged: 57 rows (`steelhead.prints_steelhead`).
+- **A slough is a stream** (AGENTS 55, 2026-10-03): a lake-typed water whose name's head noun flows
+  is a stream for every regulation (`pipeline/atlas/reach/water_kind.py`).
 - **The outright stamp waiver** — "(Steelhead Stamp not required)" on six designations (Chilko
   upstream of Brittany Creek, Dean Anahim Lake–Iltasyuko, Horsefly, West Road, both Stellako rows)
   lifts every steelhead stamp on the designation's sections while it is in force: the provincial

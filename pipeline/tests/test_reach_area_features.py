@@ -84,7 +84,7 @@ def test_the_resolver_still_narrows_by_kind():
     assert 'ex.get("feature_types")' in src, (
         "the area resolver no longer reads feature_types — a streams-only rule will close "
         "every lake and wetland in the polygon")
-    assert "_kind_of(g, s) in kinds" in src
+    assert "_kind_of(g, s, reg) in kinds" in src
 
 
 # --------------------------------------------------------------------------- #

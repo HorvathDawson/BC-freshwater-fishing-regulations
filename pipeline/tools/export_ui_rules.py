@@ -503,6 +503,7 @@ def read(bundle: Path) -> dict:
                           "SELECT set_id, COUNT(*) FROM section_licensing GROUP BY set_id",
                           lambda e, r: f"{e}#{r}")
 
+    from pipeline.atlas.reach.water_kind import flows as _flows
     by_item = defaultdict(list)
     for eid, e in entries.items():
         for it in e["matched"]:
@@ -512,8 +513,13 @@ def read(bundle: Path) -> dict:
             "SELECT i.item_id, i.name, i.kind, i.part_of, COUNT(*) FROM item i "
             "JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
         shown = display_case(name) if name else name
+        # THE WATER KIND every regulation reads (`water_kind.flows`, user ruling 2026-10-03): a
+        # lake-typed water whose name flows — a slough, a canal — IS A STREAM; `drawn_as` keeps
+        # the atlas's kind, the shape the map draws
+        rkind = "stream" if _flows(kind, name) else kind
         waters[item_id] = {"name": shown, **({"official_name": name} if shown != name else {}),
-                           "kind": kind, "sections": n,
+                           "kind": rkind, **({"drawn_as": kind} if rkind != kind else {}),
+                           "sections": n,
                            "entries": sorted(by_item.get(item_id, [])),
                            "parts": [], "outside_bc": 0}
         if part_of:
@@ -573,7 +579,7 @@ def read(bundle: Path) -> dict:
             w["steelhead"] = top
     # WHY IT IS KNOWN, per water (`steelhead_source`): "regulations" where a steelhead row's rules
     # bind its known sections (those rows: `steelhead_rows`), "curated list" where the curated
-    # known-steelhead list names it — a presence indicator that changes no regulation.
+    # known-steelhead list names it — a presence indicator that binds no rule.
     from pipeline.atlas.reach.steelhead import CURATED_LIST as _LISTED
     for item_id, eid in db.execute(
             "SELECT i.item_id, s.entry_id FROM steelhead_source s JOIN item i ON i.ord = s.ord "
@@ -690,10 +696,17 @@ def read_splits(db) -> dict:
     return dict(sorted(out.items()))
 
 
+def drawn_kind(w: dict) -> str:
+    """The SHAPE of a water — its `drawn_as`, else its `kind`: what runs, ends and polygons follow
+    (a slough is regulated as a stream and drawn as a lake polygon)."""
+    return w.get("drawn_as") or w["kind"]
+
+
 def part_runs(item_id: str, water: dict, sids: list[int], span: dict, touch: dict) -> list[dict]:
     """One part's `runs`, upstream to downstream. A stream section with no span row is refused:
-    a part whose stretches cannot be said would ship a run that covers less than the part."""
-    if water["kind"] != "stream":
+    a part whose stretches cannot be said would ship a run that covers less than the part. Runs
+    follow the SHAPE (`drawn_as`, else `kind`): a slough drawn as a polygon is one polygon run."""
+    if drawn_kind(water) != "stream":
         return [{"from": None, "to": None, "km_from": None, "km_to": None,
                  "polygon": water["name"] if water.get("part_of") else "whole"}]
     missing = [s for s in sids if s not in span]
@@ -740,6 +753,9 @@ TIDAL_GUIDE = (
 
 #: How sure we are that steelhead are present (user ruling 2026-10-01) — on a part, and rolled up on
 #: the water.
+#: What to show on a KNOWN part no steelhead rule applies to (`steelhead_rules: false`).
+STEELHEAD_NO_RULES = ("Steelhead have been recorded here, but no steelhead rule applies: treat "
+                      "any rainbow, however big, as a rainbow trout.")
 STEELHEAD_TEXT = (
     "HOW SURE WE ARE THAT STEELHEAD ARE HERE — a PRESENCE INDICATOR for display. \"known\": "
     "steelhead are known to be here, for one of two reasons (`steelhead_source`). "
@@ -753,23 +769,26 @@ STEELHEAD_TEXT = (
     "SET wherever it lies, lake or stream, and a lake also its region's wild-steelhead release. "
     "\"curated list\": the water is on the curated known-steelhead list "
     "(`data/curated/regulations/steelhead_waters.json`, built from fish observations). THE LIST "
-    "CHANGES NO REGULATION: no rule, stamp or answer comes from it, and it does not make a "
-    "rainbow over 50 cm a steelhead. In the steelhead regions (1, 2, 3, 5, 6), where the "
-    "provincial steelhead rules already apply on every stream, it only turns \"possible\" into "
-    "\"known\"; elsewhere (Regions 4, 7A, 7B, 8 — the Okanagan River) it marks steelhead as "
-    "present on a water that carries NO steelhead rule. Regulations come only from the book. "
+    "BINDS NO RULE: no steelhead rule or stamp comes from it; it sets the presence indicator. In "
+    "the steelhead regions (1, 2, 3, 5, 6), where the provincial steelhead rules already apply on "
+    "every stream, it turns \"possible\" into \"known\"; elsewhere (Regions 4, 7A, 7B, 8 — the "
+    "Okanagan River, the Fraser in Zone 7A) it marks steelhead as present on a water NO "
+    "steelhead rule applies to: that part carries `steelhead_rules: false`, and there a rainbow "
+    "of any size is a rainbow trout (user ruling 2026-10-03). Steelhead rules come only from the "
+    "book. "
     "\"possible\": any other stream of Regions 1, 2, 3, 5 or 6; the steelhead rules apply, but "
     "steelhead may not be present. ABSENT: anywhere else. SHOW: on \"possible\", a quiet line "
     "with the steelhead rules — 'Steelhead rules apply here; steelhead may not be present in "
-    "this water.' On \"known\" say steelhead are known to be here, and show whatever steelhead "
-    "rules apply (the rules are in the part's sets — on a listed water outside the steelhead "
-    "regions there are none). Absent: show nothing about steelhead. A part says it for its "
-    "sections; the water's own `steelhead` is \"known\" if any part is known, else "
-    "\"possible\" if any part is (for a list or a search row). THE ONE OTHER EFFECT: on the "
-    "book's steelhead streams — the flowing water a steelhead row binds (a stream, or a "
-    "lake-typed water named as flowing: the Vedder Canal) — a rainbow over 50 cm IS a steelhead "
-    "(p.86; the part's `anadromous_rainbow`); never on a lake, a \"possible\" stream, or a water "
-    "known only by the list.")
+    "this water.' On \"known\" say steelhead are known to be here, and show the steelhead rules "
+    "that apply (in the part's sets); on \"known\" with `steelhead_rules: false` show "
+    "instead: '" + STEELHEAD_NO_RULES + "' Absent: show nothing about steelhead. "
+    "A part says it for its sections; the water's own `steelhead` is \"known\" if any part is "
+    "known, else \"possible\" if any part is (for a list or a search row). WHERE A RAINBOW OVER "
+    "50 CM IS A STEELHEAD (p.86; the part's `anadromous_rainbow`): a KNOWN part of a STREAM (the "
+    "water's `kind`: a slough or canal is a stream) WHERE STEELHEAD RULES APPLY — known by the "
+    "book or by the list alike (the Cowichan River); never on a lake, a \"possible\" stream, or "
+    "a part with `steelhead_rules: false` (user ruling 2026-10-03: 'if no steelhead rules exist, "
+    "rainbow rules still apply to a steelhead').")
 
 #: THE FILE, key by key — every top-level key (`dictionary_gaps` refuses one that is not here).
 FILE_TEXT = {
@@ -804,7 +823,12 @@ OFFICIAL_NAME_TEXT = (
 WATER_TEXT = {
     "name": "the water's name, as a reader writes it (never all capitals — see `official_name`)",
     "official_name": OFFICIAL_NAME_TEXT,
-    "kind": "stream | lake | wetland, as the atlas types the water",
+    "kind": "stream | lake | wetland — the kind every regulation reads: as the atlas types the "
+            "water, except that a lake-typed water whose name flows (a slough, a canal, a "
+            "channel: Gravel Slough, the Vedder Canal) IS A STREAM (user ruling 2026-10-03; "
+            "`water_kind.flows`) — every \"in streams\" rule binds it, no \"in lakes\" rule does",
+    "drawn_as": "ONLY where it differs from `kind`: the atlas's kind, the shape the map draws (a "
+                "slough drawn as a lake polygon, regulated as a stream)",
     "sections": "how many sections the water has; its parts' `sections` sum to it",
     "entries": "the synopsis rows that MATCH this water (their `matched` lists it) — not every "
                "row whose rules reach it: a zone, area or tributary walk reaches it through its "
@@ -818,13 +842,17 @@ WATER_TEXT = {
     "steelhead": "ONLY where some part is \"known\" or \"possible\": \"known\" if any part is "
                  "known, else \"possible\" — the roll-up of `water.parts[].steelhead`, for a list "
                  "or a search row. A presence indicator: a water known only by the curated list "
-                 "may carry no steelhead rule at all",
+                 "may carry no steelhead rule at all (`steelhead_rules`)",
+    "steelhead_rules": "ONLY (false) on a KNOWN water none of whose parts any steelhead rule "
+                       "applies to (the Okanagan River, Inkaneep and Vaseux creeks): show '"
+                       + STEELHEAD_NO_RULES + "' — see `water.parts[].steelhead_rules`",
     "steelhead_source": "ONLY on a water with a KNOWN part: why it is known — \"regulations\" "
                         "(a steelhead row's rules bind it; those rows are `steelhead_rows`) "
                         "and/or \"curated list\" (the curated known-steelhead list names it, "
-                        "`data/curated/regulations/steelhead_waters.json`: a presence indicator "
-                        "for display that changes no regulation — outside the steelhead regions "
-                        "such a water carries no steelhead rule). Absent on a \"possible\" water",
+                        "`data/curated/regulations/steelhead_waters.json`: it sets the presence "
+                        "indicator and binds no rule — outside the steelhead regions such a water "
+                        "carries no steelhead rule, `steelhead_rules: false`). Absent on a "
+                        "\"possible\" water",
     "steelhead_rows": "ONLY where `steelhead_source` holds \"regulations\": the entry ids of the "
                       "steelhead rows whose rules bind the water's known sections (its own row, "
                       "or a row whose line reaches it: Tenas Lake's is the Atnarko/Bella "
@@ -850,16 +878,23 @@ WATER_PART_TEXT = {
                        "at: the families of those areas — `national_parks` (for a record whose "
                        "extent names that kind), `tidal` (tidal water: EVERY province-wide "
                        "requirement stops there, whatever its record names)",
-    "anadromous_rainbow": "present (true) where a rainbow over 50 cm is a steelhead — only on a "
-                          "flowing part a steelhead row binds (a stream, or a lake-typed water "
-                          "named as flowing: the Vedder Canal); never a lake, never "
-                          "\"possible\", never from the curated list",
+    "anadromous_rainbow": "present (true) where a rainbow over 50 cm is a steelhead: a KNOWN part "
+                          "of a stream (`water.kind`: a slough or canal is one) where steelhead "
+                          "rules apply — known by the book or by the curated list (user ruling "
+                          "2026-10-03); never a lake, never \"possible\", never a part with "
+                          "`steelhead_rules: false` (there rainbow rules speak for every rainbow)",
+    "steelhead_rules": "ONLY (false) on a KNOWN part no steelhead rule applies to — it does not "
+                       "carry the provincial steelhead set (the annual hatchery 10, the wild "
+                       "release, the record duty): the Okanagan River, Inkaneep and Vaseux "
+                       "creeks, the Fraser in Zone 7A, known by the curated list. SHOW: '"
+                       + STEELHEAD_NO_RULES + "' Absent everywhere else (steelhead rules apply on "
+                       "every \"possible\" part and every other known part)",
     "steelhead": STEELHEAD_TEXT,
     "touches": TOUCHES_TEXT,
     "runs": "WHERE THE PART RUNS: its stretches, upstream to downstream — [{from, to, km_from, "
             "km_to}] (see `water.parts[].runs[]`, and `placement.runs`). A part of several "
-            "stretches has several runs. A lake or wetland part is its polygon: one run with no "
-            "ends",
+            "stretches has several runs. A part of a water DRAWN as a polygon (a lake, a "
+            "wetland, a slough — `drawn_as`) is its polygon: one run with no ends",
 }
 
 #: One run of a part, field by field.
@@ -877,7 +912,8 @@ RUN_TEXT = {
               "braid of the same water whose sets differ from the stem beside it. Its ends are its "
               "own (its `source` and `mouth` are where it leaves and rejoins), and both km are the "
               "point it rejoins the stem",
-    "polygon": "ONLY on a lake or wetland: `whole` (the run is the whole polygon), or — on a lake "
+    "polygon": "ONLY on a water drawn as a polygon (a lake, a wetland, a slough drawn as a lake: "
+               "`drawn_as`): `whole` (the run is the whole polygon), or — on a lake "
                "PART (`part_of`) — the part's own name ('Williston Lake — Nation Arm')",
 }
 
@@ -920,10 +956,12 @@ SPLIT_TEXT = {
             "placed the same way ('CNR bridge below Deadman River' / 'CNR bridge above Bonaparte "
             "River'), then by its distance from that landmark, then 'lower' / 'upper'. An area is "
             "never all capitals ('Clayhurst Ecological Reserve boundary', see `official_name`)",
-    "official_name": "ONLY on an area boundary whose name was re-cased: the area's name exactly as "
-                     "its source layer spells it ('CLAYHURST ECOLOGICAL RESERVE'). The id keeps "
-                     "that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never change, and "
-                     "extents bind by them; show `name`, never the id",
+    "official_name": "ONLY on an area boundary whose shown name differs from its source: the "
+                     "area's name exactly as its source layer spells it — re-cased ('CLAYHURST "
+                     "ECOLOGICAL RESERVE'), carrying an OpenStreetMap id ('CFB Comox "
+                     "[12332677]'), or cut off at 50 characters ('… ECOLOGICAL RESER'). The id "
+                     "keeps that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never "
+                     "change, and extents bind by them; show `name`, never the id",
     "same_place_as": "ONLY on a cut at the SAME place as another cut of the same water (one "
                      "curated cut authored under two waters' lists — the Thompson River confluence "
                      "on the Fraser, as `fraser_river__…` and `thompson_river__…`): that other "
@@ -1889,16 +1927,23 @@ def guide(d: dict) -> dict:
         "steelhead_definition": "WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book defines "
                                 "(p.86): 'steelhead: a rainbow trout longer than 50 cm in waters "
                                 "where anadromous rainbow trout are found.' It lists no such "
-                                "waters, so the rows state it: it holds on the FLOWING water a "
-                                "STEELHEAD ROW is written for or any rule of it binds (a row "
-                                "naming steelhead, flagged "
+                                "waters, so the file states it: it holds on every KNOWN part of "
+                                "a STREAM (`water.kind`: a slough or canal is a stream) WHERE "
+                                "STEELHEAD RULES APPLY (the part carries the provincial steelhead "
+                                "set) — known because a STEELHEAD ROW is written for it or a rule "
+                                "of one binds it (a row naming steelhead, flagged "
                                 "`CatalogueEntry.anadromous_rainbow` — Chilliwack/Vedder by "
-                                "ruling — or printing the Steelhead Stamp; flowing: a "
-                                "stream, "
-                                "or a lake-typed water named as flowing, the Vedder Canal) — the "
+                                "ruling — or printing the Steelhead Stamp), or because the "
+                                "curated known-steelhead list names it (the Cowichan River) — the "
                                 "parts that carry `anadromous_rainbow: true` (user rulings "
-                                "2026-10-01/02). No tributary walk, and NEVER the curated "
-                                "known-steelhead list. There a rainbow over 50 cm "
+                                "2026-10-01/02/03). No tributary walk. WHERE NO STEELHEAD RULE "
+                                "APPLIES a steelhead is a rainbow ('if no steelhead rules exist, "
+                                "rainbow rules still apply to a steelhead', user ruling "
+                                "2026-10-03): a known part there carries `steelhead_rules: "
+                                "false` (the Okanagan River, Inkaneep and Vaseux creeks in Region "
+                                "8; the Fraser in Zone 7A) and the water's rainbow rules speak for "
+                                "every rainbow, however big (the Okanagan's 'Rainbow trout catch "
+                                "and release'). Where steelhead rules apply, a rainbow over 50 cm "
                                 "IS a steelhead: ask about it as ST, and it is governed by the "
                                 "steelhead rules. A rainbow rule there speaks only for rainbow "
                                 "of 50 cm or less: its length bands over 50 cm speak for no "
@@ -1943,9 +1988,11 @@ def guide(d: dict) -> dict:
                                 "steelhead', Region 6's stream closure) stay on its streams. A "
                                 "big lake rainbow on any other lake falls under the rainbow size "
                                 "quota ('1 over 50 cm'), never a steelhead rule. THE CURATED "
-                                "KNOWN-STEELHEAD LIST CHANGES NONE OF THIS: it is a presence "
-                                "indicator for display (`steelhead`, `steelhead_source`), never "
-                                "a regulation. The export refuses the set on a water that is "
+                                "KNOWN-STEELHEAD LIST BINDS NONE OF THIS: it sets the presence "
+                                "indicator (`steelhead`, `steelhead_source`) — never a rule. A "
+                                "SLOUGH, CANAL OR CHANNEL IS A STREAM (`water.kind`, user ruling "
+                                "2026-10-03): it carries the stream steelhead rules like any "
+                                "stream (Gravel Slough, Maria Slough, the Vedder Canal). The export refuses the set on a water that is "
                                 "neither a stream of a steelhead region nor bound by a steelhead "
                                 "row, and a "
                                 "steelhead row's water missing any member of it. HOW SURE WE ARE "
@@ -2532,7 +2579,8 @@ def guide(d: dict) -> dict:
             "ends": END_TEXT,
             "fields": RUN_TEXT,
             "counts": {
-                "stream_parts": sum(1 for w in d["waters"].values() if w["kind"] == "stream"
+                "stream_parts": sum(1 for w in d["waters"].values()
+                                    if drawn_kind(w) == "stream"
                                     for p in w["parts"]),
                 "runs": sum(len(p["runs"]) for w in d["waters"].values() for p in w["parts"]),
                 "parts_with_several_runs": sum(1 for w in d["waters"].values()
@@ -3074,9 +3122,10 @@ CASE_MECHANISMS = {
     "steelhead_known_by_the_list": "a stream outside Regions 1, 2, 3, 5 and 6 that only the "
                                    "curated known-steelhead list makes KNOWN (the Okanagan River, "
                                    "Region 8; `steelhead_source` [\"curated list\"]): steelhead "
-                                   "are known to be there, but NO steelhead rule applies — the "
-                                   "list changes no regulation — and a rainbow over 50 cm is a "
-                                   "rainbow",
+                                   "are known to be there, but NO steelhead rule applies "
+                                   "(`steelhead_rules: false`; the list binds no rule) — so a "
+                                   "rainbow of any size is a rainbow trout (user ruling "
+                                   "2026-10-03), answered by the water's rainbow rules",
 }
 
 #: WHAT THE PAGE SHOULD SHOW for a case — one plain line for the builder, per mechanism.
@@ -3234,11 +3283,11 @@ WHAT_TO_SHOW = {
                                           "for {fish} plainly, with no caveat, beside its "
                                           "region's own rules. A rainbow over 50 cm here is a "
                                           "steelhead.",
-    "steelhead_known_by_the_list": "{water} is on the curated known-steelhead list: say "
-                                   "steelhead are known to be here, and show no steelhead rule "
-                                   "— none applies (the list is a presence indicator, not a "
-                                   "regulation). A rainbow over 50 cm here is a rainbow, under "
-                                   "its region's rainbow rules.",
+    "steelhead_known_by_the_list": "{water} is on the curated known-steelhead list but no "
+                                   "steelhead rule applies (`steelhead_rules: false`): show '"
+                                   + STEELHEAD_NO_RULES + "' and no steelhead rule. A rainbow of "
+                                   "any size answers to the rules that speak for {fish} "
+                                   "(`expect`).",
 }
 
 
@@ -3742,13 +3791,13 @@ def cases(d: dict, bundle: Path) -> dict:
                 break
 
     # steelhead: known | possible streams, a lake with none, an own-row steelhead lake
-    def steelhead_case(mech, part_test, check):
+    def steelhead_case(mech, part_test, check, fish="ST"):
         for it, p in K.parts:
             w = K.d["waters"][it]
             if p["ruleset"] and part_test(w, p, set(rid(k) for k in K.members[p["ruleset"]])):
                 why = sorted(rid(k) for k in K.members[p["ruleset"]] if is_steelhead_rule(
                     K.d["rules"][rid(k)])) or sorted(w["entries"])
-                case = K.first(mech, [(it, p, (9, 1), "ST", why)], check, licensing=True)
+                case = K.first(mech, [(it, p, (9, 1), fish, why)], check, licensing=True)
                 if case:
                     add(mech, case)
                     return
@@ -3777,17 +3826,21 @@ def cases(d: dict, bundle: Path) -> dict:
                                if K.d["rules"][i]["entry_id"].startswith("r")), has_province)
     steelhead_case("steelhead_known_beyond_the_regions", lambda w, p, m: w["kind"] == "stream"
                    and p.get("steelhead") == "known" and p.get("anadromous_rainbow")
+                   and "regulations" in (w.get("steelhead_source") or ())
                    and not _in_steelhead_region(m), has_province)
     # 2026-10-02: the curated list is a presence indicator — a listed water outside the steelhead
-    # regions is known and carries no steelhead rule (the Okanagan River in Region 8)
+    # regions is known and carries no steelhead rule (the Okanagan River in Region 8); 2026-10-03:
+    # no steelhead rule applies there (`steelhead_rules: false`), so a rainbow of any size is a
+    # rainbow — the case asks about a rainbow, and the water's own rainbow line answers
     steelhead_case("steelhead_known_by_the_list", lambda w, p, m: w["kind"] == "stream"
                    and w["entries"]
-                   and p.get("steelhead") == "known" and not p.get("anadromous_rainbow")
+                   and p.get("steelhead") == "known" and p.get("steelhead_rules") is False
+                   and not p.get("anadromous_rainbow")
                    and w.get("steelhead_source") == ["curated list"]
                    and not _in_steelhead_region(m)
                    and not any(is_steelhead_rule(K.d["rules"][i]) for i in m),
                    lambda a: not any(is_steelhead_rule(K.d["rules"][i]) for i in _ids(a)
-                                     if i in K.d["rules"]))
+                                     if i in K.d["rules"]), fish="RB")
 
     # dated rules, in and out of force (the same water, fish and part)
     def t(m):
@@ -4254,9 +4307,10 @@ def species_table() -> dict:
                 if code == "ST":
                     # WHERE the definition holds in this file (user ruling 2026-10-01)
                     d["definitional_size"]["marked_by"] = (
-                        "waters[*].parts[*].anadromous_rainbow — the flowing water a steelhead "
-                        "row binds, never a lake, a \"possible\" stream, or a water known only "
-                        "by the curated list (`guide.ladder.steelhead_definition`)")
+                        "waters[*].parts[*].anadromous_rainbow — every known stream part where "
+                        "steelhead rules apply, known by the book or by the curated list; never "
+                        "a lake, a \"possible\" stream, or a part with `steelhead_rules: false` "
+                        "(`guide.ladder.steelhead_definition`)")
             fish[code] = d
     groups = {g: ({"name": _name(g), "members": members[g]} if g not in OPEN_GROUPS else
                   {"name": _name(g), "members": [], "open": True})
@@ -4387,6 +4441,7 @@ def index(d: dict) -> dict:
 
 def build(bundle: Path = BUNDLE) -> dict:
     d = read(bundle)
+    add_steelhead_rules(d)
     counts = {
         "entries": len(d["entries"]),
         "rules": len(d["rules"]),
@@ -4722,6 +4777,37 @@ def _members(table: dict, key, known: dict) -> set[str]:
             for i in ids if i in known}
 
 
+#: The members of the provincial set that are RULES (the stamp is a licensing record, and stops at a
+#: national park while the rules do not) — `steelhead.PROVINCE_SET_RULES`, read by what they say.
+STEELHEAD_RULE_MEMBERS = ("annual hatchery quota", "wild release", "record duty")
+
+
+def steelhead_rules_apply(doc: dict, p: dict) -> bool:
+    """WHERE STEELHEAD RULES APPLY (user ruling 2026-10-03): the part carries every RULE of the
+    provincial steelhead set (`STEELHEAD_RULE_MEMBERS`, base or twin) — the same predicate as the
+    reach builder's `Presence.rules_apply`."""
+    if not p.get("ruleset"):
+        return False
+    have = {province_steelhead_member(doc["rules"][i])
+            for i in _members(doc["rulesets"], p["ruleset"], doc["rules"])}
+    return all(m in have for m in STEELHEAD_RULE_MEMBERS)
+
+
+def add_steelhead_rules(doc: dict) -> None:
+    """`steelhead_rules: false` on every KNOWN part no steelhead rule applies to
+    (`steelhead_rules_apply`) — the Okanagan River, Inkaneep and Vaseux creeks, the Fraser in Zone
+    7A — and on a known water none of whose parts carries them. Absent everywhere else."""
+    for w in doc["waters"].values():
+        any_rules = False
+        for p in w["parts"]:
+            apply = steelhead_rules_apply(doc, p)
+            any_rules |= apply
+            if p.get("steelhead") == "known" and not apply:
+                p["steelhead_rules"] = False
+        if w.get("steelhead") == "known" and not any_rules:
+            w["steelhead_rules"] = False
+
+
 def _in_steelhead_region(rule_ids) -> bool:
     """A part is in a steelhead region when it carries that region's own zone table (a water
     takes the zone rules of the region it lies in; `ladder.region`)."""
@@ -4759,8 +4845,9 @@ def _row_bound(doc: dict, p: dict, srows: set[str]) -> list[str]:
 
 
 def _book(doc: dict, w: dict, p: dict, srows: set[str]) -> bool:
-    """A part of the BOOK's steelhead water: a steelhead row's rule binds it, or it is flowing
-    steelhead water (`anadromous_rainbow`) of a water a steelhead row makes known."""
+    """A part of the BOOK's steelhead water: a steelhead row's rule binds it, or it is steelhead
+    water (`anadromous_rainbow`) of a water a steelhead row makes known. (A listed part of such a
+    water that is `anadromous_rainbow` lies where steelhead rules apply — it carries the set.)"""
     return bool(_row_bound(doc, p, srows)) or (
         bool(p.get("anadromous_rainbow")) and "regulations" in (w.get("steelhead_source") or ()))
 
@@ -4770,7 +4857,7 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
     rulings 2026-10-01, 2026-10-02). Big lake rainbow fall under the rainbow size quota, not the
     steelhead quota, so every provincial and zone steelhead rule binds streams — and the
     provincial set and the zone's wild release reach a lake only where a steelhead row binds it
-    (Tenas, Khartoum, Lois; never by the curated list, which changes no regulation). Refused:
+    (Tenas, Khartoum, Lois; never by the curated list, which binds no rule). Refused:
       - a lake part carrying a steelhead rule or stamp record (`is_steelhead_rule`,
         `is_steelhead_record`) — the wild release included — when no steelhead row binds it;
       - on such a lake, a steelhead rule of a row that does not match the lake other than a wild
@@ -4853,15 +4940,14 @@ def steelhead_set_problems(doc: dict) -> list[str]:
 
 def steelhead_presence_problems(doc: dict) -> list[str]:
     """`steelhead` (known | possible), `anadromous_rainbow` and `steelhead_source` agree with each
-    other and with the rules (user rulings 2026-10-01/02): a big rainbow is a steelhead on every
-    part a steelhead row's rule binds of a FLOWING water (`steelhead.flows`: a stream, or a
-    lake-typed water named as flowing — the Vedder Canal), and only on known flowing parts of a
-    water a steelhead row makes known (a row's own water may carry no rule of it) — never by the
-    curated list; a "possible" part is a stream carrying a steelhead rule; a water's
+    other and with the rules (user rulings 2026-10-01/02/03): a big rainbow is a steelhead
+    (`anadromous_rainbow`) exactly on the KNOWN parts of a STREAM (the water's `kind`: a slough or
+    canal is one) WHERE STEELHEAD RULES APPLY (`steelhead_rules_apply`) — known by the book or by
+    the curated list; `steelhead_rules: false` is on exactly the known parts where they do not, and
+    on a known water exactly when no part carries them; a "possible" part is a stream carrying a steelhead rule; a water's
     `steelhead_source` is present exactly where a part is known, holds "regulations" wherever a
     steelhead row binds a part (with those rows in `steelhead_rows`); the water's roll-up is its
     parts' best."""
-    from pipeline.atlas.reach.steelhead import flows
     R = doc["rules"]
     srows = steelhead_rows(doc)
     out = []
@@ -4878,17 +4964,28 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
                 "regulations" in src):
             out.append(f"water {item}: steelhead_source {src!r} / steelhead_rows "
                        f"{w.get('steelhead_rows')!r} disagree with the steelhead rows binding it")
-        flowing = flows(w.get("kind"), w.get("name"))
+        stream = w.get("kind") == "stream"
+        applies = [steelhead_rules_apply(doc, p) for p in w["parts"]]
+        if (w.get("steelhead") == "known" and not any(applies)) != (
+                w.get("steelhead_rules") is False) or w.get("steelhead_rules") not in (None, False):
+            out.append(f"water {item}: steelhead_rules {w.get('steelhead_rules')!r} for a "
+                       f"{w.get('steelhead') or 'unmarked'} water whose parts "
+                       f"{'carry' if any(applies) else 'carry no'} steelhead rules")
         for n, p in enumerate(w["parts"]):
             tag, st = f"water {item} part {n}", p.get("steelhead")
             if st not in (None, "known", "possible"):
                 out.append(f"{tag}: steelhead {st!r}")
-            if p.get("anadromous_rainbow") and not (
-                    st == "known" and flowing and "regulations" in src):
+            if p.get("anadromous_rainbow") and not (st == "known" and stream and applies[n]):
                 out.append(f"{tag}: anadromous_rainbow on a {st or 'unmarked'} {w['kind']}"
-                           + ("" if "regulations" in src else " no steelhead row binds"))
-            if st == "known" and bound[n] and flowing and not p.get("anadromous_rainbow"):
-                out.append(f"{tag}: a known stream where a big rainbow is not a steelhead")
+                           + ("" if applies[n] else " no steelhead rule applies to"))
+            if st == "known" and stream and applies[n] and not p.get("anadromous_rainbow"):
+                out.append(f"{tag}: a known stream where steelhead rules apply and a big rainbow "
+                           f"is not a steelhead")
+            if (st == "known" and not applies[n]) != (p.get("steelhead_rules") is False) \
+                    or p.get("steelhead_rules") not in (None, False):
+                out.append(f"{tag}: steelhead_rules {p.get('steelhead_rules')!r} on a "
+                           f"{st or 'unmarked'} part where steelhead rules "
+                           f"{'apply' if applies[n] else 'do not apply'}")
             if w["kind"] != "stream" and st == "possible":
                 out.append(f"{tag}: a {w['kind']} marked 'possible'")
             if st == "possible" and p["ruleset"] and not any(
@@ -4906,7 +5003,7 @@ def valid_end(token, doc: dict) -> bool:
     head, _, item = str(token).partition(":")
     w = doc["waters"].get(item)
     if head in ("lake_inlet", "lake_outlet"):
-        return w is not None and w["kind"] in ("lake", "wetland")
+        return w is not None and drawn_kind(w) in ("lake", "wetland")
     return head == "confluence" and w is not None
 
 
@@ -4919,7 +5016,7 @@ def run_problems(doc: dict) -> list[str]:
             if not runs:
                 out.append(f"{tag}: no runs")
                 continue
-            if w["kind"] != "stream":
+            if drawn_kind(w) != "stream":
                 if len(runs) != 1 or any(runs[0][k] is not None for k in
                                          ("from", "to", "km_from", "km_to")):
                     out.append(f"{tag}: a polygon is one run with no ends")

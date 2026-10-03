@@ -403,17 +403,16 @@ def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: s
     return sides.pop() if len(sides) == 1 else ""
 
 
-def _kind_of(g, section_id: str) -> str:
-    """A section's feature kind — `stream`, `lake`, `wetland` — for `feature_types`.
+def _kind_of(g, section_id: str, reg=None) -> str:
+    """A section's water kind — `stream`, `lake`, `wetland` — for `feature_types`: the ONE
+    definition, `water_kind.kind_of` (a lake-typed water whose name says it flows — a slough, a
+    canal — is a stream; pass the registry `reg` so it can tell).
 
     Lower-cased and stringified because the graph stores an enum and the authored extent
     stores text, and the two only have to agree here.
     """
-    n = g.nodes.get(section_id)
-    if n is None:
-        return ""
-    k = getattr(n, "kind", None)
-    return str(getattr(k, "value", k) or "").lower()
+    from pipeline.atlas.reach.water_kind import kind_of
+    return kind_of(g, reg, section_id)
 
 
 def _waters(g, section_ids) -> list[str]:
@@ -710,7 +709,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # "streams only" quietly covering something the atlas could not classify.
         kinds = {str(t).lower() for t in (ex.get("feature_types") or [])}
         if kinds:
-            in_area = {s for s in in_area if _kind_of(g, s) in kinds}
+            in_area = {s for s in in_area if _kind_of(g, s, reg) in kinds}
             if not in_area:
                 _fail("area_has_no_features_of_type",
                       f"{aid or kind_of_area} / {sorted(kinds)}")

@@ -45,6 +45,11 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- of the stream magnitude it cannot have (search and "water near a town" rank before any tile is
 -- loaded). It is the tile's own polygon area (`waterbody_polys.pkl`), rounded — the second
 -- exception to "no size in here", for the reason `name` is the first (build._lake_areas).
+--
+-- `kind` IS THE ATLAS'S KIND — the shape drawn (a slough is a lake polygon). The kind every
+-- REGULATION reads is `pipeline.atlas.reach.water_kind`: a lake-typed water whose name flows (a
+-- slough, a canal) is a STREAM (user ruling 2026-10-03); the rule bindings already hold it, and the
+-- export names it (`waters[].kind`, the atlas's in `drawn_as`).
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
                    name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
@@ -288,7 +293,8 @@ CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROW
 --                     naming steelhead, flagged `anadromous_rainbow`, or printing the Steelhead
 --                     Stamp in any wording: Tenas, Khartoum and Lois lakes too) — or the curated known-steelhead list
 --                     names the water (`data/curated/regulations/steelhead_waters.json`). The list
---                     changes this code and nothing else: no rule, no stamp, no steelhead water.
+--                     changes this code, and `steelhead_water` where steelhead rules already apply
+--                     (below) — no rule, no stamp.
 --   code 2  POSSIBLE  any other stream the provincial steelhead rules bind: "steelhead rules apply;
 --                     steelhead may not be present in this water".
 --   absent            neither.
@@ -315,13 +321,14 @@ CREATE VIEW section_steelhead (sid, code) AS
     WHERE NOT EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid);
 
 -- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.86: "steelhead: a rainbow
--- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on the BOOK'S
--- steelhead streams: the flowing sections of a steelhead row's own water or that a rule of one binds
--- — a stream, or a lake-typed
--- water whose name says it flows (the Vedder Canal; `steelhead.flows`, user ruling 2026-10-02).
--- Never a lake (Khartoum, Lois, Tenas are known and not steelhead water), never a possible stream,
--- and never from the curated list. There a rainbow over 50 cm is asked about as a steelhead, and a
--- rainbow rule speaks only for rainbow of 50 cm or less (`read.effective_rules`).
+-- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on every KNOWN
+-- STREAM section WHERE STEELHEAD RULES APPLY (it carries the provincial steelhead set): known by a
+-- steelhead row or by the curated list (the Cowichan River); a stream by `water_kind` (a slough or
+-- canal is one — the Vedder Canal). Never a lake (Khartoum, Lois, Tenas are known and not
+-- steelhead water), never a possible stream, never a known water no steelhead rule binds (the
+-- Okanagan River: "if no steelhead rules exist, rainbow rules still apply to a steelhead", user
+-- ruling 2026-10-03). There a rainbow over 50 cm is asked about as a steelhead, and a rainbow rule
+-- speaks only for rainbow of 50 cm or less (`read.effective_rules`).
 CREATE VIEW steelhead_water (sid) AS SELECT sid FROM steelhead_known WHERE anadromous = 1;
 
 -- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;

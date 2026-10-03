@@ -43,7 +43,7 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
-from pipeline.deliver.bundle.place_names import display_case
+from pipeline.deliver.bundle.place_names import area_display, display_case
 
 NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet")
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
@@ -387,7 +387,7 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         if kind == "area_boundary":
             area = label[len("within "):] if label.startswith("within ") else label
             area = area[:-len(" boundary")] if area.endswith(" boundary") else area
-            shown = display_case(area)
+            shown = area_display(area)
             official = area if shown != area else None
             name = f"{shown} boundary"
         elif sid.startswith("length:"):

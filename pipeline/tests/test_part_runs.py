@@ -260,7 +260,8 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
 
 
 def test_every_end_is_a_cut_or_an_end_the_file_names(doc):
-    ends = [r[k] for w in doc["waters"].values() if w["kind"] == "stream"
+    # runs follow the SHAPE (`drawn_kind`): a slough is regulated as a stream, drawn as a polygon
+    ends = [r[k] for w in doc["waters"].values() if X.drawn_kind(w) == "stream"
             for p in w["parts"] for r in p["runs"] for k in ("from", "to")]
     assert ends and all(X.valid_end(t, doc) for t in ends), \
         sorted({t for t in ends if not X.valid_end(t, doc)})[:10]
@@ -288,7 +289,7 @@ def test_a_part_of_several_stretches_has_several_runs(doc):
 
 
 def test_a_lake_part_is_its_polygon(doc):
-    lakes = [(w, p) for w in doc["waters"].values() if w["kind"] != "stream" for p in w["parts"]]
+    lakes = [(w, p) for w in doc["waters"].values() if X.drawn_kind(w) != "stream" for p in w["parts"]]
     assert lakes
     for w, p in lakes:
         assert p["runs"] == [{"from": None, "to": None, "km_from": None, "km_to": None,

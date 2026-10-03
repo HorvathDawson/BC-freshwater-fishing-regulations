@@ -205,14 +205,58 @@ def test_no_confluence_is_named_after_its_own_water(doc):
     assert len(side) >= 1_000         # the 1,057 self-named length cuts, and their kin off-stem
 
 
+def official_name_problems(splits: dict) -> list[str]:
+    """An AREA boundary's `name` is its source name as a reader sees it (`area_display`) +
+    " boundary", and `official_name` is the source spelling exactly when the two differ."""
+    from pipeline.deliver.bundle.place_names import area_display
+    out = []
+    for k, x in splits.items():
+        if x.get("kind") != "area" or not k.startswith("area:"):
+            if x.get("official_name"):
+                out.append(f"{k}: official_name on a {x.get('kind')} cut")
+            continue
+        src = k.split(":", 1)[1]
+        shown = area_display(src)
+        if x["name"] != f"{shown} boundary":
+            out.append(f"{k}: name {x['name']!r}, want {shown + ' boundary'!r}")
+        if x.get("official_name") != (src if shown != src else None):
+            out.append(f"{k}: official_name {x.get('official_name')!r}")
+    return out
+
+
+def test_official_name_check_sees_each_mistake(doc):
+    """Mutations of the shipped splits, each refused: an OSM-id area losing its source spelling, a
+    re-cased area whose official_name is the shown name, an area name still carrying its id, and an
+    official_name on an area whose name was not changed."""
+    import copy
+    S = doc["splits"]
+    assert official_name_problems(S) == []
+    osm = next(k for k in S if k.startswith("area:") and "[" in k)
+    caps = next(k for k in S if k.startswith("area:") and k.split(":", 1)[1].isupper())
+    plain = next(k for k in S if k.startswith("area:") and not S[k].get("official_name"))
+    for k, edit in ((osm, lambda x: x.pop("official_name")),
+                    (caps, lambda x: x.update(official_name=x["name"].removesuffix(" boundary"))),
+                    (osm, lambda x: x.update(name=x["official_name"] + " boundary")),
+                    (plain, lambda x: x.update(official_name="X"))):
+        m = copy.deepcopy(S)
+        edit(m[k])
+        assert official_name_problems(m), k
+
+
 def test_no_displayed_name_is_all_capitals(doc):
     shown = ([w["name"] for w in doc["waters"].values()]
              + [e["name"] for e in doc["entries"].values() if e["name"]]
              + [x["name"] for x in doc["splits"].values()])
     assert [n for n in shown if is_shouting(n)] == []
+    # `official_name` is the SOURCE spelling wherever the shown name differs from it — re-cased,
+    # an OpenStreetMap id dropped, a cut-off word restored — not necessarily capitals
+    assert official_name_problems(doc["splits"]) == []
     official = [x for x in doc["splits"].values() if x.get("official_name")]
-    assert len(official) >= 100 and all(x["official_name"] == x["official_name"].upper()
-                                        for x in official)
+    # the all-capitals source shown in title case is still the common case
+    caps = [x for x in official if x["official_name"] == x["official_name"].upper()]
+    assert len(caps) >= 100 and all(not is_shouting(x["name"]) for x in caps)
+    assert any(x["name"] == "Clayhurst Ecological Reserve boundary"
+               and x["official_name"] == "CLAYHURST ECOLOGICAL RESERVE" for x in caps)
 
 
 # ---- the four the UI builder named ----------------------------------------------------------
@@ -293,3 +337,22 @@ def _rename(sid, name):
 def test_name_problems_catch_a_broken_name(doc, label, mutate, expect):
     out = _mutated(doc, mutate)
     assert any(expect in p for p in out), (label, out[:5])
+
+
+def test_area_display_drops_the_osm_id_and_restores_cut_off_words():
+    """An OpenStreetMap id is never part of a name, and the source layer's 50-character cut is
+    restored."""
+    from pipeline.deliver.bundle.place_names import area_display
+    assert area_display("CFB Comox [12332677]") == "CFB Comox"
+    assert area_display("Blaney Bog Regional Park Reserve [1066227155]") == \
+        "Blaney Bog Regional Park Reserve"
+    assert area_display("VLADIMIR J. KRAJINA (PORT CHANAL) ECOLOGICAL RESER") == \
+        "Vladimir J. Krajina (Port Chanal) Ecological Reserve"
+    assert area_display("MACKAY CREEK") == "Mackay Creek"
+
+
+def test_no_split_name_shows_an_osm_id_or_a_cut_off_word(doc):
+    import re
+    bad = [(k, v["name"]) for k, v in doc["splits"].items()
+           if re.search(r"\[\d+\]", v["name"] or "") or re.search(r"\bReser\b", v["name"] or "")]
+    assert not bad, bad[:5]

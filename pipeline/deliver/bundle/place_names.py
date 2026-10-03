@@ -60,6 +60,23 @@ _WORD = re.compile(r"[^\W\d_]+")
 _SHOUTED_RUN = re.compile(r"\b[A-Z][A-Z'\-]+(?:\s+[A-Z][A-Z'\-]+)+\b")
 
 
+#: The source layer cuts names at 50 characters; a cut-off last word is restored.
+_CUT_OFF = {"RESER": "RESERVE", "Reser": "Reserve"}
+#: The atlas appends an area's OpenStreetMap id to a name that is not from the provincial parks
+#: layer, to keep area ids unique ("CFB Comox [12332677]"). It is never part of the name.
+_OSM_ID = re.compile(r"\s*\[\d+\]\s*$")
+
+
+def area_display(name: str) -> str:
+    """An area's name as a reader sees it: no OpenStreetMap id, no word cut off by the source
+    layer's 50-character limit ("… ECOLOGICAL RESER"), then `display_case`."""
+    name = _OSM_ID.sub("", name or "")
+    head, _, last = name.rpartition(" ")
+    if head and last in _CUT_OFF:
+        name = f"{head} {_CUT_OFF[last]}"
+    return display_case(name)
+
+
 def display_case(name: str) -> str:
     """An ALL-CAPITALS name as a reader writes it, and every other name unchanged:
     "CLAYHURST ECOLOGICAL RESERVE" -> "Clayhurst Ecological Reserve".

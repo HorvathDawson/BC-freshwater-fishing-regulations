@@ -321,7 +321,8 @@ def steelhead_presence(db, section: int) -> str | None:
     """How sure we are that steelhead are on this section (`section_steelhead`, user rulings
     2026-10-01/02): "known" (a steelhead row's own water or a rule of one binds it, or the curated
     known-steelhead
-    list names its water — a presence indicator that changes no answer of `effective_rules`),
+    list names its water — a presence indicator that changes no answer by itself;
+    `steelhead_water` follows where steelhead rules apply),
     "possible" (any other stream the steelhead rules bind), or None. A rule bundle without the
     table is refused."""
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead'").fetchone():

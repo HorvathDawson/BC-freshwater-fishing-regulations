@@ -1216,9 +1216,10 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
             code[s] = CODE[r["steelhead"]]
             kind[s] = r["kind"]
             if r.get("anadromous"):
-                if r["steelhead"] != KNOWN or not r.get("regulations"):
+                # known by the book or by the curated list (user ruling 2026-10-03)
+                if r["steelhead"] != KNOWN or not (r.get("regulations") or r.get("listed")):
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
-                                     f"which no steelhead row binds")
+                                     f"which is not known steelhead water")
                 anadromous.add(s)
             if r["steelhead"] == KNOWN:
                 got = source.setdefault(s, set())

@@ -64,7 +64,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
 
     `steelhead_list` is the user's known-steelhead list (`steelhead.load_list`; the CLI passes the
     curated file): each water is resolved to one item or the run stops, and its own sections are
-    marked KNOWN — a presence indicator only: it binds no rule (`reach.steelhead`).
+    marked KNOWN — a presence indicator, and on its flowing sections a rainbow over 50 cm is a
+    steelhead (`anadromous`, user ruling 2026-10-03); it binds no rule (`reach.steelhead`).
     """
     t0 = time.time()
     bindings: list[RuleBinding] = []
@@ -293,7 +294,7 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
                 pool = pool & secs if keep else pool - secs
         if ex.get("feature_types"):
             want = {str(t).lower() for t in ex["feature_types"]}
-            pool = {s for s in pool if _resolve._kind_of(graph, s) in want}
+            pool = {s for s in pool if _resolve._kind_of(graph, s, registry) in want}
         cut = (_area_kind_sections(registry, ex["outside_area_kind"])
                if ex.get("outside_area_kind") else frozenset())
         kept = tuple(sorted(pool - taken - cut)) if missing is None else ()
@@ -416,7 +417,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         tributaries=wants_tributaries(rule, entry),
         tributaries_only=bool(rule.get("tributaries_only")),
         expand_tributaries=expander,
-        kind_of=lambda s: _resolve._kind_of(graph, s),
+        kind_of=lambda s: _resolve._kind_of(graph, s, registry),
         outside=outside,
     )
     for row in getattr(expander, "confluence", None) or ():

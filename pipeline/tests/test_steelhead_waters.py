@@ -7,11 +7,14 @@ without a build.
     included). There is no tributary walk. Book-known water carries the provincial set: on a
     steelhead-region stream by the base rules, elsewhere (a lake, a stream past the regions) by the
     twins (`Extent` op `steelhead_waters`); a book-known LAKE also gets its zone's wild release
-    through that line's twin (`area_id`). `anadromous` = book-known FLOWING water (`steelhead.flows`:
-    a stream, or a lake-typed water named as flowing — the Vedder Canal).
+    through that line's twin (`area_id`). `anadromous` = KNOWN ∧ a STREAM (`water_kind.kind_of`: a
+    lake-typed water named as flowing — the Vedder Canal, a slough — is one) ∧ STEELHEAD RULES APPLY
+    (`Presence.rules_apply`: the provincial set binds it) — user ruling 2026-10-03.
   - THE CURATED LIST (`steelhead.load_list` / `resolve_list`): its waters' own sections are KNOWN,
-    and NOTHING ELSE changes — no binding, no licensing placement, no `anadromous` (mutation-checked
-    below). An unknown, ambiguous or duplicate entry stops the run; the curated copy carries the
+    and where steelhead rules apply on a listed stream a rainbow over 50 cm is a steelhead
+    (`anadromous`) — NOTHING ELSE changes: no binding, no licensing placement (mutation-checked
+    below). A listed water no steelhead rule binds (Region 8) is known with `rules` false and no
+    `anadromous`: rainbow rules speak for every rainbow there. An unknown, ambiguous or duplicate entry stops the run; the curated copy carries the
     fingerprint of the generated list it was copied from.
   - a twin whose sibling does not bind is unresolved, never the whole known set; `build_reach`
     alone (the review app) cannot resolve the op.
@@ -48,9 +51,11 @@ def _item(iid, secs, name="", kind="stream", mus=()):
 # Cowichan River: c1 in Region 1 (a steelhead region), c8 in Region 8 (none). Tenas Lake (lk) and
 # the Atnarko (a5) in Region 5. Two creeks called "Mill Creek", one in each of Regions 1 and 8.
 # Vedder Canal (vc): a LAKE-typed water in Region 2 whose name says it flows; the Chilliwack (h2)
-# its river. Stellako River (s7) in Zone 7A, whose row only waives the stamp.
+# its river. Stellako River (s7) in Zone 7A, whose row only waives the stamp. Gravel Slough (gs) and
+# Plain Lake (pl): lake-typed waters of Region 2 no row binds — one named as flowing, one not.
 G = _graph(_node("c1"), _node("c8"), _node("a5"), _node("lk", NodeKind.lake),
-           _node("m1"), _node("m8"), _node("h2"), _node("vc", NodeKind.lake), _node("s7"))
+           _node("m1"), _node("m8"), _node("h2"), _node("vc", NodeKind.lake), _node("s7"),
+           _node("gs", NodeKind.lake), _node("pl", NodeKind.lake))
 REG = {
     "gnis:1": _item("gnis:1", ["c1", "c8"], "Cowichan River", mus=("1-4", "8-1")),
     "gnis:5": _item("gnis:5", ["a5"], "Atnarko River", mus=("5-11",)),
@@ -60,8 +65,10 @@ REG = {
     "gnis:2": _item("gnis:2", ["h2"], "Chilliwack River", mus=("2-4",)),
     "wbk:7": _item("wbk:7", ["vc"], "Vedder Canal", kind="lake", mus=("2-4",)),
     "gnis:7": _item("gnis:7", ["s7"], "Stellako River", mus=("7-12",)),
+    "wbk:31": _item("wbk:31", ["gs"], "Gravel Slough", kind="lake", mus=("2-4",)),
+    "wbk:32": _item("wbk:32", ["pl"], "Plain Lake", kind="lake", mus=("2-4",)),
     "area:region:1": _item("area:region:1", ["c1", "m1"]),
-    "area:region:2": _item("area:region:2", ["h2", "vc"]),
+    "area:region:2": _item("area:region:2", ["h2", "vc", "gs", "pl"]),
     "area:region:5": _item("area:region:5", ["a5", "lk"]),
     "area:region:7": _item("area:region:7", ["s7"]),
     "area:region:8": _item("area:region:8", ["c8", "m8"]),
@@ -160,13 +167,44 @@ TWINS = {f"{x}b" for x in SET}
 
 
 def _regulation(result) -> dict:
-    """Everything a regulation is made of: every rule binding, every licensing placement, and
-    where a rainbow over 50 cm is a steelhead."""
+    """Every rule binding and every licensing placement — what the list must never move."""
     return {"bindings": sorted((b.entry_id, b.rule_id, b.outcome.value, tuple(b.sections),
                                 str(b.reason)) for b in result.bindings),
             "licensing": sorted((p.entry_id, p.record_id, p.placement, tuple(p.sections))
-                                for p in result.licensing),
-            "anadromous": sorted(r["section_id"] for r in result.steelhead if r["anadromous"])}
+                                for p in result.licensing)}
+
+
+def _anadromous(result) -> set[str]:
+    """Where a rainbow over 50 cm is a steelhead."""
+    return {r["section_id"] for r in result.steelhead if r["anadromous"]}
+
+
+def _list_effect_problems(plain, got, listed) -> list[str]:
+    """WHAT ADDING WATERS TO THE CURATED LIST MAY CHANGE (user ruling 2026-10-03): the presence code
+    (only ever TO "known", only on the listed waters' sections) and `anadromous` (gained exactly on
+    the listed sections that are streams — `water_kind.kind_of` — AND where steelhead rules apply,
+    never lost) — nothing else: no rule binding, no licensing placement. Empty when that holds."""
+    out = []
+    if _regulation(got) != _regulation(plain):
+        out.append("a rule binding or licensing placement moved")
+    secs = {x for w in listed for x in REG[w["item_id"]].section_ids}
+    before = {r["section_id"]: r["steelhead"] for r in plain.steelhead}
+    after = {r["section_id"]: r["steelhead"] for r in got.steelhead}
+    moved = {s for s in set(before) | set(after) if before.get(s) != after.get(s)}
+    if not all(after.get(s) == SH.KNOWN for s in moved) or not moved <= secs:
+        out.append(f"presence moved off the list or away from known: {sorted(moved)}")
+    if {r["section_id"] for r in got.steelhead if r["listed"]} != secs:
+        out.append("the listed sections are not the listed waters' sections")
+    from pipeline.atlas.reach.water_kind import kind_of
+    apply = SH.Presence.rules_apply(got.bindings)
+    gain = {s for s in secs if kind_of(G, REG, s) == "stream" and s in apply}
+    if _anadromous(got) != _anadromous(plain) | gain:
+        out.append(f"anadromous {sorted(_anadromous(plain))} -> {sorted(_anadromous(got))}, "
+                   f"want + {sorted(gain)}")
+    rules = {r["section_id"] for r in got.steelhead if r["steelhead"] == SH.KNOWN and r["rules"]}
+    if rules != {r["section_id"] for r in got.steelhead if r["steelhead"] == SH.KNOWN} & apply:
+        out.append("`rules` is not 'the provincial set binds it'")
+    return out
 
 
 def test_the_corpus_twins_are_steelhead_waters_of_their_base():
@@ -213,50 +251,95 @@ def test_without_the_list_cowichan_is_possible_in_region_1_and_absent_in_region_
                for b in tw.values()), tw
 
 
-def test_a_listed_river_is_known_and_nothing_else_changes():
-    """THE CURATED LIST IS A PRESENCE INDICATOR: Cowichan River, listed, is KNOWN on every section —
-    "possible" turned "known" in Region 1, absent turned "known" in Region 8 — and NO regulation
-    moves: the same bindings, licensing placements and steelhead water as without the list. In
-    Region 8 it carries no steelhead rule and no stamp."""
+def test_a_listed_river_is_known_and_a_big_rainbow_is_a_steelhead_only_where_rules_apply():
+    """THE CURATED LIST: Cowichan River, listed, is KNOWN on every section — "possible" turned
+    "known" in Region 1, absent turned "known" in Region 8. In Region 1 steelhead rules apply, so a
+    rainbow over 50 cm is a steelhead (`anadromous`); in Region 8 none does (`rules` false), so it
+    stays a rainbow (user ruling 2026-10-03). NO rule moves: the same bindings and licensing
+    placements as without the list. In Region 8 it carries no steelhead rule and no stamp."""
     entries = [_province(), _atnarko(), _zone5()]
     plain = _run(entries)
-    got = _run(entries, [{"name": "Cowichan River", "region": "1", "note": "winter run"}])
+    listed = [{"name": "Cowichan River", "region": "1", "note": "winter run"}]
+    got = _run(entries, listed)
     assert _code(got, "c1") == "known" and _code(got, "c8") == "known"
     assert _regulation(got) == _regulation(plain)
+    assert _anadromous(got) == _anadromous(plain) | {"c1"}
+    assert _list_effect_problems(plain, got, [{"item_id": "gnis:1"}]) == []
     assert SET <= _on(got, "c1") and not TWINS & _on(got, "c1")
     assert not _on(got, "c8") and not _recs_on(got, "c8")
-    for s in ("c1", "c8"):
+    for s, apply in (("c1", True), ("c8", False)):
         r = _row(got, s)
-        assert (r["entry_id"], r["regulations"], r["listed"], r["anadromous"]) == (
-            SH.CURATED_LIST, False, True, False), r
+        assert (r["entry_id"], r["regulations"], r["listed"], r["rules"], r["anadromous"]) == (
+            SH.CURATED_LIST, False, True, apply, apply), r
     assert got.report.steelhead["curated"] == [
         {"item_id": "gnis:1", "listed": "'Cowichan River' (region 1)", "sections": 2}]
     assert got.report.steelhead["known_list_only"] == 2
+    assert got.report.steelhead["anadromous_list_only"] == 1
+    assert got.report.steelhead["known_no_rules"] == 1
     # the other Mill Creek and the rest of Region 1 are untouched
     assert _code(got, "m1") == "possible" and _code(got, "m8") is None
 
 
-@pytest.mark.parametrize("listed", [
+LISTS = [
     [{"item_id": "gnis:1"}],                     # a river across a steelhead region and Region 8
     [{"item_id": "gnis:28"}],                    # a Region 8 creek
+    [{"item_id": "gnis:21"}],                    # a Region 1 creek ("possible" -> known)
     [{"item_id": "wbk:9"}],                      # a lake a steelhead row binds
+    [{"item_id": "wbk:31"}],                     # a lake-typed slough no row binds (flows)
+    [{"item_id": "wbk:32"}],                     # a lake no row binds (does not flow)
     [{"item_id": "gnis:5"}, {"item_id": "wbk:7"}],   # waters a steelhead row already binds
-])
-def test_adding_any_water_to_the_list_changes_no_regulation(listed):
-    """Mutation over the list: whatever is added, every binding, licensing placement and
-    `anadromous` section is the same; only `steelhead` codes may change, and only to "known"."""
+]
+
+
+@pytest.mark.parametrize("listed", LISTS)
+def test_adding_any_water_to_the_list_changes_only_presence_and_anadromous(listed):
+    """Mutation over the list: whatever is added, every rule binding and licensing placement is the
+    same; only the `steelhead` code may change (only to "known", only on the listed waters) and
+    `anadromous` (gained exactly on the listed STREAM sections where steelhead rules apply — a
+    Region 1 creek and a Region 2 slough yes, a Region 8 creek and a lake no)."""
     entries = [_province(), _atnarko(), _zone5(), _chilliwack(), _stellako()]
     plain, got = _run(entries), _run(entries, listed)
-    assert _regulation(got) == _regulation(plain)
-    before = {r["section_id"]: r["steelhead"] for r in plain.steelhead}
-    after = {r["section_id"]: r["steelhead"] for r in got.steelhead}
-    moved = {s for s in set(before) | set(after) if before.get(s) != after.get(s)}
-    assert all(after[s] == SH.KNOWN for s in moved)
-    ids = {i for w in listed for i in [w["item_id"]]}
-    secs = {x for i in ids for x in REG[i].section_ids}
-    assert {r["section_id"] for r in got.steelhead if r["listed"]} == secs
+    assert _list_effect_problems(plain, got, listed) == []
     # and the check is not vacuous: a steelhead row DOES move the regulation
     assert _regulation(_run(entries[:2])) != _regulation(plain)
+
+
+def test_the_list_effect_check_sees_every_other_change():
+    """MUTATIONS of a correct run, each of which `_list_effect_problems` must refuse: a rule bound
+    through the list (the twin reaching a listed stream), a listed stream where a big rainbow is not
+    a steelhead (the pre-2026-10-03 reading), a listed stream NO steelhead rule binds made steelhead
+    water (the first 2026-10-03 reading), a listed LAKE made steelhead water, steelhead water lost
+    elsewhere, and a presence code moved off the list."""
+    import copy
+    entries = [_province(), _atnarko(), _zone5(), _chilliwack(), _stellako()]
+    plain = _run(entries)
+    listed = [{"item_id": "gnis:21"}, {"item_id": "gnis:28"}, {"item_id": "wbk:32"}]
+    got = _run(entries, listed)
+    assert _list_effect_problems(plain, got, listed) == []
+    assert _row(got, "m1")["anadromous"] and not _row(got, "m8")["anadromous"]
+
+    def mutated(fn):
+        m = copy.deepcopy(got)
+        fn(m)
+        return _list_effect_problems(plain, m, listed)
+
+    def bind(m):
+        import dataclasses
+        m.bindings[0] = dataclasses.replace(m.bindings[0],
+                                            sections=tuple(m.bindings[0].sections) + ("m8",))
+
+    def row(sid, **kw):
+        return lambda m: next(r for r in m.steelhead if r["section_id"] == sid).update(kw)
+    assert mutated(bind)
+    assert mutated(row("m1", anadromous=False))                 # book-only anadromous
+    assert mutated(row("m8", anadromous=True))                  # a big rainbow a steelhead where
+    #                                                             no steelhead rule applies
+    assert mutated(row("m8", rules=True))                       # `rules` without the set
+    assert mutated(row("pl", anadromous=True))                  # a listed lake made steelhead water
+    assert mutated(row("a5", anadromous=False))                 # lost on the book's water
+    assert mutated(lambda m: m.steelhead.append({"section_id": "c8", "steelhead": SH.KNOWN,
+                                                 "listed": False, "anadromous": False,
+                                                 "rules": False, "regulations": False}))
 
 
 def test_the_list_by_item_id_is_the_same_water():
@@ -296,7 +379,8 @@ def test_the_curated_file_loads_and_is_documented():
     path = CURATED.regulations.steelhead_waters
     doc = json.loads(path.read_text(encoding="utf-8"))
     said = " ".join(doc["$comment"])
-    assert "item_id" in said and "region" in said and "changes NO regulation" in said
+    assert "item_id" in said and "region" in said and "binds NO rule" in said
+    assert "anadromous_rainbow" in said and "2026-10-03" in said
     assert "pipeline.regs.steelhead.known_waters" in said
     assert len(SH.load_list()) == len(doc["waters"]) > 600
 
@@ -359,7 +443,8 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
     a stream, even one inside the area that its base leaves (a piece homed in another region)."""
     got = _run([_province(), _zone5(), _chilliwack()])
     assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "vc")
-    assert TWINS <= _on(got, "vc")
+    # the canal is a STREAM (`water_kind.kind_of`): Region 2's base binds it, not the twins
+    assert SET <= _on(got, "vc") and not TWINS & _on(got, "vc")
     z = _zone5()
     # the base leaves the Atnarko piece (as if homed in another region) and binds elsewhere
     z["rules"][0]["extents"] = [{"op": "within", "area_id": "area:region:5",
@@ -376,16 +461,33 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
         REG.pop("area:region:5b")
 
 
-def test_a_lake_typed_water_named_as_flowing_is_steelhead_water():
-    """The Vedder Canal is a LAKE-typed item whose name says it flows (`steelhead.flows`): bound by
-    the flagged Chilliwack/Vedder row, a rainbow over 50 cm there IS a steelhead; Tenas Lake, bound
-    the same way, stays a lake."""
+def test_a_lake_typed_water_named_as_flowing_is_a_stream():
+    """A LAKE-typed item whose name's head noun flows is a STREAM (`water_kind.kind_of`, user ruling
+    2026-10-03): the Vedder Canal, bound by the flagged Chilliwack/Vedder row, is steelhead water;
+    Gravel Slough (no row) is a stream the provincial steelhead rules bind — "possible" — and,
+    listed, steelhead water; Tenas Lake and Plain Lake stay lakes."""
+    from pipeline.atlas.reach.water_kind import kind_of
     assert SH.flows("lake", "Vedder Canal") and SH.flows("lake", "Gravel Slough")
+    assert SH.flows("lake", "Sumas Lake Canal") and SH.flows("lake", "Rancheria River")
     assert SH.flows("stream", "Unnamed") and not SH.flows("lake", "Tenas Lake")
+    for still in ("Bear Creek Reservoir", "Corn Creek Marsh", "River Lakes", "OKANAGAN RIVER OXBOWS",
+                  "Fowl Creek Lake No. 1*", "Pete'S Pond Unnamed Lake At The Head Of San Juan River"):
+        assert not SH.flows("lake", still), still
+    assert [kind_of(G, REG, s) for s in ("vc", "gs", "pl", "lk", "h2")] == [
+        "stream", "stream", "lake", "lake", "stream"]
+    assert kind_of(G, None, "vc") == "lake"                    # no registry: the graph's kind
+    got = _run([_province()])
+    assert _code(got, "gs") == "possible" and SET <= _on(got, "gs")
+    assert _code(got, "pl") is None and not _on(got, "pl")
     got = _run([_province(), _chilliwack(), _atnarko()])
     assert _row(got, "vc")["anadromous"] is True and _row(got, "h2")["anadromous"] is True
     assert _row(got, "lk")["anadromous"] is False
     assert got.report.steelhead["anadromous"] == 3                         # vc, h2, a5
+    # LISTED, a lake-typed slough no row binds is steelhead water too; a plain lake is not
+    got = _run([_province(), _chilliwack(), _atnarko()], [{"item_id": "wbk:31"},
+                                                          {"item_id": "wbk:32"}])
+    assert _row(got, "gs")["anadromous"] is True and _row(got, "pl")["anadromous"] is False
+    assert got.report.steelhead["anadromous"] == 4
 
 
 def test_a_stamp_waiver_row_is_a_steelhead_row():
@@ -496,3 +598,29 @@ def test_the_list_marks_only_water_in_bc():
     got = build_reaches([_province()], reg, g, steelhead_list=[SH.ListWater(item_id="gnis:8231")])
     assert _code(got, "t1") == "known" and _code(got, "t9") is None
     assert got.report.steelhead["curated"][0]["sections"] == 1
+
+
+def test_a_slough_is_a_stream_for_every_rule():
+    """EVERY "in streams" rule binds a lake-typed water whose name flows, and no "in lakes" rule
+    does (user ruling 2026-10-03: a slough is a stream everywhere, not only for steelhead) — the
+    one point is `water_kind.kind_of`, read by every `feature_types` filter. Mutation: with the
+    graph's kind alone (no registry) the slough would answer to the lake rule instead."""
+    closure = {"entry_id": "z2:spring_stream_closure", "matched": [], "rules": [
+        {"rule_id": "spring.r1", "type": "closure", "verbatim": "No fishing in any stream",
+         "species": ["ALL_GAME_FISH"],
+         "extents": [{"op": "within", "area_id": "area:region:2", "feature_types": ["stream"]}]},
+        {"rule_id": "lakes.r1", "type": "gear_restriction", "verbatim": "Set lining in lakes",
+         "extents": [{"op": "within", "area_id": "area:region:2", "feature_types": ["lake"]}]}]}
+    got = _run([closure])
+    stream = next(b for b in got.bindings if b.rule_id == "spring.r1")
+    lake = next(b for b in got.bindings if b.rule_id == "lakes.r1")
+    assert set(stream.sections) == {"h2", "vc", "gs"} and set(lake.sections) == {"pl"}
+    from pipeline.atlas.reach import extent
+    real = extent._kind_of
+    try:
+        extent._kind_of = lambda g, s, reg=None: real(g, s, None)
+        got = _run([closure])
+        assert {s for b in got.bindings if b.rule_id == "lakes.r1" for s in b.sections} \
+            == {"vc", "gs", "pl"}
+    finally:
+        extent._kind_of = real
