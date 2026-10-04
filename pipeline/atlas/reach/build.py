@@ -22,13 +22,13 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, Reason, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.atlas.registry.flowing import absorbed_refs
 from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
 )
 from pipeline.regs.parsing.catalogue import Designation
-from pipeline.common.models import NodeKind as _NodeKind
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
     national_park_sections, on_designations, own_beats_inherited, place_record,
@@ -93,6 +93,13 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     if bad:
         raise SystemExit("reach: records bind a lake that is cut into parts — name the part(s):\n  "
                          + "\n  ".join(bad))
+    # AN ABSORBED ID IS REFUSED HERE, never mapped: the corpus' read point (`parsing.io.
+    # read_entryfile`, given the registry) is where a polygon's old id becomes its river's.
+    bad = absorbed_refs(ents, registry)
+    if bad:
+        raise SystemExit("reach: records name an item this registry folded into another "
+                         "(`registry.flowing`) — read the corpus with the registry, or fix the "
+                         "file:\n  " + "\n  ".join(bad))
     outside = outside_bc(registry, graph)
     # The waters more than one region prints a row for: those rows stay in their own region; every
     # other row applies along its water's whole length (`outside.region_limit`).
@@ -840,7 +847,7 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
         joining = {s for row in expand.confluence for s in row["sections"]}
         blocked = excluded | (joining - set(reach))
         got = _tribs.expand(graph, reach, only=only, excluded=blocked, passed=passed,
-                            window=window)
+                            window=window, registry=registry)
         # A JOINING WATER THAT GOES WITH THE CUT (no row of its own, or signs that put it inside):
         # its subtree joins the walk on whichever side the rule is — the walk alone would find it
         # on one side only, the piece FWA hung its mouth on. Streams only, like every walk
@@ -851,8 +858,7 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
                 add = {s for s in row["subtree"]
                        if s not in blocked and s not in passed
                        and (not _tribs.STREAMS_ONLY
-                            or ((n := graph.nodes.get(s)) is not None
-                                and n.kind == _NodeKind.stream))}
+                            or _resolve._kind_of(graph, s, registry) == "stream")}
                 row["joined"] = len(add)
                 with_cut |= add
         got = frozenset(got | with_cut)

@@ -36,7 +36,7 @@ def _b(bid, kind="split", m=0.0, aliases=()):
     return NS(boundary_id=bid, kind=kind, route_measure=m, label="", aliases=tuple(aliases))
 
 
-LAKES = {"329083341": "wbk:329083341"}.get
+LAKES = {"329083341": ("wbk:329083341", "lake")}.get      # wbk -> (the water, its kind)
 
 
 @pytest.mark.parametrize("bound,side,want", [
@@ -222,8 +222,8 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
     """Recomputed from the bundle rows: each part's sections (the export's own grouping key, in
     SQL) are partitioned by its runs — every section in exactly one run — and the shipped runs are
     those runs without their sections."""
-    span = {s: (a, b, lo, hi, off) for s, a, b, lo, hi, off in db.execute(
-        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem FROM section_span s "
+    span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
+        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
     touch = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
@@ -250,19 +250,26 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
                     or None, bool(p.get("anadromous_rainbow")), p.get("steelhead"))
                 == (rs, ls, pe, sw, st)]
         assert len(part) == 1, item
+        assert part[0]["sections"] == len(sids)
+        if X.is_polygon_part(doc["waters"][item], sorted(sids), span):
+            # a stream's polygons its stem does not pass through: one polygon run
+            assert part[0]["runs"] == [{"from": None, "to": None, "km_from": None,
+                                        "km_to": None, "polygon": "whole"}], item
+            checked += 1
+            continue
         runs = SP.compose_runs(span, touch, sorted(sids))
         covered = [s for r in runs for s in r["sids"]]
         assert sorted(covered) == sorted(sids), item          # every section, none twice
-        assert part[0]["sections"] == len(sids)
         assert [{k: v for k, v in r.items() if k != "sids"} for r in runs] == part[0]["runs"]
         checked += 1
     assert checked > 10_000
 
 
 def test_every_end_is_a_cut_or_an_end_the_file_names(doc):
-    # runs follow the SHAPE (`drawn_kind`): a slough is regulated as a stream, drawn as a polygon
-    ends = [r[k] for w in doc["waters"].values() if X.drawn_kind(w) == "stream"
-            for p in w["parts"] for r in p["runs"] for k in ("from", "to")]
+    # runs follow the SHAPE of the sections: a stream's stretches have ends, its polygon-only
+    # parts (a slough drawn only as polygons) are one polygon run with none
+    ends = [r[k] for w in doc["waters"].values() if w["kind"] == "stream"
+            for p in w["parts"] for r in p["runs"] if "polygon" not in r for k in ("from", "to")]
     assert ends and all(X.valid_end(t, doc) for t in ends), \
         sorted({t for t in ends if not X.valid_end(t, doc)})[:10]
     named = [t for t in ends if t in doc["splits"]]
@@ -289,7 +296,7 @@ def test_a_part_of_several_stretches_has_several_runs(doc):
 
 
 def test_a_lake_part_is_its_polygon(doc):
-    lakes = [(w, p) for w in doc["waters"].values() if X.drawn_kind(w) != "stream" for p in w["parts"]]
+    lakes = [(w, p) for w in doc["waters"].values() if w["kind"] != "stream" for p in w["parts"]]
     assert lakes
     for w, p in lakes:
         assert p["runs"] == [{"from": None, "to": None, "km_from": None, "km_to": None,

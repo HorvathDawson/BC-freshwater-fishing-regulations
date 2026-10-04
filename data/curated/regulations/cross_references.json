@@ -176,7 +176,6 @@
       "name": "Vedder Canal",
       "region": "2",
       "matched": [
-        "wbk:329707189",
         "gnis:3062"
       ],
       "rule_id": "vedder_river.r1",

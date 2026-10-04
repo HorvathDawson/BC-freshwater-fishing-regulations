@@ -563,11 +563,13 @@ export function useStatusIndex(source: RegsSource, atlasUrl: string | undefined)
  * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
  * section that was closed yesterday and is base today must be told so, not left red. A
  * section with no status (tidal, outside B.C.) is set to null: the mode's `missing`.
- * The same values for streams and lakes, because feature-state is per layer.
+ * The same values for streams, lakes and wetlands, because feature-state is per source-layer
+ * (a stream's polygon — `lake_flowing` / `wetland_flowing` — reads its own source-layer's).
  */
 export function statusData(index: StatusIndex | null, visible: readonly SectionKey[],
                            on: Date): Record<string, Record<string, Record<string, unknown>>> {
   const values: Record<string, Record<string, unknown>> = {};
   for (const s of visible) values[String(s)] = { status: statusOn(index, s, on) };
-  return { stream: values, lake: values };
+  // and on the wetland source-layer, for a slough drawn as a wetland (`wetland_flowing`)
+  return { stream: values, lake: values, wetland: values };
 }

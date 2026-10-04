@@ -24,7 +24,11 @@ class RegistryItem:
     parser's catalog of bindable cut-points on this item."""
     id: str                              # gnis:{} -> wsc:{} -> blk:{} (streams); wbk:{} (lakes/wetlands); area:{} (areas)
     name: str                            # display_name from the graph (or GNIS name for wetlands)
-    kind: str                            # stream | lake | wetland | area
+    kind: str                            # THE WATER KIND: stream | lake | wetland | area. Decided ONCE,
+                                         # here, by the registry build (`common.water_kind.flows` +
+                                         # `registry.flowing`): a slough, canal or river drawn as a
+                                         # polygon is `stream`. The shape a SECTION is drawn as is the
+                                         # graph node's kind, never this.
     variants: tuple[str, ...] = ()       # searchable name variants (name_tuples)
     mus: tuple[str, ...] = ()            # management units this item spans (07 overlay; may be empty pre-overlay)
     section_ids: tuple[str, ...] = ()    # its section node_ids
@@ -35,4 +39,11 @@ class RegistryItem:
     part_of: str = ""                    # the item this one is a curated PART of (a lake cut into parts
                                          # in `added_lakes.geojson`: Kootenay Lake's Main Body -> Kootenay
                                          # Lake) — written by the atlas build (`registry.add_lake_parts`),
-                                         # so no reader opens the curated polygons to learn it
+                                         # so no reader opens the curated polygons to learn it. A lake
+                                         # with parts OWNS NO SECTION of its own (user ruling 2026-10-03):
+                                         # its parts are the water, and it is found through them.
+    aliases: tuple[str, ...] = ()        # item ids this item ABSORBED (`registry.flowing`: a river's
+                                         # polygons folded into its line's item, a slough's polygons
+                                         # into one item). The permanent record of what an old id names;
+                                         # `flowing.canonical` maps one to this item at the corpus'
+                                         # read points, and everything else refuses it.

@@ -66,10 +66,11 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "section_steelhead_rules": ("sid",),
                     "section_home": ("sid", "region"),
                     "steelhead_source": ("ord", "entry_id"),
-                    "section_span": ("sid", "lo_m", "hi_m", "lo", "hi", "off_stem"),
+                    "section_span": ("sid", "lo_m", "hi_m", "lo", "hi", "off_stem", "shape"),
                     "span_end": ("eid", "token"),
                     "split": ("split_id", "name", "kind", "at", "official_name",
-                              "same_place_as")}
+                              "same_place_as", "lake_id"),
+                    "item_alias": ("alias", "item_id")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
@@ -678,27 +679,44 @@ def read(bundle: Path) -> dict:
                           "SELECT set_id, COUNT(*) FROM section_licensing GROUP BY set_id",
                           lambda e, r: f"{e}#{r}")
 
-    from pipeline.atlas.reach.water_kind import flows as _flows
     by_item = defaultdict(list)
     for eid, e in entries.items():
         for it in e["matched"]:
             by_item[it].append(eid)
     waters = {}
+    # THE WATER KIND is the bundle's `item.kind` — the registry's, decided once (a slough, a canal,
+    # a river's wide reach drawn as a polygon is `stream`; user ruling 2026-10-03). Nothing here
+    # recomputes it from a name. A lake cut into PARTS owns no section (`item.part_of` names it):
+    # it is listed with none, `divided_into` its parts, and shown through them.
     for item_id, name, kind, part_of, n in db.execute(
-            "SELECT i.item_id, i.name, i.kind, i.part_of, COUNT(*) FROM item i "
-            "JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
+            "SELECT i.item_id, i.name, i.kind, i.part_of, COUNT(s.sid) FROM item i "
+            "LEFT JOIN item_section s ON s.ord = i.ord GROUP BY i.item_id ORDER BY i.item_id"):
         shown = display_case(name) if name else name
-        # THE WATER KIND every regulation reads (`water_kind.flows`, user ruling 2026-10-03): a
-        # lake-typed water whose name flows — a slough, a canal — IS A STREAM; `drawn_as` keeps
-        # the atlas's kind, the shape the map draws
-        rkind = "stream" if _flows(kind, name) else kind
         waters[item_id] = {"name": shown, **({"official_name": name} if shown != name else {}),
-                           "kind": rkind, **({"drawn_as": kind} if rkind != kind else {}),
-                           "sections": n,
+                           "kind": kind, "sections": n,
                            "entries": sorted(by_item.get(item_id, [])),
                            "parts": [], "outside_bc": 0}
         if part_of:
             waters[item_id]["part_of"] = part_of
+    for item_id, w in waters.items():
+        if w.get("part_of"):
+            waters[w["part_of"]].setdefault("divided_into", []).append(item_id)
+    for w in waters.values():
+        if w.get("divided_into"):
+            if w["sections"]:
+                raise SystemExit(f"export_ui_rules: a lake cut into parts ({w['name']}) still "
+                                 f"owns {w['sections']} section(s) — the bundle predates the "
+                                 f"ruling (user ruling 2026-10-03)")
+            w["divided_into"].sort()
+            # its parts' rows are its rows: the whole is shown through them
+            w["entries"] = sorted(set(w["entries"]).union(
+                *(waters[c]["entries"] for c in w["divided_into"])))
+    # ABSORBED IDS (`item_alias`): what an old id names now, for a saved link
+    aliases = defaultdict(list)
+    for alias, item_id in db.execute("SELECT alias, item_id FROM item_alias ORDER BY alias"):
+        aliases[item_id].append(alias)
+    for item_id, got in aliases.items():
+        waters[item_id]["absorbed"] = got
     # ONE LIST PER WATER: which rule set and which licensing set its sections carry TOGETHER.
     # This was two per-water histograms — rule sets, licensing sets — and the pairing on each
     # section, which the bundle holds, was lost: the Dean's eight (ruleset, licensing set)
@@ -818,8 +836,8 @@ def read(bundle: Path) -> dict:
     # bundle's own `spans.compose_runs`. A lake (or wetland) part is its polygon: one run with no
     # ends. The sections stay here; only the runs leave.
     splits = read_splits(db)
-    span = {s: (a, b, lo, hi, off) for s, a, b, lo, hi, off in db.execute(
-        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem FROM section_span s "
+    span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
+        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
     touch_of: dict[int, set[int]] = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
@@ -886,8 +904,8 @@ def read_splits(db) -> dict:
     them all in `at` and leaves both null; an area boundary (which crosses hundreds of waters) has
     neither — the run ending there carries the km."""
     out = {}
-    for sid, name, kind, at, official, same in db.execute(
-            "SELECT split_id, name, kind, at, official_name, same_place_as FROM split "
+    for sid, name, kind, at, official, same, lake_id in db.execute(
+            "SELECT split_id, name, kind, at, official_name, same_place_as, lake_id FROM split "
             "ORDER BY split_id"):
         at = _j(at, [])
         one = at[0] if len(at) == 1 else None
@@ -895,24 +913,31 @@ def read_splits(db) -> dict:
                     "water_id": one[0] if one else None, "km": one[1] if one else None,
                     **({"at": [{"water_id": w, "km": k} for w, k in at]} if len(at) > 1 else {}),
                     **({"official_name": official} if official else {}),
-                    **({"same_place_as": same} if same else {})}
+                    **({"same_place_as": same} if same else {}),
+                    **({"lake_id": lake_id} if lake_id else {})}
     for r in REGIONS:
         out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
                                    "water_id": None, "km": None}
     return dict(sorted(out.items()))
 
 
-def drawn_kind(w: dict) -> str:
-    """The SHAPE of a water — its `drawn_as`, else its `kind`: what runs, ends and polygons follow
-    (a slough is regulated as a stream and drawn as a lake polygon)."""
-    return w.get("drawn_as") or w["kind"]
+def is_polygon_part(water: dict, sids: list[int], span: dict) -> bool:
+    """Is this part its water's polygon — one run with no ends? A lake or wetland always; a STREAM
+    part whose every section is a polygon the main stem does not pass through (`section_span.
+    shape` with no window: a slough drawn only as polygons, a river's far polygon). A stream's
+    polygon ON its stem has a window and runs with the line through it."""
+    if water["kind"] != "stream":
+        return True
+    rows = [span.get(s) for s in sids]
+    return bool(rows) and all(r is not None and r[5] == 1 and r[0] is None for r in rows)
 
 
 def part_runs(item_id: str, water: dict, sids: list[int], span: dict, touch: dict) -> list[dict]:
     """One part's `runs`, upstream to downstream. A stream section with no span row is refused:
     a part whose stretches cannot be said would ship a run that covers less than the part. Runs
-    follow the SHAPE (`drawn_as`, else `kind`): a slough drawn as a polygon is one polygon run."""
-    if drawn_kind(water) != "stream":
+    follow the SHAPE of the sections (`section_span.shape`), never the water's name: a polygon
+    part is one polygon run (`is_polygon_part`)."""
+    if is_polygon_part(water, sids, span):
         return [{"from": None, "to": None, "km_from": None, "km_to": None,
                  "polygon": water["name"] if water.get("part_of") else "whole"}]
     missing = [s for s in sids if s not in span]
@@ -1029,13 +1054,20 @@ OFFICIAL_NAME_TEXT = (
 WATER_TEXT = {
     "name": "the water's name, as a reader writes it (never all capitals — see `official_name`)",
     "official_name": OFFICIAL_NAME_TEXT,
-    "kind": "stream | lake | wetland — the kind every regulation reads: as the atlas types the "
-            "water, except that a lake-typed water whose name flows (a slough, a canal, a "
-            "channel: Gravel Slough, the Vedder Canal) IS A STREAM (user ruling 2026-10-03; "
-            "`water_kind.flows`) — every \"in streams\" rule binds it, no \"in lakes\" rule does",
-    "drawn_as": "ONLY where it differs from `kind`: the atlas's kind, the shape the map draws (a "
-                "slough drawn as a lake polygon, regulated as a stream)",
-    "sections": "how many sections the water has; its parts' `sections` sum to it",
+    "kind": "stream | lake | wetland — THE WATER KIND, the registry's (`item.kind`), decided once "
+            "by the atlas build and read by every regulation, the map and this file alike: a "
+            "slough, a canal, a channel, a river's wide reach drawn as a polygon (Gravel Slough, "
+            "the Vedder Canal, the Stellako's) IS A STREAM (user ruling 2026-10-03) — every \"in "
+            "streams\" rule binds it, no \"in lakes\" rule does. The SHAPE a part is drawn as is "
+            "its runs' (`polygon`, or stretches)",
+    "sections": "how many sections the water has; its parts' `sections` sum to it. 0 on a lake "
+                "cut into parts (`divided_into`): its parts own its water",
+    "divided_into": "ONLY on a lake cut into PARTS: the item_ids of its parts (their `part_of` is "
+                    "this id). The lake owns no section and has no `parts`; show it through these "
+                    "(`placement.part_of`). Its `entries` are its parts' rows",
+    "absorbed": "ONLY on a water that absorbed another item of the registry (a river's polygons, "
+                "once items of their own, folded into it): the old item_ids, so a link saved "
+                "under one still opens this water. No record names an absorbed id",
     "entries": "the synopsis rows that MATCH this water (their `matched` lists it) — not every "
                "row whose rules reach it: a zone, area or tributary walk reaches it through its "
                "parts' sets",
@@ -1103,8 +1135,9 @@ WATER_PART_TEXT = {
     "touches": TOUCHES_TEXT,
     "runs": "WHERE THE PART RUNS: its stretches, upstream to downstream — [{from, to, km_from, "
             "km_to}] (see `water.parts[].runs[]`, and `placement.runs`). A part of several "
-            "stretches has several runs. A part of a water DRAWN as a polygon (a lake, a "
-            "wetland, a slough — `drawn_as`) is its polygon: one run with no ends",
+            "stretches has several runs. A part that is a polygon (a lake, a wetland, or a "
+            "stream's polygons its main stem does not pass through) is one run with no ends; a "
+            "river's wide reach drawn as a polygon ON its stem runs with the line through it",
 }
 
 #: One run of a part, field by field.
@@ -1122,9 +1155,9 @@ RUN_TEXT = {
               "braid of the same water whose sets differ from the stem beside it. Its ends are its "
               "own (its `source` and `mouth` are where it leaves and rejoins), and both km are the "
               "point it rejoins the stem",
-    "polygon": "ONLY on a water drawn as a polygon (a lake, a wetland, a slough drawn as a lake: "
-               "`drawn_as`): `whole` (the run is the whole polygon), or — on a lake "
-               "PART (`part_of`) — the part's own name ('Williston Lake — Nation Arm')",
+    "polygon": "ONLY on a polygon run (a lake, a wetland, a stream's polygons off its stem — a "
+               "slough drawn only as polygons): `whole` (the run is the whole polygon), or — on a "
+               "lake PART (`part_of`) — the part's own name ('Williston Lake — Nation Arm')",
 }
 
 #: The end tokens a run's `from` / `to` take. One vocabulary with `spans.end_token`.
@@ -1144,7 +1177,12 @@ END_TEXT = {
     "lake_outlet:<item_id>": "the run begins where it flows OUT of that lake (`lake_outlet` "
                              "alone: unnamed)",
     "confluence:<item_id>": "a cut the atlas made where that tributary (a key of `waters`) flows "
-                            "in. Say it '<tributary name> confluence' (the tributary's `name`)",
+                            "in, or the stretch meets that STREAM's polygon (a tributary's mouth "
+                            "at a river's wide reach). Say it '<name> confluence' (that water's "
+                            "`name`)",
+    "polygon": "the stretch meets the water's OWN polygon — a river drawn as a wide polygon, a "
+               "slough's: no cut, the same water goes on (its polygon is the next stretch, or the "
+               "same part); a cut aliased onto that edge keeps its own id instead",
     "mouth": "the water's own downstream end — into the sea, another river or a lake it ends in "
              "— with no cut",
     "source": "the water's own upstream end with no cut — its source, or where it takes its "
@@ -1177,13 +1215,20 @@ SPLIT_TEXT = {
                      "on the Fraser, as `fraser_river__…` and `thompson_river__…`): that other "
                      "cut's id. The two share a name because they are one place; treat them as "
                      "one",
-    "kind": "how the cut was placed: point | line | confluence | lake (a lake's inlet or outlet, "
-            "with an offset) | gauge (a hydrometric station) | area (an area's boundary) | "
-            "region_line",
+    "kind": "how the cut was placed: point | line | confluence | lake (a curated cut anchored at "
+            "a lake's edge, with an offset) | gauge (a hydrometric station) | area (an area's "
+            "boundary) | region_line | lake_edge (a lake's EDGE on a river: the registry's "
+            "bindable lake boundary, the id a rule's extents bind by when a cut lands in the lake "
+            "— named for the lake, it stands at the lake's inlet AND outlet, so `at` lists both, "
+            "and a river entering one lake twice has two such ids with one name) | border (the "
+            "provincial border on this water: the runs' `bc_border`)",
     "water_id": "the named water whose main stem it stands on, when it stands at ONE place on "
                 "one; null otherwise (an area boundary, or several places — see `at`)",
     "km": "km from that water's MOUTH along its main stem; null with `water_id`",
     "at": "ONLY on a cut at several places on named waters' main stems: every [{water_id, km}]",
+    "lake_id": "ONLY on a lake's edge (`kind: lake_edge`): the lake's item_id (a key of `waters`) — "
+               "the water the runs' `lake_inlet:<lake_id>` / `lake_outlet:<lake_id>` ends name. "
+               "Absent when the waterbody is not a named water",
 }
 
 #: A designation's classified period (`licensing[*].period`, designations only).
@@ -2834,11 +2879,15 @@ def guide(d: dict) -> dict:
                        "ends lies inside an area ('within Chilliwack River Ecological Reserve'). "
                        "The pipeline cut the water at exactly these points: this reports them and "
                        "infers nothing. Use km_from / km_to to draw or order a stretch. A river "
-                       "runs through a lake as two runs (one ending at `lake_inlet`, the next "
-                       "starting at `lake_outlet`) — the lake is its own water.",
+                       "runs through a LAKE as two runs (one ending at `lake_inlet`, the next "
+                       "starting at `lake_outlet`) — the lake is its own water. A river's OWN "
+                       "polygon (its wide reach, drawn as a polygon: `kind: stream`) is not a "
+                       "lake: one run passes through it, and a run ending at it says `polygon`.",
             "lakes": "A lake or wetland part is its polygon: ONE run with from, to, km_from and "
                      "km_to all null, and `polygon`: `whole`, or a lake PART's own name. A lake "
-                     "has no ends to name; the polygon is the place.",
+                     "has no ends to name; the polygon is the place. A stream part made only of "
+                     "polygons its main stem does not pass through (a slough drawn only as "
+                     "polygons) is the same shape.",
             "branches": "A run with `branch: true` lies off the main stem (a side channel or braid "
                         "of the same water whose sets differ from the stem beside it); both its km "
                         "are where it rejoins the stem (null when it never does).",
@@ -2846,8 +2895,7 @@ def guide(d: dict) -> dict:
             "fields": RUN_TEXT,
             "counts": {
                 "stream_parts": sum(1 for w in d["waters"].values()
-                                    if drawn_kind(w) == "stream"
-                                    for p in w["parts"]),
+                                    for p in w["parts"] if "polygon" not in p["runs"][0]),
                 "runs": sum(len(p["runs"]) for w in d["waters"].values() for p in w["parts"]),
                 "parts_with_several_runs": sum(1 for w in d["waters"].values()
                                                for p in w["parts"] if len(p["runs"]) > 1),
@@ -4908,6 +4956,27 @@ def dangling(doc: dict) -> list[str]:
         out += [f"water {item} -> entry {e}" for e in w["entries"] if e not in E]
         if w.get("part_of") and w["part_of"] not in doc["waters"]:
             out.append(f"water {item} -> part_of {w['part_of']}")
+        out += [f"water {item} -> divided_into {c}" for c in w.get("divided_into") or []
+                if c not in doc["waters"] or doc["waters"][c].get("part_of") != item]
+    # THE CUTS EVERY EXTENT BINDS BY must be named (E2): a page composing "between the Elsie
+    # Lake outlet and Dickson Lake" from `extents[].splits` can name either end only if `splits`
+    # holds the id — including a lake's edge, the id a cut aliased onto it answers to.
+    S = doc.get("splits") or {}
+    for table, name in ((R, "rule"), (L, "licensing"), (E, "entry")) if "splits" in doc else ():
+        for i, x in table.items():
+            exts = (x.get("fields") or {}).get("extents") if name != "entry" else x.get("extents")
+            for ex in exts or []:
+                for sid in (ex.get("splits") or []) if isinstance(ex, dict) else []:
+                    if sid not in S:
+                        out.append(f"{name} {i} extents -> split {sid}")
+    for sid, x in S.items():
+        for wid in [x.get("water_id")] + [a["water_id"] for a in x.get("at") or []]:
+            if wid and wid not in doc["waters"]:
+                out.append(f"split {sid} -> water {wid}")
+        if x.get("same_place_as") and x["same_place_as"] not in S:
+            out.append(f"split {sid} -> same_place_as {x['same_place_as']}")
+        if x.get("lake_id") and x["lake_id"] not in doc["waters"]:
+            out.append(f"split {sid} -> lake_id {x['lake_id']}")
     def examples(o):
         if isinstance(o, dict):
             if {"id", "label", "verbatim"} <= set(o):
@@ -5294,7 +5363,7 @@ def valid_end(token, doc: dict) -> bool:
     head, _, item = str(token).partition(":")
     w = doc["waters"].get(item)
     if head in ("lake_inlet", "lake_outlet"):
-        return w is not None and drawn_kind(w) in ("lake", "wetland")
+        return w is not None and w["kind"] in ("lake", "wetland")
     return head == "confluence" and w is not None
 
 
@@ -5307,10 +5376,12 @@ def run_problems(doc: dict) -> list[str]:
             if not runs:
                 out.append(f"{tag}: no runs")
                 continue
-            if drawn_kind(w) != "stream":
+            if w["kind"] != "stream" or "polygon" in runs[0]:
                 if len(runs) != 1 or any(runs[0][k] is not None for k in
                                          ("from", "to", "km_from", "km_to")):
                     out.append(f"{tag}: a polygon is one run with no ends")
+                if w["kind"] != "stream" and "polygon" not in runs[0]:
+                    out.append(f"{tag}: a {w['kind']} part is a polygon")
                 continue
             for r in runs:
                 for k in ("from", "to"):
@@ -5363,6 +5434,8 @@ def name_problems(doc: dict) -> list[str]:
     S, W = doc["splits"], doc["waters"]
     seen: dict[tuple[str, str], list[tuple[float, str]]] = defaultdict(list)
     for sid, x in sorted(S.items()):
+        if x["kind"] in ("lake_edge", "border"):
+            continue           # named for the lake (or the border): one name at its inlet AND outlet
         for w, km in _split_waters(x):
             seen[(w, x["name"])].append((km, sid))
         same = x.get("same_place_as")

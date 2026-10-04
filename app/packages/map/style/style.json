@@ -238,7 +238,32 @@
       "source-layer": "wetland",
       "layout": {
         "visibility": "visible"
-      }
+      },
+      "filter": [
+        "!=",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
+    },
+    {
+      "id": "wetland_flowing",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "wetland",
+      "layout": {
+        "visibility": "visible"
+      },
+      "filter": [
+        "==",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
     },
     {
       "id": "lake",
@@ -247,7 +272,15 @@
       "source-layer": "lake",
       "layout": {
         "visibility": "visible"
-      }
+      },
+      "filter": [
+        "!=",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
     },
     {
       "id": "lake__edge",
@@ -256,7 +289,32 @@
       "source-layer": "lake",
       "layout": {
         "visibility": "visible"
-      }
+      },
+      "filter": [
+        "!=",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
+    },
+    {
+      "id": "lake_flowing",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "lake",
+      "layout": {
+        "visibility": "visible"
+      },
+      "filter": [
+        "==",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
     },
     {
       "id": "contour",
@@ -429,6 +487,14 @@
             "name"
           ],
           ""
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "water"
+          ],
+          "stream"
         ],
         [
           "any",

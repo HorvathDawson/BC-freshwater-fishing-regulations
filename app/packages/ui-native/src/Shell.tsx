@@ -306,6 +306,20 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         // Depth are questions the reader asked instead.
         : (lakeChoice?.mode ?? "plain") === "plain" && statusOk ? "status"
           : lakeChoice?.mode ?? "plain",
+    /*
+     * A STREAM'S POLYGON IS A STREAM. A river's wide reach or a slough drawn as a polygon
+     * (`water: stream` on the tile, the registry's kind) wears the rivers' colouring in every
+     * view — never the lakes' Stocked or Depth, which are questions about standing water.
+     * Declared once here, read by the two style layers that draw such polygons.
+     */
+    lake_flowing: mixedPair ? "plain"
+      : onConditions
+        ? (quantity === "temperature" ? "plain" : "standing")
+        : statusOk ? "status" : "plain",
+    wetland_flowing: mixedPair ? "plain"
+      : onConditions
+        ? (quantity === "temperature" ? "plain" : "standing")
+        : statusOk ? "status" : "plain",
     gauges: quantity === "temperature" ? "temperature" : "standing",
     /*
      * THE FIELD. It has to be in this list or it is never painted at all: the map sets a

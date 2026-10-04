@@ -192,6 +192,15 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     ~90 KB gzipped — small enough that no server-side search is needed anywhere.
     """
     items = [i for i in json.loads(registry.read_text())["items"] if is_water(i)]
+    # A LAKE WITH PARTS OWNS NO SECTION (user ruling 2026-10-03; `registry.add_lake_parts`): its
+    # parts are the water. REFUSED, not trimmed, when the registry still gives it one — the ghost
+    # section would answer with the zone base beside parts that carry the lake's own rows.
+    parents = {i["part_of"] for i in items if i.get("part_of")}
+    ghosts = [i["id"] for i in items if i["id"] in parents and i.get("section_ids")]
+    if ghosts:
+        raise SystemExit(f"item: a lake cut into parts still owns a section of its own: {ghosts} "
+                         f"— the registry predates the ruling; rewrite it with "
+                         f"`python -m pipeline.atlas.sidecars`")
     # `ord` is assigned here, by insertion order, and is the ONLY place it is assigned.
     # setdefault rather than enumerate: the old write was INSERT OR REPLACE, so a repeated
     # item_id collapsed silently — with ord as the key it would instead insert twice and
@@ -227,6 +236,10 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
             aliases.append((i["id"], v))
     db.executemany("INSERT INTO alias VALUES (?,?)", aliases)
     cov.filled("alias", len(aliases))
+    # The ids the registry absorbed (`registry.flowing`), each naming its water now.
+    absorbed = sorted((a, i["id"]) for i in items for a in i.get("aliases", []))
+    db.executemany("INSERT INTO item_alias (alias, item_id) VALUES (?,?)", absorbed)
+    cov.filled("item_alias", len(absorbed))
 
     # Clustered by item so one water's sections land together: `regsForItem` should be one
     # or two range reads, and that is a property of the write order, not of the format.

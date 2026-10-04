@@ -68,6 +68,8 @@
         "no_access_permit": "plain",
         "gauges": "standing",
         "basin": "standing",
+        "lake_flowing": "standing",
+        "wetland_flowing": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -114,6 +116,8 @@
         "no_access_permit": "plain",
         "gauges": "temperature",
         "basin": "plain",
+        "lake_flowing": "plain",
+        "wetland_flowing": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -156,6 +160,8 @@
         "no_access_permit": "plain",
         "gauges": "standing",
         "basin": "plain",
+        "lake_flowing": "plain",
+        "wetland_flowing": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -198,6 +204,8 @@
         "no_access_permit": "plain",
         "gauges": "standing",
         "basin": "plain",
+        "lake_flowing": "plain",
+        "wetland_flowing": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -266,7 +274,9 @@
     "park_closed": "protected",
     "basin": "water",
     "wetland": "water",
+    "wetland_flowing": "water",
     "lake": "water",
+    "lake_flowing": "water",
     "contour": "depth",
     "under_lake": "water",
     "stream": "water",
@@ -298,7 +308,15 @@
       "featureIdProperty": "section_id"
     },
     {
+      "id": "wetland_flowing",
+      "featureIdProperty": "section_id"
+    },
+    {
       "id": "lake",
+      "featureIdProperty": "section_id"
+    },
+    {
+      "id": "lake_flowing",
       "featureIdProperty": "section_id"
     },
     {
@@ -445,6 +463,103 @@
         }
       }
     },
+    "wetland_flowing": {
+      "plain": {
+        "label": "Plain (a stream's polygon)",
+        "scale": "static",
+        "color": {
+          "token": "color.water.mapped"
+        }
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            -1,
+            {
+              "token": "color.water.ungauged"
+            }
+          ],
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
+      },
+      "status": {
+        "label": "Status for the date",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "water_status",
+        "categories": {
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "own": {
+            "token": "color.status.own"
+          },
+          "base": {
+            "token": "color.status.base"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "status",
+          "field": "status"
+        },
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+      }
+    },
     "lake": {
       "plain": {
         "label": "Plain",
@@ -570,6 +685,103 @@
           "provider": "lakes",
           "field": "survey"
         }
+      },
+      "status": {
+        "label": "Status for the date",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "water_status",
+        "categories": {
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "own": {
+            "token": "color.status.own"
+          },
+          "base": {
+            "token": "color.status.base"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "status",
+          "field": "status"
+        },
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+      }
+    },
+    "lake_flowing": {
+      "plain": {
+        "label": "Plain (a stream's polygon)",
+        "scale": "static",
+        "color": {
+          "token": "color.water.mapped"
+        }
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            -1,
+            {
+              "token": "color.water.ungauged"
+            }
+          ],
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
       "status": {
         "label": "Status for the date",
@@ -1054,7 +1266,9 @@
     "park_closed": "area_id",
     "basin": "basin_id",
     "wetland": "section_id",
+    "wetland_flowing": "section_id",
     "lake": "section_id",
+    "lake_flowing": "section_id",
     "contour": "item",
     "stream": "section_id",
     "region": "region_id",
@@ -1167,7 +1381,9 @@
     "park_closed": "opacity.closure",
     "basin": "opacity.basin",
     "wetland": "opacity.wetland",
+    "wetland_flowing": "opacity.wetland",
     "lake": "opacity.lake",
+    "lake_flowing": "opacity.lake",
     "under_lake": "opacity.route",
     "region": "opacity.admin.fill",
     "mu": "opacity.admin.fill"
@@ -1177,7 +1393,13 @@
     "mu__edge": "dash.mu"
   },
   "minzoomByMode": {
+    "wetland_flowing": {
+      "standing": 9
+    },
     "lake": {
+      "standing": 9
+    },
+    "lake_flowing": {
       "standing": 9
     },
     "stream": {

@@ -951,8 +951,22 @@ def main() -> None:
     n1 = len(registry)
     registry = add_curated_wbk_items(registry, _nv_all)
     print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
+    # ONE FLOWING WATER, LINES AND POLYGONS (user rulings 2026-10-03): a river's or slough's
+    # polygons join its line's item; a slough drawn only as polygons is one stream item; EVERY
+    # flowing polygon leaves as kind `stream`, so `item.kind` is the water kind and nothing
+    # downstream recomputes it. `pipeline.atlas.sidecars` applies the same pass to a finished build.
+    from pipeline.atlas.registry.flowing import merge_flowing_polygons
+    _mrep: dict = {}
+    registry = merge_flowing_polygons(
+        registry, graph, {f"lake:{w}": pl for w, pl in (wb_polys or {}).items()}, _mrep)
+    print(f"  flowing polygons: {_mrep['absorbed']} item(s) folded into {len(_mrep['merged'])} "
+          f"stream(s) + {len(_mrep['own_items'])} stream(s) of their own; "
+          f"{sum(len(x['polygons']) for x in _mrep['unnamed_polygons'])} unnamed polygon(s) "
+          f"taken by a slough")
+    (out / "merge_report.json").write_text(json.dumps(_mrep, indent=1) + "\n", encoding="utf-8")
     # Which curated lake PART belongs to which lake (`item.part_of` in the bundle): written here,
-    # once, from the polygons the ingest read; refused when they and this build disagree.
+    # once, from the polygons the ingest read; refused when they and this build disagree. A lake
+    # with parts owns no section of its own (`add_lake_parts`).
     from pipeline.atlas.registry import add_lake_parts
     registry = add_lake_parts(registry, added_lake_parts)
     if added_lake_parts:
@@ -961,9 +975,10 @@ def main() -> None:
     # Isolated/overlaid waterbodies have a node but NO sidecar geometry (the client draws them from the
     # FWA polygon layer), so load their own wbk polygon for add_mu_sets. Select on missing GEOMETRY,
     # not on missing sections: since these waters are minted as nodes their items do have a section,
-    # and keying off `not section_ids` would silently leave every one of them with no MUs.
+    # and keying off `not section_ids` would silently leave every one of them with no MUs. Nor on
+    # kind: a flowing polygon of its own (Bowman Slough) is a `stream` item keyed by its wbk.
     nogeom_wbks = {iid.split(":", 1)[1] for iid, it in registry.items()
-                   if it.kind in ("lake", "wetland") and iid.startswith("wbk:")
+                   if iid.startswith("wbk:") and it.section_ids
                    and not any(geoms.get(nid) is not None for nid in it.section_ids)}
     _missing = nogeom_wbks - set(wbk_polys)          # already loaded for the area pass; top up any rest
     if _missing:

@@ -86,9 +86,46 @@ def _to4326(geom, tf):
 _MAX_ROUTE_OVER_DIAGONAL = 3.0
 
 
+class Owners:
+    """WHAT THE REGISTRY SAYS OF EACH SECTION — its water's NAME and KIND, and the ghosts it does not
+    draw — read once from `registry.json`, the one source the bundle's `item` table is written from.
+
+    The tile used to take a feature's name from the graph node's label, and 86 sections disagreed
+    with the water the bundle opens on a tap ("Two Forty-One Creek" labelled two sections of the
+    Penticton Creek; 72 waters named only through a variant had no label at all). The registry
+    already decided the name and the kind (FREV/dataflow DF-1, DF-2); the tile reads them.
+    """
+
+    def __init__(self, build_dir: Path):
+        from pipeline.common.registry_kinds import is_water
+        items = json.loads((build_dir / "registry.json").read_text(encoding="utf-8"))["items"]
+        self.name: dict[str, str] = {}
+        self.kind: dict[str, str] = {}
+        parents = {i["part_of"] for i in items if i.get("part_of")}
+        # A LAKE CUT INTO PARTS owns no section (user ruling 2026-10-03) — its whole polygon is a
+        # ghost under its parts, and is NOT DRAWN: a feature nothing names and nothing colours.
+        self.ghosts: set[str] = {f"lake:{i['id'].split(':', 1)[1]}" for i in items
+                                 if i["id"] in parents and i["id"].startswith("wbk:")}
+        for i in items:
+            if not is_water(i):
+                continue
+            for sec in i.get("section_ids", []):
+                self.name.setdefault(sec, i.get("name") or "")
+                self.kind.setdefault(sec, i.get("kind") or "")
+
+    def label(self, sec: str, node) -> str:
+        """The owner's name, else (a section of no named water) the node's own label."""
+        return display(self.name.get(sec) or node.display_name)
+
+
 def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) -> dict:
-    """Flowing water, from the geometry sidecar. Lines only — waterbodies are polygons and
-    come from ``export_waterbodies`` below."""
+    """Flowing water, from the geometry sidecar: every stream LINE, and the route through a
+    polygon that is a STREAM's own (`Owners.kind`: a river's wide reach, a slough — the registry
+    folded them into their water, `registry.flowing`), written to the `stream` layer under the
+    polygon's section id so the river has no hole at the zooms its polygon is not yet drawn at
+    (FREV/sloughs F4: 65 of 141 such polygons first drew 1-7 zoom levels later than the line
+    beside them). Lakes' routes go to `under_lake`; lake and wetland shapes come from
+    ``export_waterbodies`` below."""
     from pipeline.common.section_handles import read as _read_handles
 
     _, sid = _read_handles(build_dir)
@@ -104,7 +141,23 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
         geoms = dict(list(geoms.items())[:limit])
 
     _require_membership(graph)
+    owners = Owners(build_dir)
 
+    def neighbour_weight(sec: str) -> tuple[int | None, int | None]:
+        """(order, magnitude) for a stream's polygon: the LARGEST of its node's own and the stream
+        pieces it joins — the river is as big through its wide reach as beside it, and a polygon
+        node's own magnitude (the fids inside it) can read smaller than the line's (measured:
+        25 of the Rancheria's 42 drew 1-2 zooms later than their neighbours on the node's own)."""
+        node = graph.nodes[sec]
+        orders = [node.stream_order or 0]
+        mags = [node.stream_magnitude or 0]
+        for ei in list(graph.up_adj.get(sec, ())) + list(graph.down_adj.get(sec, ())):
+            e = graph.edges[ei]
+            o = graph.nodes.get(e.from_node if e.to_node == sec else e.to_node)
+            if o is not None and _kind(o) == "stream":
+                orders.append(o.stream_order or 0)
+                mags.append(o.stream_magnitude or 0)
+        return max(orders) or None, max(mags) or None
 
     spec = BY_NAME["stream"]
     write, close = _writer(out_dir, spec)
@@ -135,6 +188,14 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
         if node.out_of_bc:
             dropped_outside += 1
             continue
+        if _kind(node) != "stream" and owners.kind.get(sec) == "stream":
+            # A STREAM'S OWN POLYGON: its route is the river, under the polygon's section id (the
+            # same id the polygon draws with in `lake` / `wetland`), at the river's own weight.
+            ord_, mag = neighbour_weight(sec)
+            write(_to4326(g, tf), {"section_id": sid[sec], "name": owners.label(sec, node),
+                                   "ord": ord_},
+                  ladder.zoom_for_magnitude(mag, spec.minzoom))
+            continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.
             # Drawn dotted so a chain of lakes still reads as one river; never as water
@@ -159,13 +220,13 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
                 ul_write(_to4326(g, tf), {},
                          ladder.zoom_for_area(g.length * g.length, ul_spec.minzoom))
             continue
-        nm = display(node.display_name)
         write(_to4326(g, tf), {
             # THE HANDLE, not the string — the bundle keys every section table by it, and
             # this is the feature id the app sets state on, so the two must be the same
             # number. See pipeline/common/section_handles.
             "section_id": sid[sec],
-            "name": nm,
+            # THE REGISTRY'S NAME — the water the bundle opens on a tap (`Owners`).
+            "name": owners.label(sec, node),
             # NO `mag`. It is the input to the zoom ladder, and the ladder has already run
             # by the time this feature is written — `zoom_for_magnitude` below turns it into
             # the per-feature minzoom tippecanoe actually uses. Shipping the magnitude too
@@ -211,12 +272,16 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
             "geometry is the under-lake ROUTE, not its outline. Rebuild:\n"
             "    python -m pipeline.atlas.build --full --out <dir>")
     geoms = pickle.load(poly_path.open("rb"))
+    owners = Owners(build_dir)
 
     writers: dict[str, tuple] = {}
-    no_geom = 0
+    no_geom = ghosts = 0
     for nid, node in graph.nodes.items():
         kind = _kind(node)
         if kind not in ("lake", "wetland"):
+            continue
+        if nid in owners.ghosts:
+            ghosts += 1
             continue
         g = geoms.get(nid)
         if g is None or g.is_empty:
@@ -227,10 +292,13 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         if lname not in writers:
             writers[lname] = _writer(out_dir, spec)
         write, _ = writers[lname]
-        nm = display(node.display_name)
         write(_to4326(g, tf), {
             "section_id": sid[nid],
-            "name": nm,
+            "name": owners.label(nid, node),
+            # THE WATER KIND, the registry's: `stream` on a river's wide reach or a slough's
+            # polygon, so the style draws it in stream colours (`lake_flowing`); else the
+            # layer's own kind. The same `item.kind` the bundle carries, from the same file.
+            "water": owners.kind.get(nid) or kind,
             "area_m2": round(g.area),
         }, ladder.zoom_for_area(g.area, spec.minzoom))
     counts = {lname: close() for lname, (_, close) in writers.items()}
@@ -238,6 +306,8 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         print(f"  {lname:<14} {n:>9,}")
     if no_geom:
         print(f"  ({no_geom:,} waterbody nodes had no polygon — see build.py minting)")
+    if ghosts:
+        print(f"  ({ghosts} lake(s) cut into parts not drawn as a whole)")
     return counts
 
 

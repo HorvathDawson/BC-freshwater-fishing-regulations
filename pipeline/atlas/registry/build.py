@@ -18,6 +18,7 @@ from dataclasses import replace
 
 from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.water_kind import flows
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,6 @@ def split_distinct_names(groups: dict[str, list]) -> dict[str, list]:
     return out
 
 
-FLOW_RE = re.compile(r"\b(river|creek|brook|slough|channel)\b", re.I)
 STILL_RE = re.compile(r"\b(lake|lakes|pond|reservoir|lagoon)\b", re.I)
 
 
@@ -299,9 +299,10 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
             # name has an unambiguous home and the lake is still findable by its own. The other 7
             # cases keep it, because dropping a name nothing else answers to would make the water
             # unsearchable under a name the gazetteer really does give it.
+            # "Flows" is THE ONE definition (`common.water_kind.flows`, head noun): the same
+            # question the flowing-polygon fold asks, so the two cannot disagree about a name.
             own_names = {v for v in own_names
-                         if not (FLOW_RE.search(v) and not STILL_RE.search(v)
-                                 and _norm_name(v) in stream_primary_names)}
+                         if not (flows("lake", v) and _norm_name(v) in stream_primary_names)}
         if own_names:
             variants = tuple(sorted(own_names))              # has its own name — drop borrowed neighbour names
         else:
@@ -499,6 +500,7 @@ def add_lake_parts(registry: dict[str, RegistryItem],
     atlas does not have. Either way a reader grouping by `part_of` would show a lake with a rung
     missing, and nothing would say so. Mutates + returns."""
     bad: list[str] = []
+    parents: set[str] = set()
     for child_wbk, parent_wbk in sorted(part_of.items()):
         child, parent = f"wbk:{child_wbk}", f"wbk:{parent_wbk}"
         if child not in registry:
@@ -507,9 +509,19 @@ def add_lake_parts(registry: dict[str, RegistryItem],
             bad.append(f"{child} is part_of {parent}, which is not a water here")
         else:
             registry[child] = replace(registry[child], part_of=parent)
+            parents.add(parent)
     if bad:
         raise SystemExit("registry.part_of: added_lakes.geojson and this build disagree:\n  "
                          + "\n  ".join(bad))
+    # A LAKE CUT INTO PARTS OWNS NO SECTION OF ITS OWN (user ruling 2026-10-03, RU-11). Its parts
+    # tile it (measured: 99.98-99.99 % of Kootenay, Williston and Shannon), so its whole polygon is
+    # a GHOST that could only ever carry the zone base — an angler opening "Kootenay Lake" was told
+    # Region 4's 5 rainbow while the Main Body said 10. The item stays (its name, its gauges,
+    # `part_of` points at it) with NO sections: the bundle refuses a parent that keeps one, search
+    # finds the parts, the tiles do not draw the ghost.
+    for parent in sorted(parents):
+        if registry[parent].section_ids:
+            registry[parent] = replace(registry[parent], section_ids=())
     return registry
 
 

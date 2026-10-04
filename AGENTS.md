@@ -358,14 +358,32 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     regenerate), writes `data/generated/steelhead/`, and a HUMAN copies `steelhead_waters.json` to
     the curated path. `test_steelhead_waters.py` fails while the curated copy's fingerprint and the
     generated file disagree. Do not run it to "check something" (rule 38).
-55. **A slough is a stream.** (user ruling 2026-10-03.) A LAKE-TYPED water whose name's head noun
-    flows — slough, canal, channel, river, creek (`pipeline/atlas/reach/water_kind.py::flows`: the
-    last word before any "at …"/"near …", so "Bear Creek Reservoir", "Corn Creek Marsh", "River
-    Lakes" stay lakes) — IS A STREAM for EVERY regulation. The ONE point is `water_kind.kind_of`,
-    which every `feature_types` filter of the reach builder reads (`extent._kind_of`, given the
-    registry); a rule's `water` is enforced through `feature_types: [water]`, so it follows. No
-    per-rule change, no per-water list. The bundle's `item.kind` stays the atlas's (the shape drawn);
-    the export's `waters[].kind` is the regulatory kind, with the atlas's in `drawn_as`.
+55. **A slough is a stream, and the water kind is decided ONCE, in the registry.** (user rulings
+    2026-10-03.) `item.kind` IS the water kind: `stream` for every flowing water — including a water
+    FWA draws as a POLYGON whose name's head noun flows (slough, canal, channel, river, creek:
+    `pipeline/common/water_kind.py::flows`, the last word before any "at …"/"near …", so "Bear Creek
+    Reservoir", "Corn Creek Marsh", "River Lakes" stay lakes) — `lake`/`wetland` otherwise. The registry
+    pass `pipeline/atlas/registry/flowing.py` folds such a polygon into its river's item (the Stellako's
+    wide reach, the Rancheria's 42, Nicomen Slough's 4 unnamed polygons, the Vedder Canal into the Vedder
+    River `gnis:3062` by FWA's gnis — user ruling) or makes it a stream item of its own (Six Mile Slough
+    `gnis:6438`, Hansen, Bowman, Lewis, Taylor — a slough threaded by a creek of ANOTHER name does not
+    join it, user ruling, `THREADED_JOINS`). EVERY consumer reads that one answer: the reach
+    (`reach/water_kind.kind_of` = the owner's kind, read by every `feature_types` filter, the tributary
+    walk and the confluence step; a rule's `water` is enforced through `feature_types: [water]`, so every
+    "in streams" rule follows with no per-rule change), `regions.in_region`, the bundle (`item.kind`),
+    the status index, the export (`waters[].kind`), the tiles (`water` on lake/wetland features; a
+    stream's polygon route is in the `stream` layer) and the apps. NOTHING recomputes `flows` after the
+    registry (`test_one_water_kind.py` is the gate; the only other reader is the steelhead list
+    generator). The SHAPE a section is drawn as is per section (`section_span.shape`), never the water's
+    kind: a river's polygon ON its stem is placed by its measure window (`graph/windows.polygon_window`,
+    one function, no stored field) and runs with the line through it. ABSORBED IDS: an absorbed item's id
+    is in the survivor's `aliases` (bundle `item_alias`); it is mapped to the survivor at exactly three
+    read points — `parsing.io.read_entryfile(registry)` (the reach CLI, the bundle, the review app),
+    the DFO `entries.load(registry)` and `steelhead.resolve_list` — and REFUSED everywhere else
+    (`validate_catalogue`, `build_reaches`, `flowing.absorbed_refs`); the curated files name survivors
+    only. A LAKE CUT INTO PARTS owns no section (Kootenay, Williston, Shannon: the parts tile it to
+    99.98 %): the bundle refuses a parent with one, search finds the parts, the tiles do not draw the
+    ghost polygon, the export lists it with `divided_into` and its parts' entries.
 56. **One data flow: every derived fact is computed once and READ everywhere else** (data-flow
     review, 2026-10-03; `pipeline/tests/test_one_data_flow.py` is the gate). The atlas writes its
     sidecars (`region_home.json`, `registry.part_of`, `splits.resolved.json` with `source` and the

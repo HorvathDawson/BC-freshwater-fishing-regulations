@@ -27,6 +27,7 @@ its own.
 
 from __future__ import annotations
 
+from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
@@ -302,9 +303,31 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
         return out & universe
 
     on_blk, others = set(), set()
+    poly_out, poly_straddle = set(), set()
     for nid in universe:
         n = g.nodes.get(nid)
         if n is None:
+            continue
+        if not n.blk:
+            # A WATERBODY NODE IS PLACED BY ITS MEASURE WINDOW on this blue line (`graph.windows`):
+            # a river's own polygon is the river between the measures the line leaves and enters
+            # it at, selected exactly like a line piece. A cut INSIDE the window (never from a
+            # curated split — the sectionizer aliases a cut landing in a waterbody onto its edge)
+            # leaves it straddling: reported, never guessed. A polygon this line does not pass
+            # through is placed by its neighbours below, like any off-line piece.
+            w = polygon_window(g, nid, blk)
+            if w is None:
+                others.add(nid)
+                continue
+            _, wlo, whi = w
+            wlo = wlo if wlo is not None else whi
+            whi = whi if whi is not None else wlo
+            if wlo >= lo - 0.001 and whi <= hi + 0.001:
+                on_blk.add(nid)
+            elif whi <= lo + 0.001 or wlo >= hi - 0.001:
+                poly_out.add(nid)
+            else:
+                poly_straddle.add(nid)
             continue
         if n.blk != blk:
             others.add(nid)
@@ -312,7 +335,7 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
             on_blk.add(nid)
 
     inside = set(on_blk)
-    outside = {n for n in universe if g.nodes.get(n) and g.nodes[n].blk == blk} - on_blk
+    outside = ({n for n in universe if g.nodes.get(n) and g.nodes[n].blk == blk} - on_blk) | poly_out
     # `outside` is normally seeded from this blue line’s own pieces that fall outside the window.
     # A window covering the WHOLE line leaves it empty, and an empty `outside` is not neutral: the
     # fixpoint below can then only ever move a piece INWARD (`nbrs <= outside` is unsatisfiable), so
@@ -375,7 +398,7 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
             inside |= comp
         elif side != "out":
             straddling |= comp
-    return inside, straddling
+    return inside, straddling | poly_straddle
 
 
 def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: set[str]) -> str:
@@ -401,6 +424,24 @@ def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: s
             return ""
         sides |= {"in" if x in inside else "out" for x in (below, above)}
     return sides.pop() if len(sides) == 1 else ""
+
+
+def whole_water_sections(reg, g, item_id: str) -> set[str]:
+    """Every section a water's id stands for when a rule names the WHOLE of it: its own, and — for
+    a lake cut into parts, which owns none (user ruling 2026-10-03, `registry.add_lake_parts`) —
+    its parts' and its own whole polygon (the ghost node the graph keeps). "Kootenay Lake" taken
+    out of the Creston Valley WMA (`outside_items`, AGENTS 13) takes out the Main Body, the West
+    Arms and the ghost, not nothing."""
+    it = reg[item_id]
+    out = set(it.section_ids)
+    parts = [k for k, v in reg.items() if getattr(v, "part_of", "") == item_id]
+    if parts:
+        out |= {s for k in parts for s in reg[k].section_ids}
+        wbk = item_id.split(":", 1)[1] if item_id.startswith("wbk:") else ""
+        ghost = f"lake:{wbk}"
+        if wbk and g is not None and hasattr(g, "nodes") and ghost in g.nodes:
+            out.add(ghost)
+    return out
 
 
 def _kind_of(g, section_id: str, reg=None) -> str:
@@ -627,7 +668,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         if item_id not in reg:
             _fail("outside_item_not_in_registry", str(item_id))
             return None
-        drop_sections |= set(reg[item_id].section_ids)
+        drop_sections |= whole_water_sections(reg, g, item_id)
 
     def _limited(sec: set[str]) -> set[str]:
         out = sec if limit_sections is None else (sec & limit_sections)

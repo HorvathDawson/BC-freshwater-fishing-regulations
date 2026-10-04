@@ -201,8 +201,9 @@ def regions() -> list[str]:
 
 def load_region(region: str) -> dict[str, dict]:
     """Entries for a region. The region files are the SINGLE SOURCE OF TRUTH — curator edits are written back
-    here."""
-    return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json")
+    here. Read through the corpus' one read point, so an id this registry folded into another
+    (`registry.flowing`) names its item here as it does in the reach run and the bundle."""
+    return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json", registry=_registry())
 
 
 def _all_entries() -> list[tuple[str, dict]]:
@@ -550,7 +551,7 @@ def _graph():
     # The region each straddling section lies in, read from the atlas's own `region_home.json`
     # exactly as the reach CLI reads it — so a zone rule the curator reviews binds what ships
     # (`registry.regions`), and nothing measures it a second time.
-    regions.attach_from(_BUILD, g)
+    regions.attach_from(_BUILD, g, _registry())
     from pipeline.atlas.reach import position       # the same placement the reach CLI makes
     position.attach(g, _BUILD)
     return g
@@ -1646,6 +1647,11 @@ def check_entry(entry_dict: dict, region: str | None = None) -> dict:
     data = model_api.strip_served(entry_dict)
     labels = model_api.labels(data, ENTRIES_DIR, _place_namer())
     entry, errs = model_api.check(data)
+    # AN ABSORBED ITEM ID IS REFUSED WHERE A FILE IS WRITTEN (AGENTS 55): a `matched` or an extent
+    # naming a polygon this registry folded into its river names the river. Only the corpus' read
+    # point (`io.read_entryfile`, `load_region` above) maps one; a save never writes one back.
+    from pipeline.regs.parsing.validate_catalogue import absorbed_ids_named
+    errs += [{"path": "matched", "msg": m} for m in absorbed_ids_named(data, _registry())]
     found = _find(str(data.get("entry_id", "")))
     if found is None:
         errs.append({"path": "entry_id", "msg": f"{data.get('entry_id')!r} is not an entry in "

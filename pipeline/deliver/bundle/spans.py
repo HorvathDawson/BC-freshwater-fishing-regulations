@@ -20,7 +20,11 @@ WHAT A SPAN IS. For each section of a stream water (a section belongs to one wat
                blue line carrying the most of the water's length (`main_stem`). A section on
                another blue line of the same water — a side channel, a braid — is OFF the stem:
                both values are the main-stem measure where it flows back in (`off_stem` = 1), or
-               NULL when it never does.
+               NULL when it never does. A POLYGON of the water (`shape` = 1: a river's wide reach,
+               a slough's polygons — the registry's, `registry.flowing`) on the stem is the river
+               between the measures the stem leaves and enters it at (`graph.windows.
+               polygon_window`): an on-stem row, so a run passes through it; one the stem does
+               not pass through is off-stem like a branch.
   lo, hi       what ends the section downstream (`lo`) and upstream (`hi`), as an END TOKEN
                (`end_token`): a cut-point id, or one of the named natural ends.
 
@@ -31,7 +35,11 @@ END TOKENS (one vocabulary, the export's `from` / `to`):
   bc_border                the provincial boundary
   lake_inlet:<item_id>     the stretch ends where it flows INTO that lake
   lake_outlet:<item_id>    the stretch begins where it flows OUT of that lake
-  confluence:<item_id>     a length cut the atlas placed at that tributary's mouth
+  confluence:<item_id>     a length cut the atlas placed at that tributary's mouth — or the
+                           stretch ends at that water's POLYGON (a tributary's mouth at a river's
+                           wide reach)
+  polygon                  the stretch meets the water's OWN polygon: no cut, the same water goes
+                           on (a cut aliased onto that edge keeps its own id instead)
   mouth, source            the water's own natural ends (no cut)
 A lake that is not a named water drops its suffix (`lake_inlet`, `lake_outlet`).
 """
@@ -43,9 +51,12 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
+from pipeline.atlas.graph.windows import polygon_window
 from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
 
-NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet")
+NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "polygon")
+#: The water's own polygon begins or ends here — not a cut (`end_token`).
+POLYGON = "polygon"
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
 PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:")
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
@@ -71,16 +82,32 @@ def main_stem(pieces: list[tuple[str, float]]) -> str | None:
     return sorted(total.items(), key=lambda kv: (-round(kv[1], 3), kv[0]))[0][0]
 
 
-def end_token(bound, side: str, *, lake_item, tributary=None) -> str:
+def _authored(aliases) -> list[str]:
+    """The curated split ids among a boundary's aliases (a cut aliased onto it), sorted."""
+    got = sorted(a[len("split:"):] if a.startswith("split:") else a for a in (aliases or ()))
+    return [a for a in got if not _is_auto(a) and "@" not in a
+            and not a.startswith(("lake:", "label:"))]
+
+
+def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = None) -> str:
     """The end token for one end of a section. `bound` is a `SectionBoundary` (or None: a natural
-    end), `side` is "up" or "down". `lake_item(wbk)` names a lake's water (None when it is not a
-    named water); `tributary(boundary)` names the water whose mouth a length cut stands at."""
+    end), `side` is "up" or "down". `lake_item(wbk)` names a polygon's water as `(item_id, kind)`
+    (None when it is not a named water); `tributary(boundary)` names the water whose mouth a
+    length cut stands at; `own` is the item the section belongs to, so its OWN polygon (the river's
+    wide reach) is `polygon` — no cut, the same water — or the id of a cut aliased onto that edge,
+    and another STREAM's polygon is a `confluence` with it (a mouth is a mouth)."""
     if bound is None:
         return "source" if side == "up" else "mouth"
     bid = str(bound.boundary_id)
     kind = getattr(bound.kind, "value", bound.kind)
     if kind == "lake" or bid.startswith("lake:"):
-        item = lake_item(bid.split(":", 1)[1])
+        got = lake_item(bid.split(":", 1)[1])
+        item, ikind = got if got else (None, None)
+        if item and ikind == "stream":
+            if own is not None and item == own:
+                authored = _authored(bound.aliases)
+                return authored[0] if authored else POLYGON
+            return f"confluence:{item}"
         head = "lake_outlet" if side == "up" else "lake_inlet"
         return f"{head}:{item}" if item else head
     if kind == "border":
@@ -91,10 +118,7 @@ def end_token(bound, side: str, *, lake_item, tributary=None) -> str:
         if m:
             return f"region_line:{m.group(1)}"
         if _is_auto(sid):
-            authored = sorted(a[len("split:"):] if a.startswith("split:") else a
-                              for a in (bound.aliases or ()))
-            authored = [a for a in authored if not _is_auto(a) and "@" not in a
-                        and not a.startswith(("lake:", "label:"))]
+            authored = _authored(bound.aliases)
             if authored:
                 return authored[0]
             if sid.startswith("length:") and tributary is not None:
@@ -106,20 +130,25 @@ def end_token(bound, side: str, *, lake_item, tributary=None) -> str:
 
 
 def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, str, str, list[int]]],
-            lake_items: dict[str, str], stems: dict[str, str] | None = None) -> list[tuple]:
-    """Every (sid, lo_m, hi_m, lo, hi, off_stem) row for the STREAM waters in `items`
+            lake_items: dict[str, tuple[str, str]], stems: dict[str, str] | None = None,
+            graph=None) -> list[tuple]:
+    """Every (sid, lo_m, hi_m, lo, hi, off_stem, shape) row for the STREAM waters in `items`
     ((ord, item_id, kind, [sid])). `nodes` is the graph's node dict, `edges` its FlowEdges,
-    `handles` node id -> sid, `lake_items` wbk -> the lake's item_id. `stems`, when given, is
-    filled with {item_id: main stem blk} — the one place each water's stem is decided."""
+    `handles` node id -> sid, `lake_items` wbk -> (item_id, kind) of the water owning that polygon.
+    `stems`, when given, is filled with {item_id: main stem blk} — the one place each water's stem
+    is decided. `graph` (the StreamGraph the nodes and edges came from) places a stream's own
+    POLYGONS by their measure window (`graph.windows.polygon_window`); without it they are off-stem."""
     node_of = {s: n for n, s in handles.items()}
     items_of: dict[str, set[str]] = defaultdict(set)
     for _, item_id, _, sids in items:
         for s in sids:
             items_of[node_of[s]].add(item_id)
     down = defaultdict(list)
+    up = defaultdict(list)
     into = defaultdict(list)             # blk -> [(at_measure, from_node)] confluences into it
     for e in edges:
         down[e.from_node].append(e)
+        up[e.to_node].append(e)
         to = nodes.get(e.to_node)
         if to is not None and getattr(to.kind, "value", to.kind) == "stream":
             into[to.blk].append((e.at_measure, e.from_node))
@@ -160,15 +189,52 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
                 nid = e.to_node
             return None
 
+        def polygon_ends(nid, _stem=stem) -> tuple[str, str]:
+            """A polygon's two ends on the stem: the bounds of the stem pieces it leaves into and
+            is entered from — the same places, so the same tokens (a cut aliased onto the edge,
+            else `polygon`); the mouth / the source where no stem piece lies beyond it."""
+            below = [nodes[e.to_node] for e in down.get(nid, ())
+                     if e.kind == "lake_out" and nodes.get(e.to_node) is not None
+                     and nodes[e.to_node].blk == _stem]
+            above = [nodes[e.from_node] for e in up.get(nid, ())
+                     if e.kind == "lake_in" and nodes.get(e.from_node) is not None
+                     and nodes[e.from_node].blk == _stem]
+            lo = (end_token(max(below, key=lambda n: n.up_m).upper_bound, "up",
+                            lake_item=lake_items.get, tributary=tributary, own=item_id)
+                  if below else "mouth")
+            hi = (end_token(min(above, key=lambda n: n.down_m).lower_bound, "down",
+                            lake_item=lake_items.get, tributary=tributary, own=item_id)
+                  if above else "source")
+            return lo, hi
+
         for s, n in zip(sids, pieces):
-            lo = end_token(n.lower_bound, "down", lake_item=lake_items.get, tributary=tributary)
-            hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary)
+            if getattr(n.kind, "value", n.kind) != "stream":
+                # THE WATER'S OWN POLYGON: on the stem by its window, else off-stem where it
+                # flows back in (a far polygon of the same gazetted feature), else a branch.
+                w = polygon_window(graph, node_of[s], stem) if graph is not None and stem else None
+                lo, hi = polygon_ends(node_of[s])
+                if w is not None and (w[1] is not None or w[2] is not None):
+                    # a head polygon (nothing enters it on the stem) or a mouth polygon (nothing
+                    # leaves it) is the stem's end: its window closes on its one known measure,
+                    # so the run reaches it and ends at its own `source` / `mouth`
+                    lo_m = w[1] if w[1] is not None else w[2]
+                    hi_m = w[2] if w[2] is not None else w[1]
+                    rows.append((s, round(lo_m), round(hi_m), lo, hi, 0, 1))
+                else:
+                    at = attach(node_of[s])
+                    m = None if at is None else round(at)
+                    rows.append((s, m, m, lo, hi, 1, 1))
+                continue
+            lo = end_token(n.lower_bound, "down", lake_item=lake_items.get, tributary=tributary,
+                           own=item_id)
+            hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary,
+                           own=item_id)
             if n.blk == stem:
-                rows.append((s, round(n.down_m), round(n.up_m), lo, hi, 0))
+                rows.append((s, round(n.down_m), round(n.up_m), lo, hi, 0, 0))
             else:
                 at = attach(node_of[s])
                 m = None if at is None else round(at)
-                rows.append((s, m, m, lo, hi, 1))
+                rows.append((s, m, m, lo, hi, 1, 0))
     return sorted(rows)
 
 
@@ -368,14 +434,58 @@ def _placed(base: str, f: NameFacts, blk: str, m: float, own: set[str], *,
     return f"{base} {distance_words(d)} {side} {nm}" if distance else f"{base} {side} {nm}"
 
 
+#: The registry boundary kinds the atlas resolves no split for, yet a rule's extents bind by
+#: (`registry.build._boundary`): a lake's edge, and the provincial border.
+EDGE_KINDS = {"lake": "lake_edge", "border": "border"}
+
+
+def lake_edge_rows(registry, graph, handles: dict[str, int], items, stems: dict[str, str]) -> list[dict]:
+    """The registry's bindable LAKE and BORDER boundaries as `split` rows (`resolved`-shaped dicts):
+    one per boundary id of a stream water, standing at every place on that water's main stem
+    where a piece's bound is that edge (a lake's inlet and its outlet), and one per cut aliased
+    onto it under the alias's own id. `registry` as `load_registry` returns it; `items` (ord,
+    item_id, kind, [sid]); `stems` item_id -> main stem blk. The ids a rule's extents bind by
+    when a cut lands in a lake (memory: split-alias-mechanism) or at the border, so the export's
+    `splits` can name every one (kind `lake_edge` / `border`)."""
+    node_of = {s: n for n, s in handles.items()}
+    out: list[dict] = []
+    for _, item_id, kind, sids in items:
+        it = registry.get(item_id)
+        if kind != "stream" or it is None or not it.boundaries:
+            continue
+        stem = stems.get(item_id)
+        at_ref: dict[str, list[tuple[str, float]]] = defaultdict(list)
+        for s in sids:
+            n = graph.nodes.get(node_of[s])
+            if n is None or n.blk != stem:
+                continue
+            for b in (n.lower_bound, n.upper_bound):
+                if b is not None:
+                    at_ref[str(b.boundary_id)].append((stem, float(b.route_measure)))
+        for b in it.boundaries:
+            if b.kind not in EDGE_KINDS or b.ref not in at_ref:
+                continue
+            places = sorted(set(at_ref[b.ref]))
+            lake = f"lake:{b.wbk}" if b.kind == "lake" else ""
+            label = b.label if b.kind == "lake" else "B.C. border"
+            for sid in (b.id, *_authored(b.aliases)):
+                for blk, m in places:
+                    out.append({"split_id": sid, "blk": blk, "route_measure": m, "label": label,
+                                "anchor_type": EDGE_KINDS[b.kind], "lake": lake})
+    return out
+
+
 def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
-               f: NameFacts | None = None) -> list[tuple]:
+               f: NameFacts | None = None, lake_items: dict | None = None) -> list[tuple]:
     """The `split` table: every cut the atlas resolved, once per id — (split_id, name, kind, at,
-    official_name, same_place_as), `at` a JSON list of [item_id, km] for each position on a named
-    water's MAIN stem (`stems`: blk -> [(item_id, ord)] whose main stem it is). Region and area
-    boundaries cross hundreds of waters, and the runs carry their km, so their `at` is left empty.
-    Names are unique per water (`at`), except ids at one place (`same_place_as`)."""
+    official_name, same_place_as, lake_id), `at` a JSON list of [item_id, km] for each position on a
+    named water's MAIN stem (`stems`: blk -> [(item_id, ord)] whose main stem it is). Region and
+    area boundaries cross hundreds of waters, and the runs carry their km, so their `at` is left
+    empty. A lake's edge (`lake_edge_rows`, kind `lake_edge`) stands at the lake's inlet and
+    outlet and names the lake (`lake_id`, through `lake_items`: wbk -> (item_id, kind)). Names are
+    unique per water (`at`), except ids at one place (`same_place_as`)."""
     f = f or NameFacts({}, {}, {}, {}, {})
+    lake_items = lake_items or {}
     by_id: dict[str, list[dict]] = defaultdict(list)
     for r in resolved:
         by_id[r["split_id"]].append(r)
@@ -411,14 +521,25 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         if not sid.startswith("area:"):
             at = sorted({(item, round(r["route_measure"] / 1000, 2))
                          for r in rs for item, _ in stems.get(str(r["blk"]), ())})
+        lake_id = None
+        if kind in EDGE_KINDS.values() and "lake" in first:
+            # a lake's edge: the lake's own name, the lake's item when it is a named water; the
+            # border: its one name
+            got = lake_items.get(str(first.get("lake") or "").split(":", 1)[-1])
+            lake_id = got[0] if got else None
+            name = display_case(label) if not label.startswith("lake ") else label
         rows[sid] = {"base": name, "name": name, "kind": "area" if kind == "area_boundary"
                      else kind, "at": at, "official": official, "same": None,
-                     "pos": (blk, m, own)}
+                     "pos": (blk, m, own), "lake_id": lake_id,
+                     # a lake's EDGE is named for the lake and stands at both its inlet and its
+                     # outlet; a river entering one lake twice has two such ids with one name —
+                     # that is the lake's identity, not a clash to place by landmark
+                     "edge": "lake" in first}
         if landmark:
             rows[sid]["name"] = _placed(name, f, blk, m, own)
     _unique_per_water(rows, f)
     return [(sid, r["name"], r["kind"], json.dumps([list(a) for a in r["at"]]), r["official"],
-             r["same"]) for sid, r in sorted(rows.items())]
+             r["same"], r["lake_id"]) for sid, r in sorted(rows.items())]
 
 
 def _unique_per_water(rows: dict[str, dict], f: NameFacts) -> None:
@@ -457,6 +578,8 @@ def _clashes(rows: dict[str, dict]) -> dict:
     `same_place_as`."""
     seen: dict[tuple[str, str], dict[float, list[str]]] = defaultdict(dict)
     for sid, r in sorted(rows.items()):
+        if r.get("edge"):
+            continue
         for water, km in r["at"]:
             places = seen[(water, r["name"])]
             near = next((k for k in places if abs(k - km) <= _SAME_PLACE_KM), None)
@@ -491,24 +614,25 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov) -> None:
     items = [(o, i, k, by_ord.get(o, [])) for o, i, k in
              db.execute("SELECT ord, item_id, kind FROM item ORDER BY ord")]
     node_of = {s: n for n, s in handles.items()}
-    lake_items: dict[str, str] = {}
+    # Every polygon's water, by wbk, with the water's KIND: a lake PART (`item.part_of`: Williston's
+    # Nation Arm) is its own polygon and its own water, so a river flowing into it names the part;
+    # a STREAM's polygon (the Stellako's wide reach) is the stream, so a piece meeting it meets no
+    # lake (`end_token`).
+    lake_items: dict[str, tuple[str, str]] = {}
     for _, item_id, kind, sids in items:
-        if kind != "lake":
-            continue
         for s in sids:
             nid = node_of[s]
             if nid.startswith("lake:"):
-                # A lake PART (`item.part_of`: Williston's Nation Arm) is its own polygon and its
-                # own water, so a river flowing into it names the part.
-                lake_items[nid.split(":", 1)[1]] = item_id
+                lake_items[nid.split(":", 1)[1]] = (item_id, kind)
     stem_of: dict[str, str] = {}
-    rows = compute(graph.nodes, graph.edges, handles, items, lake_items, stems=stem_of)
+    rows = compute(graph.nodes, graph.edges, handles, items, lake_items, stems=stem_of, graph=graph)
     eid = {t: i + 1 for i, t in enumerate(sorted({r[3] for r in rows} | {r[4] for r in rows}))}
     db.executemany("INSERT INTO span_end (eid, token) VALUES (?,?)",
                    sorted((i, t) for t, i in eid.items()))
-    db.executemany("INSERT INTO section_span (sid, lo_m, hi_m, lo, hi, off_stem) "
-                   "VALUES (?,?,?,?,?,?)",
-                   ((s, a, b, eid[lo], eid[hi], off) for s, a, b, lo, hi, off in rows))
+    db.executemany("INSERT INTO section_span (sid, lo_m, hi_m, lo, hi, off_stem, shape) "
+                   "VALUES (?,?,?,?,?,?,?)",
+                   ((s, a, b, eid[lo], eid[hi], off, shape)
+                    for s, a, b, lo, hi, off, shape in rows))
     cov.filled("span_end", len(eid))
     cov.filled("section_span", len(rows))
 
@@ -522,9 +646,13 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov) -> None:
     names = dict(db.execute("SELECT item_id, name FROM item"))
     f = facts(graph, handles, [(o, i, k, sids, names.get(i)) for o, i, k, sids in items],
               resolved_offsets(resolved))
-    srows = split_rows(resolved, stems, f)
-    db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as) "
-                   "VALUES (?,?,?,?,?,?)", srows)
+    # The lakes' edges, from the registry's boundaries: the one artifact that names them.
+    from pipeline.atlas.registry import load_registry
+    registry = load_registry(str(Path(build_dir) / "registry.json"))
+    edges = lake_edge_rows(registry, graph, handles, items, stem_of)
+    srows = split_rows(resolved + edges, stems, f, lake_items)
+    db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as, "
+                   "lake_id) VALUES (?,?,?,?,?,?,?)", srows)
     cov.filled("split", len(srows))
 
 

@@ -1726,9 +1726,9 @@ def test_the_shared_overrides_file_is_actually_loaded():
 def test_item_ids_is_a_list_so_one_name_can_be_several_waters():
     """One DFO row can be several registry items, and no heuristic could pick them.
 
-    "Chilliwack/Vedder River (including Sumas River)" is FIVE: Chilliwack + Vedder + Vedder Canal
-    (the three the provincial synopsis already binds) plus the Sumas, which is itself two items —
-    the stream and the lake polygon it runs through. The provincial row for the same system is named
+    "Chilliwack/Vedder River (including Sumas River)" is THREE: Chilliwack + Vedder (whose item now
+    holds the Vedder Canal polygon too — one flowing water, lines and polygons) plus the Sumas (its
+    polygon likewise its river's). The provincial row for the same system is named
     "(does not include Sumas River)", so the two answers genuinely differ and the DFO one is tagged
     source=dfo. "Adam and Eve Rivers" is two, the Eve flowing into the Adam.
     """
@@ -1737,8 +1737,9 @@ def test_item_ids_is_a_list_so_one_name_can_be_several_waters():
     ef = load("2")
     chilliwack = next(w for w in ef.waters if w.name.startswith("Chilliwack/Vedder"))
     assert chilliwack.bound is True
-    assert chilliwack.item_ids == ["gnis:8634", "gnis:3062", "wbk:329707189",
-                                   "gnis:26216", "wbk:328997872"]
+    # THREE since 2026-10-03: the Vedder Canal's polygon is the Vedder River's item and the
+    # Sumas's polygon the Sumas River's (`registry.flowing`), so the file names the rivers
+    assert chilliwack.item_ids == ["gnis:8634", "gnis:3062", "gnis:26216"]
 
     adam = next(w for w in load("1").waters if w.name == "Adam and Eve Rivers")
     assert adam.item_ids == ["gnis:28136", "gnis:31112"]
@@ -2009,17 +2010,19 @@ def test_a_lake_does_not_answer_to_the_river_that_threads_it():
     Asserted on the build rule rather than the built registry, because the registry on disk predates
     the fix until the next full build.
     """
-    from pipeline.atlas.registry.build import FLOW_RE, STILL_RE, _norm_name
+    from pipeline.atlas.registry.build import STILL_RE, _norm_name
+    from pipeline.common.water_kind import flows      # THE one "flows" (2026-10-03), head noun
 
     for lake, river in (("Yakoun Lake", "YAKOUN RIVER"), ("Mosquito Lake", "PALLANT CREEK"),
                         ("Lakelse Lake", "LAKELSE RIVER"), ("Nation Lakes", "NATION RIVER")):
         assert STILL_RE.search(lake), lake
-        assert FLOW_RE.search(river) and not STILL_RE.search(river), river
+        assert flows("lake", river), river
 
     # ...and the guard must NOT fire on a lake's own name, nor on a still-water name that merely
-    # contains a flowing word (there is no such case today, but the ordering is what makes it safe).
-    for keep in ("Yakoun Lake", "Nation Lakes", "Rainy Day Lake"):
-        assert not (FLOW_RE.search(keep) and not STILL_RE.search(keep)), keep
+    # contains a flowing word ("River Lakes", "Bear Creek Reservoir": the head noun decides).
+    for keep in ("Yakoun Lake", "Nation Lakes", "Rainy Day Lake", "River Lakes",
+                 "Bear Creek Reservoir"):
+        assert not flows("lake", keep), keep
     assert _norm_name("  YAKOUN   RIVER ") == "yakoun river"
 
 

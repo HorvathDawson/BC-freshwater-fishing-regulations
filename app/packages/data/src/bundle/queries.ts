@@ -66,6 +66,13 @@ export const ITEM_FOR_SECTION =
 export const SEARCH =
   // The union is wrapped because SQLite will not ORDER a compound SELECT by an expression
   // — only by a result column. Ordering outside also keeps the ranking in one place.
+  //
+  // ONLY A WATER THAT OWNS A SECTION IS FOUND. A lake the atlas cut into parts (Kootenay,
+  // Williston, Shannon) owns none — its parts are the water (`item.part_of`, user ruling
+  // 2026-10-03: "a lake fully covered by its parts is not searchable as a whole; search finds
+  // the parts") — so "Kootenay" finds the Main Body and the West Arms, never a whole with no
+  // rules of its own to show. The same EXISTS in both halves: a name match and an alias match
+  // are one question.
   "SELECT m.item_id, m.name, m.kind, m.matched_as, min(m.tier) AS tier, " +
   "       (SELECT count(*) FROM item_section s WHERE s.ord = m.ord) AS pieces, " +
   "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
@@ -77,6 +84,7 @@ export const SEARCH =
   "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
   "               ELSE 6 END) AS tier " +
   "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   "  UNION ALL " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, a.alias AS matched_as, " +
   "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
@@ -84,6 +92,7 @@ export const SEARCH =
   "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
   "               ELSE 7 END) AS tier " +
   "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   ") m GROUP BY m.item_id, m.matched_as " +
   "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
   "         length(m.name), m.name LIMIT ?2";

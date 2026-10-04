@@ -648,6 +648,7 @@ def expand(
     passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
     window: tuple[str, float, float] | None = None,
+    registry=None,
 ) -> frozenset[str]:
     """The section set a tributary-scoped rule actually covers.
 
@@ -661,14 +662,19 @@ def expand(
     bound ~232,000 lake sections this way before it). The reach itself is kept whole: a row that
     names a lake binds it through its own extents. A WATERSHED is an area (`area:basin:`), not a
     walk, and keeps its lakes.
+
+    WHAT IS A STREAM is the registry's answer (`reach.water_kind.kind_of`, given `registry`): a
+    river's own polygon on a tributary (the Little Rancheria's 42) is collected with the river;
+    a slough's polygons are its slough. The walk's TOPOLOGY still climbs by node kind — how flow
+    passes through a polygon, not what the water is.
     """
+    from pipeline.atlas.reach.water_kind import kind_of
     reach = frozenset(reach)
     excluded = frozenset(excluded)
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
                                         guarded=guarded, window=window)
-        if not STREAMS_ONLY or ((n := graph.nodes.get(s)) is not None
-                                and n.kind == NodeKind.stream))
+        if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs
 

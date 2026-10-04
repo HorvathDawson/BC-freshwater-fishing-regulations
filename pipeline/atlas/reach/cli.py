@@ -37,12 +37,12 @@ def main() -> int:
     # (the most strict applies where the rules are read). Measured once by the atlas build and read
     # from it here — never measured again.
     from pipeline.atlas.registry import regions
-    home = regions.attach_from(build, graph)        # the atlas's own `region_home.json`
+    home = regions.attach_from(build, graph, registry)   # the atlas's own `region_home.json`
     # WHERE A WATER THAT TOUCHES NOTHING LIES, for a watershed part (`reach.position`): read from
     # this build's geometry the first time a watershed part asks.
     from pipeline.atlas.reach import position
     position.attach(graph, build)
-    lakes = sum(1 for s in home if s.startswith(regions.LAKE_PREFIX))
+    lakes = len(regions.lakes_among(graph, registry, home))
     print(f"  region homes: {len(home) - lakes:,} straddling stream piece(s) held to the region "
           f"they lie in; {lakes:,} straddling lake(s) in every region they touch")
     # EVERY SOURCE, not just the synopsis. The reach builder is a CONSUMER of the corpus:
@@ -50,10 +50,13 @@ def main() -> int:
     # it as a river row, and a rule that binds to an area binds through the same resolver.
     # `--entries` still names ONE directory, for building against a single source in
     # isolation.
+    # ABSORBED IDS ARE MAPPED HERE, at the corpus' read point (`registry.flowing.canonical_ids`):
+    # a `matched` or an extent naming a polygon the registry folded into its river names the
+    # river. `build_reaches` refuses one that slipped past.
     if args.entries:
-        entries = parse_io.read_entries_dir(Path(args.entries))
+        entries = parse_io.read_entries_dir(Path(args.entries), registry=registry)
     else:
-        entries = parse_io.read_all_entries()
+        entries = parse_io.read_all_entries(registry=registry)
         srcs = [n for n, _ in parse_io.entry_sources()]
         print(f"  entries from {len(srcs)} source(s): {', '.join(srcs)}")
         for note in parse_io.skipped_sources():

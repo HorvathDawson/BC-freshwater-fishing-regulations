@@ -108,8 +108,9 @@ def _holds_entries(d: Path) -> bool:
     return False
 
 
-def read_all_entries() -> dict[str, dict]:
-    """Every entry from every source, merged — what a CONSUMER of the corpus reads.
+def read_all_entries(registry=None) -> dict[str, dict]:
+    """Every entry from every source, merged — what a CONSUMER of the corpus reads. With a
+    `registry`, absorbed item ids are read as their items (`read_entryfile`).
 
     NOT what the parser reads. `entries_dir()` is the synopsis directory and stays that way:
     every tool that re-parses, prunes, backfills or remaps is about the synopsis and writes
@@ -124,7 +125,7 @@ def read_all_entries() -> dict[str, dict]:
     merged: dict[str, dict] = {}
     origin: dict[str, str] = {}
     for name, d in entry_sources():
-        for eid, entry in read_entries_dir(d).items():
+        for eid, entry in read_entries_dir(d, registry).items():
             if eid in merged:
                 raise SystemExit(
                     f"entry_id {eid!r} is claimed by two sources: {origin[eid]!r} and "
@@ -286,20 +287,37 @@ def read_review_findings(work_dir: Path,
 # Region files (catalogue entries)
 # --------------------------------------------------------------------------- #
 
-def read_entryfile(path: Path) -> dict[str, dict]:
-    """One region file -> {entry_id: entry_dict}. Missing file -> {}."""
+def read_entryfile(path: Path, registry=None, *, require_entries: bool = False) -> dict[str, dict]:
+    """One region file -> {entry_id: entry_dict}. Missing file -> {}.
+
+    THE CORPUS' ONE READ POINT FOR ITEM IDS. Given a `registry`, every id that names an item the
+    registry ABSORBED (`pipeline.atlas.registry.flowing`: a river's polygon folded into its river)
+    is read as the item that holds it now — in `matched`, an extent's `item_id`/`item_ids`/
+    `outside_items`, a carve-out — so the reach run, the bundle and the review app see one id for
+    one water. Nothing else maps an id: every other reader REFUSES an absorbed one
+    (`flowing.absorbed_refs`), and the parser's own tools, which write these files back, read
+    them raw (no `registry`) so a file is never rewritten by a read.
+
+    `require_entries`: a region file in an entry SOURCE must carry `entries` — reading
+    `data.get("entries", [])` skipped a defective file in silence (the bundle's rule)."""
     if not Path(path).exists():
         return {}
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {e["entry_id"]: e for e in data.get("entries", [])}
+    if require_entries and "entries" not in data:
+        raise SystemExit(f"{path}: a region file in an entry source has no `entries`")
+    out = {e["entry_id"]: e for e in data.get("entries", [])}
+    if registry is not None and out:
+        from pipeline.atlas.registry.flowing import canonical_ids
+        out = {eid: canonical_ids(e, registry) for eid, e in out.items()}
+    return out
 
 
-def read_entries_dir(dir_: Path | None = None) -> dict[str, dict]:
-    """Every entry across all region files -> {entry_id: entry_dict}."""
+def read_entries_dir(dir_: Path | None = None, registry=None) -> dict[str, dict]:
+    """Every entry across all region files -> {entry_id: entry_dict} (`read_entryfile`)."""
     d = dir_ or entries_dir()
     out: dict[str, dict] = {}
     for p in sorted(Path(d).glob("region-*.json")):
-        out.update(read_entryfile(p))
+        out.update(read_entryfile(p, registry))
     return out
 
 

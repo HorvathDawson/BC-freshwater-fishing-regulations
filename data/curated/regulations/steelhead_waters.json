@@ -13,7 +13,7 @@
   "source": "data/generated/steelhead/steelhead_waters.json",
   "generator": "pipeline.regs.steelhead.known_waters (first run as pipeline/hack/steelhead_waters.py)",
   "date": "2026-10-02",
-  "fingerprint": "c846144ee090f3df"
+  "fingerprint": "94899d4633bd125d"
  },
  "waters": [
   {
@@ -1173,7 +1173,7 @@
    "note": "American Creek: 4 steelhead record(s), latest 1981"
   },
   {
-   "item_id": "wbk:329178010",
+   "item_id": "gnis:13499",
    "note": "Maria Slough: on the route to confirmed records"
   },
   {
@@ -1277,7 +1277,7 @@
    "note": "Cannery Channel: on the route to confirmed records"
   },
   {
-   "item_id": "wbk:329083360",
+   "item_id": "gnis:8009",
    "note": "Gravel Slough: on the route to confirmed records"
   },
   {
@@ -1313,12 +1313,8 @@
    "note": "Serpentine River: 69 steelhead record(s), latest 1999"
   },
   {
-   "item_id": "wbk:329707189",
-   "note": "Vedder Canal: 263 steelhead record(s), latest 2026"
-  },
-  {
    "item_id": "gnis:3062",
-   "note": "Vedder River: 2 steelhead record(s), latest 1999"
+   "note": "Vedder River: 2 steelhead record(s), latest 1999; its canal (the Vedder Canal polygon, folded in 2026-10-03): 263 steelhead record(s), latest 2026"
   },
   {
    "item_id": "gnis:11566",
@@ -1439,10 +1435,6 @@
   {
    "item_id": "gnis:9630",
    "note": "Alouette River: 646 steelhead record(s), latest 2026"
-  },
-  {
-   "item_id": "wbk:329292631",
-   "note": "Alouette River: 1 steelhead record(s), latest 2000"
   },
   {
    "item_id": "gnis:9694",

@@ -50,9 +50,10 @@ def _item(iid, secs, name="", kind="stream", mus=()):
 
 # Cowichan River: c1 in Region 1 (a steelhead region), c8 in Region 8 (none). Tenas Lake (lk) and
 # the Atnarko (a5) in Region 5. Two creeks called "Mill Creek", one in each of Regions 1 and 8.
-# Vedder Canal (vc): a LAKE-typed water in Region 2 whose name says it flows; the Chilliwack (h2)
+# Vedder Canal (vc): a water DRAWN as a polygon (a lake node) in Region 2 whose name says it
+# flows, so the registry made it a STREAM (`registry.flowing`, `item.kind`); the Chilliwack (h2)
 # its river. Stellako River (s7) in Zone 7A, whose row only waives the stamp. Gravel Slough (gs) and
-# Plain Lake (pl): lake-typed waters of Region 2 no row binds — one named as flowing, one not.
+# Plain Lake (pl): polygon waters of Region 2 no row binds — a stream by the registry, and a lake.
 G = _graph(_node("c1"), _node("c8"), _node("a5"), _node("lk", NodeKind.lake),
            _node("m1"), _node("m8"), _node("h2"), _node("vc", NodeKind.lake), _node("s7"),
            _node("gs", NodeKind.lake), _node("pl", NodeKind.lake))
@@ -63,15 +64,15 @@ REG = {
     "gnis:21": _item("gnis:21", ["m1"], "Mill Creek", mus=("1-2",)),
     "gnis:28": _item("gnis:28", ["m8"], "Mill Creek", mus=("8-3",)),
     "gnis:2": _item("gnis:2", ["h2"], "Chilliwack River", mus=("2-4",)),
-    "wbk:7": _item("wbk:7", ["vc"], "Vedder Canal", kind="lake", mus=("2-4",)),
+    "wbk:7": _item("wbk:7", ["vc"], "Vedder Canal", kind="stream", mus=("2-4",)),
     "gnis:7": _item("gnis:7", ["s7"], "Stellako River", mus=("7-12",)),
-    "wbk:31": _item("wbk:31", ["gs"], "Gravel Slough", kind="lake", mus=("2-4",)),
+    "wbk:31": _item("wbk:31", ["gs"], "Gravel Slough", kind="stream", mus=("2-4",)),
     "wbk:32": _item("wbk:32", ["pl"], "Plain Lake", kind="lake", mus=("2-4",)),
-    "area:region:1": _item("area:region:1", ["c1", "m1"]),
-    "area:region:2": _item("area:region:2", ["h2", "vc", "gs", "pl"]),
-    "area:region:5": _item("area:region:5", ["a5", "lk"]),
-    "area:region:7": _item("area:region:7", ["s7"]),
-    "area:region:8": _item("area:region:8", ["c8", "m8"]),
+    "area:region:1": _item("area:region:1", ["c1", "m1"], kind="area"),
+    "area:region:2": _item("area:region:2", ["h2", "vc", "gs", "pl"], kind="area"),
+    "area:region:5": _item("area:region:5", ["a5", "lk"], kind="area"),
+    "area:region:7": _item("area:region:7", ["s7"], kind="area"),
+    "area:region:8": _item("area:region:8", ["c8", "m8"], kind="area"),
 }
 
 STEELHEAD_REGIONS = ("1", "2", "5")
@@ -451,7 +452,7 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
                                  "outside_area": "area:region:5b", "feature_types": ["stream"]},
                                 {"op": "within", "area_id": "area:region:1",
                                  "feature_types": ["stream"]}]
-    REG["area:region:5b"] = _item("area:region:5b", ["a5"])
+    REG["area:region:5b"] = _item("area:region:5b", ["a5"], kind="area")
     try:
         got = _run([_province(), z, _atnarko()])
         assert "z5:trout_char_quota::trout_char_quota.r6" not in _on(got, "a5")
@@ -462,17 +463,20 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
 
 
 def test_a_lake_typed_water_named_as_flowing_is_a_stream():
-    """A LAKE-typed item whose name's head noun flows is a STREAM (`water_kind.kind_of`, user ruling
-    2026-10-03): the Vedder Canal, bound by the flagged Chilliwack/Vedder row, is steelhead water;
-    Gravel Slough (no row) is a stream the provincial steelhead rules bind — "possible" — and,
-    listed, steelhead water; Tenas Lake and Plain Lake stay lakes."""
+    """A water drawn as a polygon whose name's head noun flows is a STREAM — decided ONCE by the
+    registry (`common.water_kind.flows` -> `registry.flowing`, `item.kind`) and read by the reach
+    as the owner's kind (`water_kind.kind_of`; user ruling 2026-10-03): the Vedder Canal, bound by
+    the flagged Chilliwack/Vedder row, is steelhead water; Gravel Slough (no row) is a stream the
+    provincial steelhead rules bind — "possible" — and, listed, steelhead water; Tenas Lake and
+    Plain Lake stay lakes."""
     from pipeline.atlas.reach.water_kind import kind_of
-    assert SH.flows("lake", "Vedder Canal") and SH.flows("lake", "Gravel Slough")
-    assert SH.flows("lake", "Sumas Lake Canal") and SH.flows("lake", "Rancheria River")
-    assert SH.flows("stream", "Unnamed") and not SH.flows("lake", "Tenas Lake")
+    from pipeline.common.water_kind import flows
+    assert flows("lake", "Vedder Canal") and flows("lake", "Gravel Slough")
+    assert flows("lake", "Sumas Lake Canal") and flows("lake", "Rancheria River")
+    assert flows("stream", "Unnamed") and not flows("lake", "Tenas Lake")
     for still in ("Bear Creek Reservoir", "Corn Creek Marsh", "River Lakes", "OKANAGAN RIVER OXBOWS",
                   "Fowl Creek Lake No. 1*", "Pete'S Pond Unnamed Lake At The Head Of San Juan River"):
-        assert not SH.flows("lake", still), still
+        assert not flows("lake", still), still
     assert [kind_of(G, REG, s) for s in ("vc", "gs", "pl", "lk", "h2")] == [
         "stream", "stream", "lake", "lake", "stream"]
     assert kind_of(G, None, "vc") == "lake"                    # no registry: the graph's kind

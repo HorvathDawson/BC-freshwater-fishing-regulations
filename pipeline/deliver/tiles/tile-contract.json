@@ -19,6 +19,7 @@
       "attrs": [
         "section_id",
         "name",
+        "water",
         "area_m2"
       ],
       "featureId": "section_id",
@@ -40,7 +41,8 @@
       "geometry": "polygon",
       "attrs": [
         "section_id",
-        "name"
+        "name",
+        "water"
       ],
       "featureId": "section_id",
       "decorative": false,

@@ -48,13 +48,22 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- loaded). It is the tile's own polygon area (`waterbody_polys.pkl`), rounded — the second
 -- exception to "no size in here", for the reason `name` is the first (build._lake_areas).
 --
--- `kind` IS THE ATLAS'S KIND — the shape drawn (a slough is a lake polygon). The kind every
--- REGULATION reads is `pipeline.atlas.reach.water_kind`: a lake-typed water whose name flows (a
--- slough, a canal) is a STREAM (user ruling 2026-10-03); the rule bindings already hold it, and the
--- export names it (`waters[].kind`, the atlas's in `drawn_as`).
+-- `kind` IS THE WATER KIND, the registry's (`item.kind`, decided once by the atlas build:
+-- `registry.flowing` over `common.water_kind.flows`): stream | lake | wetland. A slough, a canal, a
+-- river's wide reach drawn as a polygon is `stream` — the kind EVERY regulation reads (user ruling
+-- 2026-10-03), the kind the export ships (`waters[].kind`) and the kind the tile carries (`water`).
+-- The SHAPE a section is drawn as is per section: `section_span.shape`.
+--
+-- A lake with parts (`part_of` names it) OWNS NO SECTION (user ruling 2026-10-03): its parts are
+-- the water; the build refuses a parent with an `item_section` row, and search finds the parts.
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
                    name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
+-- AN ITEM ID THE REGISTRY ABSORBED (`registry.flowing`: a river's polygon folded into its river,
+-- `wbk:329148363` -> `gnis:7836`): `alias` is the old id, `item_id` the water it names now. The
+-- permanent record, so a link or a favourite saved under the old id still opens its water. No
+-- row of this bundle carries an absorbed id (the corpus is read through `flowing.canonical_ids`).
+CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL) WITHOUT ROWID;
 -- `ord` and `sid` are HANDLES, not ids — item.ord and the section handle table. See
 -- pipeline/common/section_handles for who owns the section one and why it may never leave
 -- the bundle.
@@ -96,9 +105,15 @@ CREATE TABLE section_touch (a INTEGER NOT NULL, b INTEGER NOT NULL,
 -- km). The graph is an atlas artifact and a reader opens only the bundle. HANDLES, so AGENTS 5
 -- holds: the export composes runs from these rows and ships no section.
 CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT NOT NULL);
+-- `shape` IS THE SECTION'S DRAWN SHAPE: 0 a line, 1 a polygon (a river's wide reach, a slough's
+-- polygons — `stream` waters hold both since the registry folded them, `registry.flowing`). The
+-- graph node's kind, written once here; the water's KIND is `item.kind`. A polygon ON the main stem
+-- carries the measure window the line leaves and enters it at (`graph.windows.polygon_window`),
+-- so a run passes through it as through any piece; one the stem does not pass through is off-stem.
 CREATE TABLE section_span (sid INTEGER PRIMARY KEY,
                            lo_m INTEGER, hi_m INTEGER, lo INTEGER NOT NULL, hi INTEGER NOT NULL,
-                           off_stem INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
+                           off_stem INTEGER NOT NULL DEFAULT 0,
+                           shape INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
 
 -- THE CUTS, BY NAME. Every split the atlas resolved (`splits.resolved.json`: the curated splits'
 -- own labels, gauges, area boundaries), once per id: `name` is short and human ("boundary signs",
@@ -114,8 +129,18 @@ CREATE TABLE section_span (sid INTEGER PRIMARY KEY,
 -- an area's name as its source spells it ("CLAYHURST ECOLOGICAL RESERVE") when `name` re-cases it;
 -- `same_place_as` is the id of the cut at the SAME place (one curated cut authored under two
 -- waters), which shares this one's name.
+-- A LAKE'S EDGE IS A ROW TOO (kind `lake_edge`): the registry's bindable lake boundary on a river
+-- (`cowichan_river__cowichan_lake`), the id a rule's extents bind by when a cut lands in the lake
+-- (memory: split-alias-mechanism). Named for the lake, it stands at the lake's inlet AND outlet on
+-- the river, so `at` lists both places (and a river entering one lake twice has two such ids with
+-- one name — the lake's, not a clash); `lake_id` is the lake's item (NULL for an unnamed
+-- waterbody), the water the runs' `lake_inlet:<lake_id>` / `lake_outlet:<lake_id>` ends name. The
+-- provincial border on a water is a row the same way (kind `border`, the runs' `bc_border`). A cut
+-- the sectionizer aliased onto such an edge (a gauge, a curated point) gets the same row under its
+-- own id.
 CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
-                    at TEXT NOT NULL, official_name TEXT, same_place_as TEXT) WITHOUT ROWID;
+                    at TEXT NOT NULL, official_name TEXT, same_place_as TEXT,
+                    lake_id TEXT) WITHOUT ROWID;
 
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:

@@ -304,7 +304,10 @@ def test_two_things_at_one_place_say_the_place_once():
 def test_no_split_name_is_two_parts(db):
     names = dict(db.execute("SELECT split_id, name FROM split"))
     # a "<place> — <marker>" label is said "<marker> at <place>"; only a lake part's own name
-    # ("Kootenay Lake — Main Body") keeps its dash
-    assert not [n for n in names.values() if " — " in n and n.split(" — ", 1)[1][:1].islower()]
+    # ("Kootenay Lake — Main Body", "Shannon Lake — proper") keeps its dash — on the part, and on
+    # the part's EDGE (`kind: lake_edge`, named for the lake)
+    edges = {s for (s,) in db.execute("SELECT split_id FROM split WHERE kind IN ('lake_edge', 'border')")}
+    assert not [n for s, n in names.items() if s not in edges
+                and " — " in n and n.split(" — ", 1)[1][:1].islower()]
     assert names["kitimat_river__kitimat_hatchery_outfall_d_s_sign"] == \
         "downstream sign at the Kitimat Hatchery outfall"

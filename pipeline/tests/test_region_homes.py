@@ -50,11 +50,12 @@ def test_a_region_area_resolves_a_stream_piece_to_its_home_and_a_lake_to_both():
     """A stream piece is its home region's; a LAKE straddling the line is in both (user ruling
     2026-09-25: Ahbau Lake, Mara Lake — both zone bases, the most strict applies). MUTATION:
     `in_region` holding lakes to their home fails the lake half; returning its input unchanged
-    fails the stream half."""
+    fails the stream half. Which straddler is a LAKE is the registry's kind (`attach`'s `both`,
+    from `lakes_among`), never the `lake:` prefix."""
     reg = _reg(**{"3": ["lake:1", "a:0", "s:9"], "8": ["lake:1", "b:0", "s:9"]})
     g = SimpleNamespace(nodes={})
     assert extent.area_sections(reg, g, "area:region:8") == {"lake:1", "b:0", "s:9"}  # not attached
-    regions.attach(g, {"lake:1": "3", "s:9": "3"})
+    regions.attach(g, {"lake:1": "3", "s:9": "3"}, both={"lake:1"})   # a LAKE by the registry's kind
     assert extent.area_sections(reg, g, "area:region:3") == {"lake:1", "a:0", "s:9"}
     assert extent.area_sections(reg, g, "area:region:8") == {"lake:1", "b:0"}
 
@@ -63,7 +64,7 @@ def test_only_region_areas_are_held_to_a_home():
     reg = {"area:park:x": SimpleNamespace(section_ids=("lake:1",)),
            **_reg(**{"3": ["lake:1"], "8": ["lake:1"]})}
     g = SimpleNamespace(nodes={})
-    regions.attach(g, {"lake:1": "3"})
+    regions.attach(g, {"lake:1": "3"}, both={"lake:1"})
     assert extent.area_sections(reg, g, "area:park:x") == {"lake:1"}
 
 

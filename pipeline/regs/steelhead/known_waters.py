@@ -71,7 +71,8 @@ import zipfile
 
 import pandas as pd
 
-from pipeline.atlas.reach.steelhead import CURATED_LIST, fingerprint, flows
+from pipeline.atlas.reach.steelhead import CURATED_LIST, fingerprint
+from pipeline.common.water_kind import flows
 from pipeline.common.curated import GENERATED, SOURCE
 
 MODEL_URL = "https://nrs.objectstore.gov.bc.ca/bchamp/freshwater_fish_habitat_accessibility_MODEL.gpkg.zip"

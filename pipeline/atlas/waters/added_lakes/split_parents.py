@@ -34,11 +34,17 @@ def _parents(path: str | None) -> tuple[tuple[str, tuple[str, ...]], ...]:
 
 def split_parents(registry=None, path: str | None = None) -> dict[str, list[str]]:
     """{parent item_id: [part item_ids]} — every lake the curation cut into parts. With a
-    `registry`, only parents that build knows (a registry item) are returned."""
-    got = {k: list(v) for k, v in _parents(path)}
+    `registry`, THE REGISTRY'S OWN `part_of` (written by the atlas build from the polygons it
+    ingested): the build's answer, not the curated file's. Without one (the ingest-time validator,
+    which has no build to hand), the curated polygons."""
     if registry is not None:
-        got = {k: v for k, v in got.items() if k in registry}
-    return got
+        out: dict[str, list[str]] = {}
+        for iid in sorted(registry):
+            parent = getattr(registry[iid], "part_of", "") or ""
+            if parent:
+                out.setdefault(parent, []).append(iid)
+        return out
+    return {k: list(v) for k, v in _parents(path)}
 
 
 def refs_to_parents(entries, parents: dict[str, list[str]]) -> list[str]:

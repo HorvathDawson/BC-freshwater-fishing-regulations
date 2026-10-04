@@ -20,8 +20,8 @@ keys; a book-known LAKE also gets its zone's wild release through that line's tw
 a water on the CURATED LIST — a presence indicator that binds no rule or stamp (the Okanagan River
 in Region 8 is known and carries no steelhead rule); possible = any other stream the provincial
 steelhead rules bind. `anadromous_rainbow` (a rainbow over 50 cm IS a steelhead) holds on EVERY
-known FLOWING section, book or list (`steelhead.flows`; user ruling 2026-10-03) — the list's one
-effect on an answer.
+known STREAM section (the registry's water kind: a slough or canal is a stream), book or list
+(user ruling 2026-10-03) — the list's one effect on an answer.
 
 Corpus tests read the catalogue; placement tests read a bundle (`UI_EXPORT_BUNDLE`, else the
 shipped one) — the OUTPUT, never the extents that produced it. Each check is pinned by a
@@ -370,11 +370,9 @@ STEELHEAD_RULES = """SELECT entry_id || '::' || rule_id FROM rule WHERE entry_id
 
 
 def _real_lakes(db) -> set[str]:
-    """Lake items that are LAKES for the regulations: not a lake-typed water whose name flows (a
-    slough or canal is a stream — AGENTS 55, `water_kind.flows`)."""
-    from pipeline.atlas.reach.water_kind import flows
-    return {i for i, n in db.execute("SELECT item_id, name FROM item WHERE kind = 'lake'")
-            if not flows("lake", n)}
+    """Lake items: `item.kind` IS the water kind (a slough or canal is a `stream` item since the
+    registry decides it — AGENTS 55), so nothing here looks at a name."""
+    return {i for (i,) in db.execute("SELECT item_id FROM item WHERE kind = 'lake'")}
 
 
 def _steelhead_lakes(db) -> set[str]:
@@ -388,14 +386,17 @@ def _steelhead_lakes(db) -> set[str]:
 
 
 #: lakes a steelhead row binds: Khartoum and Lois (their own rows) and Tenas (the Atnarko's spring
-#: closure). The Vedder Canal (a lake item of the flagged Chilliwack/Vedder row) is a lake-typed
-#: water named as flowing, so steelhead water)
-VEDDER_CANAL = "wbk:329707189"
+#: closure). The Vedder Canal — a polygon of the flagged Chilliwack/Vedder row's water — is the
+#: Vedder River's own (`registry.flowing`, user ruling 2026-10-03): its section is the river's
+VEDDER_CANAL = "gnis:3062"
+VEDDER_CANAL_SECTION = "lake:329707189"
 STEELHEAD_ROW_LAKES = {"wbk:329197063", "wbk:329197058", "wbk:329021804"}
-#: lake-typed waters only the curated list makes known (Gravel Slough, Maria Slough, the lake item
-#: named "Alouette River"): STREAMS (AGENTS 55), so the Region 2 stream steelhead rules bind them and
-#: they are steelhead water (user ruling 2026-10-03)
-LISTED_SLOUGHS = {"wbk:329083360", "wbk:329178010", "wbk:329292631"}
+#: waters drawn as polygons that only the curated list makes known — Gravel Slough, Maria Slough
+#: (their polygons folded into their lines), the Alouette's polygon (into the Alouette River):
+#: STREAMS (AGENTS 55), so the Region 2 stream steelhead rules bind them and they are steelhead
+#: water (user ruling 2026-10-03)
+LISTED_SLOUGHS = {"gnis:8009", "gnis:13499", "gnis:9630"}
+LISTED_POLYGONS = {"lake:329083360", "lake:329178010", "lake:329292631"}
 
 
 def _known_lakes(db) -> set[str]:
@@ -698,7 +699,7 @@ def test_the_list_changes_answers_only_through_steelhead_water(db, tmp_path):
 
 
 def test_anadromous_rainbow_is_exactly_known_stream_where_steelhead_rules_apply(db, raw):
-    """A big rainbow is a steelhead EXACTLY on KNOWN ∧ STREAM (`water_kind.flows`: a slough or canal
+    """A big rainbow is a steelhead EXACTLY on KNOWN ∧ STREAM (the registry's kind: a slough or canal
     is one — the Vedder Canal) ∧ STEELHEAD RULES APPLY (the section carries every rule of the
     provincial set, base or twin) — known by a steelhead row or by the curated list (user ruling
     2026-10-03) — and nowhere else: never a possible stream, never a lake (Khartoum, Lois, Tenas),
@@ -708,11 +709,10 @@ def test_anadromous_rainbow_is_exactly_known_stream_where_steelhead_rules_apply(
     sw = q("SELECT sid FROM steelhead_water")
     known = q("SELECT sid FROM section_steelhead WHERE code = 1")
     possible = q("SELECT sid FROM section_steelhead WHERE code = 2")
-    # the bundle keeps no kind for an unnamed section: a NAMED non-stream water that does not flow
-    # is the only non-stream it can name
-    still = {s for s, kind, name in db.execute(
-        "SELECT s.sid, i.kind, i.name FROM item i JOIN item_section s ON s.ord = i.ord "
-        "WHERE i.kind != 'stream'") if not SH.flows(kind, name)}
+    # the bundle keeps no kind for an unnamed section: a NAMED non-stream water is the only
+    # non-stream it can name (`item.kind` is the water kind)
+    still = {s for (s,) in db.execute(
+        "SELECT s.sid FROM item i JOIN item_section s ON s.ord = i.ord WHERE i.kind != 'stream'")}
     per_set: dict = defaultdict(set)
     for k, r in db.execute("SELECT set_id, rule_id FROM ruleset WHERE entry_id = ?",
                            (SH.PROVINCE_STEELHEAD,)):
@@ -766,7 +766,9 @@ def test_the_presence_pass_knows_what_steelhead_rows_bind_and_the_list_names():
     kinds = {"a": "stream", "b": "stream", "c": "stream", "lk": "lake", "x": "stream",
              "vc": "lake", "l1": "stream", "l8": "stream"}
     g = NS(nodes={s: NS(kind=NS(value=k)) for s, k in kinds.items()})
-    reg = {"wbk:vc": NS(kind="lake", name="Vedder Canal", section_ids=("vc",)),
+    # the Vedder Canal is a STREAM by the registry's kind (a polygon of the Vedder River's item;
+    # here its own item for the fixture) — the one place that decides it
+    reg = {"wbk:vc": NS(kind="stream", name="Vedder Canal", section_ids=("vc",)),
            "wbk:lk": NS(kind="lake", name="Tenas Lake", section_ids=("lk",)),
            "gnis:l": NS(kind="stream", name="Listed Creek", section_ids=("l1",)),
            "gnis:8": NS(kind="stream", name="Okanagan River", section_ids=("l8",))}
@@ -925,7 +927,8 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     assert W[OKANAGAN]["steelhead_rules"] is False
     assert "steelhead" not in W["gnis:16880"] and "steelhead" not in W["wbk:329291805"]
     assert all(p.get("anadromous_rainbow") for p in W[VEDDER_CANAL]["parts"])
-    assert (W[VEDDER_CANAL]["kind"], W[VEDDER_CANAL]["drawn_as"]) == ("stream", "lake")
+    assert W[VEDDER_CANAL]["kind"] == "stream" and "drawn_as" not in W[VEDDER_CANAL]
+    assert W[VEDDER_CANAL]["absorbed"] == ["wbk:329707189"]       # the canal's polygon, folded in
     fd = doc["field_dictionary"]["water.parts[]"]
     assert "may not be present" in fd["steelhead"] and "BINDS NO RULE" in fd["steelhead"]
     assert "2026-10-03" in fd["anadromous_rainbow"] and "curated list" in fd["anadromous_rainbow"]
@@ -995,15 +998,22 @@ def test_every_stream_row_naming_steelhead_is_steelhead_water(raw):
 
 
 def test_no_lake_is_steelhead_water(db):
-    """`steelhead_water` holds stream sections only: no lake but a lake-typed water named as
-    flowing, which IS a stream (AGENTS 55) — the Vedder Canal (of the flagged Chilliwack/Vedder
-    row) and the listed sloughs and lake item named "Alouette River"; Khartoum/Lois/Tenas are out."""
-    from pipeline.atlas.reach import steelhead as SH
+    """`steelhead_water` holds STREAM sections only — a stream's polygon among them: the Vedder
+    Canal's (its river is the flagged Chilliwack/Vedder row's water), the listed sloughs' and the
+    Alouette's polygons (AGENTS 55); no `lake` item's section, Khartoum/Lois/Tenas included."""
+    from pipeline.common.section_handles import read as _read_handles
     got = {(i, n) for i, n in db.execute(
         "SELECT DISTINCT i.item_id, i.name FROM steelhead_water w JOIN item_section s "
-        "ON s.sid = w.sid JOIN item i ON i.ord = s.ord WHERE i.kind = 'lake'")}
-    assert {VEDDER_CANAL} | LISTED_SLOUGHS <= {i for i, _ in got}, got
-    assert all(SH.flows("lake", n) for _, n in got), [x for x in got if not SH.flows("lake", x[1])]
+        "ON s.sid = w.sid JOIN item i ON i.ord = s.ord WHERE i.kind != 'stream'")}
+    assert got == set(), got
+    _, sid = _read_handles(Path(dict(db.execute("SELECT k, v FROM meta"))["build"]))
+    sw = {s for (s,) in db.execute("SELECT sid FROM steelhead_water")}
+    for nid in LISTED_POLYGONS | {VEDDER_CANAL_SECTION}:
+        assert sid[nid] in sw, nid
+    owners = {i for (i,) in db.execute(
+        "SELECT DISTINCT i.item_id FROM steelhead_water w JOIN item_section s ON s.sid = w.sid "
+        "JOIN item i ON i.ord = s.ord")}
+    assert {VEDDER_CANAL} | LISTED_SLOUGHS <= owners
     dean = _sections(db, "gnis:16075")
     assert dean and all(db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (s,)).fetchone()
                         for s in dean)
@@ -1144,10 +1154,9 @@ def steelhead_row_rules(raw: dict) -> set[str]:
 
 @pytest.fixture(scope="module")
 def classes(db):
-    """(rule set, licensing set, lake item or None, steelhead code or None) -> sections. A lake-typed
-    water whose name flows is a stream (AGENTS 55), not a lake."""
-    from pipeline.atlas.reach.water_kind import flows
-    db.create_function("real_lake", 2, lambda k, n: int(k == "lake" and not flows(k, n)))
+    """(rule set, licensing set, lake item or None, steelhead code or None) -> sections. `item.kind`
+    is the water kind: a slough or canal is a `stream` item (AGENTS 55), not a lake."""
+    db.create_function("real_lake", 2, lambda k, n: int(k == "lake"))
     rows = db.execute(
         "SELECT rs, ls, lake, st, COUNT(*) FROM ("
         " SELECT sr.sid, sr.set_id AS rs, sl.set_id AS ls,"

@@ -26,3 +26,19 @@ export function openBundle(path: string = DEV_BUNDLE): Db {
     close: () => db.close(),
   };
 }
+
+/**
+ * A bundle built in memory from the schema and a few rows — for a test that needs a shape the
+ * development fixture does not have (a lake cut into parts). `pipeline/deliver/bundle/schema.sql`
+ * is the one definition of the format, here as in the packager and the production bundler.
+ */
+export function openInMemory(schemaSql: string, seedSql: string): Db {
+  const db = new DatabaseSync(":memory:");
+  db.exec(schemaSql);
+  db.exec(seedSql);
+  return {
+    all: async (sql, ...params) => db.prepare(sql).all(...params) as unknown as Row[],
+    get: async (sql, ...params) => db.prepare(sql).get(...params) as unknown as Row | undefined,
+    close: () => db.close(),
+  };
+}

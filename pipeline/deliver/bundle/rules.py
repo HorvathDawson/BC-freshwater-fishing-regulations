@@ -967,7 +967,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 
     from pipeline.regs.parsing.catalogue import CatalogueEntry
 
-    from pipeline.regs.parsing.io import _holds_entries
+    from pipeline.regs.parsing.io import _holds_entries, read_entryfile
 
     if build_dir is None:
         raise SystemExit("rules.write needs build_dir to resolve section handles")
@@ -984,15 +984,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # EVERY ENTRY SOURCE, and nothing else. A source is a directory of region files carrying
     # `entries` (see `io.entry_sources`); the DFO directory beside the catalogue holds region
     # files of another shape and is not one. Inside a source, a region file WITHOUT `entries` is
-    # a defect, and stops the build — reading `doc.get("entries", [])` skipped it in silence.
+    # a defect, and stops the build (`require_entries`). Read through the corpus' one read point,
+    # so an item id this registry folded into another names its item (`io.read_entryfile`).
     for d in sorted({p.parent for p in entries_dir.rglob("region-*.json")}):
         if not _holds_entries(d):
             continue
         for path in sorted(d.glob("region-*.json")):
-            doc = json.loads(path.read_text(encoding="utf-8"))
-            if "entries" not in doc:
-                raise SystemExit(f"{path}: a region file in an entry source has no `entries`")
-            for e in doc["entries"]:
+            for e in read_entryfile(path, registry, require_entries=True).values():
                 # Read through the model, so a key from a retired shape is refused, not read.
                 docs.append((e, CatalogueEntry.model_validate(e)))
     # What an exemption may name: zone entries by slug, and every entry's rule ids.

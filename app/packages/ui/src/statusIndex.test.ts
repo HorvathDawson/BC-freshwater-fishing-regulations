@@ -60,6 +60,7 @@ describe("the map's status values", () => {
       const d = statusData(ix, [5, 7], new Date(2026, 0, 10));
       expect(d.stream).toEqual({ 5: { status: "closed" }, 7: { status: "base" } });
       expect(d.lake).toEqual(d.stream);
+      expect(d.wetland).toEqual(d.stream);     // a slough drawn as a wetland is coloured too
       // no index: every value is null (the mode's `missing`), never a guessed base
       expect(statusData(null, [5], new Date()).stream).toEqual({ 5: { status: null } });
     });

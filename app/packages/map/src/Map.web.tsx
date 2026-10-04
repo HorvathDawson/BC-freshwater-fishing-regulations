@@ -582,7 +582,9 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        */
       const seen = new Set<SectionKey>();
       for (const f of m.queryRenderedFeatures())
-        if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"))
+        if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"
+            // a slough drawn as a wetland polygon is a stream (`wetland_flowing`): coloured
+            || (f.sourceLayer === "wetland" && f.properties?.water === "stream")))
           seen.add(f.id as SectionKey);
       if (seen.size) cb([...seen]);
     };
@@ -641,8 +643,9 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * usually the biggest, because the big polygons draw underneath. A person aiming at
        * a creek means the creek.
        */
+      // A stream's polygon (`lake_flowing`, `wetland_flowing`) IS the stream a finger aims at.
       const rank = (layerId: string) =>
-        layerId === "stream" ? 0
+        layerId === "stream" || layerId === "lake_flowing" || layerId === "wetland_flowing" ? 0
         : layerId === "lake" || layerId === "wetland" ? 1 : 2;
       const best = hits
         .filter((f) => f.id !== undefined && f.layer?.id)

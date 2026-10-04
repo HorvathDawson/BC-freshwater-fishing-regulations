@@ -96,7 +96,8 @@ def test_the_review_app_builds_beside_the_served_atlas_and_promotes_explicitly()
 def test_the_tiles_carry_only_what_is_read():
     from pipeline.deliver.tiles.layers import BY_NAME, contract
     assert BY_NAME["stream"].attrs == ("section_id", "name", "ord")
-    assert BY_NAME["lake"].attrs == ("section_id", "name", "area_m2")
+    assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2")
+    assert BY_NAME["wetland"].attrs == ("section_id", "name", "water")
     on_disk = json.loads((REPO_ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
     assert on_disk["layers"]["stream"]["attrs"] == list(BY_NAME["stream"].attrs)
     assert on_disk == contract()
@@ -187,12 +188,20 @@ def test_region_homes_are_written_once_and_read_back(tmp_path, monkeypatch):
     assert json.loads((tmp_path / regions.HOME_FILE).read_text()) == {"lake:1": "8", "s:2": "3"}
     assert regions.read_homes(tmp_path) == got
 
+    from pipeline.common.models import NodeKind, RegistryItem, StreamNode
+
     class G:
-        pass
+        nodes = {"lake:1": StreamNode(node_id="lake:1", kind=NodeKind.lake, wbk="1"),
+                 "s:2": StreamNode(node_id="s:2", kind=NodeKind.stream, blk="s")}
     g = G()
-    assert regions.attach_from(tmp_path, g) == got
+    # the straddling LAKE is told apart by the registry's kind (a river's polygon would be a river)
+    reg = {"wbk:1": RegistryItem(id="wbk:1", name="A Lake", kind="lake", section_ids=("lake:1",))}
+    assert regions.attach_from(tmp_path, g, reg) == got
     assert regions.in_region(g, "3", {"s:2", "s:5", "lake:1"}) == {"s:2", "s:5", "lake:1"}
     assert regions.in_region(g, "8", {"s:2", "s:5", "lake:1"}) == {"s:5", "lake:1"}
+    reg = {"wbk:1": RegistryItem(id="wbk:1", name="A Slough", kind="stream", section_ids=("lake:1",))}
+    regions.attach_from(tmp_path, g, reg)
+    assert regions.in_region(g, "3", {"s:2", "s:5", "lake:1"}) == {"s:2", "s:5"}   # held to home 8
     with pytest.raises(SystemExit, match="predates region homes"):
         regions.read_homes(tmp_path / "nope")
 

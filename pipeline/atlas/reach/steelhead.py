@@ -79,9 +79,9 @@ CURATED_LIST = "curated list"
 #: The op of the twins' one extent (`entry_models.Op.STEELHEAD_WATERS`).
 STEELHEAD_WATERS = "steelhead_waters"
 
-#: A LAKE-TYPED WATER WHOSE NAME SAYS IT FLOWS is a stream (user rulings 2026-10-02/03): the ONE
-#: definition lives in `water_kind` (re-exported here for the known-waters generator and the export).
-from pipeline.atlas.reach.water_kind import FLOWING, flows  # noqa: E402,F401
+#: A LAKE-TYPED WATER WHOSE NAME SAYS IT FLOWS is a stream (user rulings 2026-10-02/03): decided
+#: ONCE in the registry (`pipeline.common.water_kind.flows` -> `registry.flowing`), read here as
+#: the owner's kind (`water_kind.kind_of`). Nothing here recomputes it from a name.
 
 #: THE PROVINCIAL STEELHEAD SET's rules (book p.8: the annual hatchery 10, the wild release, the
 #: record duty), each bound by its base (`<id>`, the steelhead regions' streams) or its twin
@@ -265,18 +265,23 @@ def resolve_list(waters, registry) -> list[tuple[ListWater, str]]:
             return False
         return True
 
+    from pipeline.atlas.registry.flowing import canonical
     for w in waters:
         if w.item_id:
-            it = registry.get(w.item_id) if hasattr(registry, "get") else (
-                registry[w.item_id] if w.item_id in registry else None)
-            if it is None or str(w.item_id).startswith("area:"):
+            # The list's one read point for item ids: an id the registry ABSORBED (a river's
+            # polygon folded into its river, `registry.flowing`) names its river — and two list
+            # entries that now name one item are refused below, so the file gets fixed.
+            iid = canonical(w.item_id, registry)
+            it = registry.get(iid) if hasattr(registry, "get") else (
+                registry[iid] if iid in registry else None)
+            if it is None or str(iid).startswith("area:"):
                 bad.append(f"{w.label}: no such water in the registry")
                 continue
             if not fits(w, it):
                 bad.append(f"{w.label}: the registry puts {it.name!r} in MU(s) "
                            f"{list(getattr(it, 'mus', ()) or ())}")
                 continue
-            out.append((w, w.item_id))
+            out.append((w, iid))
             continue
         cands = sorted(set(by_name.get(_norm(w.name), ())))
         hit = [k for k in cands if fits(w, registry[k])]

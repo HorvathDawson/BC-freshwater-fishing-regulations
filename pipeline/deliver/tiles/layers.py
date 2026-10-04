@@ -62,16 +62,22 @@ WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", maxzoom=14,
         attrs=("section_id", "name", "ord"),
-        why="Every flowing reach. `section_id` is the feature id the app sets state on. "
-            "`name` is DRAWN — the along-the-line label at z11+. `ord` is Strahler order and "
-            "sets line weight; it is read by the style, not by app code. (`alt`, `mus` and "
-            "`areas` were carried and read by nothing — search is the bundle's — so they are "
-            "gone, 2026-10-03; containment is the bundle's `area:` items.)",
+        why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "
+            "river's wide reach, a slough: the registry's kind) under that polygon's section id, "
+            "so the river has no hole at the zooms its polygon is not drawn at. `section_id` is "
+            "the feature id the app sets state on. `name` is the REGISTRY owner's name (the "
+            "water a tap opens) and is DRAWN — the along-the-line label at z11+. `ord` is "
+            "Strahler order and sets line weight; it is read by the style, not by app code. "
+            "(`alt`, `mus` and `areas` were carried and read by nothing — search is the "
+            "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
     LayerSpec(
         name="lake", geometry="polygon", ladder="area",
-        attrs=("section_id", "name", "area_m2"),
-        why="Standing water big enough to fish. Same identity fields as stream. `area_m2` "
+        attrs=("section_id", "name", "water", "area_m2"),
+        why="Standing water big enough to fish — and a stream's polygon (a river's wide reach, "
+            "a slough's). Same identity fields as stream. `water` is THE WATER KIND, the "
+            "registry's `item.kind` (stream | lake): the style draws a `stream` polygon in "
+            "stream colours (`lake_flowing`), so a slough never reads as a lake. `area_m2` "
             "earns its place twice: it sets the outline width (sqrt, so one big lake does "
             "not swamp every small one) and it is the label's collision sort key, which is "
             "what stops a cluster of ponds crowding out the lake somebody came for.",
@@ -99,8 +105,9 @@ WATER: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="wetland", geometry="polygon", ladder="area", minzoom=9,
-        attrs=("section_id", "name"),
-        why="Marsh and swamp. Drawn, occasionally regulated, never searched for by name — "
+        attrs=("section_id", "name", "water"),
+        why="Marsh and swamp. `water` is the registry's kind (stream | wetland: a slough drawn as "
+            "a wetland is a stream, `wetland_flowing`). Drawn, occasionally regulated, never searched for by name — "
             "and `name` is here for the tap sheet, not a label: no wetland symbol layer "
             "exists. `area_m2` went with it; wetland has no width spec and no label to "
             "sort, so it was 2.6% of the archive answering nothing.",

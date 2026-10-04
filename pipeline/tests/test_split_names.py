@@ -151,7 +151,8 @@ def test_an_area_name_is_recased_and_its_official_spelling_kept():
                      "area_boundary"),
                   _r("area:Garibaldi Park", 0, "within Garibaldi Park", "area_boundary")])
     assert got["area:CLAYHURST ECOLOGICAL RESERVE"][1:] == (
-        "Clayhurst Ecological Reserve boundary", "area", "[]", "CLAYHURST ECOLOGICAL RESERVE", None)
+        "Clayhurst Ecological Reserve boundary", "area", "[]", "CLAYHURST ECOLOGICAL RESERVE", None,
+        None)
     assert got["area:Garibaldi Park"][1] == "Garibaldi Park boundary"
     assert got["area:Garibaldi Park"][4] is None
 
@@ -180,6 +181,8 @@ def test_within_each_water_split_names_are_unique(doc):
     names the first in `same_place_as`."""
     seen = defaultdict(list)
     for sid, x in doc["splits"].items():
+        if x["kind"] in ("lake_edge", "border"):
+            continue          # named for the lake (or the border): at its inlet AND its outlet
         for w, km in X._split_waters(x):
             seen[(w, x["name"])].append((km, sid))
     for (w, name), at in seen.items():

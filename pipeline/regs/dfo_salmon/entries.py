@@ -544,12 +544,19 @@ def path_for(slug: str, entries_dir: Path = ENTRIES_DIR) -> Path:
     return Path(entries_dir) / f"region-{slug}.json"
 
 
-def load(slug: str, entries_dir: Path = ENTRIES_DIR) -> EntryFile:
+def load(slug: str, entries_dir: Path = ENTRIES_DIR, registry=None) -> EntryFile:
+    """One region's DFO entry file. Given a `registry`, a water's `item_ids` naming an item the
+    registry ABSORBED (`pipeline.atlas.registry.flowing`) are read as the item that holds it now —
+    the DFO side's one read point for item ids, like `parsing.io.read_entryfile` for the
+    catalogue. Without one (the tools that write the file back) the ids are read raw."""
     p = path_for(slug, entries_dir)
     if not p.exists():
         return EntryFile(region=slug, region_number=PAGES[slug].region,
                          region_name=PAGES[slug].name)
     d = json.loads(p.read_text(encoding="utf-8"))
+    if registry is not None and d.get("waters"):
+        from pipeline.atlas.registry.flowing import canonical_ids
+        d = {**d, "waters": [canonical_ids(w, registry) for w in d["waters"]]}
     return EntryFile(
         region=d["region"], region_number=d["region_number"], region_name=d["region_name"],
         structure=d.get("structure") or {},

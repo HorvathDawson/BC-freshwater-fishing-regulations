@@ -182,7 +182,7 @@ def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
         got = {(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
                 bool(p.get("anadromous_rainbow")), p.get("steelhead"), p["sections"])
                for p in w["parts"]}
-        assert got == want[item], item
+        assert got == want.get(item, set()), item       # a lake cut into parts owns no section
         keys = [(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
                  bool(p.get("anadromous_rainbow")), p.get("steelhead")) for p in w["parts"]]
         assert len(keys) == len(set(keys)), f"{item}: a part appears twice"

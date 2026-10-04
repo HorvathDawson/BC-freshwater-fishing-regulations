@@ -104,9 +104,23 @@ def homes(build_dir, registry) -> dict[str, str]:
     return {s: home_of(sh) for s, sh in region_shares(build_dir, straddlers(registry)).items()}
 
 
-def attach(graph, home: Mapping[str, str]) -> None:
-    """Hold the home map on the graph the resolver reads (frozen)."""
+#: The straddling sections that are STANDING WATER (a lake or wetland by the registry's kind):
+#: in every region they touch. A river's polygon is held to its home like the river.
+_ATTR_BOTH = "_region_both"
+
+
+def attach(graph, home: Mapping[str, str], both=()) -> None:
+    """Hold the home map on the graph the resolver reads (frozen), and `both` — the straddling
+    sections that are lakes for the regulations (`in_region` keeps them in every region)."""
     setattr(graph, _ATTR, MappingProxyType(dict(home)))
+    setattr(graph, _ATTR_BOTH, frozenset(both))
+
+
+def lakes_among(graph, registry, home: Mapping[str, str]) -> frozenset[str]:
+    """The straddling sections whose WATER KIND is lake or wetland (`reach.water_kind.kind_of`:
+    the registry's answer, so a river's polygon is a river here too)."""
+    from pipeline.atlas.reach.water_kind import kind_of
+    return frozenset(s for s in home if kind_of(graph, registry, s) in ("lake", "wetland"))
 
 
 #: The atlas file the home map is written to, beside `registry.json` — `{section: home region}`
@@ -141,27 +155,30 @@ def read_homes(build_dir) -> dict[str, str]:
     return got
 
 
-def attach_from(build_dir, graph) -> dict[str, str]:
-    """`attach` the atlas's written home map (`read_homes`) to `graph`; returns the map."""
+def attach_from(build_dir, graph, registry) -> dict[str, str]:
+    """`attach` the atlas's written home map (`read_homes`) to `graph`, with the straddling LAKES
+    told apart by the registry's kind (`lakes_among`); returns the map."""
     home = read_homes(build_dir)
-    attach(graph, home)
+    attach(graph, home, lakes_among(graph, registry, home))
     return home
 
 
-#: A section id naming a waterbody polygon — a lake, which is never cut.
+#: A section id naming a waterbody polygon — the SHAPE drawn (a river's polygon has it too).
 LAKE_PREFIX = "lake:"
 
 
 def in_region(graph, region: str, sections: set[str]) -> set[str]:
-    """`sections` (one region's members) less the STREAM PIECES whose home is another region.
+    """`sections` (one region's members) less the STREAM sections whose home is another region.
 
     A LAKE STRADDLING A REGION LINE IS IN BOTH (user ruling 2026-09-25, Ahbau Lake 51/49, Mara Lake
     61/39): a lake is one water that is never cut, and an angler on either shore is in either
     region, so it binds BOTH regions' zone rules and the MOST STRICT applies — decided per fish
     where the rules are read (`deliver.bundle.read.effective_rules`, step 6). A stream piece
-    wandering across the line is a line with a length: it keeps its home region by length."""
+    wandering across the line is a line with a length: it keeps its home region by length — and
+    so does a river's own POLYGON (`attach`'s `both` is by the registry's WATER kind, never by the
+    `lake:` prefix, which is only the shape drawn)."""
     home = getattr(graph, _ATTR, None) if graph is not None else None
     if not home:
         return sections
-    return {s for s in sections
-            if s.startswith(LAKE_PREFIX) or home.get(s, region) == region}
+    both = getattr(graph, _ATTR_BOTH, frozenset())
+    return {s for s in sections if s in both or home.get(s, region) == region}

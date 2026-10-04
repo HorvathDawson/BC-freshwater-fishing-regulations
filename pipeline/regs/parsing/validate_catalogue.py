@@ -407,13 +407,24 @@ def split_parents_named(entry_data: dict) -> list[str]:
     return refs_to_parents([entry_data], split_parents())
 
 
+def absorbed_ids_named(entry_data: dict, registry) -> list[str]:
+    """AN ABSORBED ITEM ID IS REFUSED, NEVER MAPPED, where a file is written: a `matched` or an
+    extent naming a polygon the registry folded into its river (`pipeline.atlas.registry.flowing`)
+    names the river. Only the corpus' read point (`parsing.io.read_entryfile`) maps one."""
+    from pipeline.atlas.registry.flowing import absorbed_refs
+    return absorbed_refs([entry_data], registry)
+
+
 def check_entry(entry_data: dict, source_text: str,
-                item: dict | None = None) -> tuple[CatalogueEntry | None, list[str]]:
+                item: dict | None = None, registry=None) -> tuple[CatalogueEntry | None, list[str]]:
     """Returns (entry, errors). `source_text` is the printed row the agent was given.
 
     `item` is that row's batch item. Given one, extents are checked against its boundary menu and
-    alias ids are rewritten to canonical — so pass it whenever it is available."""
+    alias ids are rewritten to canonical — so pass it whenever it is available. Given a `registry`,
+    an id it absorbed is refused (`absorbed_ids_named`)."""
     errors: list[str] = []
+    if registry is not None:
+        errors += absorbed_ids_named(entry_data, registry)
     # NOTHING IS REPAIRED HERE. `coerce_shapes` used to rewrite a bare-string `exempts` into a
     # list and `electric_only: true` into a propulsion level, and it silently DROPPED
     # `electric_only: false`. A shape the schema does not take is refused and re-parsed; the
