@@ -25,7 +25,7 @@ from pipeline.atlas.reach import extent as _resolve
 from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.atlas.reach.outside import (
-    outside_bc, region_limit, rowed_waters, shared_waters, tidal_sections,
+    outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
 )
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.common.models import NodeKind as _NodeKind
@@ -49,6 +49,12 @@ class ReachResult:
     #: `steelhead: known | possible` per section (`pipeline.atlas.reach.steelhead`) — a fact about
     #: the water, not a rule, so outside the rules' digest like the licensing.
     steelhead: list[dict] = field(default_factory=list)
+    #: THE WATER THE BOOK CALLS TIDAL, with the row that says so (`outside.tidal_sections`:
+    #: {section: entry_id}) and THE WATER OUTSIDE B.C. (`outside.outside_bc`) — the two sets the
+    #: builder took out of every binding. Facts of the run, written with it (`io.write_run`:
+    #: `tidal.jsonl`, `outside_bc.jsonl`) so the bundle reads them instead of computing them again.
+    tidal: dict[str, str] = field(default_factory=dict)
+    outside: frozenset[str] = frozenset()
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
@@ -94,8 +100,10 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # The waters the tables print a row of their own for: a confluence cut's joining water with
     # none goes with the cut, one with its own row stays out (`confluence_excludes`).
     owned = rowed_waters(ents)
-    # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_sections`).
-    tidal = tidal_sections(ents, registry)
+    # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`,
+    # written with the run as `tidal.jsonl`; `tidal_sections` is its key set).
+    tidal_of = tidal_owner(ents, registry)
+    tidal = frozenset(tidal_of)
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)
     # THE CURATED KNOWN-STEELHEAD LIST: a presence indicator (each water's own sections), no rule.
@@ -247,7 +255,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     licensing.sort(key=lambda p: (p.entry_id, p.record_id))
     lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
     steelhead, report.steelhead = presence.finish(bindings, twins)
-    return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead)
+    return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead,
+                       tidal=tidal_of, outside=outside)
 
 
 def _area_kind_sections(registry, kind: str) -> frozenset[str]:

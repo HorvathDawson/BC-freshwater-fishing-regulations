@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { loadStatusIndex, statusData, statusIndexUrl } from "./hooks";
 
-/** A status index by hand: sections 5 and 6 and water "gnis:1" closed Jan 1 - Mar 31. */
-function tiny(handles = "147b20dce7d8576c"): Uint8Array {
+/** A status index by hand (version 2: handles, then the bundle's reach digest): sections 5 and 6
+ * and water "gnis:1" closed Jan 1 - Mar 31. */
+function tiny(handles = "147b20dce7d8576c", reach = "ad6279cad5f3fc76"): Uint8Array {
   const v = (n: number): number[] => {
     const out: number[] = [];
     do { out.push((n & 0x7f) | (n > 0x7f ? 0x80 : 0)); n >>>= 7; } while (n);
     return out;
   };
   const h = handles.match(/../g)!.map((x) => parseInt(x, 16));
+  const r = reach.match(/../g)!.map((x) => parseInt(x, 16));
   return Uint8Array.from([
-    0x42, 0x43, 0x53, 0x49, 1, ...h,
+    0x42, 0x43, 0x53, 0x49, 2, ...h, ...r,
     ...v(1), ...v(2), ...v((91 << 3) | 2), ...v((275 << 3) | 1),   // one profile
     ...v(1), ...v(5), ...v(2), ...v(0),                              // sections 5..6
     ...v(1), ...v(0), ...v(6), ..."gnis:1".split("").map((c) => c.charCodeAt(0)), ...v(0),

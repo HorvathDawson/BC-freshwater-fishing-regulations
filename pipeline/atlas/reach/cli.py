@@ -34,10 +34,10 @@ def main() -> int:
     graph = read_artifact(str(build / "graph.pkl"))
     # THE REGION EACH STRADDLING SECTION LIES IN, for the zone rules (`registry.regions`): a stream
     # piece drawn across a region line takes its home region's standing table; a lake takes both
-    # (the most strict applies where the rules are read).
+    # (the most strict applies where the rules are read). Measured once by the atlas build and read
+    # from it here — never measured again.
     from pipeline.atlas.registry import regions
-    home = regions.homes(build, registry)
-    regions.attach(graph, home)
+    home = regions.attach_from(build, graph)        # the atlas's own `region_home.json`
     # WHERE A WATER THAT TOUCHES NOTHING LIES, for a watershed part (`reach.position`): read from
     # this build's geometry the first time a watershed part asks.
     from pipeline.atlas.reach import position

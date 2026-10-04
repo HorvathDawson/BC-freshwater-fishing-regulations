@@ -29,10 +29,11 @@
  * `base` (AGENTS 32). With no index (not loaded, or refused for another atlas) every answer is
  * null, "not asked".
  *
- * The regulation RECORDS are still not integrated (`regulations.ts`): `waterStatus(regs)` decides
- * from a water's records once they arrive, and returns null until then.
+ * ONE DEFINITION. The index is the only thing that decides a status: a second reading of
+ * own / base from a water's regulation records (`waterStatus(regs)`, dormant behind the
+ * not-integrated flag) was removed on 2026-10-03 — two definitions of "own" is the AGENTS 23
+ * failure waiting to happen.
  */
-import { REGULATIONS, type WaterRegulations } from "./regulations";
 import type { SectionKey } from "./section";
 import type { StatusCode, StatusIndex } from "./statusIndex";
 
@@ -46,16 +47,6 @@ export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: 
   own: { label: "Has its own regulations", token: "color.status.own" },
   base: { label: "Base regulations only", token: "color.status.base" },
 };
-
-/**
- * THE STATUS OF ONE WATER, from its regulations. Null when there is nothing to decide from —
- * regulations not integrated, or not read for this water. `closed` needs the day and the
- * rules' closures, which arrive with the integration; until then no water is called closed.
- */
-export function waterStatus(regs: WaterRegulations | null | undefined): WaterStatus | null {
-  if ((REGULATIONS as string) === "not-integrated" || !regs) return null;
-  return regs.rules.length || regs.licensing.length ? "own" : "base";
-}
 
 /** The file's code as a status: `tidal` and `outside` are not one, so they read null. */
 export function statusOfCode(code: StatusCode): WaterStatus | null {

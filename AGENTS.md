@@ -366,3 +366,18 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     registry); a rule's `water` is enforced through `feature_types: [water]`, so it follows. No
     per-rule change, no per-water list. The bundle's `item.kind` stays the atlas's (the shape drawn);
     the export's `waters[].kind` is the regulatory kind, with the atlas's in `drawn_as`.
+56. **One data flow: every derived fact is computed once and READ everywhere else** (data-flow
+    review, 2026-10-03; `pipeline/tests/test_one_data_flow.py` is the gate). The atlas writes its
+    sidecars (`region_home.json`, `registry.part_of`, `splits.resolved.json` with `source` and the
+    authored offsets); the reach run writes `tidal.jsonl` / `outside_bc.jsonl` and `rules` (steelhead
+    rules apply) in `steelhead_presence`; the bundle READS them (`section_home`, `tidal`, `outside_bc`,
+    `steelhead_known.rules`, `item.part_of`, cut labels and offsets) and proves the stored form
+    reproduces the run — it opens NO curated waters file (`CURATED.` under `pipeline/deliver/bundle`
+    may name only the corpus). "Closure" is `rules.closure_grade`, asked by the status index, the
+    competition and the export. A PROMOTED ATLAS IS IMMUTABLE: `pipeline.atlas.build` refuses an
+    `--out` whose handle digest a shipped bundle or tile set carries; the review app builds to
+    `<build>_next` and promotes by `pipeline.atlas.promote`. `python -m pipeline.deliver` chains
+    bundle → status index → export (each still runs alone); the index header (version 2) carries the
+    bundle's `reach_digest` beside the handles, and the app refuses a mismatch. An atlas built before
+    the sidecars existed gets them from `python -m pipeline.atlas.sidecars` (same inputs, never a
+    rebuild).

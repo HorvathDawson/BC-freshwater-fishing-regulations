@@ -410,6 +410,30 @@ def area_names(build_dir) -> dict[str, str]:
 
 
 def split_labels(splits_json: dict) -> dict[str, str]:
-    """{split id: label} from `splits.json`."""
+    """{split id: label} from `splits.json` — for the REVIEW APP, which names cuts as a curator
+    edits the file. The bundle reads the atlas's copy instead (`resolved_labels`)."""
     return {s["id"]: s.get("label") or "" for w in splits_json.get("waterbodies") or []
             for s in w.get("splits") or [] if s.get("id")}
+
+
+def resolved_labels(build_dir) -> dict[str, str]:
+    """{split id: its book label} for every CURATED cut the atlas resolved, from the build's
+    `splits.resolved.json` (`source: "curated"` rows — the label is the curated one, carried by the
+    sectionizer). The same dict `split_labels` makes from the curated file, read from the atlas so
+    the bundle names a cut as the atlas that cut it did. REFUSED when no row carries `source`: the
+    atlas predates the field (`python -m pipeline.atlas.sidecars`)."""
+    import json
+    from pathlib import Path
+    p = Path(build_dir) / "splits.resolved.json"
+    if not p.exists():
+        raise SystemExit(f"place names: no {p} — the bundle cannot name the cuts without the "
+                         f"atlas's resolved splits")
+    rows = json.loads(p.read_text(encoding="utf-8"))
+    if rows and not any("source" in r for r in rows):
+        raise SystemExit(f"place names: {p} carries no `source` — the atlas predates it; write the "
+                         f"sidecars (`python -m pipeline.atlas.sidecars --build {build_dir}`)")
+    out: dict[str, str] = {}
+    for r in rows:
+        if r.get("source") == "curated":
+            out.setdefault(r["split_id"], r.get("label") or "")
+    return out

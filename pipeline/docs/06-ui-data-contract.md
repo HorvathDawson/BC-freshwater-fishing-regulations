@@ -246,9 +246,11 @@ gear clause's `when`). `pipeline/tests/test_export_ui_rules.py` pins both with m
 ## Part 7 — What ships today: `status_index.bin` (the colour index, built)
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.deliver.status_index [--bundle B] [--out OUT]
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.deliver [all|bundle|status_index|export] …   # the chain
 
 Default out `data/generated/bundle/status_index.bin`, beside `bundle.sqlite`; ~55 s, read from
-the bundle only, deterministic. The dev server serves it at `/status_index.bin`
+the bundle only, deterministic. Format version 2 (2026-10-03): the header carries the bundle's
+`reach_digest` after the handle digest, and the app refuses an index cut from other rule bindings. The dev server serves it at `/status_index.bin`
 (`app/tools/serve-tiles.mjs`; `STATUS_INDEX=<file>` serves a side build) and the app fetches it
 next to `atlas.pmtiles`. It is Part 2.2 made real: per SECTION and per DAY, three answers.
 

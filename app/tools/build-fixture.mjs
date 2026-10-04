@@ -349,6 +349,10 @@ insert("INSERT INTO meta VALUES (?,?)", [
    */
   ["section_handles", `fixture-${createHash("sha256")
     .update(allSections.join("\n")).digest("hex").slice(0, 16)}`],
+  // No reach run made this fixture's rules, so no digest: the client reads an empty value as
+  // "not held to one" (`source.ts`) and the status index — which the dev server does not serve
+  // — would be refused against any real bundle anyway, by its handles.
+  ["reach_digest", ""],
 ]);
 db.exec("VACUUM");
 db.close();

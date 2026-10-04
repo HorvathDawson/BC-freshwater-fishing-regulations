@@ -17,13 +17,11 @@ from __future__ import annotations
 import json
 import math
 import pickle
-from collections import defaultdict
 from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
-from pipeline.deliver.tiles.names import display, haystack
-from pipeline.common.registry_kinds import waters
+from pipeline.deliver.tiles.names import display
 
 _ROUND = 6                      # ~11 cm; tippecanoe quantises to the tile grid anyway
 
@@ -105,7 +103,6 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     if limit:
         geoms = dict(list(geoms.items())[:limit])
 
-    item_of, variants = _identity(build_dir)
     _require_membership(graph)
 
 
@@ -168,17 +165,16 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
             # this is the feature id the app sets state on, so the two must be the same
             # number. See pipeline/common/section_handles.
             "section_id": sid[sec],
-            "item": item_of.get(sec),
             "name": nm,
-            "alt": haystack(nm, sorted(variants.get(sec, ()))),
             # NO `mag`. It is the input to the zoom ladder, and the ladder has already run
             # by the time this feature is written — `zoom_for_magnitude` below turns it into
             # the per-feature minzoom tippecanoe actually uses. Shipping the magnitude too
             # sent the same fact twice, the second copy to a client that never read it:
             # 2.3% of the archive, on a property with no consumer in the app or the style.
+            # NO `item`, `alt`, `mus`, `areas` either (2026-10-03): the app read none of them —
+            # identity, search and containment are the bundle's (`item_section`, `alias`,
+            # `area:` items) — and `_writer` drops what `layers.py` does not list.
             "ord": node.stream_order,
-            "mus": ",".join(sorted(node.mus)) or None,
-            "areas": ",".join(sorted(node.in_areas)) or None,
         }, ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
     n, n_ul = close(), ul_close()
     print(f"  stream         {n:>9,}"
@@ -215,7 +211,6 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
             "geometry is the under-lake ROUTE, not its outline. Rebuild:\n"
             "    python -m pipeline.atlas.build --full --out <dir>")
     geoms = pickle.load(poly_path.open("rb"))
-    item_of, variants = _identity(build_dir)
 
     writers: dict[str, tuple] = {}
     no_geom = 0
@@ -235,12 +230,8 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         nm = display(node.display_name)
         write(_to4326(g, tf), {
             "section_id": sid[nid],
-            "item": item_of.get(nid),
             "name": nm,
-            "alt": haystack(nm, sorted(variants.get(nid, ()))),
             "area_m2": round(g.area),
-            "mus": ",".join(sorted(node.mus)) or None,
-            "areas": ",".join(sorted(node.in_areas)) or None,
         }, ladder.zoom_for_area(g.area, spec.minzoom))
     counts = {lname: close() for lname, (_, close) in writers.items()}
     for lname, n in counts.items():
@@ -252,25 +243,6 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
 
 def _kind(node) -> str:
     return node.kind.value if hasattr(node.kind, "value") else str(node.kind)
-
-
-def _identity(build_dir: Path) -> tuple[dict, dict]:
-    """{section -> item_id} and {section -> every registry name it answers to}."""
-    # WATERS ONLY. An `area:` item's `section_ids` are the sections INSIDE the polygon, not
-    # the sections that ARE it — and areas outnumber waters twelve to one and sort first, so
-    # `setdefault` gave every feature inside a park the park's id and its slug as a search
-    # name. See pipeline/common/registry_kinds. Areas reach the tile as the `areas`
-    # attribute of each feature, which is the right place for containment.
-    reg = waters(json.loads((build_dir / "registry.json").read_text())["items"])
-    item_of: dict[str, str] = {}
-    variants: dict[str, set[str]] = defaultdict(set)
-    for it in reg:
-        iid, nm = it["id"], it.get("name") or ""
-        names = {v for v in (it.get("variants") or []) if v} | ({nm} if nm else set())
-        for sec in it.get("section_ids") or ():
-            item_of.setdefault(sec, iid)
-            variants[sec] |= names
-    return item_of, variants
 
 
 def _require_membership(graph) -> None:

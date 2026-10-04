@@ -27,8 +27,11 @@ function disagreements(ix: StatusIndex): unknown[] {
 
 describe("the status index decoder", () => {
   it("reads the pipeline's bytes exactly as the pipeline does", () => {
-    const ix = decodeStatusIndex(BYTES, fixture.handles);
+    const ix = decodeStatusIndex(BYTES, fixture.handles, fixture.reach_digest);
     expect(ix.handles).toBe("147b20dce7d8576c");
+    expect(ix.reachDigest).toBe(fixture.reach_digest);
+    expect(() => decodeStatusIndex(BYTES, fixture.handles, "0000000000000000"))
+      .toThrow(/cut from rule bindings/);
     expect(fixture.sections.length + fixture.waters.length).toBeGreaterThan(100);
     expect(disagreements(ix)).toEqual([]);
     expect(ix.sections).toBe(5);
@@ -77,9 +80,9 @@ describe("the status index decoder", () => {
     const bad = BYTES.slice();
     bad[0] = 0;
     expect(() => decodeStatusIndex(bad, null)).toThrow(/not a status index/);
-    const v2 = BYTES.slice();
-    v2[4] = 2;
-    expect(() => decodeStatusIndex(v2, null)).toThrow(/version 2/);
+    const v3 = BYTES.slice();
+    v3[4] = 3;
+    expect(() => decodeStatusIndex(v3, null)).toThrow(/version 3/);
     expect(() => decodeStatusIndex(BYTES.slice(0, BYTES.length - 2), null)).toThrow(StatusIndexError);
     const long = new Uint8Array(BYTES.length + 1);
     long.set(BYTES);
@@ -94,7 +97,7 @@ describe("the status index decoder", () => {
    */
   it("notices every one-byte change to the file's tables", () => {
     const unnoticed: number[] = [];
-    for (let i = 13; i < BYTES.length; i++) {
+    for (let i = 21; i < BYTES.length; i++) {
       const m = BYTES.slice();
       m[i] = m[i]! ^ 0x01;
       let ix: StatusIndex;

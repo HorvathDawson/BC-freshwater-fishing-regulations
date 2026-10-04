@@ -6,7 +6,7 @@
  * closed / own / base mean. This file only READS it: it decides nothing, so the map and every
  * list get the pipeline's one answer (AGENTS 23, 53).
  *
- *   "BCSI" · version 1 · 8-byte section_handles digest
+ *   "BCSI" · version 2 · 8-byte section_handles digest · 8-byte reach_digest
  *   nProfiles × (nRuns × varint(length << 3 | code))        the shared range tables, 366 days
  *   nRuns, then columns gap[] count[] profile[]              sections, as runs of handles
  *   nItems, then columns shared[] suffixLen[] bytes profile[]  waters, front-coded item ids
@@ -16,7 +16,10 @@
  *
  * VINTAGE. A section key is an integer handle that means a different river in another atlas
  * (`SectionId` in @app/data). The file carries the digest; `decodeStatusIndex` refuses one
- * that does not match the digest the caller holds, so a mixed set is never coloured.
+ * that does not match the digest the caller holds, so a mixed set is never coloured. Since
+ * version 2 it also carries the bundle's `reach_digest` — WHICH rule bindings it was cut from:
+ * two bundles from one atlas and two reach runs share handles and differ in rules, and the
+ * decoder refuses an index whose reach digest is not the bundle's when the caller holds one.
  */
 import type { SectionKey } from "./section";
 
@@ -27,7 +30,7 @@ export type StatusCode = "base" | "own" | "closed" | "tidal" | "outside";
 export const STATUS_CODES: readonly StatusCode[] = ["base", "own", "closed", "tidal", "outside"];
 
 const MAGIC = [0x42, 0x43, 0x53, 0x49]; // "BCSI"
-const VERSION = 1;
+const VERSION = 2;
 const DAYS = 366;
 /** Days before each month on the catalogue's leap calendar (Feb always has 29). */
 const BEFORE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
@@ -45,6 +48,8 @@ export function dayOfYear(on: Date | { month: number; day: number }): number {
 export interface StatusIndex {
   /** The `section_handles` digest the file was built against (16 hex digits). */
   readonly handles: string;
+  /** The bundle's `reach_digest` the file was cut from (16 hex digits). */
+  readonly reachDigest: string;
   /** How many sections and waters are listed (every other one is base). */
   readonly sections: number;
   readonly waters: number;
@@ -76,8 +81,11 @@ function utf8(b: Uint8Array): string {
 /**
  * Decode the file. `expectHandles` is the digest the tiles and bundle agree on; a file built
  * against any other is refused (throws), never read — its handles name different sections.
+ * `expectReach` is the bundle's `reach_digest`; when given, a file cut from other rule bindings
+ * is refused the same way.
  */
-export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | null): StatusIndex {
+export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | null,
+                                  expectReach: string | null = null): StatusIndex {
   let pos = 0;
   const fail = (why: string): never => { throw new StatusIndexError(`status index: ${why}`); };
   const byte = (): number => (pos < bytes.length ? bytes[pos++]! : fail("truncated"));
@@ -89,10 +97,17 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   for (const m of MAGIC) if (byte() !== m) fail("not a status index");
   const version = byte();
   if (version !== VERSION) fail(`version ${version}, this app reads ${VERSION}`);
-  let handles = "";
-  for (let i = 0; i < 8; i++) handles += byte().toString(16).padStart(2, "0");
+  const hex = (): string => {
+    let h = "";
+    for (let i = 0; i < 8; i++) h += byte().toString(16).padStart(2, "0");
+    return h;
+  };
+  const handles = hex();
   if (expectHandles !== null && handles !== expectHandles)
     fail(`built for atlas ${handles}, the map is ${expectHandles} — refused`);
+  const reachDigest = hex();
+  if (expectReach !== null && reachDigest !== expectReach)
+    fail(`cut from rule bindings ${reachDigest}, the bundle's are ${expectReach} — refused`);
 
   const nProfiles = v();
   if (nProfiles > 65534) fail("too many profiles");
@@ -154,6 +169,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   const at = (p: number, on: Date): StatusCode => STATUS_CODES[days[p * DAYS + dayOfYear(on) - 1]!]!;
   return {
     handles,
+    reachDigest,
     sections: listed,
     waters: nItems,
     codeOn(section, on) {

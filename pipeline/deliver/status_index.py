@@ -39,12 +39,17 @@ Two sections are not freshwater-regulation answers at all, and carry their own c
            the general rules" — which is exactly what the bundle schema says they must never
            read, so they are listed.
 
-THE FORMAT (version 1). All integers are unsigned LEB128 varints unless stated.
+THE FORMAT (version 2). All integers are unsigned LEB128 varints unless stated.
 
     "BCSI"          4 bytes magic
-    version         1 byte  (= 1)
+    version         1 byte  (= 2)
     handles         8 bytes: the bundle's `meta.section_handles` (16 hex digits) as raw bytes —
                     the app refuses an index whose digest differs from its tiles' and bundle's
+    reach           8 bytes: the bundle's `meta.reach_digest` (16 hex digits) as raw bytes — WHICH
+                    rule bindings this file was cut from. Two bundles from one atlas and two reach
+                    runs carry the same handles and different rules; version 1 could not tell
+                    their indexes apart. A reader holding a bundle refuses an index whose reach
+                    digest differs from the bundle's.
     nProfiles       then each profile: nRuns, then nRuns x varint(length << 3 | code); the
                     lengths sum to 366 and cover day 1 (Jan 1) .. 366 (Dec 31) in order, on the
                     catalogue's leap calendar (`catalogue._day_index`: Feb 29 is day 60, Mar 1 is
@@ -84,9 +89,10 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import read
+from pipeline.deliver.bundle.rules import closure_grade
 
 MAGIC = b"BCSI"
-VERSION = 1
+VERSION = 2
 DAYS = 366
 
 BASE, OWN, CLOSED, TIDAL, OUTSIDE = 0, 1, 2, 3, 4
@@ -127,11 +133,9 @@ def month_day(day: int) -> Tuple[int, int]:
 
 def is_full_closure(x: dict) -> bool:
     """An unconditional "no fishing": take 0, may not fish for it, at every size, for every
-    origin, whatever the means or target, across the whole channel, and drawn (not a note)."""
-    return (x.get("take") == 0 and x.get("may_target") == 0
-            and not (x.get("lengths") or x.get("origin") or x.get("while")
-                     or x.get("when_targeting") or x.get("side")
-                     or read.not_yet_mapped(x)))
+    origin, whatever the means or target, across the whole channel, and drawn (not a note) — the
+    one closure predicate's "full" grade (`rules.closure_grade`)."""
+    return closure_grade(x) == "full"
 
 
 def closes(rows: Iterable[dict]) -> bool:
@@ -254,6 +258,11 @@ def compute(path: str, log=print) -> dict:
             raise SystemExit(f"status_index: {path} records no meta.section_handles — rebuild "
                              f"the bundle")
         handles = handles[0]
+        reach = db.execute("SELECT v FROM meta WHERE k = 'reach_digest'").fetchone()
+        if not reach or not reach[0]:
+            raise SystemExit(f"status_index: {path} records no meta.reach_digest — rebuild the "
+                             f"bundle")
+        reach = reach[0]
         sets: Dict[int, list] = defaultdict(list)
         for set_id, e, r, via in db.execute(
                 "SELECT set_id, entry_id, rule_id, via FROM ruleset "
@@ -302,6 +311,7 @@ def compute(path: str, log=print) -> dict:
     idx = {p: i for i, p in enumerate(profiles)}
     return {
         "handles": handles,
+        "reach_digest": reach,
         "profiles": profiles,
         "sections": {sid: idx[p] for sid, p in sorted(kept.items())},
         "items": {i: idx[p] for i, p in sorted(item_profile.items())},
@@ -327,10 +337,11 @@ def _varint(n: int) -> bytes:
 def encode(idx: dict) -> bytes:
     out = bytearray(MAGIC)
     out.append(VERSION)
-    h = bytes.fromhex(idx["handles"])
-    if len(h) != 8:
-        raise ValueError(f"section_handles {idx['handles']!r} is not 16 hex digits")
-    out += h
+    for key in ("handles", "reach_digest"):
+        h = bytes.fromhex(idx[key])
+        if len(h) != 8:
+            raise ValueError(f"{key} {idx[key]!r} is not 16 hex digits")
+        out += h
     out += _varint(len(idx["profiles"]))
     for p in idx["profiles"]:
         rs = runs_of(p)
@@ -378,7 +389,8 @@ class Index:
         if data[4] != VERSION:
             raise ValueError(f"status index version {data[4]}, expected {VERSION}")
         self.handles = data[5:13].hex()
-        pos = 13
+        self.reach_digest = data[13:21].hex()
+        pos = 21
 
         def v() -> int:
             nonlocal pos
@@ -482,7 +494,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for pi in idx["sections"].values():
         for c in set(idx["profiles"][pi]):
             counts[CODE_NAMES[c]] += 1
-    print(f"  handles {idx['handles']}  ·  {len(idx['profiles'])} profiles  ·  "
+    print(f"  handles {idx['handles']}  ·  rules {idx['reach_digest']}  ·  "
+          f"{len(idx['profiles'])} profiles  ·  "
           f"{len(idx['sections']):,} of {idx['total_sections']:,} sections  ·  "
           f"{len(idx['items']):,} of {idx['total_items']:,} waters")
     print(f"  sections ever: " + ", ".join(f"{k} {v:,}" for k, v in sorted(counts.items())))

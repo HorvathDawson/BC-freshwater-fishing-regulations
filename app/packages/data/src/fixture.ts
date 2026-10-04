@@ -102,7 +102,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       // genuinely mismatched. It worked before only because section ids used to be strings
       // that happened to be globally meaningful.
       return { version: "54ea0bb4", validUntil: "2027-03-31",
-               sectionHandles: "fixture-local" };
+               sectionHandles: "fixture-local", reachDigest: null };
     },
     // The fixture is one valley, and these are ITS counts — not the province's. That
     // distinction is the whole reason the app must read them rather than state them:

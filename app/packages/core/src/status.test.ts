@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { REGULATIONS, regulationsFor } from "./regulations";
-import { WATER_STATUS, WATER_STATUSES, waterStatus } from "./status";
+import * as status from "./status";
+import { WATER_STATUS, WATER_STATUSES } from "./status";
 
 describe("a water's status — one answer for the map and every list", () => {
   it("names every status once, each with the map token that paints it", () => {
@@ -12,11 +12,11 @@ describe("a water's status — one answer for the map and every list", () => {
     expect(new Set(WATER_STATUSES.map((s) => WATER_STATUS[s].token)).size).toBe(3);
   });
 
-  it("is NOT ASKED while regulations are not integrated — never a guessed 'base'", () => {
-    expect(REGULATIONS).toBe("not-integrated");
-    expect(regulationsFor("gnis:8634")).toBeNull();
-    expect(waterStatus(regulationsFor("gnis:8634"))).toBeNull();
-    // Even a record in hand decides nothing until the integration says the data is real.
-    expect(waterStatus({ item: "gnis:1", rules: [], licensing: [] })).toBeNull();
+  it("has ONE definition — the index's; no reading of a water's records decides a status", () => {
+    // `waterStatus(regs)` once read own/base from a water's regulation records, dormant behind
+    // the not-integrated flag: a second definition of "own" beside the pipeline's (AGENTS 23).
+    expect("waterStatus" in status).toBe(false);
+    expect(Object.keys(status).sort()).toEqual(
+      ["WATER_STATUS", "WATER_STATUSES", "statusOfCode", "statusOn", "waterStatusOn"]);
   });
 });

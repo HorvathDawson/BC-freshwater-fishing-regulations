@@ -205,5 +205,5 @@ def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
                 # tributary gives "", which that property already treats as no bound —
                 # the cut still happens, it just goes undescribed rather than described
                 # badly.
-                label=name, anchor_type=AnchorType.confluence))
+                label=name, anchor_type=AnchorType.confluence, source="length"))
     return out

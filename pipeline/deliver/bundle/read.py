@@ -301,6 +301,27 @@ def _steelhead_min_cm() -> int:
     return int(DEFINITIONAL_SIZE["ST"]["min_cm"])
 
 
+def steelhead_rules(db, section: int) -> bool:
+    """Whether the provincial steelhead rules apply on this section (`section_steelhead_rules`:
+    the reach run's `rules`, stored with the presence code). Where they do not, a rainbow of any
+    size is a rainbow (user ruling 2026-10-03). A bundle without the view is refused."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead_rules'") \
+            .fetchone():
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
+            raise SystemExit("read: the bundle has no `section_steelhead_rules` view — rebuild it "
+                             "(`python -m pipeline.deliver.bundle`)")
+        return False
+    return db.execute("SELECT 1 FROM section_steelhead_rules WHERE sid = ?",
+                      (section,)).fetchone() is not None
+
+
+def home_region(db, section: int) -> str | None:
+    """The region a STRADDLING section takes its zone rules from (`section_home`, the atlas's
+    `region_home.json`), or None for a section in one region."""
+    row = db.execute("SELECT region FROM section_home WHERE sid = ?", (section,)).fetchone()
+    return row[0] if row else None
+
+
 def steelhead_water(db, section: int) -> bool:
     """Whether the book's steelhead definition holds on this section (`steelhead_water`): a
     rainbow over 50 cm here is a steelhead. A bundle without the table is refused."""
@@ -407,9 +428,9 @@ def released_on_water(x: dict) -> str | None:
     water (`feature_types: [water]`), so that being bound to a section IS being on that kind of
     water. `effective_rules` step 4b lets such a release displace its own table's keeping quotas
     for the fish, exactly as a release printed without `water` does."""
-    from pipeline.deliver.bundle.rules import release_origins
+    from pipeline.deliver.bundle.rules import closure_grade, release_origins
     water = x.get("water")
-    if not water or not release_origins(x) or x.get("may_target") == 0:
+    if not water or not release_origins(x) or closure_grade(x) is not None:
         return None
     exts = x.get("extents") or []
     if not exts or any(list(e.get("feature_types") or []) != [water] for e in exts):
@@ -460,12 +481,12 @@ def stricter(a: dict, b: dict) -> bool:
 
     Anything else is not stricter: two statements sit beside each other, and a gear or method rule
     is never displaced by one of another region (both apply)."""
-    from pipeline.deliver.bundle.rules import (release_origins, same_statement,
+    from pipeline.deliver.bundle.rules import (closure_grade, release_origins, same_statement,
                                                yields_to_release)
     if b.get("type") != "retention_limit" or a.get("type") != "retention_limit":
         return False
-    shut = lambda x: x.get("take") == 0 and x.get("may_target") == 0 and not (
-        x.get("lengths") or x.get("while") or x.get("when_targeting") or x.get("within"))
+    # a FULL closure (`rules.closure_grade`): unconditional, at every size, whatever the means
+    shut = lambda x: closure_grade(x) == "full"          # noqa: E731
     if shut(a):
         return not shut(b)
     if shut(b):
@@ -689,8 +710,9 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
             and k not in undrawn
 
     def closure(k) -> bool:
-        x = every[k]
-        return x.get("take") == 0 and x.get("may_target") == 0
+        # any closure, conditioned or not (`rules.closure_grade`): it speaks for every fish it
+        # covers, and the condition travels with it
+        return closure_grade(every[k]) is not None
 
     def order(k) -> tuple:
         x = every[k]
@@ -713,8 +735,8 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         if competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
 
-    from pipeline.deliver.bundle.rules import (release_origins, same_statement, statement,
-                                               yields_to_release)
+    from pipeline.deliver.bundle.rules import (closure_grade, release_origins, same_statement,
+                                               statement, yields_to_release)
 
     def place(k) -> int:
         return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]

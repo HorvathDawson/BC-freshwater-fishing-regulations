@@ -141,3 +141,11 @@ class SplitPoint:
     concern: str = ""       # carried from SplitDef.concern (+ resolver-added caveats)
     picked_up: bool = False # True => this curated split reused an existing (lake/border) boundary
                             # within proximity instead of cutting a new one (docs/04 proximity pickup)
+    # THE AUTHORED OFFSET (SplitAnchor.offset_m/offset_dir: "100 m downstream of the falls") — not
+    # `offset_m` above, which is the resolver's review aid. Carried into splits.resolved.json so the
+    # bundle names the cut ("100 m downstream of the Morrison Creek confluence") from the atlas.
+    anchor_offset_m: float = 0.0
+    anchor_offset_dir: str = ""
+    # Where the cut came from: "curated" (splits.json), "gauge" (gauge_match.json), "area",
+    # "length", "border". The bundle takes a cut's book name from the CURATED rows only.
+    source: str = ""

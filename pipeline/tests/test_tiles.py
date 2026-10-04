@@ -13,7 +13,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import ALL, BY_NAME
-from pipeline.deliver.tiles.names import display, haystack, normalise
+from pipeline.deliver.tiles.names import display, normalise
 from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,18 +74,6 @@ def test_display_titlecases_shouting_but_leaves_real_case_alone():
     assert display("EAST WHITE RIVER") == "East White River"
     assert display("McArthur Island Slough") == "McArthur Island Slough"
     assert display("Sts'a'í:les / Sts'ailes") == "Sts'a'í:les / Sts'ailes"
-
-
-def test_haystack_dedupes_case_variants_to_nothing():
-    """The registry carries both cases of the same name; that is not an alias."""
-    assert haystack("East White River", ["EAST WHITE RIVER", "East White River"]) == ""
-
-
-def test_haystack_keeps_real_aliases_display_name_first():
-    h = haystack("Wahleach Lake", ["JONES", "JONES LAKE", "Wahleach"])
-    assert h.split("|")[0] == "wahleach lake"
-    assert "jones" in h.split("|")
-    assert len(h.split("|")) == len(set(h.split("|")))
 
 
 def test_normalise_is_what_search_compares():

@@ -209,6 +209,16 @@ def _parts_follow_the_route(fids: list, parent_of: dict[str, str],
     return moved
 
 
+def lake_parts(lakes: list[dict]) -> dict[str, str]:
+    """{part wbk: parent wbk} for every curated lake that is a PART of another (`part_of`)."""
+    out: dict[str, str] = {}
+    for l in lakes:
+        parent = str((l.get("props", {}).get("part_of") or {}).get("wbk") or "")
+        if parent:
+            out[str(l["wbk"])] = parent
+    return out
+
+
 def merge(fids: list, lake_kind: dict, lake_names: dict, wbk_polys: dict,
           path: str | Path | None = None, lake_wsc: dict | None = None) -> dict:
     """Ingest the curated lakes into a build's inputs. Returns a report dict.
@@ -237,7 +247,10 @@ def merge(fids: list, lake_kind: dict, lake_names: dict, wbk_polys: dict,
     claimed = apply_to_fids(fids, lakes)
     return {"lakes": len(lakes), "claimed": claimed,
             "names": {l["wbk"]: l["name"] for l in lakes},
-            "gnis": {l["wbk"]: l.get("gnis_id", "") for l in lakes}}
+            "gnis": {l["wbk"]: l.get("gnis_id", "") for l in lakes},
+            # each PART's lake, for the registry (`registry.add_lake_parts`): the one record of the
+            # relation the bundle's `item.part_of` is written from
+            "part_of": lake_parts(lakes)}
 
 
 def main() -> None:

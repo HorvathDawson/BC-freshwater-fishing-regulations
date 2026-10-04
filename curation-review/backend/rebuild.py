@@ -4,7 +4,8 @@ CPU-only, makes NO LLM calls / spends NO credits — safe to trigger from the UI
 (and name_variants) are baked into the graph's section boundaries at build time, so a curated split
 only takes effect after this runs. On a SUCCESSFUL build the reuse-layer caches are dropped, so every
 subsequent request serves the freshly-rebuilt registry / splits.resolved / gpkg — the app updates all
-items with no restart.
+items with no restart. The build goes to `<build>_next` and is PROMOTED by a second, explicit step
+(`promote`, POST /api/rebuild/promote): the served atlas is never rebuilt in place.
 
 Progress is derived from the per-stage `[label: Ns]` lines pipeline.atlas.build prints (see build.py `_tick`).
 """
@@ -36,10 +37,15 @@ _EXPECTED_STAGES = [
     "write artifacts + gpkg",
 ]
 _TICK_RE = re.compile(r"\[(?P<label>[^\]]+?):\s*(?P<sec>[\d.]+)s\]")
-# Rebuilds INTO the directory reuse.py serves. Both read `project_config.review_build_dir`, so the
-# two cannot drift — this used to be a second, independent hard-coding of "output/v2/full".
+# Rebuilds BESIDE the directory reuse.py serves, never into it: the promoted atlas's handle table
+# is what the shipped bundle, index, export and tiles key sections by, and the build is not
+# deterministic, so building into it would change those ids under the artifacts that ship
+# (`pipeline.common.vintage.promoted_atlas`; `pipeline.atlas.build` refuses it). The candidate is
+# `<build>_next`; `promote()` (POST /api/rebuild/promote) makes it the served build by rename
+# after `pipeline.tools.build_parity` has reported what changed.
+NEXT_BUILD = GENERATED.build(f"{GENERATED.atlas.default_build}_next")
 _CMD = [sys.executable, "-m", "pipeline.atlas.build", "--full",
-        "--out", str(GENERATED.build()), "--splits", str(CURATED.waters.splits)]
+        "--out", str(NEXT_BUILD), "--splits", str(CURATED.waters.splits)]
 
 
 class _Rebuild:
@@ -55,6 +61,9 @@ class _Rebuild:
         self.done_stages: dict[str, float] = {}
         self.current = ""
         self.error = ""
+        #: whether the last finished build has been promoted (`promote`): the UI offers the step
+        #: while a finished `<build>_next` is waiting, and refreshes its items only after it
+        self.promoted = False
         self._log: deque[str] = deque(maxlen=300)
 
     def start(self) -> dict:
@@ -66,6 +75,7 @@ class _Rebuild:
             self.finished_at = 0.0
             self.returncode = None
             self.done_stages = {}
+            self.promoted = False
             self.current = "starting…"
             self.error = ""
             self._log.clear()
@@ -103,16 +113,35 @@ class _Rebuild:
         self.returncode = proc.returncode
         self.finished_at = time.time()
         if proc.returncode == 0:
-            try:
-                reuse.invalidate_caches()            # serve the freshly-rebuilt artifacts
-            except Exception as ex:  # noqa: BLE001
-                self.error = f"build ok but cache refresh failed: {ex}"
             self.status = "done"
-            self.current = "done — graph refreshed"
+            self.current = f"done — built {NEXT_BUILD.name}; promote it to serve it"
         else:
             self.status = "error"
             self.error = self.error or f"build exited with code {proc.returncode}"
             self.current = "failed"
+
+    def promote(self) -> dict:
+        """Make the finished `<build>_next` the served build (`pipeline.atlas.promote`: parity
+        report, rename; the old build is kept as `<build>.prev`), then drop the reuse-layer caches
+        so every request serves it. Refused while a rebuild runs or when there is no candidate."""
+        from pipeline.atlas.promote import promote as _promote
+        with self._lock:
+            if self.status == "running":
+                return {"ok": False, "error": "a rebuild is running"}
+            if not (NEXT_BUILD / "registry.json").exists():
+                return {"ok": False, "error": f"no finished build at {NEXT_BUILD}"}
+            try:
+                got = _promote(NEXT_BUILD, log=self._log.append)
+            except SystemExit as ex:
+                return {"ok": False, "error": str(ex)}
+            try:
+                reuse.invalidate_caches()            # serve the promoted artifacts
+            except Exception as ex:  # noqa: BLE001
+                return {"ok": True, "promoted": got,
+                        "error": f"promoted, but cache refresh failed: {ex}"}
+            self.promoted = True
+            self.current = "promoted — graph refreshed"
+            return {"ok": True, "promoted": got}
 
     def snapshot(self) -> dict:
         now = time.time()
@@ -128,6 +157,7 @@ class _Rebuild:
             "n_total": len(_EXPECTED_STAGES),
             "returncode": self.returncode,
             "error": self.error,
+            "promoted": self.promoted,
             "log_tail": list(self._log)[-14:],
         }
 

@@ -279,12 +279,29 @@ def tidal_sections(entries, registry) -> frozenset[str]:
     (`build.build_reach`, `tidal`); the tidal row's own rules keep them.
 
     `entries` is the corpus as `(region, entry)` pairs or bare entry dicts."""
-    out: set[str] = set()
-    for x in entries:
-        e = x[1] if isinstance(x, tuple) else x
-        if not isinstance(e, dict) or not e.get("tidal"):
+    return frozenset(tidal_owner(entries, registry, strict=False))
+
+
+def tidal_owner(entries, registry, *, strict: bool = True) -> dict[str, str]:
+    """`{section: entry_id}` — every tidal section with the row that calls its water tidal (the
+    first such row by entry id). The one body behind `tidal_sections`; the run writes it as
+    `tidal.jsonl` and the bundle's `tidal` table is read from that file.
+
+    REFUSED (`strict`, the run): a row marked `tidal` whose matched waters place no section would
+    state the fact nowhere, and a reader would show its water as open under the general rules. The
+    review app (`tidal_sections`) reads the corpus as a curator is editing it, and skips such a row."""
+    out: dict[str, str] = {}
+    rows = sorted((e for x in entries for e in ((x[1] if isinstance(x, tuple) else x),)
+                   if isinstance(e, dict) and e.get("tidal")),
+                  key=lambda e: str(e.get("entry_id") or ""))
+    for e in rows:
+        got = {s for i in e.get("matched") or () if i in registry
+               for s in registry[i].section_ids}
+        if not got:
+            if strict:
+                raise SystemExit(f"tidal: {e.get('entry_id')} says its water is tidal, but its "
+                                 f"matched waters {list(e.get('matched') or ())} place no section")
             continue
-        for i in e.get("matched") or ():
-            if i in registry:
-                out.update(registry[i].section_ids)
-    return frozenset(out)
+        for s in got:
+            out.setdefault(s, str(e.get("entry_id") or ""))
+    return out

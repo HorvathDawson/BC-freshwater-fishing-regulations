@@ -299,6 +299,14 @@ def start_rebuild():
     return rebuild.MANAGER.start()
 
 
+@app.post("/api/rebuild/promote")
+def promote_rebuild():
+    """Make the finished `<build>_next` the served build (rename; the old one is kept as
+    `<build>.prev`), after `pipeline.tools.build_parity` has reported the change. The served atlas is
+    never rebuilt in place: its handle table is what the shipped artifacts key sections by."""
+    return rebuild.MANAGER.promote()
+
+
 @app.get("/api/rebuild/status")
 def rebuild_status():
     """Progress of the current/last rebuild: status, elapsed, per-stage checklist, tail of the log."""

@@ -373,7 +373,24 @@ def main() -> None:
                          "stream vertices and is the switch to reach for first if water is "
                          "missing from the map; see pipeline/atlas/graph/leaf_prune.py.")
     ap.add_argument("--out", default=str(GENERATED.build("validate")))
+    ap.add_argument("--force", action="store_true",
+                    help="build INTO an atlas a shipped bundle or tile set was cut from. Never what "
+                         "you want: its handle table is what they key sections by. Build to a new "
+                         "--out and promote it (pipeline.atlas.promote).")
     args = ap.parse_args()
+
+    # A PROMOTED ATLAS IS IMMUTABLE (`vintage.promoted_atlas`): refuse to rewrite the handle table
+    # under the artifacts that ship.
+    from pipeline.common.vintage import promoted_atlas as _promoted
+    _carrier = _promoted(Path(args.out), GENERATED.tiles, GENERATED.bundle / "bundle.sqlite")
+    if _carrier and not args.force:
+        raise SystemExit(
+            f"refusing to build into {args.out}: {_carrier} carries its section handle digest, so "
+            f"rebuilding it would change the handle table under a shipped artifact.\n"
+            f"  Build to a new directory and promote it:\n"
+            f"    python -m pipeline.atlas.build --full --out {args.out}_next\n"
+            f"    python -m pipeline.atlas.promote {args.out}_next\n"
+            f"  (--force overrides, if you really mean to orphan what ships)")
 
     fwa = FWADataAccessor(args.gpkg)
     if args.full:
@@ -414,11 +431,14 @@ def main() -> None:
     # to the lake node and BREAKS the stream run there, which is what cuts the stream and mints the
     # `lake:{wbk}` boundary a regulation binds to. See pipeline/atlas/waters/added_lakes/README.md.
     added_lake_polys: dict = {}
+    #: {part wbk: parent wbk} — the relation `registry.add_lake_parts` writes onto the registry
+    added_lake_parts: dict[str, str] = {}
     if not args.no_added_lakes:
         from pipeline.atlas.waters.added_lakes.ingest import merge as _merge_lakes
         _alp = Path(args.added_lakes) if args.added_lakes else _ADDED_LAKES_GEOJSON
         _rep = _merge_lakes(fids, lake_kind, lake_names, added_lake_polys, _alp,
                             lake_wsc=lake_wsc)
+        added_lake_parts = dict(_rep.get("part_of") or {})
         if _rep["lakes"]:
             print(f"  + {_rep['lakes']} curated lake polygon(s) from {_alp.name}: "
                   + ", ".join(f"{n!r} (wbk {w}, {len(_rep['claimed'].get(w, []))} fid(s) claimed)"
@@ -931,6 +951,12 @@ def main() -> None:
     n1 = len(registry)
     registry = add_curated_wbk_items(registry, _nv_all)
     print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
+    # Which curated lake PART belongs to which lake (`item.part_of` in the bundle): written here,
+    # once, from the polygons the ingest read; refused when they and this build disagree.
+    from pipeline.atlas.registry import add_lake_parts
+    registry = add_lake_parts(registry, added_lake_parts)
+    if added_lake_parts:
+        print(f"  {len(added_lake_parts)} curated lake part(s) name their lake (part_of)")
     _tick("build_registry")
     # Isolated/overlaid waterbodies have a node but NO sidecar geometry (the client draws them from the
     # FWA polygon layer), so load their own wbk polygon for add_mu_sets. Select on missing GEOMETRY,
@@ -966,6 +992,15 @@ def main() -> None:
 
     _hd = _write_handles(graph.nodes.keys(), out)
     print(f"  {len(graph.nodes):,} section handles -> {out / _HANDLES}  (digest {_hd})")
+    # THE REGION EACH STRADDLING SECTION LIES IN (`registry.regions`): a fact of this atlas —
+    # measured from the region polygons, the waterbody outlines and the section lines written
+    # above — so it is written beside them, once, and the reach run, the review app and the
+    # bundle all read `region_home.json` instead of measuring it again.
+    from pipeline.atlas.registry import regions as _regions
+    _homes = _regions.write_homes(out, registry)
+    _hl = sum(1 for s_ in _homes if s_.startswith(_regions.LAKE_PREFIX))
+    print(f"  region homes: {len(_homes) - _hl:,} straddling stream piece(s), {_hl:,} straddling "
+          f"lake(s) -> {out / _regions.HOME_FILE}")
     # Lazy area catalog (polygons only; membership computed at resolve time) — see DECISION 2026-08-16.
     if catalog_polys:
         from pipeline.atlas.splits.area_catalog import catalog_entries, write_area_catalog

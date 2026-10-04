@@ -306,6 +306,10 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "licensing_section.jsonl").write_text("")
     # no row names steelhead either: an empty steelhead presence, and the run's report saying so
     (run / "steelhead_presence.jsonl").write_text("")
+    # the water the builder took out of every binding, written with the run: nothing tidal, and
+    # `s:3` past the border (in no region polygon) — the bundle READS these, it derives neither
+    (run / "tidal.jsonl").write_text("")
+    (run / "outside_bc.jsonl").write_text(json.dumps({"section_id": "s:3"}) + "\n")
     (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {},
                                                                "list_fingerprint": _LIST}}))
     build = tmp / "atlas"
@@ -327,6 +331,8 @@ def _atlas(build: Path, *, inside=("s:1", "s:2"), out_of_bc=()):
              {"id": "area:region:1", "name": "area:region:1", "kind": "area",
               "section_ids": list(inside)}]
     (build / "registry.json").write_text(json.dumps({"items": items}))
+    (build / "splits.resolved.json").write_text("[]")       # no cuts, so no cut has a book name
+    (build / "region_home.json").write_text("{}")            # no section straddles a region line
     g = StreamGraph(nodes={s: StreamNode(node_id=s, kind=NodeKind.stream,
                                          out_of_bc=s in out_of_bc)
                            for s in ("s:1", "s:2", "s:3")})
@@ -552,10 +558,12 @@ def test_the_bundle_lists_every_section_outside_bc(tmp_path, monkeypatch):
 
 def test_a_rule_set_on_water_outside_bc_stops_the_build(tmp_path, monkeypatch):
     """Checked against the rows WRITTEN: a reach run from before the subtraction bound 181
-    sections past the border, and a bundle built from it must not ship."""
+    sections past the border, and a bundle built from it must not ship. The set is the run's own
+    (`outside_bc.jsonl`): here it says `s:2` is outside while the run's bindings reach it."""
     monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
     db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
-    _atlas(build, inside=("s:1", "s:2"), out_of_bc=("s:2",))
+    (run / "outside_bc.jsonl").write_text("".join(json.dumps({"section_id": s}) + "\n"
+                                                  for s in ("s:2", "s:3")))
     with pytest.raises(SystemExit, match="outside British Columbia carry regulation sets"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
 
@@ -608,8 +616,15 @@ def test_known_streams_are_steelhead_water_and_possible_are_not(tmp_path):
         {"steelhead": {"by_entry": {"r1:x@1-1": {"sections": 1}}, "list_fingerprint": _LIST}}))
     (run / "steelhead_presence.jsonl").write_text(json.dumps(
         {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "regulations": True,
-         "listed": False, "anadromous": True, "kind": "stream"}) + "\n")
+         "listed": False, "rules": True, "anadromous": True, "kind": "stream"}) + "\n")
     bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    # the run's `rules` (steelhead rules apply) is stored with the code and read back the same way
+    assert db.execute("SELECT sid FROM section_steelhead_rules").fetchall() == [(2,)]
+    assert db.execute("SELECT rules FROM steelhead_known WHERE sid = 2").fetchone() == (1,)
+    # ... and the readers answer from the stored form, never from the run or the corpus
+    from pipeline.deliver.bundle import read as bundle_read
+    assert bundle_read.steelhead_rules(db, 2) is True and bundle_read.steelhead_rules(db, 1) is False
+    assert bundle_read.home_region(db, 2) is None       # `region_home.json` listed no straddler
     assert db.execute("SELECT sid, code FROM section_steelhead ORDER BY sid").fetchall() == [
         (2, 1)]
     assert db.execute("SELECT sid FROM steelhead_water").fetchall() == [(2,)]
@@ -623,4 +638,21 @@ def test_a_code_its_rule_set_cannot_carry_is_refused(tmp_path):
         {"section_id": "s:1", "steelhead": "possible", "entry_id": "zp:steelhead",
          "scope": "rules", "kind": "stream"}) + "\n")
     with pytest.raises(SystemExit, match="no rule set"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def test_anadromous_where_no_steelhead_rule_applies_is_refused(tmp_path):
+    """The definition (known ∧ stream ∧ steelhead rules apply) is the run's; a row that breaks it
+    cannot be stored."""
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    f = entries / "region-1.json"
+    doc = json.loads(f.read_text())
+    doc["entries"][0]["anadromous_rainbow"] = True
+    f.write_text(json.dumps(doc))
+    (run / "report.json").write_text(json.dumps({"steelhead": {
+        "by_entry": {"r1:x@1-1": {"sections": 1}}, "list_fingerprint": _LIST}}))
+    (run / "steelhead_presence.jsonl").write_text(json.dumps(
+        {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "regulations": True,
+         "listed": False, "rules": False, "anadromous": True, "kind": "stream"}) + "\n")
+    with pytest.raises(SystemExit, match="where no steelhead rule applies"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)

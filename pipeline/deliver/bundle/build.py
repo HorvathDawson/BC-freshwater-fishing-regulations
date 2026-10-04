@@ -157,38 +157,30 @@ def _reach_run(build_dir: Path) -> Path | None:
     return max(chosen)[1]
 
 
-def _lake_parts(ords: dict[str, int]) -> dict[str, str]:
+def _lake_parts(items: list[dict]) -> dict[str, str]:
     """{part item_id: parent item_id} — every curated lake PART in this build, and its lake.
 
-    THE RELATIONSHIP TRAVELS WITH THE POLYGON. `added_lakes.geojson` carries `part_of: {"wbk":
-    ...}` on each part; the atlas ingest re-stamps the fids inside it to `wbk:-{id}` but keeps no
-    record of what it was cut out of, so the registry has the parts and not the relation. It is
-    read here, through the ingest's own validated loader, so that no READER of the bundle has to
-    open the curated file to learn that Kootenay Lake's Main Body is part of Kootenay Lake.
-
-    REFUSED, not skipped, when the file and the build disagree. A part the registry does not
-    have means the polygon was drawn after this atlas was built; a parent it does not have means
-    the part names a lake that is not a water here. Either way a reader grouping by `part_of`
-    would show a lake with a rung missing, and nothing would say so.
+    THE RELATIONSHIP TRAVELS WITH THE ATLAS. `added_lakes.geojson` carries `part_of` on each part;
+    the atlas build writes it onto the registry (`registry.add_lake_parts`, refusing a part or a
+    parent that is not an item there), and this reads the registry's answer — so no reader of the
+    bundle, and not the bundle itself, opens the curated file to learn that Kootenay Lake's Main
+    Body is part of Kootenay Lake. REFUSED when a part names a parent that is not an item here:
+    a reader grouping by `part_of` would show a lake with a rung missing.
     """
-    from pipeline.atlas.waters.added_lakes.ingest import load as _load_added_lakes
-
+    have = {i["id"] for i in items}
     out: dict[str, str] = {}
     bad: list[str] = []
-    for lake in _load_added_lakes():
-        parent = ((lake["props"].get("part_of") or {}).get("wbk") or "")
+    for i in items:
+        parent = i.get("part_of") or ""
         if not parent:
             continue
-        child, parent = f"wbk:{lake['wbk']}", f"wbk:{parent}"
-        if child not in ords:
-            bad.append(f"{child} ({lake['name']}) is not in this build's registry")
-        elif parent not in ords:
-            bad.append(f"{child} ({lake['name']}) is part_of {parent}, which is not a water here")
+        if parent not in have:
+            bad.append(f"{i['id']} ({i.get('name')}) is part_of {parent}, which is not a water here")
         else:
-            out[child] = parent
+            out[i["id"]] = parent
     if bad:
-        raise SystemExit("item.part_of: added_lakes.geojson and this atlas disagree — rebuild "
-                         "the atlas:\n  " + "\n  ".join(bad))
+        raise SystemExit("item.part_of: the registry names a lake that is not a water in this "
+                         "build:\n  " + "\n  ".join(bad))
     return out
 
 
@@ -207,7 +199,7 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     ords: dict[str, int] = {}
     for i in items:
         ords.setdefault(i["id"], len(ords))
-    part_of = _lake_parts(ords)
+    part_of = _lake_parts(items)
     # COLUMNS NAMED. `item` grew a column and the positional form would have silently
     # shifted name into item_id — the same fault that shipped an empty `entry` table.
     db.executemany("INSERT OR REPLACE INTO item (ord, item_id, name, kind, part_of) "

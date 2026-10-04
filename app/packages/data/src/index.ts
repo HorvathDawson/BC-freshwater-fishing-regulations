@@ -57,6 +57,8 @@ export interface BundleInfo {
    * itself a mismatch worth refusing.
    */
   sectionHandles: string | null;
+  /** The bundle's `meta.reach_digest`: which rule bindings it carries; the status index must match. */
+  reachDigest: string | null;
 }
 
 /**

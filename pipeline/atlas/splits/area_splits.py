@@ -279,5 +279,5 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
                          else _neighbour_label(polys_by_name, c.geometry, m, name, term))
                 out.append(SplitPoint(split_id=f"area:{name}", blk=c.blk,
                                       route_measure=c.mouth_measure + m, fid="",
-                                      label=label, anchor_type=AnchorType.area_boundary))
+                                      label=label, anchor_type=AnchorType.area_boundary, source="area"))
     return out

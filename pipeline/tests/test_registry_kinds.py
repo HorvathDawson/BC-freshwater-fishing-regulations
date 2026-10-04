@@ -83,6 +83,12 @@ class TestEveryReaderUsesIt:
     def test_the_bundle_item_table_filters(self):
         assert "is_water(" in self._src("pipeline.deliver.bundle.build", "_items")
 
-    def test_the_tile_identity_map_filters(self):
-        # The one that draws the map: a wrong item_id here is a wrong name in search.
-        assert "waters(" in self._src("pipeline.deliver.tiles.export", "_identity")
+    def test_the_tile_export_reads_no_registry(self):
+        # The one that draws the map used to build an item map from the registry (`_identity`,
+        # filtered to waters) for `item`/`alt` attributes nothing read. Identity and search are
+        # the bundle's (`item_section`, `alias`): the tile export opens no registry at all now
+        # (2026-10-03), so there is no reader here to hold to `waters(`.
+        import inspect
+        import pipeline.deliver.tiles.export as tiles_export
+        src = inspect.getsource(tiles_export)
+        assert "_identity" not in src and "registry.json" not in src and "registry_kinds" not in src

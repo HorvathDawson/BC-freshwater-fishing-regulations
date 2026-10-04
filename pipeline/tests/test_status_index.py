@@ -48,6 +48,7 @@ def _tiny() -> dict:
     ix = {p: i for i, p in enumerate(profiles)}
     return {
         "handles": "147b20dce7d8576c",
+        "reach_digest": "ad6279cad5f3fc76",
         "profiles": profiles,
         "sections": {3: ix[tuple(wrap)], 4: ix[tuple(wrap)], 5: ix[(SI.OWN,) * 366],
                      900: ix[tuple(leap)], 1_958_036: ix[(SI.OUTSIDE,) * 366]},
@@ -61,6 +62,8 @@ def test_the_format_round_trips():
     data = SI.encode(idx)
     back = SI.Index(data)
     assert back.handles == idx["handles"]
+    assert back.reach_digest == idx["reach_digest"]
+    assert data[4] == 2 and len(data) > 21                    # version 2: both digests up front
     assert back.profiles == idx["profiles"]
     assert back.sections == idx["sections"]
     assert back.items == idx["items"]
@@ -270,6 +273,7 @@ def app_fixture() -> dict:
                     "the answers are the Python reader's.",
         "bytes": base64.b64encode(data).decode(),
         "handles": back.handles,
+        "reach_digest": back.reach_digest,
         "sections": [[s, d.isoformat(), SI.CODE_NAMES[back.code(s, d)]]
                      for s in (0, 2, 3, 4, 5, 6, 899, 900, 901, 1_958_036, 1_958_037)
                      for d in days],

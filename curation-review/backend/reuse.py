@@ -547,9 +547,10 @@ def _graph():
     from pipeline.common.io.serialize import read_artifact
     from pipeline.atlas.registry import regions
     g = read_artifact(str(GRAPH_PKL_PATH))
-    # The region each straddling section lies in, exactly as the reach CLI attaches it — so a zone
-    # rule the curator reviews binds what ships (`registry.regions`).
-    regions.attach(g, regions.homes(_BUILD, _registry()))
+    # The region each straddling section lies in, read from the atlas's own `region_home.json`
+    # exactly as the reach CLI reads it — so a zone rule the curator reviews binds what ships
+    # (`registry.regions`), and nothing measures it a second time.
+    regions.attach_from(_BUILD, g)
     from pipeline.atlas.reach import position       # the same placement the reach CLI makes
     position.attach(g, _BUILD)
     return g

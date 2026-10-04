@@ -8,16 +8,16 @@ Three rules, and all three are corrections of v1:
 
 2. **Attributes are declared, not inherited.** Only the names below reach a tile. A source
    column that is not listed is dropped, so the tile cannot quietly grow a field nobody
-   decided to ship. Every attribute here has a use in the app.
+   decided to ship. Every attribute here has a reader in the app or the style; one without
+   is removed (`alt`, `mus`, `areas`, `item`, 2026-10-03).
 
 3. **No regulation data, ever.** Tiles carry geometry, identity and administrative
    geography. What a rule *says* lives in the bundle and joins on `id`/`item`. A colour
    comes from feature-state, so switching view or date refetches no tiles.
 
-   The one that looks like an exception is not: `areas` and `mus` say which polygons a
-   water lies inside. That is true whether or not anybody regulates them — and because we
-   carry every park, reserve and indigenous land rather than only the regulated ones, the
-   membership list is geography, not a leaked rule.
+   Which polygons a water lies inside (parks, reserves, MUs) is geography too, but it is
+   the bundle's (`area:` items, `item_section`): the tile carried it as `mus` / `areas`
+   and nothing read them.
 """
 
 from __future__ import annotations
@@ -61,15 +61,16 @@ class LayerSpec:
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", maxzoom=14,
-        attrs=("section_id", "name", "alt", "ord", "mus", "areas"),
+        attrs=("section_id", "name", "ord"),
         why="Every flowing reach. `section_id` is the feature id the app sets state on. "
-            "`name` is DRAWN — the along-the-line label at z11+ — and `alt` is the search "
-            "haystack: lowercased, deduped, '|'-separated. `ord` is Strahler order and "
-            "sets line weight; it is read by the style, not by app code.",
+            "`name` is DRAWN — the along-the-line label at z11+. `ord` is Strahler order and "
+            "sets line weight; it is read by the style, not by app code. (`alt`, `mus` and "
+            "`areas` were carried and read by nothing — search is the bundle's — so they are "
+            "gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
     LayerSpec(
         name="lake", geometry="polygon", ladder="area",
-        attrs=("section_id", "name", "alt", "area_m2", "mus", "areas"),
+        attrs=("section_id", "name", "area_m2"),
         why="Standing water big enough to fish. Same identity fields as stream. `area_m2` "
             "earns its place twice: it sets the outline width (sqrt, so one big lake does "
             "not swamp every small one) and it is the label's collision sort key, which is "

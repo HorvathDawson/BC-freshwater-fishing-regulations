@@ -86,7 +86,7 @@ def border_split_points(chains: list[BlkChain], outline, prof=None) -> list[Spli
             out.append(SplitPoint(
                 split_id=f"border:{c.blk}:{i}", blk=c.blk,
                 route_measure=c.mouth_measure + g.project(p), fid="",
-                label="BC boundary", anchor_type=AnchorType.border))
+                label="BC boundary", anchor_type=AnchorType.border, source="border"))
     prof.add("  crossing intersection loop", time.perf_counter() - _t)
     return out
 

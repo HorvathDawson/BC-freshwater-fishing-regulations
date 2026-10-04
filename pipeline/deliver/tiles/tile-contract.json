@@ -6,10 +6,7 @@
       "attrs": [
         "section_id",
         "name",
-        "alt",
-        "ord",
-        "mus",
-        "areas"
+        "ord"
       ],
       "featureId": "section_id",
       "decorative": false,
@@ -22,10 +19,7 @@
       "attrs": [
         "section_id",
         "name",
-        "alt",
-        "area_m2",
-        "mus",
-        "areas"
+        "area_m2"
       ],
       "featureId": "section_id",
       "decorative": false,

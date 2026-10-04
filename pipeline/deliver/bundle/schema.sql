@@ -39,7 +39,9 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- waters — Kootenay Lake's Main Body and two West Arms, Shannon Lake's netted-off corner — and
 -- each part is drawn as its own polygon (`data/curated/waters/added_lakes.geojson`), so each is
 -- its own item with its own sections. `part_of` is what says they are one lake: a reader groups
--- the parts on one screen by it, and never has to open the curated file to find out.
+-- the parts on one screen by it, and never has to open the curated file to find out. It is the
+-- registry's `part_of` (written by the atlas build from the polygons it ingested); the bundle
+-- reads no curated waters file.
 --
 -- `area_ha` IS A LAKE'S SIZE, in whole hectares, else NULL: the ranking signal a lake has in place
 -- of the stream magnitude it cannot have (search and "water near a town" rank before any tile is
@@ -279,7 +281,8 @@ CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 -- Tidal Waters Sport Fishing Licence is required" (p.19): the sections of the matched waters of
 -- every row marked `tidal` (`CatalogueEntry.tidal`), with that row. No provincial rule holds there —
 -- not the zone's base, not a park closure, not a licence: the reach builder takes them out of
--- every other row's binding (`pipeline/atlas/reach/outside.py`, `tidal_sections`), and the build
+-- every other row's binding (`pipeline/atlas/reach/outside.py`, `tidal_owner`), writes the set
+-- with its run (`tidal.jsonl`), and this table is read from that file; the build
 -- REFUSES a bundle in which one carries a rule of any other row or a licensing set. Province-wide
 -- licensing requirements stop here too (`province_except`, kind `tidal`). A reader shows such a
 -- section as tidal water under the federal regulations, with the row's own note — never as "open
@@ -305,11 +308,19 @@ CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROW
 -- whose remaining sections are all possible — those carrying the provincial steelhead quota — or
 -- all known — Khartoum's and Lois's). The bundler proves the derivation reproduces the reach run's
 -- code on every section, or stops.
+-- `rules` on both: WHETHER STEELHEAD RULES APPLY there — the section carries every rule of the
+-- provincial steelhead set (`reach.steelhead.Presence.rules_apply`, by rule id, base or twin). The
+-- run's answer, stored per known section and per set exactly as the code is, and proved to
+-- reproduce the run (`section_steelhead_rules`). A known water with `rules` = 0 is one where no
+-- steelhead rule applies (the Okanagan River, the Fraser in 7A): a rainbow of any size is a
+-- rainbow there. The export's `steelhead_rules: false` is read from here, never re-derived.
 CREATE TABLE steelhead_known (sid INTEGER PRIMARY KEY,
-                              anadromous INTEGER NOT NULL CHECK (anadromous IN (0, 1)))
+                              anadromous INTEGER NOT NULL CHECK (anadromous IN (0, 1)),
+                              rules INTEGER NOT NULL CHECK (rules IN (0, 1)))
                               WITHOUT ROWID;
 CREATE TABLE steelhead_set (set_id INTEGER PRIMARY KEY,
-                            code INTEGER NOT NULL CHECK (code IN (1, 2))) WITHOUT ROWID;
+                            code INTEGER NOT NULL CHECK (code IN (1, 2)),
+                            rules INTEGER NOT NULL CHECK (rules IN (0, 1))) WITHOUT ROWID;
 -- WHY A WATER'S STEELHEAD IS KNOWN, per named water (`item.ord`): each steelhead row whose rules
 -- bind its known sections, and `curated list` where the list names it. Per water, not per section.
 CREATE TABLE steelhead_source (ord INTEGER NOT NULL, entry_id TEXT NOT NULL,
@@ -330,6 +341,21 @@ CREATE VIEW section_steelhead (sid, code) AS
 -- ruling 2026-10-03). There a rainbow over 50 cm is asked about as a steelhead, and a rainbow rule
 -- speaks only for rainbow of 50 cm or less (`read.effective_rules`).
 CREATE VIEW steelhead_water (sid) AS SELECT sid FROM steelhead_known WHERE anadromous = 1;
+-- WHERE STEELHEAD RULES APPLY: every section carrying the provincial steelhead set (the run's
+-- `rules`, through the same stored form as the code). `steelhead_water` is a subset of this.
+CREATE VIEW section_steelhead_rules (sid) AS
+    SELECT sid FROM steelhead_known WHERE rules = 1
+    UNION ALL
+    SELECT sr.sid FROM section_ruleset sr JOIN steelhead_set ss ON ss.set_id = sr.set_id
+    WHERE ss.rules = 1 AND NOT EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid);
+
+-- THE REGION A STRADDLING SECTION TAKES ITS ZONE RULES FROM (`pipeline.atlas.registry.regions`):
+-- a stream piece drawn across a region line is held to the region holding most of its length; a
+-- lake straddling a line is in both (its home is still recorded). Only straddling sections are
+-- listed (215 on the promoted atlas); every other section lies in one region. The atlas measured
+-- it once (`region_home.json`); the reach run bound the zone tables by it; this carries it so a
+-- reader can say "this piece takes Region 3's rules" without inferring it from the rule set.
+CREATE TABLE section_home (sid INTEGER PRIMARY KEY, region TEXT NOT NULL) WITHOUT ROWID;
 
 -- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;
 -- one whose extent carries `outside_area_kind` (its `record`) holds everywhere EXCEPT the

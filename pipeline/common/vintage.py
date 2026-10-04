@@ -85,3 +85,40 @@ def report(tiles_dir: Path, bundle: Path) -> tuple[bool, str]:
         f"      A section is an index into the atlas's handle table, so a mixed pair does\n"
         f"      not fail to match — it matches the WRONG SECTION. Rebuild whichever is\n"
         f"      older, or copy the bundle you just built over the one that ships.")
+
+
+def shipped_digests(tiles_dir: Path, bundle: Path) -> dict[str, str]:
+    """{handle digest: the shipped artifact carrying it} — the atlases a derivative on disk was
+    cut from. Empty when neither artifact exists or records one."""
+    out: dict[str, str] = {}
+    t = tile_vintage(tiles_dir)
+    if t:
+        out[t] = str(Path(tiles_dir) / "atlas.pmtiles")
+    b = bundle_vintage(bundle)
+    if b:
+        out.setdefault(b, str(bundle))
+    return out
+
+
+def promoted_atlas(build_dir: Path, tiles_dir: Path, bundle: Path) -> str | None:
+    """The shipped artifact (tiles or bundle) that carries the handle digest of the atlas at
+    `build_dir`, or None when nothing shipped was cut from it.
+
+    A PROMOTED ATLAS IS IMMUTABLE. Every derivative — the reach run, the bundle, the status index,
+    the export, the tiles — is keyed by the atlas's `section_handles.txt` digest, and the atlas
+    build is not deterministic (memory `atlas-build-not-deterministic`): rebuilding INTO the
+    directory a shipped bundle or tile set names rewrites the handle table under them. Afterwards
+    the tiles and the bundle still agree with each other, and both silently disagree with the atlas
+    on disk, until the next bundle build finds no reach run for it — hours later, as the only
+    symptom. So a build refuses such an `--out` (`pipeline.atlas.build --force` overrides), and the
+    curation app builds to `<build>_next` and promotes by an explicit step (`pipeline.atlas.promote`).
+    """
+    from pipeline.common.section_handles import FILENAME, digest_for
+    build_dir = Path(build_dir)
+    if not (build_dir / FILENAME).exists():
+        return None
+    try:
+        have = digest_for(build_dir)
+    except Exception:            # noqa: BLE001 — an unreadable table is not a promoted atlas
+        return None
+    return shipped_digests(tiles_dir, bundle).get(have)

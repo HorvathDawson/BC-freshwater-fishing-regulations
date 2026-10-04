@@ -217,6 +217,38 @@ def release_origins(x: dict) -> frozenset[str] | None:
     return frozenset({x["origin"]}) if x.get("origin") else ORIGINS
 
 
+#: What keeps a "no fishing" from being the whole answer: a closure carrying any of these holds
+#: only for some fish, some gear, some part or some shore — it is PARTIAL (`closure_grade`).
+CLOSURE_CONDITIONS = ("lengths", "origin", "while", "when_targeting", "within", "side")
+
+
+def closure_grade(x: dict) -> str | None:
+    """THE ONE CLOSURE PREDICATE: "full" for an unconditional "no fishing" (a `retention_limit`
+    with take 0, may not fish for it, and none of `CLOSURE_CONDITIONS`, drawn — not a note held on
+    its water for an undrawn part); "partial" for a closure that carries a condition or is such a
+    note; None for anything that is not a closure (a quota, a release the fish may still be
+    fished for, a lift).
+
+    Every reader asks this function, with the edge it needs stated at the call: the status index
+    colours CLOSED on "full" only (`status_index.is_full_closure`); the competition treats any
+    closure as a closure that speaks for every fish it covers (`read.effective_rules`) and lets a
+    "full" one beat another region's quota (`read.stricter`); the export's sample cases take any
+    closure (`export_ui_rules._closure`). Four spellings with four exclusion lists lived at those
+    call sites before; a rule with `side` was a closure to the reader and not to the map.
+
+    Reads a bundle rule (`read.rules`: `undrawn_part`) or the export's flattened fields
+    (`not_yet_mapped`): both spellings of the same column."""
+    # `type` when the dict carries one (a bare {take, may_target} statement is a retention one)
+    if x.get("type", "retention_limit") != "retention_limit" or x.get("take") != 0 \
+            or x.get("may_target") != 0:
+        return None
+    if any(x.get(k) for k in CLOSURE_CONDITIONS):
+        return "partial"
+    if str(x.get("undrawn_part") or "").strip() or x.get("not_yet_mapped"):
+        return "partial"
+    return "full"
+
+
 def yields_to_release(x: dict) -> frozenset[str] | None:
     """THE ORIGINS A RULE LETS AN ANGLER KEEP, when an outright release must silence it: a
     `retention_limit` that allows something (`take` above 0, `unlimited`) or states only sizes
@@ -870,22 +902,13 @@ def _see_column(entries: dict) -> dict[str, str]:
 
 
 def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
-    """`{entry_id: regions}` — the regions each row's OWN waters (`matched`) lie in, by the
-    registry's `area:region:*` membership (a section touching a region polygon is in it). What a
-    row's printed lift of a blanket closure reaches in the other regions (`_equivalent_closures`)."""
-    prefix = "area:region:"
-    members = {str(k)[len(prefix):]: frozenset(registry[k].section_ids)
-               for k in sorted(registry.keys()) if str(k).startswith(prefix)}
-    out: dict[str, frozenset[str]] = {}
-    for ce in docs:
-        if not ce.entry_id.startswith("r") or not ce.matched:
-            continue
-        secs = set()
-        for i in ce.matched:
-            if i in registry:
-                secs.update(registry[i].section_ids)
-        out[ce.entry_id] = frozenset(r for r, m in members.items() if not m.isdisjoint(secs))
-    return out
+    """`{entry_id: regions}` — the regions each row's OWN waters (`matched`) lie in. What a row's
+    printed lift of a blanket closure reaches in the other regions (`_equivalent_closures`). The
+    arithmetic is the reach builder's (`outside.water_regions`: a section touching a region polygon
+    is in it), called once per row — never a second copy of it."""
+    from pipeline.atlas.reach.outside import water_regions
+    return {ce.entry_id: frozenset(water_regions({"matched": list(ce.matched)}, registry))
+            for ce in docs if ce.entry_id.startswith("r") and ce.matched}
 
 
 def _jsonl(path: Path):
@@ -951,11 +974,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # THE ATLAS, READ ONCE, for the two things the rows need from it besides section handles:
     # the names a label gives a rule's place, and the sections B.C. does not govern.
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import CURATED
-    from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
+    from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, resolved_labels
     registry = load_registry(str(Path(build_dir) / "registry.json"))
-    namer = PlaceNamer(registry, split_labels(json.loads(
-        CURATED.waters.splits.read_text(encoding="utf-8"))), area_names(build_dir))
+    namer = PlaceNamer(registry, resolved_labels(build_dir), area_names(build_dir))
 
     entry_rows, rule_rows = [], []
     ces = []
@@ -1092,21 +1113,30 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     if orphan:
         raise SystemExit(f"ruleset names rules that are not in `rule`: {orphan}")
 
+    # WATER B.C. DOES NOT GOVERN and WATER THE BOOK CALLS TIDAL: the two sets the reach builder
+    # took out of every binding, READ FROM THE RUN (`outside_bc.jsonl`, `tidal.jsonl`) — never
+    # derived again here — and written so a reader can say "outside B.C." / "tidal water" instead
+    # of "no rules". Written before the licensing, whose province-wide requirements stop at the
+    # `tidal` table's sections (`licensing.write`).
+    from pipeline.atlas.reach.io import OUTSIDE_TABLE, TIDAL_TABLE, read_table
+    outside = run_rows(read_table(reaches, OUTSIDE_TABLE), sid, OUTSIDE_TABLE)
+    db.executemany("INSERT INTO outside_bc (sid) VALUES (?)", [(x["sid"],) for x in outside])
+    cov.filled("outside_bc", len(outside))
+    tidal = [(x["sid"], x["entry_id"]) for x in run_rows(read_table(reaches, TIDAL_TABLE), sid,
+                                                          TIDAL_TABLE)]
+    db.executemany("INSERT INTO tidal (sid, entry_id) VALUES (?,?)", tidal)
+    cov.filled("tidal", len(tidal))
+    own = {s: e for s, e in tidal}
+    if set(own.values()) - {ce.entry_id for ce in ces if getattr(ce, "tidal", False)}:
+        raise SystemExit(f"tidal: the reach run names tidal rows the corpus does not mark tidal "
+                         f"({sorted(set(own.values()))}) — re-run the reach builder")
+
     # Licensing: the other half of each entry, placed by the same reach run.
     from pipeline.deliver.bundle import licensing as _licensing
     _licensing.write(db, reaches, ces, cov, sid, registry)
 
-    # WATER B.C. DOES NOT GOVERN, and the proof that nothing binds it. The set is the reach
-    # builder's own (`reach.outside.outside_bc`, from this atlas); it is written here so a reader
-    # can say "outside B.C." instead of "no rules", and checked against the ROWS JUST WRITTEN —
-    # a reach run from before the subtraction binds 181 such sections, and must not ship.
-    from pipeline.atlas.reach.outside import outside_bc
-    from pipeline.common.io.serialize import read_artifact
-    graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
-    outside = sorted(sid[h] for h in outside_bc(registry, graph) if h in sid)
-    del graph
-    db.executemany("INSERT INTO outside_bc (sid) VALUES (?)", [(x,) for x in outside])
-    cov.filled("outside_bc", len(outside))
+    # THE PROOF THAT NOTHING BINDS OUTSIDE B.C., against the ROWS JUST WRITTEN — a reach run from
+    # before the subtraction binds 181 such sections, and must not ship.
     bound_outside = {t: db.execute(f"SELECT COUNT(*) FROM outside_bc o JOIN {t} t "
                                    f"ON t.sid = o.sid").fetchone()[0]
                      for t in ("section_ruleset", "section_licensing")}
@@ -1116,13 +1146,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"({bound_outside}) — the reach run predates the border subtraction, or the atlas "
             f"changed under it. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
-    # WATER THE BOOK CALLS TIDAL (Nitinat Lake), and the proof that no other row binds it: the
-    # reach builder takes it out of every other row (`reach.outside.tidal_sections`); a reach run
-    # from before that — or a tidal row with a rule that is not a note — must not ship.
-    tidal = tidal_rows(ces, registry, sid)
-    db.executemany("INSERT INTO tidal (sid, entry_id) VALUES (?,?)", tidal)
-    cov.filled("tidal", len(tidal))
-    own = {s: e for s, e in tidal}
+    # THE PROOF THAT NO OTHER ROW BINDS TIDAL WATER (Nitinat Lake): the reach builder takes it
+    # out of every other row (`reach.outside.tidal_owner`); a reach run from before that — or a
+    # tidal row with a rule that is not a note — must not ship.
     foreign = [(s, e, r) for s, e, r in db.execute(
         "SELECT t.sid, rs.entry_id, rs.rule_id FROM tidal t JOIN section_ruleset sr ON sr.sid = t.sid "
         "JOIN ruleset rs ON rs.set_id = sr.set_id") if e != own[s]]
@@ -1144,6 +1170,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # definition nowhere, so it stops the build; so does a run that predates the table, or
     # disagrees with the corpus or the curated list.
     write_steelhead_presence(db, reaches, ces, sid, cov, registry)
+    # THE REGION A STRADDLING SECTION TAKES ITS ZONE RULES FROM (`section_home`): the atlas's own
+    # `region_home.json` (`registry.regions.write_homes`), by handle — the fact that decided which
+    # region's table the reach run bound here, so a reader can say "this piece takes Region 3's".
+    from pipeline.atlas.registry.regions import read_homes
+    homes = sorted((sid[h], r) for h, r in read_homes(build_dir).items() if h in sid)
+    db.executemany("INSERT INTO section_home (sid, region) VALUES (?,?)", homes)
+    cov.filled("section_home", len(homes))
     if namer.unnamed:
         print(f"     labels: {len(namer.unnamed)} cut-point(s) have no book name, so the rules "
               f"on them name no place:")
@@ -1167,8 +1200,9 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     """`steelhead_known`, `steelhead_set` and `steelhead_source` from the reach run's
     `steelhead_presence` (`pipeline.atlas.reach.steelhead`), checked against the corpus (every row
     flagged `anadromous_rainbow` was placed, and only steelhead rows were) and against itself: the
-    view `section_steelhead` must give every section exactly the code the run gave it, and
-    `steelhead_water` exactly the run's `anadromous` sections."""
+    view `section_steelhead` must give every section exactly the code the run gave it,
+    `steelhead_water` exactly the run's `anadromous` sections, and `section_steelhead_rules`
+    exactly the run's `rules` sections (where the provincial steelhead set applies)."""
     import json as _json
     from pipeline.atlas.reach.io import STEELHEAD_TABLE
     from pipeline.atlas.reach.steelhead import (CURATED_LIST, KNOWN, POSSIBLE, fingerprint,
@@ -1199,6 +1233,9 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
             f"{sorted(placed - rows)[:5]}. Re-run the reach builder.")
     code: dict[int, int] = {}
     anadromous: set[int] = set()
+    #: WHERE STEELHEAD RULES APPLY (`Presence.rules_apply`: the provincial set binds it) — the
+    #: run's answer, carried as `steelhead_known.rules` / `steelhead_set.rules` and proved below.
+    applies: set[int] = set()
     kind: dict[int, str] = {}
     source: dict[int, set[str]] = {}
     unknown = []
@@ -1215,7 +1252,12 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
                 raise SystemExit(f"steelhead_presence: {r['steelhead']!r} on {r['section_id']}")
             code[s] = CODE[r["steelhead"]]
             kind[s] = r["kind"]
+            if r.get("rules"):
+                applies.add(s)
             if r.get("anadromous"):
+                if s not in applies:
+                    raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
+                                     f"where no steelhead rule applies")
                 # known by the book or by the curated list (user ruling 2026-10-03)
                 if r["steelhead"] != KNOWN or not (r.get("regulations") or r.get("listed")):
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
@@ -1240,28 +1282,30 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
                          f"(e.g. {loose[:3]}) — the code cannot be carried by its set")
     own = {s for s, c in code.items() if c == 1 and (kind[s] == "stream" or s in anadromous
                                                      or s not in set_of)}
+    # A SECTION'S VALUE is (code, steelhead rules apply); a set carries one value or none.
+    value = lambda s: None if s not in code else (code[s], int(s in applies))     # noqa: E731
     per_set: dict[int, set] = {}
     for s, k in set_of.items():
         if s not in own:
-            per_set.setdefault(k, set()).add(code.get(s))
+            per_set.setdefault(k, set()).add(value(s))
     mixed = {k for k, v in per_set.items() if len(v) > 1}
     if mixed:
         own |= {s for s, k in set_of.items() if k in mixed and code.get(s) == 1}
         per_set = {}
         for s, k in set_of.items():
             if s not in own:
-                per_set.setdefault(k, set()).add(code.get(s))
+                per_set.setdefault(k, set()).add(value(s))
         still = sorted(k for k, v in per_set.items() if len(v) > 1)
         if still:
             raise SystemExit(
                 f"steelhead_presence: {len(still)} rule set(s) whose sections carry different "
                 f"codes (e.g. set {still[0]}: {sorted(map(str, per_set[still[0]]))}) — the code is "
                 f"not a fact of the set; store it per section")
-    set_rows = sorted((k, v.pop()) for k, v in per_set.items() if None not in v)
-    db.executemany("INSERT INTO steelhead_known (sid, anadromous) VALUES (?,?)",
-                   [(s, int(s in anadromous)) for s in sorted(own)])
+    set_rows = sorted((k, *v.pop()) for k, v in per_set.items() if None not in v)
+    db.executemany("INSERT INTO steelhead_known (sid, anadromous, rules) VALUES (?,?,?)",
+                   [(s, int(s in anadromous), int(s in applies)) for s in sorted(own)])
     cov.filled("steelhead_known", len(own))
-    db.executemany("INSERT INTO steelhead_set (set_id, code) VALUES (?,?)", set_rows)
+    db.executemany("INSERT INTO steelhead_set (set_id, code, rules) VALUES (?,?,?)", set_rows)
     cov.filled("steelhead_set", len(set_rows))
     # why each NAMED water's steelhead is known (per water, not per section)
     ord_of: dict[int, list[int]] = {}
@@ -1279,22 +1323,23 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     if sw != anadromous:
         raise SystemExit(f"steelhead_water: the stored form does not reproduce the reach run's "
                          f"anadromous sections ({len(sw ^ anadromous)} differ)")
+    sr = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
+    if sr != applies:
+        raise SystemExit(f"section_steelhead_rules: the stored form does not reproduce the reach "
+                         f"run's sections where steelhead rules apply ({len(sr ^ applies)} differ)")
 
 
-def tidal_rows(ces, registry, sid) -> list[tuple[int, str]]:
-    """THE SECTIONS OF THE WATERS THE BOOK CALLS TIDAL, with the row that says so — every matched
-    item of a row marked `tidal` (`CatalogueEntry.tidal`; `reach.outside.tidal_sections` is the
-    same set by handle). A flagged row whose waters place no section would state it nowhere, so
-    it stops the build. One place for the `tidal` table and licensing's `province_except`."""
-    out: dict[int, str] = {}
-    for ce in ces:
-        if not getattr(ce, "tidal", False):
+def run_rows(rows: list[dict], sid: dict[str, int], what: str) -> list[dict]:
+    """A reach-run table keyed by handle: every `section_id` becomes `sid`. REFUSED when the run
+    names a section this atlas does not have — the run and the atlas are then different builds."""
+    out, unknown = [], []
+    for r in rows:
+        h = sid.get(r["section_id"])
+        if h is None:
+            unknown.append(r["section_id"])
             continue
-        got = {sid[h] for it in ce.matched if registry is not None and it in registry
-               for h in registry[it].section_ids if h in sid}
-        if not got:
-            raise SystemExit(f"tidal: {ce.entry_id} says its water is tidal, but its matched "
-                             f"waters {list(ce.matched)} place no section")
-        for s in got:
-            out.setdefault(s, ce.entry_id)
-    return sorted(out.items())
+        out.append({**{k: v for k, v in r.items() if k != "section_id"}, "sid": h})
+    if unknown:
+        raise SystemExit(f"{what}: {len(unknown):,} section(s) are not in the handle table (e.g. "
+                         f"{unknown[:3]}) — the reach run and the atlas disagree")
+    return sorted(out, key=lambda r: r["sid"])

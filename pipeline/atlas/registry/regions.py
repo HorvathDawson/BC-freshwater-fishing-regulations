@@ -24,10 +24,12 @@ polygons it touches (`reach.outside.region_sections`): the book prints Mara Lake
 too ("No powered boats south of the CPR bridge"), and that row still binds the lake. Nor does it
 move the province's border: a section in any region polygon is inside B.C., whichever is home.
 
-Computed from the ATLAS the reach run reads — region polygons (`area_catalog.gpkg`), waterbody
-outlines (`waterbody_polys.pkl`) and section lines (`geometries.pkl`) — about ten seconds. The reach
-CLI and the review app both attach it to the graph they resolve against (`attach`), so the two
-cannot disagree; `extent.area_sections` reads it for every `area:region:*` key.
+Computed ONCE, BY THE ATLAS BUILD — from region polygons (`area_catalog.gpkg`), waterbody
+outlines (`waterbody_polys.pkl`) and section lines (`geometries.pkl`), about ten seconds — and
+written to `region_home.json` beside `registry.json` (`write_homes`). The reach CLI and the review
+app attach that file to the graph they resolve against (`attach_from`), the bundle writes it as
+`section_home`, so no reader measures it again and none can disagree; `extent.area_sections` reads
+it for every `area:region:*` key.
 """
 from __future__ import annotations
 
@@ -105,6 +107,45 @@ def homes(build_dir, registry) -> dict[str, str]:
 def attach(graph, home: Mapping[str, str]) -> None:
     """Hold the home map on the graph the resolver reads (frozen)."""
     setattr(graph, _ATTR, MappingProxyType(dict(home)))
+
+
+#: The atlas file the home map is written to, beside `registry.json` — `{section: home region}`
+#: for every straddling section, sorted. A fact of the atlas, computed once by the build.
+HOME_FILE = "region_home.json"
+
+
+def write_homes(build_dir, registry, out_dir=None) -> dict[str, str]:
+    """Measure `homes` for this atlas (its geometry is read from `build_dir`) and write
+    `region_home.json` into `out_dir` (default: `build_dir` itself; the sidecars writer names a
+    side directory so a promoted atlas is never written into). Returns the map."""
+    import json
+    home = homes(build_dir, registry)
+    (Path(out_dir if out_dir is not None else build_dir) / HOME_FILE).write_text(
+        json.dumps(dict(sorted(home.items())), indent=0, sort_keys=True) + "\n", encoding="utf-8")
+    return home
+
+
+def read_homes(build_dir) -> dict[str, str]:
+    """The home map the atlas wrote. RAISES when the file is absent: an atlas without it predates
+    the field (rebuild it, or write the sidecars: `python -m pipeline.atlas.sidecars`); reading
+    `{}` would silently bind both regions' tables to every straddling stream piece."""
+    import json
+    p = Path(build_dir) / HOME_FILE
+    if not p.exists():
+        raise SystemExit(f"regions: no {p} — this atlas predates region homes. Write them from the "
+                         f"atlas's own geometry:\n    python -m pipeline.atlas.sidecars --build "
+                         f"{build_dir}")
+    got = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(got, dict) or any(not isinstance(v, str) for v in got.values()):
+        raise SystemExit(f"regions: {p} is not {{section: region}}")
+    return got
+
+
+def attach_from(build_dir, graph) -> dict[str, str]:
+    """`attach` the atlas's written home map (`read_homes`) to `graph`; returns the map."""
+    home = read_homes(build_dir)
+    attach(graph, home)
+    return home
 
 
 #: A section id naming a waterbody polygon — a lake, which is never cut.

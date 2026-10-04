@@ -109,6 +109,26 @@ def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
     return resolve_split_defs(defs, chains, mu_polys=mu_polys)
 
 
+#: The keys of a `splits.resolved.json` row, in the order the file carries them. One order for
+#: the build (`write_resolved`) and for the sidecars migration (`pipeline.atlas.sidecars`), so a
+#: migrated file is byte-equal to the one a fresh build writes.
+RESOLVED_KEYS = ("split_id", "blk", "route_measure", "label", "anchor_type", "offset_m",
+                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern")
+
+
+def order_resolved(row: dict) -> dict:
+    """`row` with its keys in `RESOLVED_KEYS` order (a key the file does not know is refused)."""
+    unknown = sorted(set(row) - set(RESOLVED_KEYS))
+    if unknown:
+        raise ValueError(f"splits.resolved.json row {row.get('split_id')!r} carries {unknown}")
+    return {k: row[k] for k in RESOLVED_KEYS if k in row}
+
+
+def dump_resolved(rows: list[dict]) -> str:
+    """The file's text for `rows` — the one serialisation (`write_resolved` and the sidecars)."""
+    return json.dumps([order_resolved(r) for r in rows], indent=2)
+
+
 def write_resolved(points: list[SplitPoint], path: str) -> None:
     """Write resolved SplitPoints to a reviewable JSON sidecar (splits.resolved.json).
     Surfaces ``concern``/``picked_up`` so ambiguous or deduped splits are never silent."""
@@ -118,9 +138,14 @@ def write_resolved(points: list[SplitPoint], path: str) -> None:
                "label": p.label, "anchor_type": p.anchor_type.value}
         if getattr(p, "offset_m", 0.0):
             row["offset_m"] = round(p.offset_m, 1)
+        if getattr(p, "source", ""):
+            row["source"] = p.source
+        if getattr(p, "anchor_offset_m", 0.0):
+            row["anchor_offset_m"] = round(p.anchor_offset_m, 1)
+            row["anchor_offset_dir"] = p.anchor_offset_dir
         if getattr(p, "picked_up", False):
             row["picked_up"] = True
         if getattr(p, "concern", ""):
             row["concern"] = p.concern
         rows.append(row)
-    Path(path).write_text(json.dumps(rows, indent=2))
+    Path(path).write_text(dump_resolved(rows))

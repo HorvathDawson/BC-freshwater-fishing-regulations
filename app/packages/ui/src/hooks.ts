@@ -514,18 +514,20 @@ const STATUS_INDEXES = new Map<string, Promise<StatusIndex | null>>();
 /**
  * Fetch and decode the status index, once. `handles` is the bundle's `section_handles`: an
  * index built against any other atlas is REFUSED — its integers name different rivers — and so
- * is any index when the bundle has no digest to hold it to. Any failure (no file, a 404, a
+ * is any index when the bundle has no digest to hold it to. `reach` is the bundle's
+ * `reach_digest`: an index cut from other rule bindings is refused too (null: not held to it). Any failure (no file, a 404, a
  * damaged or refused file) is null: "not asked", never "every water is base".
  */
 export function loadStatusIndex(url: string, handles: string | null,
-                                fetcher: typeof fetch = fetch): Promise<StatusIndex | null> {
+                                fetcher: typeof fetch = fetch,
+                                reach: string | null = null): Promise<StatusIndex | null> {
   if (!handles) return Promise.resolve(null);
-  const key = `${url}#${handles}`;
+  const key = `${url}#${handles}#${reach ?? ""}`;
   let got = STATUS_INDEXES.get(key);
   if (!got) {
     got = fetcher(url)
       .then(async (res) => (res.ok
-        ? decodeStatusIndex(new Uint8Array(await res.arrayBuffer()), handles) : null))
+        ? decodeStatusIndex(new Uint8Array(await res.arrayBuffer()), handles, reach) : null))
       .catch((e: unknown) => {
         console.warn("status index:", e instanceof Error ? e.message : e);
         return null;
@@ -546,7 +548,8 @@ export function useStatusIndex(source: RegsSource, atlasUrl: string | undefined)
     async () => {
       if (!atlasUrl) return null;
       const info = await source.info();
-      return loadStatusIndex(statusIndexUrl(atlasUrl), info.sectionHandles);
+      return loadStatusIndex(statusIndexUrl(atlasUrl), info.sectionHandles, fetch,
+                             info.reachDigest);
     },
     `status-index:${atlasUrl ?? ""}`,
     !!atlasUrl,

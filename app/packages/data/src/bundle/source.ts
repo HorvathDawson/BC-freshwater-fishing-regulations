@@ -72,7 +72,9 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       await ready;
       return { version: meta.get("version") ?? "unknown",
                validUntil: meta.get("valid_until") ?? null,
-               sectionHandles: meta.get("section_handles") ?? null };
+               sectionHandles: meta.get("section_handles") ?? null,
+               // empty (the dev fixture: no reach run) reads as null — not held to one
+               reachDigest: meta.get("reach_digest") || null };
     },
 
     async counts(): Promise<BundleCounts> {

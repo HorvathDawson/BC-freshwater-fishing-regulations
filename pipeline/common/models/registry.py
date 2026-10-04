@@ -32,3 +32,7 @@ class RegistryItem:
     ref_ids: tuple[str, ...] = ()        # EVERY FWA id this item answers to (gnis:/wbk:/wsc:/blk: of its
                                          # member nodes) — the matcher's id_index bridge so a curated
                                          # override id (incl. a lake's gnis) resolves to this item
+    part_of: str = ""                    # the item this one is a curated PART of (a lake cut into parts
+                                         # in `added_lakes.geojson`: Kootenay Lake's Main Body -> Kootenay
+                                         # Lake) — written by the atlas build (`registry.add_lake_parts`),
+                                         # so no reader opens the curated polygons to learn it

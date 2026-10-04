@@ -26,6 +26,8 @@ def _item_to_dict(it: RegistryItem) -> dict:
         "mus": list(it.mus),
         "section_ids": list(it.section_ids),
         "ref_ids": list(it.ref_ids),
+        # omitted when empty, like a boundary's `aliases`: only a curated lake part has one
+        **({"part_of": it.part_of} if it.part_of else {}),
         "boundaries": [
             # `aliases` is omitted when empty so the file stays diff-clean for the 99% of
             # boundaries that have none.
@@ -45,6 +47,7 @@ def _item_from_dict(d: dict) -> RegistryItem:
         mus=tuple(d.get("mus", [])),
         section_ids=tuple(d.get("section_ids", [])),
         ref_ids=tuple(d.get("ref_ids", [])),
+        part_of=str(d.get("part_of") or ""),
         boundaries=tuple(
             RegistryBoundary(id=b["id"], label=b.get("label", ""), kind=b.get("kind", ""),
                              ref=b.get("ref", ""), wbk=b.get("wbk", ""),

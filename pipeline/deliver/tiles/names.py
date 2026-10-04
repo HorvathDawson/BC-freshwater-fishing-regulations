@@ -1,11 +1,7 @@
-"""Display name and search haystack — two fields, because they want opposite things.
-
-`name` goes on the map and must look right: "Wahleach Lake".
-`alt`  goes to search and must match whatever a person types: "jones", "wahleach (jones) l.".
-
-Fusing them gives you either an ugly map or a search that misses. The registry carries
-both cases of the same string ("EAST WHITE RIVER" and "East White River"), so the
-haystack normalises and dedupes before joining.
+"""The DISPLAY NAME a tile feature carries — `name` goes on the map and must look right:
+"Wahleach Lake". Search is the bundle's (`alias`, `item`), so the tile carries no search
+haystack any more (`alt`, dropped 2026-10-03: nothing in the app read it); `normalise` stays as the
+one spelling of "what search compares".
 """
 
 from __future__ import annotations
@@ -40,22 +36,3 @@ def display(name: str) -> str:
     if not n or n != n.upper():
         return n
     return " ".join(w if len(w) <= 1 else w[0] + w[1:].lower() for w in n.split(" "))
-
-
-def haystack(display_name: str, variants: list[str] | tuple[str, ...]) -> str:
-    """`|`-separated lowercase search string, deduped, display name first.
-
-    Returns "" when the variants add nothing — most features, and an empty attribute
-    is one tippecanoe drops entirely.
-    """
-    seen: list[str] = []
-    keys: set[str] = set()
-    for raw in (display_name, *variants):
-        k = normalise(raw)
-        if not k or k in keys:
-            continue
-        keys.add(k)
-        seen.append(k)
-    if len(seen) <= 1:
-        return ""
-    return "|".join(seen)

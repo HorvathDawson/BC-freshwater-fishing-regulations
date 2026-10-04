@@ -30,6 +30,13 @@ LICENSING_TABLES = ("licensing_placement", "licensing_section", "licensing_diagn
 #: possible), whether the book (`regulations`) or the curated list (`listed`) makes it known, and
 #: whether a rainbow over 50 cm is a steelhead there (`anadromous`).
 STEELHEAD_TABLE = "steelhead_presence"
+#: THE WATER THE BUILDER TOOK OUT OF EVERY BINDING, written so the bundle reads it rather than
+#: deriving it again: `tidal` — {section_id, entry_id}, the book's tidal water with the row that
+#: says so (`outside.tidal_owner`); `outside_bc` — {section_id}, water past the border
+#: (`outside.outside_bc`). Both facts of the water, outside the rules' digest, each with a digest
+#: of its own in report.json (`tidal_digest`, `outside_digest`).
+TIDAL_TABLE = "tidal"
+OUTSIDE_TABLE = "outside_bc"
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -116,17 +123,40 @@ def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
         for d in result.licensing_diagnostics),
         key=lambda r: (r["entry_id"], r["record_id"], r["kind"], r["payload"]))
     tables[STEELHEAD_TABLE] = list(getattr(result, "steelhead", None) or [])
+    tables[TIDAL_TABLE] = [{"section_id": s, "entry_id": e}
+                           for s, e in sorted((getattr(result, "tidal", None) or {}).items())]
+    tables[OUTSIDE_TABLE] = [{"section_id": s}
+                             for s in sorted(getattr(result, "outside", None) or ())]
     for name, rows in tables.items():
         _write_jsonl(out / f"{name}.jsonl", rows)
 
     report = asdict(result.report)
     report["digest"] = digest(result)
     report["licensing_digest"] = licensing_digest(result)
-    report["steelhead_digest"] = hashlib.sha256(json.dumps(
-        tables[STEELHEAD_TABLE], sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
+    report["steelhead_digest"] = _table_digest(tables[STEELHEAD_TABLE])
+    report["tidal_digest"] = _table_digest(tables[TIDAL_TABLE])
+    report["outside_digest"] = _table_digest(tables[OUTSIDE_TABLE])
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {k: len(v) for k, v in tables.items()}
+
+
+def _table_digest(rows: list[dict]) -> str:
+    return hashlib.sha256(json.dumps(
+        rows, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
+
+
+def read_table(run_dir: str | Path, name: str) -> list[dict]:
+    """One of the run's JSONL tables, as rows. RAISES when the file is absent — a run that
+    predates the table is not a run with none of it (a missing `tidal` would read as "nothing is
+    tidal", and Nitinat Lake would be open under the general rules)."""
+    p = Path(run_dir) / f"{name}.jsonl"
+    if not p.exists():
+        raise SystemExit(f"{p} is missing — the reach run predates the `{name}` table. Re-run the "
+                         f"reach builder:\n    python -m pipeline.atlas.reach.cli --build <atlas> "
+                         f"--out {run_dir}")
+    with p.open(encoding="utf-8") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
 
 
 def digest(result) -> str:

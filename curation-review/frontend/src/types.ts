@@ -673,5 +673,7 @@ export interface RebuildStatus {
   n_total: number;
   returncode: number | null;
   error: string;
+  /** the finished `<build>_next` has been promoted to the served build (POST /api/rebuild/promote) */
+  promoted: boolean;
   log_tail: string[];
 }

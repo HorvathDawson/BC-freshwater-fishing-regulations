@@ -206,6 +206,14 @@ export const api = {
 
   rebuildStatus: () => getJSON<RebuildStatus>("/api/rebuild/status"),
 
+  /** Make the finished `<build>_next` the served build (rename; the old one is kept as `.prev`).
+   *  The build itself never touches the served atlas: its handle table is what ships. */
+  promoteRebuild: async (): Promise<{ ok: boolean; error?: string }> => {
+    const res = await fetch("/api/rebuild/promote", { method: "POST" });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as { ok: boolean; error?: string };
+  },
+
   // --- review marks (a sidecar keyed by entry_id + content hash; never inside the entry) ---
   /** mark verified, flag with a note, or clear ("unverified"). Throws EntryRefused on 422. */
   verify: async (entryId: string, state: "verified" | "flagged" | "unverified", note = "") => {

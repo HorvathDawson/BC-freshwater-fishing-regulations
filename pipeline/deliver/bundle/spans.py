@@ -106,10 +106,11 @@ def end_token(bound, side: str, *, lake_item, tributary=None) -> str:
 
 
 def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, str, str, list[int]]],
-            lake_items: dict[str, str]) -> list[tuple]:
+            lake_items: dict[str, str], stems: dict[str, str] | None = None) -> list[tuple]:
     """Every (sid, lo_m, hi_m, lo, hi, off_stem) row for the STREAM waters in `items`
     ((ord, item_id, kind, [sid])). `nodes` is the graph's node dict, `edges` its FlowEdges,
-    `handles` node id -> sid, `lake_items` wbk -> the lake's item_id."""
+    `handles` node id -> sid, `lake_items` wbk -> the lake's item_id. `stems`, when given, is
+    filled with {item_id: main stem blk} — the one place each water's stem is decided."""
     node_of = {s: n for n, s in handles.items()}
     items_of: dict[str, set[str]] = defaultdict(set)
     for _, item_id, _, sids in items:
@@ -130,6 +131,8 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
         pieces = [nodes[node_of[s]] for s in sids]
         stem = main_stem([(n.blk, n.length_m) for n in pieces
                           if getattr(n.kind, "value", n.kind) == "stream"])
+        if stems is not None and stem:
+            stems[item_id] = stem
 
         def tributary(bound, _item=item_id, _stem=stem):
             """The water whose mouth a length cut on this water's stem stands at: the one named
@@ -214,7 +217,8 @@ class NameFacts:
                 ANOTHER blue line flowing into that blue line, and every lake draining straight
                 into it (`from_blk` None: "Trophy Lake" at a length cut on its river)
     pieces      blk -> [(down_m, up_m, node id)] for its stream pieces
-    offsets     curated split id -> (offset_m, offset_dir), for the curated cuts placed at an offset
+    offsets     split id -> (offset_m, offset_dir), for the cuts placed at an authored offset
+                (`resolved_offsets`, from the atlas's `splits.resolved.json`)
     """
 
     def __init__(self, item_name, node_items, joins, pieces, offsets):
@@ -291,10 +295,13 @@ def _kind(n) -> str:
     return getattr(n.kind, "value", n.kind)
 
 
-def curated_offsets(defs) -> dict[str, tuple[float, str]]:
-    """{split id: (offset_m, offset_dir)} for every curated split authored at an offset."""
-    return {d.id: (float(d.anchor.offset_m), d.anchor.offset_dir) for d in defs
-            if d.anchor.offset_m and d.anchor.offset_dir}
+def resolved_offsets(resolved: list[dict]) -> dict[str, tuple[float, str]]:
+    """{split id: (offset_m, offset_dir)} for every cut the atlas placed at an AUTHORED offset
+    ("100 m downstream of the falls"): `anchor_offset_m` / `anchor_offset_dir` on the build's
+    `splits.resolved.json` rows, carried there by the sectionizer from the curated anchor. Read
+    from the atlas, never from the curated file, so the name says the offset the cut was made at."""
+    return {r["split_id"]: (float(r["anchor_offset_m"]), str(r["anchor_offset_dir"]))
+            for r in resolved if r.get("anchor_offset_m") and r.get("anchor_offset_dir")}
 
 
 def distance_words(m: float) -> str:
@@ -494,7 +501,8 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov) -> None:
                 # A lake PART (`item.part_of`: Williston's Nation Arm) is its own polygon and its
                 # own water, so a river flowing into it names the part.
                 lake_items[nid.split(":", 1)[1]] = item_id
-    rows = compute(graph.nodes, graph.edges, handles, items, lake_items)
+    stem_of: dict[str, str] = {}
+    rows = compute(graph.nodes, graph.edges, handles, items, lake_items, stems=stem_of)
     eid = {t: i + 1 for i, t in enumerate(sorted({r[3] for r in rows} | {r[4] for r in rows}))}
     db.executemany("INSERT INTO span_end (eid, token) VALUES (?,?)",
                    sorted((i, t) for t, i in eid.items()))
@@ -504,21 +512,16 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov) -> None:
     cov.filled("span_end", len(eid))
     cov.filled("section_span", len(rows))
 
+    # blk -> the waters whose MAIN STEM it is: the stems `compute` decided, inverted — not
+    # measured a second time.
     stems: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for ord_, item_id, kind, sids in items:
-        if kind != "stream":
-            continue
-        ns = [graph.nodes[node_of[s]] for s in sids]
-        stem = main_stem([(n.blk, n.length_m) for n in ns
-                          if getattr(n.kind, "value", n.kind) == "stream"])
-        if stem:
-            stems[stem].append((item_id, ord_))
+        if kind == "stream" and item_id in stem_of:
+            stems[stem_of[item_id]].append((item_id, ord_))
     resolved = json.loads(resolved_path.read_text())
-    from pipeline.atlas.splits.splits import load_split_defs
-    from pipeline.common.curated import CURATED
     names = dict(db.execute("SELECT item_id, name FROM item"))
     f = facts(graph, handles, [(o, i, k, sids, names.get(i)) for o, i, k, sids in items],
-              curated_offsets(load_split_defs(str(CURATED.waters.splits))))
+              resolved_offsets(resolved))
     srows = split_rows(resolved, stems, f)
     db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as) "
                    "VALUES (?,?,?,?,?,?)", srows)

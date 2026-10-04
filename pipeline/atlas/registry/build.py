@@ -484,6 +484,35 @@ def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list
     return registry
 
 
+def add_lake_parts(registry: dict[str, RegistryItem],
+                   part_of: dict[str, str]) -> dict[str, RegistryItem]:
+    """`RegistryItem.part_of` for every curated lake PART: `part_of` is {part wbk: parent wbk}, the
+    relation `added_lakes.geojson` carries on each part (`added_lakes.ingest.merge` reports it).
+
+    THE RELATIONSHIP TRAVELS WITH THE ATLAS. The ingest re-stamps the fids inside each part to
+    `wbk:-{id}` and the graph mints the parts as waters of their own; this is the one place the
+    relation is written down, so the bundle (`item.part_of`) and every reader of it get the atlas's
+    answer and never open the curated file.
+
+    REFUSED, not skipped, when the polygons and this build disagree: a part that is not an item
+    here was drawn after the graph was built; a parent that is not a water here names a lake this
+    atlas does not have. Either way a reader grouping by `part_of` would show a lake with a rung
+    missing, and nothing would say so. Mutates + returns."""
+    bad: list[str] = []
+    for child_wbk, parent_wbk in sorted(part_of.items()):
+        child, parent = f"wbk:{child_wbk}", f"wbk:{parent_wbk}"
+        if child not in registry:
+            bad.append(f"{child} is not in this build's registry")
+        elif parent not in registry:
+            bad.append(f"{child} is part_of {parent}, which is not a water here")
+        else:
+            registry[child] = replace(registry[child], part_of=parent)
+    if bad:
+        raise SystemExit("registry.part_of: added_lakes.geojson and this build disagree:\n  "
+                         + "\n  ".join(bad))
+    return registry
+
+
 def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
                 mu_polys: dict, wbk_polys: dict | None = None) -> dict[str, RegistryItem]:
     """Enrich NAMED stream/lake items with the SET of MUs their geometry passes through (line/area ×

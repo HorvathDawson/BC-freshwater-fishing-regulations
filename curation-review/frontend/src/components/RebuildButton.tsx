@@ -13,25 +13,54 @@ function fmtElapsed(s: number): string {
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
 }
 
-// "Rebuild graph" trigger + live progress. Runs pipeline.build --full on the backend (CPU-only, no
-// credits); polls status while running and, on success, tells the parent to refresh every item so the
-// newly-baked splits/boundaries show up without a restart.
+// "Rebuild graph" trigger + live progress. Runs pipeline.atlas.build --full on the backend (CPU-only,
+// no credits) INTO `<build>_next`, beside the served atlas — never into it: the served atlas's handle
+// table is what the shipped bundle, index, export and tiles key sections by (AGENTS 56). Polls status
+// while running; when the build is done it offers PROMOTE (POST /api/rebuild/promote: parity report,
+// rename, the old build kept as `.prev`), and only after a promotion tells the parent to refresh every
+// item so the newly-baked splits/boundaries show up without a restart.
 export function RebuildButton({ onRebuilt }: Props) {
   const [st, setSt] = useState<RebuildStatus | null>(null);
   const [open, setOpen] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [promoting, setPromoting] = useState(false);
+  const [promoteError, setPromoteError] = useState("");
   const wasRunning = useRef(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const running = st?.status === "running";
+  const awaitingPromote = st?.status === "done" && !st.promoted;
 
   function apply(next: RebuildStatus) {
     setSt(next);
     if (next.status === "running") wasRunning.current = true;
-    // fire onRebuilt exactly once, on the running -> done edge
-    if (next.status === "done" && wasRunning.current) {
-      wasRunning.current = false;
-      onRebuilt();
+    if (next.status === "done") wasRunning.current = false;
+  }
+
+  async function promote() {
+    if (promoting || !awaitingPromote) return;
+    if (!window.confirm(
+      "Promote the finished build to the served atlas?\n\nRenames data/generated/atlas/full_next -> full " +
+      "(the current full is kept as full.prev) after a parity report. Every item here refreshes from it. " +
+      "The shipped bundle, status index, export and tiles still carry the OLD atlas's handle digest until " +
+      "they are rebuilt from the new one.",
+    )) return;
+    setPromoting(true);
+    setPromoteError("");
+    try {
+      const r = await api.promoteRebuild();
+      if (!r.ok) {
+        setPromoteError(r.error || "promote refused");
+      } else {
+        if (r.error) setPromoteError(r.error);
+        const s = await api.rebuildStatus();
+        setSt(s);
+        onRebuilt();
+      }
+    } catch (e) {
+      setPromoteError(String(e));
+    } finally {
+      setPromoting(false);
     }
   }
 
@@ -64,11 +93,12 @@ export function RebuildButton({ onRebuilt }: Props) {
   async function start() {
     if (running || starting) return;
     if (!window.confirm(
-      "Rebuild the full graph now?\n\nRuns pipeline.build --full (~15–20 min, CPU-only, no credits). " +
-      "It overwrites data/generated/atlas/full/* and bakes your splits.json edits into the section boundaries. " +
-      "When it finishes, every item here refreshes automatically.",
+      "Rebuild the full graph now?\n\nRuns pipeline.atlas.build --full (~15–20 min, CPU-only, no credits) " +
+      "into data/generated/atlas/full_next, beside the served atlas, and bakes your splits.json edits into " +
+      "the section boundaries. When it finishes, PROMOTE it here to serve it — nothing changes until then.",
     )) return;
     setStarting(true);
+    setPromoteError("");
     setOpen(true);
     try {
       const s = await api.startRebuild();
@@ -76,7 +106,7 @@ export function RebuildButton({ onRebuilt }: Props) {
     } catch (e) {
       setSt({
         status: "error", elapsed_s: 0, current: "failed to start", stages: [],
-        n_done: 0, n_total: 0, returncode: null, error: String(e), log_tail: [],
+        n_done: 0, n_total: 0, returncode: null, error: String(e), promoted: false, log_tail: [],
       });
     } finally {
       setStarting(false);
@@ -88,7 +118,9 @@ export function RebuildButton({ onRebuilt }: Props) {
     ? `⟳ rebuilding… ${pct}%`
     : starting
       ? "⟳ starting…"
-      : "⟳ rebuild graph";
+      : awaitingPromote
+        ? "⟳ built — promote?"
+        : "⟳ rebuild graph";
 
   return (
     <div className="rebuild">
@@ -97,7 +129,7 @@ export function RebuildButton({ onRebuilt }: Props) {
         style={{ padding: "2px 10px" }}
         onClick={running || st?.status === "done" || st?.status === "error" ? () => setOpen((o) => !o) : start}
         disabled={starting}
-        title="Run pipeline.build --full to bake splits.json edits into the graph (CPU-only, no credits)"
+        title="Run pipeline.atlas.build --full into full_next (CPU-only, no credits); promote it to serve it"
       >
         {label}
       </button>
@@ -107,7 +139,8 @@ export function RebuildButton({ onRebuilt }: Props) {
           <div className="rebuild-panel-head">
             <strong>
               {st.status === "running" && "Rebuilding graph"}
-              {st.status === "done" && "✓ Graph rebuilt — items refreshed"}
+              {st.status === "done" && st.promoted && "✓ Promoted — items refreshed"}
+              {st.status === "done" && !st.promoted && "✓ Built full_next — promote it to serve it"}
               {st.status === "error" && "✗ Rebuild failed"}
               {st.status === "idle" && "Rebuild graph"}
             </strong>
@@ -137,6 +170,15 @@ export function RebuildButton({ onRebuilt }: Props) {
           </ol>
 
           {st.status === "error" && st.error && <div className="errors">{st.error}</div>}
+          {promoteError && <div className="errors">{promoteError}</div>}
+
+          {awaitingPromote && (
+            <button className="btn" style={{ padding: "2px 10px", marginTop: 6, marginRight: 6 }}
+                    onClick={promote} disabled={promoting}
+                    title="Rename full_next -> full (full -> full.prev) after a parity report; items refresh">
+              {promoting ? "⟳ promoting…" : "promote full_next → full"}
+            </button>
+          )}
 
           {(st.status === "error" || (st.status === "running" && st.log_tail.length > 0)) && (
             <pre className="rebuild-log">{st.log_tail.join("\n")}</pre>

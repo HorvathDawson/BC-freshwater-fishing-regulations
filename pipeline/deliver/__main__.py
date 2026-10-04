@@ -1,0 +1,95 @@
+"""ONE DELIVERY: bundle -> status index -> UI export, each cut from the one before.
+
+    python -m pipeline.deliver                       # all three, canonical paths
+    python -m pipeline.deliver bundle [--build DIR] [--reaches DIR] [--out FILE]
+    python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
+    python -m pipeline.deliver export [--bundle FILE] [--out FILE]
+    python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
+
+The three artifacts a client reads are three commands (`pipeline.deliver.bundle`,
+`pipeline.deliver.status_index`, `pipeline.tools.export_ui_rules`), and each still runs alone —
+iterating on the export rebuilds only the export. What this adds is the CHAIN: `all` writes the
+three into one directory from one bundle, and every step reads its input from the previous step's
+output and nothing else, so the index and the export are cut from the bundle bytes beside them.
+The vintage line (`pipeline.common.vintage`) and the two digests every artifact carries
+(`section_handles`, `reach_digest`; the status index header holds both since version 2) are how
+a reader proves it.
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+from pipeline.common.curated import GENERATED
+
+
+def _bundle(a) -> Path:
+    from pipeline.deliver.bundle.build import build
+    build_dir = a.build or GENERATED.require_build()
+    out = a.out or (GENERATED.bundle / "bundle.sqlite")
+    print(f"bundling {build_dir} -> {out}")
+    build(build_dir, out, reaches=a.reaches, entries=a.entries)
+    return out
+
+
+def _status_index(bundle: Path, out: Path) -> Path:
+    from pipeline.deliver import status_index as si
+    si.main(["--bundle", str(bundle), "--out", str(out)])
+    return out
+
+
+def _export(bundle: Path, out: Path) -> Path:
+    from pipeline.tools import export_ui_rules as ex
+    ex.main(["--bundle", str(bundle), "--out", str(out)])
+    return out
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(prog="pipeline.deliver", description=__doc__.split("\n\n")[0])
+    sub = ap.add_subparsers(dest="step")
+    b = sub.add_parser("bundle", help="the SQLite bundle from an atlas and its reach run")
+    b.add_argument("--build", type=Path, default=None)
+    b.add_argument("--reaches", type=Path, default=None)
+    b.add_argument("--entries", type=Path, default=None)
+    b.add_argument("--out", type=Path, default=None)
+    s = sub.add_parser("status_index", help="the status index from a bundle")
+    s.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    s.add_argument("--out", type=Path, default=GENERATED.bundle / "status_index.bin")
+    e = sub.add_parser("export", help="the UI rules export from a bundle")
+    e.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    e.add_argument("--out", type=Path, default=None)
+    al = sub.add_parser("all", help="bundle, then the index and the export from THAT bundle")
+    al.add_argument("--build", type=Path, default=None)
+    al.add_argument("--reaches", type=Path, default=None)
+    al.add_argument("--entries", type=Path, default=None)
+    al.add_argument("--out-dir", type=Path, default=None,
+                    help="write bundle.sqlite, status_index.bin and ui-rules-export.json here "
+                         "(default: the canonical paths)")
+    a = ap.parse_args(argv)
+    if a.step in (None, "all"):
+        if a.step is None:
+            a.build = a.reaches = a.entries = None
+            a.out_dir = None
+        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        d = a.out_dir
+        a.out = (d / "bundle.sqlite") if d else None
+        bundle = _bundle(a)
+        _status_index(bundle, (d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")
+        _export(bundle, (d / "ui-rules-export.json") if d else _EXPORT_OUT)
+        from pipeline.common.vintage import report
+        ok, msg = report(GENERATED.tiles, bundle)
+        print(msg)
+        return 0 if ok else 1
+    if a.step == "bundle":
+        _bundle(a)
+    elif a.step == "status_index":
+        _status_index(a.bundle, a.out)
+    elif a.step == "export":
+        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        _export(a.bundle, a.out or _EXPORT_OUT)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
