@@ -469,3 +469,15 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
     exemption shaped like a quota would otherwise vanish). Both read every set, every start day of
     the rule and of the closures, every fish (`_closure_scan`).
+58. **The UI export ships ENCODED; the model is `export_ui_rules.build()`.** (Phase 4, 2026-10-05.)
+    One run writes `ui-rules-export.json` (data: rules/licensing as arrays beside `rule_ids` /
+    `licensing_ids`, rule-set members as integer indexes with the zone/province `bases` interned,
+    waters' parts and runs positional, defaults and derivable fields dropped, no indent) and
+    `ui-rules-guide.json` (`guide`, `field_dictionary`, `species`), same bundle digests.
+    `pipeline/tools/export_codec.py` `expand` is the reference decoder and `main` refuses a pair
+    that does not decode to the model or whose integer references dangle (`wire_problems`). Every
+    check (`problems`) and every word of the guide describe the DECODED model; a test or tool reads
+    the files through `export_ui_rules.load`, never `json.load` of the data file alone. A new
+    field on a record ships as is; a new SHAPE (a part flag, a run field) must be taught to the
+    codec, which refuses what it does not know. Only the lake edges something names ship. Neither
+    file names a section: a closure note's example is a key (`example_sid` resolves it in the bundle).

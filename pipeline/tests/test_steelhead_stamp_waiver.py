@@ -184,7 +184,8 @@ def test_the_export_says_where_and_when_the_stamp_is_not_required():
     out = Path(os.environ.get("UI_EXPORT_JSON") or "")
     if not out.is_file():
         pytest.skip("UI_EXPORT_JSON not set")
-    doc = json.loads(out.read_text(encoding="utf-8"))
+    # the shipped pair (data + `ui-rules-guide.json` beside it), decoded (`export_codec`)
+    doc = X.load(out)
     w = doc["licensing"][CHILKO]["stamp_waiver"]
     assert w["outright"] is True and w["lifts"] == [STAMP, STAMP_TWIN]
     assert "upstream of Brittany Creek" in w["says"] and "Jun 11-Oct 31" in w["says"]

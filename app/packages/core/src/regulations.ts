@@ -18,13 +18,20 @@
  *     govern (past the border): they carry no set, and must read "outside B.C.", never "open
  *     under the general rules". The dev fixture (`pnpm fixture`) creates these tables EMPTY; a
  *     fixture with regulation rows comes back with the integration.
- *   · THE EXPORT — `data/generated/regs/ui-rules-export.json`, written by
- *     `pipeline/tools/export_ui_rules.py`. Its `guide` explains every field: rule types and
- *     families, the competition ladder, gear, `lengths`, `when`, species, retention, vessel,
- *     `exempts`, `standing`, `angler_closure`, licensing and placement (`via`: reach / trib /
- *     trib_pending / contested). Each water lists its `parts` — the (ruleset, licensing set)
- *     pairs its sections carry together — and its `outside_bc` count. It settles nothing — "no
- *     open/closed verdicts, no colours" — so every verdict this app shows will have to be
+ *   · THE EXPORT — two files written together by `pipeline/tools/export_ui_rules.py`:
+ *     `data/generated/regs/ui-rules-export.json` (the data, ENCODED: rules as an array with
+ *     integer set members, compact waters) and `ui-rules-guide.json` (`guide`,
+ *     `field_dictionary`, `species`), stamped with the same bundle digests. Decode with the
+ *     rules in `field_dictionary.encoding`; `pipeline/tools/export_codec.py` `expand` is the
+ *     reference decoder (pipeline/docs/06-ui-data-contract.md Part 6). The `guide` explains
+ *     every field: rule types and families, the competition ladder, gear, `lengths`, `when`,
+ *     species, retention, vessel, `exempts`, `standing`, `angler_closure`, licensing and
+ *     placement (`via`: reach / trib / trib_pending / contested). Each water lists its `parts`,
+ *     KEYED BY THE FIVE-TUPLE (ruleset, licensing set, province_except, anadromous_rainbow,
+ *     steelhead) its sections carry together — match all five to find a tapped section's part —
+ *     and its `outside_bc` count. A set no named water carries is still in the file: an
+ *     unnamed section's set id comes from the bundle (`section_ruleset`). It settles nothing —
+ *     "no open/closed verdicts, no colours" — so every verdict this app shows will have to be
  *     derived, once, in core.
  *
  * Rules the integration has to keep (settled with the user, see the licensing brief):

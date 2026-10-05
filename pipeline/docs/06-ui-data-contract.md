@@ -202,29 +202,66 @@ settled counters is not a second implementation of settling.
 
 ---
 
-## Part 6 — What ships today: `ui-rules-export.json`
+## Part 6 — What ships today: `ui-rules-export.json` + `ui-rules-guide.json`
 
+    python -m pipeline.deliver export [--bundle B] [--out OUT]
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules [--bundle B] [--out OUT]
+        [--guide-out GUIDE] [--pretty]
 
-Written to `data/generated/regs/ui-rules-export.json` (not tracked). Everything is read from
-`bundle.sqlite`, and nothing is sampled or settled.
+Written to `data/generated/regs/` (not tracked). Everything is read from `bundle.sqlite`, and
+nothing is sampled or settled. **Two files, one model, one run** (Phase 4, 2026-10-05):
+`export_ui_rules.build()` reads the bundle into one READING MODEL — what every check in
+`problems()` proves and every word of `guide` / `field_dictionary` describes — and ships it
+ENCODED by `pipeline/tools/export_codec.py`:
 
-| key | what | size (indent 1) |
+| file | holds | raw | gzip -9 |
+|---|---|---|---|
+| `ui-rules-export.json` | the data a client reads at run time | 6.33 MB | 0.83 MB |
+| `ui-rules-guide.json` | `guide` (with `cases`), `field_dictionary` (with `encoding`), `species` | 0.65 MB | 0.10 MB |
+
+Before Phase 4 it was one file of 31.50 MB (indent 1) / 1.81 MB gzipped; `JSON.parse` in node 25
+on a laptop: 56 ms / +48 MB heap then, 18.7 ms / +19 MB now (the guide: 0.9 ms). Both files carry
+the same `about.bundle` (digests `section_handles`, `reach_digest`) and `about.format` (2); never
+pair files whose digests differ. **`export_codec.expand(data, guide)` is the reference decoder**:
+it returns exactly the model, and `main()` refuses to write a pair that does not decode to it, or
+whose integer references do not resolve (`export_codec.wire_problems`). Every encoding rule is in
+`field_dictionary.encoding`, so a decoder in another language needs the dictionary alone.
+
+The data file (sizes compact, this bundle):
+
+| key | what | size |
 |---|---|---|
-| `about` | the bundle's build digests, computed counts, and `unresolved_references` — corpus references that do not resolve | — |
-| `guide` | how to read everything below; its `contents` is the table of contents | 0.1 MB |
-| `field_dictionary` | every key the records carry, and what it means | — |
-| `species` | every fish and every group the book writes (open groups have no member list on purpose) | — |
+| `about` | digests, counts, `unresolved_references`, the closure findings (each names the rule SET it was found on — never a section), `format` (the wire's own; the decoded `about` has none) | 0.01 MB |
+| `codec` | `family_of_type` {rule type: family}, `rank` {"authority/binds_to": rank} — from `catalogue._FAMILY` and `read.Source.rank` | — |
 | `licences` | the document register | — |
-| `entries` | all 1,480 synopsis rows: kind (province / zone / area / water), printed passage, matched waters, their rule and licensing ids | 0.9 MB |
-| `rules` | all 3,269 rules, keyed `entry_id::rule_id` | 2.9 MB |
-| `licensing` | all 106 licensing records, keyed `entry_id#record_id` | 0.1 MB |
-| `rulesets` / `licensing_sets` | the bundle's interned sets: members grouped by `via`, and how many sections carry each | 8.0 MB |
-| `waters` | every named water by `item_id`: its entries and the sets its sections carry, with section counts | 3.3 MB |
-| `index` | ids grouped by type, family and kind | 0.3 MB |
+| `entries` | all 1,516 synopsis rows by `entry_id`, without `chapter` (the id's prefix), `rules` / `licensing` (the ids starting `<entry_id>::` / `<entry_id>#`) and empty values | 0.52 MB |
+| `rule_ids`, `rules` | all 3,359 rules as an ARRAY, their `entry_id::rule_id` in the parallel `rule_ids`; a rule drops `id`/`entry_id`/`rule_id`, `family`, `provenance.entry_name`/`rank`, and `provenance.who` where the documented default says it (44 ship it). `label` and `verbatim` stay | 1.82 MB |
+| `licensing_ids`, `licensing` | all 129 licensing records, the same way | 0.12 MB |
+| `bases` | the 171 distinct zone/province member lists, as rule indexes | 0.07 MB |
+| `rulesets` / `licensing_sets` | arrays indexed by set id; members are INTEGER indexes (`reach` = `bases[base]` + own, merged in rule order) | 0.10 MB |
+| `waters` | all 19,640 named waters by `item_id`: parts as `[ruleset, licensing_set, sections, runs, flags?]`, a lone source-to-mouth run as its length, a polygon run as `"polygon"`, other runs as `[from, to, km_from, km_to, extra?]`; `sections`, `steelhead` (roll-ups) and defaults dropped | 3.22 MB |
+| `splits` | 3,855 cuts by id; `water_id`/`km` absent where null. Only the 68 lake edges something names ship (of 21,636 in the bundle) | 0.47 MB |
 
-About **16 MB** in all. Membership is per SET and per named WATER, never per section: section
-handles never leave the bundle (AGENTS 5). Set ids are local to one build.
+`index` is not shipped (the decoder groups the records). Membership is per SET and per named
+WATER, never per section: section handles never leave the bundle (AGENTS 5) — in neither file:
+the guide's closure notes (`gotchas.closures_combine`) name a `ruleset` or an `example` KEY
+{ruleset, anadromous_rainbow, steelhead_rules}, which `export_ui_rules.example_sid` resolves to a
+section inside the bundle. Set ids are local to one build; decoded, they are strings (the sets
+are objects keyed "0", "1", …).
+
+**A part is keyed by the five-tuple** (ruleset, licensing_set, province_except,
+anadromous_rainbow, steelhead): two parts of one water may share a (ruleset, licensing_set) pair,
+so an app locating a tapped section's part from the bundle (`section_ruleset`,
+`section_licensing`, `province_except`, `steelhead_water`, `section_steelhead`) matches all five.
+
+**Sets no named water carries ship too (E5 decision).** 135 rule sets (on 91,319 sections) and
+12 licensing sets sit only on unnamed sections. The app resolves a tapped section's set from the
+BUNDLE (`section_ruleset`) and reads the set here, for an unnamed creek exactly as for a named
+water; dropping them would leave that tap to read the bundle's `ruleset` membership — a second
+source for the same answer. Encoded, they cost 5.9 KB.
+
+**`guide.cases`** answers each sample on a section of the case's OWN water and part (its
+five-tuple), never the first section of the rule set anywhere (E4).
 
 **Every record reads itself.** A rule or licensing record carries its generated `label`, its
 `verbatim`, its `fields` exactly as the bundle ships them (by alias, empty values left out), and
@@ -233,7 +270,8 @@ handles never leave the bundle (AGENTS 5). Set ids are local to one build.
 with its reason. Nothing derived that hides reasoning is added: no "reads as", no settled table.
 
 **The guide cannot drift from the code.** Its lists of types, families, slots, clause fields,
-conduct acts, `Who` axes, `Doing` acts, path fields and licensing kinds are generated from the
+conduct acts, `Who` axes, `Doing` acts, path fields, licensing kinds and extent fields and ops
+(`field_dictionary["rule.fields.extents[]"]`, from `entry_models.Extent`) are generated from the
 model's registries, and `problems()` refuses the export when a registry member has no words or
 the words name a member the model no longer has. Every example is a live record found by a test
 over the data, never a remembered id.

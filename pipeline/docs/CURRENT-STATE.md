@@ -11,7 +11,7 @@ sources are:
 |---|---|---|
 | *catalogue* | `data/curated/regulations/entries/catalogue/*.json` (11 files) | working tree; identical in rule count to HEAD |
 | *reach report* | `data/generated/reaches/full/report.json` (+ `rule_unresolved.jsonl`, `rule_diagnostic.jsonl`) | run 2026-09-28 16:20, digest `6e4fd99a93de3711` |
-| *export* | `data/generated/regs/ui-rules-export.json` (18.6 MB) | 2026-09-28 16:46, same reach digest |
+| *export* | `data/generated/regs/ui-rules-export.json` (18.6 MB then; since Phase 4, 2026-10-05: 6.33 MB / 0.83 MB gzip, plus `ui-rules-guide.json` 0.65 MB — `06-ui-data-contract.md` Part 6) | 2026-09-28 16:46, same reach digest |
 | *bundle* | `data/generated/bundle/bundle.sqlite` (67.0 MB) | 2026-09-28 16:46, same reach digest |
 
 The reach run, bundle and export were built from the code of 228b9a7e. **The working-tree

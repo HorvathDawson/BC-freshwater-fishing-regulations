@@ -1,6 +1,14 @@
 """The UI data export: every regulation record in the bundle, and a guide to reading it.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules [--bundle B] [--out OUT]
+        [--guide-out GUIDE] [--pretty]
+
+TWO FILES, ONE MODEL. `build()` reads the bundle into one reading model — what every check below
+proves and every word of `guide` / `field_dictionary` describes. It ships ENCODED
+(`export_codec`): `ui-rules-export.json` (the data, no indent, integer set members, compact
+waters) and `ui-rules-guide.json` (`guide`, `field_dictionary`, `species`), both stamped with the
+bundle's digests. `export_codec.expand` is the reference decoder; `main` refuses a pair that does
+not decode back to the model, or whose integer references do not resolve (`wire_problems`).
 
 WHAT IS IN IT. Everything the bundle holds about regulations, and nothing sampled:
 
@@ -39,9 +47,13 @@ from pipeline.deliver.bundle.place_names import display_case
 from pipeline.deliver.bundle.rules import LIFT_KEYS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
+from pipeline.regs.parsing.entry_models import Extent, Op
+from pipeline.tools import export_codec as K
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
 OUT = GENERATED.base / "regs" / "ui-rules-export.json"
+#: THE GUIDE FILE, written beside the data file by the same run (`export_codec`, C-E).
+GUIDE_NAME = "ui-rules-guide.json"
 
 # --------------------------------------------------------------------------------------------
 # What the bundle must carry, and what it must never carry
@@ -204,7 +216,7 @@ def _rule_record(r: dict, entry_name: str) -> dict:
 #: province-wide quota for hatchery steelhead is 10" added its own "Record each one you keep on
 #: your licence" under it, beside the printed zp:steelhead.r4 "You must immediately record your
 #: retention of hatchery steelhead on your basic angling licence" — the same duty twice, one of
-#: them invented. The link is DERIVED here, never authored: a `record_retention` rule is an annual
+#: them invented. The link is DERIVED here, never authored: a rule carrying `record_retention: true` is an annual
 #: quota's record duty when it names the same fish (groups expanded, `species_except` ignored —
 #: no annual quota or record rule carries one), the same origin or none, the same dates or none,
 #: and is IN FORCE WHEREVER THE QUOTA IS (in every rule set that holds the quota). Exactly one such
@@ -416,7 +428,8 @@ def add_stamp_waivers(licensing: dict, names: dict) -> None:
 
 
 def recorded_rules(rules: dict) -> list[str]:
-    """Every `record_retention` rule (`entry_id::rule_id`), sorted — the fish you must record."""
+    """Every rule carrying `record_retention: true` (`entry_id::rule_id`), sorted — the fish you
+    must record."""
     return sorted(k for k, x in rules.items() if x["fields"].get("record_retention"))
 
 
@@ -882,6 +895,7 @@ def read(bundle: Path) -> dict:
             "SELECT code, COUNT(*) FROM section_steelhead GROUP BY 1 ORDER BY 1")},
     }
     db.close()
+    splits = referenced_edges(splits, entries, rules, licensing, waters)
     # ---- the record duty an annual quota carries (`recorded_by` / `records_for`) ------------
     for q, cands in record_candidates(rules, rulesets).items():
         if len(cands) == 1:          # two would be ambiguous: left unlinked, `problems` says so
@@ -919,6 +933,38 @@ def read_splits(db) -> dict:
         out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
                                    "water_id": None, "km": None}
     return dict(sorted(out.items()))
+
+
+def _split_refs(o):
+    """Every split id named under a `splits` key anywhere in `o` (extents, nested carve-outs)."""
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == "splits" and isinstance(v, list):
+                yield from (x for x in v if isinstance(x, str))
+            else:
+                yield from _split_refs(v)
+    elif isinstance(o, list):
+        for v in o:
+            yield from _split_refs(v)
+
+
+def referenced_edges(splits: dict, entries: dict, rules: dict, licensing: dict,
+                     waters: dict) -> dict:
+    """ONLY THE LAKE EDGES SOMETHING NAMES. The bundle's `split` table holds every lake's edge on
+    every river (`kind: lake_edge`, 21,636 rows) because a curated cut landing in a lake binds
+    by one (E2); 68 are named by an extent, and the runs end at `lake_inlet:` / `lake_outlet:`
+    tokens, never at an edge id. A row nothing in the file names is a name no page can ask for:
+    it is left in the bundle. Every other kind of cut ships whole. What counts as naming: an
+    extent's `splits` (rules, licensing, entries — nested carve-outs included), a run's ends, a
+    kept cut's `same_place_as`."""
+    refs = set(_split_refs([e.get("extents") for e in entries.values()]))
+    refs |= set(_split_refs([x["fields"] for x in rules.values()]))
+    refs |= set(_split_refs([x["fields"] for x in licensing.values()]))
+    refs |= {r[k] for w in waters.values() for p in w["parts"] for r in p.get("runs") or ()
+             for k in ("from", "to") if r.get(k)}
+    keep = {k for k, x in splits.items() if x["kind"] != "lake_edge" or k in refs}
+    keep |= {splits[k]["same_place_as"] for k in list(keep) if splits[k].get("same_place_as")}
+    return {k: x for k, x in splits.items() if k in keep}
 
 
 def is_polygon_part(water: dict, sids: list[int], span: dict) -> bool:
@@ -1025,20 +1071,28 @@ STEELHEAD_TEXT = (
 FILE_TEXT = {
     "about": "what the file is, the bundle it was read from (version, build, reach run and "
              "digest, `section_handles`), the counts, and corpus references that do not resolve",
-    "guide": "how to read everything below — see `guide.contents`",
-    "field_dictionary": "this: every key of the file and every field of its records, in words",
+    "guide": "how to read everything below — see `guide.contents`. Ships in the GUIDE file "
+             "(`ui-rules-guide.json`), with `field_dictionary` and `species`",
+    "field_dictionary": "this: every key of the file and every field of its records, in words; "
+                        "`encoding` says how the data file encodes them. Ships in the guide "
+                        "file",
     "species": "the book's species list (p.80) under its headings, the groups and open subjects "
-               "a rule may name, and the refused codes",
+               "a rule may name, and the refused codes. Ships in the guide file",
     "licences": "the document register: doc_id -> {name, provincial}",
     "entries": "every synopsis row, keyed by entry_id — see `entry`",
-    "rules": "every rule, keyed `entry_id::rule_id` — see `rule`",
-    "licensing": "every licensing record, keyed `entry_id#record_id` — see `licensing`",
+    "rules": "every rule, keyed `entry_id::rule_id` — see `rule` (on the wire an array beside "
+             "the parallel `rule_ids`: `encoding`)",
+    "licensing": "every licensing record, keyed `entry_id#record_id` — see `licensing` (on the "
+                 "wire an array beside `licensing_ids`)",
     "rulesets": "the interned rule sets sections carry, keyed by a set id local to this file — "
-                "see `rulesets{} / licensing_sets{}`",
+                "see `rulesets{} / licensing_sets{}` (on the wire an array indexed by set id, "
+                "members as integer indexes into `rules`, the zone/province base interned in "
+                "`bases`)",
     "licensing_sets": "the interned licensing sets, the same way",
     "waters": "every named water, keyed by its durable item_id — see `water`",
     "splits": "every cut a part's run can end at, by id — see `splits`",
-    "index": "rule ids by type and by family, licensing ids by kind",
+    "index": "rule ids by type and by family, licensing ids by kind — NOT SHIPPED: the "
+             "decoder groups the records (`encoding.index`)",
 }
 
 #: A water, key by key (`waters[item_id]`).
@@ -1071,7 +1125,9 @@ WATER_TEXT = {
     "entries": "the synopsis rows that MATCH this water (their `matched` lists it) — not every "
                "row whose rules reach it: a zone, area or tributary walk reaches it through its "
                "parts' sets",
-    "parts": "every (ruleset, licensing_set) pair its sections carry together — see "
+    "parts": "its sections grouped by the FIVE-TUPLE they carry together — (ruleset, "
+             "licensing_set, province_except, anadromous_rainbow, steelhead); two parts may share "
+             "a (ruleset, licensing_set) pair, so locate a section's part by all five — see "
              "`water.parts[]`",
     "outside_bc": "how many of its sections lie outside British Columbia (0 when none): they "
                   "carry no set; show 'outside B.C.' (`placement.outside_bc`)",
@@ -1428,7 +1484,8 @@ RULE_FIELD_TEXT = {
     "tributaries_only": "the tributaries, without the named water itself",
     "extents": "where on the water (or in which areas) the rule applies, as the reach builder "
                "reads it. A rule with none of its own is not given its entry's. What the rule "
-               "STATES, not where it holds: read `binds` for that.",
+               "STATES, not where it holds: read `binds` for that. Each extent, key by key: "
+               "`rule.fields.extents[]`.",
     "exempts": "what the rule lifts — see `exempts`",
     "standing": "true: holds everywhere at places no dataset can draw — see `standing`",
     "authority": "superior: a federal or park authority, above the provincial ladder",
@@ -1499,7 +1556,8 @@ LICENSING_PART_TEXT = {
     "note": "a superior authority's note ('provincial licences are not valid here')",
     "records": "ONLY on the 'carry your paper licence' duty (`doing.act: retaining_recorded`): "
                "the fish whose retention must be recorded on the licence, in words, DERIVED from "
-               "every `record_retention` rule (catalogue.recorded_fish) — 'hatchery steelhead, "
+               "every rule carrying `record_retention: true` (catalogue.recorded_fish) — "
+               "'hatchery steelhead, "
                "adult chinook, …'. The rules themselves are the record's `records`",
     "in_part": "the part of the water a requirement holds in, which nothing draws "
                "(`fields.undrawn_part`) — shown as a place not yet mapped, never required of the "
@@ -1530,10 +1588,12 @@ RECORD_TEXT = {
     "fields": "the rule's own fields, as the bundle ships them",
     "provenance": "who wrote it and what it binds to — see below",
     "recorded_by": "ONLY on an annual quota (`period: annual`) whose record duty the book "
-                   "prints: the `entry_id::rule_id` of that `record_retention` rule. Show its "
+                   "prints: the `entry_id::rule_id` of the rule carrying `record_retention: true` "
+                   "(a `retention_limit`; there is no `record_retention` type). Show its "
                    "text once, under the quota; never generate a 'record' line of your own — "
                    "see `retention.record_duty`",
-    "records_for": "ONLY on a `record_retention` rule that is an annual quota's record duty: "
+    "records_for": "ONLY on a rule carrying `record_retention: true` that is an annual quota's "
+                   "record duty: "
                    "the quotas (`entry_id::rule_id`) it is shown under — see "
                    "`retention.record_duty`",
 }
@@ -1565,7 +1625,8 @@ LICENSING_RECORD_TEXT = {
               "own verbatim and `when`; never absent on a designation",
     "provenance": "entry_name, and for an unresolved record `uncertain` and `why`",
     "records": "ONLY on the 'carry your paper licence' duty (`fields.doing.act: "
-               "retaining_recorded`): every `record_retention` rule (`entry_id::rule_id`) — the "
+               "retaining_recorded`): every rule carrying `record_retention: true` "
+               "(`entry_id::rule_id`) — the "
                "fish you must record on your licence, and so keep only with a PAPER licence on "
                "you (p.6). Derived from the rules, never typed; `parts.records` says them in "
                "words",
@@ -1612,10 +1673,12 @@ LICENSING_FIELD_TEXT = {
     "unit": "the licence unit a non-resident's per-day licence names",
     "unit_name": "the unit in words",
     "when": "when the record holds (a `When`); absent = all year",
-    "extents": "where it applies, as the reach builder reads it",
+    "extents": "where it applies, as the reach builder reads it — each extent key by key in "
+               "`rule.fields.extents[]`",
     "includes_tributaries": "true/false; absent = inherit the entry's",
     "tributaries_only": "the tributaries without the named water",
-    "tributary_excludes": "waters the tributary walk must not enter",
+    "tributary_excludes": "waters the tributary walk must not enter — each an extent "
+                          "(`rule.fields.extents[]`; `walk_past` only here)",
     "steelhead_stamp_during": "{when, verbatim}: the classified-water steelhead stamp runs here "
                               "then, whatever you fish for",
     "steelhead_stamp_waived": "{verbatim}: the classified-water stamp is not required here; "
@@ -1815,11 +1878,49 @@ ENTRY_TEXT = {
     "mus": "the management units the row was printed under",
     "pages": "the synopsis pages it is printed on", "symbols": "the printed glyphs, 1:1",
     "scope_note": "the curated sentence on which part of the water the entry covers",
-    "extents": "the entry's own reach", "printed": "the whole printed passage",
+    "extents": "the entry's own reach — each extent key by key in `rule.fields.extents[]`",
+    "printed": "the whole printed passage",
     "rules": "its rule ids", "licensing": "its licensing record ids",
     "see": "its pointers, when it prints any: [{verbatim, entry_ids, relation}] or "
            "[{verbatim, unresolved}] — see `entries.pointers`",
 }
+
+
+#: THE OPS AN EXTENT SELECTS BY (`entry_models.Op`) — checked against the enum (`_registries`).
+OP_TEXT = {
+    "whole": "every section of every water the record covers (its entry's `matched`, or the "
+             "extent's `item_id` / `item_ids`); no `splits`",
+    "upstream_of": "the sections above ONE cut (`splits[0]`), following the water across the "
+                   "covered waters",
+    "downstream_of": "the sections below ONE cut (`splits[0]`), following the water",
+    "between": "the sections between TWO cuts (`splits`), each resolved by route measure on its "
+               "own blue line",
+    "within": "the sections inside an area (`area_id`, or every area of a family: `area_kind`); "
+              "no `splits`",
+    "rest": "THE REST OF THE WATER: the record's water minus every section its `siblings` (rules "
+            "of the same entry) bind — 'other parts'. A sibling that does not bind leaves the "
+            "complement unknown, never the whole water",
+    "steelhead_waters": "the book's steelhead waters (every steelhead row's own water and every "
+                        "section its rules bind) minus what the `siblings` bind, limited by "
+                        "`area_id` / `outside_area` / `outside_area_kind` / `feature_types` — "
+                        "how the provincial steelhead set reaches a book-known water its base "
+                        "does not (AGENTS 54)",
+}
+
+
+def extent_text() -> dict:
+    """`rule.fields.extents[]` (also a licensing record's `fields.extents[]`, its
+    `fields.tributary_excludes[]`, and an entry's `extents[]`), key by key — GENERATED from the
+    model (`entry_models.Extent`: each field's own description; `op` from `OP_TEXT`), so it
+    cannot drift from what the reach builder reads."""
+    out = {}
+    for k, f in Extent.model_fields.items():
+        if k == "op":
+            out[k] = ("how the extent selects sections: " + " | ".join(OP_TEXT)
+                      + " — see `rule.fields.extents[].op`")
+        else:
+            out[k] = f.description or ""
+    return out
 
 
 # --------------------------------------------------------------------------------------------
@@ -2672,7 +2773,8 @@ def guide(d: dict) -> dict:
         },
         "record_duty": {
             "reading": "An annual quota's duty to record what you keep is PRINTED, as its own "
-                       "`record_retention` rule. The quota carries `recorded_by` (that rule's "
+                       "rule carrying `record_retention: true` (a `retention_limit`; there is no "
+                       "`record_retention` rule type). The quota carries `recorded_by` (that rule's "
                        "id) and the record rule carries `records_for` (the quotas). NEVER "
                        "generate a 'record each one you keep on your licence' line for an annual "
                        "quota: show the linked record rule's text ONCE, under the quota, and do "
@@ -2801,7 +2903,8 @@ def guide(d: dict) -> dict:
             "`read.requirements_in_force` lists it under `not_yet_mapped`, never `holds`.",
             "THE PAPER LICENCE. 'Carry your paper licence' (`doing.act: retaining_recorded`) is "
             "about the fish whose retention you must record on the licence: the record's "
-            "`records` (every `record_retention` rule) and, in words, `parts.records`. Say "
+            "`records` (every rule carrying `record_retention: true`) and, in words, "
+            "`parts.records`. Say "
             "them; never type the list.",
         ],
         "kinds": lkinds,
@@ -2896,13 +2999,24 @@ def guide(d: dict) -> dict:
     lvia = Counter(v for s in d["licensing_sets"].values() for v in s if v != "sections")
     placement = {
         "unnamed_sets": "`waters` lists only named waters: a ruleset or licensing set that no "
-                        "water lists sits only on unnamed sections — reach it through a section's "
-                        "`ruleset` / `licensing_set`, never through `waters`.",
+                        "water lists sits only on unnamed sections. THE APP NEEDS THEM and they "
+                        "ship (decision, Phase 4 / E5): an unnamed creek a reader taps is "
+                        "resolved from the BUNDLE (tile `section_id` -> `section_ruleset` / "
+                        "`section_licensing` -> set id, AGENTS 5), and its records are read here "
+                        "(`rulesets[set id]`), exactly as a named water's part is. Dropping them "
+                        "would leave that tap to read the bundle's `ruleset` membership instead "
+                        "— a second source for the same answer. Reach such a set through a "
+                        "section's set id, never through `waters`.",
         "reading":"Where a record applies is exported the way the bundle interns it. Many "
                    "sections carry the same set of records, so each SET is listed once "
                    "(`rulesets`, `licensing_sets`: its members grouped by `via`, and how many "
-                   "sections carry it). Each named water lists its `parts`: every (ruleset, "
-                   "licensing_set) pair its sections carry TOGETHER, and on how many sections — "
+                   "sections carry it). Each named water lists its `parts`: a part is KEYED BY "
+                   "THE FIVE-TUPLE (ruleset, licensing_set, province_except, "
+                   "anadromous_rainbow, steelhead) its sections carry TOGETHER, with how many "
+                   "sections — to find the part a section of the bundle is in, match all five "
+                   "(the bundle's `section_ruleset`, `section_licensing`, `province_except`, "
+                   "`steelhead_water`, `section_steelhead`), never the (ruleset, licensing_set) "
+                   "pair alone — "
                    "so a licence area joins the rules on the same stretch — and, on a part, "
                    "`province_except` (the families of areas its sections lie in where a "
                    "province-wide requirement stops: a national park), `anadromous_rainbow` "
@@ -3706,12 +3820,25 @@ class _Cases:
         self.lic: dict = defaultdict(list)
         for s, e, r in db.execute("SELECT set_id, entry_id, record_id FROM licensing_set"):
             self.lic[str(s)].append(f"{e}#{r}")
-        self.sid = {(str(s), bool(sw)): sid for s, sw, sid in db.execute(
-            "SELECT r.set_id, EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = r.sid), "
-            "MIN(r.sid) FROM section_ruleset r GROUP BY 1, 2")}
-        self.outside = dict(db.execute(
-            "SELECT i.item_id, MIN(o.sid) FROM outside_bc o JOIN item_section s ON s.sid = o.sid "
-            "JOIN item i ON i.ord = s.ord GROUP BY i.item_id"))
+        # A CASE IS ANSWERED ON A SECTION OF ITS OWN WATER AND PART (E4): the first section of
+        # the case's water whose five-tuple — (ruleset, licensing_set, province_except,
+        # anadromous_rainbow, steelhead), the key `read()` makes a part of — is the part's. A
+        # section of the same rule set on ANOTHER water may differ in steelhead presence, and the
+        # `expect` would then describe a different water than `water.item_id` names.
+        self.sid = {}
+        for item, rs, ls, pe, sw, st, sid in db.execute(
+                "SELECT i.item_id, r.set_id, l.set_id, "
+                "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p"
+                " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
+                "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
+                "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END "
+                " FROM section_steelhead h WHERE h.sid = s.sid), MIN(s.sid) "
+                "FROM item i JOIN item_section s ON s.ord = i.ord "
+                "LEFT JOIN section_ruleset r ON r.sid = s.sid "
+                "LEFT JOIN section_licensing l ON l.sid = s.sid "
+                "GROUP BY 1, 2, 3, 4, 5, 6"):
+            self.sid[(item, None if rs is None else str(rs), None if ls is None else str(ls),
+                      pe, bool(sw), st)] = sid
         db.close()
         self.parts = [(it, p) for it, w in sorted(d["waters"].items()) for p in w["parts"]]
         self.first_part: dict = {}
@@ -3722,9 +3849,9 @@ class _Cases:
 
     # ---- the answer ----------------------------------------------------------------------
     def section(self, item: str, part: dict):
-        if part["ruleset"] is None:
-            return self.outside.get(item)
-        return self.sid.get((part["ruleset"], bool(part.get("anadromous_rainbow"))))
+        return self.sid.get((item, part["ruleset"], part["licensing_set"],
+                             ",".join(part.get("province_except") or ()) or None,
+                             bool(part.get("anadromous_rainbow")), part.get("steelhead")))
 
     def answer(self, item: str, part: dict, on, fish: str) -> list[dict]:
         sid = self.section(item, part)
@@ -4602,7 +4729,7 @@ def cases(d: dict, bundle: Path) -> dict:
     lic_case("licensing_stamp", lambda x: "stamp" in json.dumps(x["fields"]))
     lic_case("province_except", lambda x: True, lambda p: bool(p.get("province_except")))
     for it, w in sorted(K.d["waters"].items()):
-        if w["outside_bc"] and it in K.outside:
+        if w["outside_bc"]:
             p = next((p for p in w["parts"] if p["ruleset"] is None
                       and p["licensing_set"] is None), None)
             if p:
@@ -4740,6 +4867,8 @@ def field_dictionary(d: dict) -> dict:
         "rule.fields.lengths[]": LENGTH_TEXT,
         "rule.fields.exempts[]": dict(LIFT_TEXT),
         "rule.fields.closed_to": {k: WHO_TEXT.get(k) for k in _fields(C.Who)},
+        "rule.fields.extents[]": extent_text(),
+        "rule.fields.extents[].op": dict(OP_TEXT),
         "model_rule_fields_not_shipped": sorted(model - shipped),
         "licensing": LICENSING_RECORD_TEXT,
         "licensing.fields": {k: {f: LICENSING_FIELD_TEXT.get(f) for f in fs}
@@ -4756,6 +4885,7 @@ def field_dictionary(d: dict) -> dict:
         "run ends (from / to)": END_TEXT,
         "splits": SPLIT_TEXT,
         "rulesets{} / licensing_sets{}": SET_TEXT,
+        "encoding": K.ENCODING_TEXT,
     }
 
 
@@ -4785,7 +4915,20 @@ _DICTIONARY_SCOPES = (
     ("set key", ("rulesets{} / licensing_sets{}",),
      lambda doc: list(doc["rulesets"].values()) + list(doc["licensing_sets"].values())),
     ("split field", ("splits",), lambda doc: doc["splits"].values()),
+    ("extent field", ("rule.fields.extents[]",), lambda doc: _extents(doc)),
 )
+
+
+def _extents(doc: dict) -> list[dict]:
+    """Every extent object the file carries: a rule's or licensing record's `extents` and
+    `tributary_excludes`, an entry's `extents`."""
+    out = []
+    for x in list(doc["rules"].values()) + list(doc["licensing"].values()):
+        for k in ("extents", "tributary_excludes"):
+            out += [e for e in x["fields"].get(k) or [] if isinstance(e, dict)]
+    for e in doc["entries"].values():
+        out += [x for x in e.get("extents") or [] if isinstance(x, dict)]
+    return out
 
 
 def dictionary_gaps(doc: dict) -> list[str]:
@@ -4801,6 +4944,9 @@ def dictionary_gaps(doc: dict) -> list[str]:
             seen |= set(r)
         out += [f"field_dictionary.{section} does not explain the {what} {k!r}"
                 for k in sorted(seen) if not words.get(k)]
+    ops = fd.get("rule.fields.extents[].op") or {}
+    out += [f"field_dictionary.rule.fields.extents[].op does not explain the op {o!r}"
+            for o in sorted({str(e.get("op")) for e in _extents(doc)}) if not ops.get(o)]
     lic = fd.get("licensing.fields") or {}
     for i, x in doc["licensing"].items():
         for k in x["fields"]:
@@ -4981,6 +5127,7 @@ def _registries() -> list[tuple[str, dict, set]]:
         ("LICENSING_KIND_TEXT", LICENSING_KIND_TEXT, set(lm)),
         ("PART_TEXT", PART_TEXT, set(C.LABEL_PARTS)),
         ("LICENSING_PART_TEXT", LICENSING_PART_TEXT, set(C.LICENSING_PARTS)),
+        ("OP_TEXT", OP_TEXT, set(_enum(Op))),
     ]
 
 
@@ -5080,13 +5227,13 @@ def dangling(doc: dict) -> list[str]:
     # Lake outlet and Dickson Lake" from `extents[].splits` can name either end only if `splits`
     # holds the id — including a lake's edge, the id a cut aliased onto it answers to.
     S = doc.get("splits") or {}
+    # Every `splits` list anywhere in a record — a nested carve-out's extents included — since
+    # the export ships only the lake edges something names (`referenced_edges`).
     for table, name in ((R, "rule"), (L, "licensing"), (E, "entry")) if "splits" in doc else ():
         for i, x in table.items():
-            exts = (x.get("fields") or {}).get("extents") if name != "entry" else x.get("extents")
-            for ex in exts or []:
-                for sid in (ex.get("splits") or []) if isinstance(ex, dict) else []:
-                    if sid not in S:
-                        out.append(f"{name} {i} extents -> split {sid}")
+            for sid in _split_refs(x.get("fields") if name != "entry" else x.get("extents")):
+                if sid not in S:
+                    out.append(f"{name} {i} extents -> split {sid}")
     for sid, x in S.items():
         for wid in [x.get("water_id")] + [a["water_id"] for a in x.get("at") or []]:
             if wid and wid not in doc["waters"]:
@@ -5676,7 +5823,10 @@ def _closure_scan(bundle: Path) -> dict:
             if hit:
                 seen.add(k)
                 on, fish, shut = hit
-                out[what].append({"key": k, "rule": f"{k[0]}::{k[1]}", "section": sid,
+                # `section` is for re-asking the reader here; what SHIPS (`_known`) names the
+                # RULE SET instead: a section handle never leaves the bundle (AGENTS 5)
+                out[what].append({"key": k, "rule": f"{k[0]}::{k[1]}", "ruleset": str(s),
+                                  "section": sid,
                                   "date": list(on), "fish": fish, "closures": shut})
     _SCAN[key] = out
     return out
@@ -5868,13 +6018,19 @@ def closures_combine(bundle: Path) -> dict:
                             holds[f].add(d)
                     else:
                         lifted[f].add(d)
-            p = pairs.setdefault((k, z), {"sections": 0, "bound": 0, "example_section": None,
+            p = pairs.setdefault((k, z), {"sections": 0, "bound": 0, "_sid": None,
+                                          "example": None,
                                           "holds": defaultdict(set), "lifted": {}})
             p["bound"] += nsec
             if any(holds.values()):
                 p["sections"] += nsec
-                if p["example_section"] is None or (sid < p["example_section"]):
-                    p["example_section"] = sid
+                # THE EXAMPLE IS A KEY, NEVER A SECTION (AGENTS 5): the (rule set, steelhead
+                # water, steelhead rules) whose lowest section is the lowest the claim holds on —
+                # `example_sid` resolves it from the bundle to re-ask the reader
+                if p["_sid"] is None or (sid < p["_sid"]):
+                    p["_sid"] = sid
+                    p["example"] = {"ruleset": str(s), "anadromous_rainbow": bool(sh_water),
+                                    "steelhead_rules": bool(sh_rules)}
             for f, ds in holds.items():
                 p["holds"][f] |= ds
             by_days: dict = defaultdict(set)
@@ -5942,7 +6098,7 @@ def closures_combine(bundle: Path) -> dict:
             "zone_dates": _dates_words(y),
             "fish": fish_list(set().union(*groups.values())),
             "zone_holds": zone_holds, "zone_lifted": zone_lifted,
-            "sections": p["sections"], "example_section": p["example_section"],
+            "sections": p["sections"], "example": p["example"],
             "says": says})
     scan = _closure_scan(bundle)
     for what in ("release", "quota"):
@@ -5955,7 +6111,7 @@ def closures_combine(bundle: Path) -> dict:
                 note(k[0], {
                     "kind": "row_rule", "row_rule": f"{k[0]}::{k[1]}", "row_says": x["verbatim"],
                     "row_dates": _dates_words(x), "zone_rule": c, "zone_says": y["verbatim"],
-                    "zone_dates": _dates_words(y), "example_section": f["section"],
+                    "zone_dates": _dates_words(y), "ruleset": f["ruleset"],
                     "says": f"The row's '{_plain(x['verbatim'])}' does not open the water while "
                             f"{_zone_words(ze)}'s '{_plain(y['verbatim'])}' ({_dates_words(y)}) is in "
                             f"force: both hold, and on those dates the water is closed"
@@ -5972,12 +6128,31 @@ def closures_combine(bundle: Path) -> dict:
     return out
 
 
+def example_sid(example: dict, bundle: Path) -> int | None:
+    """The lowest section of the bundle carrying a note's `example` key — (rule set, on steelhead
+    water, steelhead rules apply) — the section the note was built on. Read here, in the bundle;
+    never shipped (AGENTS 5)."""
+    if not example.get("ruleset"):
+        return None
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    try:
+        return db.execute(
+            "SELECT MIN(r.sid) FROM section_ruleset r WHERE r.set_id = ? "
+            "AND (r.sid IN (SELECT sid FROM steelhead_water)) = ? "
+            "AND (r.sid IN (SELECT sid FROM section_steelhead_rules)) = ?",
+            (int(example["ruleset"]), int(bool(example.get("anadromous_rainbow"))),
+             int(bool(example.get("steelhead_rules"))))).fetchone()[0]
+    finally:
+        db.close()
+
+
 def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
     """EVERY "BOTH HOLD" CLAIM, CHECKED AGAINST THE READER: for each `row_closure` note, each of
     its `zone_holds` claims must have the zone closure SPEAKING (`read.effective_rules`) on the
     note's example section on at least one of the days it names, for one of the fish it names.
     A note built from the printed dates alone (the Fulton's "Both hold … Jan 1-Jun 15", where
-    the row's "Open June 16-Apr 30" lifts the winter closure) fails here."""
+    the row's "Open June 16-Apr 30" lifts the winter closure) fails here. The note names its
+    example by key (`example`); the section is resolved here, from the bundle (`example_sid`)."""
     from pipeline.deliver.bundle import read as RD
     game = [f for f in C.expand_species(["ALL_GAME_FISH"]) if f != "CRA"]
     out = []
@@ -5991,13 +6166,14 @@ def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
                     out.append(f"{eid}: {n['row_rule']} under {z} claims both hold with no days")
                     continue
                 fs = game if h["fish"] == "all" else h["fish"]
-                hit = any(f"{y['entry']}::{y['rule']}" == z and y["state"] == "speaks"
-                          for d in _run_days(h["runs"]) for f in fs
-                          for y in RD.effective_rules(n["example_section"], _MD[d], f,
-                                                      str(bundle)))
+                sid = example_sid(n.get("example") or {}, bundle)
+                hit = sid is not None and any(
+                    f"{y['entry']}::{y['rule']}" == z and y["state"] == "speaks"
+                    for d in _run_days(h["runs"]) for f in fs
+                    for y in RD.effective_rules(sid, _MD[d], f, str(bundle)))
                 if not hit:
-                    out.append(f"{eid}: {n['row_rule']} — {z} does not speak on section "
-                               f"{n['example_section']} on any of {h['dates']} for {h['fish']}, "
+                    out.append(f"{eid}: {n['row_rule']} — {z} does not speak on the example "
+                               f"{n.get('example')} on any of {h['dates']} for {h['fish']}, "
                                f"yet the note says both hold")
     return out
 
@@ -6062,16 +6238,16 @@ def quota_under_closure(bundle: Path) -> list[dict]:
 
 
 def _known(found: list[dict], known: dict) -> list[dict]:
-    return [{**{a: b for a, b in x.items() if a != "key"},
+    return [{**{a: b for a, b in x.items() if a not in ("key", "section")},
              **({"known": known[x["key"]]} if x["key"] in known else {})} for x in found]
 
 
 def release_under_closure_problems(doc: dict) -> list[str]:
     return ([f"a dated water release speaks under a blanket closure and is not listed as known: "
-             f"{x['rule']} on section {x['section']} {x['date']} {x['fish']} with {x['closures']}"
+             f"{x['rule']} on ruleset {x['ruleset']} {x['date']} {x['fish']} with {x['closures']}"
              for x in doc["about"].get("release_under_closure") or [] if not x.get("known")]
             + [f"a water row's quota in force is silenced under a blanket closure and is not "
-               f"listed as known: {x['rule']} on section {x['section']} {x['date']} {x['fish']} "
+               f"listed as known: {x['rule']} on ruleset {x['ruleset']} {x['date']} {x['fish']} "
                f"with {x['closures']}"
                for x in doc["about"].get("quota_under_closure") or [] if not x.get("known")])
 
@@ -6197,17 +6373,56 @@ def problems(doc: dict) -> list[str]:
             + release_under_closure_problems(doc))
 
 
-def dumps(doc: dict) -> str:
-    return json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+def dumps(doc: dict, pretty: bool = False) -> str:
+    return K.dumps(doc, pretty)
+
+
+def codec_tables() -> dict:
+    """The two small tables a decoder needs, FROM THE MODEL: a rule type's family
+    (`catalogue._FAMILY`) and a provenance's rank (`read.Source.rank` for every authority and
+    scope)."""
+    return {"family_of_type": {t.value: f for t, f in C._FAMILY.items()},
+            "rank": {f"{a.value}/{s.value}": Source(a, s).rank for a in Authority for s in Scope}}
+
+
+def encode(doc: dict) -> tuple[dict, dict]:
+    """The model -> (data, guide) as they ship (`export_codec.compact`)."""
+    return K.compact(doc, **codec_tables())
+
+
+def guide_path(out: Path) -> Path:
+    return Path(out).parent / GUIDE_NAME
+
+
+def load(out: Path = OUT, guide: Path | None = None) -> dict:
+    """A shipped pair, decoded to the model (`export_codec.expand`)."""
+    g = guide or guide_path(out)
+    return K.expand(json.loads(Path(out).read_text(encoding="utf-8")),
+                    json.loads(Path(g).read_text(encoding="utf-8")))
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--bundle", type=Path, default=BUNDLE)
     ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument("--guide-out", type=Path, default=None,
+                    help=f"the guide file (default: {GUIDE_NAME} beside --out)")
+    ap.add_argument("--pretty", action="store_true",
+                    help="indent both files for a human (the shipped files are not indented)")
     a = ap.parse_args(argv)
     doc = build(a.bundle)
     bad = problems(doc)
+    try:
+        data, gd = encode(doc)
+    except K.EncodeError as e:
+        bad.append(f"the encoding refuses the model: {e}")
+        data = gd = None
+    if data is not None:
+        bad += K.wire_problems(data, gd)
+        # LOSSLESS, proved on what is written: the pair must decode to exactly the model the
+        # checks above passed (through JSON, as a reader gets it)
+        if K.expand(json.loads(K.dumps(data)), json.loads(K.dumps(gd))) != doc:
+            bad.append("the encoded pair does not decode to the model (export_codec.expand)")
     if bad:
         print(f"export_ui_rules: REFUSED — {len(bad)} problem(s) in the output:", file=sys.stderr)
         for p in bad[:40]:
@@ -6215,11 +6430,14 @@ def main(argv=None) -> int:
         return 1
     for r in doc["about"]["unresolved_references"]:
         print(f"  corpus reference does not resolve: {r}", file=sys.stderr)
-    text = dumps(doc)
+    g_out = a.guide_out or guide_path(a.out)
     a.out.parent.mkdir(parents=True, exist_ok=True)
-    a.out.write_text(text, encoding="utf-8")
+    g_out.parent.mkdir(parents=True, exist_ok=True)
+    a.out.write_text(K.dumps(data, a.pretty), encoding="utf-8")
+    g_out.write_text(K.dumps(gd, a.pretty), encoding="utf-8")
     c = doc["about"]["counts"]
-    print(f"wrote {a.out} ({os.path.getsize(a.out) / 1e6:.2f} MB)")
+    print(f"wrote {a.out} ({os.path.getsize(a.out) / 1e6:.2f} MB) and {g_out} "
+          f"({os.path.getsize(g_out) / 1e6:.2f} MB)")
     for k, v in c.items():
         print(f"  {k}: {v}")
     return 0

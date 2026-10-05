@@ -1036,16 +1036,25 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
     cc = doc["guide"]["gotchas"]["closures_combine"]["entries"]
     assert X.closures_combine_problems(cc, BUNDLE) == []
     notes = [n for e in cc.values() for n in e["notes"] if n["kind"] == "row_closure"]
-    assert notes and all(n["zone_holds"] and n["example_section"] for n in notes)
+    assert notes and all(n["zone_holds"] and n["example"]["ruleset"] for n in notes)
+    # the example is a KEY, resolved in the bundle; no section handle ships (AGENTS 5)
+    assert all("example_section" not in n for e in cc.values() for n in e["notes"])
     assert FULTON not in cc
-    sid = db.execute("select min(sr.sid) from ruleset a join ruleset b on b.set_id = a.set_id "
+    got = db.execute("select sr.set_id, sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
                      "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? "
-                     "and a.rule_id = 'fulton_river.r1' and b.entry_id = ? and b.rule_id = ?",
-                     (FULTON, *WINTER6.split("::"))).fetchone()[0]
-    assert sid is not None
+                     "and a.rule_id = 'fulton_river.r1' and b.entry_id = ? and b.rule_id = ? "
+                     "order by sr.sid limit 1", (FULTON, *WINTER6.split("::"))).fetchone()
+    assert got is not None
+    set_id, sid = got
+    example = {"ruleset": str(set_id),
+               "anadromous_rainbow": db.execute("select 1 from steelhead_water where sid = ?",
+                                                (sid,)).fetchone() is not None,
+               "steelhead_rules": db.execute("select 1 from section_steelhead_rules where sid = ?",
+                                             (sid,)).fetchone() is not None}
+    assert X.example_sid(example, BUNDLE) is not None
     fake = {FULTON: {"name": "Fulton River", "notes": [{
         "kind": "row_closure", "row_rule": f"{FULTON}::fulton_river.r1", "zone_rule": WINTER6,
-        "example_section": sid, "fish": "all",
+        "example": example, "fish": "all",
         "zone_holds": [{"dates": "Jan 1-Apr 30", "runs": [[1, 1, 4, 30]], "fish": "all"}]}]}}
     assert len(X.closures_combine_problems(fake, BUNDLE)) == 1
     # the lifts in part are named: the Nicola's trout Jan 1-Feb 28 (the char and whitefish
