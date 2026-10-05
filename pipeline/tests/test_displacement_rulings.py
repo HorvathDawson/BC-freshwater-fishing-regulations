@@ -309,7 +309,7 @@ def test_bella_coolas_spring_exception_replaces_the_rivers_quota(db):
 
 @pytest.fixture(scope="module")
 def db18(db):
-    if not db.execute("select count(*) from rule where rule_id = 'nahatlatch_river.r2x'").fetchone()[0]:
+    if not db.execute("select count(*) from rule where rule_id = 'nicola_river.r3x'").fetchone()[0]:
         pytest.skip(f"{BUNDLE} predates the 2026-09-30 rulings (Nahatlatch, Beaver Creek)")
     return db
 
@@ -320,19 +320,27 @@ Z5_SPRING = "z5:spring_stream_closure::spring_stream_closure.r1"
 
 
 @pytest.mark.parametrize("on,closed_by", [
-    ((6, 15), None),                                       # open from June 1
-    ((5, 15), f"{NAHATLATCH}::nahatlatch_river.r2"),        # the row's own Jan 1-May 31
-    ((7, 15), None),
+    ((6, 15), {Z3_SPRING}),                                         # closed to June 30
+    ((5, 15), {Z3_SPRING, f"{NAHATLATCH}::nahatlatch_river.r2"}),   # both
+    ((7, 15), set()),
 ])
-def test_nahatlatch_is_open_from_june_1(db18, on, closed_by):
-    """p.33 "Downstream of Nahatlatch Lake (…), open until Dec 31; No Fishing Jan 1-May 31"
-    (user ruling 2026-09-30): the row's own season lifts Region 3's Jan 1-June 30 spring closure
-    there; its own closure still holds to May 31. Mutation: drop nahatlatch_river.r2x."""
-    sid = _sid(db18, NAHATLATCH, "nahatlatch_river.r2x")
+def test_nahatlatch_below_the_lake_is_closed_to_june_30(db18, on, closed_by):
+    """p.31 "Downstream of Nahatlatch Lake (…), open until Dec 31; No Fishing Jan 1-May 31": the
+    row's own closure and Region 3's Jan 1-June 30 spring closure BOTH hold (user decision
+    2026-10-05, reversing the 2026-09-30 lift — "open until Dec 31" prints no opening inside the
+    closure). Mutation: restore nahatlatch_river.r2x and June opens."""
+    assert not db18.execute("select count(*) from rule where rule_id = 'nahatlatch_river.r2x'"
+                            ).fetchone()[0]
+    sid = db18.execute(
+        "select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+        "where r.entry_id = ? and r.rule_id = 'nahatlatch_river.r2' and r.set_id in (select "
+        "set_id from ruleset where entry_id = 'z3:spring_stream_closure')", (NAHATLATCH,)
+    ).fetchone()[0]
     got = _says(sid, on, "RB")
-    assert Z3_SPRING not in got
     closures = {r for r in got if r in (Z3_SPRING, f"{NAHATLATCH}::nahatlatch_river.r2")}
-    assert closures == ({closed_by} if closed_by else set())
+    assert closures == closed_by
+    if not closed_by:   # positive control: the stretch's quota speaks once it is open
+        assert f"{NAHATLATCH}::nahatlatch_river.r3" in got
 
 
 def test_beaver_creek_is_under_region_5s_spring_closure(db18):

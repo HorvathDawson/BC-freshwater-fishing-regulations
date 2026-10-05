@@ -640,15 +640,20 @@ def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, l
 
     A water's own row applies along its whole length, whichever region each piece lies in, and so
     do the exemptions it prints; but each piece takes the ZONE rules of its own region. West Road
-    River's row (Region 5, p.47) says the regional spring closure does not add to its own mainstem
-    closure; a mainstem piece lying mostly in Zone 7A carries Zone 7A's "No fishing (spring
-    closure): in any stream of Zone A, Apr 1 – June 30", not Region 5's, and the row's exemption
-    must reach it there. So a lift of a BLANKET closure (`is_blanket_closure`) also lifts every
-    blanket closure of the same water (`water`) in each other region of `regions` that is THE
-    SAME KIND OF CLOSURE THE ROW NAMES (`lift_kind`): "Exempt from spring closure" lifts another
-    region's spring closure and never its winter or summer one, whatever the dates — Region 6's
-    Skeena/Nass winter closure (Jan 1-June 15) overlaps every spring closure in the province, and
-    by dates alone the Nechako's "Exempt from spring closure" lifted it.
+    River's row (Region 5, p.47) is one of the "other streams listed in the tables" Region 5's
+    spring closure excepts (p.42), and it prints "tributaries subject to spring closure"; a
+    mainstem piece lying mostly in Zone 7A carries Zone 7A's "No fishing (spring closure): in any
+    stream of Zone A, Apr 1 – June 30", not Region 5's, and the row's exemption must reach it
+    there. So a lift of a BLANKET closure (`is_blanket_closure`) also lifts every blanket closure
+    of the same water (`water`) in each other region of `regions` that is THE SAME KIND OF CLOSURE
+    THE ROW NAMES (`lift_kind`): "Exempt from spring closure" lifts another region's spring
+    closure and never its winter or summer one, whatever the dates — Region 6's Skeena/Nass winter
+    closure (Jan 1-June 15) overlaps every spring closure in the province, and by dates alone the
+    Nechako's "Exempt from spring closure" lifted it.
+
+    `regions` is `equivalent_regions`' answer for the lifter: never a region where the row's
+    water has an entry of its OWN (user ruling 2026-10-05) — there the book speaks for the water
+    in that region's table, and a neighbour's exemption does not carry.
 
     A closure of unknown kind in the way of a lift of known kind is refused: the build does not
     guess whether it is the one. Only a lift of NO known kind (the row's words name none, and
@@ -911,6 +916,66 @@ def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
             for ce in docs if ce.entry_id.startswith("r") and ce.matched}
 
 
+def _book_region(zone_region: str) -> str:
+    """A zone table's region as the rows name it: Zones 7A and 7B are Region 7's (`r7:` rows)."""
+    return zone_region[:-1] if zone_region[-1:] in ("a", "b") else zone_region
+
+
+def co_bound_regions(sets) -> dict[tuple[str, str], frozenset[str]]:
+    """`{(entry_id, rule_id): zone regions}` — for every water row's rule, the regions whose OWN
+    zone tables (`z<region>:`, never the province's) the reach run bound on a section the rule
+    reaches THROUGH THE TRIBUTARY WALK (`via == "trib"`). Read off the run's rule sets
+    (`intern_sets`), never derived again: the region a section takes its zone rules from is the
+    run's decision (`section_home`). This is where a row's lift reaches another region through
+    its tributaries (the Similkameen's "exempt from spring closure", printed with the tributary
+    symbol, reaches 28 tributary sections that lie in Region 3), which the row's own matched
+    water (`regions_of_waters`) never shows. Only the walk: an AREA row's sections (Bowron Lake
+    Park's, in Zone 7A) are no water lying in another region, and its lift stays in its own."""
+    out: dict[tuple[str, str], set[str]] = {}
+    for rows in sets:
+        zr = {_zone_region(e) for e, _, _ in rows if e.startswith("z") and not e.startswith("zp:")}
+        if not zr:
+            continue
+        for e, r, via in rows:
+            if e.startswith("r") and via == "trib":
+                out.setdefault((e, r), set()).update(zr)
+    return {k: frozenset(v) for k, v in out.items()}
+
+
+def own_entry_regions(docs) -> dict[str, frozenset[str]]:
+    """`{item_id: book regions}` — the regions in whose tables a water has an ENTRY OF ITS OWN: a
+    row (`r<region>:`) matching the water with at least one rule about the water itself. A row
+    whose every rule is `tributaries_only` (Region 6's and Region 7's "West Road River's
+    tributaries") speaks for the tributaries, not for the water, and is not one."""
+    out: dict[str, set[str]] = {}
+    for ce in docs:
+        if not ce.entry_id.startswith("r") or not ce.matched:
+            continue
+        if all(r.tributaries_only for r in ce.rules):
+            continue
+        for item in ce.matched:
+            out.setdefault(item, set()).add(_book_region(_zone_region(ce.entry_id)))
+    return {k: frozenset(v) for k, v in out.items()}
+
+
+def equivalent_regions(ce, rule_id: str, water: dict[str, frozenset[str]],
+                       co_bound: dict[tuple[str, str], frozenset[str]],
+                       own: dict[str, frozenset[str]]) -> frozenset[str]:
+    """THE OTHER REGIONS A ROW'S PRINTED LIFT CARRIES INTO (`_equivalent_closures`; user rulings
+    2026-09-25/26, 2026-10-05): the regions the row's own water lies in (`regions_of_waters`) and
+    those whose zone tables the reach bound beside this rule (`co_bound_regions`: its tributaries)
+    — LESS every region where the row's water has an entry of its own (`own_entry_regions`). The
+    Fraser has rows in Regions 3, 5 and 7, so Region 5's "Mainstem open all year" never lifts
+    Region 3's or Zone 7A's spring closure; the Canim's Region 5 row never lifts Region 3's (its
+    Region 3 row prints no exemption). West Road River has only TRIBUTARY rows in Region 6 and
+    Zone 7A, so its mainstem pieces there keep the row's lift."""
+    home = _book_region(_zone_region(ce.entry_id))
+    mine = set(water.get(ce.entry_id, frozenset())) | set(co_bound.get((ce.entry_id, rule_id),
+                                                                        frozenset()))
+    theirs = set().union(*(own.get(i, frozenset()) for i in ce.matched)) - {home}
+    return frozenset(r for r in mine if _book_region(r) not in theirs)
+
+
 def _jsonl(path: Path):
     with path.open(encoding="utf-8") as fh:
         for line in fh:
@@ -1004,6 +1069,19 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     closures = zone_closures([ce for _, ce in docs])
     blankets = blanket_closures([ce for _, ce in docs])
     water_regions = regions_of_waters(registry, [ce for _, ce in docs])
+    # One pass over the bindings (149 M rows on the full corpus), noting every rule it names. FIRST,
+    # before any rule row: a row's lift carries into the regions whose zone tables the run bound
+    # beside it (`co_bound_regions`), which only the sets say.
+    bound_rules: set[tuple[str, str]] = set()
+
+    def _noting(rows):
+        for r in rows:
+            bound_rules.add((r["entry_id"], r["rule_id"]))
+            yield r
+
+    section_set, sets = intern_sets(_noting(_jsonl(sections_file)))
+    co_bound = co_bound_regions(sets)
+    own = own_entry_regions([ce for _, ce in docs])
     see_of = _see_column(entries_by_id)
     for e, ce in docs:
         ces.append(ce)
@@ -1037,7 +1115,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                                        rules_of, unresolved=unresolved.get(k),
                                        place_of=place_of, entries=entries_by_id,
                                        closures=closures,
-                                       regions=water_regions.get(e["entry_id"]),
+                                       regions=equivalent_regions(
+                                           ce, r.get("rule_id"), water_regions, co_bound, own),
                                        blankets=blankets))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
@@ -1058,16 +1137,6 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                    "                  verbatim, extent_text, undrawn_part) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
-
-    # One pass over the bindings (149 M rows on the full corpus), noting every rule it names.
-    bound_rules: set[tuple[str, str]] = set()
-
-    def _noting(rows):
-        for r in rows:
-            bound_rules.add((r["entry_id"], r["rule_id"]))
-            yield r
-
-    section_set, sets = intern_sets(_noting(_jsonl(sections_file)))
 
     # THE REACH RUN MUST BE THIS CORPUS'S. A run built before a rule was removed still binds it,
     # and `ruleset` then names a rule the `rule` table does not have — measured on the bundle

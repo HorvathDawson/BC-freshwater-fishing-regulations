@@ -977,6 +977,44 @@ def test_the_gotchas_name_the_source_artefacts(doc):
             assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]
 
 
+def test_the_gotchas_say_where_closures_combine_and_where_a_dated_bait_ban_replaces(doc, db):
+    """User decisions 2026-10-05: every entry whose own closure overlaps a zone seasonal closure
+    carries a note that BOTH hold (`closures_combine`, generated from the sets) — the Nahatlatch
+    below its lake, the Stein, the Thompson below Kamloops Lake; and every row whose dated bait
+    ban replaces its zone's all-year ban carries one (`dated_bait_ban_replaces_zone`) — exactly
+    Region 1's four. A zone closure the row lifts WHOLLY is no such case (West Road's Region 5
+    mainstem), while the same row's Region 6 pieces under the steelhead closure are.
+    MUTATION: treating a lift in part as whole drops the Thompson; a bait gotcha that does not
+    check the zone ban is undated lists the Region 7A 'EXEMPT from bait ban' rows."""
+    if db.execute("select count(*) from rule where rule_id = 'stein_river.r1x'").fetchone()[0]:
+        pytest.skip(f"{BUNDLE} predates the 2026-10-05 lift decisions")
+    g = doc["guide"]["gotchas"]
+    cc = g["closures_combine"]["entries"]
+    z3 = "z3:spring_stream_closure::spring_stream_closure.r1"
+    for eid, rid in (("r3:nahatlatch_river@3-15", "nahatlatch_river.r2"),
+                     ("r3:stein_river@3-16", "stein_river.r1"),
+                     ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t"
+                      "@3-13+3-14+3-18", "thompson_river_downstream_of_kamloops_lake.r1")):
+        notes = [n for n in cc[eid]["notes"] if n["kind"] == "row_closure"]
+        assert [n["zone_rule"] for n in notes if n["row_rule"] == f"{eid}::{rid}"] == [z3], eid
+        assert "UNION" in notes[0]["says"] and notes[0]["zone_says"] in doc["rules"][z3]["verbatim"]
+    west = "r5:west_road_blackwater_river@5-12+5-13"
+    west_zones = {n["zone_rule"] for n in cc[west]["notes"] if n["kind"] == "row_closure"}
+    assert west_zones == {"z6:steelhead_stream_closure::steelhead_stream_closure.r1"}
+    assert any(n["kind"] == "subject_to" for n in cc[west]["notes"])
+    for e in cc.values():
+        for n in e["notes"]:
+            assert all(n[k] in doc["rules"] for k in ("row_rule", "zone_rule") if k in n), n
+    bait = g["dated_bait_ban_replaces_zone"]["entries"]
+    assert set(bait) == {"r1:quatse_river@1-13", "r1:somass_river@1-7", "r1:sproat_river@1-7",
+                         "r1:stamp_river@1-7"}
+    q = bait["r1:quatse_river@1-13"]["notes"]
+    assert [(n["row_rule"], n["zone_rule"], n["lift"]) for n in q] == [(
+        "r1:quatse_river@1-13::quatse_river.r4", "z1:bait_ban_streams::bait_ban_streams.r1",
+        "r1:quatse_river@1-13::quatse_river.r4x")]
+    assert "May 1-Nov 30" in q[0]["says"] and "Dec 1-Apr 30" in q[0]["says"]
+
+
 # ---------------------------------------------------------------------------------------
 # The record duty of an annual quota: linked once, from the book (2026-09-30)
 # ---------------------------------------------------------------------------------------

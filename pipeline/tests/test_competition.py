@@ -1540,31 +1540,21 @@ Z3_SPRING = "z3:spring_stream_closure::spring_stream_closure.r1"
 
 def _p3(db):
     if not db.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
-                      ("r3:stein_river@3-16", "stein_river.r1x")).fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the Phase 3 corpus (Stein lift) — point UI_EXPORT_BUNDLE "
+                      ("r3:nicola_river@3-13", "nicola_river.r3x")).fetchone()[0]:
+        pytest.skip(f"{BUNDLE} predates the Phase 3 corpus (Nicola lift) — point UI_EXPORT_BUNDLE "
                     f"at a side build")
 
 
-def test_the_stein_is_closed_jan_to_may_and_open_in_june(db):
-    """RU-1: p.30 lists the Stein with the Nahatlatch ("from Jan 1-May 31"); the row's lift of
-    Region 3's Jan 1-Jun 30 closure makes June open, and March closed by the row's own rule."""
-    _p3(db)
-    sid = _sid(db, "r3:stein_river@3-16", "stein_river.r1")
-    june = _speaks_any(sid, JUN_15, "RB")
-    assert Z3_SPRING not in june
-    # positive control: the stream key is visible to the check ("4 from streams" speaks)
-    assert "z3:trout_char_quota::trout_char_quota.r2" in june
-    assert not any(x["take"] == 0 and x["may_target"] == 0 for x in
-                   R.effective_rules(sid, JUN_15, "RB", BUNDLE) if x["state"] == "speaks")
-    march = _speaks_any(sid, (3, 1), "RB")
-    assert "r3:stein_river@3-16::stein_river.r1" in march and Z3_SPRING not in march
+# The Stein (RU-1) was lifted here until the strict lift ruling of 2026-10-05 removed the lift:
+# it is closed Jan 1-Jun 30 now, pinned in test_lift_decisions.py.
 
 
 def test_the_nicola_below_the_lake_is_catch_and_release_jan_feb_not_closed(db):
-    """RU-2 (user ruling 2026-10-03): downstream of Nicola Lake the row's "Trout catch and
-    release, Jan 1-Feb 28" lifts the spring closure on those dates; Mar 1-Sep 30 the row's own
-    closure governs; upstream of the lake the zone closure holds (the row gives it the same
-    dates)."""
+    """RU-2 (user ruling 2026-10-03, narrowed to trout 2026-10-05): downstream of Nicola Lake the
+    row's "Trout catch and release, Jan 1-Feb 28" lifts the spring closure on those dates for
+    TROUT (a rainbow here; the whitefish stays closed: test_lift_decisions.py); Mar 1-Sep 30 the
+    row's own closure and the spring closure both hold; upstream of the lake the zone closure
+    holds (the row gives it the same dates)."""
     _p3(db)
     below = _sid(db, "r3:nicola_river@3-13", "nicola_river.r3")
     jan = _speaks_any(below, (1, 15), "RB")

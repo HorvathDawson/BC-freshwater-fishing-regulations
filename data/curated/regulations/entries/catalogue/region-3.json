@@ -6779,29 +6779,6 @@
      "extent_text": "downstream of Nahatlatch Lake (including Hannah and Frances lakes)"
     },
     {
-     "rule_id": "nahatlatch_river.r2x",
-     "type": "retention_limit",
-     "verbatim": "Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "includes_tributaries": false,
-     "extents": [
-      {
-       "op": "downstream_of",
-       "splits": [
-        "nahatlatch_river__nahatlatch_lake"
-       ]
-      }
-     ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)' — this row prints its own season downstream of Nahatlatch Lake ('open until Dec 31; No Fishing Jan 1-May 31'), so the stretch is open from June 1 (user ruling 2026-09-30)"
-      }
-     ]
-    },
-    {
      "rule_id": "nahatlatch_river.r3",
      "type": "retention_limit",
      "verbatim": "Trout daily quota = 2 (none under 30 cm)",
@@ -6971,7 +6948,10 @@
      "type": "retention_limit",
      "verbatim": "Trout catch and release downstream of Nicola Lake, Jan 1-Feb 28",
      "species": [
-      "ALL_GAME_FISH"
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
      ],
      "includes_tributaries": false,
      "when": {
@@ -6995,7 +6975,7 @@
      "exempts": [
       {
        "default_id": "spring_stream_closure",
-       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. Downstream of Nicola Lake this row prints its own closed season (Mar 1-Sept 30) and a catch-and-release rule for Jan 1-Feb 28 — a release that can only mean the water is open then. User ruling 2026-10-03: the Nicola below the lake is exempt from the spring closure on its catch-and-release dates (RU-2); it is catch and release, not closed, Jan 1-Feb 28"
+       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. Downstream of Nicola Lake this row prints a dated catch and release INSIDE the closure, 'Trout catch and release downstream of Nicola Lake, Jan 1-Feb 28' (p.31): the closure is lifted on exactly those dates and for trout only (strict lift ruling 2026-10-05, (b)); every other fish stays closed by the spring closure, and from Mar 1 the row's own Mar 1-Sept 30 closure and the spring closure both hold"
       }
      ]
     },
@@ -9611,26 +9591,6 @@
      "extents": [
       {
        "op": "whole"
-      }
-     ]
-    },
-    {
-     "rule_id": "stein_river.r1x",
-     "type": "retention_limit",
-     "verbatim": "**No Fishing** Jan 1-May 31",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "includes_tributaries": false,
-     "extents": [
-      {
-       "op": "whole"
-      }
-     ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. p.30 lists the Stein with the Nahatlatch among the waters whose spring closure has its own dates ('Nahatlatch River downstream of Nahatlatch Lake and Stein River: from Jan 1-May 31'), and this row prints that season, so the Stein is open from June 1 (RU-1, 2026-10-04; the same lift the Nahatlatch row carries)"
       }
      ]
     },

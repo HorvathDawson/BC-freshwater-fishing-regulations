@@ -418,8 +418,34 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     and applied to the registry's area item (`registry.outside_area_items`, build + sidecars;
     IDEMPOTENT — the sidecar step reapplies it to a registry that already holds it), so
     the closure, `outside_area_kind`, `province_except` and the designations all agree — never on a
-    rule, never in a reader. The Stein (p.30) and the Nicola below its lake (its C&R dates) lift
-    Region 3's spring closure by lift-only rules (`stein_river.r1x`, `nicola_river.r3x`). READER
+    rule, never in a reader. STRICT LIFT RULING (user, 2026-10-05): a zone closure and a water's
+    row BOTH apply — the water is closed on the UNION of their closed dates, and a row's own
+    closed season NEVER shortens the zone's (the Thompson below Kamloops Lake: Oct 1-May 31 ∪
+    Jan 1-Jun 30). A row beats a zone closure ONLY where (a) the book prints an exemption (the
+    row's "exempt from spring closure", or the zone page lists the water: Region 5's "other
+    streams listed in the tables", p.42), or (b) the row prints a dated catch and release,
+    opening or quota INSIDE the closure — lifted on exactly those dates, for exactly those fish
+    (`nicola_river.r3x`: trout only, Jan 1-Feb 28; the whitefish stays closed). The p.28 list
+    naming the Stein and the Nahatlatch below its lake is a STEELHEAD closure list, not an
+    exception list: `stein_river.r1x` and `nahatlatch_river.r2x` are gone, both closed to Jun 30.
+    G3 — A PRINTED EXEMPTION CARRIES to the same KIND of closure in a neighbouring region the
+    water (or, through the walk, its tributaries) reaches (`rules.equivalent_regions`: the
+    water's regions ∪ the zone regions the run bound beside the lifter, `co_bound_regions`) ONLY
+    WHERE THE WATER HAS NO ENTRY OF ITS OWN in that region (`own_entry_regions`; a row whose
+    every rule is `tributaries_only` is not one): the Fraser (rows in 3, 5, 7) and the Canim
+    never carry; West Road's mainstem pieces in Region 6 / Zone 7A keep its lift (only tributary
+    rows there) and NO lift reaches a West Road tributary in any region; the Similkameen's
+    reaches its 28 Region 3 tributary sections. G4 — "open all year" lifts only FULL blanket
+    closures, never a species closure: Region 6's steelhead closure (May 15-Jun 15, p.49) holds
+    on every Region 6 river and stream except the Skeena, Nass, Iskut, Stikine and Taku
+    mainstems (its own sibling lift, which binds exactly those five items). G5 — a row's DATED
+    bait ban REPLACES its zone's all-year one (Region 1's Quatse, Somass, Sproat, Stamp, by dated
+    lift-only rules); no other region prints that shape. Duck Lake's creeks stay closed Apr 1-Jun
+    14 (its bass release does not lift the stream closure). The export's `gotchas` carry
+    `closures_combine` (every entry whose own closure overlaps a zone seasonal closure, or whose
+    rule the zone closure silences: both hold) and `dated_bait_ban_replaces_zone`, both generated
+    from the bundle (`export_ui_rules.closures_combine`, `dated_bait_ban_replaces_zone`); pinned
+    in `test_lift_decisions.py`. READER
     (`read.effective_rules`, each pinned in `test_competition.py`): a same-row DATED release OR
     CLOSURE silences the row's UNDATED counted quota on its dates (RU-3; size clauses are their
     own subject; as built a row's dated closure silences its own quota too — Quatse, the Region 7
@@ -434,7 +460,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     that `restates` a holding one into it (`also_printed`) and holds a zone table's
     `on_designation` restatement on its own region only (RU-12; 7A/7B tables are Region 7 to the
     rows). The export REFUSES a dated water release that speaks under a blanket closure unless
-    listed as known (`export_ui_rules.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-1/RU-2 would have been
+    listed as known (`export_ui_rules.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-2 would have been
     caught), AND a water row's keeping quota in force that a blanket zone closure silences
     (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
     exemption shaped like a quota would otherwise vanish). Both read every set, every start day of

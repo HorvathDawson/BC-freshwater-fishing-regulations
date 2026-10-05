@@ -24,8 +24,8 @@ def db():
     if not BUNDLE.exists():
         pytest.skip("no bundle")
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
-    if not con.execute("select count(*) from rule where entry_id = 'r3:stein_river@3-16' and "
-                       "rule_id = 'stein_river.r1x'").fetchone()[0]:
+    if not con.execute("select count(*) from rule where entry_id = 'r3:nicola_river@3-13' and "
+                       "rule_id = 'nicola_river.r3x'").fetchone()[0]:
         pytest.skip(f"{BUNDLE} predates the Phase 3 corpus — point UI_EXPORT_BUNDLE at a side build")
     yield con
     con.close()

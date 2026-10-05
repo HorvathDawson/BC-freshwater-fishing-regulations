@@ -3206,7 +3206,9 @@ def guide(d: dict) -> dict:
                   "`status_index.bin`, computed from the same reference reader",
         "gotchas": "where a page is easy to get wrong: size-clause overrides, places not yet "
                    "mapped, trout includes char, dated zone releases, one side of the channel, "
-                   "bull trout is Dolly Varden, open subjects, source artefacts",
+                   "bull trout is Dolly Varden, open subjects, source artefacts, closures that "
+                   "combine (a row's and its zone's: both hold), dated bait bans that replace "
+                   "the zone's",
         "cases": "SAMPLE WATERS to build the page against while it is built out — one or more "
                  "per mechanism, each with what to show and the reference answer",
     }
@@ -4820,6 +4822,45 @@ def index(d: dict) -> dict:
             "licensing_by_kind": dict(sorted(by_kind.items()))}
 
 
+def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
+    """The two gotchas only the bundle's sets can say (`closures_combine`,
+    `dated_bait_ban_replaces_zone`), added to `guide.gotchas` — generated, never hand-listed."""
+    combine = closures_combine(bundle)
+    bait = dated_bait_ban_replaces_zone(d["rules"])
+    g["gotchas"]["closures_combine"] = {
+        "says": "A water's OWN closure and its zone's seasonal closure (a spring, winter or "
+                "summer stream closure; Region 6's steelhead closure) BOTH hold: the water is "
+                "closed on the UNION of their dates (user ruling 2026-10-05). A row's closed "
+                "season never shortens the zone's — the Stein's 'No Fishing Jan 1-May 31' "
+                "under Region 3's 'No Fishing in any stream in Region 3 from Jan 1-June 30' is "
+                "closed to June 30; the Nahatlatch below its lake likewise. A row beats the "
+                "zone closure only where the book prints an exemption, or prints a dated "
+                "catch and release, opening or quota inside the closure (then on exactly those "
+                "dates, for exactly those fish: the Nicola below its lake, trout catch and "
+                "release Jan 1-Feb 28) — and the bundle carries every such lift in `exempts`. "
+                "On every entry listed here, show `notes[].says` beside the row's closure, so "
+                "a reader never takes the row's dates for the whole closed season. A row's "
+                "quota or release under the zone closure does not open the water either "
+                "(kind `row_rule`).",
+        "key_on": "entries[entry_id].notes[*] (kind row_closure | row_rule | subject_to); the "
+                  "answer itself already holds both closures (`ladder`)",
+        "entries": combine,
+    }
+    g["gotchas"]["dated_bait_ban_replaces_zone"] = {
+        "says": "A row printing a DATED bait ban ('Bait ban, May 1-Nov 30') where its zone "
+                "bans bait all year ('Bait ban: applies to all streams of Region 1, all year, "
+                "with some important exceptions. Check the tables.') REPLACES the zone's ban on "
+                "that water: bait is banned on the row's dates only (user ruling 2026-10-05). "
+                "The row's lift of the zone ban (`exempts`, dated) carries it; never show the "
+                "zone's all-year ban on the row's other days. Only Region 1 prints this "
+                "shape today; Regions 6, 7A and 7B's all-year stream bait bans have no row "
+                "printing a dated ban on the same water.",
+        "key_on": "entries[entry_id].notes[*]: the row's dated ban, the zone ban, the lift",
+        "entries": bait,
+    }
+    return g
+
+
 def build(bundle: Path = BUNDLE) -> dict:
     d = read(bundle)
     counts = {
@@ -4850,7 +4891,7 @@ def build(bundle: Path = BUNDLE) -> dict:
             # (`quota_under_closure`): each must be listed as known, or the export is refused
             "quota_under_closure": quota_under_closure(bundle),
         },
-        "guide": dict(guide(d), cases=cases(d, bundle)),
+        "guide": with_closure_gotchas(dict(guide(d), cases=cases(d, bundle)), d, bundle),
         "field_dictionary": field_dictionary(d),
         "species": species_table(),
         "licences": d["licences"],
@@ -5424,12 +5465,14 @@ def valid_end(token, doc: dict) -> bool:
 
 
 #: A DATED WATER RELEASE THAT SPEAKS WHILE A BLANKET CLOSURE OF ITS REGION ALSO SPEAKS can never
-#: apply — it is exactly how a missed exemption shows (the Stein, RU-1; the Nicola, RU-2). The
+#: apply — it is exactly how a missed exemption shows (the Nicola, RU-2). The
 #: export refuses one unless it is listed here with why it is benign: `(entry_id, rule_id)`.
 RELEASE_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
     ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r3"):
-        "the Duck Lake row's bass release (May 15-Jun 15) binds a STREAM section of the entry's "
-        "water, under Region 4's Apr 1-Jun 14 stream closure; the lake itself is not a stream",
+        "the Duck Lake row's bass catch and release (May 15-Jun 15) binds the STREAM sections of "
+        "the entry's water (its tributary creeks), under Region 4's Apr 1-Jun 14 stream "
+        "closure: both hold, and the creeks stay closed to Jun 14 (user decision 2026-10-05: "
+        "the row's release does not lift the stream closure); the lake itself is not a stream",
 }
 
 #: A WATER ROW'S KEEPING QUOTA, IN FORCE, SILENCED WHILE A BLANKET ZONE CLOSURE SPEAKS (review F5).
@@ -5438,60 +5481,76 @@ RELEASE_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
 #: closure) no longer shows as a contradiction on the page — it simply vanishes. The export
 #: refuses one unless it is listed here with why the silence is the book: `(entry_id, rule_id)`.
 QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
+    # Every reason below is read under the STRICT LIFT RULING (2026-10-05): a zone closure and a
+    # water's row both hold — closed on the union of their dates — and a row beats the closure
+    # only where the book prints an exemption or a dated release/opening/quota INSIDE it.
     ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
      "thompson_river_downstream_of_kamloops_lake.r2"):
         "the row's own Oct 1-May 31 closure and Region 3's Jan 1-Jun 30 spring stream closure "
-        "both close it; the row lifts nothing, so June is closed as built",
+        "both hold (the user's own example of the union); only the printed 'Additional opening "
+        "May 1-31' lifts, on exactly those dates — so June is closed and the 2 per day holds "
+        "from Jul 1",
     ("r3:nahatlatch_river@3-15", "nahatlatch_river.r3"):
-        "above the lake the row prints no lift of Region 3's Jan 1-Jun 30 stream closure (p.30 "
-        "lifts it Jan 1-May 31 below the lake only); the quota holds Jul 1-Dec 31",
+        "Region 3's Jan 1-Jun 30 spring stream closure holds on the whole river: below the lake "
+        "beside the row's own 'No Fishing Jan 1-May 31' (closed to Jun 30 — the p.28 list is a "
+        "steelhead closure list, no exemption; user decision 2026-10-05), above it alone; the "
+        "quota holds Jul 1-Dec 31",
     ("r3:mahood_river@3-46", "mahood_river.r2"):
-        "the row prints no lift of Region 3's spring stream closure; its quota holds Jul 1-Dec 31",
+        "the row prints its own 'No Fishing Jan 1-June 30' and no exemption: the spring "
+        "closure and the row both close it to Jun 30; its quota holds Jul 1-Dec 31",
     ("r6:west_road_blackwater_river_s_tributaries@6-1", "west_road_river_tributaries.r1"):
-        "tributaries only: Region 6's Iskut/Fraser stream closure binds them in spring, the "
-        "row lifts nothing; the 1 per day holds the rest of the year",
+        "tributaries only: the mainstem row prints 'tributaries subject to spring closure', so "
+        "Region 6's Fraser-watershed stream closure (Apr 1-Jun 30) holds on them and no lift "
+        "reaches a tributary (user decision 2026-10-05); the 1 per day holds the rest of the "
+        "year",
     ("r7:west_road_blackwater_river_s_tributaries@7-10",
      "west_road_blackwater_rivers_tributaries.r1"):
-        "tributaries only: Zone 7A's spring stream closure binds them, the row lifts nothing; "
-        "the 1 per day holds the rest of the year",
+        "tributaries only: as Region 6's — Zone 7A's spring stream closure holds on them ("
+        "'tributaries subject to spring closure'); the 1 per day holds the rest of the year",
     ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r1"):
-        "the park's streams fall under Zone 7A's spring stream closure (a group-named quota, "
-        "the row lifts nothing); its lakes keep the 1 per day",
+        "the park's streams lying in Zone 7A fall under Zone 7A's spring stream closure: Region "
+        "5's page exception (p.42) lifts only Region 5's closure, and the row prints no "
+        "exemption Zone 7A's tables list; its lakes keep the 1 per day",
     ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
      "creston_valley_wma_waters.r1"):
-        "bass 'no limit' on all CVWMA waters; its stream/slough sections fall under Region 4's "
-        "Apr 1-Jun 14 stream closure (sloughs are streams, 2026-10-02)",
+        "bass 'no limit' on all CVWMA waters, undated: it lifts Region 4's bass CLOSURE (named "
+        "fish), never the Apr 1-Jun 14 stream closure on its stream/slough sections (sloughs "
+        "are streams, 2026-10-02) — both hold",
     ("r8:okanagan_river@8-1", "okanagan_river.r2"):
-        "bass 8 per day on a stream under Region 8's spring stream closure; the row lifts "
-        "nothing for bass",
+        "bass 8 per day, undated, on a stream under Region 8's spring stream closure outside "
+        "the reaches the row prints exempt: both hold, closed Apr 1-Jun 30",
     ("r8:christina_creek@8-15", "christina_creek.r1"):
-        "bass 8 per day on a stream under Region 8's spring stream closure; the row lifts "
-        "nothing for bass",
+        "bass 8 per day, undated, under Region 8's spring stream closure: no printed exemption, "
+        "both hold",
     ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r1"):
-        "the Duck Lake row's bass quota binds a STREAM section of the entry's water under Region "
-        "4's Apr 1-Jun 14 stream closure (as `duck_lake.r3` above); the lake is not a stream",
+        "the Duck Lake row's bass quota on its tributary creeks (STREAM sections) under Region "
+        "4's Apr 1-Jun 14 stream closure: both hold, the creeks are closed to Jun 14 (user "
+        "decision 2026-10-05: leave as built); the lake is not a stream",
     ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r2"):
-        "the same Duck Lake stream section: the bass size clause under the stream closure",
+        "the same Duck Lake creeks: the bass size clause under the stream closure",
     ("r4:french_slough@4-7", "french_slough.r1"):
-        "a slough is a stream (2026-10-02): Region 4's Apr 1-Jun 14 stream closure binds it; "
-        "the row's lift is of the bass CLOSURE, not of the spring stream closure",
+        "a slough is a stream (2026-10-02): Region 4's Apr 1-Jun 14 stream closure holds; the "
+        "row's undated quota lifts the bass CLOSURE (named fish), not the stream closure",
     ("r4:lewis_cameron_slough@4-21", "lewis_cameron_slough.r1"):
         "a slough is a stream (2026-10-02): as French Slough",
     ("r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3", "kitimat_river.r5"):
         "the hatchery steelhead 2 is silenced by the row's OWN Mar 16-May 31 closure (RU-3) on "
-        "the days Region 6's steelhead stream closure also speaks",
+        "the days Region 6's steelhead stream closure (May 15-Jun 15, its own exemption list "
+        "printed — the Kitimat is not on it) also holds",
     # found by the every-day / every-fish sampling (review F6), the same class: a group-named
     # quota, for one fish, under a full zone closure OF THAT FISH on its dates
     ("r5:west_road_blackwater_river@5-12+5-13", "west_road_blackwater_river.r2"):
         "the trout/char 1 per day, asked for a steelhead May 15-Jun 15: Region 6's steelhead "
-        "stream closure closes the steelhead; the row lifts nothing for it",
+        "stream closure holds on the river's Region 6 pieces (its exemptions are the Skeena, "
+        "Nass, Iskut, Stikine and Taku mainstems only, p.49); the row lifts nothing for it",
     ("r6:station_creek@6-9", "station_creek.r2"):
         "the trout/char 1 per day, for a steelhead under Region 6's May 15-Jun 15 steelhead "
-        "stream closure; the row lifts a size clause, not the closure",
+        "stream closure: 'open all year' lifts only the full winter closure, never a species "
+        "closure (G4, user decision 2026-10-05)",
     ("r6:hevenor_mcqueen_creek@6-30", "hevenor_creek.r2"):
-        "as Station Creek: Region 6's steelhead stream closure, May 15-Jun 15",
+        "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure",
     ("r6:two_mile_creek@6-8", "two_mile_creek.r2"):
-        "as Station Creek: Region 6's steelhead stream closure, May 15-Jun 15",
+        "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure",
     ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r2"):
         "the park's possession clause beside its 1 per day (r1, above): the same Zone 7A spring "
         "stream closure on the park's streams",
@@ -5599,6 +5658,195 @@ def _closure_scan(bundle: Path) -> dict:
                 out[what].append({"key": k, "rule": f"{k[0]}::{k[1]}", "section": sid,
                                   "date": list(on), "fish": fish, "closures": shut})
     _SCAN[key] = out
+    return out
+
+
+_MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+#: The keys of a lift item that make it a lift IN PART (`rules.LIFT_KEYS`): a zone closure lifted
+#: only for some fish, days, origins, sizes, targets or means still holds for the rest.
+_IN_PART = ("species", "when", "origin", "lengths", "when_targeting", "while")
+
+
+def _dates_words(x: dict) -> str:
+    ds = (x.get("when") or {}).get("dates") or []
+    return ", ".join(f"{_MONTHS[d['from_month'] - 1]} {d['from_day']}-"
+                     f"{_MONTHS[d['to_month'] - 1]} {d['to_day']}" for d in ds) or "all year"
+
+
+def _plain(text: str) -> str:
+    """A verbatim without the book's bold markers, for a sentence that quotes it."""
+    return (text or "").replace("**", "")
+
+
+def _zone_words(entry_id: str) -> str:
+    """`z3:…` -> "Region 3", `z7a:…` -> "Zone 7A" — whose closure it is, in the book's words."""
+    from pipeline.deliver.bundle import read as RD
+    r = RD.base_region(entry_id) or ""
+    return f"Zone {r[-1].upper()}" if r[-1:] in ("a", "b") else f"Region {r}"
+
+
+def closures_combine(bundle: Path) -> dict:
+    """WHERE A WATER'S OWN CLOSURE AND A ZONE CLOSURE BOTH HOLD (user ruling 2026-10-05, the
+    strict lift ruling): `{entry_id: {"name", "notes": [...]}}`, generated from the bundle.
+
+    A zone's seasonal closure (a spring, winter or summer stream closure, Region 6's steelhead
+    closure) and a row's own closure on the same water BOTH apply: the water is closed on the
+    UNION of their dates. Where the row's closed season lies inside the zone's, or crosses it,
+    a reader is easily misled into thinking the row's dates replace the zone's (the Stein's "No
+    Fishing Jan 1-May 31" under Region 3's Jan 1-June 30: closed to June 30). Two shapes, both
+    read off the sets as the closure review did (handoff P3 closure_review.md Part 1 + 2A/2B):
+
+      `row_closure`  a row's full closure bound beside a zone's full SEASONAL closure on the same
+                     sections, for a fish both close, on days that overlap, where the zone closes
+                     days the row does not — and no rule there lifts the zone closure WHOLLY (a
+                     lift in part — Nicola's trout Jan 1-Feb 28, the Thompson's May opening —
+                     leaves it holding on every other day and fish);
+      `row_rule`     a row's dated release or keeping quota the reader silences under a zone
+                     full closure (`_closure_scan`, the rows of `QUOTA_UNDER_CLOSURE_KNOWN` /
+                     `RELEASE_UNDER_CLOSURE_KNOWN`): the row's rule does not open the water.
+    Plus `subject_to`: a row printing that its water, or its tributaries, are "subject to" a
+    zone closure (West Road River's "tributaries subject to spring closure")."""
+    from pipeline.deliver.bundle import read as RD
+    from pipeline.deliver.bundle.rules import closure_grade
+    R = RD._rules_of(str(bundle))
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    try:
+        members: dict = defaultdict(list)
+        for s, e, r in db.execute("SELECT set_id, entry_id, rule_id FROM ruleset"):
+            if (e, r) in R:
+                members[s].append((e, r))
+        nsec = dict(db.execute("SELECT set_id, COUNT(*) FROM section_ruleset GROUP BY set_id"))
+        sid_of = dict(db.execute("SELECT set_id, MIN(sid) FROM section_ruleset GROUP BY set_id"))
+        names = dict(db.execute("SELECT entry_id, name FROM entry"))
+        verbatim = dict(db.execute("SELECT entry_id, verbatim FROM entry"))
+    finally:
+        db.close()
+    game = [f for f in C.expand_species(["ALL_GAME_FISH"]) if f != "CRA"]
+
+    def days(x):
+        got = RD._days_of(json.dumps((x.get("when") or {}).get("dates") or [], sort_keys=True))
+        return got if got is not None else frozenset(range(1, 367))
+
+    def fish(x):
+        return {f for f in game if RD.speaks_for(x, f)}
+
+    def zone_seasonal(k):
+        x = R[k]
+        return (RD.base_region(k[0]) is not None and closure_grade(x) == "full"
+                and not RD.not_yet_mapped(x) and bool((x.get("when") or {}).get("dates")))
+
+    def row_closure(k):
+        return str(k[0]).startswith("r") and closure_grade(R[k]) == "full" \
+            and not RD.not_yet_mapped(R[k])
+
+    pairs: dict = {}
+    for s, ks in members.items():
+        zs = [k for k in ks if zone_seasonal(k)]
+        if not zs:
+            continue
+        whole = {(y.get("entry_id"), y.get("rule_id")) for k in ks
+                 for y in R[k].get("exempts") or [] if not any(q in y for q in _IN_PART)}
+        for k in ks:
+            if not row_closure(k):
+                continue
+            for z in zs:
+                if z in whole:
+                    continue
+                common = fish(R[k]) & fish(R[z])
+                dk, dz = days(R[k]), days(R[z])
+                if not common or not (dk & dz) or not (dz - dk):
+                    continue
+                p = pairs.setdefault((k, z), {"sections": 0, "fish": set(),
+                                              "example_section": sid_of.get(s)})
+                p["sections"] += nsec.get(s, 0)
+                p["fish"] |= common
+
+    def fish_words(fs):
+        return "" if set(fs) >= set(game) else \
+            " (for " + ", ".join(_name(f) for f in sorted(fs)) + ")"
+
+    out: dict = {}
+
+    def note(eid, item):
+        out.setdefault(eid, {"name": names.get(eid) or eid, "notes": []})["notes"].append(item)
+
+    for (k, z), p in sorted(pairs.items()):
+        x, y = R[k], R[z]
+        note(k[0], {
+            "kind": "row_closure", "row_rule": f"{k[0]}::{k[1]}", "row_says": x["verbatim"],
+            "row_dates": _dates_words(x), "zone_rule": f"{z[0]}::{z[1]}",
+            "zone_says": y["verbatim"], "zone_dates": _dates_words(y),
+            "fish": "all" if p["fish"] >= set(game) else sorted(p["fish"]),
+            "sections": p["sections"],
+            "example_section": p["example_section"],
+            "says": f"Both hold: the row's '{_plain(x['verbatim'])}' ({_dates_words(x)}) and "
+                    f"{_zone_words(z[0])}'s '{_plain(y['verbatim'])}' ({_dates_words(y)}). The water is "
+                    f"closed on the UNION of the two{fish_words(p['fish'])} — the row's dates "
+                    f"do not replace the zone's."})
+    scan = _closure_scan(bundle)
+    for what in ("release", "quota"):
+        for f in scan[what]:
+            k = tuple(f["key"])
+            x = R[k]
+            for c in f["closures"]:
+                ze, zr = c.split("::")
+                y = R[(ze, zr)]
+                note(k[0], {
+                    "kind": "row_rule", "row_rule": f"{k[0]}::{k[1]}", "row_says": x["verbatim"],
+                    "row_dates": _dates_words(x), "zone_rule": c, "zone_says": y["verbatim"],
+                    "zone_dates": _dates_words(y), "example_section": f["section"],
+                    "says": f"The row's '{_plain(x['verbatim'])}' does not open the water while "
+                            f"{_zone_words(ze)}'s '{_plain(y['verbatim'])}' ({_dates_words(y)}) is in "
+                            f"force: both hold, and on those dates the water is closed"
+                            f"{fish_words(fish(y))}."})
+    subject = re.compile(r"(?:\w+\s+)?subject to (?:the )?(spring|summer|winter)[\w\s-]*closure",
+                         re.I)
+    for eid, v in sorted(verbatim.items()):
+        m = subject.search(v or "")
+        if m and str(eid).startswith("r"):
+            note(eid, {"kind": "subject_to", "row_says": m.group(0),
+                       "says": f"The row prints '{m.group(0)}': the region's {m.group(1).lower()} "
+                               f"closure holds there beside the row's own rules — both apply, "
+                               f"and nothing in the row lifts it."})
+    return out
+
+
+def dated_bait_ban_replaces_zone(rules: dict) -> dict:
+    """WHERE A ROW'S DATED BAIT BAN REPLACES A ZONE'S ALL-YEAR ONE (user ruling 2026-10-05, G5):
+    `{entry_id: {"name", "notes": [...]}}`, generated from the export's rules. Region 1's
+    "Bait ban: applies to all streams of Region 1, all year, with some important exceptions.
+    Check the tables" (p.13) is excepted by a row printing its own dated ban — the Quatse's
+    "Bait ban, May 1-Nov 30" bans bait on those dates only. The lift (a row rule lifting a zone
+    bait ban that has no dates, on the days the row's ban is not in force) is what says so; this
+    names, per entry, the row's ban and the zone ban it replaces, so a page never shows the
+    zone's all-year ban as holding on the row's other days. Unlike a closure, the row's dates DO
+    replace the zone's here (closures never: `closures_combine`)."""
+    out: dict = {}
+    for i, x in sorted(rules.items()):
+        if not x["entry_id"].startswith("r") or x["type"] != "bait_restriction":
+            continue
+        for y in x["fields"].get("exempts") or []:
+            z = rules.get(f"{y['entry_id']}::{y['rule_id']}")
+            if not z or not z["entry_id"].startswith("z") or z["type"] != "bait_restriction" \
+                    or z["fields"].get("when"):
+                continue
+            bans = [b for b in rules.values() if b["entry_id"] == x["entry_id"]
+                    and b["type"] == "bait_restriction" and b["fields"].get("when")
+                    and not b["fields"].get("exempts")]
+            if not bans:        # an undated "EXEMPT from bait ban" (Zone 7A) replaces nothing
+                continue
+            e = out.setdefault(x["entry_id"], {"name": x["provenance"]["entry_name"],
+                                               "notes": []})
+            for b in bans:
+                e["notes"].append({
+                    "row_rule": b["id"], "row_says": b["verbatim"],
+                    "row_dates": _dates_words(b["fields"]), "zone_rule": z["id"],
+                    "zone_says": z["verbatim"], "lift": i,
+                    "lift_dates": _dates_words(y),
+                    "says": f"The row's '{_plain(b['verbatim'])}' bans bait on its own dates only "
+                            f"({_dates_words(b['fields'])}): it REPLACES "
+                            f"{_zone_words(z['entry_id'])}'s '{_plain(z['verbatim'])}' on this water, "
+                            f"which does not hold here {_dates_words(y)} (lifted by `{i}`)."})
     return out
 
 

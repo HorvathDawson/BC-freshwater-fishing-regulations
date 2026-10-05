@@ -6,6 +6,41 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## A row's closed season does not shorten the zone's (the Stein, the Nahatlatch)
+
+**2026-10-05 · zone closures, all regions · `pipeline/deliver/bundle/rules.py`, export `gotchas.closures_combine`**
+
+The Stein's row prints "**No Fishing** Jan 1-May 31"; Region 3 prints "No Fishing in any stream in
+Region 3 from Jan 1-June 30". It reads as if the row's dates replace the zone's, so the Stein
+opens June 1. They do not: **both hold, closed on the union** (Jan 1-June 30). The p.28 line that
+lists "Nahatlatch River downstream of Nahatlatch Lake and Stein River: from Jan 1-May 31" looks
+like an exception list and is not one — it sits under *Steelhead Management Changes*, a list of
+steelhead closures (the Thompson heads it). Two lifts built on it were removed.
+
+A row beats a zone closure only where the book PRINTS an exemption ("exempt from spring
+closure", or the zone page names the water), or prints a dated catch and release, opening or
+quota INSIDE the closure — then on exactly those dates, for exactly those fish (the Nicola below
+its lake: trout catch and release Jan 1-Feb 28; whitefish stay closed). Every entry where the
+two overlap is listed, generated, in the export's `guide.gotchas.closures_combine`. Before adding
+a lift, find the printed words; a row's own season is never them.
+
+---
+
+## A dated bait ban DOES replace the zone's all-year one (Quatse, Somass, Sproat, Stamp)
+
+**2026-10-05 · Region 1 bait ban · export `gotchas.dated_bait_ban_replaces_zone`**
+
+The opposite of the entry above, and easy to "fix" by analogy. Region 1 prints "Bait ban: applies
+to all streams of Region 1, all year, with some important exceptions. Check the tables." The
+Quatse prints "Bait ban, May 1-Nov 30". Here the row's dates DO replace the zone's: bait is
+allowed on the Quatse Dec 1-Apr 30 (`quatse_river.r4x` lifts the zone ban on those dates). A
+closure never works this way; a bait ban with "check the tables" does. Only Region 1 prints this
+shape today: Regions 6, 7A and 7B ban bait all year on streams too, but no row there prints a
+dated ban on the same water (the one Region 5 Fraser section under Zone 7A's ban is lifted by the
+Region 7 Fraser row's "EXEMPT from bait ban").
+
+---
+
 ## The same closure appears twice, under two sign counts (Skeena @ Kispiox)
 
 **2026-09-21 · DFO salmon, Region 6 · `pipeline/regs/dfo_salmon/`**

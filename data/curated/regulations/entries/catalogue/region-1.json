@@ -10089,7 +10089,7 @@
      "exempts": [
       {
        "default_id": "bait_ban_streams",
-       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+       "note": "Region 1's stream bait ban (p.13) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
       }
      ]
     }
@@ -10966,7 +10966,7 @@
      "exempts": [
       {
        "default_id": "bait_ban_streams",
-       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+       "note": "Region 1's stream bait ban (p.13) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
       }
      ]
     },
@@ -11308,7 +11308,7 @@
      "exempts": [
       {
        "default_id": "bait_ban_streams",
-       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+       "note": "Region 1's stream bait ban (p.13) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
       }
      ]
     }
@@ -11507,7 +11507,7 @@
      "exempts": [
       {
        "default_id": "bait_ban_streams",
-       "note": "Region 1's stream bait ban (p.15) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
+       "note": "Region 1's stream bait ban (p.13) is 'all year, with some important exceptions. Check the tables.': this row bans bait on its own dates only, so outside them the region's all-year ban does not hold here"
       }
      ]
     },
