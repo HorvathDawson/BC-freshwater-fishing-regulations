@@ -1,10 +1,9 @@
 """Shared synopsis row loader — single source of truth for row ordering.
 
-Both the Gemini parser (``parser.run``) and the agent-parsing tools
-(``pipeline.agent_parsing``) load rows through this function so that global
-row indices align across engines and the shared ``session_state.json``
-checkpoint.  If two code paths flattened the raw pages independently they
-could drift, silently corrupting the index → result mapping.
+Every parse tool loads rows through this function so that global row indices
+align across batches and the checkpoint. If two code paths flattened the raw
+pages independently they could drift, silently corrupting the index → result
+mapping.
 """
 
 from __future__ import annotations

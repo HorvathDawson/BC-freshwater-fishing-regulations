@@ -59,20 +59,13 @@ You also need the BC fishing synopsis PDF — drop it at `data/fishing_synopsis.
 
 ### 2. Extract and parse regulations
 
-Extract regulation rows from the synopsis PDF, then parse them into structured data with Gemini:
+Extract regulation rows from the synopsis PDF, then parse them with Claude Code (the parse is
+driven agentically; see `pipeline/regs/parsing/run_parse.sh`, run it yourself — it spends credits):
 
 ```bash
-python -m pipeline.extraction.extract_synopsis    # PDF → synopsis_raw_data.json
-python -m pipeline.parsing.parser                  # raw rows → parsed regulation entries
+python -m pipeline.regs.extraction.extract_synopsis   # PDF → synopsis rows
+bash pipeline/regs/parsing/run_parse.sh               # rows → data/curated/regulations/entries/catalogue/
 ```
-
-Parsing requires Gemini API keys. Create a `.env` file in the project root with at least one key:
-
-```
-GOOGLE_API_KEY=your-key-here
-```
-
-The keys referenced in `config.yaml` are loaded from env vars at runtime. You can configure as many as you want for key rotation.
 
 ### 3. Run the pipeline
 

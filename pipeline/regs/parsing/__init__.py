@@ -5,5 +5,4 @@
 shared synopsis-row loader. The parse is driven agentically through Claude Code (batch export →
 subagent → `ingest_catalogue`), writing `data/curated/regulations/entries/catalogue/`. A review
 pass writes its findings to the work dir, never onto an entry; `repass` re-parses what it flagged.
-The former Gemini batch parser (parser.py/models.py/session.py/api_manager.py) has been removed.
 """

@@ -5,10 +5,9 @@ Provides a single source of truth for all configuration settings, paths, and env
 All pipelines import from this module to access configuration.
 """
 
-import os
 import yaml
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 from dotenv import load_dotenv
 
 
@@ -48,18 +47,6 @@ class ProjectConfig:
         with open(config_path, "r") as f:
             self._config = yaml.safe_load(f)
 
-        # Process API keys with environment variables
-        self._load_api_keys()
-
-    def _load_api_keys(self):
-        """Load API keys from environment variables."""
-        llm_config = self._config.get("llm", {})
-        api_keys_config = llm_config.get("api_keys", [])
-
-        for key_config in api_keys_config:
-            env_var = key_config.get("env_var")
-            if env_var and env_var in os.environ:
-                key_config["key"] = os.environ[env_var]
 
     @property
     def config(self) -> Dict[str, Any]:
@@ -120,35 +107,6 @@ class ProjectConfig:
     def synopsis_pdf_path(self) -> Path:
         """Get path to fishing synopsis PDF."""
         return self.project_root / "data" / "source" / "fishing_synopsis.pdf"
-
-    def get_api_keys(self) -> List[Dict[str, str]]:
-        """
-        Get API keys for LLM parsing.
-
-        Returns:
-            List of dicts with 'id' and 'key' fields
-
-        Raises:
-            ValueError: If required API keys are missing
-        """
-        api_keys = []
-        missing_keys = []
-
-        llm_config = self._config.get("llm", {})
-        for k in llm_config.get("api_keys", []):
-            key_value = k.get("key")
-            if not key_value:
-                missing_keys.append(k.get("env_var", k.get("id")))
-            else:
-                api_keys.append({"id": k["id"], "key": key_value})
-
-        if missing_keys:
-            raise ValueError(
-                f"Missing API keys in environment: {', '.join(missing_keys)}. "
-                f"Please create a .env file in the project root with these variables."
-            )
-
-        return api_keys
 
     @property
     def fwa_data_gpkg(self) -> Path:
@@ -231,8 +189,3 @@ def get_project_root() -> Path:
 def load_config() -> Dict[str, Any]:
     """Load and return the full configuration dictionary."""
     return get_config().config
-
-
-def get_api_keys() -> List[Dict[str, str]]:
-    """Get API keys for LLM parsing."""
-    return get_config().get_api_keys()
