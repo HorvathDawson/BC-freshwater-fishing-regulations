@@ -336,7 +336,7 @@ def test_the_transport_duties_are_registered_acts(corpus):
 
 # ============================================================================ decision 11
 def test_cutthroat_is_one_fish(corpus):
-    """The book lists 'Cutthroat Trout' (p.86); the official table's westslope and coastal
+    """The book lists 'Cutthroat Trout' (p.80); the official table's westslope and coastal
     sub-species are not on it, so CT is a fish, not a group (user ruling 2026-09-26)."""
     assert C.expand_species(["CT"]) == ["CT"]
     r4 = _rule(corpus, "z4:trout_char_quota", "trout_char_quota.r2")

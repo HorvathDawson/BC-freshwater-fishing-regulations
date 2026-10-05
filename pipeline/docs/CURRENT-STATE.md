@@ -39,7 +39,7 @@ Entry-level fields beside those: `extents` (narrows the row, never gives a rule 
   the export tags them `alias` 34, `see` 32, `twin` 7 (*export* `entries[].see[].relation`).
   52 water entries hold only a pointer and no rules. A pointer never moves a water to the
   target's region (Mara Lake).
-- **`anadromous_rainbow`** — the p.86 steelhead-water flag on a row. Since 2026-10-02 the bundle's
+- **`anadromous_rainbow`** — the p.80 steelhead-water flag on a row. Since 2026-10-02 the bundle's
   `steelhead_water` (a view) is KNOWN ∧ STREAM ∧ STEELHEAD RULES APPLY (the provincial set binds
   it) — a steelhead row's water or the curated list's (AGENTS 54, *export*
   `about.counts.sections.anadromous_rainbow`). Where it holds, a rainbow over 50 cm is a steelhead
@@ -120,7 +120,7 @@ A list, unioned. **A rule never inherits its entry's extents** (AGENTS 13). Ops,
   for, so an "exempt from spring closure" lift reaches only spring closures in other regions
   (11b7441f). Curator-set; the validator checks it against the printed word.
 - **`includes_tributaries`** on the rule (31; `None` inherits the entry's) / **`tributaries_only`**
-  (63) / **`tributary_excludes`** (12). "Tributaries" walks STREAMS only (p.86, b460859a);
+  (63) / **`tributary_excludes`** (12). "Tributaries" walks STREAMS only (p.80, b460859a);
   "watershed" keeps lakes. `tributary_excludes` names what the walk must not enter; on a
   licensing designation, what it removes goes to the excluded water's own designation
   (`carve_outs_to_owner`).
@@ -140,12 +140,12 @@ A list, unioned. **A rule never inherits its entry's extents** (AGENTS 13). Ops,
 
 ### Species (29ef0a20, 38149b92, aeb070cf)
 
-- **The book's list is the only species set** (p.86, `catalogue.BOOK_FAMILIES`): 22 fish in
+- **The book's list is the only species set** (p.80, `catalogue.BOOK_FAMILIES`): 22 fish in
   TROUT (RB, ST, CT, GB), CHAR (DV, LT, EB), WHITEFISH (LW, MW), BASS (LMB, SMB) and OTHER (KO,
   GR, BB, WSG, BCB, NP, YP, WP, GE, IN, CRA). Any other code is refused (`species_problems`).
-- **A bull trout is a Dolly Varden** (p.86 footnote). `BT` is refused; "bull trout" is `DV`, and
+- **A bull trout is a Dolly Varden** (p.80 footnote). `BT` is refused; "bull trout" is `DV`, and
   the label reads "Dolly Varden/bull trout". 105 rules name `DV` (*catalogue*).
-- **"Trout" is `TROUT_CHAR`** — trout includes char unless char are specifically excluded (p.86).
+- **"Trout" is `TROUT_CHAR`** — trout includes char unless char are specifically excluded (p.80).
   `TROUT` is refused. **When the same row or zone table mentions char apart** (char, Dolly
   Varden/bull trout, lake trout, brook trout — not the group word "trout/char"), its bare "trout"
   lines are `TROUT_CHAR` with `species_except: [CHAR]`; never one char alone
@@ -260,7 +260,7 @@ Made 2026-09-29 by another agent; the artifacts in the table above predate them.
    through `io.write_entryfile` from models, so keys are in canonical order and a save from the
    review app moves no keys (content unchanged except items 4 and 6).
 6. **`zp:barbless_single_hook_streams`**: `regs_verbatim` printed the lake note twice, the
-   second with a stray ")"; now as PDF p.10 prints it, and r2's verbatim/label lose the ")".
+   second with a stray ")"; now as p.8 prints it, and r2's verbatim/label lose the ")".
 7. **Parse prompt** (`CATALOGUE_PARSE_PROMPT.md`) teaches the lift shape (`exempts`, the six
    `default_id` slugs, a lift-only quota's `species`), Youth/Disabled as two rules, a bare
    "Catch and release" as `ALL_GAME_FISH` except `CRA`, the no-registry envelope (`whole` + a

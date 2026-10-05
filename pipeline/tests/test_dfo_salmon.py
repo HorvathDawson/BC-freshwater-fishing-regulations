@@ -2518,7 +2518,7 @@ def test_the_queue_hides_no_unbound_locator():
 def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     """**The walk passes lakes; it does not collect them** (user ruling 2026-09-24).
 
-    "Tributaries" in the book are STREAMS (p86: "all streams that contribute to a larger stream
+    "Tributaries" in the book are STREAMS (p80: "all streams that contribute to a larger stream
     or to a lake"), so a tributary walk collects no lake. It must still climb THROUGH every lake:
     a creek feeding Babine Lake is a stream contributing to a lake, and a walk that stopped at the
     lake would drop the whole basin above it. Section B is "All waters in the Skeena River

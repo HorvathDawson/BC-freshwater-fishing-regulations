@@ -127,8 +127,8 @@ def place_record(entry: dict, rec: dict, reach) -> tuple[LicensingPlacement, lis
         tributaries_pending=binding.tributaries_pending), diags
 
 
-#: POLICY (book p.11: "A provincial angling licence is not valid unless otherwise stated for any fresh
-#: water within National Parks"; R4 p.35: "Provincial angling regulations and licensing do not apply
+#: POLICY (book p.9: "A provincial angling licence is not valid unless otherwise stated for any fresh
+#: water within National Parks"; R4 p.33: "Provincial angling regulations and licensing do not apply
 #: in the National Parks in this region"): a CLASSIFIED WATER designation stops at a national park.
 #: The Kootenay's "upstream of White River, including tributaries: Class II" put the Class II licence
 #: on 2,317 sections inside Kootenay National Park (LS-8). `without_national_parks`.
@@ -156,7 +156,7 @@ def without_national_parks(placed: LicensingPlacement, parks: frozenset[str]
     kept = tuple(s for s in placed.sections if s not in gone)
     diag = Diagnostic(placed.entry_id, placed.record_id, "national_park", {
         "removed": len(gone), "kept": len(kept),
-        "why": "provincial licensing does not apply in national parks (p.11)"})
+        "why": "provincial licensing does not apply in national parks (p.9)"})
     if not kept:
         return LicensingPlacement(placed.entry_id, placed.record_id, placed.kind, "unresolved",
                                   reason="national_park",
@@ -374,7 +374,7 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
     The 2026-09-30 ruling for a joining water at a confluence cut ("whose own row prints no CW —
     the Iltasyuko — does not inherit") holds for every walked tributary: the row is the book's
     word on that water, and it says nothing of a licence. Streams only — "tributaries" are
-    streams (p.86) — so a rowed LAKE the flow passes through is not a stop. It and everything
+    streams (p.80) — so a rowed LAKE the flow passes through is not a stop. It and everything
     above it are left out, as at a cut.
 
     HOW: walking DOWN from each inherited section (`graph.down_adj`, the main flow first), the

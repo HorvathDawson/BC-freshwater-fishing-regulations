@@ -256,7 +256,7 @@ next to `atlas.pmtiles`. It is Part 2.2 made real: per SECTION and per DAY, thre
 
 | status | decided as |
 |---|---|
-| **closed** | on that day, for EVERY game fish (p.86's list minus crayfish), `read.effective_rules` returns a rule that *speaks* and is an unconditional closure — take 0, may not fish for it, no length / origin / `while` / target / `side`, not partly lifted. A "beside" closure (hours, weekdays, unreadable season, one half of the channel) and a not-yet-mapped note never close. A closure of some species only is not `closed`. |
+| **closed** | on that day, for EVERY game fish (p.80's list minus crayfish), `read.effective_rules` returns a rule that *speaks* and is an unconditional closure — take 0, may not fish for it, no length / origin / `while` / target / `side`, not partly lifted. A "beside" closure (hours, weekdays, unreadable season, one half of the channel) and a not-yet-mapped note never close. A closure of some species only is not `closed`. |
 | **own** | not closed, and a WATER TABLE's row (`r<n>:` — a named water, a cut piece, an area row such as the CVWMA waters or the Liard watershed, or such a row reaching it by the tributary walk) binds the section. Independent of the day. |
 | **base** | neither: only zone / provincial / superior tables bind it. **Not in the file** — absence means base. |
 

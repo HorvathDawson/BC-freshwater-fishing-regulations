@@ -279,7 +279,7 @@ def speaks_for(rule: dict, fish: str) -> bool:
 def names_fish(rule: dict, fish: str) -> bool:
     """Whether a rule NAMES this fish rather than a group holding it. "Bull trout … release" names
     the Dolly Varden/bull trout; "Trout/char daily quota = 2" names a group. "Char" names each char
-    (`catalogue.NAMING_GROUPS`): once trout include char (p.86) it is the book's only way to name
+    (`catalogue.NAMING_GROUPS`): once trout include char (p.80) it is the book's only way to name
     char apart from trout — Region 1's "you must release: All char (includes Dolly Varden)" names
     the char a lake's "Trout daily quota = 2" (a trout/char quota) would otherwise let be kept."""
     from pipeline.regs.parsing.catalogue import NAMING_GROUPS, SPECIES_GROUPS
@@ -295,7 +295,7 @@ def not_yet_mapped(rule: dict) -> bool:
     return bool(str(rule.get("undrawn_part") or "").strip())
 
 
-#: A rainbow longer than this is a steelhead where anadromous rainbow are found (p.86).
+#: A rainbow longer than this is a steelhead where anadromous rainbow are found (p.80).
 def _steelhead_min_cm() -> int:
     from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
     return int(DEFINITIONAL_SIZE["ST"]["min_cm"])
@@ -514,7 +514,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     "not_yet_mapped" (holds only in a part nothing draws). Sorted by `rid`.
 
       0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
-         (`steelhead_water`, p.86): asked about "RB" there, every rule is read over rainbow of 50
+         (`steelhead_water`, p.80): asked about "RB" there, every rule is read over rainbow of 50
          cm or less (`as_rainbow`) — one speaking only of rainbow over 50 cm speaks for no
          rainbow, and a rainbow release "(50 cm or less)" is an outright release. The larger
          fish is asked about as "ST".
@@ -693,7 +693,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     orig = _rules_of(path)
     every = orig
     here = {(e, r): via for e, r, via in bound if (e, r) in every}
-    # 0. WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.86), a rainbow rule speaks only for rainbow
+    # 0. WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.80), a rainbow rule speaks only for rainbow
     #    of 50 cm or less: each rule is read over that range (`as_rainbow`), and one that speaks
     #    only of rainbow over 50 cm ("1 over 50 cm") speaks for no rainbow here — the fish is a
     #    steelhead, asked about as "ST".

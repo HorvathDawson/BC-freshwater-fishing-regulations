@@ -244,7 +244,7 @@ def test_the_menu_offers_the_groups_the_synopsis_prints():
     m = species_menu()
     for g in ("ALL_GAME_FISH", "TROUT_CHAR", "CHAR", "WHITEFISH", "BASS"):
         assert f"`{g}`" in m, f"the menu never offers {g}"
-    # and it states the two facts of p.86 the parser most needs
+    # and it states the two facts of p.80 the parser most needs
     assert "TROUT INCLUDES CHAR" in m and "A BULL TROUT IS A DOLLY VARDEN" in m
 
 
@@ -278,14 +278,14 @@ def test_all_game_fish_is_the_closed_list_and_excludes_salmon():
 
 def test_group_expansion_is_recoverable():
     from pipeline.regs.parsing.catalogue import expand_species
-    # trout include char (p.86): the trout/char group is the book's four trout and three char
+    # trout include char (p.80): the trout/char group is the book's four trout and three char
     assert expand_species(["TROUT_CHAR"]) == ["RB", "ST", "CT", "GB", "DV", "LT", "EB"]
     assert expand_species(["DV"]) == ["DV"]                       # non-group passes through
     assert expand_species(["TROUT_CHAR", "RB"]).count("RB") == 1  # de-duplicated
 
 
 def test_the_species_are_the_book_s_list_and_nothing_else():
-    """User ruling 2026-09-26: the fish a rule may name are p.86's list, exactly — 'Freshwater
+    """User ruling 2026-09-26: the fish a rule may name are p.80's list, exactly — 'Freshwater
     game fish are defined as follows' — with bull trout and Dolly Varden ONE fish (the footnote:
     'Any bull trout that you catch and keep must be counted as part of your Dolly Varden quota').
     MUTATION: adding a fish the book does not list (golden trout, arctic char, BT) to BOOK_SPECIES
@@ -959,7 +959,7 @@ def _row_cancels_its_own_char_limit(e) -> list[str]:
 
 def test_no_row_releases_the_char_it_gives_its_own_limit():
     """R10 (review of the species ruling, 2026-09-27). "Trout" includes char "unless char are
-    specifically excluded" (p.86). A row that prints a char ITS OWN limit beside a trout size
+    specifically excluded" (p.80). A row that prints a char ITS OWN limit beside a trout size
     release — "No wild trout over 50 cm, 1 bull trout over 60 cm" (six Region 2 lakes), "no trout
     over 40cm; no more than 1 char (none under 60 cm)" (Alta) — excludes that char from the
     release; read as TROUT_CHAR the release took every bull trout the row lets you keep. Proved on

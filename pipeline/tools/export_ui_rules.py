@@ -975,7 +975,7 @@ TOUCHES_TEXT = (
     "qualifying part of the water.")
 
 #: WHAT A TIDAL WATER MEANS TO AN ANGLER — the page's words for `waters[item].tidal`, from the
-#: book's own note (p.19, Nitinat Lake).
+#: book's own note (p.17, Nitinat Lake).
 TIDAL_GUIDE = (
     "Tidal water: the federal tidal waters sport fishing regulations apply here, not the B.C. "
     "freshwater regulations. You need a federal Tidal Waters Sport Fishing Licence; no provincial "
@@ -1015,7 +1015,7 @@ STEELHEAD_TEXT = (
     "instead: '" + STEELHEAD_NO_RULES + "' Absent: show nothing about steelhead. "
     "A part says it for its sections; the water's own `steelhead` is \"known\" if any part is "
     "known, else \"possible\" if any part is (for a list or a search row). WHERE A RAINBOW OVER "
-    "50 CM IS A STEELHEAD (p.86; the part's `anadromous_rainbow`): a KNOWN part of a STREAM (the "
+    "50 CM IS A STEELHEAD (p.80; the part's `anadromous_rainbow`): a KNOWN part of a STREAM (the "
     "water's `kind`: a slough or canal is a stream) WHERE STEELHEAD RULES APPLY — known by the "
     "book or by the list alike (the Cowichan River); never on a lake, a \"possible\" stream, or "
     "a part with `steelhead_rules: false` (user ruling 2026-10-03: 'if no steelhead rules exist, "
@@ -1027,7 +1027,7 @@ FILE_TEXT = {
              "digest, `section_handles`), the counts, and corpus references that do not resolve",
     "guide": "how to read everything below — see `guide.contents`",
     "field_dictionary": "this: every key of the file and every field of its records, in words",
-    "species": "the book's species list (p.86) under its headings, the groups and open subjects "
+    "species": "the book's species list (p.80) under its headings, the groups and open subjects "
                "a rule may name, and the refused codes",
     "licences": "the document register: doc_id -> {name, provincial}",
     "entries": "every synopsis row, keyed by entry_id — see `entry`",
@@ -2216,7 +2216,7 @@ def guide(d: dict) -> dict:
                              "no minimum? — so only such a lift carries a `caution` "
                              "(`exempts[].caution`, kind size_clause_override) the page must show "
                              "beside it (`gotchas`). 'Trout' includes char unless char are "
-                             "excluded (p.86): Polley Lake's 'Trout daily quota = 8' is a "
+                             "excluded (p.80): Polley Lake's 'Trout daily quota = 8' is a "
                              "trout/char quota, the same statement as Region 5's 'Trout/char: 5', "
                              "and replaces it by case (1) — 8 trout and char together; it lifts "
                              "the region's '1 over 50 cm' (no caution: it prints no '(any "
@@ -2265,7 +2265,7 @@ def guide(d: dict) -> dict:
                          "(size_clause_override): show it (`gotchas.size_clause_override`). "
                          "Every other fish still counts toward the aggregate.",
         "steelhead_definition": "WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book defines "
-                                "(p.86): 'steelhead: a rainbow trout longer than 50 cm in waters "
+                                "(p.80): 'steelhead: a rainbow trout longer than 50 cm in waters "
                                 "where anadromous rainbow trout are found.' It lists no such "
                                 "waters, so the file states it: it holds on every KNOWN part of "
                                 "a STREAM (`water.kind`: a slough or canal is a stream) WHERE "
@@ -2585,7 +2585,7 @@ def guide(d: dict) -> dict:
                    "rules_with_unparsed": sum(bool(W(x).get("unparsed")) for x in rules.values())},
     }
     species = {
-        "reading": "The fish are THE BOOK'S LIST and nothing else (p.86, 'Freshwater game fish "
+        "reading": "The fish are THE BOOK'S LIST and nothing else (p.80, 'Freshwater game fish "
                    "are defined as follows'): `species.fish`, under the book's own headings "
                    "(`species.families`). `species` on a record holds the codes the book wrote, "
                    "groups included. Expand a group with `species.groups[code].members` (flat). "
@@ -2595,7 +2595,7 @@ def guide(d: dict) -> dict:
                    "empty list is NOT 'no fish': `ALL_FIN_FISH` is every fish (never crayfish), "
                    "and the other two hold no fish you can ask about.",
         "trout_includes_char": "'Trout' includes char unless char are specifically excluded "
-                               "(p.86: 'all regulations that apply to trout (as a group) also "
+                               "(p.80: 'all regulations that apply to trout (as a group) also "
                                "apply to char unless char are specifically excluded'). A row "
                                "or zone table excludes them by MENTIONING CHAR APART (user "
                                "ruling 2026-09-28): where it names a char on its own ('char', "
@@ -2615,7 +2615,7 @@ def guide(d: dict) -> dict:
                                "printing 'Trout daily quota = 2'.",
         "bull_trout_is_dolly_varden": "A bull trout IS a Dolly Varden in the regulations: '*Any "
                                       "bull trout that you catch and keep must be counted as "
-                                      "part of your Dolly Varden quota' (p.86). One code, `DV`, "
+                                      "part of your Dolly Varden quota' (p.80). One code, `DV`, "
                                       "named 'Dolly Varden/bull trout'; a rule printed about "
                                       "bull trout is about it, and its verbatim keeps the "
                                       "book's word.",
@@ -3067,7 +3067,7 @@ def guide(d: dict) -> dict:
             "rules": len(in_part),
         },
         "trout_includes_char": {
-            "says": "'Trout' includes char UNLESS THE REGULATION MENTIONS CHAR (p.86; user ruling "
+            "says": "'Trout' includes char UNLESS THE REGULATION MENTIONS CHAR (p.80; user ruling "
                     "2026-09-28). A lake row printing only 'Trout daily quota = 2' is TROUT_CHAR: "
                     "a char counts toward the 2 — never label it 'trout only'. But where the SAME "
                     "row, or the same zone table, names a char on its own ('char', Dolly "
@@ -3120,7 +3120,7 @@ def guide(d: dict) -> dict:
             "rules": sorted(i for i, x in rules.items() if _f(x).get("side")),
         },
         "bull_trout_is_dolly_varden": {
-            "says": "Bull trout and Dolly Varden are one fish in the regulations (p.86). Ask "
+            "says": "Bull trout and Dolly Varden are one fish in the regulations (p.80). Ask "
                     "about `DV`; there is no bull trout code.",
             "key_on": "species.fish.DV",
         },
@@ -3261,7 +3261,7 @@ def guide(d: dict) -> dict:
                           "`field_dictionary.water`",
                 "splits": "every cut a run can end at, by id: its name, and where it stands "
                           "(water and km from the mouth)",
-                "species": "the book's species list (p.86) under its headings, and the groups "
+                "species": "the book's species list (p.80) under its headings, and the groups "
                            "and open subjects a rule may name",
                 "field_dictionary": "every field in the file, and what it means",
                 "index": "ids grouped by type and kind",
@@ -3661,7 +3661,7 @@ WHAT_TO_SHOW = {
 
 
 def _leaves(x: dict) -> list[str]:
-    """The FISH of the book's list (p.86) a rule is about — what a case may ask about. An open
+    """The FISH of the book's list (p.80) a rule is about — what a case may ask about. An open
     subject is not a fish: `ALL_FIN_FISH` is every fish but crayfish (`read.speaks_for`), and
     `PROTECTED_SPECIES` / `SALMON` hold no game fish (a case once asked about the fish
     "PROTECTED_SPECIES")."""
@@ -4655,7 +4655,7 @@ def _name(code: str) -> str:
 
 
 def species_table() -> dict:
-    """THE BOOK'S LIST (p.86) — every fish a rule may name, under the book's headings — and the
+    """THE BOOK'S LIST (p.80) — every fish a rule may name, under the book's headings — and the
     groups and open subjects a rule may name instead. Nothing else: no official-table sub-species,
     no fish the book does not list."""
     members = {g: list(C.expand_species([g])) if g not in OPEN_GROUPS else []
@@ -4672,7 +4672,7 @@ def species_table() -> dict:
                  "groups": sorted(in_group[code])}
             if code == "DV":
                 d["includes"] = "bull trout — '*Any bull trout that you catch and keep must be " \
-                                "counted as part of your Dolly Varden quota' (p.86)"
+                                "counted as part of your Dolly Varden quota' (p.80)"
             if code in C.DEFINITIONAL_SIZE:
                 d["definitional_size"] = dict(C.DEFINITIONAL_SIZE[code])
                 if code == "ST":
@@ -4686,12 +4686,12 @@ def species_table() -> dict:
     groups = {g: ({"name": _name(g), "members": members[g]} if g not in OPEN_GROUPS else
                   {"name": _name(g), "members": [], "open": True})
               for g in sorted(C.SPECIES_GROUPS)}
-    return {"source": "fishing_synopsis.pdf 2025-2027, p.86: 'Freshwater game fish are defined "
+    return {"source": "fishing_synopsis.pdf 2025-2027, p.80: 'Freshwater game fish are defined "
                       "as follows'",
             "families": {f: {"name": C._FAMILY_WORDS[f], "members": list(cs)}
                          for f, cs in C.BOOK_FAMILIES.items()},
             "fish": fish, "groups": groups,
-            "trout_includes_char": "p.86: 'all regulations that apply to trout (as a group) "
+            "trout_includes_char": "p.80: 'all regulations that apply to trout (as a group) "
                                    "also apply to char unless char are specifically excluded' "
                                    "— the trout group is TROUT_CHAR; a bare 'trout' line of a "
                                    "row or zone table that mentions char apart is TROUT_CHAR "
@@ -4706,7 +4706,7 @@ def species_table() -> dict:
                           for c, (n, _) in C.PROTECTED_FISH.items()},
             "protected_note": "The fish it is illegal to fish for or keep (p.9; Region 2 adds "
                               "green sturgeon, p.21) are named members of the PROTECTED_SPECIES "
-                              "group, as chinook is of SALMON — not game fish, never on p.86's "
+                              "group, as chinook is of SALMON — not game fish, never on p.80's "
                               "list, and PROTECTED_SPECIES stays an open group that speaks for "
                               "no game fish. Each protected-species rule names the fish its row "
                               "prints in `fields.species` (zp:protected_species: twelve; "
@@ -4714,7 +4714,7 @@ def species_table() -> dict:
                               "protected POPULATIONS (Nechako, Upper Fraser, Kootenay, Columbia), "
                               "not the game fish WSG.",
             "salmon_note": "Chinook is a named fish in the SALMON group — not a game fish and "
-                           "not on the book's game-fish list (p.86); SALMON stays an open group "
+                           "not on the book's game-fish list (p.80); SALMON stays an open group "
                            "(it speaks for every salmon, named or not). The synopsis says little "
                            "about salmon ('record your retention of adult chinook salmon', the "
                            "salmon stamp, 'no spear fishing of Pacific salmon'): salmon "
@@ -5197,11 +5197,11 @@ def is_steelhead_record(x: dict) -> bool:
     return "ST" in ((x["fields"].get("doing") or {}).get("species") or [])
 
 
-#: The provincial steelhead entry, and the regions whose own tables name steelhead (p.15, 23, 30,
-#: 48, 55; 4, 7A, 7B and 8 print no steelhead rule — 7A's Stellako prints only a stamp waiver).
+#: The provincial steelhead entry, and the regions whose own tables name steelhead (p.13, 21, 28,
+#: 42, 49; 4, 7A, 7B and 8 print no steelhead rule — 7A's Stellako prints only a stamp waiver).
 PROVINCE_STEELHEAD = "zp:steelhead"
 STEELHEAD_REGIONS = ("1", "2", "3", "5", "6")
-#: THE PROVINCIAL STEELHEAD SET (book p.8, `zp:steelhead`), each member by what it says — so a
+#: THE PROVINCIAL STEELHEAD SET (book p.6, `zp:steelhead`), each member by what it says — so a
 #: twin (`steelhead.r1b`, the stamp's `steelhead_targeting_known`) is the same member.
 PROVINCE_SET = ("annual hatchery quota", "wild release", "record duty", "stamp")
 

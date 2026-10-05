@@ -9,7 +9,7 @@
    leaves the dated zone release speaking (Shuswap — `test_trout_scope_and_dated_releases`).
 2. THE SIZE-CLAUSE CAUTION ONLY WHERE THE ROW PRINTS "(any size)" — Kootenay Lake's "rainbow trout
    daily quota = 10 (any size)", Duncan, Lardeau, Quesnel. The override itself is unchanged.
-3. CHINOOK IS A NAMED FISH IN THE SALMON GROUP — not a game fish, not on p.86's list;
+3. CHINOOK IS A NAMED FISH IN THE SALMON GROUP — not a game fish, not on p.80's list;
    `zp:salmon_stamp.r1` names it, and its label reads "Adult chinook" as the verbatim does.
 
 Mutation checks: `<scratchpad>/R13/mutate.py` breaks each guard below in a scratch copy of the code

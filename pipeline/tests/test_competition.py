@@ -47,7 +47,7 @@ def test_a_rule_speaks_for_the_fish_its_species_hold():
 
 
 def test_naming_is_the_fish_itself_or_char():
-    """'Char' names each char: once trout include char (p.86) it is the book's only word for char
+    """'Char' names each char: once trout include char (p.80) it is the book's only word for char
     apart from trout. MUTATION: emptying `catalogue.NAMING_GROUPS` fails the CHAR asserts."""
     assert R.names_fish({"species": ["DV"]}, "DV")
     assert not R.names_fish({"species": ["TROUT_CHAR"]}, "DV")
@@ -57,8 +57,8 @@ def test_naming_is_the_fish_itself_or_char():
 
 
 def test_a_zone_release_of_char_beats_a_water_trout_quota_for_char(tmp_path):
-    """Region 1: 'Trout: 4 … And you must release: All char (includes Dolly Varden)' (p.15). A
-    lake's 'Trout daily quota = 2' is a trout/char quota (p.86) — it must not reopen char. For a
+    """Region 1: 'Trout: 4 … And you must release: All char (includes Dolly Varden)' (p.13). A
+    lake's 'Trout daily quota = 2' is a trout/char quota (p.80) — it must not reopen char. For a
     rainbow the lake's 2 still speaks (same statement: it replaces the region's 4)."""
     path = _tiny(tmp_path, [
         {"entry": "z1:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 4, "_rank": 3},
@@ -757,7 +757,7 @@ def test_region_8_brook_trout_from_streams_are_counted_apart(db):
     assert f"{tc}::trout_char_quota.r1" in _kept(lake, (8, 1), "EB")
 
 
-# E. CHILLIWACK: A RAINBOW OVER 50 CM IS A STEELHEAD (p.86).
+# E. CHILLIWACK: A RAINBOW OVER 50 CM IS A STEELHEAD (p.80).
 def test_as_rainbow_reads_a_rule_over_rainbow_of_50_cm_or_less():
     assert R.as_rainbow({"take": 1, "lengths": [{"min_cm": 50}]}) is None          # "1 over 50 cm"
     assert R.as_rainbow({"take": 0, "lengths": [{"max_cm": 50, "take": 0}]}) == {"take": 0}
@@ -802,7 +802,7 @@ def test_the_guide_states_the_rulings_of_the_second_round(db):
     assert "SIT BESIDE" in lad["quotas_sit_beside"] and "SAME STATEMENT" in lad["quotas_sit_beside"]
     assert "NAMES THE" in lad["closures"] and "West Road" in lad["closures"]
     assert "20 brook trout from streams" in lad["counted_apart"]
-    assert "p.86" in lad["steelhead_definition"] and "Chilliwack" in lad["steelhead_definition"]
+    assert "p.80" in lad["steelhead_definition"] and "Chilliwack" in lad["steelhead_definition"]
     assert "Mara Lake" in lad["region"]
     assert "BINDS NOTHING" in g["entries"]["pointers"]["reading"]
     assert g["exempts"]["derived_lifts"] > 0
@@ -848,7 +848,7 @@ def test_a_larger_water_number_for_a_fish_replaces_the_zones_for_that_fish(tmp_p
 
 
 def test_kootenay_lake_rainbow_10_replaces_region_4s_5(db):
-    """p.39: KOOTENAY LAKE — MAIN BODY, "rainbow trout daily quota = 10 (any size)". On the real
+    """p.37: KOOTENAY LAKE — MAIN BODY, "rainbow trout daily quota = 10 (any size)". On the real
     bundle a rainbow there answers to the 10 alone — Region 4's "Trout/char: 5" and its "1 rainbow
     trout or cutthroat trout over 50 cm" are lifted for rainbow (the lift is in the data) — and a
     bull trout still answers to the lake's own 1 inside Region 4's 5."""
@@ -864,7 +864,7 @@ def test_kootenay_lake_rainbow_10_replaces_region_4s_5(db):
 
 
 def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(db):
-    """Lois Lake (p.26): "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery
+    """Lois Lake (p.24): "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery
     rainbow trout = 6 / Rainbow trout/hatchery steelhead quota = 6 in the aggregate". The 6 is a
     larger number for rainbow and hatchery steelhead than Region 2's "Trout/char: 4" and its
     "2 hatchery steelhead over 50 cm": both are lifted for those fish, and so is the region's "1
@@ -888,7 +888,7 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
 
 
 def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
-    """Jewel Lake (p.76) "Brook trout daily quota = 20" replaces Region 8's "Trout/char: 5" for
+    """Jewel Lake (p.70) "Brook trout daily quota = 20" replaces Region 8's "Trout/char: 5" for
     brook trout AND its "1 over 50 cm", though it prints no "(any size)" (user ruling
     2026-09-26, reversing R8): the 20 speaks alone. It prints no size at all, so the lift carries
     NO caution (user ruling 2026-09-28: only "(any size)" is hard to read); Kootenay Lake's
@@ -911,7 +911,7 @@ def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
 
 
 def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
-    """p.86: "all regulations that apply to trout (as a group) also apply to char unless char are
+    """p.80: "all regulations that apply to trout (as a group) also apply to char unless char are
     specifically excluded". Bootjack Lake's "Trout daily quota = 8" is a trout/char quota: it
     replaces Region 5's "Trout/char: 5" for a brook trout too (no 8 trout BESIDE 5 char). The 8
     overrides the region's "1 over 50 cm" (user ruling 2026-09-26, with a caution); its other
@@ -1053,7 +1053,7 @@ def test_the_same_statement_the_waters_number_wins_larger_or_smaller(tmp_path):
     ("r6:teslin_lake@6-25", "teslin_lake.r4", "z6:species_quotas::species_quotas.r1", "GR"),
 ])
 def test_a_larger_same_statement_at_a_real_water_wins(db, eid, rid, zone_rule, fish):
-    """Tranquille Lake (p.34) "kokanee daily quota = 10" over Region 3's "Kokanee: 5"; Teslin Lake
+    """Tranquille Lake (p.32) "kokanee daily quota = 10" over Region 3's "Kokanee: 5"; Teslin Lake
     "Arctic grayling daily and possession quotas = 4" over Region 6's "Arctic grayling: 3"."""
     sid = _sid(db, eid, rid)
     got = _kept(sid, (7, 1), fish)
@@ -1350,7 +1350,7 @@ def test_kitimat_closes_every_tributary_mar16_may31_and_only_hatchery_fish_are_l
 
 
 def test_the_kootenay_lake_annual_20_is_stated_once(db):
-    """Region 4's 'Annual Quotas' line (PDF p.36) and the Main Body row (PDF p.39) print the same
+    """Region 4's 'Annual Quotas' line (p.34) and the Main Body row (p.37) print the same
     rainbow 20 a licence year on the same water. The region's copy is gone and its entry points
     at the row; the row's r6 is the one rule that says it."""
     assert not db.execute("select count(*) from rule where entry_id = 'z4:kootenay_annual'"

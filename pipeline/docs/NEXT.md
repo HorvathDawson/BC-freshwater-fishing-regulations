@@ -312,7 +312,7 @@ which is frequently **not unique**:
 
 Only 674 of the index's keys have a single candidate. A name tiebreak rescues most, but a
 review measured **111 entries falling through to `cands[0]`** — an arbitrary pick. South
-Englishman River resolves to *Browns River, page 16*.
+Englishman River resolves to *Browns River, page 14*.
 
 So the trust surface — "here is the scan this rule came from" — currently shows the **wrong
 page for roughly 1 entry in 13**, which is worse than showing none: it manufactures false

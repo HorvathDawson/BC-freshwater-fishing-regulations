@@ -267,14 +267,14 @@ def test_michel_creeks_own_dated_release_replaces_region_4s_stream_release(db):
     ("r5:baker_creek@5-13", "baker_creek.r2x", (6, 1)),
 ])
 def test_region_5_listed_streams_are_out_of_the_spring_closure(db, eid, rid, on):
-    """p.48: "No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30,
+    """p.42: "No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30,
     EXCEPT the mainstem of the Fraser River and other streams listed in the tables" (N-2)."""
     sid = _sid(db, eid, rid)
     assert "z5:spring_stream_closure::spring_stream_closure.r1" not in _says(sid, on, "RB")
 
 
 def test_fulton_river_is_open_june_16_to_april_30(db):
-    """p.57 "Open June 16-Apr 30 each year" lifts the Skeena winter closure (N-3); the row's own
+    """p.51 "Open June 16-Apr 30 each year" lifts the Skeena winter closure (N-3); the row's own
     May 1-June 15 closure still closes it."""
     f = "r6:fulton_river@6-8"
     sid = _sid(db, f, "fulton_river.r1b")
@@ -284,7 +284,7 @@ def test_fulton_river_is_open_june_16_to_april_30(db):
 
 
 def test_thompson_rivers_additional_opening_in_may(db):
-    """p.34 "Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge
+    """p.32 "Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge
     upstream of Bonaparte River, May 1-31" (LS-6): the row's Oct 1-May 31 closure and Region 3's
     spring closure are lifted there in May; the catch and release still binds."""
     t = "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18"
@@ -296,7 +296,7 @@ def test_thompson_rivers_additional_opening_in_may(db):
 
 
 def test_bella_coolas_spring_exception_replaces_the_rivers_quota(db):
-    """p.49: "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and
+    """p.43: "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and
     release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31
     ONLY" (N-7): on the mainstem in April the 1 and the cutthroat release do not speak."""
     a = "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
@@ -417,7 +417,7 @@ def test_a_waters_own_not_classified_beats_a_walked_designation():
     ("r1:stamp_river@1-7", "stamp_river.r4", (1, 15), (7, 1)),
 ])
 def test_region_1_rows_with_a_dated_bait_ban_are_its_exceptions(db, eid, rid, off, on):
-    """p.15: "Bait ban: applies to all streams of Region 1, all year, with some important
+    """p.13: "Bait ban: applies to all streams of Region 1, all year, with some important
     exceptions. Check the tables." A row printing a dated bait ban is one of them (G-031)."""
     zone = "z1:bait_ban_streams::bait_ban_streams.r1"
     sid = _sid(db, eid, rid + "x", via=db.execute(

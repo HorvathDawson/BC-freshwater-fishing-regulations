@@ -1,6 +1,6 @@
 """The tributary walk and LAKES — three rulings of 2026-09-24.
 
-1. TRIBUTARIES MEANS STREAMS. The book's glossary (p86): "tributaries: all streams that contribute
+1. TRIBUTARIES MEANS STREAMS. The book's glossary (p80): "tributaries: all streams that contribute
    to a larger stream or to a lake". A rule carrying `includes_tributaries` / `tributaries_only`
    collects STREAMS from its walk, never a lake. The walk still climbs THROUGH a lake — a creek
    feeding a tributary lake is a stream contributing to a lake — it just does not collect the

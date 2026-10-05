@@ -214,7 +214,7 @@ def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):
 # Water outside B.C.
 # ---------------------------------------------------------------------------------------
 def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_licensing(doc, db):
-    """Nitinat Lake is tidal (p.19): the water says so with the words to show, its sections carry
+    """Nitinat Lake is tidal (p.17): the water says so with the words to show, its sections carry
     only the tidal row's own rules and no licensing set, and every province-wide requirement stops
     there (`province_except`: `tidal`)."""
     rows = dict(db.execute("SELECT sid, entry_id FROM tidal"))
@@ -854,7 +854,7 @@ def test_the_cases_show_their_mechanisms(doc):
 # 2026-09-26 rulings: the book's species, the size-clause caution, places not yet mapped
 # ---------------------------------------------------------------------------------------
 def test_the_species_section_is_the_book_s_list(doc):
-    """`species.fish` is p.86's list and nothing else, under the book's headings; bull trout is
+    """`species.fish` is p.80's list and nothing else, under the book's headings; bull trout is
     the Dolly Varden; 'trout' is TROUT_CHAR and TROUT is refused."""
     sp = doc["species"]
     assert list(sp["fish"]) == list(C.BOOK_SPECIES)
@@ -943,7 +943,7 @@ def test_the_gotchas_carry_the_size_clause_caution(doc):
 
 
 def test_every_case_asks_about_a_fish_of_the_book(doc):
-    """A case's `fish` is a leaf of p.86's list — what an angler catches — never a group or an
+    """A case's `fish` is a leaf of p.80's list — what an angler catches — never a group or an
     open subject (the superior-authority case once asked about "PROTECTED_SPECIES")."""
     bad = [(c["mechanism"], c["fish"]) for c in doc["guide"]["cases"]["cases"]
            if c["fish"] not in C.BOOK_SPECIES]

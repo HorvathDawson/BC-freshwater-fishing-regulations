@@ -450,7 +450,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, o
             suggestions={related.map((r) => r.entry_id)}
             onChange={(x) => edit((s) => put(s, { see: x }))} />
         </F>
-        <F path="anadromous_rainbow" hint="anadromous rainbow are found here: a rainbow over 50 cm IS a steelhead (p.86) — set where known, never inferred">
+        <F path="anadromous_rainbow" hint="anadromous rainbow are found here: a rainbow over 50 cm IS a steelhead (p.80) — set where known, never inferred">
           <Check label="anadromous_rainbow" value={entry.anadromous_rainbow}
             onChange={(x) => edit((s) => put(s, { anadromous_rainbow: x }))}>
             anadromous rainbow trout are found in this water

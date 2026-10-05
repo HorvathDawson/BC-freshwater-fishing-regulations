@@ -44,25 +44,25 @@ from pipeline.tools import export_ui_rules as X
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
-#: The regions whose own tables name steelhead, from the book's regional pages: 1 (p.15 "All
-#: wild steelhead", "2 hatchery steelhead over 50 cm"), 2 (p.23, the same), 3 (p.30 "ALL
-#: STEELHEAD"), 5 (p.48 "ALL STEELHEAD"), 6 (p.55 "all wild steelhead", the May 15-June 15
+#: The regions whose own tables name steelhead, from the book's regional pages: 1 (p.13 "All
+#: wild steelhead", "2 hatchery steelhead over 50 cm"), 2 (p.21, the same), 3 (p.28 "ALL
+#: STEELHEAD"), 5 (p.42 "ALL STEELHEAD"), 6 (p.49 "all wild steelhead", the May 15-June 15
 #: stream closure). 7A's one mention is the Stellako's "(Steelhead Stamp not required)" — a stamp
 #: waiver, no steelhead RULE (its row is a steelhead row, so its water carries the provincial set
 #: through the twins; its zone gains no steelhead line); 4, 7B and 8 print none.
 QUALIFYING = ("1", "2", "3", "5", "6")
 PROVINCE_RULES = ("steelhead.r1", "steelhead.r1b", "steelhead.r2", "steelhead.r2b",
                   "steelhead.r4", "steelhead.r4b")
-#: The wild-steelhead releases (the book prints each under "And you must release:"; p.8 for the
+#: The wild-steelhead releases (the book prints each under "And you must release:"; p.6 for the
 #: province) — the steelhead rules an own-row steelhead lake carries.
 WILD_RELEASES = {
     ("zp:steelhead", "steelhead.r2"),                 # "All wild steelhead must be released."
-    ("z1:trout_quota", "trout_quota.r5"),             # p.15 "All wild steelhead"
-    ("z1:hg_quota", "hg_quota.r6"),                   # p.15 Haida Gwaii, the same line
-    ("z2:trout_char_quota", "trout_char_quota.r7"),   # p.23 "All wild steelhead"
-    ("z3:trout_char_quota", "trout_char_quota.r5"),   # p.30 "ALL STEELHEAD"
-    ("z5:trout_char_quota", "trout_char_quota.r6"),   # p.48 "ALL STEELHEAD"
-    ("z6:trout_char_quota", "trout_char_quota.r9"),   # p.55 "all wild steelhead"
+    ("z1:trout_quota", "trout_quota.r5"),             # p.13 "All wild steelhead"
+    ("z1:hg_quota", "hg_quota.r6"),                   # p.13 Haida Gwaii, the same line
+    ("z2:trout_char_quota", "trout_char_quota.r7"),   # p.21 "All wild steelhead"
+    ("z3:trout_char_quota", "trout_char_quota.r5"),   # p.28 "ALL STEELHEAD"
+    ("z5:trout_char_quota", "trout_char_quota.r6"),   # p.42 "ALL STEELHEAD"
+    ("z6:trout_char_quota", "trout_char_quota.r9"),   # p.49 "all wild steelhead"
     # the TWINS: the same lines, bound to the book-known waters their base does not bind
     ("zp:steelhead", "steelhead.r2b"),
     ("z1:trout_quota", "trout_quota.r5b"),
@@ -980,7 +980,7 @@ def test_the_presence_check_catches_a_mutation(doc, mutate, expect):
     assert any(expect in p for p in got), got
 
 
-# ------------------------------------------------------------- steelhead water (p.86)
+# ------------------------------------------------------------- steelhead water (p.80)
 #: Rows naming steelhead that are not steelhead water, and why (coordinator round 2026-10-01).
 NOT_STEELHEAD_WATER = {
     "r2:khartoum_lake@2-12", "r2:lois_lake@2-12",                       # lakes

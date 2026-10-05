@@ -32,7 +32,7 @@ WHERE STEELHEAD RULES APPLY (`Presence.rules_apply`): a section bound by
 every member of the provincial steelhead set (`PROVINCE_SET_RULES`, each by its base rule or its
 twin) — the streams of the steelhead regions and every book-known water.
 
-WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (`anadromous`, the bundle's `steelhead_water`, p.86):
+WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (`anadromous`, the bundle's `steelhead_water`, p.80):
 KNOWN ∧ a STREAM (`water_kind.kind_of`: a slough or canal is one) ∧ STEELHEAD RULES APPLY (user
 ruling 2026-10-03: "if no steelhead rules exist, rainbow rules still apply to a steelhead" — a
 steelhead is a rainbow). Known by the book or by the list alike (the Cowichan River); never a lake,
@@ -83,7 +83,7 @@ STEELHEAD_WATERS = "steelhead_waters"
 #: ONCE in the registry (`pipeline.common.water_kind.flows` -> `registry.flowing`), read here as
 #: the owner's kind (`water_kind.kind_of`). Nothing here recomputes it from a name.
 
-#: THE PROVINCIAL STEELHEAD SET's rules (book p.8: the annual hatchery 10, the wild release, the
+#: THE PROVINCIAL STEELHEAD SET's rules (book p.6: the annual hatchery 10, the wild release, the
 #: record duty), each bound by its base (`<id>`, the steelhead regions' streams) or its twin
 #: (`<id>b`, the book-known water the base misses). A section bound by all three is where
 #: STEELHEAD RULES APPLY (the stamp, a licensing record, goes with them: the export checks it).
@@ -400,7 +400,7 @@ class Presence:
                          "entry_id": book.get(s, CURATED_LIST),
                          "regulations": s in book, "listed": s in self.listed,
                          "rules": s in apply,
-                         # p.86 where steelhead rules apply, on a stream (user ruling 2026-10-03)
+                         # p.80 where steelhead rules apply, on a stream (user ruling 2026-10-03)
                          "anadromous": kind == "stream" and s in apply,
                          "kind": kind})
         rows += [{"section_id": s, "steelhead": POSSIBLE, "entry_id": PROVINCE_STEELHEAD,

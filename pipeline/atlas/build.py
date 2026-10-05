@@ -565,7 +565,7 @@ def main() -> None:
             _n += 1
         print(f"  minted {_n} unnamed waterbody node(s) so zone rules can reach them")
     # A LAKE FWA CODES `999` (not on its network) sits on the land of a named watershed all the
-    # same, and "watershed" in the book is that land (p86). Give each the code of the smallest FWA
+    # same, and "watershed" in the book is that land (p80). Give each the code of the smallest FWA
     # named watershed containing it, as `basin_wsc` — membership only, never hydrology. See
     # `registry.basins.derive_basin_wsc`.
     if "watersheds" in fwa.layer_names:

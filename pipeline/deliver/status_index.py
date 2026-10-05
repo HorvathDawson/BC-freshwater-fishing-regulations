@@ -14,7 +14,7 @@ pairs and holds the file to `effective_rules` itself.
 
 WHAT EACH STATUS MEANS (decided here, once):
 
-  closed   On that day, for EVERY game fish (the book's closed list, p.86, minus crayfish —
+  closed   On that day, for EVERY game fish (the book's closed list, p.80, minus crayfish —
            `GAME_FISH`), `effective_rules` returns a rule that SPEAKS and is an unconditional
            closure: take 0 and may not fish for it (`may_target: 0`), with no length band, no
            origin, no `while`, no `when_targeting`, no `side`, and not partly lifted. A "beside"
@@ -102,7 +102,7 @@ DEFAULT_OUT = GENERATED.bundle / "status_index.bin"
 
 
 def game_fish() -> Tuple[str, ...]:
-    """The book's closed list of freshwater game fish (p.86) — every fish a "no fishing" must
+    """The book's closed list of freshwater game fish (p.80) — every fish a "no fishing" must
     hold for before a section is called closed. Crayfish are on the list but are trapped, not
     angled, and a fin-fish closure leaves them (`read.speaks_for`), so they are left out."""
     from pipeline.regs.parsing.catalogue import BOOK_SPECIES

@@ -70,7 +70,7 @@ class StreamNode:
     # WATERSHED polygon containing it, at build (`registry.basins.derive_basin_wsc`). DERIVED, and
     # kept apart from `wsc` so the graph's hydrology is never touched: only watershed membership
     # (`registry.basins.node_basin_code`) reads it. The book's own definition of a watershed is
-    # "all the streams and lakes that drain the land into a named waterbody" (p86).
+    # "all the streams and lakes that drain the land into a named waterbody" (p80).
     basin_wsc: str = ""
 
     @property

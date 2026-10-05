@@ -304,7 +304,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         except_rows |= {(kind, s) for s in got}
     # TIDAL WATER STOPS EVERY PROVINCE-WIDE REQUIREMENT, whatever its record names: "Nitinat Lake is
     # tidal water; tidal regulations apply and a (federal) Tidal Waters Sport Fishing Licence is
-    # required" (p.19) — the basic licence and the stamps are provincial (review 2026-09-29).
+    # required" (p.17) — the basic licence and the stamps are provincial (review 2026-09-29).
     # Kind `tidal`, no record names it; the sections are the `tidal` table's, written from the
     # reach run before this (`rules.write`) — read, never derived again.
     if any(p["placement"] == "province" for p in placed.values()):

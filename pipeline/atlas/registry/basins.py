@@ -88,7 +88,7 @@ def derive_basin_wsc(graph, polys: dict, watersheds) -> dict[str, int]:
     lake trout from the Fraser and Skeena watersheds", because `in_basin 400-` had nothing to match.
 
     HOW, and not otherwise. The book's watershed is "all the streams and lakes that drain the land
-    into a named waterbody" (p86); FWA's named-watershed polygon IS that land for its named water,
+    into a named waterbody" (p80); FWA's named-watershed polygon IS that land for its named water,
     so the pond is in the watershed whose land it sits on. The test is the polygon's REPRESENTATIVE
     POINT (always inside it) against the named watersheds, and the smallest container wins — the
     deepest named basin. NOT the nearest coded water: it disagrees with the polygon across divides

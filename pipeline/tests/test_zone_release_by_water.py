@@ -1,7 +1,7 @@
 """A ZONE RELEASE LIMITED TO A KIND OF WATER displaces its own table's quotas for the fish (ZS-2).
 
-Region 3 prints "you must release: Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" (PDF
-p.30) and Region 4 "Trout/char release: in streams from Nov 1-Mar 31" (PDF p.36). Both are stored
+Region 3 prints "you must release: Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" (p.28)
+and Region 4 "Trout/char release: in streams from Nov 1-Mar 31" (p.34). Both are stored
 with `water: stream`, which is part of the rule's dimension, so step 4 of `read.effective_rules`
 never set them against the region's "Trout/char: 5" and its clauses — "Dolly Varden — 1 per day"
 spoke beside "Dolly Varden — release all, from streams" on the same stream on the same day. Region

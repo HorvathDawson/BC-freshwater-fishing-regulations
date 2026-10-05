@@ -128,7 +128,7 @@ A whole-water closure is `species=ALL_GAME_FISH, take=0, may_target=false`.
 
 ## The species — the book's list, and nothing else
 
-Page 86 (*"Freshwater game fish are defined as follows"*) is the whole list. A code that is not on
+Page 80 (*"Freshwater game fish are defined as follows"*) is the whole list. A code that is not on
 it is refused.
 
 | book heading | fish (code) |
@@ -143,7 +143,7 @@ it is refused.
   keep must be counted as part of your Dolly Varden quota."* In the regulations they are ONE fish:
   *"Bull trout catch and release"* is `species: ["DV"]`. There is no bull trout code — `BT` is
   refused.
-* **TROUT INCLUDES CHAR unless char are specifically excluded.** Page 86: *"trout/char: all
+* **TROUT INCLUDES CHAR unless char are specifically excluded.** Page 80: *"trout/char: all
   regulations that apply to trout (as a group) also apply to char unless char are specifically
   excluded."* *"Trout daily quota = 2"*, *"No trout over 50 cm"*, *"Trout/char: 5"* are all
   `TROUT_CHAR`. There is no trout-only code — `TROUT` is refused. `CHAR` is for a line that says
@@ -185,7 +185,7 @@ it is refused.
 
 ```
 species        REQUIRED on retention_limit. Use a group (TROUT_CHAR, CHAR, WHITEFISH, BASS,
-               ALL_GAME_FISH) when the page names a group — "trout" is TROUT_CHAR (p.86) —
+               ALL_GAME_FISH) when the page names a group — "trout" is TROUT_CHAR (p.80) —
                and leaf codes when it names fish ("bull trout" is DV). See "The species".
                species=[] is an ERROR. "all other species" is species_except.
 take           int | null. null = a size limit whose COUNT comes from the region. NOT zero.
@@ -638,7 +638,7 @@ Leave them out; if the row seems to need one, say so in `review_reason`.
 | `closure_kind` | the season a zone's blanket closure is named for (spring / summer / winter) — zone entries |
 | `derived_from`, `condition_of` | links between rules a curator has reconciled |
 | `standing`, `authority`, `notice` | a rule that never competes; a superior (federal/park) authority; a notice |
-| `scope_note`, `anadromous_rainbow` | entry-level notes and the steelhead-water flag (p.86) |
+| `scope_note`, `anadromous_rainbow` | entry-level notes and the steelhead-water flag (p.80) |
 | extent `feature_types` | which kind of water an AREA extent reaches (a zone's "in streams"); on a water row, a rule limited to its lakes or streams says so with `water` |
 | extent `watershed`, `item_ids`, `outside_items`, `outside_area`, `outside_areas`, `outside_area_kind` | watershed parts and carve-outs of an area |
 

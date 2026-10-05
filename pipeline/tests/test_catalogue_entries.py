@@ -239,7 +239,7 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
     own passage correctly.
 
     NOT "one entry per water" — that was the first version of this test and it is wrong. CRAWFORD
-    CREEK is printed twice on page 38, once for MU 4-6 (no fishing) and once for 4-33 (no fishing
+    CREEK is printed twice on page 36, once for MU 4-6 (no fishing) and once for 4-33 (no fishing
     Jun 15-Oct 31). Two rows, two sets of rules, two entries, all correct.
     """
     from pipeline.regs.parsing.rows import load_synopsis_rows

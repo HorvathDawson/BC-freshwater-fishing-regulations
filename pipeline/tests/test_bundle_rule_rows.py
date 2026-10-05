@@ -361,7 +361,7 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     # number overrides the zone's "1 over 50 cm" too, "(any size)" or not (user ruling
     # 2026-09-26, reversing R8), and that lift carries a caution; a lake printing its OWN lake
     # trout sizes lifts only that clause. The Region 5 "Trout daily
-    # quota = 8" lakes are TROUT_CHAR (p.86) and replace the 5 as the same statement (no lift);
+    # quota = 8" lakes are TROUT_CHAR (p.80) and replace the 5 as the same statement (no lift);
     # Lois/Khartoum's aggregate 6 lifts the 4 for rainbow + steelhead (its "2 hatchery steelhead"
     # clause is lifted whole, so it is not listed here).
     larger = [(e, f"{r}.r{n}", f"trout_char_quota.r{t}") for e, r, n, ts in (

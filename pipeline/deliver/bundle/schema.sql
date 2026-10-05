@@ -303,7 +303,7 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 
 -- WATER THE BOOK CALLS TIDAL. "Nitinat Lake is tidal water; tidal regulations apply and a (federal)
--- Tidal Waters Sport Fishing Licence is required" (p.19): the sections of the matched waters of
+-- Tidal Waters Sport Fishing Licence is required" (p.17): the sections of the matched waters of
 -- every row marked `tidal` (`CatalogueEntry.tidal`), with that row. No provincial rule holds there —
 -- not the zone's base, not a park closure, not a licence: the reach builder takes them out of
 -- every other row's binding (`pipeline/atlas/reach/outside.py`, `tidal_owner`), writes the set
@@ -356,7 +356,7 @@ CREATE VIEW section_steelhead (sid, code) AS
     SELECT sr.sid, ss.code FROM section_ruleset sr JOIN steelhead_set ss ON ss.set_id = sr.set_id
     WHERE NOT EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid);
 
--- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.86: "steelhead: a rainbow
+-- WHERE A RAINBOW OVER 50 CM IS A STEELHEAD. The book's definition (p.80: "steelhead: a rainbow
 -- trout longer than 50 cm in waters where anadromous rainbow trout are found") holds on every KNOWN
 -- STREAM section WHERE STEELHEAD RULES APPLY (it carries the provincial steelhead set): known by a
 -- steelhead row or by the curated list (the Cowichan River); a stream by `water_kind` (a slough or

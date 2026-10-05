@@ -91,7 +91,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     `RuleBinding.__post_init__` (⑪ + ㊳).
 15. **The tributary walk exists; `tributaries_pending` means it could not run.** The reach
     builder walks every rule that extends to tributaries (451 rules carry a `tributaries`
-    diagnostic, reach run 2026-09-28). "Tributaries" walks STREAMS only (p.86); "watershed"
+    diagnostic, reach run 2026-09-28). "Tributaries" walks STREAMS only (p.80); "watershed"
     keeps lakes. `report.json` `tributaries_pending` is **8** — exactly the unresolved
     `no_extents` rules whose rule or entry asks for tributaries (no seed to walk from). A
     binding flagged pending is still never complete; nothing downstream may treat it so.
@@ -259,13 +259,13 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
      Appended, not interleaved, so the numbers above stay stable. The mechanics are in
      pipeline/docs/CURRENT-STATE.md; the reference reader is read.py `effective_rules`. -->
 
-45. **The book's species list (p.86) is closed, and a bull trout IS a Dolly Varden.** 22 fish
+45. **The book's species list (p.80) is closed, and a bull trout IS a Dolly Varden.** 22 fish
     in TROUT/CHAR/WHITEFISH/BASS/OTHER (`catalogue.BOOK_FAMILIES`); any other code is refused.
-    `BT` is refused — "bull trout" is `DV` (p.86: "Any bull trout that you catch and keep must be
+    `BT` is refused — "bull trout" is `DV` (p.80: "Any bull trout that you catch and keep must be
     counted as part of your Dolly Varden quota"). Chinook `CH` is the one salmon the book names:
     in SALMON, never a game fish. (29ef0a20, aeb070cf)
 46. **"Trout" is `TROUT_CHAR`, scoped by its row or zone table.** Trout includes char unless
-    char are excluded (p.86); `TROUT` is refused. When the same row or zone table mentions a char
+    char are excluded (p.80); `TROUT` is refused. When the same row or zone table mentions a char
     apart (char, Dolly Varden/bull trout, lake trout, brook trout — not the group word
     "trout/char"), its bare "trout" lines carry `species_except: [CHAR]` — never one char alone.
     `trout_scope_problems` refuses it both ways. (38149b92)

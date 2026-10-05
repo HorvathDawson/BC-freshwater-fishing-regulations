@@ -273,7 +273,7 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
 def tidal_sections(entries, registry) -> frozenset[str]:
     """THE SECTIONS OF THE WATERS THE BOOK CALLS TIDAL — every matched item of a row marked
     `tidal` (`CatalogueEntry.tidal`). "Nitinat Lake is tidal water; tidal regulations apply and a
-    (federal) Tidal Waters Sport Fishing Licence is required" (p.19): no provincial rule, zone base,
+    (federal) Tidal Waters Sport Fishing Licence is required" (p.17): no provincial rule, zone base,
     park closure or licensing record holds there — only the row's own note. The reach builder takes
     them out of every OTHER row's binding, the way it takes out water past the border
     (`build.build_reach`, `tidal`); the tidal row's own rules keep them.

@@ -346,9 +346,9 @@ def test_the_skeena_above_cedarvale_is_streams_without_the_mainstem(real, corpus
 
 @pytest.mark.slow
 def test_lake_mid_reach_gains_the_book_does_not_support_are_gone(real, corpus):
-    """Rows whose water ends at a lake the FWA name runs through (checked against the book, p59
-    Stellako; p38 Duncan Lake's tributaries; p20 Puntledge and p17 Comox Lake / Cruickshank River;
-    p19 Nitinat Lake is tidal; p60 Tatsatua Creek = Tatsamenie Lake's outlet streams)."""
+    """Rows whose water ends at a lake the FWA name runs through (checked against the book, p53
+    Stellako; p36 Duncan Lake's tributaries; p18 Puntledge and p15 Comox Lake / Cruickshank River;
+    p17 Nitinat Lake is tidal; p54 Tatsatua Creek = Tatsamenie Lake's outlet streams)."""
     g, reg = real
     name = lambda xs: {g.nodes[s].display_name for s in xs}
     # the glyph is on "Class II water", not on the river: the rules are the river's

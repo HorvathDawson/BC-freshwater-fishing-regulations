@@ -39,7 +39,7 @@ from pipeline.common.models import NodeKind, StreamGraph
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
 
 #: POLICY (user rulings 2026-09-24), named so a test can switch each off and watch it go red:
-#: a rule's walk collects STREAMS only (the book, p86: "tributaries: all streams that contribute
+#: a rule's walk collects STREAMS only (the book, p80: "tributaries: all streams that contribute
 #: to a larger stream or to a lake") — `expand`;
 STREAMS_ONLY = True
 #: a lake in the middle of the reach is the river passing through, its inflows tributaries —
@@ -656,7 +656,7 @@ def expand(
     regulation shape ("no fishing in tributaries above Holt Creek", 44 rules). The reach is
     still what defines *which* tributaries; it is just not itself in the answer.
 
-    TRIBUTARIES ARE STREAMS. The book's glossary (p86): "tributaries: all streams that contribute
+    TRIBUTARIES ARE STREAMS. The book's glossary (p80): "tributaries: all streams that contribute
     to a larger stream or to a lake". So the walk's lakes are climbed through — a creek feeding a
     tributary lake is still a tributary — but never collected (user ruling 2026-09-24; 433 rules
     bound ~232,000 lake sections this way before it). The reach itself is kept whole: a row that

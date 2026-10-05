@@ -778,7 +778,7 @@ def entry_kind(e: dict) -> str:
 
     A `z`-prefixed entry is a REGIONAL or PROVINCIAL rule, transcribed from a region chapter
     or the provincial pages: "single barbless hook in all streams of Region 1", the Cutthroat
-    Trout Reward Tagging Program on page 12. It names no water on purpose, and its reach is
+    Trout Reward Tagging Program on page 13. It names no water on purpose, and its reach is
     an AREA carried on the entry (`within area:region:1`).
 
     Everything else is a row of a water table and names one water.

@@ -508,7 +508,7 @@ def _kept_lengths(r, fish: frozenset[str]) -> list[dict] | None:
     """THE SIZES A LIFTER KEEPS, as a lift term — `None` when it keeps every size of `fish` the
     book counts as that fish. The bands with a `take` of 0 are what it releases; a band that only
     restates the fish's definition ("Hatchery steelhead (>50 cm)" — a steelhead IS a rainbow over
-    50 cm, p.86) narrows nothing."""
+    50 cm, p.80) narrows nothing."""
     from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
     keep = [b.model_dump(mode="json", exclude_none=True)
             for b in (r.lengths or []) if b.take != 0]
@@ -1228,7 +1228,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"water takes only its own row's note. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
     # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
-    # IS A STEELHEAD (p.86, `steelhead_water`). Both from the reach run's `steelhead_presence`
+    # IS A STEELHEAD (p.80, `steelhead_water`). Both from the reach run's `steelhead_presence`
     # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
     # of a steelhead row binds, and every water on the curated known-steelhead list (a presence
     # indicator: it binds no rule); `possible` every other stream the provincial steelhead rules

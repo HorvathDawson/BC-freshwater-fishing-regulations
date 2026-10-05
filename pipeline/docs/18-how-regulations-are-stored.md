@@ -125,14 +125,14 @@ Get it backwards and you invert the rule on exactly the fish it was written to p
 
 ## The species — the book's list, and nothing else
 
-Page 86 (*"Freshwater game fish are defined as follows"*) is the only species set
+Page 80 (*"Freshwater game fish are defined as follows"*) is the only species set
 (`catalogue.BOOK_FAMILIES`): TROUT (RB, ST, CT, GB), CHAR (DV, LT, EB), WHITEFISH (LW, MW), BASS
 (LMB, SMB), OTHER (KO, GR, BB, WSG, BCB, NP, YP, WP, GE, IN, CRA). A code not on it is refused.
 
 * **A bull trout is a Dolly Varden.** *"Any bull trout that you catch and keep must be counted as
   part of your Dolly Varden quota."* One fish, `DV`; `BT` is refused. The label reads "Dolly
   Varden/bull trout".
-* **"Trout" includes char unless char are excluded** (p.86), so the printed word "trout" is
+* **"Trout" includes char unless char are excluded** (p.80), so the printed word "trout" is
   `TROUT_CHAR`; a `TROUT` code is refused. **The exclusion is scoped by the row:** when the same
   water row, or the same zone table, mentions a char on its own (char, Dolly Varden/bull trout,
   lake trout, brook trout), its bare "trout" lines are `TROUT_CHAR` with `species_except:
@@ -225,7 +225,7 @@ rest             "other parts": the water minus what named sibling rules bind
   is an `undrawn_part`.
 * **Tributaries.** `includes_tributaries` (entry, or rule — `None` on a rule inherits),
   `tributaries_only` (the walk without the row's own water), `tributary_excludes` (what the walk
-  must not enter). "Tributaries" walks streams only (p.86).
+  must not enter). "Tributaries" walks streams only (p.80).
 * **Watersheds.** A row printed for a whole watershed within a zone binds the FWA basin
   intersected with the region, not only what the walk reaches. A watershed PART ("Fraser
   watershed upstream of the Williams Lake River") is `Extent.watershed`: the sides are decided
@@ -374,7 +374,7 @@ each:
 | a bait or tackle rule **with** species | 20 gear rules carried codes copied from a neighbouring clause. "Trout: bait ban" is narrower than the law — the ban applies to everyone |
 | a sub-limit bigger than its parent | 20 brook trout inside a limit of 4 is not a sub-limit; it is a replacement |
 | a `verbatim` that is not in the entry's text | the only thing stopping a number nobody printed from being invented |
-| a species code not on p.86 (`BT`, `TROUT`, …) | the book's list is the only species set; a bull trout is a Dolly Varden |
+| a species code not on p.80 (`BT`, `TROUT`, …) | the book's list is the only species set; a bull trout is a Dolly Varden |
 | a `when` that loses or crosses a printed date | one real miss cut "Nov 1-Mar 31" to "Nov" and read two rules as all year |
 | a `review_reason` of a few words | a flag nobody can act on is not a flag |
 
