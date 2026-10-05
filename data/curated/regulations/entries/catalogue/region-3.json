@@ -6967,6 +6967,39 @@
      ]
     },
     {
+     "rule_id": "nicola_river.r3x",
+     "type": "retention_limit",
+     "verbatim": "Trout catch and release downstream of Nicola Lake, Jan 1-Feb 28",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "when": {
+      "dates": [
+       {
+        "from_month": 1,
+        "from_day": 1,
+        "to_month": 2,
+        "to_day": 28
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "nicola_river__nicola_lake"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. Downstream of Nicola Lake this row prints its own closed season (Mar 1-Sept 30) and a catch-and-release rule for Jan 1-Feb 28 — a release that can only mean the water is open then. User ruling 2026-10-03: the Nicola below the lake is exempt from the spring closure on its catch-and-release dates (RU-2); it is catch and release, not closed, Jan 1-Feb 28"
+      }
+     ]
+    },
+    {
      "rule_id": "nicola_river.r4",
      "type": "retention_limit",
      "verbatim": "No trout under 25 cm downstream of Nicola Lake",
@@ -9578,6 +9611,26 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "stein_river.r1x",
+     "type": "retention_limit",
+     "verbatim": "**No Fishing** Jan 1-May 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "spring_stream_closure",
+       "note": "Region 3's spring closure (p.28): 'No Fishing in any stream in Region 3 from Jan 1-June 30 (see tables for exceptions)'. p.30 lists the Stein with the Nahatlatch among the waters whose spring closure has its own dates ('Nahatlatch River downstream of Nahatlatch Lake and Stein River: from Jan 1-May 31'), and this row prints that season, so the Stein is open from June 1 (RU-1, 2026-10-04; the same lift the Nahatlatch row carries)"
       }
      ]
     },

@@ -596,6 +596,18 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          1-Mar 31" silences Region 4's quotas for every trout and char on its streams. A size
          clause of another dimension ("none under 60 cm"), a closure, a water row and another
          region's rule are untouched.
+         GENERALISED (RU-4, 2026-10-04): a zone release printed with NO water kind (and no
+         `while` / `when_targeting` condition) displaces its own table's keeping rules in the
+         same base dimension whatever THEIR water condition, THE SAME KEY INCLUDED — Region 5's
+         "ALL STEELHEAD" release empties "2 per day … from streams" for a steelhead too, and
+         the 7B grayling release May 1-Jun 15 silences that table's "2 per day" and "1 over 45
+         cm" on its dates (a tie step 4 left standing).
+     4c. A FULL CLOSURE DISPLACES THE KEEPING RULES IT BEATS BY THE LADDER WHATEVER THEIR KEY
+         (RU-7, 2026-10-04): a blanket stream closure (`water: stream`) silences the region's
+         "5 per day" and "1 over 50 cm" as it silences its own key's "4 from streams".
+     4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE (RU-5, 2026-10-04):
+         Lakelse Lake's "none over 50 cm" displaces Region 6's "no more than 1 over 50 cm" — a
+         zone keeping rule whose spoken lengths lie wholly inside the class the water releases.
       5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25): an outright
          release in force here, written for this water or reached by the tributary walk,
          displaces every zone/area/provincial quota that would keep the fish, WHATEVER its
@@ -603,12 +615,23 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          `rules.release_origins`, `rules.yields_to_release`). Such a release counts even when
          step 4 put it behind a zone release naming the fish, and one step 4 put behind a
          looser zone rule naming the fish (one that lets it be kept) speaks again.
+         AND THE ROW'S OWN UNDATED QUOTA (RU-3, 2026-10-04): a dated outright release OR
+         CLOSURE of the same row displaces that row's undated quota for the fish on its dates
+         (the Thompson's May catch and release over its "2 per day"; Adams, Big and Sulphurous
+         lakes' lake trout releases over their "1 per day"; and, as built, a row's dated
+         closure over its own quota — Quatse r1 May 1-Jun 15 over r2, the Region 7 lakes'
+         "No fishing Nov 1-Apr 30" over their quotas, Kitimat r2 Mar 16-May 31 over its
+         hatchery steelhead 2, the Okanagan's Oct 1-Nov 15 over its perch quota).
       6. TWO REGIONS' BASES — THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake straddling
          a region line binds both regions' zone rules; neither outranks the other (step 4 does not
          set them against each other). Per fish, a zone rule of one region is displaced by a
          `stricter` zone rule of the other: a closure beats open, a release beats a quota, the
          lower of two quotas stating the same thing beats the higher; different statements sit
-         beside; gear and method rules of both apply.
+         beside; gear and method rules of both apply. Two regions' IDENTICAL statements (the
+         same number) are shown once (RU-8, 2026-10-04).
+      0'. A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (RU-6, user ruling
+         2026-10-03): "ST" on a section the provincial steelhead set does not reach
+         (`steelhead_rules`) is answered as "RB", over every length.
       Rules that never compete pass through with state "shown": `standing`, the information
       family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
       `lift`) state nothing and are not returned.
@@ -626,9 +649,18 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
         bound = db.execute("SELECT r.entry_id, r.rule_id, r.via FROM section_ruleset s JOIN ruleset r "
                            "ON r.set_id = s.set_id WHERE s.sid = ?", (section,)).fetchall()
         steelhead_here = fish == "RB" and steelhead_water(db, section)
+        # WHETHER STEELHEAD RULES APPLY HERE (`section_steelhead_rules`, the reach run's answer).
+        # A hand-made bundle of rule sets (the tests' `_tiny`: no `rule` table, no view) says
+        # nothing of steelhead: the fish is answered as asked. A REAL bundle missing the view is
+        # refused by `steelhead_rules` (review F7: probing the view here and defaulting to True
+        # answered ST as asked on such a bundle, silently).
+        hand_made = not db.execute("SELECT 1 FROM sqlite_master WHERE name IN "
+                                   "('rule', 'section_steelhead_rules')").fetchone()
+        rules_here = True if fish != "ST" or hand_made else steelhead_rules(db, section)
     finally:
         db.close()
-    return effective_rules_bound(bound, steelhead_here, on, fish, path, by_naming=by_naming)
+    return effective_rules_bound(bound, steelhead_here, on, fish, path, by_naming=by_naming,
+                                 steelhead_rules_here=rules_here)
 
 
 def _leaf_fish(fish: str) -> None:
@@ -639,14 +671,24 @@ def _leaf_fish(fish: str) -> None:
 
 
 def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str = BUNDLE, *,
-                          by_naming: bool = True) -> List[dict]:
+                          by_naming: bool = True, steelhead_rules_here: bool = True) -> List[dict]:
     """`effective_rules` with the section's bindings already in hand — the SAME code, minus the
-    two lookups that are all a section contributes: its `(entry_id, rule_id, via)` rows (its
-    ruleset) and whether the steelhead definition holds there (`steelhead_water`, which matters
-    only for "RB"). Every section sharing a ruleset (and steelhead flag) gets the same answer,
+    three lookups that are all a section contributes: its `(entry_id, rule_id, via)` rows (its
+    ruleset), whether the steelhead definition holds there (`steelhead_water`, which matters
+    only for "RB") and whether the steelhead rules apply there (`steelhead_rules`, which matters
+    only for "ST"). Every section sharing a ruleset (and the two flags) gets the same answer,
     which is what lets `pipeline.deliver.status_index` evaluate 2,103 rulesets instead of 1.9 M
-    sections. Not a second reading of the ladder: `effective_rules` calls this."""
+    sections. Not a second reading of the ladder: `effective_rules` calls this.
+
+    A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (user ruling 2026-10-03, RU-6): asked
+    about "ST" on a section the provincial steelhead set does not reach (the Okanagan River, the
+    Fraser in 7A — `steelhead_rules_here` False), the answer is the RAINBOW's, read over every
+    length (no 50 cm cap: the fish is a rainbow of any size there). The export says the same in
+    words (`steelhead_rules: false`); this is the one definition the status index and every
+    client reader follow."""
     _leaf_fish(fish)
+    if fish == "ST" and not steelhead_rules_here:
+        fish, steelhead_here = "RB", False
     steelhead_here = bool(steelhead_here) and fish == "RB"
     orig = _rules_of(path)
     every = orig
@@ -735,8 +777,8 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         if competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
 
-    from pipeline.deliver.bundle.rules import (closure_grade, release_origins, same_statement,
-                                               statement, yields_to_release)
+    from pipeline.deliver.bundle.rules import (ORIGINS, closure_grade, release_origins,
+                                               same_statement, statement, yields_to_release)
 
     def place(k) -> int:
         return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
@@ -943,18 +985,105 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     streams"), never a size clause of another dimension ("none under 60 cm" stays beside),
     #     never a closure (it keeps nothing), never a water row, never another region's rule.
     #     Bound here is being on its kind of water (its extents draw only that kind).
+    #     GENERALISED (RU-4, 2026-10-04): a zone release printed with NO water kind met only the
+    #     rules of its own key in step 4, so Region 5's "you must release: ALL STEELHEAD" silenced
+    #     "Trout/char: 5" and left "2 per day … from streams" (`daily@water=stream`) speaking for a
+    #     steelhead on every Region 5 stream. Its own table's keeping rules give way in the same
+    #     base dimension WHATEVER their water condition: the release holds on every water, so the
+    #     "from streams" clause is a clause of the quota it empties for that fish.
+    #     ITS REAL REACH (review F4): "keepers in the base dimension" includes the SAME key, so it
+    #     also breaks a same-key tie INSIDE one table — the 7B grayling release May 1-Jun 15
+    #     silences that table's "2 per day" and "1 over 45 cm" on its dates (book-correct: the
+    #     fish is released then). Only an UNCONDITIONED release reaches this far:
+    #     `release_origins` is None for a `while` / `when_targeting` release (pinned by
+    #     test_a_conditioned_zone_release_leaves_its_tables_quotas).
+    def on_its_water(x: dict) -> bool:
+        """A rule printed for a kind of water is bound here only on that kind (every extent
+        draws it: `feature_types: [water]`), or it carries no water kind at all."""
+        water = x.get("water")
+        if not water:
+            return True
+        exts = x.get("extents") or []
+        return bool(exts) and all(list(e.get("feature_types") or []) == [water] for e in exts)
+
     for k in sorted(out_):
-        kind = released_on_water(every[k]) if competes(k) and place(k) >= 2 else None
-        if kind is None or base(k) is None:
+        if not (competes(k) and place(k) >= 2 and base(k) is not None):
             continue
+        kind = released_on_water(every[k])
+        if kind is None:
+            if not (release_origins(every[k]) and not every[k].get("water")
+                    and closure_grade(every[k]) is None):
+                continue
+            kind = "*"                                     # a release on every kind of water
         freed = release_origins(every[k])
         for o in sorted(out_):
             keeps = yields_to_release(every[o])
             if o != k and competes(o) and place(o) >= 2 and base(o) == base(k) \
                     and family(o) != family(k) and keeps and keeps <= freed \
-                    and every[o].get("water") in (None, kind) \
+                    and (every[o].get("water") in (None, kind) if kind != "*" else
+                         # the keeper's only condition beyond the base is its water kind
+                         str(every[o].get("dimension")) in (
+                             _base_dimension(every[k]),
+                             f"{_base_dimension(every[k])}@water={every[o].get('water')}")) \
                     and _base_dimension(every[o]) == _base_dimension(every[k]):
                 out_.discard(o)
+
+    # 4c. A CLOSURE SPEAKS FOR EVERY FISH IT COVERS AS IF IT NAMED IT, WHATEVER ITS KEY (RU-7,
+    #     2026-10-04). Step 4 lets a closure displace the keeping rules of its own key; a blanket
+    #     stream closure carries `water: stream` (`daily@water=stream`) and so never met the
+    #     region's "5 per day" or "1 over 50 cm" (`daily`): Michel Creek on May 1 showed Region 4's
+    #     "No fishing in streams, Apr 1-Jun 14" beside its "5 per day". A FULL closure in force
+    #     here (`rules.closure_grade`), bound on its kind of water, displaces every rule that keeps
+    #     the fish in the same base dimension that it BEATS BY THE LADDER (`order`: exactly what
+    #     step 4 asks of two rules of one key, so a water row naming the fish still speaks beside
+    #     a zone closure here as it does there), over the lengths it covers — never two regions'
+    #     peers (step 6 reads those), never its own family. Page noise only: the status index
+    #     already read the closure.
+    for k in sorted(out_):
+        x = every[k]
+        if not (competes(k) and closure_grade(x) == "full" and on_its_water(x)):
+            continue
+        for o in sorted(out_):
+            if o != k and competes(o) and family(o) != family(k) \
+                    and not peers(o, k) and yields_to_release(every[o]) \
+                    and _base_dimension(every[o]) == _base_dimension(x) \
+                    and order(k) < order(o) and covers(x, every[o], top):
+                out_.discard(o)
+
+    # 4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE FOR THE SAME SIZES (RU-5,
+    #     2026-10-04). Lakelse Lake's "Rainbow trout (none over 50 cm)" is sizes with no count
+    #     (`daily/size`); Region 6's "no more than 1 over 50 cm" is a count (`daily`), so the two
+    #     never met and the page said "1 over 50 cm" on a lake where none over 50 cm may be kept.
+    #     The stricter-at-water ruling (2026-09-25) and `covers` decide it: a water-side rule
+    #     RELEASING a size class (a band with take 0) displaces a zone-side keeping rule of the
+    #     same base dimension whose spoken lengths lie wholly inside the released class. The
+    #     zone's "5 per day" (every length) stays: the 5 still counts the rainbow under 50 cm.
+    def released_lengths(x: dict) -> list | None:
+        # the class the rule releases outright: its take-0 bands, for every angler (no `while`,
+        # no target, not a clause) — the origin it holds for is checked against the keeper's
+        if x.get("while") or x.get("when_targeting") or x.get("within"):
+            return None
+        bands = [b for b in (x.get("lengths") or []) if b.get("take") == 0]
+        return _spoken_lengths({"lengths": bands}, top) if bands else None
+
+    def clock(k) -> str:
+        # the rule's clock alone: "daily/size" (sizes with no count) and "daily" are one clock
+        return _base_dimension(every[k]).split("/", 1)[0]
+
+    for o in sorted(out_):
+        freed_lengths = released_lengths(every[o]) if competes(o) and water_side(o) \
+            and every[o].get("type") == "retention_limit" else None
+        if not freed_lengths:
+            continue
+        freed_origins = frozenset({every[o]["origin"]}) if every[o].get("origin") else ORIGINS
+        for k in sorted(out_):
+            keeps = yields_to_release(every[k])
+            spoken = _spoken_lengths(every[k], top) if competes(k) and zone_side(k) \
+                and keeps and keeps <= freed_origins and not closure(k) \
+                and family(o) != family(k) and clock(k) == clock(o) else None
+            if spoken and all(any(lo >= x and hi <= y for x, y in freed_lengths)
+                              for lo, hi in spoken):
+                out_.discard(k)
 
     # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
     #    keys on (type, dimension), and a zone quota's conditions are part of its dimension, so
@@ -999,11 +1128,40 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
             out_.add(k)
     water_rel = frozenset().union(*[o for k, o in rel.items() if water_side(k)])
     released = frozenset().union(*rel.values())
+
+    def same_row_dated_release(k) -> bool:
+        """A DATED OUTRIGHT RELEASE OF THE SAME ROW DISPLACES THE ROW'S OWN UNDATED QUOTA FOR
+        THE FISH ON ITS DATES (RU-3, 2026-10-04). The Thompson below Kamloops Lake prints "Trout
+        and char — 2 per day" and, for its CNR stretch, "trout/char catch and release … May
+        1-31"; Adams Lake "Lake trout — release all, Oct 15-Jan 31" beside "bull trout and lake
+        trout — 1 per day". Two rules of one row rank alike (same place, same naming), so step 4
+        tied them and the page said "2 per day" and "release all" at once in the one month the
+        row singles out. The dated release is the row's own exception to its general number: on
+        its dates the number is silent, as a water's release silences the zone's. Only this
+        shape — the release DATED, the quota UNDATED, both the row's own (`water_side`), another
+        family — never the reverse (an undated release beside a dated keeping window is a window
+        the row prints to OPEN the fish, and both stand as printed).
+
+        ITS REAL REACH (review F4): `rel` holds every rule `release_origins` reads as a release,
+        and a CLOSURE (take 0, may not fish) is one — so a row's DATED CLOSURE silences the row's
+        own undated quota on its dates too (Quatse r1 over r2, the Region 7 lakes' winter
+        closures over their quotas, Kitimat's Mar 16-May 31 over its hatchery 2). That is the
+        book: on those dates the water is closed to the fish. 356 answers over every key."""
+        x = every[k]
+        if (x.get("when") or {}).get("dates") or not (x.get("take") or x.get("unlimited")):
+            return False                      # a size clause is its own subject (Koocanusa)
+        return any(o != k and o[0] == k[0] and water_side(o) and family(o) != family(k)
+                   and bool((every[o].get("when") or {}).get("dates"))
+                   and _base_dimension(every[o]) == _base_dimension(x)
+                   and yields_to_release(x) <= rel[o]
+                   for o in rel)
+
     if water_rel:
         for k in sorted(out_):
             keeps = yields_to_release(every[k])
-            if keeps and competes(k) and zone_side(k) and keeps <= released \
-                    and keeps & water_rel:
+            if not (keeps and competes(k) and keeps <= released and keeps & water_rel):
+                continue
+            if zone_side(k) or (water_side(k) and same_row_dated_release(k)):
                 out_.discard(k)
 
     # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake drawn across
@@ -1022,6 +1180,22 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         gone = {k for k in mine
                 if any(peers(o, k) and stricter(every[o], every[k]) for o in mine)}
         out_ -= gone
+        # TWO REGIONS' IDENTICAL STATEMENTS ARE ONE (RU-8, 2026-10-04): Ahbau Lake (Regions 5
+        # and 7A) printed "Trout and char — 5 per day" and "1 over 50 cm" twice, once per table.
+        # Of two peers that are the same statement with the same number, one is shown — the
+        # lower entry id (z5 before z7a: deterministic, no section lookup; display only, the
+        # number is the same either way).
+        left = sorted(k for k in mine if k not in gone)
+        for i, k in enumerate(left):
+            for o in left[:i]:
+                if o in out_ and k in out_ and peers(o, k) \
+                        and every[o].get("type") == "retention_limit" \
+                        and every[k].get("type") == "retention_limit" \
+                        and yields_to_release(every[o]) and yields_to_release(every[k]) \
+                        and same_statement(every[o], every[k]) \
+                        and every[o].get("take") == every[k].get("take") \
+                        and bool(every[o].get("unlimited")) == bool(every[k].get("unlimited")):
+                    out_.discard(k)
 
     def said(k) -> str:
         if k in undrawn:
@@ -1083,7 +1257,10 @@ def stamp_waived_here(db, section: int, on) -> list[str]:
 
 def requirements_in_force(db, section: int, on) -> dict:
     """Every requirement in force on `section` on the day, `{entry_id#req_id: why}`, and the ones
-    an outright stamp waiver lifts there, under `"waived"`: `{entry_id#req_id: [designation]}`.
+    an outright stamp waiver lifts there, under `"waived"`: `{entry_id#req_id: [designation]}`;
+    under `"also_printed"`, `{entry_id#req_id: [entry_id#req_id, …]}`, the records that RESTATE a
+    holding one (one obligation printed twice is one key; RU-12) — and a zone table's
+    `on_designation` restatement holds on its own region's designations only.
 
     A requirement holds where it is placed (`requirement_section`; `province` everywhere but its
     `province_except` kind and tidal water; `on_designation` wherever a designation satisfying its
@@ -1099,6 +1276,14 @@ def requirements_in_force(db, section: int, on) -> dict:
             "steelhead_period": any(
                 d.get("steelhead_stamp_during") is not None
                 and in_force(d["steelhead_stamp_during"].get("when"), on) != "no" for d in desig)}
+    # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RU-12, 2026-10-04):
+    # Region 4's "Classified Waters Licence … many East Kootenay rivers (map p.33)" is Region 4's
+    # wording and held on the Dean (Region 5) and the Seymour (Region 1) beside the province's.
+    desig_regions = {_entry_region(d["entry_id"]) for d in desig}
+
+    def own_region(eid: str) -> bool:
+        r = base_region(eid)
+        return r is None or _book_region(r) in desig_regions
     placed = {(e, r) for e, r in db.execute(
         "SELECT entry_id, req_id FROM requirement_section WHERE sid = ?", (section,))}
     tidal = db.execute("SELECT 1 FROM tidal WHERE sid = ?", (section,)).fetchone() is not None
@@ -1108,6 +1293,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     holds: dict[str, str] = {}
     waived: dict[str, list[str]] = {}
     undrawn: dict[str, str] = {}
+    restated: dict[str, str] = {}
     for eid, rid, placement, rec in db.execute(
             "SELECT entry_id, req_id, placement, record FROM requirement"):
         r = json.loads(rec)
@@ -1121,6 +1307,8 @@ def requirements_in_force(db, section: int, on) -> dict:
                 continue
             why = "province"
         elif placement == "on_designation":
+            if not own_region(eid):
+                continue
             why = "on_designation"
         else:
             continue                                     # unresolved: the reader says "check"
@@ -1136,4 +1324,30 @@ def requirements_in_force(db, section: int, on) -> dict:
             waived[key] = waivers
             continue
         holds[key] = why
-    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn}
+        if r.get("restates"):
+            restated[key] = f"{r['restates']['entry_id']}#{r['restates']['id']}"
+    # ONE OBLIGATION, PRINTED TWICE, IS ONE KEY (RU-12, 2026-10-04): a record that `restates`
+    # another (Region 4's Classified Waters Licence line, the Shuswap row's char stamp, the
+    # Creston permit on the CVWMA row) is folded into the record it restates when that one holds
+    # too — listed under `also_printed` on the restated key, not as an obligation of its own.
+    also: dict[str, list[str]] = {}
+    for key, of in sorted(restated.items()):
+        if of in holds and of != key:
+            also.setdefault(of, []).append(key)
+            holds.pop(key)
+    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn, "also_printed": also}
+
+
+def _entry_region(entry_id: str) -> str | None:
+    """`r6:…` / `z4:…` -> "6" / "4"; `zp:` and anything else -> None."""
+    head = str(entry_id).split(":", 1)[0]
+    return head[1:] if head[:1] in ("r", "z") and head != "zp" and head[1:] else None
+
+
+def _book_region(region: str) -> str:
+    """A zone table's region as the ROWS name it: the book prints Region 7's rows under one
+    "Region 7" (`r7:`) while its zone tables are 7A and 7B (`z7a:`, `z7b:`) — so "7a" -> "7".
+    Without it a 7A/7B `on_designation` restatement could never hold on a Region 7 designation
+    (review F7; none exists today, only z3 and z4)."""
+    return region[:-1] if len(region) > 1 and region[-1] in "ab" and region[:-1].isdigit() \
+        else region

@@ -349,6 +349,237 @@ def own_beats_inherited(placements: list[LicensingPlacement], records: dict
     return out, diags
 
 
+#: POLICY (user rulings 2026-10-03), named so a test can switch it off and watch it go red: a
+#: section takes the Classified Waters designation of the FIRST classified water it flows into,
+#: and a tributary with a row of its own that prints no designation is not classified at all.
+FIRST_CLASSIFIED_WATER_DOWNSTREAM = True
+
+
+def first_classified_downstream(placements: list[LicensingPlacement], records: dict, graph,
+                                registry, owned, kind_of, matched_of: dict | None = None
+                                ) -> tuple[list[LicensingPlacement], list[Diagnostic]]:
+    """ONE CLASSIFIED WATERS UNIT PER SECTION (user rulings 2026-10-03, RU-13 and LI-2).
+
+    Two designations' tributary walks both reach a creek above the Morice (the Bulkley's, the
+    Morice's), and 10,227 sections carried two units — a non-resident told to buy two different
+    day licences. The ruling: a section walked by a designation takes the designation of the
+    FIRST CLASSIFIED WATER IT FLOWS INTO — the nearest water downstream with a designation of its
+    OWN (bound by reach, not by walk). Gosnell Creek joins the Morice before the Bulkley: the
+    Morice's. The Nanika, above Morice Lake, flows into Morice Lake and so into the Morice: the
+    Morice's, although the Morice's own walk stops at the lake at the top of its reach — the
+    Bulkley's walk found it and hands it on (`rehomed`).
+
+    And a TRIBUTARY WITH A ROW OF ITS OWN THAT PRINTS NO DESIGNATION IS NOT CLASSIFIED (LI-2):
+    the Endako under the Stellako's "[Includes Tributaries]", Gosnell Creek under the Morice's.
+    The 2026-09-30 ruling for a joining water at a confluence cut ("whose own row prints no CW —
+    the Iltasyuko — does not inherit") holds for every walked tributary: the row is the book's
+    word on that water, and it says nothing of a licence. Streams only — "tributaries" are
+    streams (p.86) — so a rowed LAKE the flow passes through is not a stop. It and everything
+    above it are left out, as at a cut.
+
+    HOW: walking DOWN from each inherited section (`graph.down_adj`, the main flow first), the
+    first section met that is any designation's own reach, or a stream of a rowed water, decides:
+      · the walker's own reach         → the section stays the walker's;
+      · another designation's own      → the section is RE-HOMED to that designation
+                                         (its `via_tributary`), whatever its class or period
+                                         (one unit per section; `why_not_yield` is reported);
+      · a water with a row of its own
+        and no designation             → the section is dropped (`own_row_not_classified`);
+      · nothing before the sea         → it stays.
+    A row of the walker's own entry, or one pointing at it (`build.own_rows`), is no stop, and
+    neither is the walker's OWN WATER (`matched_of[entry_id]`, the entry's matched items — a
+    tributaries-only row like "Elk River's tributaries" has no reach of its own and its river is
+    where every section it binds flows first) — EXCEPT the reach of another designation of the
+    SAME entry: the Zymoetz's row prints unit A below Limonite Creek and unit B above it, and a
+    section walked by both takes the one whose reach it actually flows into (Limonite Creek and
+    the tributaries joining at the A/B cut take the reach the graph joins them to; ruling
+    2026-10-04 under the user's 2026-10-03 rule).
+    Every removal and every re-homing is a diagnostic. `records` maps `(entry_id, record_id)`
+    to the validated `Designation`; `owned` is `outside.rowed_waters`; `kind_of(section)` is
+    the registry's water kind."""
+    if not FIRST_CLASSIFIED_WATER_DOWNSTREAM:
+        return placements, []
+    from pipeline.atlas.reach.build import own_rows
+    from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
+
+    own_of: dict[str, set[tuple[str, str]]] = {}
+    by_key: dict[tuple[str, str], LicensingPlacement] = {}
+    for p in placements:
+        if p.kind == "designation" and p.placement == "sections":
+            by_key[(p.entry_id, p.record_id)] = p
+            trib = set(p.via_tributary)
+            for s in p.sections:
+                if s not in trib:
+                    own_of.setdefault(s, set()).add((p.entry_id, p.record_id))
+    rowed: set[str] = set()
+    water_of: dict[str, set[str]] = {}          # entry -> the sections of the waters it rows
+    desig_rows: dict[str, list[tuple[str, str]]] = {}   # entry -> its placed designations
+    for item, rows in (owned or {}).items():
+        if item not in registry:
+            continue
+        secs = set(registry[item].section_ids)
+        rowed |= secs
+        for row in rows:
+            eid = row if isinstance(row, str) else row[0]
+            water_of.setdefault(eid, set()).update(secs)
+    for (eid, rid) in by_key:
+        desig_rows.setdefault(eid, []).append((eid, rid))
+    reach_of: dict[str, dict[str, set[str]]] = {}     # entry -> designation -> its own reach
+    for s, ds in own_of.items():
+        for eid, rid in ds:
+            reach_of.setdefault(eid, {}).setdefault(rid, set()).add(s)
+    for eid, items in (matched_of or {}).items():
+        for item in items or ():
+            if item in registry:
+                water_of.setdefault(eid, set()).update(registry[item].section_ids)
+
+    def is_stop(node: str) -> bool:
+        return node in own_of or (node in rowed and kind_of(node) == "stream")
+
+    def options(node: str) -> list[str]:
+        """Where the flow goes from `node`, the main flow first: the water continuing or entering
+        a lake (`continuation`, `lake_out`, `lake_in`, `outlet`) before a `confluence` — a braid's
+        side channel joins its own river by a confluence edge, and the Nanika's pieces join each
+        other eleven times before one enters Morice Lake."""
+        eis = graph.down_adj.get(node, [])
+        rank = {k: 0 for k in MAINSTEM_EDGE_KINDS} | {"lake_in": 1, "outlet": 1}
+        return [graph.edges[i].to_node for i in
+                sorted(eis, key=lambda i: (rank.get(graph.edges[i].kind, 2), i))]
+
+    def next_down(node: str) -> str | None:
+        got = options(node)
+        return got[0] if got else None
+
+    MISSING = object()
+    memo: dict[str, str | None] = {}
+
+    def stop_at_or_below(node: str | None) -> str | None:
+        """The first stop at `node` or below it: a depth-first walk down the flow, the main flow
+        first, every braid followed, no node twice. The nodes on the path that reached the stop
+        are memoised with it; a start from which no stop is reachable is memoised `None`."""
+        if node is None:
+            return None
+        got = memo.get(node, MISSING)
+        if got is not MISSING:
+            return got
+        seen = {node}
+        parent: dict[str, str | None] = {node: None}
+        stack = [node]
+        while stack:
+            cur = stack.pop()
+            known = memo.get(cur, MISSING) if cur != node else MISSING
+            if known is not MISSING:
+                if known is None:
+                    continue
+                found = known
+            elif is_stop(cur):
+                found = cur
+            else:
+                for nxt in reversed(options(cur)):
+                    if nxt not in seen:
+                        seen.add(nxt)
+                        parent[nxt] = cur
+                        stack.append(nxt)
+                continue
+            x: str | None = cur
+            while x is not None:                 # the path that led here flows into the stop
+                memo[x] = found
+                x = parent.get(x)
+            return found
+        for x in seen:
+            memo.setdefault(x, None)
+        return None
+
+    out: list[LicensingPlacement] = []
+    diags: list[Diagnostic] = []
+    gained: dict[tuple[str, str], dict[str, set[tuple[str, str]]]] = {}
+    for p in placements:
+        if p.kind != "designation" or p.placement != "sections" or not p.via_tributary:
+            out.append(p)
+            continue
+        me = (p.entry_id, p.record_id)
+        # the designation's own reach, and its own WATER beyond it (a row of the same water
+        # printed for another stretch, a park-clipped piece: the walker's, never a stop)
+        # — less the reaches of the entry's OTHER designations: one entry printing two units
+        # on two stretches (the Zymoetz's A and B) hands each walked section to the stretch it
+        # actually flows into, never to both (F1: 115 Limonite/Zymoetz sections carried both)
+        reach = set(p.sections) - set(p.via_tributary)
+        siblings = set().union(*(secs for rid, secs in reach_of.get(p.entry_id, {}).items()
+                                 if rid != p.record_id))
+        mine = reach | (water_of.get(p.entry_id, set()) - (siblings - reach))
+        rehomed: dict[tuple[str, str], set[str]] = {}
+        dropped: dict[str, set[str]] = {}
+        for s in p.via_tributary:
+            t = stop_at_or_below(s)
+            passed: set[str] = set()
+            while t is not None and t not in passed:      # a braid turning back: stop
+                passed.add(t)
+                if t in mine:
+                    break
+                others = own_of.get(t, set()) - {me}
+                if others:
+                    rehomed.setdefault(min(others), set()).add(s)
+                    break
+                rows = own_rows(registry, owned, {t}, p.entry_id)
+                if rows:
+                    # a rowed water: with a designation of its own (its row prints one, though
+                    # this section is outside that designation's reach) it is the first
+                    # classified water the section flows into; with none, not classified
+                    with_desig = sorted(d for r in rows for d in desig_rows.get(r, ()))
+                    if with_desig:
+                        rehomed.setdefault(with_desig[0], set()).add(s)
+                    else:
+                        dropped.setdefault(",".join(rows), set()).add(s)
+                    break
+                t = stop_at_or_below(next_down(t))
+        gone = set().union(*rehomed.values(), *dropped.values()) if (rehomed or dropped) \
+            else set()
+        for d, secs in sorted(rehomed.items()):
+            why = why_not_yield(records[d], records[me]) if d in records and me in records \
+                else None
+            diags.append(Diagnostic(p.entry_id, p.record_id, "first_classified_downstream", {
+                "rehomed": len(secs), "to": f"{d[0]}#{d[1]}",
+                **({"why_not_yield": why} if why else {})}))
+            gained.setdefault(d, {}).update({s: {me} for s in secs})
+        for rows, secs in sorted(dropped.items()):
+            diags.append(Diagnostic(p.entry_id, p.record_id, "own_row_not_classified", {
+                "removed": len(secs), "rows": rows.split(",")}))
+        if not gone:
+            out.append(p)
+            continue
+        keep = tuple(s for s in p.sections if s not in gone)
+        if not keep:
+            raise AssertionError(f"{p.entry_id}#{p.record_id}: every section it binds flows "
+                                 f"into another classified water first — it would end bound "
+                                 f"to nothing")
+        out.append(LicensingPlacement(
+            p.entry_id, p.record_id, p.kind, p.placement, sections=keep,
+            via_tributary=tuple(s for s in p.via_tributary if s not in gone),
+            tributaries_pending=p.tributaries_pending, reason=p.reason, detail=p.detail))
+    if gained:
+        final: list[LicensingPlacement] = []
+        for p in out:
+            add = gained.get((p.entry_id, p.record_id))
+            if not add:
+                final.append(p)
+                continue
+            have = set(p.sections)
+            new = sorted(s for s in add if s not in have)
+            if not new:                        # already its own: nothing to add, nothing to say
+                final.append(p)
+                continue
+            froms = sorted({f"{e}#{r}" for s in new for e, r in add[s]})
+            diags.append(Diagnostic(p.entry_id, p.record_id, "inherited_from_upstream_walk", {
+                "added": len(new), "from": froms}))
+            final.append(LicensingPlacement(
+                p.entry_id, p.record_id, p.kind, p.placement,
+                sections=tuple(list(p.sections) + new),
+                via_tributary=tuple(list(p.via_tributary) + new),
+                tributaries_pending=p.tributaries_pending, reason=p.reason, detail=p.detail))
+        out = final
+    return out, diags
+
+
 def _owners(eid: str, items: set[str], claims: dict[str, list[str]]) -> list[str]:
     return sorted({e for i in items for e in claims.get(i, ()) if e != eid})
 

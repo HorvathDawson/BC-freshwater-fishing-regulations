@@ -399,3 +399,43 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     bundle's `reach_digest` beside the handles, and the app refuses a mismatch. An atlas built before
     the sidecars existed gets them from `python -m pipeline.atlas.sidecars` (same inputs, never a
     rebuild).
+57. **The 2026-10-03 rulings, as built (Phase 3).** Classified Waters: ONE UNIT PER SECTION — a
+    walked section takes the designation of the FIRST classified water it flows into (the nearest
+    downstream water with a designation of its own: Gosnell → Morice, not Bulkley; the Nanika above
+    Morice Lake → Morice, handed on from the Bulkley's walk), and a tributary with a ROW OF ITS OWN
+    that prints no designation is NOT classified, it and everything above it (the Endako under the
+    Stellako). ONE ENTRY PRINTING TWO UNITS on two stretches (the Zymoetz: A below Limonite Creek,
+    B above): a walker's own water is no stop EXCEPT its sibling designations' reaches, so each
+    walked section takes the one stretch it actually flows into (115 Limonite/Zymoetz sections
+    read both). `reach.licensing.first_classified_downstream`, every move a diagnostic
+    (`first_classified_downstream`, `own_row_not_classified`, `inherited_from_upstream_walk`);
+    `test_licensing_first_classified.py`, `test_phase3_rulings.py`. A joining water WITH A ROW OF
+    ITS OWN that signs pull into a cut is bounded like a `between` — its stem from its mouth to its
+    FIRST LAKE, its tributaries below the lake with it (`reach.build._stem_to_first_lake`; the Nass
+    takes the Meziadin to Meziadin Lake, never Hanna/Tintina/Strohn); one with no row still goes
+    with the cut whole. A water the book's geography puts OUTSIDE an area its polygon touches is
+    stated ONCE on the area definition (`areas.json` `outside_items`, Kennedy Lake / Pacific Rim)
+    and applied to the registry's area item (`registry.outside_area_items`, build + sidecars;
+    IDEMPOTENT — the sidecar step reapplies it to a registry that already holds it), so
+    the closure, `outside_area_kind`, `province_except` and the designations all agree — never on a
+    rule, never in a reader. The Stein (p.30) and the Nicola below its lake (its C&R dates) lift
+    Region 3's spring closure by lift-only rules (`stein_river.r1x`, `nicola_river.r3x`). READER
+    (`read.effective_rules`, each pinned in `test_competition.py`): a same-row DATED release OR
+    CLOSURE silences the row's UNDATED counted quota on its dates (RU-3; size clauses are their
+    own subject; as built a row's dated closure silences its own quota too — Quatse, the Region 7
+    lakes' winter closures, Kitimat's hatchery 2); a zone release with no water kind and no
+    `while`/`when_targeting` empties its table's keepers in the base dimension, THE SAME KEY
+    INCLUDED (RU-4: the "from streams" clause, and a same-key tie inside one table — the 7B
+    grayling release over that table's "2 per day" on its dates); a water's take-0 size band displaces a zone size clause wholly
+    inside it for the origins it releases (RU-5); a full closure displaces the keepers it beats by
+    the ladder whatever their key (RU-7); two regions' identical statements show once (RU-8);
+    "ST" where no steelhead rule applies (`section_steelhead_rules`) is answered as "RB" over
+    every length (RU-6; the status index asks the same). `requirements_in_force` folds a record
+    that `restates` a holding one into it (`also_printed`) and holds a zone table's
+    `on_designation` restatement on its own region only (RU-12; 7A/7B tables are Region 7 to the
+    rows). The export REFUSES a dated water release that speaks under a blanket closure unless
+    listed as known (`export_ui_rules.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-1/RU-2 would have been
+    caught), AND a water row's keeping quota in force that a blanket zone closure silences
+    (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
+    exemption shaped like a quota would otherwise vanish). Both read every set, every start day of
+    the rule and of the closures, every fish (`_closure_scan`).

@@ -308,11 +308,20 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
 def test_placement_moves_only_on_folded_sections(db):
     """Against the shipped bundle of the SAME atlas (handle digest): rule and licensing sets differ
     only on the sections the merge moved (the folded polygons, the unnamed polygons a slough took,
-    the connector pieces) and on sections whose set is a renumbering of the same members."""
+    the connector pieces) and on sections whose set is a renumbering of the same members.
+
+    It measures THE MERGE, so it compares only a shipped bundle from BEFORE the one water kind
+    with one after it (the Phase 1 -> Phase 2 pair). Once the shipped bundle holds the merge
+    there is no merge between the two, and any difference is a later phase's rule change (Phase
+    3 moved 1,183 sections through 6 rules, Kennedy Lake one of them) — never widen `allowed`
+    for that; a later phase diffs its own rules against the shipped bundle."""
     live = GENERATED.bundle / "bundle.sqlite"
     if not live.exists() or live.resolve() == _bundle().resolve():
         pytest.skip("no second bundle to compare")
     old = sqlite3.connect(f"file:{live}?mode=ro", uri=True)
+    if "shape" in {r[1] for r in old.execute("PRAGMA table_info(section_span)")}:
+        old.close()
+        pytest.skip("the shipped bundle already holds the one water kind — no merge to measure")
     meta_old = dict(old.execute("SELECT k, v FROM meta"))
     meta_new = dict(db.execute("SELECT k, v FROM meta"))
     if meta_old["section_handles"] != meta_new["section_handles"]:

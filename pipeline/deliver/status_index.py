@@ -166,7 +166,8 @@ def set_floor(bound: Sequence[tuple], path: str) -> int:
                       if (e, r) in every) else BASE
 
 
-def set_profile(bound: Sequence[tuple], steelhead: bool, path: str) -> Tuple[int, ...]:
+def set_profile(bound: Sequence[tuple], steelhead: bool, path: str,
+                steelhead_rules: bool = True) -> Tuple[int, ...]:
     """The status code of a section carrying these bindings, on each day 1..366.
 
     Faithful shortcut through `effective_rules_bound`, in two steps that change no answer:
@@ -202,7 +203,8 @@ def set_profile(bound: Sequence[tuple], steelhead: bool, path: str) -> Tuple[int
         got = memo.get(sig)
         if got is None:
             got = CLOSED if all(
-                closes(read.effective_rules_bound(bound, steelhead, md, f, path))
+                closes(read.effective_rules_bound(bound, steelhead, md, f, path,
+                                                  steelhead_rules_here=steelhead_rules))
                 for f in GAME_FISH) else floor
             memo[sig] = got
         out.append(got)
@@ -270,6 +272,9 @@ def compute(path: str, log=print) -> dict:
             sets[set_id].append((e, r, via))
         sid_set = db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid").fetchall()
         steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
+        # where the steelhead rules apply (`section_steelhead_rules`): elsewhere "ST" is
+        # answered as a rainbow (`read.effective_rules_bound`, RU-6)
+        st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
         tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
         outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
         items = db.execute("SELECT i.item_id, s.sid FROM item i JOIN item_section s "
@@ -280,15 +285,16 @@ def compute(path: str, log=print) -> dict:
     by_key: Dict[tuple, Tuple[Tuple[int, ...], int]] = {}
     sec: Dict[int, Tuple[Tuple[int, ...], int]] = {}       # sid -> (profile, floor)
     for sid, set_id in sid_set:
-        key = (set_id, sid in steel)
+        key = (set_id, sid in steel, sid in st_rules)
         got = by_key.get(key)
         if got is None:
             bound = sets.get(set_id, [])
-            got = by_key[key] = (set_profile(bound, key[1], path), set_floor(bound, path))
+            got = by_key[key] = (set_profile(bound, key[1], path, key[2]),
+                                 set_floor(bound, path))
         sec[sid] = ((TIDAL,) * DAYS, got[1]) if sid in tidal else got
     for sid in outside:
         sec.setdefault(sid, ((OUTSIDE,) * DAYS, BASE))
-    log(f"  {len(by_key)} (ruleset, steelhead) keys evaluated in {time.time() - t0:.1f}s")
+    log(f"  {len(by_key)} (ruleset, steelhead, steelhead rules) keys evaluated in {time.time() - t0:.1f}s")
 
     base = (BASE,) * DAYS
     parts: Dict[str, set] = defaultdict(set)

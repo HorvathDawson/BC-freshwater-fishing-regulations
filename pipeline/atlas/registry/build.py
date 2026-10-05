@@ -525,6 +525,54 @@ def add_lake_parts(registry: dict[str, RegistryItem],
     return registry
 
 
+def outside_area_items(registry: dict[str, RegistryItem],
+                       area_defs: list[dict]) -> dict[str, RegistryItem]:
+    """A WATER THE BOOK'S GEOGRAPHY PUTS OUTSIDE AN AREA ITS POLYGON TOUCHES (user ruling
+    2026-10-03: Kennedy Lake is OUTSIDE Pacific Rim National Park Reserve, as Kootenay Lake is
+    outside the Creston Valley WMA).
+
+    A lake is never cut, so `mark_inside_areas` flags one that merely reaches into a polygon
+    (`_waterbody_overlap_counts`: 1,000 m² of a 65 km² lake), and the registry's area item then
+    lists it — and EVERY reader of that item followed: the park's closure (`within area:…`), the
+    province-wide rules and licences written "outside national parks" (`outside_area_kind`,
+    `province_except`), the designations that stop at a park. Kennedy Lake read closed, with no
+    provincial licence valid on it. The fact is geography, so it is stated ONCE, on the area
+    definition (`areas.json`, `outside_items`: {area slug: [item ids]}), and applied here to the
+    one registry item every reader asks — never on a rule, never in a reader.
+
+    IDEMPOTENT: the sidecar step (`atlas.sidecars`) reloads a build's registry.json, which already
+    holds the exclusion, and applies the pass again — an item with no section in the area is
+    already outside and is accepted. (Membership cannot tell "already applied" from "never
+    touched", so the old "the exclusion names nothing" refusal broke every second run; the
+    geometry that could tell them apart is not this pass's input.)
+
+    REFUSED when the file and this build disagree: an area or item the registry does not have.
+    Mutates + returns."""
+    bad: list[str] = []
+    for ad in area_defs or []:
+        for slug, items in sorted((ad.get("outside_items") or {}).items()):
+            aid = f"area:{ad['id']}:{slug}"
+            area = registry.get(aid)
+            if area is None:
+                bad.append(f"{aid} is not an area of this build (`{ad['id']}` / {slug!r})")
+                continue
+            held = set(area.section_ids)
+            gone: set[str] = set()
+            for item in items:
+                it = registry.get(item)
+                if it is None:
+                    bad.append(f"{aid}: outside item {item} is not in this build's registry")
+                    continue
+                gone |= set(it.section_ids) & held      # none: already outside (idempotent)
+            if gone:
+                registry[aid] = replace(area, section_ids=tuple(
+                    s for s in area.section_ids if s not in gone))
+    if bad:
+        raise SystemExit("registry.outside_area_items: areas.json and this build disagree:\n  "
+                         + "\n  ".join(bad))
+    return registry
+
+
 def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
                 mu_polys: dict, wbk_polys: dict | None = None) -> dict[str, RegistryItem]:
     """Enrich NAMED stream/lake items with the SET of MUs their geometry passes through (line/area ×

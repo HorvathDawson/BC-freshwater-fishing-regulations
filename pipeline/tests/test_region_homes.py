@@ -161,7 +161,8 @@ def _handles() -> dict[int, str]:
 def test_ahbau_and_mara_the_most_strict_applies(db):
     """Mara: Region 8 closes bass ("Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)",
     p.68); Region 3 closes it too — the closures speak and nothing keeps a bass. Ahbau: both
-    regions' "Trout/char: 5" (equal) speak for a rainbow."""
+    regions bind the identical "Trout/char: 5" — it is shown ONCE (RU-8, Phase 3: two regions'
+    identical statements speak once, the lower entry id, Region 5's)."""
     mara = _lake_sid(db, MARA)
     got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(mara, (7, 1), "SMB", BUNDLE)
            if x["state"] == "speaks" and x["type"] == "retention_limit"}
@@ -172,8 +173,13 @@ def test_ahbau_and_mara_the_most_strict_applies(db):
     ahbau = _lake_sid(db, AHBAU)
     rb = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(ahbau, (7, 1), "RB", BUNDLE)
           if x["state"] == "speaks"}
-    assert {"z5:trout_char_quota::trout_char_quota.r1",
-            "z7a:trout_char_quota::trout_char_quota.r1"} <= rb
+    assert "z5:trout_char_quota::trout_char_quota.r1" in rb
+    assert "z7a:trout_char_quota::trout_char_quota.r1" not in rb
+    # positive control: Zone 7A's copy IS bound on the lake — it is dropped, not absent
+    assert db.execute(
+        "select 1 from section_ruleset sr join ruleset r on r.set_id = sr.set_id where sr.sid = ? "
+        "and r.entry_id = 'z7a:trout_char_quota' and r.rule_id = 'trout_char_quota.r1'",
+        (ahbau,)).fetchone()
 
 
 # --------------------------------------------------------------------------- a water's own row

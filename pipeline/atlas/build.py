@@ -971,6 +971,11 @@ def main() -> None:
     registry = add_lake_parts(registry, added_lake_parts)
     if added_lake_parts:
         print(f"  {len(added_lake_parts)} curated lake part(s) name their lake (part_of)")
+    # A water the book's geography puts OUTSIDE an area its polygon touches (Kennedy Lake and
+    # Pacific Rim, user ruling 2026-10-03): stated once on the area definition, applied to the
+    # registry's area item, so every reader of that item agrees (`registry.outside_area_items`).
+    from pipeline.atlas.registry import outside_area_items
+    registry = outside_area_items(registry, area_defs)
     _tick("build_registry")
     # Isolated/overlaid waterbodies have a node but NO sidecar geometry (the client draws them from the
     # FWA polygon layer), so load their own wbk polygon for add_mu_sets. Select on missing GEOMETRY,

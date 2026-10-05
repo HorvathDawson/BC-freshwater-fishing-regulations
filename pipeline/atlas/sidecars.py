@@ -115,6 +115,11 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
         f"by a slough -> merge_report.json")
     registry = add_lake_parts(registry, lake_parts(load_added_lakes()))
     n_parts = sum(1 for it in registry.values() if it.part_of)
+    # A water outside an area its polygon touches (`areas.json` `outside_items`): the same pass
+    # the atlas build runs, on the same file (`registry.outside_area_items`).
+    from pipeline.atlas.registry import outside_area_items
+    from pipeline.atlas.splits.area_splits import load_area_split_defs
+    registry = outside_area_items(registry, load_area_split_defs())
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"

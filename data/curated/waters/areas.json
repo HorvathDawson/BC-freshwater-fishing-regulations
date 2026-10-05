@@ -10,7 +10,13 @@
    "cut": true,
    "tile_layer": "park",
    "tile_kind": "national",
-   "tile_visible_px": 1.0
+   "tile_visible_px": 1.0,
+   "outside_items": {
+    "pacific_rim_national_park_reserve_of_canada": [
+     "wbk:329083511"
+    ]
+   },
+   "outside_items_note": "Waters the book's geography puts OUTSIDE a park whose polygon touches them (a lake is never cut, so one reaching 1,000 m2 into the park is flagged inside). Applied to the registry's area item by pipeline.atlas.registry.outside_area_items, the one source every reader asks. Kennedy Lake (wbk:329083511, 65 km2, MU 1-8) is outside Pacific Rim National Park Reserve — user ruling 2026-10-03, handled as Kootenay Lake is outside the Creston Valley WMA."
   },
   {
    "id": "ecological_reserves",

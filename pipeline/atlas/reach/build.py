@@ -28,11 +28,12 @@ from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
 )
+from pipeline.common.models import NodeKind
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
-    national_park_sections, on_designations, own_beats_inherited, place_record,
-    without_national_parks,
+    first_classified_downstream, national_park_sections, on_designations, own_beats_inherited,
+    place_record, without_national_parks,
 )
 
 
@@ -215,6 +216,18 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     for d in yielded:
         k = f"designation:{d.kind}"
         report.licensing[k] = report.licensing.get(k, 0) + 1
+    # ONE UNIT PER SECTION: a walked section takes the designation of the first classified water
+    # it flows into; a rowed tributary printing no designation is not classified (user rulings
+    # 2026-10-03, `licensing.first_classified_downstream`).
+    licensing, homed = first_classified_downstream(
+        licensing, designations, graph, registry, owned,
+        lambda s: _resolve._kind_of(graph, s, registry),
+        matched_of={e["entry_id"]: list(e.get("matched") or ()) for e in ents})
+    lic_diags.extend(homed)
+    for d in homed:
+        k = f"designation:{d.kind}"
+        report.licensing[k] = report.licensing.get(k, 0) + d.payload.get(
+            "rehomed", d.payload.get("removed", d.payload.get("added", 0)))
     # Water a carve-out removed goes to the excluded water's own designation, and must end there.
     licensing, handed = carve_outs_to_owner(licensing, carved, claims)
     lic_diags.extend(handed)
@@ -443,7 +456,9 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             "split": row["split"], "water": row["water"], "included": row["included"],
             "in_reach": bool(row.get("in_reach")), "kept_out": len(row["sections"]),
             "own_row": list(row.get("own_row") or ()), "with_cut": bool(row.get("with_cut")),
-            "joined": row.get("joined", 0)}))
+            "joined": row.get("joined", 0),
+            **({"bounded_at_lake": True, "stem": len(row.get("stem") or ())}
+               if row.get("bounded_at_lake") else {})}))
     walked_out = getattr(expander, "out_of_region", 0)
     if out_of_region or walked_out:
         # REPORTED, never silent: what the row's own region(s) took away, before the walk and
@@ -800,6 +815,31 @@ def _runs_up_from(graph, reach, row) -> bool:
     return False
 
 
+def _stem_to_first_lake(graph, mouths) -> frozenset[str]:
+    """A JOINING WATER'S OWN STEM FROM ITS MOUTH UP TO ITS FIRST LAKE: the mouth pieces and
+    every stream piece reached from them by the river's own `continuation` edges — never a
+    `lake_out` edge (the lake is where the stem ends), never a confluence (a tributary is the
+    walk's to collect). What a `between` from the mouth to the lake outlet would select
+    (user ruling 2026-10-03, RU-14)."""
+    out: set[str] = set()
+    stack = sorted(mouths)
+    while stack:
+        nid = stack.pop()
+        if nid in out:
+            continue
+        n = graph.nodes.get(nid)
+        if n is None or n.kind != NodeKind.stream:
+            continue
+        out.add(nid)
+        for ei in sorted(graph.up_adj.get(nid, [])):
+            e = graph.edges[ei]
+            src = graph.nodes.get(e.from_node)
+            if e.kind == "continuation" and src is not None and src.kind == NodeKind.stream \
+                    and e.from_node not in out:
+                stack.append(e.from_node)
+    return frozenset(out)
+
+
 def _runs_down_from(graph, reach, row) -> bool:
     """Does `reach` go on DOWN the cut's line from the confluence at `row` (blk, m)?"""
     for s in reach:
@@ -846,21 +886,37 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
             expand.confluence = rows
         joining = {s for row in expand.confluence for s in row["sections"]}
         blocked = excluded | (joining - set(reach))
-        got = _tribs.expand(graph, reach, only=only, excluded=blocked, passed=passed,
-                            window=window, registry=registry)
-        # A JOINING WATER THAT GOES WITH THE CUT (no row of its own, or signs that put it inside):
-        # its subtree joins the walk on whichever side the rule is — the walk alone would find it
-        # on one side only, the piece FWA hung its mouth on. Streams only, like every walk
-        # (`tributaries.expand`); a carve-out's water stays out.
+        # A JOINING WATER WITH A ROW OF ITS OWN THAT THE SIGNS PULL INTO THE CUT IS BOUNDED LIKE
+        # A `between` (user ruling 2026-10-03, RU-14): its own stem from its mouth up to its
+        # FIRST LAKE, walked with the reach — so its tributaries below the lake come with it and
+        # the lake at its top stops the walk as a lake at any reach's top does. The Nass's
+        # closure "from signs below the Meziadin confluence up to the Hwy 37 bridge" takes the
+        # Meziadin River from the Nass to the Meziadin Lake outlet and never the 1,178 streams
+        # feeding the lake (Hanna, Tintina, Strohn …), which the Meziadin's own row stops at too.
+        stems: set[str] = set()
+        for row in expand.confluence:
+            if row.get("with_cut") and row.get("own_row"):
+                stem = _stem_to_first_lake(graph, row["mouths"]) - blocked - set(reach)
+                row["bounded_at_lake"] = True
+                row["stem"] = sorted(stem)
+                stems |= stem
+        got = _tribs.expand(graph, frozenset(reach) | stems, only=only, excluded=blocked,
+                            passed=passed, window=window, registry=registry)
+        # A JOINING WATER THAT GOES WITH THE CUT AND HAS NO ROW OF ITS OWN: its subtree joins the
+        # walk on whichever side the rule is — the walk alone would find it on one side only, the
+        # piece FWA hung its mouth on. Streams only, like every walk (`tributaries.expand`); a
+        # carve-out's water stays out.
         with_cut: set[str] = set()
         for row in expand.confluence:
-            if row.get("with_cut"):
+            if row.get("with_cut") and not row.get("own_row"):
                 add = {s for s in row["subtree"]
                        if s not in blocked and s not in passed
                        and (not _tribs.STREAMS_ONLY
                             or _resolve._kind_of(graph, s, registry) == "stream")}
                 row["joined"] = len(add)
                 with_cut |= add
+            elif row.get("with_cut"):
+                row["joined"] = len(set(row["subtree"]) & got)
         got = frozenset(got | with_cut)
         if region is None:
             return got

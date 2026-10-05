@@ -181,6 +181,14 @@ def _speaks(sid, on, fish, key=DAILY) -> set:
             if x["state"] == "speaks" and (x["type"], x["dimension"]) == key}
 
 
+def _speaks_any(sid, on, fish) -> set:
+    """Every retention rule speaking, WHATEVER its dimension: a spring/stream closure and a "from
+    streams" clause are `daily@water=stream`, so a `not in _speaks(...)` on the `daily` key holds
+    vacuously for them (review F3). Use this for every `not in` about such a rule."""
+    return {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, on, fish, BUNDLE)
+            if x["state"] == "speaks" and x["type"] == "retention_limit"}
+
+
 @pytest.mark.parametrize("eid", [KAKWA, CECILIA])
 def test_kakwa_and_cecilia_bull_trout_are_released_other_trout_keep_the_lakes_two(db, eid):
     """The lake prints "Trout/char daily quota = 2 (none under 40 cm)"; Zone B prints bull trout
@@ -230,10 +238,14 @@ def test_a_water_row_naming_bull_trout_beats_the_zone(db, eid, rid, out_of_seaso
     its dates: it beats Zone B's bull trout release, and that release — itself displaced — no
     longer takes Zone B's "Trout/char: 5" and "1 over 50 cm" with it. They are different
     statements from the water's "1 (30-50 cm)" and sit beside it: the bull trout counts toward
-    the day's 5 trout/char, as everywhere else in Zone B."""
+    the day's 5 trout/char, as everywhere else in Zone B.
+
+    SINCE 2026-10-04 (RU-5, a water's size-limited release meets the zone's size clause) the
+    zone's "1 over 50 cm" is NOT beside it: the row releases every bull trout over 50 cm, so
+    the clause keeping one has nothing left to keep. The 5 (every length) still speaks."""
     sid = _sid(db, eid, rid)
-    assert _speaks(sid, (7, 1), "DV") >= {f"{eid}::{rid}", f"{ZB}::trout_char_quota.r1",
-                                          f"{ZB}::trout_char_quota.r2"}
+    assert _speaks(sid, (7, 1), "DV") >= {f"{eid}::{rid}", f"{ZB}::trout_char_quota.r1"}
+    assert f"{ZB}::trout_char_quota.r2" not in _speaks(sid, (7, 1), "DV")
     assert f"{ZB}::trout_char_quota.r9" not in _speaks(sid, (7, 1), "DV")
     assert f"{ZB}::trout_char_quota.r10" not in _speaks(sid, (7, 1), "DV")
     assert _speaks(sid, (9, 1), "DV") == out_of_season
@@ -587,7 +599,7 @@ def test_a_release_beaten_by_a_superior_quota_releases_nothing(tmp_path):
     keeps = _tiny(tmp_path / "a", rows + [
         {"entry": "zp:x", "rule": "x.r1", "species": ["DV"], "take": 1, "_rank": -1}])
     assert _speak(keeps, "DV") == {"x.r1", "q.r3"}
-    park = _tiny(tmp_path / "b", rows + [
+    park = _tiny(_sub(tmp_path), rows + [
         {"entry": "zp:x", "rule": "x.r1", "species": ["ALL_GAME_FISH"], "take": 0,
          "may_target": 0, "_rank": -1}])
     assert _speak(park, "DV") == {"x.r1"}
@@ -1350,3 +1362,301 @@ def test_the_kootenay_lake_annual_20_is_stated_once(db):
     got = [x for x in R.effective_rules(_sid(db, row, "kootenay_lake_main_body.r6"), (7, 1), "RB",
                                         BUNDLE) if x.get("period") == "annual"]
     assert [(x["entry"], x["rule"]) for x in got] == [(row, "kootenay_lake_main_body.r6")]
+
+
+# --------------------------------------------------------------------------- 2026-10-04 (RU-3..RU-8)
+# The rules review of 2026-10-03 (scratchpad FREV/rules.md): each case below is the synthetic
+# shape the review reproduced it with, then the real section on the bundle.
+
+MAY_15, JUN_15 = (5, 15), (6, 15)
+MAY = {"dates": [{"from_month": 5, "from_day": 1, "to_month": 5, "to_day": 31}]}
+STREAM = [{"op": "within", "area_id": "area:region:9", "feature_types": ["stream"]}]
+
+
+def _sub(tmp_path):
+    d = tmp_path / "b"
+    d.mkdir(exist_ok=True)
+    return d
+
+
+def _rules_of(path, on, fish) -> set:
+    return {x["rule"] for x in R.effective_rules(1, on, fish, path) if x["state"] == "speaks"}
+
+
+def test_a_same_row_dated_release_displaces_the_rows_own_undated_quota_on_its_dates(tmp_path):
+    """RU-3: the Thompson's "Trout and char — 2 per day" and its CNR stretch's "catch and
+    release, May 1-31" are one row; in May the release speaks alone, in June the 2 does."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r2", "species": ["TROUT_CHAR"], "take": 2, "_rank": 0},
+        {"entry": "r9:w", "rule": "w.r3", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "when": MAY, "_rank": 0}])
+    assert _rules_of(path, MAY_15, "RB") == {"w.r3"}
+    assert _rules_of(path, JUN_15, "RB") == {"w.r2"}
+
+
+def test_the_reverse_shape_and_a_size_clause_are_left_as_printed(tmp_path):
+    """MUTATION GUARDS for RU-3: an undated release beside a DATED keeping window is a window the
+    row prints to open the fish (both stand); a size clause of the row is its own subject and
+    holds through the release (Koocanusa's "no bull trout under 75 cm when open")."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r2", "species": ["TROUT_CHAR"], "take": 2, "when": MAY,
+         "_rank": 0},
+        {"entry": "r9:w", "rule": "w.r3", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "_rank": 0}])
+    assert _rules_of(path, MAY_15, "RB") == {"w.r2", "w.r3"}
+    path = _tiny(_sub(tmp_path), [
+        {"entry": "r9:w", "rule": "w.r1", "species": ["DV"], "take": 0, "may_target": 1,
+         "when": MAY, "_rank": 0},
+        {"entry": "r9:w", "rule": "w.r2", "species": ["DV"], "dimension": "daily/size",
+         "lengths": [{"max_cm": 75, "take": 0}], "_rank": 0}])
+    assert _rules_of(path, MAY_15, "DV") == {"w.r1", "w.r2"}
+
+
+def test_a_zone_release_naming_the_fish_empties_its_tables_from_streams_clause(tmp_path):
+    """RU-4 (the review's S7): Region 5 releases ALL STEELHEAD; its "2 per day … from streams"
+    is a clause of the quota the release empties for a steelhead, and no longer speaks beside
+    it. For a rainbow the quota and its clause still speak."""
+    path = _tiny(tmp_path, [
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r3", "species": ["TROUT_CHAR"], "take": 2, "water": "stream",
+         "dimension": "daily@water=stream", "extents": STREAM, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r6", "species": ["ST"], "take": 0, "may_target": 1,
+         "_rank": 3}])
+    assert _rules_of(path, (7, 1), "ST") == {"q.r6"}
+    assert _rules_of(path, (7, 1), "RB") == {"q.r1", "q.r3"}
+
+
+def test_a_zone_release_still_leaves_a_quota_conditioned_on_something_else(tmp_path):
+    """MUTATION GUARD for RU-4: only the keeper's WATER condition is looked through; a quota
+    conditioned on origin keeps speaking beside a zone release (the ladder's business)."""
+    path = _tiny(tmp_path, [
+        {"entry": "z9:q", "rule": "q.r4", "species": ["TROUT_CHAR"], "take": 2,
+         "origin": "hatchery", "dimension": "daily@origin=hatchery", "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r6", "species": ["ST"], "take": 0, "may_target": 1,
+         "_rank": 3}])
+    assert _rules_of(path, (7, 1), "ST") == {"q.r4", "q.r6"}
+
+
+@pytest.mark.parametrize("cond", [{"while": ["set_lining"]}, {"when_targeting": ["RB"]}])
+def test_a_conditioned_zone_release_leaves_its_tables_quotas(tmp_path, cond):
+    """MUTATION GUARD for RU-4's generalised 4b (review F4): a zone release with no water kind
+    but a `while` or `when_targeting` condition ("release all … taken by set line") releases
+    under a condition the table's quotas do not share — the quota and its "from streams" clause
+    keep speaking beside it. The guard is `rules.release_origins` (None for a conditioned
+    release); were it to read such a rule as an outright release, 4b would empty them."""
+    key = next(iter(cond))
+    path = _tiny(tmp_path, [
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r3", "species": ["TROUT_CHAR"], "take": 2, "water": "stream",
+         "dimension": "daily@water=stream", "extents": STREAM, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r7", "species": ["TROUT_CHAR"], "take": 0, "may_target": 1,
+         "dimension": f"daily@{key}={cond[key][0]}", **cond, "_rank": 3}])
+    assert {"q.r1", "q.r3"} <= _rules_of(path, (7, 1), "RB")
+
+
+def test_a_blanket_stream_closure_silences_the_regions_daily_quotas(tmp_path):
+    """RU-7 (S8): Region 4's "No fishing in streams, Apr 1-Jun 14" carries `water: stream`;
+    the region's "5 per day" and "1 over 50 cm" (`daily`) no longer speak beside it. A water
+    row NAMING the fish still speaks beside the zone's closure, as in one key."""
+    closure = {"entry": "z9:c", "rule": "c.r1", "species": ["ALL_GAME_FISH"], "take": 0,
+               "may_target": 0, "water": "stream", "dimension": "daily@water=stream",
+               "extents": STREAM, "_rank": 3}
+    path = _tiny(tmp_path, [
+        closure,
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r2", "species": ["TROUT_CHAR"], "take": 1,
+         "lengths": [{"min_cm": 50}], "_rank": 3}])
+    assert _rules_of(path, (5, 1), "CT") == {"c.r1"}
+    path = _tiny(_sub(tmp_path), [
+        closure, {"entry": "r9:w", "rule": "w.r1", "species": ["CT"], "take": 2, "_rank": 0}])
+    assert _rules_of(path, (5, 1), "CT") == {"c.r1", "w.r1"}
+
+
+def test_a_waters_size_release_meets_the_zones_size_clause(tmp_path):
+    """RU-5 (S13): Lakelse Lake's "Rainbow trout (none over 50 cm)" displaces Region 6's "no
+    more than 1 over 50 cm" — the same fish — and leaves the "5 per day" counting the smaller
+    ones. A band releasing only over 60 cm leaves the 50 cm clause speaking (it keeps a 55 cm
+    fish the water does not release)."""
+    zone = [{"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+            {"entry": "z9:q", "rule": "q.r2", "species": ["TROUT_CHAR"], "take": 1,
+             "lengths": [{"min_cm": 50}], "_rank": 3}]
+    row = {"entry": "r9:w", "rule": "w.r1", "species": ["RB"], "dimension": "daily/size",
+           "lengths": [{"min_cm": 50, "take": 0}], "_rank": 0}
+    path = _tiny(tmp_path, zone + [row])
+    assert _rules_of(path, (7, 1), "RB") == {"w.r1", "q.r1"}
+    path = _tiny(_sub(tmp_path), zone + [dict(row, lengths=[{"min_cm": 60, "take": 0}])])
+    assert _rules_of(path, (7, 1), "RB") == {"w.r1", "q.r1", "q.r2"}
+
+
+def test_two_regions_identical_statements_show_once(tmp_path):
+    """RU-8: Ahbau Lake (Regions 5 and 7A) printed "5 per day" twice. The same statement with
+    the same number is shown once (the lower entry id); different numbers: the lower wins."""
+    path = _tiny(tmp_path, [
+        {"entry": "z5:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3,
+         "extents": [{"op": "within", "area_id": "area:region:5"}]},
+        {"entry": "z7a:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3,
+         "extents": [{"op": "within", "area_id": "area:region:7a"}]}])
+    assert {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(1, (7, 1), "RB", path)
+            if x["state"] == "speaks"} == {"z5:q::q.r1"}
+    path = _tiny(_sub(tmp_path), [
+        {"entry": "z5:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 10, "_rank": 3},
+        {"entry": "z7a:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3}])
+    assert {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(1, (7, 1), "RB", path)
+            if x["state"] == "speaks"} == {"z7a:q::q.r1"}
+
+
+def test_a_steelhead_is_a_rainbow_where_no_steelhead_rule_applies(tmp_path):
+    """RU-6 (user ruling 2026-10-03): asked about "ST" where the provincial steelhead set does
+    not reach (the Okanagan River), the answer is the rainbow's — the river's "Rainbow trout
+    catch and release" — over every length. Where the rules apply, "ST" is asked as asked and
+    the rainbow release says nothing of it."""
+    path = _tiny(tmp_path, [
+        {"entry": "r9:w", "rule": "w.r5", "species": ["RB"], "take": 0, "may_target": 1,
+         "_rank": 0},
+        {"entry": "z9:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z9:q", "rule": "q.r2", "species": ["TROUT_CHAR"], "take": 1,
+         "lengths": [{"min_cm": 50}], "_rank": 3}])
+    bound = [("r9:w", "w.r5", "reach"), ("z9:q", "q.r1", "reach"), ("z9:q", "q.r2", "reach")]
+    no_rules = R.effective_rules_bound(bound, False, (7, 1), "ST", path, steelhead_rules_here=False)
+    assert {x["rule"] for x in no_rules if x["state"] == "speaks"} == {"w.r5"}
+    rules = R.effective_rules_bound(bound, False, (7, 1), "ST", path, steelhead_rules_here=True)
+    assert {x["rule"] for x in rules if x["state"] == "speaks"} == {"q.r1", "q.r2"}
+    # a hand-made bundle has no `section_steelhead_rules` view: the fish is answered as asked
+    assert _rules_of(path, (7, 1), "ST") == {"q.r1", "q.r2"}
+    # a REAL bundle (it has a `rule` table) without the view is refused, never answered as
+    # asked (review F7)
+    con = sqlite3.connect(path)
+    con.execute("create table rule (entry_id text, rule_id text)")
+    con.commit()
+    con.close()
+    with pytest.raises(SystemExit, match="section_steelhead_rules"):
+        R.effective_rules(1, (7, 1), "ST", path)
+
+
+# ---- the same rulings on the bundle (Phase 3 corpus: the Stein and Nicola lifts) ---------------
+THOMPSON = "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18"
+Z3_SPRING = "z3:spring_stream_closure::spring_stream_closure.r1"
+
+
+def _p3(db):
+    if not db.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
+                      ("r3:stein_river@3-16", "stein_river.r1x")).fetchone()[0]:
+        pytest.skip(f"{BUNDLE} predates the Phase 3 corpus (Stein lift) — point UI_EXPORT_BUNDLE "
+                    f"at a side build")
+
+
+def test_the_stein_is_closed_jan_to_may_and_open_in_june(db):
+    """RU-1: p.30 lists the Stein with the Nahatlatch ("from Jan 1-May 31"); the row's lift of
+    Region 3's Jan 1-Jun 30 closure makes June open, and March closed by the row's own rule."""
+    _p3(db)
+    sid = _sid(db, "r3:stein_river@3-16", "stein_river.r1")
+    june = _speaks_any(sid, JUN_15, "RB")
+    assert Z3_SPRING not in june
+    # positive control: the stream key is visible to the check ("4 from streams" speaks)
+    assert "z3:trout_char_quota::trout_char_quota.r2" in june
+    assert not any(x["take"] == 0 and x["may_target"] == 0 for x in
+                   R.effective_rules(sid, JUN_15, "RB", BUNDLE) if x["state"] == "speaks")
+    march = _speaks_any(sid, (3, 1), "RB")
+    assert "r3:stein_river@3-16::stein_river.r1" in march and Z3_SPRING not in march
+
+
+def test_the_nicola_below_the_lake_is_catch_and_release_jan_feb_not_closed(db):
+    """RU-2 (user ruling 2026-10-03): downstream of Nicola Lake the row's "Trout catch and
+    release, Jan 1-Feb 28" lifts the spring closure on those dates; Mar 1-Sep 30 the row's own
+    closure governs; upstream of the lake the zone closure holds (the row gives it the same
+    dates)."""
+    _p3(db)
+    below = _sid(db, "r3:nicola_river@3-13", "nicola_river.r3")
+    jan = _speaks_any(below, (1, 15), "RB")
+    assert "r3:nicola_river@3-13::nicola_river.r3" in jan and Z3_SPRING not in jan
+    assert not any(x["take"] == 0 and x["may_target"] == 0 for x in
+                   R.effective_rules(below, (1, 15), "RB", BUNDLE) if x["state"] == "speaks")
+    assert "r3:nicola_river@3-13::nicola_river.r2" in _speaks(below, (4, 15), "RB")
+    above = _sid(db, "r3:nicola_river@3-13", "nicola_river.r1")
+    # positive control for the `not in` above: the same closure, the same day, upstream
+    assert Z3_SPRING in _speaks_any(above, (1, 15), "RB")
+    assert "r3:nicola_river@3-13::nicola_river.r1" in _speaks_any(above, (1, 15), "RB")
+
+
+def test_the_thompsons_may_release_speaks_alone_over_its_2_per_day(db):
+    """RU-3 on the CNR stretch: May 15 the release; Jul 15 the 2 beside Region 3's 5."""
+    _p3(db)
+    sid = _sid(db, THOMPSON, "thompson_river_downstream_of_kamloops_lake.r3")
+    may = _speaks(sid, MAY_15, "RB")
+    assert f"{THOMPSON}::thompson_river_downstream_of_kamloops_lake.r3" in may
+    assert f"{THOMPSON}::thompson_river_downstream_of_kamloops_lake.r2" not in may
+    assert f"{THOMPSON}::thompson_river_downstream_of_kamloops_lake.r2" in _speaks(sid, (7, 15), "RB")
+
+
+@pytest.mark.parametrize("eid,rel,quota,on", [
+    ("r3:adams_lake@3-37", "adams_lake.r2", "adams_lake.r3", (1, 1)),
+    ("r5:big_lake_approx_30_km_west_of_likely@5-2", "big_lake_likely.r2", "big_lake_likely.r1",
+     (10, 1)),
+])
+def test_a_lakes_dated_lake_trout_release_silences_its_own_1_per_day(db, eid, rel, quota, on):
+    _p3(db)
+    sid = _sid(db, eid, rel)
+    got = _speaks(sid, on, "LT")
+    assert f"{eid}::{rel}" in got and f"{eid}::{quota}" not in got
+
+
+def test_region_5s_steelhead_release_empties_its_2_from_streams(db):
+    """RU-4 on a Region 5 stream with no row: for a steelhead only the release (and the
+    provincial steelhead rules) speak; the "2 per day … from streams" is gone."""
+    _p3(db)
+    sid = _sid(db, "z5:trout_char_quota", "trout_char_quota.r3", without=(("r5:%", None),))
+    got = _speaks_any(sid, (7, 1), "ST")
+    assert "z5:trout_char_quota::trout_char_quota.r6" in got
+    assert "z5:trout_char_quota::trout_char_quota.r3" not in got
+    # positive control: the "2 from streams" is `daily@water=stream` and speaks for a rainbow
+    assert "z5:trout_char_quota::trout_char_quota.r3" in _speaks(
+        sid, (7, 1), "RB", key=("retention_limit", "daily@water=stream"))
+
+
+def test_lakelse_lakes_none_over_50_displaces_region_6s_1_over_50(db):
+    _p3(db)
+    sid = _sid(db, "r6:lakelse_lake@6-11", "lakelse_lake.r1")
+    got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "RB", BUNDLE)
+           if x["state"] == "speaks" and x["type"] == "retention_limit"}
+    assert "r6:lakelse_lake@6-11::lakelse_lake.r1" in got
+    assert "z6:trout_char_quota::trout_char_quota.r1" in got
+    assert "z6:trout_char_quota::trout_char_quota.r2" not in got
+
+
+def test_the_okanagans_steelhead_is_answered_as_its_rainbow(db):
+    """RU-6: `steelhead_rules` is false on the Okanagan River; "ST" there is the river's
+    "Rainbow trout catch and release", not Region 8's trout/char quotas."""
+    _p3(db)
+    sid = _sid(db, "r8:okanagan_river@8-1", "okanagan_river.r5")
+    assert not R.steelhead_rules(sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True), sid)
+    assert _speaks(sid, (7, 1), "ST") == {"r8:okanagan_river@8-1::okanagan_river.r5"}
+
+
+def test_michel_creek_in_may_shows_the_closure_without_region_4s_quotas(db):
+    _p3(db)
+    sid = db.execute(
+        "select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+        "where r.entry_id = 'r4:michel_creek_downstream_of_the_easternmost_hwy_3_bridge@4-23'"
+    ).fetchone()[0]
+    assert sid is not None
+    got = _speaks_any(sid, (5, 1), "CT")
+    assert "z4:spring_stream_closure::spring_stream_closure.r1" in _speaks(
+        sid, (5, 1), "CT", key=("retention_limit", "daily@water=stream"))
+    assert "z4:trout_char_quota::trout_char_quota.r1" not in got
+    assert "z4:trout_char_quota::trout_char_quota.r2" not in got
+    # positive control: on 1 Jul (no closure) Region 4's quotas speak on the same section
+    jul = _speaks(sid, (7, 1), "CT")
+    assert "z4:trout_char_quota::trout_char_quota.r1" in jul
+
+
+def test_ahbau_lake_prints_region_5s_5_per_day_once(db):
+    _p3(db)
+    sid = db.execute(
+        "select min(sr.sid) from section_ruleset sr join ruleset a on a.set_id = sr.set_id "
+        "join ruleset b on b.set_id = sr.set_id where a.entry_id = 'z5:trout_char_quota' and "
+        "b.entry_id = 'z7a:trout_char_quota' and a.rule_id = 'trout_char_quota.r1' and "
+        "b.rule_id = 'trout_char_quota.r1'").fetchone()[0]
+    assert sid is not None
+    got = _speaks(sid, (7, 1), "RB")
+    assert "z5:trout_char_quota::trout_char_quota.r1" in got
+    assert "z7a:trout_char_quota::trout_char_quota.r1" not in got

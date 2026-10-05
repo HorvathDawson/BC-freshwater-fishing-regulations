@@ -387,3 +387,52 @@ def test_mutation_without_the_explicit_add_the_rule_below_misses_it(world, monke
     monkeypatch.setattr(T, "subtree", lambda g, m, **k: frozenset())
     got, _ = _bind(w, "No Fishing downstream of X Creek", DOWN, owned={})
     assert not got & X_WATER
+
+
+# ---- 2026-10-03 ruling (RU-14): a joining water the signs pull in is bounded at its first lake --
+@pytest.fixture
+def lake_world(world):
+    """`world` with X Creek carrying on ABOVE A LAKE: X_up <- lake:XL <- X_high <- X_high_trib.
+    X_trib still joins X_up below the lake. The Nass/Meziadin shape: the Meziadin River runs from
+    the Nass up to Meziadin Lake, and Hanna, Tintina and Strohn creeks feed the lake."""
+    g, reg = world
+    from pipeline.common.models import NodeKind as K
+    g.nodes["lake:XL"] = StreamNode(node_id="lake:XL", kind=K.lake, wbk="XL", display_name="X Lake")
+    g.nodes["X_high"] = _node("X_high", "X", 900, 1500, name="X Creek", wsc="100-1-000500", order=3)
+    g.nodes["X_high_trib"] = _node("X_high_trib", "XH", 0, 200, name="Hanna Creek",
+                                   wsc="100-1-000500-7", order=1)
+    for a, b, k, m in [("lake:XL", "X_up", "lake_out", 900), ("X_high", "lake:XL", "lake_in", 0),
+                       ("X_high_trib", "X_high", "confluence", 1200)]:
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    reg = {**reg, "gnis:2": RegistryItem(id="gnis:2", name="X Creek", kind="stream",
+                                         section_ids=("X", "X_up", "X_high"))}
+    return g, reg
+
+
+def test_signs_pull_the_joining_water_in_only_up_to_its_first_lake(lake_world):
+    """The Meziadin River goes with the Nass's closure from its mouth to the Meziadin Lake outlet,
+    its own tributaries below the lake with it — never the lake's inflows (user ruling
+    2026-10-03, RU-14: bounded like a `between`)."""
+    got, diags = _bind(lake_world, SIGNS_BELOW, UP)
+    assert {"X", "X_up", "X_trib"} <= got
+    assert not got & {"X_high", "X_high_trib", "lake:XL"}
+    assert diags[0].payload["in_reach"] is True and diags[0].payload["bounded_at_lake"] is True
+    assert diags[0].payload["stem"] == 2 and diags[0].payload["joined"] == 3
+
+
+def test_mutation_without_the_lake_bound_the_whole_subtree_came_in(lake_world, monkeypatch):
+    monkeypatch.setattr(B, "_stem_to_first_lake", lambda g, mouths: T.subtree(g, mouths))
+    got, _ = _bind(lake_world, SIGNS_BELOW, UP)
+    assert {"X_high", "X_high_trib"} <= got, "the stem is what stops the walk at the lake"
+
+
+def test_a_joining_water_with_no_row_still_goes_with_the_cut_whole(lake_world):
+    """The bound is for a joining water WITH A ROW OF ITS OWN that the signs pull in. One with
+    none goes with the cut as any tributary does — walked through its lakes (Bannon Creek)."""
+    got, diags = _bind(lake_world, "No Fishing upstream of X Creek", UP,
+                       owned={"gnis:3": ("r9:t_creek@9-1",)})
+    assert {"X", "X_up", "X_trib", "X_high", "X_high_trib"} <= got
+    assert "bounded_at_lake" not in diags[0].payload

@@ -251,7 +251,10 @@ def test_stripping_any_real_rules_dates_is_nearly_always_caught(raw):
                                                   ("sproat_river", 2), ("stamp_river", 4))],
         ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t",
          "thompson_river_downstream_of_kamloops_lake.r3o"),
-        ("r6:fulton_river", "fulton_river.r1b")]), json.dumps(missed)
+        ("r6:fulton_river", "fulton_river.r1b"),
+        # RU-2 (2026-10-03): below Nicola Lake the row's "Trout catch and release, Jan 1-Feb 28"
+        # lifts Region 3's spring closure on those dates (stein_river.r1x lifts all year: no `when`)
+        ("r3:nicola_river", "nicola_river.r3x")]), json.dumps(missed)
 
 
 # --------------------------------------------------------------------------- ruling of 2026-09-25

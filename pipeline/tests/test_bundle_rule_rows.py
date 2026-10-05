@@ -406,6 +406,9 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r4"),
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),
         ("r2:coquitlam_river@2-8", "coquitlam_river.r3", "trout_char_quota.r8"),
+        # NICOLA below its lake: the row's catch and release (Jan 1-Feb 28) lifts Region 3's
+        # spring closure on those days only (user ruling 2026-10-03, RU-2).
+        ("r3:nicola_river@3-13", "nicola_river.r3x", "spring_stream_closure.r1"),
         ("r4:beaver_creek@4-8", "beaver_creek.r1", "trout_char_quota.r3"),
         # DUCK LAKE: two dated rules (Jun 16-May 14, May 15-Jun 15) each lift the bass closure
         # only on their own days — together, the year.

@@ -687,9 +687,17 @@ def test_the_list_changes_answers_only_through_steelhead_water(db, tmp_path):
     rb = {r for (sid, fish, day), xs in got.items() if fish == "RB" and day == (1, 15)
           for e, r, st in xs if st == "speaks" and e == "z1:trout_quota"}
     assert "trout_quota.r2" in rb, rb
-    unlisted = mutate("unlisted", plain, secs, "DELETE FROM steelhead_known WHERE sid IN ({})")
+    # what a build WITHOUT the list writes for these sections: no `steelhead_known` row, their
+    # rule sets "possible" with steelhead rules applying (an R1 stream carries the provincial
+    # set) — `section_steelhead_rules` reads the set row once the known row is gone, and the
+    # Cowichan's sets have none (every section in them is known). Without the set row the
+    # mutation also deleted "rules apply", and RU-6 re-asked ST as RB (review gate 6).
+    unlisted = mutate("unlisted", plain, secs, "DELETE FROM steelhead_known WHERE sid IN ({})",
+                      "INSERT OR IGNORE INTO steelhead_set(set_id, code, rules) SELECT DISTINCT "
+                      "set_id, 2, 1 FROM section_ruleset WHERE sid IN ({})")
     c2 = sqlite3.connect(f"file:{unlisted}?mode=ro", uri=True)
     assert all(R.steelhead_presence(c2, s) != "known" for s in secs)
+    assert all(R.steelhead_rules(c2, s) for s in secs)       # rules still apply, as built
     c2.close()
     assert answers(unlisted, secs) == got
     ink = _sections(db, INKANEEP)

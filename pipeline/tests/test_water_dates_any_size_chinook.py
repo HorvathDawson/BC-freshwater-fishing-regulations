@@ -123,12 +123,17 @@ def test_a_zone_closure_is_never_overridden_by_a_waters_dates(tmp_path):
 
 
 def test_only_a_water_row_overrides_by_its_dates(tmp_path):
-    """A zone table's own dated quota is no water row: beside the same table's dated release, on
-    the days both hold, both speak (neither outranks the other). MUTATION: dropping the place test
-    lets the table's quota silence its own release."""
+    """A zone table's own dated quota is no water row: it never silences the same table's dated
+    release (MUTATION: dropping the place test lets the table's quota silence its own release).
+    The other way is the table's own tie-break (Phase 3, generalised step 4b; AGENTS 57): on the
+    days both hold, the release displaces its own table's keeper in the same base dimension — the
+    7B grayling release May 1-Jun 15 over that table's "2 per day", as the book reads it."""
     path = _tiny(tmp_path, [R6_LT, {"entry": "z6:q", "rule": "q.r9", "species": ["LT"],
                                     "take": 3, "_rank": 3, "when": _dates(11, 1, 9, 14)}])
-    assert _states(path, "LT", (11, 15)) == {"q.r8": "speaks", "q.r9": "speaks"}
+    got = _states(path, "LT", (11, 15))
+    assert got.get("q.r8") == "speaks" and got.get("q.r9") != "speaks", got
+    # outside the release's dates the table's 3 speaks alone (the positive control)
+    assert _states(path, "LT", (9, 1)).get("q.r9") == "speaks"
 
 
 def test_a_dated_zone_quota_gives_way_to_the_waters_dated_quota_on_the_overlap(tmp_path):

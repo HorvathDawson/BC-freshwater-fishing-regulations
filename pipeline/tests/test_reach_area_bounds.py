@@ -253,3 +253,31 @@ def test_outside_items_takes_a_straddling_water_back_out_of_an_area():
         Extent(op="within", area_id="area:region:1", outside_items=["area:mu_group:hg"])
     with pytest.raises(ValueError):
         Extent(op="whole", item_id="wbk:lake", outside_items=["wbk:lake"])
+
+
+def test_outside_area_items_is_idempotent():
+    """F2: `atlas.sidecars` reloads a build's registry.json — which already holds the exclusion —
+    and applies `outside_area_items` again. The second run must be a no-op, not a refusal; an
+    area or item the registry lacks is still refused."""
+    import pytest
+
+    from pipeline.atlas.registry import outside_area_items
+    from pipeline.common.models.registry import RegistryItem
+
+    def reg():
+        return {"area:national_parks:prnp": RegistryItem(
+                    id="area:national_parks:prnp", name="Park", kind="area",
+                    section_ids=("lake:K", "lake:H", "s1")),
+                "wbk:K": RegistryItem(id="wbk:K", name="Kennedy Lake", kind="lake",
+                                      section_ids=("lake:K",)),
+                "wbk:H": RegistryItem(id="wbk:H", name="Hobiton Lake", kind="lake",
+                                      section_ids=("lake:H",))}
+    defs = [{"id": "national_parks", "outside_items": {"prnp": ["wbk:K"]}}]
+    once = outside_area_items(reg(), defs)
+    assert once["area:national_parks:prnp"].section_ids == ("lake:H", "s1")
+    twice = outside_area_items(dict(once), defs)
+    assert twice == once
+    with pytest.raises(SystemExit, match="not in this build's registry"):
+        outside_area_items(reg(), [{"id": "national_parks", "outside_items": {"prnp": ["wbk:X"]}}])
+    with pytest.raises(SystemExit, match="is not an area of this build"):
+        outside_area_items(reg(), [{"id": "national_parks", "outside_items": {"nope": ["wbk:K"]}}])

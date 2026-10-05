@@ -9,7 +9,7 @@ Import from the package root: `from pipeline.atlas.registry import build_registr
 
 from pipeline.atlas.registry.build import (
     add_curated_wbk_items, add_lake_parts, add_mu_sets, add_waterbody_items, build_registry,
-    item_id,
+    item_id, outside_area_items,
 )
 from pipeline.atlas.registry.io import (
     default_registry_path,
@@ -24,6 +24,7 @@ __all__ = [
     "add_waterbody_items",
     "build_registry",
     "item_id",
+    "outside_area_items",
     "default_registry_path",
     "load_registry",
     "write_registry",
