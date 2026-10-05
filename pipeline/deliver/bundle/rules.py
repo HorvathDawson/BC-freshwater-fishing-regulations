@@ -921,7 +921,16 @@ def _book_region(zone_region: str) -> str:
     return zone_region[:-1] if zone_region[-1:] in ("a", "b") else zone_region
 
 
-def co_bound_regions(sets) -> dict[tuple[str, str], frozenset[str]]:
+def _own_rows(docs) -> dict[str, frozenset[str]]:
+    """`{entry_id: matched items}` for every water row with at least one rule about the water
+    itself — a row whose every rule is `tributaries_only` (Region 6's and Region 7's "West Road
+    River's tributaries") speaks for the tributaries, not for the water."""
+    return {ce.entry_id: frozenset(ce.matched) for ce in docs
+            if ce.entry_id.startswith("r") and ce.matched
+            and not all(r.tributaries_only for r in ce.rules)}
+
+
+def co_bound_regions(sets, own_rows: dict | None = None) -> dict[tuple[str, str], frozenset[str]]:
     """`{(entry_id, rule_id): zone regions}` — for every water row's rule, the regions whose OWN
     zone tables (`z<region>:`, never the province's) the reach run bound on a section the rule
     reaches THROUGH THE TRIBUTARY WALK (`via == "trib"`). Read off the run's rule sets
@@ -930,10 +939,19 @@ def co_bound_regions(sets) -> dict[tuple[str, str], frozenset[str]]:
     its tributaries (the Similkameen's "exempt from spring closure", printed with the tributary
     symbol, reaches 28 tributary sections that lie in Region 3), which the row's own matched
     water (`regions_of_waters`) never shows. Only the walk: an AREA row's sections (Bowron Lake
-    Park's, in Zone 7A) are no water lying in another region, and its lift stays in its own."""
+    Park's, in Zone 7A) are no water lying in another region, and its lift stays in its own.
+
+    A TRIBUTARY WITH AN ENTRY OF ITS OWN THERE (`own_rows`: a row of that region bound on the
+    section by its own reach, not the walk) is the G3 caveat at the tributary: the region does
+    not count from that section. The lift is region-wide (`exempts` carries regions, not
+    sections), so a region still counts when ANY walked section there has no row of its own."""
     out: dict[tuple[str, str], set[str]] = {}
     for rows in sets:
         zr = {_zone_region(e) for e, _, _ in rows if e.startswith("z") and not e.startswith("zp:")}
+        if own_rows is not None:
+            mine = {_book_region(_zone_region(e)) for e, _, via in rows
+                    if via != "trib" and e in own_rows}
+            zr = {z for z in zr if _book_region(z) not in mine}
         if not zr:
             continue
         for e, r, via in rows:
@@ -944,17 +962,19 @@ def co_bound_regions(sets) -> dict[tuple[str, str], frozenset[str]]:
 
 def own_entry_regions(docs) -> dict[str, frozenset[str]]:
     """`{item_id: book regions}` — the regions in whose tables a water has an ENTRY OF ITS OWN: a
-    row (`r<region>:`) matching the water with at least one rule about the water itself. A row
-    whose every rule is `tributaries_only` (Region 6's and Region 7's "West Road River's
-    tributaries") speaks for the tributaries, not for the water, and is not one."""
+    row (`r<region>:`) matching the water with at least one rule about the water itself
+    (`_own_rows`). A row whose every rule is `tributaries_only` (Region 6's and Region 7's "West
+    Road River's tributaries") speaks for the tributaries, not for the water, and is not one.
+
+    AN ENTRY, NOT A COVERAGE TEST (review L1, 2026-10-05): `r3:sicamous_narrows` matches the
+    Shuswap River and binds its only Region 3 section, so it is the river's Region 3 entry. A
+    test that every section of the water in the region is bound by its own rows was tried and
+    refused: about 90 waters' own rows miss a boundary sliver (the Shuswap's Region 8 row binds
+    58 of its 59 Region 8 sections), so it would unmake real entries for a geometry artefact."""
     out: dict[str, set[str]] = {}
-    for ce in docs:
-        if not ce.entry_id.startswith("r") or not ce.matched:
-            continue
-        if all(r.tributaries_only for r in ce.rules):
-            continue
-        for item in ce.matched:
-            out.setdefault(item, set()).add(_book_region(_zone_region(ce.entry_id)))
+    for eid, items in _own_rows(docs).items():
+        for item in items:
+            out.setdefault(item, set()).add(_book_region(_zone_region(eid)))
     return {k: frozenset(v) for k, v in out.items()}
 
 
@@ -1080,7 +1100,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             yield r
 
     section_set, sets = intern_sets(_noting(_jsonl(sections_file)))
-    co_bound = co_bound_regions(sets)
+    own_rows = _own_rows([ce for _, ce in docs])
+    co_bound = co_bound_regions(sets, own_rows)
     own = own_entry_regions([ce for _, ce in docs])
     see_of = _see_column(entries_by_id)
     for e, ce in docs:

@@ -21,8 +21,13 @@ A row beats a zone closure only where the book PRINTS an exemption ("exempt from
 closure", or the zone page names the water), or prints a dated catch and release, opening or
 quota INSIDE the closure — then on exactly those dates, for exactly those fish (the Nicola below
 its lake: trout catch and release Jan 1-Feb 28; whitefish stay closed). Every entry where the
-two overlap is listed, generated, in the export's `guide.gotchas.closures_combine`. Before adding
-a lift, find the printed words; a row's own season is never them.
+two overlap is listed, generated, in the export's `guide.gotchas.closures_combine` — and the
+READER decides what each note claims: "both hold" only on the days and for the fish the zone
+closure actually speaks outside the row's dates (`zone_holds`), with any lift in part named
+(`zone_lifted`: the Nicola's trout, the Thompson's May opening on 2 of its 20 sections). The
+Fulton's "Open June 16-Apr 30" closes it May 1-June 15 and lifts the Skeena winter closure on
+every other day, so it is no such case; read off printed dates alone it looked like one. Before
+adding a lift, find the printed words; a row's own season is never them.
 
 ---
 
@@ -34,8 +39,9 @@ The opposite of the entry above, and easy to "fix" by analogy. Region 1 prints "
 to all streams of Region 1, all year, with some important exceptions. Check the tables." The
 Quatse prints "Bait ban, May 1-Nov 30". Here the row's dates DO replace the zone's: bait is
 allowed on the Quatse Dec 1-Apr 30 (`quatse_river.r4x` lifts the zone ban on those dates). A
-closure never works this way; a bait ban with "check the tables" does. Only Region 1 prints this
-shape today: Regions 6, 7A and 7B ban bait all year on streams too, but no row there prints a
+closure never works this way; a bait ban with "check the tables" does. As of 2026-10-05 only
+Region 1 prints this shape (the export's gotcha says where, read off the rules, not a fixed
+sentence): Regions 6, 7A and 7B ban bait all year on streams too, but no row there prints a
 dated ban on the same water (the one Region 5 Fraser section under Zone 7A's ban is lifted by the
 Region 7 Fraser row's "EXEMPT from bait ban").
 

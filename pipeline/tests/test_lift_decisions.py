@@ -7,8 +7,10 @@ closure — then on exactly those dates, for exactly those fish. Every `not in` 
 positive control on the same section or the same rule (review F3: a `not in` on a key the rule
 does not carry passes vacuously).
 
-The bundle is `UI_EXPORT_BUNDLE`, else the shipped one; the tests skip on a bundle from before
-these decisions (one still carrying `stein_river.r1x`).
+The bundle is `UI_EXPORT_BUNDLE`, else the shipped one. On a bundle from before these decisions
+(one still carrying `stein_river.r1x`) the tests FAIL (review L4: a gate that skips proves
+nothing); `UI_EXPORT_ALLOW_PREDATING=1` turns that into the repo's usual skip, for a deliberate
+run against an old side build (`predates`).
 """
 from __future__ import annotations
 
@@ -38,15 +40,38 @@ Z6_STEELHEAD = "z6:steelhead_stream_closure::steelhead_stream_closure.r1"
 Z6_MAINSTEMS = "z6:steelhead_stream_closure::steelhead_stream_closure.r2"
 
 
+def predates(con) -> None:
+    """A bundle without the 2026-10-05 decisions FAILS the decision tests — the canonical gate
+    and a side build alike — unless `UI_EXPORT_ALLOW_PREDATING=1` asks for the old skip."""
+    if con.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
+                   (STEIN, "stein_river.r1x")).fetchone()[0]:
+        msg = (f"{BUNDLE} predates the 2026-10-05 lift decisions — rebuild it "
+               f"(`python -m pipeline.deliver`) or point UI_EXPORT_BUNDLE at one that has them")
+        if os.environ.get("UI_EXPORT_ALLOW_PREDATING") == "1":
+            pytest.skip(msg)
+        pytest.fail(msg)
+
+
+def test_a_predating_bundle_fails_the_gate_unless_asked_to_skip(monkeypatch):
+    """MUTATION for the gate itself: a bundle still carrying `stein_river.r1x` must FAIL, not
+    skip; only the explicit opt-in skips."""
+    con = sqlite3.connect(":memory:")
+    con.execute("create table rule (entry_id text, rule_id text)")
+    con.execute("insert into rule values (?, 'stein_river.r1x')", (STEIN,))
+    monkeypatch.delenv("UI_EXPORT_ALLOW_PREDATING", raising=False)
+    with pytest.raises(pytest.fail.Exception):
+        predates(con)
+    monkeypatch.setenv("UI_EXPORT_ALLOW_PREDATING", "1")
+    with pytest.raises(pytest.skip.Exception):
+        predates(con)
+
+
 @pytest.fixture(scope="module")
 def db():
     if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+        pytest.fail(f"no bundle at {BUNDLE}")
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
-    if con.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
-                   (STEIN, "stein_river.r1x")).fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the 2026-10-05 lift decisions — point UI_EXPORT_BUNDLE "
-                    f"at a side build")
+    predates(con)
     yield con
     con.close()
 
@@ -120,6 +145,10 @@ def test_the_nicola_below_its_lake_is_trout_catch_and_release_on_jan_15_whitefis
     assert f"{NICOLA}::nicola_river.r3" in rb and Z3_SPRING not in rb
     assert _closures(sid, (1, 15), "RB") == set()
     assert Z3_SPRING in _closures(sid, (1, 15), "MW")
+    # "Trout" is trout only: the char (Dolly Varden/bull trout, brook trout) stay closed
+    # (review L4: a mutation dropping `species_except: CHAR` from the lift opens them)
+    for char in ("EB", "DV"):
+        assert Z3_SPRING in _closures(sid, (1, 15), char), char
     # Mar 1 on: the row's own closure and the spring closure, for trout too
     assert {Z3_SPRING, f"{NICOLA}::nicola_river.r2"} <= _closures(sid, (3, 15), "RB")
 
@@ -147,6 +176,23 @@ def test_an_exemption_carries_only_where_the_water_has_no_entry_of_its_own():
     assert rules_mod.equivalent_regions(docs[1], "f.r2", water, co, own) == {"5"}
     assert rules_mod.equivalent_regions(docs[3], "w.r6", water, co, own) == {"5", "6", "7a"}
     assert rules_mod.equivalent_regions(docs[6], "s.r3", water, co, own) == {"3", "8"}
+
+
+def test_a_tributary_with_its_own_row_there_carries_no_region():
+    """Review L1: a region reached through the walk does not count from a section where the
+    tributary has a row of its OWN in that region (bound by its own reach); a tributary-only row
+    (West Road's) is no such row. MUTATION: dropping `own_rows` gives Region 3 back."""
+    docs = [_entry("r8:main", ["M"]), _entry("r3:trib", ["T"]),
+            _entry("r3:main_tribs", ["M"], trib_only=True)]
+    own_rows = rules_mod._own_rows(docs)
+    assert set(own_rows) == {"r8:main", "r3:trib"}
+    with_own = [[("r8:main", "m.r1", "trib"), ("r3:trib", "t.r1", "reach"),
+                 ("z3:spring", "spring.r1", "reach")]]
+    bare = [[("r8:main", "m.r1", "trib"), ("r3:main_tribs", "mt.r1", "reach"),
+             ("z3:spring", "spring.r1", "reach")]]
+    assert rules_mod.co_bound_regions(with_own, own_rows) == {}
+    assert rules_mod.co_bound_regions(with_own) == {("r8:main", "m.r1"): frozenset({"3"})}
+    assert rules_mod.co_bound_regions(bare, own_rows) == {("r8:main", "m.r1"): frozenset({"3"})}
 
 
 def _equivalents(db, eid, rid) -> set:
@@ -250,3 +296,32 @@ def test_the_skeena_mainstem_is_open_for_steelhead_on_may_20_and_a_tributary_is_
         "join item_section s on s.sid = sr.sid join item i on i.ord = s.ord "
         "where r.entry_id = 'z6:steelhead_stream_closure' and r.rule_id = 'steelhead_stream_closure.r2'")}
     assert items == {"gnis:2936", "gnis:3206", "gnis:10765", "gnis:15430", "gnis:8231"}
+
+
+# ---- 8. Duck Lake: the creeks stay closed under Region 4's spring closure ---------------------
+DUCK = "r4:duck_lake_permit_required_see_note_on_page_34@4-6"
+Z4_SPRING = "z4:spring_stream_closure::spring_stream_closure.r1"
+
+
+def test_duck_lakes_creeks_are_closed_to_bass_on_may_20_and_the_lake_is_catch_and_release(db):
+    """"bass catch and release, May 15-June 15" (Incl. Tribs) does not lift Region 4's stream
+    closure Apr 1-Jun 14 (user decision 2026-10-05, round 2): on EVERY one of the creek sections
+    the row reaches through its tributaries, a bass is closed on May 20 — read by the reader, not
+    only listed as a known release under a closure. Positive controls: the lake itself is catch
+    and release that day (no closure), and the creeks are open to bass from Jun 15.
+    MUTATION: a lift of the spring closure on `duck_lake.r3` opens the creeks."""
+    creeks = [s for (s,) in db.execute(
+        "select distinct sr.sid from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+        "where r.entry_id = ? and r.rule_id = 'duck_lake.r3' and r.via = 'trib'", (DUCK,))]
+    assert len(creeks) >= 20
+    for sid in creeks:
+        for bass in ("SMB", "LMB"):
+            assert Z4_SPRING in _closures(sid, (5, 20), bass), (sid, bass)
+        assert _closures(sid, (6, 20), "SMB") == set(), sid
+    lake = db.execute(
+        "select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+        "where r.entry_id = ? and r.rule_id = 'duck_lake.r3' and r.via = 'reach'",
+        (DUCK,)).fetchone()[0]
+    assert lake is not None and lake not in creeks
+    assert _closures(lake, (5, 20), "SMB") == set()
+    assert f"{DUCK}::duck_lake.r3" in _speaks(lake, (5, 20), "SMB")

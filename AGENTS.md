@@ -445,7 +445,11 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     `closures_combine` (every entry whose own closure overlaps a zone seasonal closure, or whose
     rule the zone closure silences: both hold) and `dated_bait_ban_replaces_zone`, both generated
     from the bundle (`export_ui_rules.closures_combine`, `dated_bait_ban_replaces_zone`); pinned
-    in `test_lift_decisions.py`. READER
+    in `test_lift_decisions.py`. WHAT A `row_closure` NOTE CLAIMS IS THE READER'S
+    (`effective_rules_bound`, once per rule set): "both hold" only on the days and fish the zone
+    closure speaks outside the row's dates (`zone_holds`), every lift in part named
+    (`zone_lifted`); the Fulton (its "Open June 16-Apr 30" lifts the winter closure) is no note;
+    `closures_combine_problems` re-asks the reader for every claim (mutation: the Fulton). READER
     (`read.effective_rules`, each pinned in `test_competition.py`): a same-row DATED release OR
     CLOSURE silences the row's UNDATED counted quota on its dates (RU-3; size clauses are their
     own subject; as built a row's dated closure silences its own quota too — Quatse, the Region 7

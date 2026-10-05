@@ -4822,6 +4822,26 @@ def index(d: dict) -> dict:
             "licensing_by_kind": dict(sorted(by_kind.items()))}
 
 
+def _bait_where(rules: dict, bait: dict) -> str:
+    """Where the dated-bait-ban shape is printed today, read off the export (never a fixed list):
+    the zones whose all-year bait ban a row's dated ban replaces, and the zones banning bait all
+    year where no row does."""
+    lifted = {n["zone_rule"] for e in bait.values() for n in e["notes"]}
+    every = {i for i, x in rules.items() if x["entry_id"].startswith("z")
+             and not x["entry_id"].startswith("zp:") and x["type"] == "bait_restriction"
+             and x.get("dimension") == "bait" and not x["fields"].get("when")}
+    words = lambda ids: sorted({_zone_words(rules[i]["entry_id"]) for i in ids})  # noqa: E731
+    have, rest = words(lifted), [w for w in words(every - lifted) if w not in words(lifted)]
+    if not have:
+        return ""
+    out = (f" Today {', '.join(have)} print{'s' if len(have) == 1 else ''} this shape "
+           f"({len(bait)} waters)")
+    if rest:
+        out += (f"; {', '.join(rest)} also ban bait all year, with no row printing a dated ban "
+                f"on the same water")
+    return out + "."
+
+
 def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
     """The two gotchas only the bundle's sets can say (`closures_combine`,
     `dated_bait_ban_replaces_zone`), added to `guide.gotchas` — generated, never hand-listed."""
@@ -4842,8 +4862,11 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
                 "a reader never takes the row's dates for the whole closed season. A row's "
                 "quota or release under the zone closure does not open the water either "
                 "(kind `row_rule`).",
-        "key_on": "entries[entry_id].notes[*] (kind row_closure | row_rule | subject_to); the "
-                  "answer itself already holds both closures (`ladder`)",
+        "key_on": "entries[entry_id].notes[*] (kind row_closure | row_rule | subject_to); a "
+                  "row_closure note's `zone_holds` are the days and fish on which the reader has "
+                  "the zone closure speaking outside the row's dates (the only days it claims "
+                  "both hold), its `zone_lifted` the zone's own days the reader lifts, for which "
+                  "fish, by which rules; the answer itself already holds both closures (`ladder`)",
         "entries": combine,
     }
     g["gotchas"]["dated_bait_ban_replaces_zone"] = {
@@ -4852,9 +4875,7 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
                 "with some important exceptions. Check the tables.') REPLACES the zone's ban on "
                 "that water: bait is banned on the row's dates only (user ruling 2026-10-05). "
                 "The row's lift of the zone ban (`exempts`, dated) carries it; never show the "
-                "zone's all-year ban on the row's other days. Only Region 1 prints this "
-                "shape today; Regions 6, 7A and 7B's all-year stream bait bans have no row "
-                "printing a dated ban on the same water.",
+                "zone's all-year ban on the row's other days." + _bait_where(d["rules"], bait),
         "key_on": "entries[entry_id].notes[*]: the row's dated ban, the zone ban, the lift",
         "entries": bait,
     }
@@ -5662,9 +5683,48 @@ def _closure_scan(bundle: Path) -> dict:
 
 
 _MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
-#: The keys of a lift item that make it a lift IN PART (`rules.LIFT_KEYS`): a zone closure lifted
-#: only for some fish, days, origins, sizes, targets or means still holds for the rest.
-_IN_PART = ("species", "when", "origin", "lengths", "when_targeting", "while")
+#: The catalogue's day index (1..366, Feb 29 is day 60) -> (month, day), for asking the reader.
+_MD = {C._day_index(m, d): (m, d) for m in range(1, 13) for d in range(1, C._LAST_DAY[m] + 1)}
+
+
+#: Feb 29: the book prints its dates for a year without one, so a note reads them over such a
+#: year ("Jan 1-Feb 28", never a stray "Feb 29" a 365-day date leaves out).
+_LEAP = C._day_index(2, 29)
+
+
+def _runs(days) -> list[list[int]]:
+    """A set of day indexes as `[[from_month, from_day, to_month, to_day], ...]` on a circular
+    year without Feb 29 (a run ending Dec 31 and one starting Jan 1 are one run: "Oct 1-May
+    31")."""
+    ds = sorted(set(days) - {_LEAP})
+    if not ds:
+        return []
+    step = lambda a, b: b == a + 1 or (a == _LEAP - 1 and b == _LEAP + 1)  # noqa: E731
+    runs, start = [], ds[0]
+    for prev, cur in zip(ds, ds[1:]):
+        if not step(prev, cur):
+            runs.append((start, prev))
+            start = cur
+    runs.append((start, ds[-1]))
+    if len(runs) > 1 and runs[0][0] == 1 and runs[-1][1] == len(_MD):
+        runs = [(runs[-1][0], runs[0][1])] + runs[1:-1]
+    return [[*_MD[a], *_MD[b]] for a, b in runs]
+
+
+def _runs_words(runs: list) -> str:
+    return ", ".join(f"{_MONTHS[a - 1]} {b}" + ("" if (a, b) == (c, d) else
+                                                 f"-{_MONTHS[c - 1]} {d}")
+                     for a, b, c, d in runs) or "no day"
+
+
+def _run_days(runs: list) -> list[int]:
+    """`_runs` back to day indexes, in order (a wrapping run from its first day)."""
+    out = []
+    for a, b, c, d in runs:
+        i, j = C._day_index(a, b), C._day_index(c, d)
+        out += list(range(i, j + 1)) if i <= j else list(range(i, len(_MD) + 1)) + \
+            list(range(1, j + 1))
+    return [d for d in out if d != _LEAP]
 
 
 def _dates_words(x: dict) -> str:
@@ -5693,30 +5753,44 @@ def closures_combine(bundle: Path) -> dict:
     closure) and a row's own closure on the same water BOTH apply: the water is closed on the
     UNION of their dates. Where the row's closed season lies inside the zone's, or crosses it,
     a reader is easily misled into thinking the row's dates replace the zone's (the Stein's "No
-    Fishing Jan 1-May 31" under Region 3's Jan 1-June 30: closed to June 30). Two shapes, both
-    read off the sets as the closure review did (handoff P3 closure_review.md Part 1 + 2A/2B):
+    Fishing Jan 1-May 31" under Region 3's Jan 1-June 30: closed to June 30). Three shapes:
 
-      `row_closure`  a row's full closure bound beside a zone's full SEASONAL closure on the same
-                     sections, for a fish both close, on days that overlap, where the zone closes
-                     days the row does not — and no rule there lifts the zone closure WHOLLY (a
-                     lift in part — Nicola's trout Jan 1-Feb 28, the Thompson's May opening —
-                     leaves it holding on every other day and fish);
+      `row_closure`  a row's closure (full, or partial: Shuswap Lake's "No Fishing Mar 15-May
+                     14", which holds on a part nothing draws) bound beside a zone's full
+                     SEASONAL closure on the same sections, for a fish both close, on days that
+                     overlap, where the zone closes days the row does not. WHETHER THE ZONE
+                     CLOSURE HOLDS IS THE READER'S (`read.effective_rules_bound`, once per rule
+                     set, steelhead flags and day segment): the note claims "both hold" only on
+                     the days and for the fish the zone closure SPEAKS outside the row's dates
+                     (`zone_holds`); a pair where it never does (the Fulton, whose "Open June
+                     16-Apr 30" lifts the Skeena winter closure on every day the row leaves
+                     open) is no note. Where the reader shows the zone closure silenced inside
+                     its own dates — a lift in part, dated or for some fish — the note names
+                     those dates, fish and lifting rules (`zone_lifted`: the Nicola's trout
+                     catch and release Jan 1-Feb 28; the Thompson's May opening, on the sections
+                     it binds);
       `row_rule`     a row's dated release or keeping quota the reader silences under a zone
                      full closure (`_closure_scan`, the rows of `QUOTA_UNDER_CLOSURE_KNOWN` /
-                     `RELEASE_UNDER_CLOSURE_KNOWN`): the row's rule does not open the water.
-    Plus `subject_to`: a row printing that its water, or its tributaries, are "subject to" a
-    zone closure (West Road River's "tributaries subject to spring closure")."""
+                     `RELEASE_UNDER_CLOSURE_KNOWN`): the row's rule does not open the water;
+      `subject_to`   a row printing that its water, or its tributaries, are "subject to" a zone
+                     closure (West Road River's "tributaries subject to spring closure").
+    `closures_combine_problems` checks every `zone_holds` claim against the reader."""
     from pipeline.deliver.bundle import read as RD
     from pipeline.deliver.bundle.rules import closure_grade
     R = RD._rules_of(str(bundle))
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     try:
-        members: dict = defaultdict(list)
-        for s, e, r in db.execute("SELECT set_id, entry_id, rule_id FROM ruleset"):
-            if (e, r) in R:
-                members[s].append((e, r))
-        nsec = dict(db.execute("SELECT set_id, COUNT(*) FROM section_ruleset GROUP BY set_id"))
-        sid_of = dict(db.execute("SELECT set_id, MIN(sid) FROM section_ruleset GROUP BY set_id"))
+        bound: dict = defaultdict(list)
+        for s, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset"):
+            bound[s].append((e, r, via))
+        steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
+        st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
+        # (set, steelhead water, steelhead rules) -> [sections, first section]: every section
+        # under one key gets the same answer (`effective_rules_bound`)
+        keys: dict = {}
+        for sid, s in db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid"):
+            k = keys.setdefault((s, sid in steel, sid in st_rules), [0, sid])
+            k[0] += 1
         names = dict(db.execute("SELECT entry_id, name FROM entry"))
         verbatim = dict(db.execute("SELECT entry_id, verbatim FROM entry"))
     finally:
@@ -5725,7 +5799,7 @@ def closures_combine(bundle: Path) -> dict:
 
     def days(x):
         got = RD._days_of(json.dumps((x.get("when") or {}).get("dates") or [], sort_keys=True))
-        return got if got is not None else frozenset(range(1, 367))
+        return got if got is not None else frozenset(_MD)
 
     def fish(x):
         return {f for f in game if RD.speaks_for(x, f)}
@@ -5736,34 +5810,95 @@ def closures_combine(bundle: Path) -> dict:
                 and not RD.not_yet_mapped(x) and bool((x.get("when") or {}).get("dates")))
 
     def row_closure(k):
-        return str(k[0]).startswith("r") and closure_grade(R[k]) == "full" \
-            and not RD.not_yet_mapped(R[k])
+        return str(k[0]).startswith("r") and closure_grade(R[k]) is not None
 
-    pairs: dict = {}
-    for s, ks in members.items():
+    # the candidate pairs per set, by their printed dates and fish (what could mislead)
+    cands: dict = {}
+    for s, rows in bound.items():
+        ks = [(e, r) for e, r, _ in rows if (e, r) in R]
         zs = [k for k in ks if zone_seasonal(k)]
         if not zs:
             continue
-        whole = {(y.get("entry_id"), y.get("rule_id")) for k in ks
-                 for y in R[k].get("exempts") or [] if not any(q in y for q in _IN_PART)}
+        got = []
         for k in ks:
             if not row_closure(k):
                 continue
             for z in zs:
-                if z in whole:
-                    continue
                 common = fish(R[k]) & fish(R[z])
                 dk, dz = days(R[k]), days(R[z])
-                if not common or not (dk & dz) or not (dz - dk):
-                    continue
-                p = pairs.setdefault((k, z), {"sections": 0, "fish": set(),
-                                              "example_section": sid_of.get(s)})
-                p["sections"] += nsec.get(s, 0)
-                p["fish"] |= common
+                if common and (dk & dz) and (dz - dk):
+                    got.append((k, z, common))
+        if got:
+            cands[s] = got
+
+    pairs: dict = {}
+    for (s, sh_water, sh_rules), (nsec, sid) in sorted(keys.items()):
+        if s not in cands:
+            continue
+        rows = bound[s]
+        # THE DAY SEGMENTS: the reader's answer changes only where a date of a bound rule or of
+        # one of its lifts begins or ends, so one day per segment asks for all of it.
+        lists = [days(R[(e, r)]) for e, r, _ in rows if (e, r) in R]
+        lists += [days(y) for e, r, _ in rows if (e, r) in R
+                  for y in R[(e, r)].get("exempts") or [] if y.get("when")]
+        seg_of, segs = {}, {}
+        for d in sorted(_MD):
+            sig = tuple(d in x for x in lists)
+            seg_of[d] = segs.setdefault(sig, len(segs))
+        first = {}
+        for d in sorted(_MD):
+            first.setdefault(seg_of[d], d)
+        answer: dict = {}
+
+        def speaks(seg, f):
+            if (seg, f) not in answer:
+                answer[(seg, f)] = {(y["entry"], y["rule"]) for y in RD.effective_rules_bound(
+                    rows, sh_water, _MD[first[seg]], f, str(bundle),
+                    steelhead_rules_here=sh_rules) if y["state"] == "speaks"}
+            return answer[(seg, f)]
+
+        for k, z, common in cands[s]:
+            dk, dz = days(R[k]), days(R[z])
+            holds: dict = defaultdict(set)      # fish -> days the zone speaks, the row closed not
+            lifted: dict = defaultdict(set)     # fish -> days of the zone's own the reader lifts
+            for f in sorted(common):
+                for d in sorted(dz - {_LEAP}):
+                    if z in speaks(seg_of[d], f):
+                        if d not in dk:
+                            holds[f].add(d)
+                    else:
+                        lifted[f].add(d)
+            p = pairs.setdefault((k, z), {"sections": 0, "bound": 0, "example_section": None,
+                                          "holds": defaultdict(set), "lifted": {}})
+            p["bound"] += nsec
+            if any(holds.values()):
+                p["sections"] += nsec
+                if p["example_section"] is None or (sid < p["example_section"]):
+                    p["example_section"] = sid
+            for f, ds in holds.items():
+                p["holds"][f] |= ds
+            by_days: dict = defaultdict(set)
+            for f, ds in lifted.items():
+                if ds:
+                    by_days[frozenset(ds)].add(f)
+            lifters = sorted(f"{e}::{r}" for e, r, _ in rows if (e, r) in R
+                             and any((y.get("entry_id"), y.get("rule_id")) == z
+                                     for y in R[(e, r)].get("exempts") or []))
+            for ds, fs in by_days.items():
+                q = p["lifted"].setdefault((ds, frozenset(fs)), {"sections": 0, "by": set()})
+                q["sections"] += nsec
+                q["by"].update(lifters)
+
+    def fish_list(fs):
+        return "all" if set(fs) >= set(game) else sorted(fs)
 
     def fish_words(fs):
-        return "" if set(fs) >= set(game) else \
-            " (for " + ", ".join(_name(f) for f in sorted(fs)) + ")"
+        if fs == "all" or set(fs) >= set(game):
+            return ""
+        rest = set(game) - set(fs)
+        if len(rest) < len(set(fs)):
+            return " (for every game fish but " + ", ".join(_name(f) for f in sorted(rest)) + ")"
+        return " (for " + ", ".join(_name(f) for f in sorted(fs)) + ")"
 
     out: dict = {}
 
@@ -5771,18 +5906,44 @@ def closures_combine(bundle: Path) -> dict:
         out.setdefault(eid, {"name": names.get(eid) or eid, "notes": []})["notes"].append(item)
 
     for (k, z), p in sorted(pairs.items()):
+        if not p["sections"]:
+            continue                # the zone closure never speaks outside the row's dates
         x, y = R[k], R[z]
+        zw = _zone_words(z[0])
+        groups: dict = defaultdict(set)
+        for f, ds in p["holds"].items():
+            if ds:
+                groups[frozenset(ds)].add(f)
+        zone_holds = [{"dates": _runs_words(_runs(ds)), "runs": _runs(ds), "fish": fish_list(fs)}
+                      for ds, fs in sorted(groups.items(),
+                                           key=lambda g: (min(g[0]), sorted(g[1])))]
+        zone_lifted = [{"dates": _runs_words(_runs(ds)), "runs": _runs(ds), "fish": fish_list(fs),
+                        "by": sorted(q["by"]), "sections": q["sections"]}
+                       for (ds, fs), q in sorted(p["lifted"].items(),
+                                                 key=lambda g: (min(g[0][0]), sorted(g[0][1])))]
+        held = "; ".join(h["dates"] + fish_words(h["fish"]) for h in zone_holds)
+        part = str(x.get("undrawn_part") or "").strip()
+        part = f", on part of the water only: {part}" if part else ""
+        says = (f"Both hold: the row's '{_plain(x['verbatim'])}' ({_dates_words(x)}{part}) and "
+                f"{zw}'s '{_plain(y['verbatim'])}' ({_dates_words(y)}). {zw}'s closure still "
+                f"holds on days the row's does not ({held}), so the water is closed on the "
+                f"UNION of the two — the row's dates do not replace the zone's.")
+        for lf in zone_lifted:
+            by = ", ".join(f"'{_plain(R[tuple(b.split('::'))]['verbatim'])}'" for b in lf["by"]) \
+                or "a lift"
+            where = "" if lf["sections"] >= p["bound"] else \
+                f" (on {lf['sections']:,} of its {p['bound']:,} sections)"
+            says += (f" {zw}'s closure is lifted {lf['dates']}{fish_words(lf['fish'])} "
+                     f"by {by}{where}.")
         note(k[0], {
             "kind": "row_closure", "row_rule": f"{k[0]}::{k[1]}", "row_says": x["verbatim"],
-            "row_dates": _dates_words(x), "zone_rule": f"{z[0]}::{z[1]}",
-            "zone_says": y["verbatim"], "zone_dates": _dates_words(y),
-            "fish": "all" if p["fish"] >= set(game) else sorted(p["fish"]),
-            "sections": p["sections"],
-            "example_section": p["example_section"],
-            "says": f"Both hold: the row's '{_plain(x['verbatim'])}' ({_dates_words(x)}) and "
-                    f"{_zone_words(z[0])}'s '{_plain(y['verbatim'])}' ({_dates_words(y)}). The water is "
-                    f"closed on the UNION of the two{fish_words(p['fish'])} — the row's dates "
-                    f"do not replace the zone's."})
+            "row_dates": _dates_words(x), "row_grade": closure_grade(x),
+            "zone_rule": f"{z[0]}::{z[1]}", "zone_says": y["verbatim"],
+            "zone_dates": _dates_words(y),
+            "fish": fish_list(set().union(*groups.values())),
+            "zone_holds": zone_holds, "zone_lifted": zone_lifted,
+            "sections": p["sections"], "example_section": p["example_section"],
+            "says": says})
     scan = _closure_scan(bundle)
     for what in ("release", "quota"):
         for f in scan[what]:
@@ -5808,6 +5969,36 @@ def closures_combine(bundle: Path) -> dict:
                        "says": f"The row prints '{m.group(0)}': the region's {m.group(1).lower()} "
                                f"closure holds there beside the row's own rules — both apply, "
                                f"and nothing in the row lifts it."})
+    return out
+
+
+def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
+    """EVERY "BOTH HOLD" CLAIM, CHECKED AGAINST THE READER: for each `row_closure` note, each of
+    its `zone_holds` claims must have the zone closure SPEAKING (`read.effective_rules`) on the
+    note's example section on at least one of the days it names, for one of the fish it names.
+    A note built from the printed dates alone (the Fulton's "Both hold … Jan 1-Jun 15", where
+    the row's "Open June 16-Apr 30" lifts the winter closure) fails here."""
+    from pipeline.deliver.bundle import read as RD
+    game = [f for f in C.expand_species(["ALL_GAME_FISH"]) if f != "CRA"]
+    out = []
+    for eid, e in sorted(entries.items()):
+        for n in e["notes"]:
+            if n["kind"] != "row_closure":
+                continue
+            z = n["zone_rule"]
+            for h in n.get("zone_holds") or [{"runs": None, "fish": n.get("fish")}]:
+                if not h.get("runs"):
+                    out.append(f"{eid}: {n['row_rule']} under {z} claims both hold with no days")
+                    continue
+                fs = game if h["fish"] == "all" else h["fish"]
+                hit = any(f"{y['entry']}::{y['rule']}" == z and y["state"] == "speaks"
+                          for d in _run_days(h["runs"]) for f in fs
+                          for y in RD.effective_rules(n["example_section"], _MD[d], f,
+                                                      str(bundle)))
+                if not hit:
+                    out.append(f"{eid}: {n['row_rule']} — {z} does not speak on section "
+                               f"{n['example_section']} on any of {h['dates']} for {h['fish']}, "
+                               f"yet the note says both hold")
     return out
 
 

@@ -986,8 +986,8 @@ def test_the_gotchas_say_where_closures_combine_and_where_a_dated_bait_ban_repla
     mainstem), while the same row's Region 6 pieces under the steelhead closure are.
     MUTATION: treating a lift in part as whole drops the Thompson; a bait gotcha that does not
     check the zone ban is undated lists the Region 7A 'EXEMPT from bait ban' rows."""
-    if db.execute("select count(*) from rule where rule_id = 'stein_river.r1x'").fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the 2026-10-05 lift decisions")
+    from pipeline.tests.test_lift_decisions import predates
+    predates(db)
     g = doc["guide"]["gotchas"]
     cc = g["closures_combine"]["entries"]
     z3 = "z3:spring_stream_closure::spring_stream_closure.r1"
@@ -1013,6 +1013,65 @@ def test_the_gotchas_say_where_closures_combine_and_where_a_dated_bait_ban_repla
         "r1:quatse_river@1-13::quatse_river.r4", "z1:bait_ban_streams::bait_ban_streams.r1",
         "r1:quatse_river@1-13::quatse_river.r4x")]
     assert "May 1-Nov 30" in q[0]["says"] and "Dec 1-Apr 30" in q[0]["says"]
+    # L3: where the shape is printed is read off the rules, never a fixed sentence
+    says = g["dated_bait_ban_replaces_zone"]["says"]
+    assert "Only Region 1" not in says and "Today Region 1 prints this shape (4 waters)" in says
+    assert X._bait_where(doc["rules"], {}) == ""
+
+
+FULTON = "r6:fulton_river@6-8"
+WINTER6 = "z6:skeena_nass_winter_closure::skeena_nass_winter_closure.r1"
+
+
+def test_every_both_hold_claim_is_the_readers(doc, db):
+    """Review M1 (2026-10-05): a `row_closure` note says "both hold" only on the days and for the
+    fish the READER has the zone closure speaking outside the row's dates (`zone_holds`), and
+    names every lift in part (`zone_lifted`). Every claim is re-asked of the reader
+    (`closures_combine_problems`, empty). The Fulton — "Open June 16-Apr 30 each year", whose
+    lift silences the Skeena winter closure on every day the row leaves open — is no note.
+    MUTATION: the note the printed dates alone gave the Fulton ("both hold … Jan 1-Jun 15",
+    claimed Jan 1-Apr 30 on section 762443, where the reader has rainbow open Jan 15) is flagged."""
+    from pipeline.tests.test_lift_decisions import predates
+    predates(db)
+    cc = doc["guide"]["gotchas"]["closures_combine"]["entries"]
+    assert X.closures_combine_problems(cc, BUNDLE) == []
+    notes = [n for e in cc.values() for n in e["notes"] if n["kind"] == "row_closure"]
+    assert notes and all(n["zone_holds"] and n["example_section"] for n in notes)
+    assert FULTON not in cc
+    sid = db.execute("select min(sr.sid) from ruleset a join ruleset b on b.set_id = a.set_id "
+                     "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? "
+                     "and a.rule_id = 'fulton_river.r1' and b.entry_id = ? and b.rule_id = ?",
+                     (FULTON, *WINTER6.split("::"))).fetchone()[0]
+    assert sid is not None
+    fake = {FULTON: {"name": "Fulton River", "notes": [{
+        "kind": "row_closure", "row_rule": f"{FULTON}::fulton_river.r1", "zone_rule": WINTER6,
+        "example_section": sid, "fish": "all",
+        "zone_holds": [{"dates": "Jan 1-Apr 30", "runs": [[1, 1, 4, 30]], "fish": "all"}]}]}}
+    assert len(X.closures_combine_problems(fake, BUNDLE)) == 1
+    # the lifts in part are named: the Nicola's trout Jan 1-Feb 28 (the char and whitefish
+    # still closed then), the Thompson's May opening on the sections it binds
+    z3 = "z3:spring_stream_closure::spring_stream_closure.r1"
+    nic = [n for n in cc["r3:nicola_river@3-13"]["notes"] if n["kind"] == "row_closure"
+           and n["zone_rule"] == z3]
+    assert len(nic) == 1
+    assert [(x["dates"], x["fish"]) for x in nic[0]["zone_lifted"]] == [
+        ("Jan 1-Feb 28", ["CT", "GB", "RB", "ST"])]
+    assert nic[0]["zone_lifted"][0]["by"] == ["r3:nicola_river@3-13::nicola_river.r3x"]
+    held = {f for h in nic[0]["zone_holds"] for f in h["fish"]}
+    assert {"MW", "DV", "EB"} <= held and not held & {"RB", "CT"}
+    assert "Jan 1-Feb 28" in nic[0]["says"] and "lifted" in nic[0]["says"]
+    tho = [n for n in cc["r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t"
+                         "@3-13+3-14+3-18"]["notes"] if n["kind"] == "row_closure"]
+    assert [(x["dates"], x["fish"]) for x in tho[0]["zone_lifted"]] == [("May 1-May 31", "all")]
+    assert tho[0]["zone_lifted"][0]["sections"] < tho[0]["sections"]
+    assert "May 1-May 31" in tho[0]["says"]
+    # review L2: a PARTIAL row closure is listed too (Shuswap Lake's "No Fishing Mar 15-May 14",
+    # on a part nothing draws, beside Region 3's spring closure on its stream section)
+    shu = [n for n in cc["r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"]
+           ["notes"] if n["kind"] == "row_closure"]
+    assert [(n["row_rule"].split("::")[1], n["row_grade"], n["zone_rule"]) for n in shu] == [
+        ("shuswap_lake.r1", "partial", z3)]
+    assert "part of the water only" in shu[0]["says"]
 
 
 # ---------------------------------------------------------------------------------------
