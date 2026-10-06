@@ -54,31 +54,9 @@ def _normalize_unicode(text: str) -> str:
     return text
 
 
-#: The running footer every numbered page carries: "40 2025-2027 BC Freshwater Fishing Regulations
-#: Synopsis" on a left page, "... Synopsis 41" on a right one. Read off the page's own footer rather
-#: than from an offset table, because the offset is not constant: the four-page centre gloss after
-#: printed p. 40 is unnumbered and the map on PDF p. 47 is printed 41, so printed = PDF - 2 up to PDF
-#: 42 and PDF - 6 from PDF 47.
-_FOOTER_PAGE = re.compile(
-    r"(?:^|\s)(\d{1,3})\s+\d{4}-\d{4} BC Freshwater Fishing Regulations Synopsis"
-    r"|\d{4}-\d{4} BC Freshwater Fishing Regulations Synopsis\s+(\d{1,3})(?:\s|$)")
-
-
-def printed_page_number(page) -> Optional[int]:
-    """The page number PRINTED on this page, from its running footer; None when it has none.
-
-    THIS IS THE NUMBER A ROW'S `page` CARRIES. It is the book's own address — its cross-references
-    say "see page 24" and mean the printed 24 — and it is what a reader holding the synopsis turns
-    to. The PDF's page index is a different number (printed 42 is PDF p. 48), and storing that as
-    `page` gave every water entry a page the book does not print on it. The index is kept beside it
-    as `pdf_page`, and it still keys the row images.
-
-    `dedupe_chars()` first: the footer is set in a faux-bold that draws each glyph twice, so the
-    raw text reads "1144" on printed p. 14 — indistinguishable from a real "11" without it."""
-    h = page.height
-    foot = page.within_bbox((0, h * 0.95, page.width, h)).dedupe_chars().extract_text() or ""
-    got = {int(g) for m in _FOOTER_PAGE.finditer(foot) for g in m.groups() if g}
-    return got.pop() if len(got) == 1 else None
+# The page number PRINTED in the footer (the number a row's `page` carries) is read by the one
+# reader in `pipeline.common.synopsis_pages`, which also derives the printed -> PDF page map.
+from pipeline.common.synopsis_pages import _FOOTER_PAGE, printed_page_number  # noqa: E402,F401
 
 
 class FishingSynopsisParser:

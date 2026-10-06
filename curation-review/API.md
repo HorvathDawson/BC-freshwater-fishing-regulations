@@ -191,7 +191,8 @@ verbatim, via, undrawn_part, standing}], licensing: [{kind, entry_id, id, via, l
 ## The book
 
 `source_pages` are PRINTED page numbers. `GET /api/synopsis/pages` → `{printed: pdf_page}` read off
-the repo copy's footers; `GET /api/synopsis.pdf` serves that copy (link `#page=<pdf_page>`);
+the repo copy's footers (`pipeline.common.synopsis_pages.printed_to_pdf` — the one map, also
+shipped as the UI export's `guide.pdf_pages`); `GET /api/synopsis.pdf` serves that copy (link `#page=<pdf_page>`);
 `GET /api/synopsis/page/{printed}.png` renders the whole page.
 
 ---

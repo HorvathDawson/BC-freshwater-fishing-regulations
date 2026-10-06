@@ -6,49 +6,29 @@ number and the offset is not constant (printed = PDF - 2 up to printed 40, PDF -
 centre gloss). The app used to open `fishing_synopsis.pdf#page=<printed>`, which landed two to six
 pages early — on Dean River's row it opened Region 4's tables.
 
-So the printed -> PDF map is read off the repo copy's own footers, once, with the extractor's
-function; a page with no footer (a map) takes the next numbered page's offset. The PDF and
-a rendered image of a page are served from the repo copy (`data/source/fishing_synopsis.pdf`) —
-the edition the entries were read from; gov.bc.ca's file changes bytes day to day.
+So the printed -> PDF map is the pipeline's one map (`pipeline.common.synopsis_pages`), read off
+the repo copy's own footers with the extractor's function — the same map the UI export ships as
+`guide.pdf_pages`. The PDF and a rendered image of a page are served from the repo copy
+(`data/source/fishing_synopsis.pdf`) — the edition the entries were read from; gov.bc.ca's file
+changes bytes day to day.
 """
 from __future__ import annotations
 
 import io
 from functools import lru_cache
 
-from pipeline.common.curated import SOURCE
+from pipeline.common import synopsis_pages as _pages
 
-PDF_PATH = SOURCE / "fishing_synopsis.pdf"
+PDF_PATH = _pages.default_pdf()
 
 
-@lru_cache(maxsize=1)
 def printed_to_pdf() -> dict[int, int]:
-    """printed page -> 1-based PDF page, every printed number up to the last one read."""
-    import pdfplumber
-    from pipeline.regs.extraction.extract_synopsis import printed_page_number
-    seen: dict[int, int] = {}
-    with pdfplumber.open(str(PDF_PATH)) as pdf:
-        for i, page in enumerate(pdf.pages):
-            n = printed_page_number(page)
-            if n and n not in seen:
-                seen[n] = i + 1
-    if not seen:
-        return {}
-    out: dict[int, int] = {}
-    offset = None
-    for n in range(max(seen), 0, -1):
-        if n in seen:
-            offset = seen[n] - n
-            out[n] = seen[n]
-        elif offset is not None:
-            # an unnumbered page takes the offset of the NEXT numbered one: the map printed 41
-            # sits on PDF 47, after the centre gloss, at printed 42's offset (PDF 48), not 40's
-            out[n] = n + offset
-    return dict(sorted(out.items()))
+    """printed page -> 1-based PDF page (`pipeline.common.synopsis_pages.printed_to_pdf`)."""
+    return _pages.printed_to_pdf(PDF_PATH)
 
 
 def pdf_page(printed: int) -> int | None:
-    return printed_to_pdf().get(int(printed))
+    return _pages.pdf_page(printed, PDF_PATH)
 
 
 @lru_cache(maxsize=32)

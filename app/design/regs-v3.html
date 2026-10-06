@@ -1448,8 +1448,15 @@ function authority(eid, e){
 var FAMILIES=[["retention","Retention & closures"],["gear_and_method","Gear & method"],
               ["vessel","Boats & motors"],["licensing","Licences & permission"],
               ["conduct","Handling & conduct"],["information","Notices"]];
-/* The book itself. `extract_synopsis.py` downloads this exact file, and the page numbers are
-   its PDF pages, so #page= lands on the right one. */
+/* The book itself — the 2025-2027 edition the entries were read from (`extract_synopsis.py`
+   downloads it; the repo copy is the same edition). An entry's `pages` are PRINTED page numbers,
+   the footer's number; `#page=` takes the PDF's page index, which runs 2 to 6 ahead (four
+   unnumbered centre pages). Linking the printed number landed early — on the
+   Dean River's row it opened Region 4's tables. So a link looks its page up in PDF_PAGES: the export's `guide.pdf_pages`
+   (`pipeline.common.synopsis_pages`, read off the PDF's footers), copied here verbatim because
+   this page is static; `test_synopsis_pages.py` refuses a copy that differs. */
+var PDF_PAGES={"1":3,"2":4,"3":5,"4":6,"5":7,"6":8,"7":9,"8":10,"9":11,"10":12,"11":13,"12":14,"13":15,"14":16,"15":17,"16":18,"17":19,"18":20,"19":21,"20":22,"21":23,"22":24,"23":25,"24":26,"25":27,"26":28,"27":29,"28":30,"29":31,"30":32,"31":33,"32":34,"33":35,"34":36,"35":37,"36":38,"37":39,"38":40,"39":41,"40":42,"41":47,"42":48,"43":49,"44":50,"45":51,"46":52,"47":53,"48":54,"49":55,"50":56,"51":57,"52":58,"53":59,"54":60,"55":61,"56":62,"57":63,"58":64,"59":65,"60":66,"61":67,"62":68,"63":69,"64":70,"65":71,"66":72,"67":73,"68":74,"69":75,"70":76,"71":77,"72":78,"73":79,"74":80,"75":81,"76":82,"77":83,"78":84,"79":85,"80":86};
+function pdfPage(printed){ return PDF_PAGES[String(printed)]||null; }
 var SYNOPSIS="https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/"
   +"outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
 var MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -3759,7 +3766,7 @@ function build(name, mount){
     ordered.forEach(function(grp){
       var m=marked(grp.e.verbatim, grp.items);
       m.shown.forEach(function(n){ LINKABLE[n]=1; });
-      var pg=(grp.e.pages||[])[0];
+      var pg=(grp.e.pages||[])[0], pdfPg=pg?pdfPage(pg):null;   // printed page, PDF page
       /*
        * THE MORE SPECIFIC OF THE TWO NAMES.
        *
@@ -3783,7 +3790,7 @@ function build(name, mount){
           ? '<div class="naNote">The greyed words are other parts of this row that do not '
             +'apply here.</div>' : '')
         +'<a class="pdf" target="_blank" rel="noopener" href="'+esc(SYNOPSIS)
-        +(pg?"#page="+pg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')
+        +(pdfPg?"#page="+pdfPg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')
         +' \u2197</a></div>');
     });
     var h=[];

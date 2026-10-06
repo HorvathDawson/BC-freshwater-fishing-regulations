@@ -1067,12 +1067,23 @@ STEELHEAD_TEXT = (
     "a part with `steelhead_rules: false` (user ruling 2026-10-03: 'if no steelhead rules exist, "
     "rainbow rules still apply to a steelhead').")
 
+#: `guide.pdf_pages` — the one printed -> PDF page map (`pipeline.common.synopsis_pages`).
+PDF_PAGES_TEXT = (
+    "{printed page: PDF page} — an entry's `pages` are the numbers PRINTED in the synopsis's "
+    "footers; the PDF's page index differs (printed = PDF - 2 up to printed 40, then four "
+    "unnumbered centre pages, then PDF - 6). A link into the PDF (`fishing_synopsis.pdf#page=N`) "
+    "takes the PDF page: look the printed page up here, never link the printed number. Read off "
+    "the repo copy's own footers by the extractor's reader (a page with no footer of its own "
+    "takes the next numbered page's offset); keys are strings (JSON)")
+
+
 #: THE FILE, key by key — every top-level key (`dictionary_gaps` refuses one that is not here).
 FILE_TEXT = {
     "about": "what the file is, the bundle it was read from (version, build, reach run and "
              "digest, `section_handles`), the counts, and corpus references that do not resolve",
-    "guide": "how to read everything below — see `guide.contents`. Ships in the GUIDE file "
-             "(`ui-rules-guide.json`), with `field_dictionary` and `species`",
+    "guide": "how to read everything below — see `guide.contents`; `guide.pdf_pages` maps a "
+             "printed page (an entry's `pages`) to the synopsis PDF's page. Ships in the GUIDE "
+             "file (`ui-rules-guide.json`), with `field_dictionary` and `species`",
     "field_dictionary": "this: every key of the file and every field of its records, in words; "
                         "`encoding` says how the data file encodes them. Ships in the guide "
                         "file",
@@ -1889,7 +1900,10 @@ ENTRY_TEXT = {
     "full_name": "the heading as printed",
     "item_id": "the first water it matched", "matched": "every water it matched",
     "mus": "the management units the row was printed under",
-    "pages": "the synopsis pages it is printed on", "symbols": "the printed glyphs, 1:1",
+    "pages": "the synopsis pages it is printed on: PRINTED page numbers (the footer's number, "
+             "what the book's own cross-references mean), NOT the PDF's page index — to open the "
+             "PDF there, look the page up in `guide.pdf_pages`",
+    "symbols": "the printed glyphs, 1:1",
     "scope_note": "the curated sentence on which part of the water the entry covers",
     "extents": "the entry's own reach — each extent key by key in `rule.fields.extents[]`",
     "printed": "the whole printed passage",
@@ -3369,6 +3383,7 @@ def guide(d: dict) -> dict:
                     "water no example checks",
         "cases": "SAMPLE WATERS to build the page against while it is built out — one or more "
                  "per mechanism, each with what to show and the reference answer",
+        "pdf_pages": PDF_PAGES_TEXT,
     }
     status = {
         "reading": "THE MAP AND SEARCH COLOUR is not in this file. It ships beside it as "
@@ -5239,7 +5254,8 @@ def build(bundle: Path = BUNDLE) -> dict:
             "quota_under_closure": quota_under_closure(bundle),
         },
         "guide": with_closure_gotchas(dict(guide(d), examples=_guide_examples(bundle),
-                                           cases=cases(d, bundle)), d, bundle),
+                                           cases=cases(d, bundle), pdf_pages=pdf_pages()),
+                                      d, bundle),
         "field_dictionary": field_dictionary(d),
         "species": species_table(),
         "licences": d["licences"],
@@ -6563,8 +6579,25 @@ def guide_example_problems(doc: dict) -> list[str]:
         prose_gaps(g, set(names.values()), g.get("examples") or {}, names)
 
 
+def pdf_pages() -> dict[str, int]:
+    """`guide.pdf_pages`: the printed -> PDF page map, from the one reader of the PDF's footers."""
+    from pipeline.common.synopsis_pages import printed_to_pdf
+    return {str(k): v for k, v in printed_to_pdf().items()}
+
+
+def pdf_page_problems(doc: dict) -> list[str]:
+    """Every printed page an entry cites opens the PDF somewhere: `guide.pdf_pages` maps it."""
+    m = doc["guide"].get("pdf_pages") or {}
+    if not m:
+        return ["guide.pdf_pages is empty (is data/source/fishing_synopsis.pdf missing?)"]
+    return [f"entry {eid} cites printed page {n}, which guide.pdf_pages does not map"
+            for eid, e in sorted(doc["entries"].items()) for n in e.get("pages") or []
+            if str(n) not in m]
+
+
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
+            + pdf_page_problems(doc)
             + guide_example_problems(doc)
             + dictionary_gaps(doc)
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
