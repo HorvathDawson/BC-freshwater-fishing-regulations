@@ -445,6 +445,11 @@ def _base_dimension(x: dict) -> str:
 
 _RULES_BY_PATH: dict = {}
 
+#: POLICY (user ruling 2026-10-05, option A): a zone-side size-only clause made moot by an outright
+#: release or closure of the same fish is not shown (`effective_rules` step 5b). Named so a test can
+#: switch it off and prove the step is what hides the clause.
+MOOT_SIZE_CLAUSE_HIDDEN = True
+
 
 def _rules_of(path: str) -> dict:
     """Every rule of a bundle by `(entry, rule)`, each with its ladder rank (`source_of`) worked
@@ -601,7 +606,9 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          same base dimension whatever THEIR water condition, THE SAME KEY INCLUDED — Region 5's
          "ALL STEELHEAD" release empties "2 per day … from streams" for a steelhead too, and
          the 7B grayling release May 1-Jun 15 silences that table's "2 per day" and "1 over 45
-         cm" on its dates (a tie step 4 left standing).
+         cm" on its dates (a tie step 4 left standing). "Base dimension" is the dimension without
+         its `@` conditions: a size clause with no count ("none under 60 cm", `daily/size`) is
+         another one, which 4b and 4c do not reach — step 5b does.
      4c. A FULL CLOSURE DISPLACES THE KEEPING RULES IT BEATS BY THE LADDER WHATEVER THEIR KEY
          (RU-7, 2026-10-04): a blanket stream closure (`water: stream`) silences the region's
          "5 per day" and "1 over 50 cm" as it silences its own key's "4 from streams".
@@ -622,6 +629,11 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          closure over its own quota — Quatse r1 May 1-Jun 15 over r2, the Region 7 lakes'
          "No fishing Nov 1-Apr 30" over their quotas, Kitimat r2 Mar 16-May 31 over its
          hatchery steelhead 2, the Okanagan's Oct 1-Nov 15 over its perch quota).
+     5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH is not shown (user
+         ruling 2026-10-05): a zone-side size-only clause ("none under 60 cm") gives way to any
+         surviving outright release or closure in force here — water, zone or superior — that
+         releases every origin it keeps, over its lengths: Bonaparte Lake, Nov 1, lake trout shows
+         Region 3's release and not the clause. The release or closure itself is untouched.
       6. TWO REGIONS' BASES — THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake straddling
          a region line binds both regions' zone rules; neither outranks the other (step 4 does not
          set them against each other). Per fish, a zone rule of one region is displaced by a
@@ -1163,6 +1175,33 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                 continue
             if zone_side(k) or (water_side(k) and same_row_dated_release(k)):
                 out_.discard(k)
+
+    # 5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH IS NOT SHOWN (user
+    #     ruling 2026-10-05, CLEAN round, option A — what the consumer's front end already does). A
+    #     clause stating only sizes ("none under 60 cm", `daily/size`) is its own dimension, so
+    #     steps 4b/4c (base dimension "daily") never reached it and it spoke beside Region 3's
+    #     "Lake trout from Oct 15-Jan 31" on Bonaparte Lake on Nov 1, beside the stream release and
+    #     the spring stream closure on Eleven Mile Creek, and beside a national park's closure —
+    #     while a water's own release (step 5) already silenced it. One rule now, WHOEVER wrote the
+    #     release: a zone-side size-only keeper (`zone_side`: zone, area, province — not a row) gives
+    #     way to a SURVIVING, competing outright release or closure (`release_origins`; in force on
+    #     this day, whatever its rank — water, zone, superior) of another family that releases every
+    #     origin the clause keeps (a wild-only release leaves a hatchery-only clause standing), over
+    #     every length the clause speaks of (`covers`), on the same clock. The release or closure is
+    #     untouched: a closure is still a closure (no gear in the water), a release still a release.
+    #     The clause has nothing left to say today; the reader has no loser channel yet (it returns
+    #     survivors only), so it is simply not returned.
+    moot_by = [o for o in out_ if competes(o) and release_origins(every[o])] \
+        if MOOT_SIZE_CLAUSE_HIDDEN else []
+    for k in sorted(out_):
+        x = every[k]
+        if not (competes(k) and zone_side(k) and x.get("type") == "retention_limit"
+                and x.get("take") is None and not x.get("unlimited") and x.get("lengths")):
+            continue
+        keeps = yields_to_release(x)
+        if keeps and any(o != k and family(o) != family(k) and keeps <= release_origins(every[o])
+                         and covers(every[o], x, top) and clock(o) == clock(k) for o in moot_by):
+            out_.discard(k)
 
     # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake drawn across
     #    a region line binds both regions' zone rules (`registry.regions.in_region`) — Ahbau Lake

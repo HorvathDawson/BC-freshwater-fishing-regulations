@@ -1087,10 +1087,23 @@ FILE_TEXT = {
     "rulesets": "the interned rule sets sections carry, keyed by a set id local to this file — "
                 "see `rulesets{} / licensing_sets{}` (on the wire an array indexed by set id, "
                 "members as integer indexes into `rules`, the zone/province base interned in "
-                "`bases`)",
-    "licensing_sets": "the interned licensing sets, the same way",
+                "`bases`). A SET ID IS VALID ONLY WITHIN ONE BUNDLE DIGEST "
+                "(`about.bundle.reach_digest` / `section_handles`): the next export renumbers "
+                "its sets. To match a set across exports use its content key (`set_keys`)",
+    "licensing_sets": "the interned licensing sets, the same way (ids local to one bundle "
+                      "digest; content keys in `set_keys.licensing_sets`)",
+    "set_keys": "{rulesets: {set id: key}, licensing_sets: {set id: key}} — each set's CONTENT "
+                "KEY, a short hash of its members with their `via` (`encoding.set_keys` gives "
+                "the exact recipe). Two exports' sets with the same key hold the same members "
+                "reached the same way, whatever their ids; a key that changes means the set's "
+                "membership changed. NOT SHIPPED: the decoder computes it",
     "waters": "every named water, keyed by its durable item_id — see `water`",
-    "splits": "every cut a part's run can end at, by id — see `splits`",
+    "splits": "every cut a part's run can end at, by id — see `splits`. ONLY THE CUTS THIS "
+              "FILE REFERS TO: every curated, gauge, area, border and region cut ships, but a "
+              "LAKE EDGE ships only where a rule, a licensing record, an entry or a run names it "
+              "(68 of the bundle's 21,636; format 2 — the count fell from 25,423 to 3,855). The "
+              "unlisted lake edges still exist: in the atlas graph, in the bundle's `split` table, "
+              "and as the ends of the tiles' stream sections (the tiles carry no cut layer)",
     "index": "rule ids by type and by family, licensing ids by kind — NOT SHIPPED: the "
              "decoder groups the records (`encoding.index`)",
 }
@@ -2058,8 +2071,9 @@ def guide(d: dict) -> dict:
                       "in the Peace River watershed of Zone B, whose table prints 'Bull trout … "
                       "release … from the Peace River watershed all year': for a bull trout of any "
                       "size — 40 cm and over included — the zone's release speaks and none may be "
-                      "kept; for every other trout or char the lake's 2 speaks (it outranks the "
-                      "zone's 'Trout/char: 5' by place). A `within` clause is named at its parent "
+                      "kept; for every other trout or char the lake's 2 speaks BESIDE the zone's "
+                      "'Trout/char: 5' — a different statement (it carries a size bound), so both "
+                      "bind (`quotas_sit_beside`, case 3). A `within` clause is named at its parent "
                       "quota's level: 'Trout/char: 5, but not more than 1 bull trout' is a "
                       "trout/char quota, not a bull trout rule. (3) PLACE, within the same naming "
                       "level: the smaller rank speaks — a rule bound to this water beats one "
@@ -2075,8 +2089,7 @@ def guide(d: dict) -> dict:
                       "Lake', Bowron Lake Park waters, the Liard River watershed) — is written for "
                       "an area, not for the water it lands on: it ranks as an area (2), so a "
                       "named water's own row beats it (Duck Lake's 'Bass daily quota = 3' "
-                      "replaces the CVWMA's 'unlimited' there; Denetiah Creek's own bull trout "
-                      "rule beats the Liard watershed row). "
+                      "replaces the CVWMA's 'unlimited' there). "
                       "`provenance.rank` is the rank where the rule is written; on a "
                       "section it reached by the tributary walk (`via: trib` in its ruleset) a "
                       "water rule speaks at the `inherited` rung instead. A rule is displaced "
@@ -2173,9 +2186,11 @@ def guide(d: dict) -> dict:
                                  "kind of water displaces its OWN REGION'S TABLE's rules that let "
                                  "the fish be kept (the quota and its clauses: '1 over 50 cm', '4 "
                                  "from streams', '1 bull trout or lake trout'), exactly as a "
-                                 "release printed without a water kind does. A size clause of "
-                                 "another dimension ('none under 60 cm') stays beside it; "
-                                 "closures, water rows and another region's rules are untouched. "
+                                 "release printed without a water kind does. A SIZE CLAUSE WITH "
+                                 "NO COUNT OF ITS OWN ('none under 60 cm', `daily/size`) has "
+                                 "nothing left to keep under it and is NOT SHOWN "
+                                 "(`moot_size_clause`). Closures, water rows and another "
+                                 "region's rules are untouched. "
                                  "On a lake a stream release does not bind and the region's "
                                  "quotas speak (read.released_on_water, effective_rules step 4b). "
                                  "A water row printing its OWN dates for the fish overrides such "
@@ -2186,7 +2201,11 @@ def guide(d: dict) -> dict:
                             "UNDATED counted quota for the fish on its dates: the Thompson below "
                             "Kamloops Lake prints 'Trout and char — 2 per day' and, for its CNR "
                             "stretch, 'catch and release, May 1-31' — in May only the release "
-                            "speaks, in June the 2; Adams, Big and Sulphurous lakes' lake trout "
+                            "speaks (the stretch's 'Additional opening, May 1-31' lifts the row's "
+                            "and the zone's closures there); from Jul 1 to Sep 30 the 2 speaks "
+                            "(June is inside Region 3's spring stream closure, Jan 1-Jun 30, and "
+                            "Oct 1 starts the row's own; `cases` same_row_dated_release); Adams, "
+                            "Big and Sulphurous lakes' lake trout "
                             "releases over their '1 per day'. Only that shape: a size clause of "
                             "the row is its own subject (Koocanusa's 'no bull trout under 75 cm "
                             "when open' holds through the release), and an undated release "
@@ -2206,13 +2225,30 @@ def guide(d: dict) -> dict:
                                   "table: Zone 7B's grayling release May 1-Jun 15 silences that "
                                   "table's '2 per day' and '1 over 45 cm' on its dates. A release "
                                   "held under a condition ('while set lining', 'when targeting') "
-                                  "is no outright release and reaches none of them.",
+                                  "is no outright release and reaches none of them. A SIZE "
+                                  "CLAUSE WITH NO COUNT OF ITS OWN ('none under 60 cm') under "
+                                  "such a release is not shown either (`moot_size_clause`).",
         "closure_any_key": "A FULL CLOSURE SILENCES THE KEEPING RULES IT BEATS, WHATEVER THEIR KEY "
                            "(RU-7, 2026-10-04). A blanket stream closure carries `water: stream`; "
                            "it now displaces the region's '5 per day' and '1 over 50 cm' (no "
                            "water kind) exactly as it displaces its own key's '4 from streams' — "
                            "by the ladder, so a water row NAMING the fish still speaks beside a "
-                           "zone closure. Display only: the status index read the closure already.",
+                           "zone closure. A size clause with no count of its own ('none under 60 "
+                           "cm') under a closure is not shown (`moot_size_clause`). Display only: "
+                           "the status index read the closure already.",
+        "moot_size_clause": "A SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE IS NOT SHOWN (user "
+                            "ruling 2026-10-05). A zone, area or provincial clause stating only "
+                            "sizes ('none under 60 cm', `daily/size`) gives way to ANY outright "
+                            "release or closure of the same fish in force here — the water's, the "
+                            "zone's (with or without a water kind) or a superior authority's (a "
+                            "national park) — that releases every origin the clause keeps, over "
+                            "every length it speaks of (`read.effective_rules` step 5b). The "
+                            "release or closure is shown as it is: a closure still means no gear "
+                            "in the water for that fish, a release still means fish and let go. "
+                            "A clause keeping an origin the release does not cover stays (a "
+                            "hatchery-only clause under a wild-only release). Worked examples: "
+                            "`cases` zone_size_clause_moot (Bonaparte Lake) and "
+                            "water_release_silences_size_clause (Griffin Lake).",
         "size_release_vs_size_clause": "A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE "
                                        "CLAUSE (RU-5, 2026-10-04). Lakelse Lake's 'Rainbow trout "
                                        "(none over 50 cm)' releases every rainbow over 50 cm, so "
@@ -2467,9 +2503,12 @@ def guide(d: dict) -> dict:
                        "tables only — a water's own number always replaces its zone's same "
                        "statement, `quotas_sit_beside`). "
                        "Quotas stating different things sit beside each other (the stricter "
-                       "binds by itself), equal rules both speak, and gear and method "
-                       "restrictions are never displaced — both regions' apply. A rule written "
-                       "for the lake itself still outranks both tables.",
+                       "binds by itself). Two IDENTICAL statements — the same retention "
+                       "statement with the same number, one per table — are one line, shown "
+                       "once: the lower entry id's (RU-8, `two_regions_same_statement`: Ahbau "
+                       "Lake's '5 per day' of Region 5 and of Zone 7A). Gear and method "
+                       "restrictions are never displaced and never folded — both regions' "
+                       "apply. A rule written for the lake itself still outranks both tables.",
         "never_compete": "`standing` rules, the information family (hazard, advisory, "
                          "program_membership, facility), LIFT-ONLY rules (dimension `lift`: "
                          "an `exempts` and no number, bound, gear, duty or angler of their own — "
@@ -3323,6 +3362,11 @@ def guide(d: dict) -> dict:
                    "bull trout is Dolly Varden, open subjects, source artefacts, closures that "
                    "combine (a row's and its zone's: both hold), dated bait bans that replace "
                    "the zone's",
+        "examples": "EVERY water, date and fish the prose above uses as an example, as data "
+                    "(`pipeline/tools/guide_examples.py`): the rules it says speak and the ones "
+                    "it says are silent, and the reference reader's answer (`expect`). The "
+                    "export refuses to write when the two disagree, and refuses prose naming a "
+                    "water no example checks",
         "cases": "SAMPLE WATERS to build the page against while it is built out — one or more "
                  "per mechanism, each with what to show and the reference answer",
     }
@@ -3362,7 +3406,9 @@ def guide(d: dict) -> dict:
                 "licensing": "every licensing record, keyed `entry_id#record_id`",
                 "entries": "every synopsis row; lists its rule and licensing ids",
                 "licences": "the document register",
-                "rulesets / licensing_sets": "the interned sets of records that sections carry",
+                "rulesets / licensing_sets": "the interned sets of records that sections carry; "
+                                             "a set id is valid only within one bundle digest",
+                "set_keys": "each set's content key, stable across exports (`set_keys`)",
                 "waters": "every named water (by durable item_id): its name, kind, section "
                           "count and matching rows (`entries`); its `parts` (the (ruleset, "
                           "licensing_set) pairs its sections carry together, with "
@@ -3374,7 +3420,8 @@ def guide(d: dict) -> dict:
                           "regulations and/or the curated list) and `steelhead_rows`; and `tidal` on the one tidal water — see "
                           "`field_dictionary.water`",
                 "splits": "every cut a run can end at, by id: its name, and where it stands "
-                          "(water and km from the mouth)",
+                          "(water and km from the mouth) — only the lake edges something names "
+                          "(`field_dictionary.splits`)",
                 "species": "the book's species list (p.80) under its headings, and the groups "
                            "and open subjects a rule may name",
                 "field_dictionary": "every field in the file, and what it means",
@@ -3386,7 +3433,10 @@ def guide(d: dict) -> dict:
                             "says where it holds (`binds`): on its sections, only in an undrawn "
                             "part of them (a note — never colour a water by it), or nowhere.",
             "ids": "A rule id or record id is unique only within its entry; always use the "
-                   "full key. item_id is the durable id of a water.",
+                   "full key. item_id is the durable id of a water. A SET ID (a part's "
+                   "`ruleset` / `licensing_set`) is valid only within one bundle digest "
+                   "(`about.bundle`) — the next export renumbers the sets; match sets across "
+                   "exports by their content key (`set_keys`), never by id.",
             "not_included": "Nothing is settled: no quota tables, no open/closed verdicts, no "
                             "colours. This guide says how the fields are read; applying it is "
                             "the reader's job, and the ladder below is the rule for it. The "
@@ -3609,6 +3659,48 @@ CASE_MECHANISMS = {
                                    "(`steelhead_rules: false`; the list binds no rule) — so a "
                                    "rainbow of any size is a rainbow trout (user ruling "
                                    "2026-10-03), answered by the water's rainbow rules",
+    # ---- sample waters added 2026-10-05 (CLEAN round: RU-3..RU-8, Bridge and Alta lakes) ----
+    "same_row_dated_release": "the Thompson below Kamloops Lake, its CNR stretch in May: the row's "
+                              "dated 'trout/char catch and release, May 1-31' displaces the same "
+                              "row's undated 'Trout/char daily quota = 2' (RU-3, "
+                              "`ladder.same_row_release`)",
+    "same_row_dated_closure": "Alta Lake (Region 2) on Dec 15: the row's own 'No Fishing Dec 1-Mar "
+                              "31' silences the same row's 'Trout/char daily quota combined = 2' "
+                              "on its dates (RU-3, a dated closure is such a release)",
+    "zone_release_any_water": "a Zone 7B stream on May 15: the zone's dated grayling release "
+                              "(May 1-June 15, no water kind) silences the same table's "
+                              "'Arctic grayling: 2' and 'only 1 over 45 cm' (RU-4, "
+                              "`ladder.zone_release_any_water`)",
+    "size_release_vs_size_clause": "Lakelse Lake: its 'Rainbow trout over 50 cm catch and release' "
+                                   "displaces Region 6's '1 over 50 cm'; Region 6's 'Trout/char: "
+                                   "5' still counts the smaller rainbow (RU-5, "
+                                   "`ladder.size_release_vs_size_clause`)",
+    "closure_any_key": "a Region 4 stream on May 1: the spring stream closure (`water: stream`) "
+                       "silences the region's 'Trout/char: 5' and '1 over 50 cm' as well as its "
+                       "own key's '2 from streams' (RU-7, `ladder.closure_any_key`)",
+    "two_regions_same_statement": "Ahbau Lake (Region 5 / Zone 7A): both tables print 'Trout/char: "
+                                  "5' and '1 over 50 cm'; each is shown once, the lower entry "
+                                  "id's (RU-8, `ladder.two_regions_same_statement`)",
+    "zone_size_clause_moot": "Bonaparte Lake (Region 3, no row) on Nov 1: Region 3's lake trout "
+                             "release speaks and its 'none under 60 cm' is not shown — nothing is "
+                             "left for it to keep (`ladder.moot_size_clause`)",
+    "water_release_silences_size_clause": "Griffin Lake (Region 3) on Nov 1: the lake's own 'Lake "
+                                          "trout and bull trout (Dolly Varden) catch and release' "
+                                          "silences Region 3's release AND its 'none under 60 cm' "
+                                          "(`ladder.water_release`)",
+    "bridge_lake_same_statement": "Bridge Lake (Region 5) on Jul 1: the lake's 'Lake trout daily "
+                                  "quota = 1' is Region 5's '2 lake trout' with a smaller number, "
+                                  "so the lake's 1 replaces the 2 (`ladder.quotas_sit_beside` "
+                                  "case 1); 'Trout/char: 5' and '1 over 50 cm' still speak",
+    "bridge_lake_dated_zone_release": "Bridge Lake (Region 5) on Nov 15: Region 5's dated 'Lake "
+                                      "trout, Oct 1-Nov 30' (must release) speaks BESIDE the "
+                                      "lake's undated 'Lake trout daily quota = 1' — none may be "
+                                      "kept (`ladder.dated_zone_release` (B))",
+    "alta_lake_clause_size_release": "Alta Lake (Region 2) on Jul 1: the lake's 'Trout/char daily "
+                                     "quota combined = 2' replaces Region 2's 'Trout/char: 4'; its "
+                                     "'no trout over 40cm' is a CLAUSE of that quota (`within`), "
+                                     "which RU-5 does not read, so Region 2's '1 over 50 cm' "
+                                     "still speaks beside it although it keeps nothing",
 }
 
 #: WHAT THE PAGE SHOULD SHOW for a case — one plain line for the builder, per mechanism.
@@ -3736,7 +3828,8 @@ WHAT_TO_SHOW = {
     "dean_beside": "Show the Dean's 1 a day (none under 35 cm) beside Region 5's trout/char "
                    "5: both bind.",
     "straddling_named_lake": "{water} lies in two regions: show both regions' rules for {fish}, "
-                             "the stricter displacing the other where they say the same thing.",
+                             "the stricter displacing the other where they say the same thing, "
+                             "and two identical statements (the same number) once.",
     "steelhead_known": "{water} is KNOWN steelhead water: show the steelhead rules that speak "
                        "for {fish} (`expect`) plainly, with no caveat — the provincial set (the "
                        "annual hatchery 10 with its record duty under it once, the wild release) "
@@ -3771,6 +3864,32 @@ WHAT_TO_SHOW = {
                                    + STEELHEAD_NO_RULES + "' and no steelhead rule. A rainbow of "
                                    "any size answers to the rules that speak for {fish} "
                                    "(`expect`).",
+    "same_row_dated_release": "On this date show {water}'s own release of {fish} and NOT its "
+                              "undated daily quota: the row's dated release is its exception to "
+                              "its own number.",
+    "same_row_dated_closure": "On this date {water} is closed by its own row: show the closure and "
+                              "NOT the row's quota.",
+    "zone_release_any_water": "On this date the region's release of {fish} empties its own "
+                              "table's quota, its size-limited count and its size clause: show "
+                              "the release and NOT the quota.",
+    "size_release_vs_size_clause": "Show {water}'s release of the large {fish} and the region's "
+                                   "aggregate for the smaller ones; do NOT show the region's "
+                                   "'1 over 50 cm' (nothing over 50 cm may be kept).",
+    "closure_any_key": "On this date {water} is closed by the region's stream closure: show the "
+                       "closure and NONE of the region's quotas for {fish}.",
+    "two_regions_same_statement": "{water} lies in two regions whose tables say the same thing "
+                                  "for {fish}: show each identical line once.",
+    "zone_size_clause_moot": "On this date show the region's release of {fish} and NOT its size "
+                             "clause: none may be kept, so the clause has nothing to say.",
+    "water_release_silences_size_clause": "On this date show {water}'s own release of {fish} "
+                                          "only: no zone quota, release or size clause.",
+    "bridge_lake_same_statement": "Show {water}'s 1 lake trout a day, NOT the region's 2, beside "
+                                  "the region's trout/char 5 and 1 over 50 cm.",
+    "bridge_lake_dated_zone_release": "On this date show the region's lake trout release BESIDE "
+                                      "{water}'s own 1 a day: the release binds, none may be kept.",
+    "alta_lake_clause_size_release": "Show {water}'s 2 a day and its 'no trout over 40cm', and — "
+                                     "as the reader answers today — the region's '1 over 50 cm' "
+                                     "beside them (`expect`).",
 }
 
 
@@ -4711,6 +4830,66 @@ def cases(d: dict, bundle: Path) -> dict:
             break
     add("straddling_named_lake", straddle)
 
+    # ---- CLEAN round (2026-10-05): one clean case per RU ruling, and the two lakes the consumer
+    # asked about. Each is a NAMED water (by item id where the name repeats), its first part whose
+    # rule set holds every rule of `because`, on a fixed day; the `expect` is the reference
+    # reader's (`effective_rules`), and the check is what the mechanism claims of it. A check that
+    # fails leaves the case out, and `missing` says so.
+    def water_case(mech, item, on, fish, because, check):
+        w = K.d["waters"].get(item)
+        for p_ in (w or {}).get("parts", []):
+            m = {rid(k) for k in K.members.get(p_["ruleset"] or "", {})}
+            if set(because) <= m:
+                case = K.first(mech, [(item, p_, on, fish, list(because))], check)
+                if case:
+                    return case
+        return None
+
+    def item_named(name, kind):
+        got = sorted(i for i, w in K.d["waters"].items() if w["name"] == name and w["kind"] == kind)
+        return got[0] if len(got) == 1 else None
+
+    def says(speak=(), absent=()):
+        return lambda a: set(speak) <= _speaking(a) and not (set(absent) & _ids(a))
+
+    thompson = "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18::" \
+               "thompson_river_downstream_of_kamloops_lake"
+    alta, bridge = "r2:alta_lake@2-9::alta_lake", "r5:bridge_lake@5-2::bridge_lake"
+    z2, z3, z4 = "z2:trout_char_quota::trout_char_quota", "z3:trout_char_quota::trout_char_quota", \
+        "z4:trout_char_quota::trout_char_quota"
+    z5, z6, z7a = "z5:trout_char_quota::trout_char_quota", "z6:trout_char_quota::trout_char_quota", \
+        "z7a:trout_char_quota::trout_char_quota"
+    gr = "z7b:arctic_grayling::arctic_grayling"
+    for mech, item, on, fish, speak, absent in (
+            # RU-3: the CNR stretch's May release over the row's undated 2 (gnis:39492 is the
+            # Thompson's item id; its CNR-stretch part carries both)
+            ("same_row_dated_release", "gnis:39492", (5, 15), "RB",
+             [f"{thompson}.r3"], [f"{thompson}.r2"]),
+            ("same_row_dated_closure", "wbk:329303451", (12, 15), "RB",
+             [f"{alta}.r1"], [f"{alta}.r2"]),
+            ("zone_release_any_water", item_named("Sukunka River", "stream"), (5, 15), "GR",
+             [f"{gr}.r4"], [f"{gr}.r1", f"{gr}.r3"]),
+            ("size_release_vs_size_clause", item_named("Lakelse Lake", "lake"), (7, 1), "RB",
+             ["r6:lakelse_lake@6-11::lakelse_lake.r1", f"{z6}.r1"], [f"{z6}.r2"]),
+            ("closure_any_key", item_named("Kicking Horse River", "stream"), (5, 1), "CT",
+             ["z4:spring_stream_closure::spring_stream_closure.r1"],
+             [f"{z4}.r1", f"{z4}.r2", f"{z4}.r3"]),
+            ("two_regions_same_statement", item_named("Ahbau Lake", "lake"), (7, 1), "RB",
+             [f"{z5}.r1", f"{z5}.r2"], [f"{z7a}.r1", f"{z7a}.r2"]),
+            ("zone_size_clause_moot", "wbk:329054723", (11, 1), "LT",
+             [f"{z3}.r7"], [f"{z3}.r4b", f"{z3}.r1", f"{z3}.r4"]),
+            ("water_release_silences_size_clause", "wbk:329518152", (11, 1), "LT",
+             ["r3:griffin_lake@3-34::griffin_lake.r1"], [f"{z3}.r7", f"{z3}.r4b", f"{z3}.r1"]),
+            ("bridge_lake_same_statement", "wbk:329060770", (7, 1), "LT",
+             [f"{bridge}.r1", f"{z5}.r1", f"{z5}.r2"], [f"{z5}.r5"]),
+            ("bridge_lake_dated_zone_release", "wbk:329060770", (11, 15), "LT",
+             [f"{bridge}.r1", f"{z5}.r7"], []),
+            ("alta_lake_clause_size_release", "wbk:329303451", (7, 1), "RB",
+             [f"{alta}.r2", f"{alta}.r3", f"{z2}.r2"], [f"{z2}.r1"])):
+        if item:
+            add(mech, water_case(mech, item, on, fish, sorted(set(speak) | set(absent)),
+                                 says(speak, absent)))
+
     # licensing, the province's exceptions, and water outside B.C.
     L = K.d["licensing"]
 
@@ -4742,8 +4921,9 @@ def cases(d: dict, bundle: Path) -> dict:
     return {
         "reading": "SAMPLE WATERS for the UI to look at and build against while it is being "
                    "built out — not a test oracle. One or more real waters per mechanism, most "
-                   "found in the data by a test (a few named: Kootenay Lake, the Dean, "
-                   "Ahbau/Mara), each with a plain `what_to_show` line and the answer the "
+                   "found in the data by a test (some named: Kootenay Lake, the Dean, "
+                   "Ahbau/Mara, the Thompson's CNR stretch, Lakelse, Bridge, Alta, Bonaparte and "
+                   "Griffin lakes), each with a plain `what_to_show` line and the answer the "
                    "reference semantics give today "
                    "(`pipeline.deliver.bundle.read.effective_rules`). Read one as: on the "
                    "water `water.item_id`, for the part whose sections "
@@ -5058,7 +5238,8 @@ def build(bundle: Path = BUNDLE) -> dict:
             # (`quota_under_closure`): each must be listed as known, or the export is refused
             "quota_under_closure": quota_under_closure(bundle),
         },
-        "guide": with_closure_gotchas(dict(guide(d), cases=cases(d, bundle)), d, bundle),
+        "guide": with_closure_gotchas(dict(guide(d), examples=_guide_examples(bundle),
+                                           cases=cases(d, bundle)), d, bundle),
         "field_dictionary": field_dictionary(d),
         "species": species_table(),
         "licences": d["licences"],
@@ -5071,6 +5252,10 @@ def build(bundle: Path = BUNDLE) -> dict:
         "splits": d["splits"],
         "index": index(d),
     }
+    # each set's CONTENT KEY: the one recipe is the codec's (`export_codec.set_key`), which
+    # recomputes it on decode — the key never travels on the wire
+    from pipeline.tools.export_codec import set_keys
+    doc["set_keys"] = set_keys(doc)
     doc["about"]["unresolved_references"] = corpus_references(doc)
     return doc
 
@@ -6363,8 +6548,24 @@ def name_problems(doc: dict) -> list[str]:
     return out
 
 
+def _guide_examples(bundle) -> dict:
+    from pipeline.tools.guide_examples import examples
+    return examples(bundle)
+
+
+def guide_example_problems(doc: dict) -> list[str]:
+    """A prose example the reader contradicts, and a water the prose names that no declared example
+    checks (`guide_examples`)."""
+    from pipeline.tools.guide_examples import example_problems, prose_gaps
+    g = doc["guide"]
+    names = {i: w["name"] for i, w in doc["waters"].items()}
+    return example_problems(g.get("examples") or {}) + \
+        prose_gaps(g, set(names.values()), g.get("examples") or {}, names)
+
+
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
+            + guide_example_problems(doc)
             + dictionary_gaps(doc)
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
             + steelhead_presence_problems(doc) + steelhead_set_problems(doc)

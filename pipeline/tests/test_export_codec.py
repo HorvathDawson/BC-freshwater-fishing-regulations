@@ -16,6 +16,7 @@ of a section, and the dictionary/guide texts this phase rewrote (pipeline/docs/0
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -26,6 +27,19 @@ from pipeline.tools import export_codec as K
 from pipeline.tools import export_ui_rules as X
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+
+
+def _words_key(s: dict) -> str:
+    """A set's content key written from `field_dictionary.encoding.set_keys` ALONE (not
+    `export_codec.set_key`): SHA-256 of the sorted `<via>:<member id>` lines joined by "\\n",
+    first 12 hex digits."""
+    lines = sorted(f"{via}:{i}" for via, ids in s.items() if via != "sections" for i in ids)
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:12]
+
+
+def _words_keys(rulesets: dict, lsets: dict) -> dict:
+    return {"rulesets": {k: _words_key(v) for k, v in rulesets.items()},
+            "licensing_sets": {k: _words_key(v) for k, v in lsets.items()}}
 
 
 def _through_json(o):
@@ -111,7 +125,7 @@ def _tiny() -> dict:
     return {"about": about, "guide": {"g": 1}, "field_dictionary": {"encoding": K.ENCODING_TEXT},
             "species": {}, "licences": {}, "entries": entries, "rules": rules, "licensing": lic,
             "rulesets": rulesets, "licensing_sets": lsets, "waters": waters, "splits": splits,
-            "index": K.index_of(rules, lic)}
+            "index": K.index_of(rules, lic), "set_keys": _words_keys(rulesets, lsets)}
 
 
 def test_a_hand_made_model_round_trips_through_the_wire():
@@ -248,7 +262,30 @@ def _decode_from_the_dictionary(data: dict, guide: dict) -> dict:
             "rules": rules, "licensing": lic, "rulesets": rulesets, "licensing_sets": lsets,
             "waters": waters,
             "splits": {k: {"water_id": None, "km": None, **v} for k, v in data["splits"].items()},
-            "index": {k: dict(sorted(v.items())) for k, v in index.items()}}
+            "index": {k: dict(sorted(v.items())) for k, v in index.items()},
+            "set_keys": _words_keys(rulesets, lsets)}
+
+
+def test_a_set_key_names_the_content_not_the_id():
+    """SET IDS RENUMBER BETWEEN EXPORTS; the content key does not (CLEAN round). Renumbering the
+    sets moves no key off its set; changing one member, or only the `via` a member reaches by,
+    changes it; the key never travels on the wire, and a model carrying a wrong key is refused."""
+    doc = _tiny()
+    keys = doc["set_keys"]["rulesets"]
+    assert len(set(keys.values())) == len(keys)
+    # renumbered: set "0" and set "2" swap ids, the keys follow the content
+    swapped = {"0": doc["rulesets"]["2"], "1": doc["rulesets"]["1"], "2": doc["rulesets"]["0"]}
+    assert K.set_keys({**doc, "rulesets": swapped})["rulesets"] == \
+        {"0": keys["2"], "1": keys["1"], "2": keys["0"]}
+    # the same ids reached another way are another set (a `trib` rule speaks a rung lower)
+    moved = {"sections": 2, "reach": ["r1:a::a.r1", "r1:a::a.r2"] + doc["rulesets"]["0"]["reach"]}
+    assert K.set_key(moved) != keys["1"]
+    assert K.set_key({**doc["rulesets"]["1"], "sections": 99}) == keys["1"], "a count is no member"
+    data, _ = X.encode(doc)
+    assert "set_keys" not in data and all("key" not in s for s in data["rulesets"])
+    with pytest.raises(K.EncodeError, match="set_keys"):
+        K.compact({**doc, "set_keys": {**doc["set_keys"], "rulesets": {**keys, "0": "0" * 12}}},
+                  **X.codec_tables())
 
 
 def test_the_dictionary_words_decode_the_hand_made_model():
@@ -280,6 +317,19 @@ def test_the_dictionary_words_decode_the_real_pair(doc, pair):
     """F2: the prose in `field_dictionary.encoding` is enough to decode — a decoder written from
     it alone gives exactly what `export_codec.expand` gives, and the model."""
     assert _decode_from_the_dictionary(*pair) == K.expand(*pair) == doc
+
+
+def test_the_real_sets_need_the_via_in_their_key(doc):
+    """MEASURED (CLEAN round): on the ids alone, rule sets that differ only in a member's `via`
+    collide; with the `via` every key is unique — so the recipe keeps it. MUTATION: the ids-only
+    recipe collides on the real model."""
+    for t in ("rulesets", "licensing_sets"):
+        keys = list(doc["set_keys"][t].values())
+        assert len(set(keys)) == len(keys), f"{t}: two sets share a content key"
+    ids_only = [hashlib.sha256("\n".join(sorted({i for via, v in s.items() if via != "sections"
+                                                 for i in v})).encode()).hexdigest()[:12]
+                for s in doc["rulesets"].values()]
+    assert len(set(ids_only)) < len(ids_only), "the ids alone no longer collide — recheck the recipe"
 
 
 def test_the_wire_checks_pass_and_cover_every_key(pair):

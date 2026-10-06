@@ -293,9 +293,9 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     displaces its OWN region's quotas and clauses that keep the fish in the same base dimension
     ("daily"), as a no-water release does (`read.released_on_water`, `effective_rules` step
     4b): Region 3's "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31", Region 4's
-    "Trout/char release: in streams from Nov 1-Mar 31". Size clauses of another dimension ("none
-    under 60 cm"), closures, water rows and other regions' rules are untouched. (2026-09-29,
-    working tree)
+    "Trout/char release: in streams from Nov 1-Mar 31". Closures, water rows and other regions'
+    rules are untouched. A size clause with no count ("none under 60 cm", `daily/size`) is not
+    reached here but by step 5b (rule 57, MOOT SIZE CLAUSE). (2026-09-29, working tree)
 53. **Competition lives in one function.** `pipeline/deliver/bundle/read.py::effective_rules` is
     the reference reader: per fish, per day, lifts, naming before place, water-vs-zone quota
     rulings. The export `guide` restates it; the app must match it. Change a ruling there and in
@@ -460,7 +460,14 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     inside it for the origins it releases (RU-5); a full closure displaces the keepers it beats by
     the ladder whatever their key (RU-7); two regions' identical statements show once (RU-8);
     "ST" where no steelhead rule applies (`section_steelhead_rules`) is answered as "RB" over
-    every length (RU-6; the status index asks the same). `requirements_in_force` folds a record
+    every length (RU-6; the status index asks the same). MOOT SIZE CLAUSE (user ruling 2026-10-05,
+    step 5b): a zone-side size-only clause ("none under 60 cm") is NOT SHOWN under ANY outright
+    release or closure in force for the fish — water, zone (with or without a water kind) or
+    superior — that releases every origin it keeps over its lengths (Bonaparte Lake Nov 1 lake
+    trout; Eleven Mile Creek gnis:8623 Aug 1 bull trout, May 1 lake trout); a hatchery-only
+    clause under a wild-only release stays. The release/closure itself is untouched. 10,650
+    clause removals in 10,466 of 104,304 sampled answers, nothing else; status index
+    byte-identical. The reader has NO loser channel: the hidden clause is simply not returned. `requirements_in_force` folds a record
     that `restates` a holding one into it (`also_printed`) and holds a zone table's
     `on_designation` restatement on its own region only (RU-12; 7A/7B tables are Region 7 to the
     rows). The export REFUSES a dated water release that speaks under a blanket closure unless

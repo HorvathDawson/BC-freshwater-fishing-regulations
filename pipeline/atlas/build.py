@@ -1016,17 +1016,20 @@ def main() -> None:
     # measured from the region polygons, the waterbody outlines and the section lines written
     # above — so it is written beside them, once, and the reach run, the review app and the
     # bundle all read `region_home.json` instead of measuring it again.
-    from pipeline.atlas.registry import regions as _regions
-    _homes = _regions.write_homes(out, registry)
-    _hl = sum(1 for s_ in _homes if s_.startswith(_regions.LAKE_PREFIX))
-    print(f"  region homes: {len(_homes) - _hl:,} straddling stream piece(s), {_hl:,} straddling "
-          f"lake(s) -> {out / _regions.HOME_FILE}")
+    # The area catalog FIRST: `write_homes` measures each straddler against the region polygons it
+    # reads from `area_catalog.gpkg` (CLEAN round: written after it, every full build since
+    # 20505230 died here with "area_catalog.gpkg: No such file").
     # Lazy area catalog (polygons only; membership computed at resolve time) — see DECISION 2026-08-16.
     if catalog_polys:
         from pipeline.atlas.splits.area_catalog import catalog_entries, write_area_catalog
         cat = catalog_entries(area_defs, catalog_polys)
         write_area_catalog(cat, out / "area_catalog.gpkg")
         print(f"  area catalog: {len(cat)} referenceable area(s) -> {out / 'area_catalog.gpkg'}")
+    from pipeline.atlas.registry import regions as _regions
+    _homes = _regions.write_homes(out, registry)
+    _hl = sum(1 for s_ in _homes if s_.startswith(_regions.LAKE_PREFIX))
+    print(f"  region homes: {len(_homes) - _hl:,} straddling stream piece(s), {_hl:,} straddling "
+          f"lake(s) -> {out / _regions.HOME_FILE}")
     if applied_splits:
         from pipeline.atlas.splits.splits import write_resolved
         write_resolved(applied_splits, str(out / "splits.resolved.json"))

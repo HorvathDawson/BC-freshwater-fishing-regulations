@@ -35,6 +35,7 @@ WHAT CHANGES ON THE WIRE (Phase 4, `FREV/export.md` C0..C-G):
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import defaultdict
 
@@ -57,6 +58,37 @@ RUN_SLOTS = ("from", "to", "km_from", "km_to")
 #: The one run a part may be reduced to its length.
 TRIVIAL_RUN = {"from": "source", "to": "mouth", "km_to": 0.0}
 POLYGON = "polygon"
+
+
+# --------------------------------------------------------------------------------------------
+# A set's content key — the one recipe (CLEAN round, 2026-10-05)
+# --------------------------------------------------------------------------------------------
+#
+# A SET ID IS LOCAL TO ONE BUNDLE. The bundle numbers its interned rule and licensing sets as it
+# builds them, so set "17" of one export is not set "17" of the next. A consumer matching parts
+# across exports needs a name that depends on what the set HOLDS: the content key, a short hash
+# of its members WITH THEIR `via` — two sets with the same rule ids reached differently (`reach`
+# vs `trib`: a water rule speaks at the `inherited` rung on a walked section) answer differently,
+# and 242 of 2,099 rule sets would collide on the ids alone (0 with the `via`). The key is
+# DERIVED, so it never travels on the wire (format 2 drops what a decoder can compute): `expand`
+# computes it, `compact` refuses a model whose keys are not this recipe's.
+
+#: Hex digits kept of the SHA-256 (48 bits: no collision among ~2,300 sets, measured).
+SET_KEY_HEX = 12
+
+
+def set_key(s: dict) -> str:
+    """A decoded set's content key: the first `SET_KEY_HEX` hex digits of the SHA-256 of its
+    members as UTF-8 lines `<via>:<member id>` (`reach:z3:trout_char_quota::trout_char_quota.r1`),
+    sorted, joined by a single "\\n" — `sections` excluded (a count, not a member)."""
+    lines = sorted(f"{via}:{i}" for via, ids in s.items() if via != "sections" for i in ids)
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:SET_KEY_HEX]
+
+
+def set_keys(doc: dict) -> dict:
+    """`{"rulesets": {set id: key}, "licensing_sets": {set id: key}}` for a decoded model."""
+    return {t: {sid: set_key(s) for sid, s in doc[t].items()}
+            for t in ("rulesets", "licensing_sets")}
 
 
 # --------------------------------------------------------------------------------------------
@@ -146,6 +178,11 @@ ENCODING_TEXT = {
     "index": "not shipped: `rules_by_type` / `rules_by_family` are `rule_ids` grouped by "
              "`type` / family, `licensing_by_kind` is `licensing_ids` grouped by `kind`, each "
              "sorted by key, members in array order",
+    "set_keys": "not shipped: `set_keys.rulesets[set id]` / `set_keys.licensing_sets[set id]` "
+                "is the first " + str(SET_KEY_HEX) + " hex digits of the SHA-256 of the DECODED "
+                "set's members as UTF-8 lines `<via>:<member id>` (e.g. "
+                "`reach:z3:trout_char_quota::trout_char_quota.r1`), sorted (code-point order), joined by one \"\\n\" "
+                "(no trailing newline); `sections` is not a member",
 }
 
 
@@ -230,6 +267,9 @@ def compact(doc: dict, *, family_of_type: dict, rank: dict) -> tuple[dict, dict]
     """The reading model -> (data, guide) as shipped. Refuses (EncodeError) anything it could
     not decode back to the same model."""
     rule_ids, lic_ids = list(doc["rules"]), list(doc["licensing"])
+    if doc.get("set_keys") != set_keys(doc):
+        raise EncodeError("set_keys are not the sets' content keys (`set_key`) — the decoder "
+                          "recomputes them, so they cannot travel otherwise")
     if lic_ids != sorted(lic_ids):
         raise EncodeError("licensing ids are not sorted")
     rix = {k: i for i, k in enumerate(rule_ids)}
@@ -466,6 +506,7 @@ def expand(data: dict, guide: dict) -> dict:
            "licences": data["licences"], "entries": entries, "rules": rules,
            "licensing": licensing, "rulesets": rulesets, "licensing_sets": licensing_sets,
            "waters": waters, "splits": splits}
+    doc["set_keys"] = set_keys(doc)
     doc["index"] = index_of(rules, licensing)
     return doc
 

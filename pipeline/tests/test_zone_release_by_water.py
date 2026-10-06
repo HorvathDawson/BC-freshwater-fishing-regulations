@@ -63,17 +63,16 @@ def _andreen(db):
 
 
 def test_anderson_creek_bull_trout_on_sep_15_is_release_only(db):
-    """R3, a zone-only stream. Sep 15: the stream release speaks for bull trout, beside the size
-    clause "none under 60 cm" (another dimension — as with the lake trout release); "Trout/char:
-    5", "4 from streams", "1 over 50 cm" and "1 bull trout or lake trout" are displaced. Jul 15
-    (release not in force): the quotas speak. Jan 15, lake trout: the no-water release displaces
-    the same quotas — the shape the stream release now matches."""
+    """R3, a zone-only stream. Sep 15: the stream release speaks ALONE for bull trout — "Trout/
+    char: 5", "4 from streams", "1 over 50 cm" and "1 bull trout or lake trout" are displaced
+    (step 4b) and the size clause "none under 60 cm" is moot under the release (step 5b, user
+    ruling 2026-10-05). Jul 15 (release not in force): the quotas and the clause speak. Jan 15,
+    lake trout: the no-water release displaces the same, the clause included."""
     sep, jul, lt = _anderson(db)
-    assert sep == {f"{Z3}::trout_char_quota.r6", f"{Z3}::trout_char_quota.r4b"}
+    assert sep == {f"{Z3}::trout_char_quota.r6"}
     assert {f"{Z3}::trout_char_quota.r{n}" for n in ("1", "2", "3", "4", "4b")} <= jul
     assert f"{Z3}::trout_char_quota.r6" not in jul
-    assert {k for k in lt if k.startswith(Z3)} == {f"{Z3}::trout_char_quota.r7",
-                                                 f"{Z3}::trout_char_quota.r4b"}
+    assert {k for k in lt if k.startswith(Z3)} == {f"{Z3}::trout_char_quota.r7"}
 
 
 def test_andreen_creek_trout_and_char_on_jan_15_are_release_only(db):
@@ -148,8 +147,9 @@ def test_a_release_whose_extents_do_not_draw_only_streams_displaces_nothing(tmp_
     assert _speaking(_tiny(tmp_path, [loose, QUOTA])) == {"z9:q::q.rel", "z9:q::q.r1"}
 
 
-def test_a_closure_a_water_row_another_region_and_a_size_clause_are_untouched(tmp_path,
-                                                                             monkeypatch):
+def test_a_closure_a_water_row_and_another_region_are_untouched(tmp_path, monkeypatch):
+    """Step 4b's reach. The size clause is not 4b's: it goes by step 5b (moot under the
+    release), pinned in test_moot_size_clause.py."""
     # step 6 (two regions: the stricter applies) would take the other region's quota out on
     # its own; switched off here so what is left is step 4b's reach alone
     monkeypatch.setattr(R, "stricter", lambda a, b: False)
@@ -159,9 +159,9 @@ def test_a_closure_a_water_row_another_region_and_a_size_clause_are_untouched(tm
     size = {"entry": "z9:q", "rule": "q.r4b", "species": ["DV"], "dimension": "daily/size",
             "lengths": [{"max_cm": 60, "take": 0}], "_rank": 3}
     got = _speaking(_tiny(tmp_path, [REL, QUOTA, water, other, size]))
-    assert {"z8:q::q.r1", "z9:q::q.r4b", "r9:creek::creek.r1", "z9:q::q.rel"} <= got
+    assert {"z8:q::q.r1", "r9:creek::creek.r1", "z9:q::q.rel"} <= got
     assert "z9:q::q.r1" not in got
-    assert _speaking(_tiny(tmp_path, [REL, QUOTA, size])) == {"z9:q::q.rel", "z9:q::q.r4b"}
+    assert _speaking(_tiny(tmp_path, [REL, QUOTA, size])) == {"z9:q::q.rel"}
     shut = dict(QUOTA, take=0, may_target=0, rule="q.r0")
     assert "z9:q::q.r0" in _speaking(_tiny(tmp_path, [REL, shut]))
 
