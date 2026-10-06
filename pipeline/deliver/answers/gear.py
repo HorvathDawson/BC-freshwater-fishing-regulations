@@ -34,7 +34,7 @@ from __future__ import annotations
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import Bundle, Interner, RuleKey, dumps, expand, \
-    month_day, rule_vectors, segments
+    month_day, rule_id, rule_vectors, segments
 from pipeline.deliver.bundle import read
 
 GEAR_FAMILIES = ("gear_and_method", "conduct", "vessel")
@@ -557,10 +557,6 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
             in_part.append(mk(k))
     return resolve(active, kind, lawful, timed=timed, in_part=in_part, side=side,
                    overruled=overruled, while_rules=wr)
-
-
-def rule_id(k: Tuple[str, str]) -> str:
-    return f"{k[0]}::{k[1]}"
 
 
 def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str],

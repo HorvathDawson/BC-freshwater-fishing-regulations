@@ -34,7 +34,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import DAYS, Interner, connect, dumps, month_day, \
+from pipeline.deliver.answers.common import Interner, connect, dumps, month_day, segments, \
     when_vector
 from pipeline.deliver.bundle import read
 
@@ -215,11 +215,8 @@ def change_days(db: sqlite3.Connection) -> List[int]:
             for (w,) in db.execute("SELECT when_ FROM rule WHERE entry_id = ? AND rule_id = ?",
                                    (e, s["rule_id"])):
                 whens.append(json.loads(w) if w else None)
-    cuts = {1}
-    for w in whens:
-        v = when_vector(w)
-        cuts |= {d for d in range(2, DAYS + 1) if v[d - 1] != v[d - 2]}
-    return sorted(cuts)
+    runs, _ = segments([when_vector(w) for w in whens])
+    return [d for d, _ in runs]
 
 
 # --------------------------------------------------------------------------------------------

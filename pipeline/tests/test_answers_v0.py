@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.answers import answers as A
+from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.bundle import read as R
 
@@ -239,10 +240,11 @@ def test_a_pair_from_another_bundle_is_refused(built):
     data, guide, _, _ = built
     bad = copy.deepcopy(data)
     bad["about"]["bundle"]["section_handles"] = "f" * 16
+    B = C.load(BUNDLE)
     with pytest.raises(A.AnswersError):
-        A.check_inputs(BUNDLE, bad, guide)
+        C.check_export(B, bad, guide)
     with pytest.raises(A.AnswersError):
-        A.check_inputs(BUNDLE, bad, copy.deepcopy(bad) | {"about": bad["about"]})
+        C.check_export(B, bad, copy.deepcopy(bad) | {"about": bad["about"]})
 
 
 def _section_of(db, key: tuple) -> int:
@@ -300,10 +302,10 @@ def test_every_day_of_a_segment_answers_alike(built):
     """The segmentation (member and lift `when` readings) changes no answer: every day of every
     segment of the Chilliwack's keys, for two fish, reads what the segment's value says."""
     data, _, model, wire = built
-    ctx = A.Context(BUNDLE, A.check_inputs(BUNDLE, data, A.load_export(EXPORT_DIR)[1]).sets,
-                    {k: i for i, k in enumerate(data["rule_ids"])})
+    ctx = A.Context(BUNDLE, C.check_export(C.load(BUNDLE), data, A.load_export(EXPORT_DIR)[1]))
     for k in {k for k in wire["parts"]["gnis:8634"] if k is not None}:
-        set_id, sw, sr = A.eval_key(model.keys[k])
+        rk = A.eval_key(model.keys[k])
+        set_id, sw, sr = rk.set_id, rk.steelhead_water, rk.steelhead_rules
         starts = model.segments[k] + [A.DAYS + 1]
         for s in range(len(starts) - 1):
             for fish in ("RB", "CT"):

@@ -1,21 +1,34 @@
-"""What every answers table shares: the bundle, the rule order, the keys, the year's segments and
-the words for fish and dates.
+"""THE ONE KEYING MODULE of the answers layer: the bundle, the export pair it pairs with, the rule
+order, the keys, the calendar and the year's segments — and the words for fish and dates. Every
+section producer (`answers.py`'s ladder and answer, `gear.py`, `licence.py`, `display.py`,
+`rows.py`) reads its inputs through here; none opens the bundle or cuts a year on its own.
+
+THE BUNDLE IS LOADED ONCE (`load`): every rule (the reader's own cache, `read._rules_of`), every
+rule set's bindings, every section's rule key and its water kind, the meta digests.
 
 THE RULE ORDER IS THE EXPORT'S. A rule is referred to by its index in the export's `rules` array,
 which is the bundle's rules sorted by `entry_id::rule_id` (`export_codec`: "in `rule_ids` order,
-sorted by entry_id, then rule_id"). `rule_index` builds that order from the bundle itself, and a
-test holds it to the shipped export.
+sorted by entry_id, then rule_id"). `Bundle.index` builds that order from the bundle itself, and
+`check_export` holds it to the shipped export (an export pair cut from another bundle is refused).
 
-THE KEYS ARE THE STATUS INDEX'S. A section's rule answers depend on its rule set, whether a rainbow
-over 50 cm is a steelhead there (`steelhead_water`) and whether the steelhead rules apply there
-(`section_steelhead_rules`) — exactly `status_index.compute`'s key. Gear adds the water KIND (a
-gear clause may hold `when: {water: stream}`), which a rule set never mixes (measured: 0 of 2,156
-sets carry sections of two kinds; a set none of whose sections is in a named water has kind None).
+THE KEYS. A section's rule answers depend on its rule set, whether a rainbow over 50 cm is a
+steelhead there (`steelhead_water`) and whether the steelhead rules apply there
+(`section_steelhead_rules`) — exactly `status_index.compute`'s key, `RuleKey`. A PART of a named
+water (the export's `waters[item].parts`) is keyed by the PART KEY (`part_keys`, the reference
+harness's `partKey`): (ruleset, licensing_set, steelhead_water, steelhead presence,
+steelhead_rules, province_except, home_region) — the rule key plus what the other sections read.
+Every section is keyed by the part key; each section's own `scope` says which of its fields its
+answers depend on.
 
-THE SEGMENTS ARE THE READER'S SIGNATURE. A segment is a run of days on which every bound rule's
-`when` and every lift's `when` read the same (`status_index.set_profile`'s memo key); within it
-the reader gives the same answer. Each `when` is turned into its 366-day vector ONCE, so cutting a
-set's year is a union of change days, not 366 reader questions.
+THE CALENDAR is the catalogue's leap calendar (`status_index.day_of` / `month_day`): Jan 1 = 1,
+Feb 29 = 60, Mar 1 = 61 in every year, Dec 31 = 366.
+
+THE SEGMENTS ARE THE READER'S SIGNATURE. A segment is a run of days on which every `when` a
+section reads holds the same (`read.in_force`: no / yes / part) — for the rules, every bound
+rule's `when` and every lift's `when` (`status_index.set_profile`'s memo key). Each `when` is
+turned into its 366-day vector ONCE (`when_vector`); a key's year is cut where any of its vectors
+changes (`segments`), and the file's segments are the union of every section's cuts
+(`segments_of`).
 """
 from __future__ import annotations
 
@@ -26,12 +39,37 @@ import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.bundle import read
 
 DAYS = 366
 
+
+class AnswersError(RuntimeError):
+    """A question the answers layer cannot answer: the build stops, naming it."""
+
+
+# --------------------------------------------------------------------------------------------
+# The calendar (the catalogue's leap calendar, `status_index`'s functions: one definition)
+# --------------------------------------------------------------------------------------------
+
+def month_day(day: int) -> Tuple[int, int]:
+    """1..366 -> (month, day) on the leap calendar (day 60 is Feb 29)."""
+    from pipeline.deliver.status_index import month_day as md
+    return md(day)
+
+
+def day_of(month: int, day: int) -> int:
+    """(month, day) -> 1..366 on the leap calendar."""
+    from pipeline.deliver.status_index import day_of as d
+    return d((month, day))
+
+
+# --------------------------------------------------------------------------------------------
+# The bundle
+# --------------------------------------------------------------------------------------------
 
 def bundle_path(path: Optional[str] = None) -> str:
     """The bundle to read: the argument, else `UI_EXPORT_BUNDLE` (the tests' override, as
@@ -49,21 +87,9 @@ def every_rule(path: str) -> dict:
     return read._rules_of(path)
 
 
-def rule_index(path: str) -> Dict[Tuple[str, str], int]:
-    """Each rule's index in the export's `rules` array: the bundle's rules in `entry::rule`
-    order."""
-    ids = sorted(every_rule(path), key=lambda k: f"{k[0]}::{k[1]}")
-    return {k: i for i, k in enumerate(ids)}
+def rule_id(k: Tuple[str, str]) -> str:
+    return f"{k[0]}::{k[1]}"
 
-
-def month_day(day: int) -> Tuple[int, int]:
-    from pipeline.deliver.status_index import month_day as md
-    return md(day)
-
-
-# --------------------------------------------------------------------------------------------
-# Keys
-# --------------------------------------------------------------------------------------------
 
 @dataclass(frozen=True, order=True)
 class RuleKey:
@@ -78,19 +104,33 @@ class RuleKey:
 
 @dataclass
 class Bundle:
-    """The bundle facts every table reads, loaded once (no section id leaves this object)."""
+    """The bundle facts every producer reads, loaded once (`load`)."""
     path: str
-    rules: dict                                   # (entry, rule) -> rule dict
-    index: Dict[Tuple[str, str], int]             # (entry, rule) -> export rules index
+    rules: dict                                   # (entry, rule) -> rule dict (the reader's)
+    index: Dict[Tuple[str, str], int]             # (entry, rule) -> export `rules` index
     sets: Dict[int, List[Tuple[str, str, str]]]   # set_id -> [(entry, rule, via)]
-    keys: Dict[RuleKey, int]                      # key -> section count
-    key_sid: Dict[RuleKey, int]                   # key -> its smallest section
+    keys: Dict[RuleKey, int]                      # every section's rule key -> section count
+    key_sid: Dict[RuleKey, int]                   # rule key -> its smallest section
     set_kind: Dict[int, Optional[str]]            # set_id -> water kind (None: no named water)
     digest: dict                                  # meta digests
 
+    @property
+    def rule_ids(self) -> List[str]:
+        """The export's `rule_ids`: every rule, in the export's order."""
+        return [rule_id(k) for k in sorted(self.index, key=self.index.__getitem__)]
+
+
+_LOADED: Dict[str, Bundle] = {}
+
 
 def load(path: Optional[str] = None) -> Bundle:
+    """The bundle, read once per path per process."""
     path = bundle_path(path)
+    got = _LOADED.get(path)
+    if got is not None:
+        return got
+    if not Path(path).is_file():
+        raise AnswersError(f"answers: no bundle at {path}")
     db = connect(path)
     try:
         sets: Dict[int, list] = defaultdict(list)
@@ -112,15 +152,164 @@ def load(path: Optional[str] = None) -> Bundle:
             kinds[set_id].add(kind)
         mixed = sorted(s for s, v in kinds.items() if len(v) > 1)
         if mixed:
-            raise SystemExit(f"answers: {len(mixed)} rule set(s) carry sections of two water "
-                             f"kinds (e.g. {mixed[:3]}) — gear needs one kind per key")
+            raise AnswersError(f"answers: {len(mixed)} rule set(s) carry sections of two water "
+                               f"kinds (e.g. {mixed[:3]}) — a key needs one kind")
         digest = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('reach_digest', "
                                  "'section_handles', 'version')"))
     finally:
         db.close()
-    return Bundle(path=path, rules=every_rule(path), index=rule_index(path), sets=dict(sets),
-                  keys=dict(sorted(keys.items())), key_sid=key_sid,
-                  set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest)
+    rules = every_rule(path)
+    ids = sorted(rules, key=rule_id)
+    B = Bundle(path=path, rules=rules, index={k: i for i, k in enumerate(ids)}, sets=dict(sets),
+               keys=dict(sorted(keys.items())), key_sid=key_sid,
+               set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest)
+    _LOADED[path] = B
+    return B
+
+
+# --------------------------------------------------------------------------------------------
+# The export pair it pairs with
+# --------------------------------------------------------------------------------------------
+
+def load_export(export_dir: Path) -> Tuple[dict, dict]:
+    d = Path(export_dir)
+    data = json.loads((d / "ui-rules-export.json").read_text(encoding="utf-8"))
+    guide = json.loads((d / "ui-rules-guide.json").read_text(encoding="utf-8"))
+    return data, guide
+
+
+def check_export(B: Bundle, data: dict, guide: dict) -> Dict[str, int]:
+    """The export pair must be ONE pair, cut from THIS bundle, and its rule sets must be the
+    bundle's — otherwise its integer rule refs would point at other rules. Returns the export's
+    rule index, `{"entry::rule": index}`."""
+    from pipeline.tools.export_codec import FORMAT, expand
+    if data.get("about", {}).get("format") != FORMAT or guide.get("about", {}).get("format") != FORMAT:
+        raise AnswersError(f"answers: the export pair is not format {FORMAT}")
+    if data["about"]["bundle"] != guide["about"]["bundle"]:
+        raise AnswersError("answers: ui-rules-export.json and ui-rules-guide.json carry different "
+                           "about.bundle digests — not one pair")
+    stamp = data["about"]["bundle"]
+    for k in ("reach_digest", "section_handles"):
+        if B.digest.get(k) != stamp.get(k):
+            raise AnswersError(f"answers: the export's about.bundle.{k} {stamp.get(k)!r} is not "
+                               f"the bundle's meta.{k} {B.digest.get(k)!r}")
+    ids = data["rule_ids"]
+    if ids != sorted(ids) or len(set(ids)) != len(ids):
+        raise AnswersError("answers: the export's rule_ids are not the codec's order (sorted, unique)")
+    if ids != B.rule_ids:
+        mine = set(B.rule_ids)
+        miss = sorted(mine - set(ids))[:3] + sorted(set(ids) - mine)[:3]
+        raise AnswersError(f"answers: the export's rules are not the bundle's (e.g. {miss})")
+    model = expand(data, guide)
+    for sid, s in model["rulesets"].items():
+        want = sorted((i.split("::", 1)[0], i.split("::", 1)[1], via)
+                      for via, members in s.items() if via != "sections" for i in members)
+        if want != sorted(B.sets.get(int(sid), [])):
+            raise AnswersError(f"answers: export rule set {sid} is not the bundle's set {sid}")
+    if len(model["rulesets"]) != len(B.sets):
+        raise AnswersError("answers: the export and the bundle hold different numbers of rule sets")
+    return {k: i for i, k in enumerate(ids)}
+
+
+# --------------------------------------------------------------------------------------------
+# Part keys: the export's parts, keyed by what their answers can depend on
+# --------------------------------------------------------------------------------------------
+
+#: The part key's fields, in order: the reference harness's `partKey` (`reference/golden.js`),
+#: with `steelhead_rules` the bundle's fact.
+PART_KEY_FIELDS = ("ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
+                   "province_except", "home_region")
+
+
+def key_dict(key: tuple) -> dict:
+    return dict(zip(PART_KEY_FIELDS, key))
+
+
+def rule_key(key: tuple) -> RuleKey:
+    """The part key's rule key: all the ladder and the decided answer read of a part."""
+    k = key_dict(key)
+    return RuleKey(k["ruleset"], k["steelhead_water"], k["steelhead_rules"])
+
+
+def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Optional[int]]]]:
+    """(keys, parts): `keys` the distinct part tuples (`PART_KEY_FIELDS`), `parts` {item_id: [key
+    index per export part, in the export's order]}. A part with no rule set is `None` — and must be
+    wholly outside B.C. (the export's own `ruleset: null`), or the build stops.
+
+    The export groups a water's sections by (ruleset, licensing_set, province_except,
+    steelhead_water, steelhead presence); the same grouping is read back here per part, to add the
+    one fact the export ships only in part: whether the steelhead rules apply (`steelhead_rules`,
+    which every section of a part shares — the export refuses a part whose sections disagree)."""
+    db = connect(B.path)
+    try:
+        db.execute("CREATE TEMP TABLE _st (sid INTEGER PRIMARY KEY, code INTEGER NOT NULL)")
+        db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")
+        db.execute("CREATE TEMP TABLE _sr (sid INTEGER PRIMARY KEY)")
+        db.execute("INSERT INTO _sr SELECT sid FROM section_steelhead_rules")
+        db.execute("CREATE TEMP TABLE _out (sid INTEGER PRIMARY KEY)")
+        db.execute("INSERT INTO _out SELECT DISTINCT sid FROM outside_bc")
+        facts: Dict[tuple, dict] = {}
+        for item, rs, ls, pe, sw, st, sr, home, out in db.execute(
+                "SELECT i.item_id, r.set_id, l.set_id, "
+                "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
+                " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
+                "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
+                "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END FROM _st h "
+                " WHERE h.sid = s.sid), "
+                "EXISTS (SELECT 1 FROM _sr x WHERE x.sid = s.sid), "
+                "(SELECT region FROM section_home h WHERE h.sid = s.sid), "
+                "EXISTS (SELECT 1 FROM _out o WHERE o.sid = s.sid) "
+                "FROM item i JOIN item_section s ON s.ord = i.ord "
+                "LEFT JOIN section_ruleset r ON r.sid = s.sid "
+                "LEFT JOIN section_licensing l ON l.sid = s.sid"):
+            f = facts.setdefault((item, rs, ls, pe, bool(sw), st),
+                                 {"sr": set(), "home": set(), "out": set()})
+            f["sr"].add(bool(sr))
+            f["out"].add(bool(out))
+            if home:
+                f["home"].add(home)
+    finally:
+        db.close()
+
+    keys: List[tuple] = []
+    index: Dict[tuple, int] = {}
+    parts: Dict[str, List[Optional[int]]] = {}
+    for item, w in data["waters"].items():
+        row: List[Optional[int]] = []
+        for pi, arr in enumerate(w["parts"]):
+            rs, ls = arr[0], arr[1]
+            flags = arr[4] if len(arr) > 4 else {}
+            pe = ",".join(flags["province_except"]) if flags.get("province_except") else None
+            ident = (item, rs, ls, pe, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"))
+            f = facts.get(ident)
+            if f is None:
+                raise AnswersError(f"answers: water {item} part {pi} {ident[1:]} has no sections in "
+                                   f"the bundle")
+            if rs is None:
+                if f["out"] != {True}:
+                    raise AnswersError(f"answers: water {item} part {pi} has no rule set but is not "
+                                       f"wholly outside B.C.")
+                row.append(None)
+                continue
+            if len(f["sr"]) != 1:
+                raise AnswersError(f"answers: water {item} part {pi}: its sections disagree on "
+                                   f"whether the steelhead rules apply")
+            sr = next(iter(f["sr"]))
+            if flags.get("steelhead_rules") is False and sr:
+                raise AnswersError(f"answers: water {item} part {pi}: the export says steelhead "
+                                   f"rules do not apply, the bundle says they do")
+            home = tuple(sorted(f["home"]))
+            if home != tuple(flags.get("home_region") or ()):
+                raise AnswersError(f"answers: water {item} part {pi}: home_region {home} is not the "
+                                   f"export's {flags.get('home_region')}")
+            key = (rs, ls, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"), sr,
+                   tuple(flags.get("province_except") or ()), home)
+            if key not in index:
+                index[key] = len(keys)
+                keys.append(key)
+            row.append(index[key])
+        parts[item] = row
+    return keys, parts
 
 
 # --------------------------------------------------------------------------------------------
@@ -147,10 +336,12 @@ def _changes(vec: Tuple[int, ...]) -> frozenset:
 
 
 def rule_vectors(rules: Iterable[dict]) -> List[Tuple[int, ...]]:
-    """Every `when` the reader reads for these rules: each rule's own and each of its lifts'."""
+    """Every `when` the reader reads for these rules, in order: each rule's own and each of its
+    lifts'. Two days whose vectors all read alike get one answer from the reader."""
     out = []
     for x in rules:
         out.append(when_vector(x.get("when")))
+    for x in rules:
         for lift in x.get("exempts") or []:
             if "when" in lift:
                 out.append(when_vector(lift.get("when")))
@@ -159,8 +350,8 @@ def rule_vectors(rules: Iterable[dict]) -> List[Tuple[int, ...]]:
 
 def segments(vectors: Sequence[Tuple[int, ...]]) -> Tuple[List[List[int]], List[int]]:
     """The year cut where any vector changes: `runs` [[start_day, reading]] (contiguous, covering
-    1..366) and `readings` [first start day of each distinct reading]. A reading recurs (both
-    sides of a winter closure read alike) and is computed once."""
+    1..366) and `readings` [first start day of each distinct reading], numbered in day order. A
+    reading recurs (both sides of a winter closure read alike) and is computed once."""
     cuts = {1}
     for v in vectors:
         cuts |= _changes(v)
@@ -178,22 +369,56 @@ def segments(vectors: Sequence[Tuple[int, ...]]) -> Tuple[List[List[int]], List[
     return runs, readings
 
 
+def per_day(runs: Sequence[Sequence[int]]) -> List[int]:
+    """`segments`' runs as one reading index per day, 1..366."""
+    out: List[int] = []
+    for i, (d, r) in enumerate(runs):
+        end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
+        out += [r] * (end - d)
+    if len(out) != DAYS:
+        raise AnswersError("answers: runs must cover every day of the year")
+    return out
+
+
+def segments_of(signatures: Sequence) -> List[int]:
+    """The start days of the runs of equal signatures over days 1..366 (one signature per day):
+    how the file's segments are the UNION of every section's cuts. Day 1 always starts a segment:
+    a reading running across New Year is two segments (the last and the first), which share their
+    values — the file stores a value once however many segments point at it."""
+    if len(signatures) != DAYS:
+        raise AnswersError(f"answers: a signature per day must cover {DAYS} days")
+    starts = [1]
+    for d in range(2, DAYS + 1):
+        if signatures[d - 1] != signatures[d - 2]:
+            starts.append(d)
+    return starts
+
+
 # --------------------------------------------------------------------------------------------
 # Interning (format-2 style: a table of distinct values, referred to by index)
 # --------------------------------------------------------------------------------------------
 
 class Interner:
+    """An interned list: `add(value)` (or calling it) -> its index; equal values (canonical JSON)
+    share one."""
+
     def __init__(self):
         self.rows: list = []
         self._ix: dict = {}
 
-    def __call__(self, value) -> int:
+    def add(self, value) -> int:
         s = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         i = self._ix.get(s)
         if i is None:
             i = self._ix[s] = len(self.rows)
             self.rows.append(value)
         return i
+
+    __call__ = add
+
+
+def dumps(x) -> str:
+    return json.dumps(x, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 # --------------------------------------------------------------------------------------------
@@ -298,7 +523,3 @@ def range_txt(a: int, b: int) -> str:
 
 def clean(s) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\*+", "", str(s or ""))).strip()
-
-
-def dumps(x) -> str:
-    return json.dumps(x, sort_keys=True, separators=(",", ":"), ensure_ascii=False)

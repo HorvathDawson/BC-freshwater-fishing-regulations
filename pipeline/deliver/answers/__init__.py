@@ -13,7 +13,8 @@ THE PRODUCERS ARE PURE (no file is written; the answers encoder adds them as sec
     display.produce_rules(bundle)     {"entry::rule": {kind, closure?, bands?, plain?}}  2.3/2.4/6.3
     display.produce_parts(bundle, doc) {item_id: {parts: {part key: facts}, picker, …}}  3.1/3.2/5.6
 
-    common.py   bundle access, rule order (= the export's `rules` array), keys, segments, words
+    common.py   THE ONE KEYING MODULE: bundle, export pairing, rule order (= the export's
+                `rules` array), part and rule keys, calendar, segments, words
     dump.py     `python -m pipeline.deliver.answers.dump --out DIR`: the producers' output
                 interned for inspection, with sizes and times (not the shipping encoder)
 

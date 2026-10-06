@@ -14,12 +14,12 @@ text in `SPEC`, is refused (`spec_gaps`, pinned by the tests).
 from __future__ import annotations
 
 import hashlib
-import json
 from bisect import bisect_right
 from typing import Dict, List, Optional, Tuple
 
 from pipeline.deliver.answers.answers import (DAYS, ORIGINS, PART_KEY_FIELDS, RESERVED, STATUSES,
                                               AnswersError, Model, day_of)
+from pipeline.deliver.answers.common import Interner
 from pipeline.deliver.bundle import read
 
 FORMAT = "answers/0"
@@ -132,20 +132,8 @@ SPEC = {
 # Interning
 # --------------------------------------------------------------------------------------------
 
-class Table:
-    """An interned list: `add(value)` -> its index; equal values (canonical JSON) share one."""
-
-    def __init__(self):
-        self.rows: list = []
-        self._ix: Dict[str, int] = {}
-
-    def add(self, v) -> int:
-        k = json.dumps(v, separators=(",", ":"), sort_keys=True)
-        i = self._ix.get(k)
-        if i is None:
-            i = self._ix[k] = len(self.rows)
-            self.rows.append(v)
-        return i
+#: An interned list (`add(value)` -> its index; equal values share one): the keying module's.
+Table = Interner
 
 
 # --------------------------------------------------------------------------------------------

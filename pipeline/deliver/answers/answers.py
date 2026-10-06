@@ -19,21 +19,12 @@ an export pair that does not match the bundle, a part whose sections disagree, a
 not list, a fish the reader refuses. A state that IS an answer is stated explicitly (`no_rule`,
 `by_origin`), never left out.
 
-THE KEYING, shared by every section (the coordinator's requirement, 2026-10-06):
-
-  part key   one per distinct part tuple of the export's named waters — the reference harness's
-             `partKey` (`compare.py`): (ruleset, licensing_set, steelhead_water, steelhead presence,
-             steelhead_rules, province_except, home_region), with `steelhead_rules` the bundle's fact
-             for the part's sections (the export ships it only where it is false on a known part).
-  segment    a run of days (1..366, the catalogue's leap calendar) on which EVERY section's inputs
-             read the same: the union of every section's breakpoints. v0's sections both read one
-             signature per day — every member rule's `when` and every lift's `when`, through
-             `read.in_force` (the status index's `set_profile` signature) — so the segments are the
-             days on which any member rule or lift comes into or goes out of force.
-
-  A section's value is a function of (part key, segment). Adding a section (rows, gear, licence,
-  display — `RESERVED`) is a new `Section` with its own `scope`/`signature`/`produce`: the existing
-  sections' code does not change, and the segments become the union of all of them.
+THE KEYING, shared by every section, is `common.py` (the one keying module): the bundle
+(`common.load`), the export pairing (`common.check_export`), the part keys (`common.part_keys`), the
+rule key (`common.RuleKey`), the calendar and the segments (`common.segments`, `common.segments_of`).
+A section's value is a function of (part key, segment); the file's segments are the union of every
+section's cuts. Adding a section is a new `Section` with its own `scope` and producer: the existing
+sections' code does not change.
 
 v0 SECTIONS
   ladder   per fish x origin: every rule's state (speaks, beside, shown, not_yet_mapped) and every
@@ -43,20 +34,17 @@ v0 SECTIONS
 """
 from __future__ import annotations
 
-import json
 import os
-import sqlite3
-from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from multiprocessing import get_context
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
+from pipeline.deliver.answers import common
+from pipeline.deliver.answers.common import (DAYS, PART_KEY_FIELDS, AnswersError, RuleKey,  # noqa: F401
+                                             day_of, key_dict, load_export, month_day, per_day,
+                                             rule_vectors, segments, segments_of)
 from pipeline.deliver.bundle import read
-
-#: The days of the year, on the catalogue's leap calendar (`catalogue._day_index`): Jan 1 is 1,
-#: Feb 29 is 60, Mar 1 is 61 in EVERY year, Dec 31 is 366.
-DAYS = 366
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
 #: `origin=None`); "hatchery" / "wild" are `read.ASKABLE_ORIGINS`.
@@ -67,214 +55,18 @@ ORIGINS = ("none",) + tuple(read.ASKABLE_ORIGINS)
 #: those two.
 STATUSES = ("closed", "release", "keep", "no_limit", "no_rule", "by_origin")
 
-#: The part key's fields, in order (the reference harness's `partKey`).
-PART_KEY_FIELDS = ("ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
-                   "province_except", "home_region")
-
-
-class AnswersError(RuntimeError):
-    """A question the answers layer cannot answer: the build stops, naming it."""
-
 
 # --------------------------------------------------------------------------------------------
-# Inputs: the bundle and the export pair it is paired with
-# --------------------------------------------------------------------------------------------
-
-@dataclass
-class Inputs:
-    bundle: str
-    data: dict                      # ui-rules-export.json as shipped
-    guide: dict                     # ui-rules-guide.json as shipped
-    rule_index: Dict[str, int]      # "entry::rule" -> index into the export's `rules`
-    sets: Dict[int, List[Tuple[str, str, str]]] = field(default_factory=dict)  # set id -> bound
-
-
-def load_export(export_dir: Path) -> Tuple[dict, dict]:
-    d = Path(export_dir)
-    data = json.loads((d / "ui-rules-export.json").read_text(encoding="utf-8"))
-    guide = json.loads((d / "ui-rules-guide.json").read_text(encoding="utf-8"))
-    return data, guide
-
-
-def _meta(db) -> dict:
-    return dict(db.execute("SELECT k, v FROM meta"))
-
-
-def check_inputs(bundle: str, data: dict, guide: dict) -> Inputs:
-    """The export pair must be ONE pair, cut from THIS bundle, and its rule sets must be the
-    bundle's — otherwise its integer rule refs would point at other rules."""
-    from pipeline.tools.export_codec import FORMAT, expand
-    if not Path(bundle).is_file():
-        raise AnswersError(f"answers: no bundle at {bundle}")
-    if data.get("about", {}).get("format") != FORMAT or guide.get("about", {}).get("format") != FORMAT:
-        raise AnswersError(f"answers: the export pair is not format {FORMAT}")
-    if data["about"]["bundle"] != guide["about"]["bundle"]:
-        raise AnswersError("answers: ui-rules-export.json and ui-rules-guide.json carry different "
-                           "about.bundle digests — not one pair")
-    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
-    try:
-        meta = _meta(db)
-        stamp = data["about"]["bundle"]
-        for k in ("reach_digest", "section_handles"):
-            if meta.get(k) != stamp.get(k):
-                raise AnswersError(f"answers: the export's about.bundle.{k} {stamp.get(k)!r} is not "
-                                   f"the bundle's meta.{k} {meta.get(k)!r}")
-        sets: Dict[int, List[Tuple[str, str, str]]] = defaultdict(list)
-        for set_id, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset "
-                                            "ORDER BY set_id, entry_id, rule_id"):
-            sets[set_id].append((e, r, via))
-        bundle_rules = {f"{e}::{r}" for e, r in db.execute("SELECT entry_id, rule_id FROM rule")}
-    finally:
-        db.close()
-    ids = data["rule_ids"]
-    if ids != sorted(ids) or len(set(ids)) != len(ids):
-        raise AnswersError("answers: the export's rule_ids are not the codec's order (sorted, unique)")
-    if set(ids) != bundle_rules:
-        miss = sorted(bundle_rules - set(ids))[:3] + sorted(set(ids) - bundle_rules)[:3]
-        raise AnswersError(f"answers: the export's rules are not the bundle's (e.g. {miss})")
-    model = expand(data, guide)
-    for sid, s in model["rulesets"].items():
-        want = sorted((i.split("::", 1)[0], i.split("::", 1)[1], via)
-                      for via, members in s.items() if via != "sections" for i in members)
-        if want != sorted(sets.get(int(sid), [])):
-            raise AnswersError(f"answers: export rule set {sid} is not the bundle's set {sid}")
-    if len(model["rulesets"]) != len(sets):
-        raise AnswersError("answers: the export and the bundle hold different numbers of rule sets")
-    return Inputs(bundle, data, guide, {k: i for i, k in enumerate(ids)}, dict(sets))
-
-
-# --------------------------------------------------------------------------------------------
-# Part keys: the export's parts, keyed by what their answers can depend on
-# --------------------------------------------------------------------------------------------
-
-def part_keys(inp: Inputs) -> Tuple[List[tuple], Dict[str, List[Optional[int]]]]:
-    """(keys, parts): `keys` the distinct part tuples (`PART_KEY_FIELDS`), `parts` {item_id: [key
-    index per export part, in the export's order]}. A part with no rule set is `None` — and must be
-    wholly outside B.C. (the export's own `ruleset: null`), or the build stops.
-
-    The export groups a water's sections by (ruleset, licensing_set, province_except,
-    steelhead_water, steelhead presence); the same grouping is read back here per part, to add the
-    one fact the export ships only in part: whether the steelhead rules apply (`steelhead_rules`,
-    which every section of a part shares — the export refuses a part whose sections disagree)."""
-    db = sqlite3.connect(f"file:{inp.bundle}?mode=ro", uri=True)
-    try:
-        db.execute("CREATE TEMP TABLE _st (sid INTEGER PRIMARY KEY, code INTEGER NOT NULL)")
-        db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")
-        db.execute("CREATE TEMP TABLE _sr (sid INTEGER PRIMARY KEY)")
-        db.execute("INSERT INTO _sr SELECT sid FROM section_steelhead_rules")
-        db.execute("CREATE TEMP TABLE _out (sid INTEGER PRIMARY KEY)")
-        db.execute("INSERT INTO _out SELECT DISTINCT sid FROM outside_bc")
-        facts: Dict[tuple, dict] = {}
-        for item, rs, ls, pe, sw, st, sr, home, out in db.execute(
-                "SELECT i.item_id, r.set_id, l.set_id, "
-                "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
-                " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
-                "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
-                "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END FROM _st h "
-                " WHERE h.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _sr x WHERE x.sid = s.sid), "
-                "(SELECT region FROM section_home h WHERE h.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _out o WHERE o.sid = s.sid) "
-                "FROM item i JOIN item_section s ON s.ord = i.ord "
-                "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-                "LEFT JOIN section_licensing l ON l.sid = s.sid"):
-            f = facts.setdefault((item, rs, ls, pe, bool(sw), st),
-                                 {"sr": set(), "home": set(), "out": set()})
-            f["sr"].add(bool(sr))
-            f["out"].add(bool(out))
-            if home:
-                f["home"].add(home)
-    finally:
-        db.close()
-
-    keys: List[tuple] = []
-    index: Dict[tuple, int] = {}
-    parts: Dict[str, List[Optional[int]]] = {}
-    for item, w in inp.data["waters"].items():
-        row: List[Optional[int]] = []
-        for pi, arr in enumerate(w["parts"]):
-            rs, ls = arr[0], arr[1]
-            flags = arr[4] if len(arr) > 4 else {}
-            pe = ",".join(flags["province_except"]) if flags.get("province_except") else None
-            ident = (item, rs, ls, pe, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"))
-            f = facts.get(ident)
-            if f is None:
-                raise AnswersError(f"answers: water {item} part {pi} {ident[1:]} has no sections in "
-                                   f"the bundle")
-            if rs is None:
-                if f["out"] != {True}:
-                    raise AnswersError(f"answers: water {item} part {pi} has no rule set but is not "
-                                       f"wholly outside B.C.")
-                row.append(None)
-                continue
-            if len(f["sr"]) != 1:
-                raise AnswersError(f"answers: water {item} part {pi}: its sections disagree on "
-                                   f"whether the steelhead rules apply")
-            sr = next(iter(f["sr"]))
-            if flags.get("steelhead_rules") is False and sr:
-                raise AnswersError(f"answers: water {item} part {pi}: the export says steelhead "
-                                   f"rules do not apply, the bundle says they do")
-            home = tuple(sorted(f["home"]))
-            if home != tuple(flags.get("home_region") or ()):
-                raise AnswersError(f"answers: water {item} part {pi}: home_region {home} is not the "
-                                   f"export's {flags.get('home_region')}")
-            key = (rs, ls, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"), sr,
-                   tuple(flags.get("province_except") or ()), home)
-            if key not in index:
-                index[key] = len(keys)
-                keys.append(key)
-            row.append(index[key])
-        parts[item] = row
-    return keys, parts
-
-
-def key_dict(key: tuple) -> dict:
-    return dict(zip(PART_KEY_FIELDS, key))
-
-
-# --------------------------------------------------------------------------------------------
-# The calendar
-# --------------------------------------------------------------------------------------------
-
-def month_day(day: int) -> Tuple[int, int]:
-    """1..366 -> (month, day) on the leap calendar (day 60 is Feb 29)."""
-    from pipeline.regs.parsing.catalogue import _LAST_DAY
-    m = 1
-    while day > _LAST_DAY[m]:
-        day -= _LAST_DAY[m]
-        m += 1
-    return m, day
-
-
-def day_of(month: int, day: int) -> int:
-    from pipeline.regs.parsing.catalogue import _day_index
-    return _day_index(month, day)
-
-
-def segments_of(signatures: Sequence[tuple]) -> List[int]:
-    """The start days of the runs of equal signatures over days 1..366. Day 1 always starts a
-    segment: a reading running across New Year is two segments (the last and the first), which
-    share their values — the file stores a value once however many segments point at it."""
-    if len(signatures) != DAYS:
-        raise AnswersError(f"answers: a signature per day must cover {DAYS} days")
-    starts = [1]
-    for d in range(2, DAYS + 1):
-        if signatures[d - 1] != signatures[d - 2]:
-            starts.append(d)
-    return starts
-
-
-# --------------------------------------------------------------------------------------------
-# The rule-set evaluation: one per (ruleset, steelhead_water, steelhead_rules)
+# The rule-set evaluation: one per rule key (common.RuleKey)
 # --------------------------------------------------------------------------------------------
 #
 # The reader's answer for a section depends on three things only: its bound rules (the rule set),
 # whether a rainbow over 50 cm is a steelhead there, and whether the steelhead rules apply there
 # (`read.effective_rules`, the status index's key). Every part key holding the same three shares it.
 
-def eval_key(key: tuple) -> Tuple[int, bool, bool]:
-    k = key_dict(key)
-    return (k["ruleset"], k["steelhead_water"], k["steelhead_rules"])
+def eval_key(key: tuple) -> RuleKey:
+    """The ladder's and the answer's scope: the part key's rule key (`common.rule_key`)."""
+    return common.rule_key(key)
 
 
 def fish_of(bound: Sequence[tuple], rules: dict, steelhead_rules: bool) -> Tuple[str, ...]:
@@ -294,17 +86,6 @@ def fish_of(bound: Sequence[tuple], rules: dict, steelhead_rules: bool) -> Tuple
     if steelhead_rules:
         named.add("ST")
     return tuple(f for f in BOOK_SPECIES if f in named)
-
-
-def reading_signature(bound: Sequence[tuple], rules: dict, md: Tuple[int, int]) -> tuple:
-    """What the reader reads of the calendar on one day: every member rule's `when` and every
-    lift's `when` (`read.in_force`: "yes" / "no" / "part"). Two days with one signature get one
-    answer (the status index's `set_profile` shortcut, proved there against the reader)."""
-    keys = [(e, r) for e, r, _ in bound]
-    whens = tuple(read.in_force(rules[k].get("when"), md) for k in keys)
-    lifts = tuple(read.in_force(x.get("when"), md) for k in keys
-                  for x in (rules[k].get("exempts") or []) if "when" in x)
-    return whens + lifts
 
 
 def ladder_verdict(rows: Iterable[dict]) -> dict:
@@ -461,44 +242,42 @@ class Section:
 
 
 class Context:
-    """What every producer reads, loaded once per process."""
+    """What every producer reads, loaded once per process: the bundle (`common.load`) and the
+    export's rule index (`common.check_export`)."""
 
-    def __init__(self, bundle: str, sets: Dict[int, list], rule_index: Dict[str, int]):
-        self.bundle = bundle
-        self.sets = sets
+    def __init__(self, bundle: str, rule_index: Dict[str, int]):
+        self.B = common.load(bundle)
+        self.bundle = self.B.path
+        self.sets = self.B.sets
         self.rule_index = rule_index
-        self.rules = read._rules_of(bundle)            # the reader's own rule table
-        self.by_id = {f"{e}::{r}": x for (e, r), x in self.rules.items()}
+        self.rules = self.B.rules                      # the reader's own rule table
+        self.by_id = {common.rule_id(k): x for k, x in self.rules.items()}
 
 
-def _ladder_prepare(scope: tuple, ctx: Context):
-    set_id, sw, sr = scope
-    bound = ctx.sets.get(set_id)
+def _ladder_prepare(scope: RuleKey, ctx: Context):
+    bound = ctx.sets.get(scope.set_id)
     if not bound:
-        raise AnswersError(f"answers: rule set {set_id} has no members in the bundle")
-    fish = fish_of(bound, ctx.rules, sr)
-    sigs = [reading_signature(bound, ctx.rules, month_day(d)) for d in range(1, DAYS + 1)]
-    distinct: Dict[tuple, int] = {}
-    per_day = []
-    for s in sigs:
-        per_day.append(distinct.setdefault(s, len(distinct)))
-    first = {}
-    for d, i in enumerate(per_day, start=1):
-        first.setdefault(i, d)
+        raise AnswersError(f"answers: rule set {scope.set_id} has no members in the bundle")
+    for e, r, _ in bound:
+        if (e, r) not in ctx.rules:
+            raise AnswersError(f"answers: rule set member {e}::{r} is not in the bundle's rules")
+    fish = fish_of(bound, ctx.rules, scope.steelhead_rules)
+    runs, readings = segments(rule_vectors([ctx.rules[(e, r)] for e, r, _ in bound]))
     values = []
-    for i in range(len(distinct)):
-        md = month_day(first[i])
+    for first in readings:
+        md = month_day(first)
         v = {}
         for f in fish:
             v[f] = {o: ladder_verdict(read.effective_rules_bound(
-                bound, sw, md, f, ctx.bundle, steelhead_rules_here=sr,
+                bound, scope.steelhead_water, md, f, ctx.bundle,
+                steelhead_rules_here=scope.steelhead_rules,
                 origin=None if o == "none" else o, trace=True)) for o in ORIGINS}
         values.append(v)
-    return per_day, values
+    return per_day(runs), values
 
 
-def _answer_derive(ladder_value: dict, scope: tuple, ctx: Context) -> dict:
-    set_id = scope[0]
+def _answer_derive(ladder_value: dict, scope: RuleKey, ctx: Context) -> dict:
+    set_id = scope.set_id
     via = {f"{e}::{r}": v for e, r, v in ctx.sets[set_id]}
     out = {}
     for f, by_origin in ladder_value.items():
@@ -545,9 +324,9 @@ RESERVED = {
 _WORKER: Optional[Context] = None
 
 
-def _init_worker(bundle, sets, rule_index):
+def _init_worker(bundle, rule_index):
     global _WORKER
-    _WORKER = Context(bundle, sets, rule_index)
+    _WORKER = Context(bundle, rule_index)
 
 
 def _run_scope(task):
@@ -582,8 +361,9 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     import time
     t0 = time.time()
     data, guide = load_export(export_dir)
-    inp = check_inputs(bundle, data, guide)
-    keys, parts = part_keys(inp)
+    B = common.load(bundle)
+    rule_index = common.check_export(B, data, guide)
+    keys, parts = common.part_keys(B, data)
     if items is not None:
         want = set(items)
         unknown = sorted(want - set(parts))
@@ -599,7 +379,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     log(f"answers: {len(keys)} part keys, {len(tasks)} section scopes to evaluate")
     workers = workers or max(1, (os.cpu_count() or 2) - 1)
     results: Dict[Tuple[str, tuple], tuple] = {}
-    args = (bundle, inp.sets, inp.rule_index)
+    args = (B.path, rule_index)
     if workers == 1:
         _init_worker(*args)
         got = map(_run_scope, tasks)
