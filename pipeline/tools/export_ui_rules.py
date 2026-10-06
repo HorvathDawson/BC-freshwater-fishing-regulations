@@ -2140,7 +2140,10 @@ def guide(d: dict) -> dict:
                     "silences Zone B's 'Burbot: 5' on those dates) AND a water row's GROUP rule "
                     "that ranks ABOVE it by place: a zone's steelhead closure silences a water's "
                     "'Trout daily quota = 1' for a steelhead, because the closure names the fish "
-                    "and the water's trout quota does not. A WATER ROW THAT NAMES THE "
+                    "and the water's trout quota does not. A closure printed in THIS WATER'S OWN "
+                    "row goes further: it silences every keeping rule for the fish it covers, "
+                    "of any source and key, save a superior authority's (`closure_any_key`; "
+                    "Denetiah Creek, Jul 1-15). A WATER ROW THAT NAMES THE "
                     "FISH a region-wide closure names lifts that closure for that fish (the "
                     "book's '(see tables for exceptions)'): Okanagan River's 'bass daily quota = "
                     "8' lifts Region 8's 'Bass: 0 quota, CLOSED TO FISHING' there. It must NAME "
@@ -2226,7 +2229,9 @@ def guide(d: dict) -> dict:
                             "beside a dated keeping window stands beside it as printed. A row's "
                             "dated CLOSURE is such a release too: Quatse's May 1-Jun 15 closure "
                             "silences its own quota on those dates, as do the Region 7 lakes' "
-                            "'No fishing Nov 1-Apr 30' and Kitimat's Mar 16-May 31.",
+                            "'No fishing Nov 1-Apr 30' and Kitimat's Mar 16-May 31 — and, being "
+                            "the water's own closure, its size clauses and possession limits "
+                            "too (`closure_any_key`).",
         "zone_release_any_water": "A ZONE RELEASE WITH NO WATER KIND EMPTIES ITS TABLE'S 'FROM "
                                   "STREAMS' CLAUSE (RU-4, 2026-10-04). Region 5's 'you must "
                                   "release: ALL STEELHEAD' displaces its own table's keeping "
@@ -2249,7 +2254,17 @@ def guide(d: dict) -> dict:
                            "by the ladder, so a water row NAMING the fish still speaks beside a "
                            "zone closure. A size clause with no count of its own ('none under 60 "
                            "cm') under a closure is not shown (`moot_size_clause`). Display only: "
-                           "the status index read the closure already.",
+                           "the status index read the closure already. A WATER'S OWN FULL "
+                           "CLOSURE IS THE MOST DOMINANT RULE (user ruling 2026-10-06): a 'No "
+                           "fishing' printed in the water's own row, in force, silences EVERY rule "
+                           "that would let a fish it covers be kept — whoever wrote it (the zone, "
+                           "an area row of the water tables, another row reaching the water by the "
+                           "tributary walk, the row itself) and whatever its key (daily, "
+                           "possession, annual, sizes). Denetiah Creek's 'No fishing, Jul 1-15' "
+                           "silences the Liard River watershed row's bull trout '1 in "
+                           "possession' on those dates: only the closure speaks. Only a federal or "
+                           "park rule (superior authority) still stands, and a rule that lifts the "
+                           "closure in part (for one origin, say) speaks beside it.",
         "moot_size_clause": "A SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE IS NOT SHOWN (user "
                             "ruling 2026-10-05). A zone, area or provincial clause stating only "
                             "sizes ('none under 60 cm', `daily/size`) gives way to ANY outright "
@@ -5864,9 +5879,9 @@ QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
         "beside the row's own 'No Fishing Jan 1-May 31' (closed to Jun 30 — the p.28 list is a "
         "steelhead closure list, no exemption; user decision 2026-10-05), above it alone; the "
         "quota holds Jul 1-Dec 31",
-    ("r3:mahood_river@3-46", "mahood_river.r2"):
-        "the row prints its own 'No Fishing Jan 1-June 30' and no exemption: the spring "
-        "closure and the row both close it to Jun 30; its quota holds Jul 1-Dec 31",
+    # (Mahood River r2 left this list 2026-10-06: under the DENETIAH ruling the row's own 'No
+    # Fishing Jan 1-June 30' silences its quota — the water closing itself, not a zone closure
+    # hiding a missed exemption; `_closure_scan` counts such a quota as speaking.)
     ("r6:west_road_blackwater_river_s_tributaries@6-1", "west_road_river_tributaries.r1"):
         "tributaries only: the mainstem row prints 'tributaries subject to spring closure', so "
         "Region 6's Fraser-watershed stream closure (Apr 1-Jun 30) holds on them and no lift "
@@ -5940,7 +5955,9 @@ def _closure_scan(bundle: Path) -> dict:
     closure bound on the same set (a release Jan 1-Feb 28 against a closure from Feb 1 is seen
     on Feb 1), wherever both are in force — for EACH fish it names that a closure there speaks
     for. The reader answers once per (section, day, fish). Returns {"release": [...], "quota":
-    [...]}, one finding per rule (its first); the callers mark the known ones."""
+    [...]}, one finding per rule (its first); the callers mark the known ones. A quota the
+    WATER'S OWN full closure silences (`read` reason `water_closure`, the DENETIAH ruling) is no
+    finding: the row closes its own water, no zone closure hides an exemption there."""
     from pipeline.deliver.bundle import read as RD
     from pipeline.deliver.bundle.rules import closure_grade, release_origins, yields_to_release
     from pipeline.regs.parsing.catalogue import expand_species
@@ -6007,10 +6024,13 @@ def _closure_scan(bundle: Path) -> dict:
                             and any(RD.speaks_for(R[c], fish) for c in shut_on)):
                         continue
                     if (on, fish) not in cache:
+                        # traced: a quota the WATER'S OWN closure silences (DENETIAH ruling,
+                        # 2026-10-06) is the row closing itself, not a zone closure hiding a
+                        # missed exemption — it counts as speaking here
                         cache[(on, fish)] = {
                             (y["entry"], y["rule"]): y for y in
-                            RD.effective_rules(sid, on, fish, str(bundle))
-                            if y["state"] == "speaks"}
+                            RD.effective_rules(sid, on, fish, str(bundle), trace=True)
+                            if y["state"] == "speaks" or y.get("reason") == "water_closure"}
                     got = cache[(on, fish)]
                     shut = [f"{e}::{r}" for (e, r), y in sorted(got.items())
                             if str(e).startswith("z") and closure_grade(y) == "full"

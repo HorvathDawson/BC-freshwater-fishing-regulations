@@ -467,7 +467,23 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     trout; Eleven Mile Creek gnis:8623 Aug 1 bull trout, May 1 lake trout); a hatchery-only
     clause under a wild-only release stays. The release/closure itself is untouched. 10,650
     clause removals in 10,466 of 104,304 sampled answers, nothing else; status index
-    byte-identical. The reader has NO loser channel: the hidden clause is simply not returned. `requirements_in_force` folds a record
+    byte-identical. DENETIAH (user ruling 2026-10-06, step 4c, `read.WATER_CLOSURE_DOMINANT`): a
+    water's OWN full closure in force (a row's rule bound at rank 0 — not by the walk, not an area
+    row) is the most dominant rule: it silences EVERY keeping rule for the fish it covers, of any
+    source and key (zone, area rows like the Liard watershed's, rows by the walk, possession /
+    annual / size-only), save a superior authority's and the closure's own partial lifters.
+    Denetiah Creek Jul 1-15 shows only its closure, not the Liard row's bull trout "1 in
+    possession". 224 answers over every key changed (all keepers, under 27 such closures of 26
+    waters);
+    status index byte-identical; `_closure_scan` counts a quota the water's own closure silences
+    as speaking (Mahood r2 left `QUOTA_UNDER_CLOSURE_KNOWN`). LOSERS (gap G1):
+    `effective_rules(trace=True)` also returns every rule that took part and lost — `state`
+    lifted / displaced / moot, `reason` (`read.LOSS_REASONS`, the step that removed it first),
+    `by` (the winner's rid); the steps remove rules only through `lose`, so the speakers ARE the
+    untraced answer (`test_reader_answers.py`, every key in the slow test). PER ORIGIN (gap G2):
+    `effective_rules(origin="hatchery"|"wild")` — a lift limited to that origin lifts outright,
+    one for the other origin not at all (the consumer page's reading; the 6 Kitimat lifts);
+    `origin=None` is today's answer, "partly lifted". `requirements_in_force` folds a record
     that `restates` a holding one into it (`also_printed`) and holds a zone table's
     `on_designation` restatement on its own region only (RU-12; 7A/7B tables are Region 7 to the
     rows). The export REFUSES a dated water release that speaks under a blanket closure unless

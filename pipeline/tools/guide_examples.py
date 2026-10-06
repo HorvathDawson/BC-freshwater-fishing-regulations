@@ -45,6 +45,7 @@ KOOTENAY = ("r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19::"
             "kootenay_lake_main_body")
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26::shuswap_lake"
 KITIMAT = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river"
+LIARD = "r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed"
 Z6_STEELHEAD_CLOSURE = "z6:steelhead_stream_closure::steelhead_stream_closure.r1"
 
 
@@ -76,6 +77,11 @@ EXAMPLES: tuple[Example, ...] = (
     E("west_road_row_never_reopens_steelhead_closure", ("ladder.closures",), "gnis:26104",
       "06-01", "ST", (Z6_STEELHEAD_CLOSURE,),
       says="Region 6's steelhead stream closure speaks on West Road's Region 6 pieces"),
+    E("denetiah_closure_silences_the_liard_row", ("ladder.closures", "ladder.closure_any_key"),
+      "gnis:39298", "07-05", "DV", ("r7:denetiah_creek@7-52::denetiah_creek.r1",),
+      (f"{LIARD}.r2", f"{LIARD}.r3", f"{Z7B}.r1", f"{Z7B}.r3"),
+      says="the creek's own 'No fishing, Jul 1-15' silences the Liard River watershed row's "
+           "bull trout 1 a day and 1 in possession, and Zone B's quotas (DENETIAH ruling)"),
     E("kitimat_hatchery_steelhead_does_not_reopen", ("ladder.closures",), "gnis:3225", "06-01",
       "ST", (Z6_STEELHEAD_CLOSURE,), part=(f"{KITIMAT}.r5",),
       says="a closure printing its own exemption list takes no derived lift"),
@@ -230,6 +236,8 @@ NAMED_NOT_CLAIMED: dict[tuple[str, str], str] = {
                                                        "(steelhead_source) — test_steelhead_waters",
     ("ladder.who_speaks", "Bowron Lake"): "names an area row ('Bowron Lake Park waters')",
     ("ladder.who_speaks", "Liard River"): "names an area row ('the Liard River watershed')",
+    ("ladder.closure_any_key", "Liard River"): "names an area row ('the Liard River watershed "
+                                               "row'); the claim is Denetiah Creek's example",
     ("ladder.who_speaks", "Peace River"): "names a watershed ('the Peace River watershed')",
 }
 
