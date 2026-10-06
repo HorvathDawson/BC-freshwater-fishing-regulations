@@ -41,7 +41,9 @@ SENIOR = {"kind": "licence_terms", "document": "basic_licence", "sold": "per_lic
 
 
 def h(*keys, displaced=None, desig=()):
-    return {"holds": list(keys), "displaced": displaced or {}, "_desig": list(desig)}
+    displaced = displaced or {}
+    return {"holds": [k for k in keys if k not in displaced], "rows": list(keys),
+            "displaced": displaced, "_desig": list(desig)}
 
 
 def test_profiles_are_sixty_and_indexed_by_arithmetic():
@@ -135,8 +137,8 @@ def test_the_key_decides_the_answer(live):
         for sid in rnd.sample(sids, min(3, len(sids))):
             for day in (20, 120, 200, 320):
                 md = month_day(day)
-                a = L.holds(db, C, sids[0], key.kind, md)
-                b = L.holds(db, C, sid, key.kind, md)
+                a = L.holds(db, C, sids[0], md)
+                b = L.holds(db, C, sid, md)
                 a.pop("_desig"), b.pop("_desig")
                 assert a == b, (key, sid, md)
                 checked += 1
@@ -153,7 +155,7 @@ def test_live_profiles_answer_as_the_book_says(live):
     from pipeline.deliver.answers.common import month_day
     key = next(k for k in K if k.licensing_set is None and not k.province_except
                and not k.tidal)
-    hh = L.holds(db, C, K[key][0], key.kind, month_day(200))
+    hh = L.holds(db, C, K[key][0], month_day(200))
     alts = L._alternatives_here(db, C, K[key][0])
     adult = L.documents(C, hh, alts, P, ref)
     assert adult["documents"][0]["doc"] == "basic_licence" and adult["documents"][0]["base"]

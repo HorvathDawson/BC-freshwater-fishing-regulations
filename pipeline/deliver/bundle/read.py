@@ -1397,10 +1397,12 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
 # water is open, and a closed water needs no licence by construction.
 
 
-def _designations_in_force(db, section: int, on) -> list[dict]:
+def designations_in_force(db, section: int, on) -> list[dict]:
     """The designations bound to `section` that are in force on the day: their `when` holds
     (a `part` day counts — it holds at some hours), and no `suspended_while` closure of their entry
-    binds the section that day. Each is its record, with `entry_id`."""
+    binds the section that day. Each is its record, with `entry_id` and `id`. Public: the licence
+    answer reads it for the designation boxes and for which `licence_terms` (classified class,
+    units) price the water (consumer 7.7 step 3)."""
     out = []
     rules_here: set | None = None
     for eid, did, rec in db.execute(
@@ -1431,14 +1433,15 @@ def stamp_waived_here(db, section: int, on) -> list[str]:
     on this day — "(Steelhead Stamp not required)", in force (`Designation.waives_every_stamp`).
     Where one holds, no steelhead stamp is required (user ruling 2026-10-02)."""
     from pipeline.regs.parsing.catalogue import Designation
-    return sorted(f"{d['entry_id']}#{d['id']}" for d in _designations_in_force(db, section, on)
+    return sorted(f"{d['entry_id']}#{d['id']}" for d in designations_in_force(db, section, on)
                   if Designation.model_validate({k: v for k, v in d.items()
                                                  if k != "entry_id"}).waives_every_stamp)
 
 
 def requirements_in_force(db, section: int, on) -> dict:
-    """Every requirement in force on `section` on the day, `{entry_id#req_id: why}`, and the ones
-    an outright stamp waiver lifts there, under `"waived"`: `{entry_id#req_id: [designation]}`;
+    """Every requirement in force on `section` on the day, `{entry_id#req_id: why}` under
+    `"holds"`, and the ones an outright stamp waiver lifts there, under `"waived"`:
+    `{entry_id#req_id: [designation]}`;
     under `"also_printed"`, `{entry_id#req_id: [entry_id#req_id, …]}`, the records that RESTATE a
     holding one (one obligation printed twice is one key; RU-12) — and a zone table's
     `on_designation` restatement holds on its own region's designations only.
@@ -1451,8 +1454,24 @@ def requirements_in_force(db, section: int, on) -> dict:
     A REQUIREMENT IN A PART NOBODY HAS DRAWN (`undrawn_part`: the Creston Valley WMA permit on
     the south end of Kootenay Lake's Main Body) never holds of the section: it is listed under
     `"not_yet_mapped"`, `{entry_id#req_id: part}`, to be SHOWN on the water, as a rule in an undrawn
-    part is (`not_yet_mapped`)."""
-    desig = _designations_in_force(db, section, on)
+    part is (`not_yet_mapped`).
+
+    A REQUIREMENT FOR THE OTHER KIND OF WATER DOES NOT HOLD (G5, adopted 2026-10-06): one printed
+    for streams (`water: stream` — the province's Classified Waters Licence,
+    `zp:steelhead#steelhead_targeting`) does not hold on a lake or a wetland. A record that
+    RESTATES another binds as that record (`as_bound`: its `who`, `satisfied_by` and `water` —
+    one obligation). The section's kind is its named water's (`item.kind`); a section in no named
+    water (a walked tributary) keeps it — the tributary walk walks streams only. Listed under
+    `"wrong_water"`, `{entry_id#req_id: the water it is for}`, as `waived` lists the waived ones.
+
+    A SUPERIOR AUTHORITY'S REQUIREMENT DISPLACES THE PROVINCIAL ONES (G5, adopted 2026-10-06): where
+    a requirement with `authority: superior` holds (a national park's fishing permit), every other
+    holding requirement that has a way to satisfy it (`satisfied_by`, as bound) is NOT VALID there —
+    "a federal or park authority's requirement replaces provincial licences". It is moved to
+    `"displaced"`, `{entry_id#req_id: [superior entry_id#req_id, …]}`. (`province_except` already
+    keeps the province-placed records out of national parks; this reaches the sections- and
+    designation-placed ones.)"""
+    desig = designations_in_force(db, section, on)
     have = {"classified_period": bool(desig),
             "steelhead_period": any(
                 d.get("steelhead_stamp_during") is not None
@@ -1475,9 +1494,9 @@ def requirements_in_force(db, section: int, on) -> dict:
     waived: dict[str, list[str]] = {}
     undrawn: dict[str, str] = {}
     restated: dict[str, str] = {}
-    for eid, rid, placement, rec in db.execute(
-            "SELECT entry_id, req_id, placement, record FROM requirement"):
-        r = json.loads(rec)
+    records = {f"{e}#{r}": (e, r, p, json.loads(rec)) for e, r, p, rec in db.execute(
+        "SELECT entry_id, req_id, placement, record FROM requirement")}
+    for eid, rid, placement, r in records.values():
         if placement == "sections":
             if (eid, rid) not in placed:
                 continue
@@ -1516,7 +1535,50 @@ def requirements_in_force(db, section: int, on) -> dict:
         if of in holds and of != key:
             also.setdefault(of, []).append(key)
             holds.pop(key)
-    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn, "also_printed": also}
+    # THE OTHER KIND OF WATER (G5): read on the obligation as bound — after the fold, so a
+    # restatement goes where the record it restates goes
+    kind = section_kind(db, section)
+    every_req = {x: v[3] for x, v in records.items()}
+    bound = {k: as_bound(records[k][3], every_req) for k in holds}
+    wrong: dict[str, str] = {}
+    if kind is not None:
+        for k in list(holds):
+            w = bound[k].get("water")
+            if w and w != kind:
+                wrong[k] = w
+                holds.pop(k)
+    # A SUPERIOR AUTHORITY DISPLACES (G5)
+    superior = sorted(k for k in holds if records[k][3].get("authority") == "superior")
+    displaced: dict[str, list[str]] = {}
+    if superior:
+        for k in list(holds):
+            if records[k][3].get("authority") != "superior" and bound[k].get("satisfied_by"):
+                displaced[k] = superior
+                holds.pop(k)
+    also = {k: v for k, v in also.items() if k in holds or k in displaced}
+    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn, "also_printed": also,
+            "wrong_water": wrong, "displaced": displaced}
+
+
+def section_kind(db, section: int) -> str | None:
+    """The kind of the named water a section is part of (`item.kind`: lake, stream, wetland), or
+    None for a section of no named water."""
+    got = db.execute("SELECT i.kind FROM item_section s JOIN item i ON i.ord = s.ord "
+                     "WHERE s.sid = ?", (section,)).fetchone()
+    return got[0] if got else None
+
+
+def as_bound(r: dict, requirements: dict) -> dict:
+    """A requirement as it binds: one that RESTATES another (`restates`) reads the restated record's
+    `who`, `satisfied_by` and `water` — one obligation printed twice (RU-12). `requirements` is
+    every requirement record by `entry_id#req_id`."""
+    rs = r.get("restates")
+    if rs:
+        o = requirements.get(f"{rs['entry_id']}#{rs['id']}")
+        if o:
+            return dict(r, who=o.get("who"), satisfied_by=o.get("satisfied_by"),
+                        water=o.get("water"))
+    return r
 
 
 def _entry_region(entry_id: str) -> str | None:

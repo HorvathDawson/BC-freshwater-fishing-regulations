@@ -71,8 +71,7 @@ def main(argv=None) -> int:
     if "licence" in only or "parts" in only:
         t = time.time()
         out_lic = licence.build(B.path)
-        write("licence", {**_public(out_lic), "decisions": licence.DECISIONS,
-                          "proposals_for_reader": licence.PROPOSALS_FOR_READER})
+        write("licence", {**_public(out_lic), "decisions": licence.DECISIONS})
         report["seconds"]["licence"] = round(time.time() - t, 2)
     if "parts" in only:
         t = time.time()

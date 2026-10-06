@@ -2,19 +2,13 @@
 Consumer Stage 7.7; gap G5.
 
 WHICH REQUIREMENTS HOLD is the reader's (`read.requirements_in_force`): placement, `on` a
-classified or stamp period, the record's dates, an outright stamp waiver, the undrawn part, and
-one obligation printed twice folded into one key (`also_printed`, RU-12). Three things the page
-does that the reader does not (G5) are applied HERE, after it, and proposed to the reader's owner
-(`PROPOSALS_FOR_READER`):
-
-  * a requirement for the other KIND of water does not hold (`water: stream` — the province's
-    Classified Waters Licence and `zp:steelhead#steelhead_targeting`); a record that RESTATES
-    another reads that record's `who`, `satisfied_by` and `water` (one obligation);
-  * a SUPERIOR authority's requirement (a national park fishing permit) DISPLACES every other
-    requirement that has a way to satisfy it — the provincial licences are not valid there;
-  * (the page also drops a steelhead-only requirement on any lake; we do NOT: AGENTS 54 puts the
-    whole provincial steelhead set, stamp included, on a book-known lake such as Tenas Lake, and
-    the stream-only steelhead requirement already says `water: stream`.)
+classified or stamp period, the record's dates, an outright stamp waiver, the undrawn part, one
+obligation printed twice folded into one key (`also_printed`, RU-12), a requirement for the other
+KIND of water (`wrong_water`; a restating record binds as the record it restates, `read.as_bound`)
+and a SUPERIOR authority's requirement displacing the provincial ones (`displaced`) — gap G5,
+adopted into the reader 2026-10-06 (the page also drops a steelhead-only requirement on any lake;
+we do NOT: AGENTS 54 puts the whole provincial steelhead set, stamp included, on a book-known lake
+such as Tenas Lake, and the stream-only steelhead requirement already says `water: stream`).
 
 WHO NEEDS WHAT is decided for every one of the 60 angler profiles (residency 3 x age 2 x guided 2
 x status 5, Métis included — DESIGN.md D5): the angler is always unknown, so every answer ships
@@ -76,14 +70,14 @@ def who_match(who: Optional[dict], p: Dict[str, str]) -> bool:
 
 DECISIONS = [
     "L1 A restating record carries the restated record's `who`, `satisfied_by` AND `water` (one "
-    "obligation, RU-12); the page carries only the first two.",
+    "obligation, RU-12; `read.as_bound`); the page carries only the first two.",
     "L2 A displaced requirement (a superior authority holds) contributes NO document to buy; the "
     "page marks it 'Not valid here' but still lists its documents.",
     "L3 A steelhead-only requirement on a lake is NOT dropped (AGENTS 54: a book-known lake "
     "carries the stamp); the page drops it. The stream-only one says `water: stream` and drops "
     "by kind.",
     "L4 A key of unknown water kind (no named water: walked tributaries) keeps a kind-scoped "
-    "requirement — the tributary walk walks streams only (AGENTS 15).",
+    "requirement — the tributary walk walks streams only (AGENTS 15; `read.requirements_in_force`).",
     "L5 Métis is its own status (60 profiles): no record names it, so it answers as 'none' today.",
     "L6 Prices are numbers per document for the profile's residency: the annual price written for "
     "this angler first (65+, disabled), each day price, each 8-day price; a term's `classified` "
@@ -91,25 +85,6 @@ DECISIONS = [
     "L7 On tidal water no province-wide record holds (the reader: `province_except` tidal); the "
     "page still lists the angling guide licence there (Nitinat Lake) — a page bug.",
 ]
-
-#: G5 — the fix the reader needs, for agent B (who owns read.py). Written here, applied here
-#: until the reader carries it.
-PROPOSALS_FOR_READER = [
-    "requirements_in_force: drop a requirement whose `water` (or, for a restating record, the "
-    "restated record's `water`) is not the section's water kind (`item.kind` via item_section; "
-    "keep it where the section is in no item). Return it under a new `wrong_water` key so a "
-    "reader can see it, as `waived` does for the stamp waiver.",
-    "requirements_in_force: when a held requirement has `authority: superior`, move every other "
-    "held requirement with a non-empty `satisfied_by` to a new `displaced` map "
-    "{key: [superior key, ...]} — 'a federal or park authority's requirement replaces provincial "
-    "licences'. Today province_except already stops the province-placed ones in national parks, "
-    "so this changes nothing on the live bundle (measured: 0 keys); it guards sections- and "
-    "designation-placed records.",
-    "expose `designations_in_force(db, section, on)` (today `_designations_in_force`): the "
-    "licence answer reads it for the designation boxes and for which `licence_terms` "
-    "(classified class, units) price this water.",
-]
-
 
 @dataclass(frozen=True, order=True)
 class LicenceKey:
@@ -224,41 +199,33 @@ def change_days(db: sqlite3.Connection) -> List[int]:
 # --------------------------------------------------------------------------------------------
 
 def _resolved(C: Corpus, key: str) -> dict:
-    """A requirement as it binds: a restating record reads the restated one's `who`,
-    `satisfied_by` and `water`."""
-    r = C.requirements[key]
-    rs = r.get("restates")
-    if rs:
-        o = C.requirements.get(f"{rs['entry_id']}#{rs['id']}")
-        if o:
-            return dict(r, who=o.get("who"), satisfied_by=o.get("satisfied_by"),
-                        water=o.get("water"))
-    return r
+    """A requirement as it binds (`read.as_bound`: a restating record reads the restated one's
+    `who`, `satisfied_by` and `water`)."""
+    return read.as_bound(C.requirements[key], C.requirements)
 
 
-def holds(db, C: Corpus, sid: int, kind: Optional[str], md) -> dict:
-    """The reader's answer for the section on the day, with the G5 steps applied:
+def _order(C: Corpus, keys) -> List[str]:
+    """Requirements in the answer's order: placed on the water's sections first, then by key."""
+    return sorted(keys, key=lambda k: (C.requirements[k]["_placement"] != "sections", k))
+
+
+def holds(db, C: Corpus, sid: int, md) -> dict:
+    """The reader's answer for the section on the day (`read.requirements_in_force`, which drops
+    a requirement for the other kind of water and displaces the provincial ones where a superior
+    authority's holds, and `read.designations_in_force`), in the answer's order:
     {holds: [key], displaced: {key: [superior key]}, wrong_water: [key], waived: [key],
-     not_yet_mapped: [key], also_printed: {key: [key]}, designations: [key], stamp_period: bool}."""
+     not_yet_mapped: [key], also_printed: {key: [key]}, designations: [key], stamp_period: bool,
+     rows: [key] — the requirements the angler is shown (held and displaced), in order}."""
     got = read.requirements_in_force(db, sid, md)
-    desig = read._designations_in_force(db, sid, md)
-    held: List[str] = []
-    wrong: List[str] = []
-    order = sorted(got["holds"], key=lambda k: (got["holds"][k] != "sections", k))
-    for k in order:
-        w = _resolved(C, k).get("water")
-        if w and kind and w != kind:
-            wrong.append(k)
-        else:
-            held.append(k)
-    superior = [k for k in held if C.requirements[k].get("authority") == "superior"]
-    displaced = {k: superior for k in held
-                 if superior and C.requirements[k].get("authority") != "superior"
-                 and _resolved(C, k).get("satisfied_by")}
-    return {"holds": held, "displaced": displaced, "wrong_water": wrong,
+    desig = read.designations_in_force(db, sid, md)
+    rows = _order(C, list(got["holds"]) + list(got["displaced"]))
+    return {"holds": [k for k in rows if k in got["holds"]],
+            "displaced": {k: got["displaced"][k] for k in rows if k in got["displaced"]},
+            "wrong_water": _order(C, got["wrong_water"]),
             "waived": sorted(got["waived"]), "not_yet_mapped": sorted(got["not_yet_mapped"]),
-            "also_printed": {k: v for k, v in sorted(got["also_printed"].items()) if k in held},
+            "also_printed": {k: v for k, v in sorted(got["also_printed"].items())},
             "designations": sorted(f"{d['entry_id']}#{d['id']}" for d in desig),
+            "rows": rows,
             "_desig": desig,
             "stamp_period": any(d.get("steelhead_stamp_during") is not None and
                                 read.in_force(d["steelhead_stamp_during"].get("when"), md) != "no"
@@ -328,7 +295,7 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
     mine, others, guiding = [], [], []
     buy: Dict[str, dict] = {}
     fish_needs_any = False
-    for k in h["holds"]:
+    for k in h["rows"]:
         r = _resolved(C, k)
         is_mine = who_match(r.get("who"), p) and not (r.get("who_except")
                                                       and who_match(r["who_except"], p))
@@ -423,7 +390,7 @@ def produce(path: str, ref: Optional[Callable[[str], object]] = None,
             year: Dict[int, dict] = {}
             last = None
             for d in days:
-                h = holds(db, C, sid, key.kind, month_day(d))
+                h = holds(db, C, sid, month_day(d))
                 if stats is not None:
                     stats["key_days_wrong_water"] = stats.get("key_days_wrong_water", 0) + \
                         bool(h["wrong_water"])

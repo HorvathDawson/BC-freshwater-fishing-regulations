@@ -486,7 +486,13 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     `origin=None` is today's answer, "partly lifted". `requirements_in_force` folds a record
     that `restates` a holding one into it (`also_printed`) and holds a zone table's
     `on_designation` restatement on its own region only (RU-12; 7A/7B tables are Region 7 to the
-    rows). The export REFUSES a dated water release that speaks under a blanket closure unless
+    rows). G5 (adopted 2026-10-06, from the answers layer): it drops a requirement for the other
+    KIND of water (`wrong_water`: `water: stream` on a lake or wetland; a section of no named water
+    keeps it; a restating record binds as the record it restates, `read.as_bound`), and a
+    SUPERIOR authority's requirement (the national park permit) moves every other holding
+    requirement with a `satisfied_by` to `displaced` — "provincial licences are not valid here".
+    `designations_in_force` is public. The licence answer reads these; it holds no copy
+    (`test_requirements_g5.py`, mutation-pinned). The export REFUSES a dated water release that speaks under a blanket closure unless
     listed as known (`export_ui_rules.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-2 would have been
     caught), AND a water row's keeping quota in force that a blanket zone closure silences
     (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
