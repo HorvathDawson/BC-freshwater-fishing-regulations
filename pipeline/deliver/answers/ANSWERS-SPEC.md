@@ -108,7 +108,7 @@ Per (key, segment): `[spp, {fish: [hatchery, wild]}, [row], steelhead_line]`.
   with its keep bands `[[from_cm, to_cm|null, number]]` (the keep range is the first band's from
   and the last band's to; a band of 0 is a slot to release), `back`, `xref`, `sub`, `conds`
   (indexes of the row's `conds` about these fish), `against` (a fish with its own row: the number
-  it counts toward here) and per-origin `origins` for a fish with its own row), and `real_daily`
+  it counts toward here, `"unlimited"` for a total with no number; absent on other items) and per-origin `origins` for a fish with its own row), and `real_daily`
   (5.7: `{n, all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, open}` or null;
   "Really {sum} a day here" when `all`, "Only {capped_sum} of the {n} can be …" when `rb`).
   Section version 2 (the rows fixes, §8 F1-F10).
@@ -284,7 +284,8 @@ release); F4 a fish lifted out of the narrowing clause counts toward the outer t
 hatchery rainbow 4 of 4, `against`); F5a slots are 0 bands (Teslin); F5b the zone's outer size cap
 caps a water's own bands (Thompson below Kamloops L.); F5c a rainbow's range ends at 50 cm on a
 steelhead water; F5d every shared cap (Region 8 "2 over 30"); F6 `possession_cap`, never a yearly
-limit; F7 `scope.apart` only when no outer total is left (Vedder r9, Kitimat r4/r5 still count
+limit, decided once by `display.kind_of` (the display rule kind, the rows' line and role and the
+plain sentence all read it; the page's "annual" is page bug d10); F7 `scope.apart` only when no outer total is left (Vedder r9, Kitimat r4/r5 still count
 toward the region's); F8 `of: area` (Haida Gwaii, Bowron Lake Park, Liard); F9 a water's own
 limit still counts fish kept elsewhere (the page's "Only fish kept on this lake count" is wrong);
 F10 no presence data for any fish but steelhead: the book's group wording stays. Undo: revert the

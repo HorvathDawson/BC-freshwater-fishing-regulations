@@ -175,7 +175,8 @@ SPEC = {
                     "against?, origins?}] (5.8: ONE item per kind, each fish in exactly one; the "
                     "keep range is the first band's from and the last's to, a band of 0 a slot "
                     "to release; `conds` indexes the row's `conds` about these fish; `against` "
-                    "the number a fish with its own row counts toward here); `real_daily` {n, "
+                    "the number a fish with its own row counts toward here, \"unlimited\" for a "
+                    "total with no number; absent on other items); `real_daily` {n, "
                     "all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, "
                     "open} or null (5.7: \"Really {sum} a day here\" when `all`)",
         },

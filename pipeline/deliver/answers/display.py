@@ -4,7 +4,8 @@ PER RULE (consumer Stage 2.3, 2.4, 6.3), from the rule's own fields:
 
     kind     the page's 15-step kind test (`kindOf`), in its order and its vocabulary: gear,
              conduct, vessel, anglerclosure, duty, exempt, standing, while, possession, annual,
-             sizecap, subcap, gate, pool, size. `closure` marks a gate that is a closure ("No
+             sizecap, subcap, gate, pool, size — plus `possession_cap` (a possession limit with
+             a number; the page calls it annual: page bug d10, rows F6). `closure` marks a gate that is a closure ("No
              fishing for …") rather than a release ("Release every …") — asked of
              `rules.closure_grade`, the one closure predicate (AGENTS 56).
     bands    `lengths` expanded into contiguous bands from 0 cm up, first range wins:
@@ -106,7 +107,11 @@ def kind_of(x: dict) -> str:
     if _js(x.get("per_daily")):
         return "possession"
     if _js(x.get("period")) and x.get("period") != "daily":
-        return "annual" if _gt0(x.get("take")) else "duty"
+        if not _gt0(x.get("take")):
+            return "duty"
+        # rows F6, THE one place a possession limit with a number is told from a yearly one (the
+        # page says "annual" for both: page bug d10)
+        return "possession_cap" if x.get("period") == "possession" else "annual"
     n = len(x.get("lengths") or [])
     if _js(x.get("within")):
         return "sizecap" if n else "subcap"
@@ -234,7 +239,7 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return wrap(f"Keep up to {_num(take)} {sp}{over} a licence year"
                     f"{', all kinds together' if len(species) > 1 else ''}")
     # a possession limit with a number holds what you have with you, not a day's catch (rows F6)
-    per = " in possession" if x.get("period") == "possession" else " a day"
+    per = " in possession" if kind_of(x) == "possession_cap" else " a day"
     if take is not None and mn and not floor:
         who = re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")
         return wrap(f"Only {_num(take)} {org}{who} over {_num(mn['min_cm'])} cm{per}{ex_txt}")

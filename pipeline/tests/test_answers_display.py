@@ -66,9 +66,11 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
         got = {"kind": X.kind_of(x), "closed": X.is_closure_gate(x), "bands": X.bands(x),
                "plain": X.plain(x)}
         if x.get("period") == "possession" and x.get("take"):
-            # a documented page bug (rows F6): the page says "a day" of a possession limit
+            # a documented page bug (d10, rows F6): the page calls a possession limit with a
+            # number "annual" and says "a day" of it
             possession += 1
-            want = dict(want, plain=want["plain"] and want["plain"].replace(" a day", " in possession")
+            assert want["kind"] == "annual"
+            want = dict(want, kind="possession_cap", plain=want["plain"] and want["plain"].replace(" a day", " in possession")
                         .replace("Keep up to", "Have no more than"))
         if got != want:
             bad.append((k, got, want))

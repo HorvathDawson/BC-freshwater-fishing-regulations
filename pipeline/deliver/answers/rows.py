@@ -64,8 +64,12 @@ DECISIONS = [
     "only the first, by matching its own sentence).",
     # Rows fixes (2026-10-06, ROWS-REVIEW): where the page is wrong, the card follows the book.
     "F1 ONE ITEM PER KIND (review A1): each fish's bands, sub-limit, go-back, own-row reference "
-    "and the row's conditions about it are worked out for that fish alone; fish whose all agree "
-    "share an item. The page builds items from fact groups, so a fish sat in two items and an "
+    "and the row's conditions about it are worked out for that fish alone. Fish share an item "
+    "when exactly these agree: whether it has lines, its bands, sub-limit, go-back, own-row "
+    "reference (rule, number, `against`) and the indexes of the row's `conds` about it. Facts "
+    "that are not conditions (steel, caution, also, orphan, tnote, partly, a release line that "
+    "moves no band) do NOT split an item: they are not shipped on items, and each one names its "
+    "own fish in the row's `everyone`/`groups`. The page builds items from fact groups, so a fish sat in two items and an "
     "item showed one range for fish with different ones (Anderson R., Jul: brook, brown and "
     "cutthroat 'keep 1 over 60 cm'; the book: up to 4, only 1 over 50).",
     "F1b A cap written for every fish of a row but rainbow trout, left out only because a "
@@ -84,7 +88,9 @@ DECISIONS = [
     "`origin_lines`). F5d Every general shared cap counts (R8: Region 8's 'only 2 over 30 cm'), "
     "nested caps worked from the largest size down; `shared_cap` lists those that bind.",
     "F6 A possession limit with a number is `possession_cap` (line, role and fact), never a "
-    "yearly limit (review B1: 'Per licence year: 1 lake trout in possession').",
+    "yearly limit (review B1: 'Per licence year: 1 lake trout in possession'). ONE source: "
+    "`display.kind_of` returns `possession_cap`; rows read it as the rule's kind, display ships "
+    "it as the rule's kind and words its sentence from it (page bug d10: the page says annual).",
     "F7 `scope.apart`: a water's (or area's) pool counts its fish apart from a wider total only "
     "when it lifts a wider POOL that binds here and no `outer` line is left (review B4: Vedder "
     "r9 and Kitimat r4/r5 lift only a stream share; their fish still count toward the region's).",
@@ -330,8 +336,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
             lines.append({"t": "tnote", "r": Pw,
                           "only": "CHAR" in (Pw.f.get("species_except") or [])})
         for r in A:
-            if r.k == "annual":
-                if r.f.get("period") == "possession":         # decision F6: not a yearly limit
+            if r.k in ("annual", "possession_cap"):
+                if r.k == "possession_cap":                   # decision F6 (display.kind_of)
                     setr(r, "possession_cap")
                     lines.append({"t": "possession_cap", "r": r})
                 else:
@@ -360,7 +366,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         elif r.f.get("within"):
             p = f"{r.entry_id}::{r.f['within']}"
             setr(r, "falls", p if p in P.all_rules else None)
-        elif r.k in ("size", "subcap", "sizecap", "annual", "duty"):
+        elif r.k in ("size", "subcap", "sizecap", "annual", "possession_cap", "duty"):
             setr(r, "moot", win.key)
     return res
 
@@ -457,7 +463,8 @@ def species_at(P: "Part") -> List[str]:
     s: List[str] = []
     for r in P.cands:
         if P.applies(r) and r.type == "retention_limit" \
-                and r.k in ("gate", "pool", "subcap", "sizecap", "size", "annual") \
+                and r.k in ("gate", "pool", "subcap", "sizecap", "size", "annual",
+                            "possession_cap") \
                 and "ALL_GAME_FISH" not in (r.f.get("species") or []):
             for x in r.species:
                 if x not in PROTECTED_FISH and x not in s:
@@ -850,7 +857,9 @@ def _against(row: dict, model: dict, S: str):
 def species_items(P: "Part", model: dict, row: dict, rc: dict) -> List[dict]:
     """The fish of a keep row as the card lists them (the page's `speciesItems`), ONE ITEM PER
     KIND (decision F1): each fish's bands, sub-limit, go-back, own-row reference and the row's
-    conditions about it are worked out for that fish alone; fish whose all agree share an item.
+    conditions about it are worked out for that fish alone; fish share an item when exactly
+    `sig` agrees (has lines, bands, sub-limit, go-back, own-row ref and `against`, condition
+    indexes) — other facts do not split items (they name their own fish in the row's facts).
     (The page builds items from the fact groups, so one fish could sit in two items and an item
     showed one range for fish with different ones.)"""
     got = rc.get("_items")
@@ -1231,7 +1240,8 @@ def produce(P: Part) -> dict:
                       "sub": _num(it["sub"]["sub"]) if it.get("sub") else None,
                       "conds": list(it["conds"])}
                 if xref:
-                    io["against"] = _num(it["against"])               # decision F4
+                    # decision F4; an unlimited outer total is the word, never null
+                    io["against"] = "unlimited" if it["against"] == INF else _num(it["against"])
                 if xref and len(it["members"]) == 1:
                     io["origins"] = [{k: _num(v) if k in ("n", "lo", "hi") else v
                                       for k, v in x.items()}

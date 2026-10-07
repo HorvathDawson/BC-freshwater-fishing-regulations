@@ -232,8 +232,13 @@ def test_teslin_slots_and_possession(built):
 
 def test_a_possession_limit_is_not_a_day_or_a_year():
     """F6, the rule's plain sentence (display): Teslin's lake trout 1 in possession."""
-    from pipeline.deliver.answers.display import plain
+    from pipeline.deliver.answers.display import kind_of, plain
     x = {"type": "retention_limit", "species": ["LT"], "take": 1, "period": "possession"}
+    # ONE source: display.kind_of decides it; rows.R reads that kind (role/line possession_cap)
+    assert kind_of(x) == "possession_cap"
+    assert RW.R("e::r", {**x, "entry": "e", "rule": "r", "_rank": 0}, "reach").k == "possession_cap"
+    assert kind_of(dict(x, period="annual")) == "annual"
+    assert kind_of(dict(x, take=0)) == "duty"
     assert plain(x) == "Have no more than 1 lake trout in possession."
     y = dict(x, take=1, lengths=[{"min_cm": 50}])
     assert plain(y) == "Only 1 lake trout over 50 cm in possession."
