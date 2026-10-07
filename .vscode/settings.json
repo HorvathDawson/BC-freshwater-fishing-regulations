@@ -6,11 +6,22 @@
         "**/output/**": true,
         "**/.venv/**": true,
         "**/__pycache__/**": true,
-        "**/node_modules/**": true
+        "**/node_modules/**": true,
+        "**/data/generated/**": true,
+        "**/data/source/**": true,
+        "**/.claude/worktrees/**": true,
+        "**/graphify-out/**": true
     },
     "search.exclude": {
         "**/output": true,
         "**/.venv": true,
-        "**/__pycache__": true
+        "**/__pycache__": true,
+        "**/data/generated": true,
+        "**/data/source": true,
+        "**/.claude/worktrees": true,
+        "**/graphify-out": true
+    },
+    "files.exclude": {
+        "**/.claude/worktrees": true
     }
 }
