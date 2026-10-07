@@ -717,3 +717,61 @@ def test_dester_lake_and_upper_meldrum_creek_are_in_the_fraser_walk(real):
     assert below in got
     assert lake in got, "Dester Lake is cut off from the walk"
     assert above in got, "upper Meldrum Creek is cut off from the walk"
+
+
+# --------------------------------------------------------------------------- #
+# FIX A3/B4 (user ruling 2026-10-06): a walk continues across water outside B.C.
+# --------------------------------------------------------------------------- #
+
+def _border_trib():
+    """The Chilliwack tributary blk 356233151 (live atlas): mouth piece :20 in B.C. (order 0 — its
+    fid is drawn mostly in Washington), :43 the 424 m in Washington (order 0, `out_of_bc`: FWA
+    computes no order past the border), :467 back in B.C. (order 1)."""
+    nodes = [_n("river", order=5), _n("t:20", order=0, blk="t"),
+             dataclasses.replace(_n("t:43", order=0, blk="t"), out_of_bc=True),
+             _n("t:467", order=1, blk="t")]
+    edges = [("t:20", "river", "confluence"), ("t:43", "t:20", "continuation"),
+             ("t:467", "t:43", "continuation")]
+    return _g(nodes, edges)
+
+
+def test_a_walk_continues_across_water_outside_bc_and_resumes_inside():
+    """The Chilliwack tributary blk 356233151 (live atlas): its mouth piece :20 (in B.C., order 0 —
+    its fid is drawn mostly in Washington), :43 the 424 m in Washington (order 0: FWA computes no
+    order past the border), :467 back in B.C. (order 1). The walk from the river goes up all three;
+    the pieces outside carry no rule because the reach builder subtracts them afterwards
+    (`classify.OUTSIDE_BC_SUBTRACTED`), never because the walk stopped. Read as an order, 0 made
+    :467 'a bigger river' than :43 and the walk stopped at the border."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _border_trib()
+    assert expand(g, {"river"}) == {"river", "t:20", "t:43", "t:467"}
+    assert not _breaks_strahler(g.nodes["t:467"], g.nodes["t:43"])
+    assert T.ORDER_ZERO_IS_UNKNOWN
+
+
+def test_order_zero_is_unknown_only_outside_bc(monkeypatch):
+    """MUTATION: with order 0 read as an order the re-entering piece is lost; a real bigger river
+    above a smaller piece is still refused."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _border_trib()
+    monkeypatch.setattr(T, "ORDER_ZERO_IS_UNKNOWN", False)
+    assert "t:467" not in expand(g, {"river"}), "the defect: the walk stopped at the border"
+    monkeypatch.setattr(T, "ORDER_ZERO_IS_UNKNOWN", True)
+    assert "t:467" in expand(g, {"river"})
+    assert _breaks_strahler(_n("big", order=4), _n("small", order=2))
+
+
+def test_an_order_zero_stub_inside_bc_does_not_seed_the_river_it_joins():
+    """Code review A-3, the Chehalis/Harrison class: a reach that is a B.C. order-0 stub, ending at
+    its mouth, must not pick up the bigger river arriving at that confluence (`_mouths_at`). Order 0
+    is unknown only OUTSIDE B.C.; inside it is judged. MUTATION: mark the stub `out_of_bc` and the
+    river (order 5) is seeded."""
+    from pipeline.atlas.graph.tributaries import _mouths_at
+    def world(stub_out):
+        stub = dataclasses.replace(_n("s:0", order=0, blk="s"), out_of_bc=stub_out)
+        nodes = [stub, _n("R:lo", order=5, blk="R"), _n("H:0", order=5, blk="H")]
+        return _g(nodes, [("s:0", "R:lo", "confluence", 0.0), ("H:0", "R:lo", "confluence", 0.0)])
+    g = world(False)
+    assert _mouths_at(g, "s:0", g.nodes["s:0"], 0.0, frozenset({"s:0"})) == set()
+    g = world(True)
+    assert _mouths_at(g, "s:0", g.nodes["s:0"], 0.0, frozenset({"s:0"})) == {"H:0"}

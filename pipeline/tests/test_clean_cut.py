@@ -290,6 +290,54 @@ def test_an_exit_needs_a_continuous_run_out_longer_than_the_rejoin_distance():
     assert cuts == [] and inside == [(0.0, short_out.length)]
 
 
+def test_the_exit_sits_at_the_last_crossing_before_the_long_run_out():
+    """FIX A1(a), user review 2026-10-06: the exit cut is where the stream LAST LEFT — walk back from
+    the long outside run to the crossing that starts it — never R metres out, never the first
+    crossing of the wander before it. Carmanah Creek's shape in Pacific Rim (live atlas, blk
+    354154120): in 0-820, out 1,338 m, then in/out/in/out/in of 63, 7, 220, 8, 167 m, last crossing
+    at 2,623.51, then 22 km out: cuts 819.88 (exit), 2,157.81 (re-entry), 2,623.51 (exit)."""
+    big = box(0, -5000, 10000, 0)                     # the area: y < 0
+    # mouth inside at (100,-820), up to the edge at 820 m, out 1,338 m, back in, then three 7-8 m dips
+    # out across y = 0, then the long run out (5 km)
+    pts = [(100, -820), (100, 0), (100, 669), (300, 669), (300, 0), (300, -63), (400, -63),
+           (400, 3.65), (450, 3.65), (450, -220), (600, -220), (600, 3.95), (650, 3.95),
+           (650, -167), (800, -167), (800, 0), (800, 5000)]
+    g = LineString(pts)
+    ms = CC.crossings(g, big.boundary)
+    cuts, inside, _ = CC.decide_rejoin(g, big, big.boundary, 1000.0)
+    assert len(cuts) == 3 and cuts[0] == ms[0] and cuts[1] == ms[1], (cuts, ms)
+    assert cuts[2] == ms[-1], "the exit is the LAST crossing, where the stream last left"
+    assert g.length - cuts[2] == pytest.approx(5000.0), "and nothing of the run out is inside"
+    assert inside == [(0.0, ms[0]), (ms[1], ms[-1])]
+
+
+@pytest.mark.parametrize("tail, exits", [(4.0, False), (5.0, True), (30.0, True), (700.0, True),
+                                          (1500.0, True)])
+def test_an_outside_run_to_the_headwaters_is_an_exit_however_short(tail, exits):
+    """FIX A1(b), user review 2026-10-06: an outside run that never re-enters — it runs to the line's
+    end (its headwaters) outside the area — is an EXIT however short; only a run under the
+    positional error (5 m) is ignored. The rejoin distance joins only runs that come BACK."""
+    g = LineString([(1500, 500), (1000 - tail, 500)])           # mouth 500 m inside, source `tail` out
+    cuts, inside, _ = CC.decide_rejoin(g, RESERVE, RESERVE.boundary, 1000.0)
+    if exits:
+        assert cuts == [500.0] and inside == [(0.0, 500.0)]
+    else:
+        assert cuts == [] and inside == [(0.0, g.length)]
+
+
+def test_an_outside_run_to_a_lake_edge_is_an_exit_however_short():
+    """The same at a stretch END that is a lake edge (the run ends on the lake, `stretches`): a 40 m
+    run out to the lake is an exit at the last crossing, in absolute measures."""
+    from pipeline.common.models import WaterbodyRun
+    line = LineString([(1500, 500), (960, 500), (0, 500)])      # mouth inside; lake from 540 to 1500 m
+    ch = BlkChain(blk="L", fwa_watershed_code="100", fids=(), geometry=line, mouth_measure=0.0,
+                  length_m=line.length, name_tuples=(),
+                  waterbody_runs=(WaterbodyRun(wbk="1", down_m=540.0, up_m=1500.0, kind="lake"),))
+    cuts, inside, _ = CC.decide_chain(ch, RESERVE, RESERVE.boundary, 0.0, rejoin_m=1000.0)
+    assert [c[:2] for c in cuts] == [(500.0, "exit")]
+    assert inside == [(float("-inf"), 500.0)]
+
+
 def test_an_isolated_dip_under_the_positional_error_is_ignored():
     """Trout Creek's shape: 4 m in and back, nothing else near. No entry, no cut, no membership. And
     the Ospika's: its mouth 1.9 m inside the edge — no cut, the line is outside."""

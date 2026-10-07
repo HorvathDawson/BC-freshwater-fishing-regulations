@@ -3483,7 +3483,19 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission"
+       ],
+       "item_id": "gnis:39325"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:11481"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:13499"
       }
      ]
     },
@@ -3603,7 +3615,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole",
+       "op": "upstream_of",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission"
+       ],
        "item_id": "gnis:39325"
       }
      ]
@@ -3614,7 +3629,19 @@
      "verbatim": "Boats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "fraser_river__the_cpr_bridge_at_mission"
+       ],
+       "item_id": "gnis:39325"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:11481"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:13499"
       }
      ]
     }
@@ -4063,7 +4090,11 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "downstream_of",
+     "splits": [
+      "harrison_river__harrison_lake"
+     ],
+     "item_id": "gnis:15333"
     }
    ],
    "rules": [
@@ -4090,7 +4121,11 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "harrison_river__harrison_lake"
+       ],
+       "item_id": "gnis:15333"
       }
      ]
     },
@@ -4111,7 +4146,11 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "harrison_river__harrison_lake"
+       ],
+       "item_id": "gnis:15333"
       }
      ]
     },
@@ -4122,7 +4161,11 @@
      "aspect": "speed",
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "harrison_river__harrison_lake"
+       ],
+       "item_id": "gnis:15333"
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location",

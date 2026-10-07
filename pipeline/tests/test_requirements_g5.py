@@ -22,7 +22,7 @@ from pipeline.deliver.bundle import read as R
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 JUL_1 = (7, 1)
 
-TENAS_LAKE = "wbk:329021804"                  # a book-known steelhead lake (AGENTS 54)
+KHARTOUM_LAKE = "wbk:329197063"               # a book-known steelhead lake by its own row (AGENTS 54)
 SHUSWAP_LAKE = "wbk:329518145"
 NITINAT_RIVER = "gnis:23318"                  # in Pacific Rim National Park Reserve
 STAMP_KNOWN = "zp:steelhead#steelhead_targeting_known"
@@ -73,7 +73,7 @@ def _edit(c, key: str, **fields) -> None:
 
 
 def test_the_answer_has_every_key(db):
-    got = R.requirements_in_force(db, _sid(db, TENAS_LAKE), JUL_1)
+    got = R.requirements_in_force(db, _sid(db, KHARTOUM_LAKE), JUL_1)
     assert set(got) == {"holds", "waived", "not_yet_mapped", "also_printed", "wrong_water",
                         "displaced"}
 
@@ -95,10 +95,10 @@ def test_designations_in_force_is_public_and_the_waiver_reads_it(db):
 # --------------------------------------------------------------------------------------------
 
 def test_a_stream_requirement_does_not_hold_on_a_lake(db, copy_db):
-    """MUTATION: Tenas Lake carries the provincial steelhead stamp (`steelhead_targeting_known`,
+    """MUTATION: Khartoum Lake carries the provincial steelhead stamp (`steelhead_targeting_known`,
     no water kind). Print it for streams and it no longer holds on the lake — it is listed under
     `wrong_water`; print it for lakes and it holds again."""
-    sid = _sid(db, TENAS_LAKE)
+    sid = _sid(db, KHARTOUM_LAKE)
     assert R.section_kind(db, sid) == "lake"
     got = R.requirements_in_force(db, sid, JUL_1)
     assert STAMP_KNOWN in got["holds"] and got["wrong_water"] == {}

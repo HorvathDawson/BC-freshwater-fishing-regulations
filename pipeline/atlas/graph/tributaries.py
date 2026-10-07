@@ -50,6 +50,18 @@ BIFURCATIONS_FOLLOW_THE_CODE = True
 #: a lake the row names BESIDE its river, on one of that river's tributaries, does not stop the
 #: walk up that tributary — `_on_a_tributary_of_the_reach`.
 NAMED_LAKE_ON_A_TRIBUTARY_IS_CLIMBED = True
+#: A WALK CONTINUES ACROSS WATER OUTSIDE B.C. (user ruling 2026-10-06, FIX A3/B4): the pieces past
+#: the border carry no rule (`classify.OUTSIDE_BC_SUBTRACTED`), but a tributary walk goes on through
+#: them and resumes where the stream comes back into B.C. FWA computes NO stream order past the
+#: border — 50 of the 60 order-0 stream pieces of the live build are outside B.C., the rest are the
+#: B.C. stubs of lines drawn mostly outside — so order 0 on a piece OUTSIDE B.C. (`out_of_bc`) is
+#: UNKNOWN, as None is, and the Strahler guard never judges it (`_breaks_strahler`). Read as a real
+#: order it made every re-entering piece "a bigger river" than the order-0 piece below it and stopped
+#: 43 walks at the border: the Chilliwack tributary blk 356233151 lost Chilliwack/Vedder r1 above its
+#: 424 m in Washington. INSIDE B.C. an order-0 stub is still judged as 0 (code review A-3): the guard
+#: also keeps a reach's mouth seeding (`_mouths_at`) from taking the bigger river a stub flows into —
+#: the Chehalis/Harrison defect class.
+ORDER_ZERO_IS_UNKNOWN = True
 
 
 def lake_inlets(graph: StreamGraph, lake_id: str) -> frozenset[str]:
@@ -626,11 +638,16 @@ def _breaks_strahler(upstream, downstream) -> bool:
     channels pass), and that silence is exactly where the floodplain artifacts hide. There,
     order decides.
 
-    Unknown orders are never judged — absence of evidence is not evidence of an artifact.
+    Unknown orders are never judged — absence of evidence is not evidence of an artifact. Order 0
+    on a piece outside B.C. is unknown too (`ORDER_ZERO_IS_UNKNOWN`: FWA computes none past the
+    border); inside B.C. it is judged as 0.
     """
     if upstream is None or downstream is None:
         return False
     a, b = upstream.stream_order, downstream.stream_order
+    if ORDER_ZERO_IS_UNKNOWN and ((a == 0 and getattr(upstream, "out_of_bc", False))
+                                  or (b == 0 and getattr(downstream, "out_of_bc", False))):
+        return False                    # FWA has no order past the border: unknown there
     if a is None or b is None or a <= b:
         return False
     up_wsc, dn_wsc = upstream.wsc or "", downstream.wsc or ""

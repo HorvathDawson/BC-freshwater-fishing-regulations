@@ -329,12 +329,22 @@ def test_chilliwack_closed_above_the_slesse_signs(doc):
         r["to"] == slesse for r in runs)]
     assert len(above) == 1
     rs, runs = above[0]
-    assert runs[-1]["from"].startswith("lake_outlet:") and runs[0]["from"] == "source"
+    # FIX round (2026-10-06, C10): the Chilliwack River Ecological Reserve sits on the upper river
+    # (blk 380887781: enters 679 m above Chilliwack Lake at 58,646.6 m, inside to the border), so its
+    # clean cut divides the stretch above the signs in two — this part starts at the reserve edge,
+    # the reserve part above it carries the same closure AND the reserve's.
+    reserve = "area:CHILLIWACK RIVER ECOLOGICAL RESERVE"
+    assert runs[-1]["from"].startswith("lake_outlet:") and runs[0]["from"] == reserve
     assert runs[-1]["km_to"] == doc["splits"][slesse]["km"]
-    closed = [i for v, ids in doc["rulesets"][rs].items() if v != "sections" for i in ids
-              if doc["rules"][i]["entry_id"].startswith("r2:chilliwack")
-              and "upstream of fishing boundary signs" in doc["rules"][i]["label"]]
-    assert closed, "the part above the Slesse signs carries the closure"
+
+    def closed(rs_, words):
+        return [i for v, ids in doc["rulesets"][rs_].items() if v != "sections" for i in ids
+                if words in doc["rules"][i]["label"]]
+    signs = "upstream of fishing boundary signs"
+    assert closed(rs, signs), "the part above the Slesse signs carries the closure"
+    inside = [r for r, rr in _runs(doc, "gnis:8634") if any(x["to"] == reserve for x in rr)]
+    assert len(inside) == 1 and closed(inside[0], signs), "so does the reserve part"
+    assert closed(inside[0], "ecological reserve"), "with the reserve's own closure"
     below = [runs for _, runs in _runs(doc, "gnis:8634") if any(r["from"] == slesse
                                                                  for r in runs)]
     assert below and below[0][0]["to"] == "chilliwack_vedder_rivers__tamihi_rapids_bridge"

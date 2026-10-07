@@ -21,7 +21,7 @@ from pipeline.common.models import BlkChain, FidSpan, NameSource, NameTuple, Wat
 _STREAM_COLUMNS = [
     "LINEAR_FEATURE_ID", "BLUE_LINE_KEY", "FWA_WATERSHED_CODE", "GNIS_ID", "GNIS_NAME",
     "WATERBODY_KEY", "STREAM_ORDER", "STREAM_MAGNITUDE", "EDGE_TYPE",
-    "DOWNSTREAM_ROUTE_MEASURE", "UPSTREAM_ROUTE_MEASURE", "LENGTH_METRE",
+    "DOWNSTREAM_ROUTE_MEASURE", "UPSTREAM_ROUTE_MEASURE", "LENGTH_METRE", "WATERSHED_KEY",
 ]
 _SENTINEL_WSC = "999-999999"
 
@@ -46,6 +46,9 @@ class FidRow:
     geometry: Any
     down_node: str      # mouth end  (coords[0])
     up_node: str        # source end (coords[-1])
+    #: FWA's WATERSHED_KEY: the blue line this feature's river IS. A side channel carries its main
+    #: river's blk here; the river's own line carries its own (`fwa_mainstem_blks`).
+    watershed_key: str = ""
 
 
 def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
@@ -71,8 +74,17 @@ def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
                 stream_order=r.STREAM_ORDER, stream_magnitude=r.STREAM_MAGNITUDE,
                 down_m=down_m, up_m=up_m, geometry=r.geometry,
                 down_node=down_node, up_node=up_node,
+                watershed_key=str(getattr(r, "WATERSHED_KEY", "") or ""),
             ))
     return rows
+
+
+def fwa_mainstem_blks(fid_rows) -> frozenset[str]:
+    """THE FWA MAINSTEMS: every blue line FWA itself calls a river's own line — BLUE_LINE_KEY ==
+    WATERSHED_KEY. A braid's side channel carries its main river's key (Kechika River 359572903:
+    its 1,009 anabranches all say WATERSHED_KEY 359572903). Read by the braid prune
+    (`prune.prune_mainstem_loops(fwa_main=)`), which keeps the FWA mainstem first."""
+    return frozenset(r.blk for r in fid_rows if r.watershed_key and r.watershed_key == r.blk)
 
 
 def _max_opt(a: Optional[int], b: Optional[int]) -> Optional[int]:

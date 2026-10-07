@@ -223,6 +223,28 @@ PART_KEY_FIELDS = ("ruleset", "licensing_set", "steelhead_water", "steelhead", "
                    "province_except", "home_region", "kind", "tidal")
 
 
+#: TIDAL WATER IS A DIFFERENT REGULATION SYSTEM (user ruling 2026-10-06, FIX D12): no provincial rule,
+#: quota, closure, gear rule, licence or stamp holds on a part the book calls tidal (Nitinat Lake,
+#: p.17). Its answers are a DOCUMENTED STATE, never an empty or computed one: the display, gear and
+#: licence frames of a tidal part key are `TIDAL_STATE` (its ladder, answer and rows hold no rule by
+#: definition — the key's `tidal` says why). The export's `waters[].tidal.guide` says the same words.
+TIDAL_NOTE = ("Tidal water: a different regulation system. The B.C. freshwater fishing regulations do "
+              "not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See "
+              "the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a "
+              "federal Tidal Waters Sport Fishing Licence is required.")
+TIDAL_STATE = {"tidal": True, "note": TIDAL_NOTE,
+               "see": ["DFO tidal waters sport fishing regulations", "Fishing BC app"],
+               "licence": "federal Tidal Waters Sport Fishing Licence"}
+#: The one scope every tidal part key shares in the sections that answer it with `TIDAL_STATE`
+#: (no rule set has a negative id).
+TIDAL_SCOPE = RuleKey(-1, False, False)
+
+
+def is_tidal(key: tuple) -> bool:
+    """Whether a part key is tidal water (`PART_KEY_FIELDS` `tidal`)."""
+    return bool(key_dict(key)["tidal"])
+
+
 def key_dict(key: tuple) -> dict:
     return dict(zip(PART_KEY_FIELDS, key))
 

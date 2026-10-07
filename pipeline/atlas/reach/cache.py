@@ -64,7 +64,11 @@ from typing import Callable
 #:    inside a reach running down from them (`build._signs_above`). NOTE: the answer now depends on
 #:    OTHER entries (which waters have rows), which `entry_key` does not see — a cache keyed on one
 #:    entry must also key on `rowed_waters` before it is ever used.
-POLICY_VERSION = "14"
+#: 15: (FIX round 2026-10-06) a walk continues across water outside B.C.: order 0 (FWA computes no
+#:    order past the border) is unknown to the Strahler guard (`tributaries.ORDER_ZERO_IS_UNKNOWN`);
+#:    a lake is book-known steelhead water only as a steelhead row's own water
+#:    (`steelhead.LAKES_ONLY_BY_OWN_ROW`).
+POLICY_VERSION = "15"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

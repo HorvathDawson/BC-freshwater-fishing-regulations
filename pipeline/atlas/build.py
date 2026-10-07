@@ -586,9 +586,10 @@ def main() -> None:
     _nests: list = []
     from pipeline.atlas.graph.prune import prune_mainstem_loops
     print("pruning pure braid loops off mainstems ...")
+    from pipeline.atlas.graph.blk_chains import fwa_mainstem_blks
     graph, n_pruned, pruned_fids = prune_mainstem_loops(
         graph, geoms, reconnect_tributaries=args.simplify_braids,
-        moved=_moved_tribs, kept_out=_nests)
+        moved=_moved_tribs, kept_out=_nests, fwa_main=fwa_mainstem_blks(fids))
     print(f"  {n_pruned} loop piece(s) removed -> {len(graph.nodes)} nodes")
     if _moved_tribs:
         # A re-homed mouth that moves a long way means the "braid" was not the small anabranch this

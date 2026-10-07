@@ -277,11 +277,11 @@ def _sections() -> Tuple[Section, ...]:
         Section("ladder", 0, _ladder_scope, prepare=_ladder_prepare),
         Section("answer", 0, _ladder_scope, derive_from="ladder", derive=_answer_derive),
         Section("rows", 1, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
-        Section("gear", 1, gear.section_scope, prepare=gear.section_prepare,
+        Section("gear", 2, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
-        Section("licence", 1, licence.section_scope, prepare=licence.section_prepare,
+        Section("licence", 2, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
-        Section("display", 1, display.section_scope, prepare=display.section_prepare,
+        Section("display", 2, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static),
     )
 

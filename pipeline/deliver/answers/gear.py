@@ -628,13 +628,18 @@ def build(B: Bundle, keys: Optional[Sequence[RuleKey]] = None, log=print) -> dic
 def section_scope(key: tuple, B) -> RuleKey:
     """Gear reads the part's rule key (its set's gear bindings, the water kind of the set, the
     steelhead flags)."""
-    from pipeline.deliver.answers.common import rule_key
-    return rule_key(key)
+    from pipeline.deliver.answers.common import TIDAL_SCOPE, is_tidal, rule_key
+    return TIDAL_SCOPE if is_tidal(key) else rule_key(key)
 
 
 def section_prepare(scope: RuleKey, ctx):
-    """(reading per day, [gear answer per run]) for one rule key, rules by export index."""
+    """(reading per day, [gear answer per run]) for one rule key, rules by export index. Tidal
+    water: all year the documented tidal state (`common.TIDAL_STATE`) — no provincial gear rule,
+    never "angling not allowed here" (FIX D12)."""
     import json
+    from pipeline.deliver.answers.common import DAYS, TIDAL_SCOPE, TIDAL_STATE
+    if scope == TIDAL_SCOPE:
+        return [0] * DAYS, [dict(TIDAL_STATE)]
     B = ctx.B
     lawful = ctx.cache.get("lawful")
     if lawful is None:

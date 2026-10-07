@@ -175,9 +175,11 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "1",
+            "version": "2",
             "at": "[[frame index per segment] per key]",
-            "frames": "[gear answer] — {counts {slot: {by, over, also?}}, specs {slot: [clause]}, "
+            "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
+                      "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
+                      "otherwise {counts {slot: {by, over, also?}}, specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
                       "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "
@@ -196,10 +198,11 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "1",
+            "version": "2",
             "at": "[[frame index per segment] per key]",
             "frames": "[[holds, documents]] — indexes into `holds` and `documents`",
-            "holds": "[{holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
+            "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
+                     "only) | {holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
                      "designations, stamp_period, contested, considered}] — licensing refs: the "
                      "requirements that hold, the ones a superior authority displaces ({ref: "
                      "[superior ref]}), for the other kind of water, waived, in an undrawn part, "
@@ -207,7 +210,8 @@ SPEC = {
                      "stamp period runs, whether the licensing set is contested, every record "
                      "considered",
             "documents": "[[answer per profile]] — 60 indexes into `answers`, in `profiles` order",
-            "answers": "[{documents [{doc, when {act, species?, lengths?, on?}, base, prices}], "
+            "answers": "[{tidal: true} on TIDAL water (no provincial document or requirement; "
+                       "the federal tidal licence is in `holds.tidal`) | {documents [{doc, when {act, species?, lengths?, on?}, base, prices}], "
                        "none_needed, requirements [{req, when, paths, displaced_by?, "
                        "presumes_freed?, presumes_by?, terms?}], exempt?, others?, guiding?}]",
             "profiles": "[residency/age/guidance/status] — the 60 angler profiles; the index is "
@@ -218,10 +222,12 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "1",
+            "version": "2",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status}] — base | own | closed (`status_index.set_profile`: closed = "
-                      "every game fish under a speaking full closure)",
+                      "every game fish under a speaking full closure) | tidal: on TIDAL water "
+                      "`{status: tidal, tidal: true, note, see, licence}` all year (no freshwater "
+                      "status)",
             "rules": "[{kind, closure?, bands?, plain?}] — aligned with the export's `rules`: the "
                      "page's 15-step kind, a gate that closes, size bands [[from_cm, to_cm|null, "
                      "take|null]], the plain sentence (null: the page uses the label)",

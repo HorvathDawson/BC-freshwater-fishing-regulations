@@ -8,7 +8,7 @@ KIND of water (`wrong_water`; a restating record binds as the record it restates
 and a SUPERIOR authority's requirement displacing the provincial ones (`displaced`) — gap G5,
 adopted into the reader 2026-10-06 (the page also drops a steelhead-only requirement on any lake;
 we do NOT: AGENTS 54 puts the whole provincial steelhead set, stamp included, on a book-known lake
-such as Tenas Lake, and the stream-only steelhead requirement already says `water: stream`).
+such as Khartoum Lake, and the stream-only steelhead requirement already says `water: stream`).
 
 WHO NEEDS WHAT is decided for every one of the 60 angler profiles (residency 3 x age 2 x guided 2
 x status 5, Métis included — DESIGN.md D5): the angler is always unknown, so every answer ships
@@ -468,6 +468,11 @@ def _section_cache(ctx) -> dict:
     return c
 
 
+#: FIX D12: a tidal licence key ships the documented tidal state only (`common.TIDAL_STATE`).
+#: Named so a test can switch it off and see the computed answer ("no licence needed") return.
+TIDAL_IS_DOCUMENTED = True
+
+
 def section_prepare(scope: LicenceKey, ctx):
     """(reading per day, [value per reading]) for one licence key; records by export index."""
     from pipeline.deliver.answers.common import AnswersError
@@ -477,6 +482,19 @@ def section_prepare(scope: LicenceKey, ctx):
         raise AnswersError(f"licence: no section of the bundle has the licence key {scope}")
     year = key_year(c["db"], c["C"], scope, sids[0], c["days"], c["P"], c["contested"],
                     c["C"].index.__getitem__, c["memo"])
+    if scope.tidal and TIDAL_IS_DOCUMENTED:
+        # TIDAL WATER (FIX D12, code review A-7): no provincial licence or stamp holds (L7) — and
+        # none is "not needed": the federal Tidal Waters Sport Fishing Licence is. The frame is the
+        # documented state ONLY, every profile, all year: no computed provincial field ships beside
+        # it. The computed year is still read, to refuse a provincial record that would hold here.
+        from pipeline.deliver.answers.common import TIDAL_STATE
+        for v in year.values():
+            h = v["holds"]
+            if h.get("holds") or h.get("designations"):
+                raise AnswersError(f"licence: a provincial requirement or designation holds on "
+                                   f"tidal water {scope}")
+        n = len(next(iter(year.values()))["profiles"])
+        year = {1: {"holds": {"tidal": dict(TIDAL_STATE)}, "profiles": [{"tidal": True}] * n}}
     starts = sorted(year)
     values = [json.loads(json.dumps(year[d])) for d in starts]
     per: List[int] = []

@@ -408,32 +408,44 @@ def test_a_missing_list_file_raises(tmp_path):
         SH.load_list(tmp_path / "nope.json")
 
 
-def test_a_lake_a_steelhead_row_binds_by_another_line_carries_the_set():
-    """Tenas Lake: the Atnarko row's spring closure binds it; the row's steelhead line does not.
-    It is a steelhead row's water, so it is KNOWN and carries the twins, the stamp twin and Region
-    5's wild-release twin; the river carries the base rules and the zone's base release. A rainbow
-    over 50 cm stays a rainbow on the lake."""
+def _tenas_own():
+    """The lake's OWN row printing steelhead (as Khartoum's and Lois's do: "hatchery steelhead")."""
+    return {"entry_id": "r5:tenas_lake@5-11", "matched": ["wbk:9"],
+            "rules": [_rule("tenas.r1", extents=[{"op": "whole"}])]}
+
+
+def test_a_lake_another_line_of_a_steelhead_row_binds_is_not_steelhead_water(monkeypatch):
+    """FIX D13 (user ruling 2026-10-06): Tenas Lake is bound by the Atnarko row's spring closure,
+    not by its steelhead line, and its own row prints no steelhead — so it is NOT steelhead water:
+    no twin, no stamp twin, no zone release twin, no presence code. The river keeps the base rules
+    and is known. MUTATION: `LAKES_ONLY_BY_OWN_ROW` off, the lake is known and carries the set (the
+    2026-10-02 reading)."""
     got = _run([_province(), _zone5(), _atnarko()])
-    assert _code(got, "lk") == "known" and _code(got, "a5") == "known"
+    assert _code(got, "lk") is None and _code(got, "a5") == "known"
+    assert not (TWINS | SET) & _on(got, "lk")
+    assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "lk")
+    assert "steelhead_targeting_known" not in _recs_on(got, "lk")
+    assert "r5:atnarko_river@5-11::atnarko.r1" in _on(got, "lk"), "the closure itself still binds"
+    assert SET <= _on(got, "a5") and not TWINS & _on(got, "a5")
+    assert _row(got, "a5")["anadromous"] is True
+    monkeypatch.setattr(SH, "LAKES_ONLY_BY_OWN_ROW", False)
+    got = _run([_province(), _zone5(), _atnarko()])
+    assert _code(got, "lk") == "known" and TWINS <= _on(got, "lk")
+
+
+def test_a_lake_whose_own_row_prints_steelhead_carries_the_set():
+    """The lake's OWN row prints steelhead (Khartoum, Lois): KNOWN, the twins, the stamp twin and the
+    zone's release twin; a rainbow over 50 cm stays a rainbow on a lake. Listing a lake instead
+    makes it known with no rule at all from the list."""
+    got = _run([_province(), _zone5(), _atnarko(), _tenas_own()])
+    assert _code(got, "lk") == "known"
     assert TWINS <= _on(got, "lk") and not SET & _on(got, "lk")
     assert "z5:trout_char_quota::trout_char_quota.r6b" in _on(got, "lk")
     assert "z5:trout_char_quota::trout_char_quota.r6" not in _on(got, "lk")
     assert "steelhead_targeting_known" in _recs_on(got, "lk")
-    assert SET <= _on(got, "a5") and not TWINS & _on(got, "a5")
-    assert "z5:trout_char_quota::trout_char_quota.r6" in _on(got, "a5")
-    assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "a5")
     r = _row(got, "lk")
     assert (r["kind"], r["regulations"], r["anadromous"]) == ("lake", True, False)
-    assert _row(got, "a5")["anadromous"] is True
-    # mutation: the row is not a steelhead row (no ST line, not flagged) -> the lake is absent
-    plain = _atnarko()
-    plain.pop("anadromous_rainbow")
-    plain["rules"] = plain["rules"][1:]
-    got = _run([_province(), _zone5(), plain])
-    assert _code(got, "lk") is None and not TWINS & _on(got, "lk")
-    assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "lk")
-    # and LISTING the lake instead makes it known, with no rule at all from the list
-    got = _run([_province(), _zone5(), plain], [{"item_id": "wbk:9"}])
+    got = _run([_province(), _zone5(), _atnarko()], [{"item_id": "wbk:9"}])
     assert _code(got, "lk") == "known" and not (TWINS | {
         "z5:trout_char_quota::trout_char_quota.r6b"}) & _on(got, "lk")
 
@@ -454,7 +466,7 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
                                  "feature_types": ["stream"]}]
     REG["area:region:5b"] = _item("area:region:5b", ["a5"], kind="area")
     try:
-        got = _run([_province(), z, _atnarko()])
+        got = _run([_province(), z, _atnarko(), _tenas_own()])
         assert "z5:trout_char_quota::trout_char_quota.r6" not in _on(got, "a5")
         assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "a5")
         assert "z5:trout_char_quota::trout_char_quota.r6b" in _on(got, "lk")
@@ -485,7 +497,7 @@ def test_a_lake_typed_water_named_as_flowing_is_a_stream():
     assert _code(got, "pl") is None and not _on(got, "pl")
     got = _run([_province(), _chilliwack(), _atnarko()])
     assert _row(got, "vc")["anadromous"] is True and _row(got, "h2")["anadromous"] is True
-    assert _row(got, "lk")["anadromous"] is False
+    assert _row(got, "lk") is None                         # a lake no own row makes steelhead water
     assert got.report.steelhead["anadromous"] == 3                         # vc, h2, a5
     # LISTED, a lake-typed slough no row binds is steelhead water too; a plain lake is not
     got = _run([_province(), _chilliwack(), _atnarko()], [{"item_id": "wbk:31"},

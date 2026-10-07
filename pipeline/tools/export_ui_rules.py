@@ -1022,11 +1022,14 @@ TOUCHES_TEXT = (
 
 #: WHAT A TIDAL WATER MEANS TO AN ANGLER — the page's words for `waters[item].tidal`, from the
 #: book's own note (p.17, Nitinat Lake).
+#: The first sentences are the answers layer's own (`answers.common.TIDAL_NOTE`, FIX D12: "tidal
+#: water — a different regulation system; see DFO regulations / the Fishing BC app"), pinned equal.
 TIDAL_GUIDE = (
-    "Tidal water: the federal tidal waters sport fishing regulations apply here, not the B.C. "
-    "freshwater regulations. You need a federal Tidal Waters Sport Fishing Licence; no provincial "
-    "quota, closure, gear rule, licence or stamp applies. Show this note at the top of the water, "
-    "and never read its sections as 'open under the general rules'.")
+    "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not "
+    "apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal "
+    "(DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters "
+    "Sport Fishing Licence is required. Show this note at the top of the water, and never read its "
+    "sections as 'open under the general rules'.")
 
 #: How sure we are that steelhead are present (user ruling 2026-10-01) — on a part, and rolled up on
 #: the water.
@@ -1041,8 +1044,10 @@ STEELHEAD_TEXT = (
     "(a row any of whose rules or licensing records PRINTS steelhead: a steelhead quota, release "
     "or closure, 'Steelhead Stamp mandatory', 'Steelhead Stamp not required', 'not required "
     "unless fishing for steelhead' — or one flagged `anadromous_rainbow`; a Classified Water "
-    "designation printing no steelhead is not one), by any line of that row (Tenas Lake, by "
-    "the Atnarko/Bella Coola spring closure). Such a water carries the WHOLE PROVINCIAL STEELHEAD "
+    "designation printing no steelhead is not one), by any line of that row — a STREAM; a LAKE only "
+    "as the row's own water, its own row printing steelhead (Khartoum, Lois; NOT Tenas Lake, which "
+    "the Atnarko/Bella Coola spring closure binds but whose own row prints no steelhead — user "
+    "ruling 2026-10-06). Such a water carries the WHOLE PROVINCIAL STEELHEAD "
     "SET wherever it lies, lake or stream, and a lake also its region's wild-steelhead release. "
     "\"curated list\": the water is on the curated known-steelhead list "
     "(`data/curated/regulations/steelhead_waters.json`, built from fish observations). THE LIST "
@@ -1173,8 +1178,8 @@ WATER_TEXT = {
                         "\"possible\" water",
     "steelhead_rows": "ONLY where `steelhead_source` holds \"regulations\": the entry ids of the "
                       "steelhead rows whose rules bind the water's known sections (its own row, "
-                      "or a row whose line reaches it: Tenas Lake's is the Atnarko/Bella "
-                      "Coola's)",
+                      "or, for a stream, a row whose line reaches it; a lake only by its own "
+                      "row)",
     "tidal": "ONLY where the book calls the water tidal (Nitinat Lake): {sections, entry, guide} "
              "— see `water.tidal`",
 }
@@ -2479,8 +2484,11 @@ def guide(d: dict) -> dict:
                                 "Steelhead Stamp in any wording ('mandatory', 'not required', "
                                 "'not required unless fishing for steelhead': the Kingcome, the "
                                 "Chilko, the Stellako) — never a Classified Water designation "
-                                "that prints no steelhead (user ruling 2026-10-02): Tenas Lake, reached only by the Atnarko/"
-                                "Bella Coola spring closure; Khartoum and Lois lakes; the Vedder "
+                                "that prints no steelhead (user ruling 2026-10-02). A LAKE is one "
+                                "only as a steelhead row's own water (user ruling 2026-10-06): "
+                                "Khartoum and Lois lakes — NOT Tenas Lake, reached only by the "
+                                "Atnarko/Bella Coola spring closure (its rainbow, however big, is "
+                                "a rainbow under Region 5's trout quota); the Vedder "
                                 "Canal; the Stellako in Zone 7A. No tributary walk: a row's "
                                 "tributaries are its water only where one of its own rules binds "
                                 "them. They carry it through the TWINS "
@@ -2488,9 +2496,8 @@ def guide(d: dict) -> dict:
                                 "`zp:steelhead#steelhead_targeting_known` — the same lines, bound "
                                 "to the steelhead rows' waters the stream rules do not bind; and "
                                 "such a LAKE also carries its region's wild-steelhead release "
-                                "through that line's twin (`<release>b`: Tenas Lake Region 5's "
-                                "'ALL STEELHEAD', Khartoum and Lois Region 2's 'All wild "
-                                "steelhead'). A zone's other steelhead lines ('2 hatchery "
+                                "through that line's twin (`<release>b`: Khartoum and Lois Region "
+                                "2's 'All wild steelhead'). A zone's other steelhead lines ('2 hatchery "
                                 "steelhead', Region 6's stream closure) stay on its streams. A "
                                 "big lake rainbow on any other lake falls under the rainbow size "
                                 "quota ('1 over 50 cm'), never a steelhead rule. THE CURATED "
@@ -3672,10 +3679,12 @@ CASE_MECHANISMS = {
                               "so it carries the whole provincial steelhead set and Region 2's "
                               "wild release, as a steelhead stream does",
     # ---- added 2026-10-02 (known steelhead waters carry the set wherever they are) ----------
-    "steelhead_lake_by_another_line": "Tenas Lake: a steelhead row binds it by a line that is "
-                                      "not about steelhead (the Atnarko/Bella Coola spring "
-                                      "closure), so it is a KNOWN steelhead water and carries "
-                                      "the whole provincial steelhead set (the twins)",
+    "lake_bound_by_a_steelhead_rows_other_line": "Tenas Lake: a steelhead row binds it by a "
+                                      "line that is not about steelhead (the Atnarko/Bella Coola "
+                                      "spring closure), but its own row prints no steelhead, so "
+                                      "it is NOT steelhead water (user ruling 2026-10-06): no "
+                                      "provincial steelhead rule or stamp; resident big rainbow "
+                                      "are rainbow",
     "steelhead_known_beyond_the_regions": "a stream outside Regions 1, 2, 3, 5 and 6 that a "
                                           "steelhead row binds (the Stellako in Zone 7A, whose "
                                           "row prints 'Steelhead Stamp not required'): it "
@@ -3879,11 +3888,11 @@ WHAT_TO_SHOW = {
                               "10 (its record duty under it, once), the wild release, the stamp "
                               "(conditionally) — as on a known steelhead stream. A rainbow over "
                               "50 cm on the lake is still a rainbow (no `anadromous_rainbow`).",
-    "steelhead_lake_by_another_line": "{water} is KNOWN steelhead water — a row naming steelhead "
-                                      "binds it: show the provincial steelhead set for {fish} "
-                                      "plainly (the annual hatchery 10 with its record duty, the "
-                                      "wild release, the stamp conditionally), beside the lake's "
-                                      "other rules. A rainbow over 50 cm on the lake is a rainbow.",
+    "lake_bound_by_a_steelhead_rows_other_line": "{water} is NOT steelhead water: a steelhead "
+                                      "row's other line binds it (show that line as it is), but "
+                                      "the lake's own row prints no steelhead — no provincial "
+                                      "steelhead rule or stamp. A big rainbow here is a rainbow "
+                                      "under the lake's rainbow rules.",
     "steelhead_known_beyond_the_regions": "{water} is KNOWN steelhead water outside the "
                                           "steelhead regions: show the provincial steelhead set "
                                           "for {fish} plainly, with no caveat, beside its "
@@ -4467,10 +4476,13 @@ def cases(d: dict, bundle: Path) -> dict:
                             if i in K.d["rules"])
     steelhead_case("own_row_steelhead_lake", lambda w, p, m: w["kind"] == "lake"
                    and p.get("steelhead") == "known" and own_row(w), has_province)
-    steelhead_case("steelhead_lake_by_another_line", lambda w, p, m: w["kind"] == "lake"
-                   and p.get("steelhead") == "known" and not own_row(w)
-                   and not any(is_steelhead_rule(K.d["rules"][i]) for i in m
-                               if K.d["rules"][i]["entry_id"].startswith("r")), has_province)
+    _srows = steelhead_rows(K.d)
+    steelhead_case("lake_bound_by_a_steelhead_rows_other_line", lambda w, p, m: w["kind"] == "lake"
+                   and not p.get("steelhead") and any(
+                       K.d["rules"][i]["entry_id"] in _srows
+                       and K.d["rules"][i]["entry_id"] not in w["entries"] for i in m),
+                   lambda a: not any(is_steelhead_rule(K.d["rules"][i]) for i in _ids(a)
+                                     if i in K.d["rules"]))
     steelhead_case("steelhead_known_beyond_the_regions", lambda w, p, m: w["kind"] == "stream"
                    and p.get("steelhead") == "known" and p.get("anadromous_rainbow")
                    and "regulations" in (w.get("steelhead_source") or ())
@@ -5674,22 +5686,27 @@ def steelhead_rows(doc: dict) -> set[str]:
     return got
 
 
-def _row_bound(doc: dict, p: dict, srows: set[str]) -> list[str]:
+def _row_bound(doc: dict, p: dict, srows: set[str], w: dict | None = None) -> list[str]:
     """The steelhead rows whose rules a part carries — the part is the BOOK's steelhead water. (A
     steelhead row's OWN water is the book's too, where no rule of it may bind: the Kingcome's row
     prints none. Such a part is known by "regulations" and, flowing, carries
-    `anadromous_rainbow` — `_book`.)"""
+    `anadromous_rainbow` — `_book`.) On a LAKE (`w` not a stream) only the lake's OWN rows count
+    (user ruling 2026-10-06, `steelhead.LAKES_ONLY_BY_OWN_ROW`): the Atnarko's closure on Tenas
+    Lake does not make it steelhead water."""
     R = doc["rules"]
     if not p["ruleset"]:
         return []
-    return sorted({R[i]["entry_id"] for i in _members(doc["rulesets"], p["ruleset"], R)} & srows)
+    got = {R[i]["entry_id"] for i in _members(doc["rulesets"], p["ruleset"], R)} & srows
+    if w is not None and w.get("kind") != "stream":
+        got &= set(w.get("entries") or ())
+    return sorted(got)
 
 
 def _book(doc: dict, w: dict, p: dict, srows: set[str]) -> bool:
     """A part of the BOOK's steelhead water: a steelhead row's rule binds it, or it is steelhead
     water (`anadromous_rainbow`) of a water a steelhead row makes known. (A listed part of such a
     water that is `anadromous_rainbow` lies where steelhead rules apply — it carries the set.)"""
-    return bool(_row_bound(doc, p, srows)) or (
+    return bool(_row_bound(doc, p, srows, w)) or (
         bool(p.get("anadromous_rainbow")) and "regulations" in (w.get("steelhead_source") or ()))
 
 
@@ -5697,8 +5714,9 @@ def steelhead_lake_problems(doc: dict) -> list[str]:
     """A STEELHEAD RULE SHOWS ON A LAKE ONLY WHERE THE BOOK MAKES THE LAKE STEELHEAD WATER (user
     rulings 2026-10-01, 2026-10-02). Big lake rainbow fall under the rainbow size quota, not the
     steelhead quota, so every provincial and zone steelhead rule binds streams — and the
-    provincial set and the zone's wild release reach a lake only where a steelhead row binds it
-    (Tenas, Khartoum, Lois; never by the curated list, which binds no rule). Refused:
+    provincial set and the zone's wild release reach a lake only where its OWN row is a steelhead
+    row (Khartoum, Lois — not Tenas, 2026-10-06; never by the curated list, which binds no rule).
+    Refused:
       - a lake part carrying a steelhead rule or stamp record (`is_steelhead_rule`,
         `is_steelhead_record`) — the wild release included — when no steelhead row binds it;
       - on such a lake, a steelhead rule of a row that does not match the lake other than a wild
@@ -5758,7 +5776,7 @@ def steelhead_set_problems(doc: dict) -> list[str]:
             rules = _members(doc["rulesets"], p["ruleset"], R)
             recs = _members(doc["licensing_sets"], p["licensing_set"], L)
             region = _in_steelhead_region(rules)
-            rows = _row_bound(doc, p, srows) or (
+            rows = _row_bound(doc, p, srows, w) or (
                 list(w.get("steelhead_rows") or ())[:1] if _book(doc, w, p, srows) else [])
             if rows:
                 gone = province_set_missing(rules, recs, R, L)
@@ -5800,7 +5818,7 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
         src = w.get("steelhead_source") or []
         if bool(src) != (top == "known") or not set(src) <= {"regulations", "curated list"}:
             out.append(f"water {item}: steelhead_source {src!r} for a {top or 'unmarked'} water")
-        bound = [bool(_row_bound(doc, p, srows)) for p in w["parts"]]
+        bound = [bool(_row_bound(doc, p, srows, w)) for p in w["parts"]]
         if (any(bound) and "regulations" not in src) or bool(w.get("steelhead_rows")) != (
                 "regulations" in src):
             out.append(f"water {item}: steelhead_source {src!r} / steelhead_rows "

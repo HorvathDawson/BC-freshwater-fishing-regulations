@@ -13,10 +13,12 @@ outright waiver "(Steelhead Stamp not required)" (Chilko, Dean, Horsefly, West R
 `CatalogueEntry.anadromous_rainbow` (Chilliwack/Vedder). A Classified Water designation that prints
 no steelhead (Region 4's "Class II water when open") is not one.
 A steelhead row's OWN WATER (`OWN_WATER_RULE`: its matched waters within its scope, held as its rules
-are — no tributaries) and every section ANY rule of it binds are BOOK-KNOWN (`Presence.close`) —
-streams, lakes and wetlands alike: Tenas Lake, reached only by the Atnarko/Bella Coola spring
-closure; Khartoum and Lois lakes; the Vedder Canal; the Kingcome, whose row prints only its Class II
-water and 'Steelhead Stamp mandatory'. There is NO tributary walk: a row's tributaries are
+are — no tributaries) and every STREAM section ANY rule of it binds are BOOK-KNOWN (`Presence.close`):
+Khartoum and Lois lakes (their own rows print "hatchery steelhead"); the Vedder Canal; the Kingcome,
+whose row prints only its Class II water and 'Steelhead Stamp mandatory'. A LAKE (or wetland) is
+book-known only as a steelhead row's own water (`LAKES_ONLY_BY_OWN_ROW`, user ruling 2026-10-06):
+Tenas Lake, reached only by the Atnarko/Bella Coola spring closure, is not — its own row prints no
+steelhead. There is NO tributary walk: a row's tributaries are
 book-known only where one of its own rules binds them. The book-known set is what the `steelhead_waters` twins bind
 (the provincial set beyond the steelhead-region streams, each zone's wild release on its region's
 book-known lakes).
@@ -88,6 +90,16 @@ STEELHEAD_WATERS = "steelhead_waters"
 #: (`<id>b`, the book-known water the base misses). A section bound by all three is where
 #: STEELHEAD RULES APPLY (the stamp, a licensing record, goes with them: the export checks it).
 PROVINCE_SET_RULES = ("steelhead.r1", "steelhead.r2", "steelhead.r4")
+
+#: A LAKE IS STEELHEAD WATER ONLY BY ITS OWN ROW (user ruling 2026-10-06, FIX D13): steelhead rules,
+#: the stamp and the zone's steelhead release reach a LAKE (any water that is not a stream: lake,
+#: wetland) only where that lake's OWN row prints steelhead — the lake is the steelhead row's own
+#: water (`OWN_WATER_RULE`: Khartoum and Lois, "Rainbow trout/hatchery steelhead quota = 6"). A lake
+#: another line of a steelhead row merely binds is not (Tenas Lake, reached only by the Atnarko's
+#: spring closure; its own row prints "No Fishing Apr 1-June 30"): big resident rainbow there are
+#: rainbow. Streams are unchanged (every section any rule of a steelhead row binds). The curated list
+#: never brings a lake in either (it binds no rule).
+LAKES_ONLY_BY_OWN_ROW = True
 
 
 #: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
@@ -349,15 +361,18 @@ class Presence:
             self.curated.append({"item_id": item, "listed": w.label, "sections": len(secs)})
 
     def close(self, bindings) -> frozenset[str]:
-        """THE BOOK-KNOWN SET: every steelhead row's own water and every section any rule of one
-        binds. Called once, after every row has bound; what the `steelhead_waters` twins bind (less
+        """THE BOOK-KNOWN SET: every steelhead row's own water and every STREAM section any rule of
+        one binds (a lake only as a row's own water, `LAKES_ONLY_BY_OWN_ROW`). Called once, after every row has bound; what the `steelhead_waters` twins bind (less
         their siblings)."""
         if self._book is None:
             book: dict[str, str] = {}
             per_row: dict[str, set[str]] = {e: set(v) for e, v in self.own.items() if v}
             for b in bindings:
                 if b.entry_id in self.rows and b.sections:
-                    per_row.setdefault(b.entry_id, set()).update(b.sections)
+                    mine = self.own.get(b.entry_id, frozenset())
+                    per_row.setdefault(b.entry_id, set()).update(
+                        s for s in b.sections
+                        if not LAKES_ONLY_BY_OWN_ROW or s in mine or self.kind(s) == "stream")
             for eid in sorted(per_row):
                 for s in per_row[eid]:
                     book.setdefault(s, eid)

@@ -745,20 +745,25 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
 # The `display` section of the answers file
 # --------------------------------------------------------------------------------------------
 
-STATUS_NAMES = ("base", "own", "closed")
+STATUS_NAMES = ("base", "own", "closed", "tidal")
 
 
 def section_scope(key: tuple, B):
-    """The part's status per day reads its rule key (`status_index.set_profile`)."""
-    from pipeline.deliver.answers.common import rule_key
-    return rule_key(key)
+    """The part's status per day reads its rule key (`status_index.set_profile`) — or, on tidal
+    water, is the documented tidal state (`common.TIDAL_SCOPE`)."""
+    from pipeline.deliver.answers.common import TIDAL_SCOPE, is_tidal, rule_key
+    return TIDAL_SCOPE if is_tidal(key) else rule_key(key)
 
 
 def section_prepare(scope, ctx):
     """The status index's code per day for the rule key (`status_index.set_profile`, the one
     definition of closed): `base` (the tables' rules only), `own` (the water's own rules too),
-    `closed` (every game fish under a speaking full closure)."""
+    `closed` (every game fish under a speaking full closure). On tidal water, all year,
+    `{"status": "tidal", **common.TIDAL_STATE}`: no freshwater status at all (FIX D12)."""
     from pipeline.deliver import status_index as SI
+    from pipeline.deliver.answers.common import DAYS, TIDAL_SCOPE, TIDAL_STATE
+    if scope == TIDAL_SCOPE:
+        return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
     prof = SI.set_profile(ctx.sets.get(scope.set_id, []), scope.steelhead_water, ctx.bundle,
                           scope.steelhead_rules)
     names = {SI.BASE: "base", SI.OWN: "own", SI.CLOSED: "closed"}

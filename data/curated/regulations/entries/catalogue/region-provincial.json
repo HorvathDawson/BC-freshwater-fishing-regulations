@@ -832,7 +832,10 @@
        "item_id": "gnis:7551"
       },
       {
-       "op": "whole",
+       "op": "downstream_of",
+       "splits": [
+        "harrison_river__harrison_lake"
+       ],
        "item_id": "gnis:15333"
       }
      ],
@@ -2925,9 +2928,7 @@
       {
        "op": "whole",
        "item_ids": [
-        "gnis:17550",
         "gnis:1860",
-        "gnis:22702",
         "gnis:23373",
         "gnis:26413",
         "gnis:7851",
@@ -2946,6 +2947,20 @@
         "wbk:329534212",
         "wbk:329534365"
        ]
+      },
+      {
+       "op": "downstream_of",
+       "splits": [
+        "paul_creek__paul_lake"
+       ],
+       "item_id": "gnis:22702"
+      },
+      {
+       "op": "downstream_of",
+       "splits": [
+        "elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck"
+       ],
+       "item_id": "gnis:17550"
       }
      ]
     }

@@ -447,3 +447,88 @@ def test_the_braid_prune_does_not_depend_on_the_hash_seed():
                              capture_output=True, text=True, check=True)
         got.add(out.stdout.strip())
     assert len(got) == 1, got
+
+
+# ---- THE SURVIVOR BY PRINCIPLE (FIX round, user ruling 2026-10-06) ---------------------------------
+def _two_channels(big_mag=190, small_mag=4, big_order=5, small_order=2):
+    """A creek T enters a nest (via E) with two channels on to the river: A, the BIG channel
+    (magnitude `big_mag`, two pieces), and Z, a capillary (one piece). The old fewest-new-pieces rule
+    keeps Z. The Kechika River's anabranches carry magnitudes 1..190."""
+    nodes = [_n("M:hi", "M", length=5000.0), _n("M:lo", "M", length=5000.0),
+             _n("T:0", "T", wsc=TRIB, name="Small Creek"),
+             replace(_n("E:0", "E"), stream_magnitude=big_mag, stream_order=big_order),
+             replace(_n("A:0", "A"), stream_magnitude=big_mag, stream_order=big_order),
+             replace(_n("A:50", "A"), stream_magnitude=big_mag, stream_order=big_order),
+             replace(_n("Z:0", "Z"), stream_magnitude=small_mag, stream_order=small_order)]
+    edges = [("M:hi", "M:lo"), ("M:hi", "E:0"), ("T:0", "E:0"), ("E:0", "A:50"), ("A:50", "A:0"),
+             ("A:0", "M:lo"), ("E:0", "Z:0"), ("Z:0", "M:lo")]
+    return _graph(edges, nodes)
+
+
+def test_the_survivor_is_the_biggest_channel_not_the_fewest_pieces():
+    """The creek needs one route out; the big two-piece channel A survives, the capillary Z goes.
+    MUTATION: the old rule (`SURVIVOR_BY_PRINCIPLE` off: fewest new pieces) keeps Z."""
+    from pipeline.atlas.graph import nests
+    g, n, _ = prune_mainstem_loops(_two_channels(), reconnect_tributaries=True)
+    assert {"A:0", "A:50", "E:0"} <= set(g.nodes) and "Z:0" not in g.nodes and n == 1
+    try:
+        nests.SURVIVOR_BY_PRINCIPLE = False
+        g, n, _ = prune_mainstem_loops(_two_channels(), reconnect_tributaries=True)
+        assert "Z:0" in g.nodes and "A:0" not in g.nodes, "the defect: fewest pieces won"
+    finally:
+        nests.SURVIVOR_BY_PRINCIPLE = True
+
+
+def test_the_survivor_falls_back_to_order_then_length_then_id():
+    """Equal magnitudes: the higher ORDER wins; equal order too: the fewer/longer pieces (Z), and
+    only then the ids."""
+    g, _n2, _ = prune_mainstem_loops(_two_channels(big_mag=50, small_mag=50, big_order=3,
+                                                   small_order=4), reconnect_tributaries=True)
+    assert "Z:0" in g.nodes and "A:0" not in g.nodes, "same magnitude: Z's order 4 beats A's 3"
+    g, _n2, _ = prune_mainstem_loops(_two_channels(big_mag=50, small_mag=50, big_order=3,
+                                                   small_order=3), reconnect_tributaries=True)
+    assert "Z:0" in g.nodes and "A:0" not in g.nodes, "all equal: one 100 m piece beats two"
+
+
+def test_the_fwa_mainstem_is_the_river_a_nest_hangs_off():
+    """FWA mainstem FIRST is decided by `prune._mainstem_blk` (the river a nest hangs off is never a
+    candidate): the Kechika's own line 359572903 (WATERSHED_KEY == itself) even when one of its
+    anabranches (359004842, WATERSHED_KEY 359572903) carries more length in the code; without FWA's
+    keys the longest wins, as before. Inside a nest no piece is FWA's mainstem in real data, so the
+    `_rank` flag is defensive (code review A-4)."""
+    from pipeline.atlas.graph.prune import _mainstem_blk
+    nodes = [_n("359572903:0", "359572903", length=5000.0),
+             _n("359004842:0", "359004842", length=8102.8)]
+    assert _mainstem_blk(nodes) == "359004842", "without FWA keys: the longest, as before"
+    assert _mainstem_blk(nodes, frozenset({"359572903"})) == "359572903"
+
+
+def test_the_survivor_is_the_cheapest_of_the_widest_routes():
+    """Code review A-5. Kechika-shaped nest: a creek enters at E; one route runs down a big
+    anabranch (magnitude 190, 359003380, three short pieces) to V, another down a smaller one
+    (magnitude 40, 359004842, one long piece) to V; from V both share a capillary X (magnitude 4)
+    to the river. Both routes are only as wide as X, so the cheaper (fewer, longer pieces) wins.
+    A single "widest, then cheapest" label kept the 190 route at V and lost the cheaper one."""
+    def mag(nid, blk, m, length=100.0):
+        return replace(_n(nid, blk, length=length), stream_magnitude=m, stream_order=4)
+    nodes = [_n("M:hi", "M", length=5000.0), _n("M:lo", "M", length=5000.0),
+             _n("T:0", "T", wsc=TRIB, name="Small Creek"), mag("E:0", "E", 200),
+             mag("A:0", "359003380", 190, 50.0), mag("A:50", "359003380", 190, 50.0),
+             mag("A:100", "359003380", 190, 50.0), mag("B:0", "359004842", 40, 900.0),
+             mag("V:0", "V", 200), mag("X:0", "X", 4)]
+    edges = [("M:hi", "M:lo"), ("M:hi", "E:0"), ("T:0", "E:0"), ("E:0", "A:100"),
+             ("A:100", "A:50"), ("A:50", "A:0"), ("A:0", "V:0"), ("E:0", "B:0"), ("B:0", "V:0"),
+             ("V:0", "X:0"), ("X:0", "M:lo")]
+    g, _n2, _ = prune_mainstem_loops(_graph(edges, nodes), reconnect_tributaries=True)
+    assert {"E:0", "B:0", "V:0", "X:0"} <= set(g.nodes)
+    assert not {"A:0", "A:50", "A:100"} & set(g.nodes)
+
+
+def test_fwa_mainstem_blks_reads_watershed_key():
+    from pipeline.atlas.graph.blk_chains import FidRow, fwa_mainstem_blks
+    def row(blk, wk):
+        return FidRow(fid=blk, blk=blk, wsc="100", edge_type="1000", wbk="", gnis_id="",
+                      gnis_name="", stream_order=1, stream_magnitude=1, down_m=0.0, up_m=1.0,
+                      geometry=None, down_node="a", up_node="b", watershed_key=wk)
+    assert fwa_mainstem_blks([row("359572903", "359572903"), row("359004842", "359572903"),
+                              row("7", "")]) == {"359572903"}

@@ -67,12 +67,19 @@ def _has_own_name(node, river_name: str) -> bool:
     return any((t.name or "").strip().casefold() not in ("", rn) for t in node.name_tuples)
 
 
-def _mainstem_blk(nodes) -> str:
-    """The blue line that IS the river: the one carrying the most length in this watershed code."""
+def _mainstem_blk(nodes, fwa_main: frozenset[str] | set[str] | None = None) -> str:
+    """The blue line that IS the river (FIX round, user ruling 2026-10-06 — by principle, in order):
+    FWA's OWN MAINSTEM first (a blue line whose WATERSHED_KEY is itself, `blk_chains.
+    fwa_mainstem_blks`; a braid's side channels carry the river's key, never their own), then the
+    one carrying the most length in this watershed code, then the blk id. Without `fwa_main` (a
+    fixture with no FWA keys) it is the length rule alone, as before."""
     by_blk: dict[str, float] = {}
     for n in nodes:
         by_blk[n.blk] = by_blk.get(n.blk, 0.0) + (n.length_m or 0.0)
-    return max(by_blk, key=lambda b: (by_blk[b], b)) if by_blk else ""
+    if not by_blk:
+        return ""
+    main = fwa_main or ()
+    return max(by_blk, key=lambda b: (b in main, by_blk[b], b))
 
 
 def _river_name(nodes, main: str) -> str:
@@ -103,7 +110,8 @@ def nv_blks(name_variants) -> set[str]:
 
 
 def loop_nodes(graph: StreamGraph, protected_blks: set[str] | None = None,
-               take_tributaries: bool = False, records: list | None = None) -> set[str]:
+               take_tributaries: bool = False, records: list | None = None,
+               fwa_main: frozenset[str] | set[str] | None = None) -> set[str]:
     """Node ids of the prunable braiding (see the module docstring for the conditions).
 
     ``take_tributaries``: also take a braid that a DIFFERENT water flows into, re-homing that water's
@@ -135,7 +143,7 @@ def loop_nodes(graph: StreamGraph, protected_blks: set[str] | None = None,
 
     protected = protected_blks or set()
     for wsc, nodes in by_wsc.items():
-        main = _mainstem_blk(nodes)
+        main = _mainstem_blk(nodes, fwa_main)
         river = _river_name(nodes, main)
         cand = {n.node_id for n in nodes
                 if n.blk != main and n.blk not in protected and not _has_own_name(n, river)}
@@ -281,7 +289,9 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
                          reconnect_tributaries: bool = False,
                          moved: list | None = None,
                          max_shift_m: float = 5000.0,
-                         kept_out: list | None = None) -> tuple[StreamGraph, int, set[str]]:
+                         kept_out: list | None = None,
+                         fwa_main: frozenset[str] | set[str] | None = None,
+                         ) -> tuple[StreamGraph, int, set[str]]:
     """Reduce each braid nest to the channels that carry something. Returns (graph, n_removed, fids).
 
     A nest is no longer kept or dropped whole. `nests.essential_routes` decides which of its channels
@@ -292,17 +302,21 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
     measure recomputed on the new blue line. A re-home that would move a confluence further than
     `max_shift_m` is refused and the channel kept instead. ``moved`` collects
     ``(source, old target, new target, metres moved)``; ``kept_out`` collects
-    ``(nest size, kept, demands already satisfied elsewhere)`` for reporting."""
+    ``(nest size, kept, demands already satisfied elsewhere)`` for reporting.
+
+    ``fwa_main`` (`blk_chains.fwa_mainstem_blks`): FWA's own mainstem blue lines — the river a nest
+    hangs off is chosen by it first (`_mainstem_blk`), and a nest's surviving channel prefers it
+    (`nests.essential_routes`)."""
     from pipeline.atlas.graph.nests import essential_routes
 
     records: list = []
-    loop_nodes(graph, protected_blks, reconnect_tributaries, records)
+    loop_nodes(graph, protected_blks, reconnect_tributaries, records, fwa_main=fwa_main)
 
     drop: set[str] = set()
     targets: dict[str, list[str]] = {}          # dropped piece -> where its inflows may go instead
     for comp, _in_edges, _foreign, exits, _out_edges in records:
         comp = set(comp)
-        keep, spare = essential_routes(graph, comp)
+        keep, spare = essential_routes(graph, comp, fwa_main=fwa_main)
         gone = comp - keep
         if not gone:
             continue

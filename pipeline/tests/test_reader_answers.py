@@ -346,3 +346,46 @@ def test_origin_none_is_todays_answer_and_a_bad_origin_is_refused(tmp_path):
         {"q.r1": False, "w.r1": False}
     with pytest.raises(ValueError):
         R.effective_rules(1, (7, 1), "RB", path, origin="unknown")
+
+
+# ---- C10 (FIX round, user review 2026-10-06): a closure on PART of a water dominates the same ----
+CHILLIWACK = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
+CHILLIWACK_R1 = f"{CHILLIWACK}::chilliwack_vedder_rivers.r1"   # "No fishing upstream of the signs"
+RESERVE = "zp:superior_closures::superior_closures.r3"            # "No fishing in ecological reserves"
+
+
+def _chilliwack_above_signs(db):
+    """The Chilliwack's sections the `upstream_of` closure binds by its own reach (rank 0), split
+    by the Chilliwack River Ecological Reserve's clean cut (blk 380887781 at 58,646.6 m, inside to
+    the border): {in the reserve: [sid], outside it: [sid]}."""
+    q = ("SELECT s.sid, EXISTS (SELECT 1 FROM ruleset r2 WHERE r2.set_id = sr.set_id "
+         "AND r2.entry_id || '::' || r2.rule_id = ?) FROM item i JOIN item_section s ON s.ord = i.ord "
+         "JOIN section_ruleset sr ON sr.sid = s.sid JOIN ruleset r ON r.set_id = sr.set_id "
+         "WHERE i.item_id = 'gnis:8634' AND r.entry_id = ? AND r.rule_id = ? AND r.via = 'reach'")
+    out = {True: [], False: []}
+    for sid, in_reserve in db.execute(q, (RESERVE, CHILLIWACK, "chilliwack_vedder_rivers.r1")):
+        out[bool(in_reserve)].append(sid)
+    return out
+
+
+@pytest.mark.parametrize("fish", ["RB", "CT", "DV"])
+def test_a_closure_on_part_of_a_water_dominates_like_a_whole_water_closure(db, fish, monkeypatch):
+    """C10: the Chilliwack's 'No fishing upstream of the boundary signs below Slesse Creek' is an
+    `upstream_of` extent — part of its water — and it silences the zone's keeping rules (Region 2's
+    trout/char quotas) by `WATER_CLOSURE_DOMINANT` on EVERY section of that part, on both sides of
+    the ecological reserve's cut, exactly as a whole-water closure does (2,283 whole / 1,717 part
+    closure checks over every row closure, scratch_fix/tools/c10_scan.py: no keeper speaks).
+    MUTATION: the policy off, the step no longer names the closure as the winner."""
+    parts = _chilliwack_above_signs(db)
+    assert parts[True] and parts[False], "the reserve cut splits the part above the signs"
+    from pipeline.deliver.bundle.rules import yields_to_release
+    for sid in (min(parts[True]), min(parts[False])):
+        got = _said(sid, (7, 15), fish, trace=True)
+        assert got[CHILLIWACK_R1]["state"] == "speaks"
+        assert not [k for k, x in got.items() if x["state"] == "speaks" and yields_to_release(x)]
+        silenced = {k for k, x in got.items() if x.get("reason") == "water_closure"}
+        assert "z2:trout_char_quota::trout_char_quota.r4" in silenced
+        assert all(got[k]["by"] == CHILLIWACK_R1 for k in silenced)
+    monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
+    got = _said(min(parts[False]), (7, 15), fish, trace=True)
+    assert not [k for k, x in got.items() if x.get("reason") == "water_closure"]

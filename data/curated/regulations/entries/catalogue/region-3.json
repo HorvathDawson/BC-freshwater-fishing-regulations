@@ -7362,7 +7362,11 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "downstream_of",
+     "splits": [
+      "paul_creek__paul_lake"
+     ],
+     "item_id": "gnis:22702"
     }
    ],
    "rules": [
@@ -7375,7 +7379,11 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "paul_creek__paul_lake"
+       ],
+       "item_id": "gnis:22702"
       }
      ],
      "exempts": [
@@ -7390,7 +7398,11 @@
      "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "paul_creek__paul_lake"
+       ],
+       "item_id": "gnis:22702"
       }
      ]
     },
@@ -7420,7 +7432,11 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "downstream_of",
+       "splits": [
+        "paul_creek__paul_lake"
+       ],
+       "item_id": "gnis:22702"
       }
      ]
     }

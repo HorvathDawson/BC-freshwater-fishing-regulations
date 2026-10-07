@@ -139,6 +139,8 @@ def row_projection(r: dict, rules: list) -> dict:
 
 
 def gear_projection(g: dict, closed: bool, rules: list) -> dict:
+    if g.get("tidal"):
+        return {"tidal": True}                 # FIX D12: the documented tidal state, no gear
     if closed:
         return {"closed": True}
     always = sum(len(rs) for acts in g["conduct"].values() for _, rs in acts)
@@ -153,6 +155,8 @@ def gear_projection(g: dict, closed: bool, rules: list) -> dict:
 
 
 def licence_projection(prof: dict, closed: bool, data: dict) -> dict:
+    if prof.get("tidal"):
+        return {"tidal": True}                 # FIX D12: the documented tidal state, no licence
     if closed:
         return {"closed": True}
     lic, names = data["licensing_ids"], data["licences"]

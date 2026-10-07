@@ -306,3 +306,60 @@ def test_gear_answers_are_deterministic_and_lawful_methods_are_the_guides(bundle
     for ans in a["answers"]:
         for v in ans["elements"].values():
             assert 0 <= v["by"][0] < n
+
+
+def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, monkeypatch):
+    """C11 (FIX round, user review 2026-10-06): "no gear in the water during a No Fishing period"
+    (`zp:further_prohibitions.r1`) is in the gear answer's conduct of EVERY rule key of every region
+    (1, 2, 3, 4, 5, 6, 7A, 7B, 8 and every straddle), winter and summer — only tidal water (Nitinat
+    Lake: no provincial rule) has none. MUTATION: give a region's duty the closure's dimension (the
+    V1 defect: one `conduct` key for every duty) and it is displaced there."""
+    import re
+    from pipeline.deliver.bundle import read
+    B = bundle
+    closure = ("zp:further_prohibitions", "further_prohibitions.r1")
+    lawful = G.province_methods(B.rules.values())
+    regions, missing = set(), []
+    for key in B.keys:
+        bound = B.sets.get(key.set_id, [])
+        zones = {e.split(":")[0] for e, _r, _v in bound if re.match(r"z[0-9]", e)}
+        if not zones:
+            assert closure not in {b[:2] for b in bound}, "only tidal water carries no zone"
+            continue
+        regions |= zones
+        for md in ((1, 15), (7, 15)):
+            acts = {a for m in G.gear_answer(B, key, md, lawful)["conduct"].values() for a, _ in m}
+            if "no_gear_in_water_during_closure" not in acts:
+                missing.append((key, md))
+    assert not missing, missing[:10]
+    assert regions >= {"z1", "z2", "z3", "z4", "z5", "z6", "z7a", "z7b", "z8"}
+    huts = ("z5:ice_fishing_huts", "ice_fishing_huts.r1")
+    if huts in B.rules:
+        rules = read._rules_of(B.path)
+        monkeypatch.setitem(rules, huts, {**rules[huts], "dimension": rules[closure]["dimension"]})
+        key = next(k for k in B.keys if {closure, huts} <= {b[:2] for b in B.sets[k.set_id]})
+        acts = {a for m in G.gear_answer(B, key, (1, 20), lawful)["conduct"].values() for a, _ in m}
+        assert "no_gear_in_water_during_closure" not in acts, "the mutation must displace it"
+
+
+def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alone_in_a_boat(bundle):
+    """User confirmation 2026-10-06 (book p.37 + the province's line rule): on Kootenay Lake's main
+    body, from shore the province's 1 line; in a boat unlimited rods (the row's clause, which takes
+    the place of the province's "2 lines if alone in a boat on a lake" there); on every OTHER lake
+    the province's 1 line with "alone in a boat: 2" beside it (Kamloops Lake)."""
+    from pipeline.deliver.answers.common import month_day
+    B = bundle
+    lawful = G.province_methods(B.rules.values())
+    province = "zp:terminal_tackle::terminal_tackle.r1"
+    a = G.gear_answer(B, _key_of(B, "wbk:-20"), month_day(200), lawful, G.rule_id)
+    lines = a["counts"]["lines_per_angler"]
+    assert lines["by"] == [province, 1]                                   # shore: 1 line
+    also = {tuple(c.get("while") or ()): c["clause"] for c in lines.get("also", [])}
+    assert also.get(("in_boat",), [""])[0].endswith("kootenay_lake_main_body.r1")
+    assert ("alone_in_boat",) not in also, "the row's boat clause replaces the province's 2"
+    k = _key_of(B, "wbk:329563838")                                       # Kamloops Lake
+    a = G.gear_answer(B, k, month_day(200), lawful, G.rule_id)
+    lines = a["counts"]["lines_per_angler"]
+    assert lines["by"] == [province, 1]
+    assert [c["clause"] for c in lines.get("also", []) if c.get("while") == ["alone_in_boat"]] \
+        == [[province, 0]], lines

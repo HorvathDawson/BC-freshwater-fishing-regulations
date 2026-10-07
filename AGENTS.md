@@ -310,9 +310,14 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     (Chilliwack/Vedder, by ruling). A Classified Water designation that prints no steelhead (Region
     4's 25 "Class II water when open" rows) is not one. 57 rows (user ruling 2026-10-02, as
     corrected). A steelhead row's OWN
-    water (its matched waters within its scope, held as its rules are) and every section ANY rule
-    of it binds are BOOK-KNOWN (Tenas Lake via the Atnarko's spring closure; the Stellako in 7A; the
-    Kingcome, whose row has no rule, only its Class II water and stamp). **There is no tributary walk.** Book-known water carries the whole provincial set
+    water (its matched waters within its scope, held as its rules are) and every STREAM section ANY
+    rule of it binds are BOOK-KNOWN (the Stellako in 7A; the Kingcome, whose row has no rule, only
+    its Class II water and stamp). A LAKE (or wetland) is book-known ONLY as a steelhead row's own
+    water — its own row prints steelhead (Khartoum, Lois: "hatchery steelhead") — never because
+    another line of a steelhead row binds it, and never by the curated list (user ruling 2026-10-06,
+    `steelhead.LAKES_ONLY_BY_OWN_ROW`): Tenas Lake, bound by the Atnarko's spring closure but whose
+    own row prints only "No Fishing Apr 1-June 30", carries no steelhead rule, stamp or zone
+    steelhead release (resident big rainbow are rainbow). **There is no tributary walk.** Book-known water carries the whole provincial set
     (annual hatchery 10, wild release, record duty, stamp) through the TWINS `zp:steelhead`
     r1b/r2b/r4b and `steelhead_targeting_known`, whose one extent is `{op: steelhead_waters,
     siblings: [<base>]}` (book-known minus the base's sections; only `build_reaches` resolves it —

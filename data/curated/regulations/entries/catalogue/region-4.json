@@ -6781,6 +6781,12 @@
      "species": [
       "KO"
      ],
+     "when": {
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
      "take": 5,
      "extents": [
       {
@@ -7359,7 +7365,11 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "upstream_of",
+     "splits": [
+      "kootenay_river__kootenay_koocanusa"
+     ],
+     "item_id": "gnis:14097"
     }
    ],
    "rules": [
@@ -7377,7 +7387,11 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "kootenay_river__kootenay_koocanusa"
+       ],
+       "item_id": "gnis:14097"
       }
      ]
     },
@@ -7402,7 +7416,11 @@
      "may_target": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "kootenay_river__kootenay_koocanusa"
+       ],
+       "item_id": "gnis:14097"
       }
      ]
     },

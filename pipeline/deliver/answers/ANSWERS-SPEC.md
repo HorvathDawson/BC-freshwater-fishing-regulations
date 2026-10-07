@@ -158,7 +158,7 @@ drawings, arithmetic over shipped numbers); otherwise the section and field. **G
 | "Opens <date>", "Closed from <date>" | `display` status per segment + `segments`; the date lookup is page |
 | "Trout closed until …" / "release only until …" | `rows` rows (kind release/closed) per segment |
 | Water strip (365 days, legend) | `display` status per segment; drawing is page |
-| Tidal banner + text | export `waters[].tidal.guide`; key `tidal` |
+| Tidal banner + text | export `waters[].tidal.guide`; key `tidal`; the `display`, `gear` and `licence` frames of a tidal key (FIX D12) |
 | Closed banner: closures in the chain, ranks | `ladder` (closures that speak) + `display.rules[].plain`; merging back-to-back runs is page |
 | Per-group strip, short keeping windows | `rows` decided status per fish per segment, grouped by `rows` members |
 | Run sentences, date chips | `rows`/`display` per segment + `segments`; wording and choice of chips page |
@@ -285,6 +285,16 @@ structurally.
   undo: drop them (the licence key would then not be a function of the part key).
 - V6 Display status per segment is the status index's set_profile code (base/own/closed); a tidal
   part reads its key's `tidal`, not a TIDAL code · one definition of closed · undo: map tidal keys.
+- D12 (FIX round, user ruling 2026-10-06) TIDAL WATER IS A DOCUMENTED STATE. On a part key with
+  `tidal` 1 the `display` frame is `{"status": "tidal", "tidal": true, "note", "see", "licence"}`
+  (`common.TIDAL_STATE`: "Tidal water: a different regulation system … see the federal (DFO) tidal
+  waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence
+  is required"), the `gear` frame is `TIDAL_STATE` itself (never "angling: not allowed here"), and
+  the `licence` frame's `holds.tidal` is `TIDAL_STATE` with every profile `{documents: [],
+  none_needed: false, requirements: [], tidal: true}` (never "no licence needed"). Its ladder, answer
+  and rows hold no rule by definition. All year, one scope (`common.TIDAL_SCOPE`). The export's
+  `waters[].tidal.guide` starts with the same words · undo: drop the `TIDAL_SCOPE` branches in
+  display/gear/licence.
 - V7 Feb 29 (coordinator ruling): a range to Feb 28 runs through Feb 29 · `catalogue.range_days` ·
   3 part-days of the v0 file change (the Nicola below the lake and two lakes), status index day 60
   only · undo: drop the `(2, 28)` branch in range_days.

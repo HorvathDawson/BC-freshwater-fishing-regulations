@@ -88,8 +88,131 @@ def _reaches_without(graph, src: str, banned: set[str], want: str, cap: int = _P
     return False
 
 
-def _route(graph, comp: set[str], entries: set[str], exit_node: str, free: set[str]) -> set[str]:
-    """Cheapest way from this water to that exit, counting pieces ALREADY KEPT as free.
+#: THE SURVIVING CHANNEL IS CHOSEN BY PRINCIPLE (user ruling 2026-10-06, FIX B8), never by id order:
+#: where a water needs one route through a nest, the route kept is, in order,
+#:   1. the one on FWA's OWN MAINSTEM (a blue line whose WATERSHED_KEY is itself) — DEFENSIVE only
+#:      (code review A-4): a nest never holds the river's own mainstem (`prune.loop_nodes` excludes
+#:      `_mainstem_blk`, which IS FWA's mainstem when the keys are known) and side channels carry
+#:      their river's key, so in real data the survivor is decided from step 2. "FWA mainstem first"
+#:      is honoured by `prune._mainstem_blk` (the river a nest hangs off is never pruned); then
+#:   2. the BIGGEST channel — highest stream magnitude, then highest stream order — judged by its
+#:      SMALLEST new piece (a route is only as big as its narrowest link: a widest-path search),
+#:   3. then, among the widest routes, the fewer, longer pieces (the least Σ 1 / (1 + length) over
+#:      its new pieces — a second pass, `_route`),
+#:   4. then the node ids (the heap's last key), so the answer is a function of the data alone.
+#: A piece already kept for another water is free (+inf rank, no length cost): waters share one channel.
+SURVIVOR_BY_PRINCIPLE = True
+
+_FREE = (2, float("inf"), float("inf"))
+
+
+def _rank(graph, nid: str, fwa_main) -> tuple:
+    """A piece's size for the survivor rule: (on FWA's mainstem, magnitude, order); higher is
+    bigger. An unknown magnitude/order ranks below every known one."""
+    n = graph.nodes[nid]
+    mag = n.stream_magnitude if n.stream_magnitude is not None else -1
+    order = n.stream_order if n.stream_order is not None else -1
+    return (1 if (fwa_main and n.blk in fwa_main) else 0, mag, order)
+
+
+def _route(graph, comp: set[str], entries: set[str], exit_node: str, free: set[str],
+           fwa_main=None) -> set[str]:
+    """The route this water keeps to that exit (`SURVIVOR_BY_PRINCIPLE`), counting pieces ALREADY
+    KEPT as free so waters share one channel instead of carving parallel ones.
+
+    TWO PASSES (code review A-5: "widest, then cheapest" is not one label-setting search — a cheaper
+    sub-route can be dropped at a piece for a wider one that the next piece makes no wider):
+      1. WIDEST: the best bottleneck B any entry reaches the exit with — the route's smallest new
+         piece by (on FWA mainstem, magnitude, order); a bottleneck only shrinks as a route grows,
+         so a widest-path Dijkstra finds it exactly;
+      2. CHEAPEST AMONG THE WIDEST: Dijkstra on Σ 1 / (1 + length) over the new pieces, using only
+         pieces ranked at least B (free pieces always) — the fewer, longer pieces; ties by node id
+         (the heap's last key), entries in sorted order.
+    A nest is CYCLIC: no piece is expanded twice."""
+    if not SURVIVOR_BY_PRINCIPLE:
+        return _route_by_count(graph, comp, entries, exit_node, free)
+
+    def rank(nid: str):
+        return _FREE if nid in free else _rank(graph, nid, fwa_main)
+
+    def cost(nid: str) -> float:
+        return 0.0 if nid in free else 1.0 / (1.0 + (graph.nodes[nid].length_m or 0.0))
+
+    def at_exit(u: str) -> bool:
+        return any(graph.edges[i].to_node == exit_node for i in graph.down_adj.get(u, []))
+
+    def neg(r):
+        return tuple(-x for x in r)
+
+    # 1. the best bottleneck over every entry
+    best_b = None
+    for entry in sorted(entries):
+        width = {entry: rank(entry)}
+        pq = [(neg(width[entry]), entry)]
+        done: set[str] = set()
+        while pq:
+            nb, u = heapq.heappop(pq)
+            if u in done or nb != neg(width[u]):
+                continue
+            done.add(u)
+            if at_exit(u):
+                if best_b is None or width[u] > best_b:
+                    best_b = width[u]
+                break
+            for i in graph.down_adj.get(u, []):
+                v = graph.edges[i].to_node
+                if v not in comp or v in done:
+                    continue
+                w = min(width[u], rank(v))
+                if v not in width or w > width[v]:
+                    width[v] = w
+                    heapq.heappush(pq, (neg(w), v))
+    if best_b is None:
+        return set()
+
+    # 2. the cheapest route using only pieces at least that wide
+    best = None
+    for entry in sorted(entries):                # DETERMINISM: a tie keeps the first entry tried
+        if rank(entry) < best_b:
+            continue
+        dist = {entry: cost(entry)}
+        prev: dict[str, str | None] = {entry: None}
+        pq = [(dist[entry], entry)]
+        done = set()
+        hit = None
+        while pq:
+            d, u = heapq.heappop(pq)
+            if u in done or d != dist[u]:
+                continue
+            done.add(u)
+            if at_exit(u):
+                hit = u
+                break
+            for i in graph.down_adj.get(u, []):
+                v = graph.edges[i].to_node
+                if v not in comp or v in done or rank(v) < best_b:
+                    continue
+                nd = d + cost(v)
+                if v not in dist or nd < dist[v]:
+                    dist[v] = nd
+                    prev[v] = u
+                    heapq.heappush(pq, (nd, v))
+        if hit is None:
+            continue
+        path, n = set(), hit
+        while n is not None:
+            path.add(n)
+            n = prev[n]
+        if best is None or dist[hit] < best[0]:
+            best = (dist[hit], path)
+    return best[1] if best else set()
+
+
+def _route_by_count(graph, comp: set[str], entries: set[str], exit_node: str, free: set[str]) -> set[str]:
+    """THE RULE BEFORE THE FIX ROUND (`SURVIVOR_BY_PRINCIPLE` off, kept so a test can show the
+    difference): fewest new pieces, then longer pieces, then id order.
+
+    Cheapest way from this water to that exit, counting pieces ALREADY KEPT as free.
 
     Routing each water independently made them carve parallel channels through the same nest; charging
     nothing for a piece that is already staying makes them share one."""
@@ -134,11 +257,12 @@ def _route(graph, comp: set[str], entries: set[str], exit_node: str, free: set[s
     return best[1] if best else set()
 
 
-def essential_routes(graph, comp: set[str]) -> tuple[set[str], int]:
+def essential_routes(graph, comp: set[str], fwa_main=None) -> tuple[set[str], int]:
     """Pieces of this nest that must stay. Returns (keep, demands that were already satisfied).
 
     A demand is one (water, destination) pair the nest currently serves. It is dropped when the water
-    can reach that destination without the nest at all; otherwise one route is kept for it."""
+    can reach that destination without the nest at all; otherwise one route is kept for it — the one
+    `SURVIVOR_BY_PRINCIPLE` names (`fwa_main`: FWA's own mainstem blue lines)."""
     ins, exits = nest_ports(graph, comp)
     demands, spare = [], 0
     for _water, (srcs, entries) in sorted(ins.items()):
@@ -158,7 +282,7 @@ def essential_routes(graph, comp: set[str]) -> tuple[set[str], int]:
     for _ in range(3):                       # re-route against what is already kept until it settles
         nxt: set[str] = set()
         for entries, ex in demands:
-            nxt |= _route(graph, comp, entries, ex, nxt)
+            nxt |= _route(graph, comp, entries, ex, nxt, fwa_main=fwa_main)
         if nxt == keep:
             break
         keep = nxt
