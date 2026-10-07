@@ -492,7 +492,12 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     SUPERIOR authority's requirement (the national park permit) moves every other holding
     requirement with a `satisfied_by` to `displaced` — "provincial licences are not valid here".
     `designations_in_force` is public. The licence answer reads these; it holds no copy
-    (`test_requirements_g5.py`, mutation-pinned). The export REFUSES a dated water release that speaks under a blanket closure unless
+    (`test_requirements_g5.py`, mutation-pinned). GEAR/CONDUCT DIMENSIONS (2026-10-06): a method or
+    tackle rule's dimension carries each clause's condition (`slot@when`) and the rule's means
+    (`@while=`), a duty its acts (`conduct:a+b`) — never the water kind — so (type, dimension)
+    competition sets only the same subject against itself (`test_answers_gear.py`). FEB 29: a range
+    printed to Feb 28 runs through Feb 29 (`catalogue.range_days`, the one place dates become days;
+    `test_feb29.py`). The export REFUSES a dated water release that speaks under a blanket closure unless
     listed as known (`export_ui_rules.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-2 would have been
     caught), AND a water row's keeping quota in force that a blanket zone closure silences
     (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
