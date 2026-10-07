@@ -35,7 +35,7 @@ v0 SECTIONS
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from multiprocessing import get_context
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -114,43 +114,9 @@ def ladder_verdict(rows: Iterable[dict]) -> dict:
 
 # ---- the decided answer (consumer Stage 5.2 steps 1-4) ---------------------------------------
 
-def kind_of(x: dict) -> str:
-    """The consumer page's rule kind (Stage 2.3, `kindOf` in page_v35.js), on the reader's rule
-    fields — the first test that holds. Only `gate` (a release or a closure: take 0, no lengths)
-    and `pool` (a daily number) can win; the other kinds take no part in `decide`, but the order of
-    the tests decides which rules are gates and pools, so all fifteen are kept as written."""
-    if x.get("family") == "gear_and_method":
-        return "gear"
-    if x.get("family") == "conduct":
-        return "conduct"
-    if x.get("family") == "vessel":
-        return "vessel"
-    if x.get("type") == "angler_closure":
-        return "anglerclosure"
-    if x.get("type") == "stop_fishing_after_quota":
-        return "duty"
-    # JS `!f.lengths` is true only for a missing/null `lengths` (an empty list is truthy)
-    if x.get("dimension") == "lift" or (x.get("exempts") and x.get("take") is None
-                                        and not x.get("unlimited") and x.get("lengths") is None):
-        return "exempt"
-    if x.get("standing"):
-        return "standing"
-    if x.get("while"):
-        return "while"
-    if x.get("per_daily"):
-        return "possession"
-    if x.get("period") and x.get("period") != "daily":
-        return "annual" if (x.get("take") or 0) > 0 else "duty"
-    has_lengths = bool(x.get("lengths"))
-    if x.get("within"):
-        return "sizecap" if has_lengths else "subcap"
-    if x.get("take") == 0 and not has_lengths:
-        return "gate"
-    if (x.get("take") or 0) > 0 or x.get("unlimited"):
-        return "pool"
-    if has_lengths:
-        return "size"
-    return "duty"
+#: The consumer page's rule kind (Stage 2.3, `kindOf`): ONE implementation, `display.kind_of`.
+#: Only `gate` (a release or a closure: take 0, no lengths) and `pool` (a daily number) can win.
+from pipeline.deliver.answers.display import kind_of  # noqa: E402
 
 
 def closes(x: dict) -> bool:
@@ -227,23 +193,29 @@ def decide_unknown(h: list, w: list) -> list:
 
 @dataclass(frozen=True)
 class Section:
-    """One named, versioned part of the answers file.
+    """One named, versioned part of the answers file. Every section is keyed by the part key and
+    the date segment; what differs is what of the part key its answers depend on.
 
-    `scope(key)`        what of the part key the section's answers depend on (hashable);
-    `prepare(scope, ctx)` -> (signature index per day [366], [value per distinct signature]);
-    `derive_from`       or: the name of a section of the SAME scope whose values this one is a
-                        function of, and `derive(value_of_that, scope, ctx)` -> value."""
+    `scope(key, B)`         what of the part key the answers depend on (hashable);
+    `prepare(scope, ctx)`   -> (reading index per day [366], [value per reading]);
+    `derive_from`, `derive` or: a section whose values are a function of another's, per reading
+                            (`derive(value_of_that, scope, ctx, first_day)` -> value). Its scope
+                            may be FINER than the parent's (it may read more of the part key), but
+                            the parent's scope must be a function of it: it adds no day cuts;
+    `static(ctx, data, guide, keys, parts)` -> {table: value}: tables of the section that are not keyed by
+                            (part key, segment) — per export rule, per water."""
     name: str
     version: int
-    scope: Callable[[tuple], tuple]
+    scope: Callable
     prepare: Optional[Callable] = None
     derive_from: Optional[str] = None
     derive: Optional[Callable] = None
+    static: Optional[Callable] = None
 
 
 class Context:
-    """What every producer reads, loaded once per process: the bundle (`common.load`) and the
-    export's rule index (`common.check_export`)."""
+    """What every producer reads, loaded once per process: the bundle (`common.load`), the
+    export's rule index (`common.check_export`) and each producer's own cache (`cache`)."""
 
     def __init__(self, bundle: str, rule_index: Dict[str, int]):
         self.B = common.load(bundle)
@@ -252,6 +224,11 @@ class Context:
         self.rule_index = rule_index
         self.rules = self.B.rules                      # the reader's own rule table
         self.by_id = {common.rule_id(k): x for k, x in self.rules.items()}
+        self.cache: dict = {}
+
+
+def _ladder_scope(key: tuple, B) -> RuleKey:
+    return eval_key(key)
 
 
 def _ladder_prepare(scope: RuleKey, ctx: Context):
@@ -276,7 +253,7 @@ def _ladder_prepare(scope: RuleKey, ctx: Context):
     return per_day(runs), values
 
 
-def _answer_derive(ladder_value: dict, scope: RuleKey, ctx: Context) -> dict:
+def _answer_derive(ladder_value: dict, scope: RuleKey, ctx: Context, first_day: int) -> dict:
     set_id = scope.set_id
     via = {f"{e}::{r}": v for e, r, v in ctx.sets[set_id]}
     out = {}
@@ -294,27 +271,25 @@ def _answer_derive(ladder_value: dict, scope: RuleKey, ctx: Context) -> dict:
     return out
 
 
-SECTIONS: Tuple[Section, ...] = (
-    Section("ladder", 0, eval_key, prepare=_ladder_prepare),
-    Section("answer", 0, eval_key, derive_from="ladder", derive=_answer_derive),
-)
+def _sections() -> Tuple[Section, ...]:
+    from pipeline.deliver.answers import display, gear, licence, rows
+    return (
+        Section("ladder", 0, _ladder_scope, prepare=_ladder_prepare),
+        Section("answer", 0, _ladder_scope, derive_from="ladder", derive=_answer_derive),
+        Section("rows", 1, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        Section("gear", 1, gear.section_scope, prepare=gear.section_prepare,
+                static=gear.section_static),
+        Section("licence", 1, licence.section_scope, prepare=licence.section_prepare,
+                static=licence.section_static),
+        Section("display", 1, display.section_scope, prepare=display.section_prepare,
+                static=display.section_static),
+    )
 
-#: Sections named and reserved for v1 — ABSENT from a v0 file (never present empty or partial).
-RESERVED = {
-    "rows": "the narrowed daily number and every clause line (consumer 5.2 steps 5-11), fish "
-            "grouped by shared limit with go-backs and cross-references (5.3), the row scope and "
-            "badge (5.5-5.6), the real daily limit (5.7), keep ranges and band numbers (5.8), "
-            "roles per rule (5.2 step 3, 6.1); derived from `ladder` + `answer`",
-    "gear": "resolved gear slots per part key x segment (consumer 7.1): agent D's "
-            "pipeline/deliver/answers/gear.py",
-    "licence": "documents per part key x segment x angler profile (consumer 7.7): agent D's "
-               "pipeline/deliver/answers/licence.py",
-    "display": "derived display facts — rule `kind`, `bands`, `plain` sentences and tags, part "
-               "labels / place / hint / order / group and closed-all-year, the part's status per "
-               "segment (open / closed / open except some parts) and the closures that close it, "
-               "the fish the card asks about (5.1), the steelhead presence line (consumer 2.3, "
-               "2.4, 3.1-3.4, 5.1, 5.6, 6.3): agent D's display.py",
-}
+
+SECTIONS: Tuple[Section, ...] = _sections()
+
+#: Sections named and reserved for a later version — ABSENT from the file (never present empty).
+RESERVED: Dict[str, str] = {}
 
 
 # --------------------------------------------------------------------------------------------
@@ -329,19 +304,29 @@ def _init_worker(bundle, rule_index):
     _WORKER = Context(bundle, rule_index)
 
 
+def _first_days(per_day: Sequence[int]) -> List[int]:
+    first: Dict[int, int] = {}
+    for d, i in enumerate(per_day, start=1):
+        first.setdefault(i, d)
+    return [first[i] for i in range(len(first))]
+
+
 def _run_scope(task):
-    """(section name, scope) -> (section name, scope, per_day, {section: values}) for the section
-    and every section derived from it."""
-    name, scope = task
+    """(root section, scope, {derived section: [its scopes]}) -> (name, scope, per_day, values,
+    {(derived section, scope): values}): a root section's year and every section derived from it,
+    for every derived scope that reads this root scope."""
+    name, scope, derived = task
     sec = next(s for s in SECTIONS if s.name == name)
     per_day, values = sec.prepare(scope, _WORKER)
-    out = {name: values}
-    for d in SECTIONS:
-        if d.derive_from == name:
-            if d.scope is not sec.scope:
-                raise AnswersError(f"answers: section {d.name} derives from {name} with another scope")
-            out[d.name] = [d.derive(v, scope, _WORKER) for v in values]
-    return name, scope, per_day, out
+    if len(per_day) != DAYS or sorted(set(per_day)) != list(range(len(values))):
+        raise AnswersError(f"answers: section {name} returned a year that does not index its values")
+    days = _first_days(per_day)
+    out = {}
+    for dname, scopes in derived:
+        d = next(s for s in SECTIONS if s.name == dname)
+        for ds in scopes:
+            out[(dname, ds)] = [d.derive(v, ds, _WORKER, days[i]) for i, v in enumerate(values)]
+    return name, scope, per_day, values, out
 
 
 @dataclass
@@ -353,11 +338,13 @@ class Model:
     segments: List[List[int]]                     # per key: start days
     sections: Dict[str, List[List[object]]]       # name -> per key -> per segment -> value
     versions: Dict[str, int]
+    statics: Dict[str, dict] = field(default_factory=dict)   # name -> {table: value}
 
 
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
-          log=print) -> Model:
-    """Every answer for every part of every named water in the export (or only `items`)."""
+          sections: Optional[Sequence[str]] = None, log=print) -> Model:
+    """Every answer for every part of every named water in the export (or only `items`), for
+    every section (or only `sections`, with the sections they derive from)."""
     import time
     t0 = time.time()
     data, guide = load_export(export_dir)
@@ -374,44 +361,75 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         remap = {k: n for n, k in enumerate(used)}
         keys = [keys[k] for k in used]
         parts = {i: [None if k is None else remap[k] for k in p] for i, p in parts.items()}
-    roots = [s for s in SECTIONS if s.prepare is not None]
-    tasks = sorted({(s.name, s.scope(k)) for s in roots for k in keys}, key=repr)
+    chosen = [s for s in SECTIONS if sections is None or s.name in sections]
+    for s in list(chosen):
+        if s.derive_from and all(c.name != s.derive_from for c in chosen):
+            chosen.insert(0, next(c for c in SECTIONS if c.name == s.derive_from))
+    chosen = [s for s in SECTIONS if s in chosen]
+    roots = [s for s in chosen if s.prepare is not None]
+    # each derived scope reads exactly one root scope (it adds no day cuts)
+    parent_of: Dict[Tuple[str, object], object] = {}
+    for s in chosen:
+        if s.derive_from is None:
+            continue
+        parent = next(c for c in chosen if c.name == s.derive_from)
+        for k in keys:
+            ds, ps = s.scope(k, B), parent.scope(k, B)
+            if parent_of.setdefault((s.name, ds), ps) != ps:
+                raise AnswersError(f"answers: section {s.name}'s scope {ds!r} reads two scopes of "
+                                   f"{parent.name}")
+    tasks = []
+    for s in roots:
+        for sc in sorted({s.scope(k, B) for k in keys}, key=repr):
+            derived = [(d.name, sorted({ds for (n, ds), ps in parent_of.items()
+                                        if n == d.name and ps == sc}, key=repr))
+                       for d in chosen if d.derive_from == s.name]
+            tasks.append((s.name, sc, derived))
     log(f"answers: {len(keys)} part keys, {len(tasks)} section scopes to evaluate")
-    workers = workers or max(1, (os.cpu_count() or 2) - 1)
-    results: Dict[Tuple[str, tuple], tuple] = {}
+    workers = workers or min(4, max(1, (os.cpu_count() or 2) - 1))
+    results: Dict[Tuple[str, object], tuple] = {}
+    derived_vals: Dict[Tuple[str, object], list] = {}
     args = (B.path, rule_index)
     if workers == 1:
         _init_worker(*args)
         got = map(_run_scope, tasks)
     else:
         pool = get_context("spawn").Pool(workers, initializer=_init_worker, initargs=args)
-        got = pool.imap_unordered(_run_scope, tasks, chunksize=4)
-    for n, (name, scope, per_day, by_section) in enumerate(got, start=1):
-        results[(name, scope)] = (per_day, by_section)
+        got = pool.imap_unordered(_run_scope, tasks, chunksize=2)
+    for n, (name, scope, pd, values, dv) in enumerate(got, start=1):
+        results[(name, scope)] = (pd, values)
+        derived_vals.update(dv)
         if n % 250 == 0:
             log(f"  {n}/{len(tasks)} scopes, {time.time() - t0:.0f} s")
     if workers != 1:
         pool.close()
         pool.join()
 
-    segments: List[List[int]] = []
-    sections: Dict[str, List[List[object]]] = {s.name: [] for s in SECTIONS}
+    segs: List[List[int]] = []
+    out: Dict[str, List[List[object]]] = {s.name: [] for s in chosen}
     for key in keys:
-        per_root = {s.name: results[(s.name, s.scope(key))] for s in roots}
+        per_root = {s.name: results[(s.name, s.scope(key, B))] for s in roots}
         combined = list(zip(*(per_root[s.name][0] for s in roots)))
         starts = segments_of(combined)
-        segments.append(starts)
-        for s in SECTIONS:
-            root = s.name if s.prepare is not None else s.derive_from
-            per_day, by_section = per_root[root]
-            vals = by_section[s.name]
-            sections[s.name].append([vals[per_day[d - 1]] for d in starts])
+        segs.append(starts)
+        for s in chosen:
+            if s.prepare is not None:
+                pd, vals = per_root[s.name]
+            else:
+                pd = per_root[s.derive_from][0]
+                vals = derived_vals[(s.name, s.scope(key, B))]
+            out[s.name].append([vals[pd[d - 1]] for d in starts])
+    ctx = Context(B.path, rule_index)
+    statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen
+               if s.static is not None}
     about = {
         "what": "What the rules come to, for every part of every named water in the paired UI "
-                "export, on every day, for every fish and origin. Generated by "
-                "pipeline/deliver/answers (v0): every state from read.effective_rules_bound.",
+                "export, on every day, for every fish and origin, every angler profile: the "
+                "ladder, the decided answer, the card's rows, gear, licence and display facts. "
+                "Generated by pipeline/deliver/answers: every state from "
+                "read.effective_rules_bound, every requirement from read.requirements_in_force.",
         "bundle": data["about"]["bundle"],
     }
     log(f"answers: built in {time.time() - t0:.0f} s")
-    return Model(about=about, keys=keys, parts=parts, segments=segments, sections=sections,
-                 versions={s.name: s.version for s in SECTIONS})
+    return Model(about=about, keys=keys, parts=parts, segments=segs, sections=out,
+                 versions={s.name: s.version for s in chosen}, statics=statics)

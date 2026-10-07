@@ -26,7 +26,7 @@ import json
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple  # noqa: F401
 
 from pipeline.deliver.answers.common import Interner, connect, dumps, month_day, segments, \
     when_vector
@@ -84,6 +84,9 @@ DECISIONS = [
     "or `units` must match a designation in force. {} when none is printed.",
     "L7 On tidal water no province-wide record holds (the reader: `province_except` tidal); the "
     "page still lists the angling guide licence there (Nitinat Lake) — a page bug.",
+    "L8 A document is BASE when the angler needs it to fish here at all (`doing.act` fishing), "
+    "whether or not only while the water is classified (`when.on` says that): the Classified "
+    "Waters Licence is base on a classified water, as the page's 'To fish here' group has it.",
 ]
 
 @dataclass(frozen=True, order=True)
@@ -158,18 +161,14 @@ def section_keys(db: sqlite3.Connection, sids: Optional[set] = None) -> Dict[int
     tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
     kind = dict(db.execute("SELECT s.sid, i.kind FROM item_section s JOIN item i "
                            "ON i.ord = s.ord"))
-    sleepy = {(e, d) for e, d, rec in db.execute(
-        "SELECT entry_id, designation_id, record FROM designation")
-        if json.loads(rec).get("suspended_while")}
-    sleepy_sets = {s for s, e, r in db.execute(
-        "SELECT set_id, entry_id, record_id FROM licensing_set") if (e, r) in sleepy}
+    sleepy = sleepy_sets(db)
     out: Dict[int, LicenceKey] = {}
     for sid in sorted(rset.keys() | lset.keys()):
         if sids is not None and sid not in sids:
             continue
         ls = lset.get(sid)
         out[sid] = LicenceKey(ls, ",".join(pe.get(sid, [])), sid in tidal, kind.get(sid),
-                              rset.get(sid) if ls in sleepy_sets else None)
+                              rset.get(sid) if ls in sleepy else None)
     return out
 
 
@@ -352,7 +351,7 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
                 buy.setdefault(d, {"doc": d, "when": _when(r)})
     docs = sorted(buy.values(), key=lambda b: b["when"]["act"] != "fishing")
     for b in docs:
-        b["base"] = b["when"]["act"] == "fishing" and "on" not in b["when"]
+        b["base"] = b["when"]["act"] == "fishing"           # decision L8
         b["prices"] = _prices(C, b["doc"], p, h["_desig"])
     out: dict = {"documents": docs, "none_needed": not fish_needs_any, "requirements": mine}
     if exempt:
@@ -368,6 +367,45 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
 # The year of every key
 # --------------------------------------------------------------------------------------------
 
+def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
+             P: Sequence[Dict[str, str]], contested: set, ref: Callable,
+             memo: Dict[str, list], stats: Optional[dict] = None) -> Dict[int, dict]:
+    """One licence key's answers over the year, `{start_day: {"holds", "profiles"}}`, read at one
+    of its sections (`sid`; every section of a key answers alike, pinned by the tests), cut on
+    `days` (`change_days`) with equal neighbours merged."""
+    alts = _alternatives_here(db, C, sid)
+    seen = [ref(k) for k in considered(db, C, key)]
+    year: Dict[int, dict] = {}
+    last = None
+    for d in days:
+        h = holds(db, C, sid, month_day(d))
+        if stats is not None:
+            stats["key_days_wrong_water"] = stats.get("key_days_wrong_water", 0) + \
+                bool(h["wrong_water"])
+            stats["key_days_displaced"] = stats.get("key_days_displaced", 0) + \
+                bool(h["displaced"])
+        wire: dict = {"holds": [ref(k) for k in h["holds"]],
+                      "designations": [ref(k) for k in h["designations"]],
+                      "stamp_period": h["stamp_period"],
+                      "contested": key.licensing_set in contested,
+                      "considered": seen}
+        for f in ("wrong_water", "waived", "not_yet_mapped"):
+            wire[f] = [ref(k) for k in h[f]]
+        wire["displaced"] = {str(ref(k)): [ref(s) for s in v]
+                             for k, v in h["displaced"].items()}
+        wire["also_printed"] = {str(ref(k)): [ref(x) for x in v]
+                                for k, v in h["also_printed"].items()}
+        mk = dumps([wire, [a for a, _ in alts]])
+        if mk not in memo:
+            memo[mk] = [documents(C, h, alts, p, ref) for p in P]
+        ans = {"holds": wire, "profiles": memo[mk]}
+        s = dumps(wire)
+        if s != last:
+            year[d] = ans
+            last = s
+    return year
+
+
 def produce(path: str, ref: Optional[Callable[[str], object]] = None,
             stats: Optional[dict] = None) -> Dict[LicenceKey, Dict[int, dict]]:
     """PURE: every licence key's answers, `{LicenceKey: {start_day: {"holds": {...},
@@ -382,43 +420,83 @@ def produce(path: str, ref: Optional[Callable[[str], object]] = None,
         P = profiles()
         contested = contested_sets(db)
         memo: Dict[str, list] = {}
-        out: Dict[LicenceKey, Dict[int, dict]] = {}
-        for key, sids in K.items():
-            sid = sids[0]
-            alts = _alternatives_here(db, C, sid)
-            seen = [ref(k) for k in considered(db, C, key)]
-            year: Dict[int, dict] = {}
-            last = None
-            for d in days:
-                h = holds(db, C, sid, month_day(d))
-                if stats is not None:
-                    stats["key_days_wrong_water"] = stats.get("key_days_wrong_water", 0) + \
-                        bool(h["wrong_water"])
-                    stats["key_days_displaced"] = stats.get("key_days_displaced", 0) + \
-                        bool(h["displaced"])
-                wire: dict = {"holds": [ref(k) for k in h["holds"]],
-                              "designations": [ref(k) for k in h["designations"]],
-                              "stamp_period": h["stamp_period"],
-                              "contested": key.licensing_set in contested,
-                              "considered": seen}
-                for f in ("wrong_water", "waived", "not_yet_mapped"):
-                    wire[f] = [ref(k) for k in h[f]]
-                wire["displaced"] = {str(ref(k)): [ref(s) for s in v]
-                                     for k, v in h["displaced"].items()}
-                wire["also_printed"] = {str(ref(k)): [ref(x) for x in v]
-                                        for k, v in h["also_printed"].items()}
-                mk = dumps([wire, [a for a, _ in alts]])
-                if mk not in memo:
-                    memo[mk] = [documents(C, h, alts, p, ref) for p in P]
-                ans = {"holds": wire, "profiles": memo[mk]}
-                s = dumps(wire)
-                if s != last:
-                    year[d] = ans
-                    last = s
-            out[key] = year
-        return out
+        return {key: key_year(db, C, key, sids[0], days, P, contested, ref, memo, stats)
+                for key, sids in K.items()}
     finally:
         db.close()
+
+
+# --------------------------------------------------------------------------------------------
+# The `licence` section of the answers file
+# --------------------------------------------------------------------------------------------
+
+def sleepy_sets(db) -> set:
+    """Licensing sets holding a designation a closure can put to sleep (`suspended_while`): there
+    the rule set is part of the licence key."""
+    sleepy = {(e, d) for e, d, rec in db.execute(
+        "SELECT entry_id, designation_id, record FROM designation")
+        if json.loads(rec).get("suspended_while")}
+    return {s for s, e, r in db.execute(
+        "SELECT set_id, entry_id, record_id FROM licensing_set") if (e, r) in sleepy}
+
+
+_SLEEPY: Dict[str, set] = {}
+
+
+def section_scope(key: tuple, B) -> LicenceKey:
+    """The part key's licence key: what `requirements_in_force` reads of a part."""
+    from pipeline.deliver.answers.common import key_dict
+    k = key_dict(key)
+    if B.path not in _SLEEPY:
+        db = connect(B.path)
+        try:
+            _SLEEPY[B.path] = sleepy_sets(db)
+        finally:
+            db.close()
+    ls = k["licensing_set"]
+    return LicenceKey(ls, ",".join(k["province_except"]), bool(k["tidal"]), k["kind"],
+                      k["ruleset"] if ls in _SLEEPY[B.path] else None)
+
+
+def _section_cache(ctx) -> dict:
+    c = ctx.cache.get("licence")
+    if c is None:
+        db = connect(ctx.bundle)
+        C = corpus(db)
+        c = ctx.cache["licence"] = {"db": db, "C": C, "K": keys(db), "days": change_days(db),
+                                    "P": profiles(), "contested": contested_sets(db), "memo": {}}
+    return c
+
+
+def section_prepare(scope: LicenceKey, ctx):
+    """(reading per day, [value per reading]) for one licence key; records by export index."""
+    from pipeline.deliver.answers.common import AnswersError
+    c = _section_cache(ctx)
+    sids = c["K"].get(scope)
+    if not sids:
+        raise AnswersError(f"licence: no section of the bundle has the licence key {scope}")
+    year = key_year(c["db"], c["C"], scope, sids[0], c["days"], c["P"], c["contested"],
+                    c["C"].index.__getitem__, c["memo"])
+    starts = sorted(year)
+    values = [json.loads(json.dumps(year[d])) for d in starts]
+    per: List[int] = []
+    for i, d in enumerate(starts):
+        end = starts[i + 1] if i + 1 < len(starts) else 367
+        per += [i] * (end - d)
+    return per, values
+
+
+def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
+    """What every licence frame refers to: the 60 profiles (index = mixed radix over
+    `PROFILE_DIMS`). The licensing refs are the export's `licensing` indexes — held to the
+    export's `licensing_ids` here."""
+    from pipeline.deliver.answers.common import AnswersError
+    C = _section_cache(ctx)["C"]
+    if sorted(C.index, key=C.index.__getitem__) != list(data.get("licensing_ids") or []):
+        raise AnswersError("licence: the bundle's licensing records are not the export's "
+                           "licensing_ids, in order")
+    return {"profiles": ["/".join(p[d] for d, _ in PROFILE_DIMS) for p in profiles()],
+            "profile_dims": [[d, list(v)] for d, v in PROFILE_DIMS]}
 
 
 def considered(db, C: Corpus, key: LicenceKey) -> List[str]:

@@ -3,13 +3,15 @@
 `encode(model, data)` writes `answers.Model` against the export it pairs with (`data`: the shipped
 `ui-rules-export.json`); `decode(wire, data)` returns exactly the model (`cli build` refuses a file
 that does not decode to it). Every rule is an INTEGER index into the export's `rules` array (the
-codec's order: `rule_ids` sorted), every fish an index into `fish`, every repeated value interned.
+codec's order: `rule_ids` sorted), every licensing record an index into its `licensing` array, every
+fish an index into `fish` (ladder, answer) or its code, every repeated value interned.
 
 THE SECTIONS ARE GENERIC. The top level holds what every section shares — `keys`, `segments`,
 `parts`, `fish` — and `sections` holds one object per named section, each `{version, at, …its
 tables}`, where `at[key][segment]` is the index of that (part key, segment)'s value in the section's
-`frames`. The encoder and the decoder iterate `CODECS`; a section without a codec, or without its
-text in `SPEC`, is refused (`spec_gaps`, pinned by the tests).
+`frames`; a section may also carry STATIC tables (not keyed by part key and segment: per export rule,
+per water, the angler profiles). The encoder and the decoder iterate `CODECS`; a section without a
+codec, or without its text in `SPEC`, is refused (`spec_gaps`, pinned by the tests).
 """
 from __future__ import annotations
 
@@ -22,12 +24,14 @@ from pipeline.deliver.answers.answers import (DAYS, ORIGINS, PART_KEY_FIELDS, RE
 from pipeline.deliver.answers.common import Interner
 from pipeline.deliver.bundle import read
 
-FORMAT = "answers/0"
+FORMAT = "answers/1"
 
 #: The ladder's verdict lists, in wire order.
 VERDICT_LISTS = ("speaks", "beside", "shown", "not_yet_mapped", "partly", "lost")
 #: The loss reasons, in wire order (`read.LOSS_REASONS`: reason -> the state it gives).
 REASONS = tuple(read.LOSS_REASONS)
+#: The `keys` row's slot holding the segments index (the last).
+SEG_SLOT = len(PART_KEY_FIELDS)
 
 
 def rule_ids_digest(rule_ids: List[str]) -> str:
@@ -40,13 +44,17 @@ def rule_ids_digest(rule_ids: List[str]) -> str:
 # The field dictionary, shipped in the file as `spec`
 # --------------------------------------------------------------------------------------------
 
+_RULE = "a rule ref (index into the export's `rules`)"
+_LIC = "a licensing ref (index into the export's `licensing`)"
+
 SPEC = {
-    "format": f"`about.format` is {FORMAT!r}: answers file format 0. A reader refuses any other.",
+    "format": f"`about.format` is {FORMAT!r}: answers file format 1. A reader refuses any other.",
     "pairing": "This file pairs with ONE export pair (ui-rules-export.json + ui-rules-guide.json): "
                "`about.bundle` equals both files' `about.bundle` (digests `reach_digest`, "
                "`section_handles`), and `about.export.rule_ids_sha256` is the first 16 hex digits "
                "of the SHA-256 of the export's `rule_ids` joined by \"\\n\". Refuse a pair that "
-               "differs: every rule ref below indexes the export's `rules` / `rule_ids`.",
+               "differs: every rule ref below indexes the export's `rules` / `rule_ids`, every "
+               "licensing ref its `licensing` / `licensing_ids`.",
     "calendar": "A day is 1..366 on the leap calendar: Jan 1 = 1, Feb 29 = 60, Mar 1 = 61 in EVERY "
                 "year, Dec 31 = 366 (day = days before the month in a leap year + day of month). "
                 "In a year without Feb 29, day 60 is never asked. Feb 29 is answered as the "
@@ -55,9 +63,9 @@ SPEC = {
     "tap": "How a tap resolves, with lookups only: (1) the water's item id and the part's index i "
            "in the export's `waters[item].parts` -> k = `parts[item][i]` (null: the part has no "
            "rule set — wholly outside B.C., `water.outside_bc`); (2) the day d -> the segment s = "
-           "the last index with `segments[keys[k][7]][s] <= d`; (3) per section, frame = "
-           "`sections[name].frames[sections[name].at[k][s]]`; (4) in the frame, the fish (an "
-           "index into `fish`) and the origin (none | hatchery | wild).",
+           f"the last index with `segments[keys[k][{SEG_SLOT}]][s] <= d`; (3) per section, frame = "
+           "`sections[name].frames[sections[name].at[k][s]]` (decoded as the section says); (4) in "
+           "the frame, the fish and the origin (none | hatchery | wild), or the angler profile.",
     "top level": {
         "about": "`what`, `format`, `bundle` (the export pair's digests), `export` "
                  "{`rule_ids_sha256`, `rules`: count}, `sections` {name: version} of the sections "
@@ -65,19 +73,21 @@ SPEC = {
                  "(absent, never empty), `counts`",
         "spec": "this dictionary",
         "fish": "[fish code] — the leaf species codes (`ui-rules-guide.json` `species`) the "
-                "frames refer to by index",
+                "ladder and answer frames refer to by index",
         "keys": "[[ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, "
-                "province_except, home_region, segments]] — one per distinct PART KEY: the export "
-                "part's rule set and licensing set ids (integers, licensing set or null), "
-                "`steelhead_water` (0/1: a rainbow over 50 cm is a steelhead here, the part's "
-                "`anadromous_rainbow`), `steelhead` (\"known\" | \"possible\" | null), "
+                "province_except, home_region, kind, tidal, segments]] — one per distinct PART "
+                "KEY: the export part's rule set and licensing set ids (integers, licensing set or "
+                "null), `steelhead_water` (0/1: a rainbow over 50 cm is a steelhead here, the "
+                "part's `anadromous_rainbow`), `steelhead` (\"known\" | \"possible\" | null), "
                 "`steelhead_rules` (0/1: the bundle's fact — the export ships it only as false on "
-                "a known part), `province_except` [kind], `home_region` [region], and "
-                "`segments` (an index into `segments`)",
+                "a known part), `province_except` [kind], `home_region` [region], `kind` (the "
+                "water's: lake | stream | wetland), `tidal` (0/1), and `segments` (an index into "
+                "`segments`)",
         "segments": "[[start day]] — interned; a key's segments start on these days (the first is "
                     "always 1) and run to the day before the next start (the last to 366). A "
-                    "segment is a run of days on which every section's inputs read the same: no "
-                    "member rule's `when` and no lift's `when` changes inside it",
+                    "segment is a run of days on which every section's inputs read the same: the "
+                    "union of every section's cuts (a member rule's or a lift's `when`, a "
+                    "requirement's or a designation's `when`)",
         "parts": "{item_id: [key index | null]} — aligned with the export's `waters[item].parts`",
         "sections": "{name: section} — see `sections`",
     },
@@ -113,18 +123,116 @@ SPEC = {
                       "`fish`, ascending, the ladder frame's fish) its decided index, one for "
                       "all three origins or one per origin",
             "decided": "[[status, daily, winner]] — `status` an index into `statuses`; `daily` "
-                       "the WINNING POOL'S OWN NUMBER (consumer 5.2 step 4), BEFORE its clauses: "
-                       "a sub-limit that lowers the day (\"keep 2, hatchery only\" inside a 4) "
-                       "is step 5 and arrives with `rows` (v1) — do not show `daily` as the "
-                       "number an angler may keep until then; null for closed, release, "
-                       "no_limit, no_rule, by_origin. `winner` a rule ref (null for no_rule, "
-                       "by_origin)",
+                       "the WINNING POOL'S OWN NUMBER (consumer 5.2 step 4), BEFORE its clauses "
+                       "(the number an angler may keep is `rows.decided[].daily`); null for "
+                       "closed, release, no_limit, no_rule, by_origin. `winner` a rule ref (null "
+                       "for no_rule, by_origin)",
             "statuses": "[status] — closed | release | keep | no_limit | no_rule (no rule in "
                         "scope speaks: the page shows no row) | by_origin (origin unknown and "
                         "the hatchery and wild answers differ: read those)",
         },
+        "rows": {
+            "what": "Stages 5.1-5.8, today's card, from the ladder's speakers (the page's evalSp, "
+                    "buildModel, rowConds, speciesItems, quotaLines, effCap): the fish asked "
+                    "about, per fish and origin the number after the winner's clauses with every "
+                    "line and role, the rows (one per shared limit), their conditions, each kind's "
+                    "keep range and band numbers, and the real daily limit",
+            "version": "1",
+            "at": "[[frame index per segment] per key]",
+            "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
+                      "`spp` the fish the card asks about (5.1, the page's order); per fish the "
+                      "hatchery and wild answers (indexes into `decided`, null: no rule in scope "
+                      "speaks); the rows in card order (indexes into `rows`); `steelhead_line` "
+                      "possible_with_rules | known_with_rules | known_no_rules | null (5.6)",
+            "decided": "[{status: keep|nolimit|release|closed, win, daily, narrow, lines, roles, "
+                       "lift_notes}] — `daily` the number after the winner's clauses (null for "
+                       "no limit, release, closed), `narrow` the clause that lowered it; `lines` "
+                       "[{t, r, a?, b?, take?, o?, keepO?, status?, daily?, min?, max?, says?, "
+                       "only?, capped?, carve?, outer?}] in the page's order (t: rel, cap, "
+                       "subcap, also, outer, steel, outercap, outersize, orphan, partly, caution, "
+                       "tnote, annual, duty, record; a/b band edges in cm, b null = no top); "
+                       "`roles` [[rule, role, by]] (governs, agrees, contains, also, narrows, "
+                       "limit, floor, season, duty, possession, falls, moot, replaced, lifted); "
+                       "`lift_notes` [[lifter, {when_targeting | while | lengths}]]. Rules are "
+                       "rule refs",
+            "rows": "[{kind, pool, win, members, all_members, daily, narrow, everyone, groups, "
+                    "prot, wins, lift_notes, scope, conds?, items?, real_daily?}] — `kind` keep | "
+                    "nolimit | release | closed; `pool` (keep rows) or `win` the rule; `members` "
+                    "the fish (codes) of the row, `all_members` with the fish that go back; "
+                    "`everyone` the lines for every member and `groups` [{members, facts}] the "
+                    "rest, each fact a line plus `members`, `rules`, `general`, `carve_of` "
+                    "(origin, origin2, exc, xref included); `prot` the protected fish of an "
+                    "open-subject row; `scope` {of: water | region | bc, entry, share} (the "
+                    "badge, 5.5); `conds` the conditions on keeping ({c: origin | size | back | "
+                    "group | cap | subcap | outercap | outersize | origin2 | streamcap, …}); "
+                    "`items` [{members, bands [[from_cm, to_cm|null, number]], back, xref, sub, "
+                    "origins?}] (5.8: the keep range is the first band's from and the last's to); "
+                    "`real_daily` {n, all, sum, capped_sum, rb, shared_cap, capped, open} or null "
+                    "(5.7: \"Really {sum} a day here\" when `all`)",
+        },
+        "gear": {
+            "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
+                    "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
+                    "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
+                    "overruled rules, the rules that decide and those that repeat",
+            "version": "1",
+            "at": "[[frame index per segment] per key]",
+            "frames": "[gear answer] — {counts {slot: {by, over, also?}}, specs {slot: [clause]}, "
+                      "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
+                      "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
+                      "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "
+                      "why?, not_for?, for?, while?, conduct?, while_rules?, devices?}], conduct "
+                      "{moment: [[act, [rule]]]}, vessel {active, timed}, timed, in_part, side, "
+                      "while_rules, overruled [{rule, state, reason, by}], decides, repeats}; a "
+                      "clause is [rule, clause index into the export rule's `gear`]",
+            "province_methods": "[method] — the ways the province allows you to sport fish",
+            "parent": "{member: wider member} — the element tree a clause may name",
+            "methods": "[method] — the ways to fish the answer reads",
+            "moments": "[[moment, [[act, short phrase, the model's sentence]]]] — the Always cards",
+            "conduct_means": "{act: sentence} — every conduct act's sentence",
+        },
+        "licence": {
+            "what": "Stage 7.7, the licence answer per part key, segment and angler profile: the "
+                    "reader's requirements in force (`read.requirements_in_force`) and, per "
+                    "profile, the documents to buy, the requirements that are the angler's, "
+                    "exemptions, guiding and other anglers' rules",
+            "version": "1",
+            "at": "[[frame index per segment] per key]",
+            "frames": "[[holds, documents]] — indexes into `holds` and `documents`",
+            "holds": "[{holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
+                     "designations, stamp_period, contested, considered}] — licensing refs: the "
+                     "requirements that hold, the ones a superior authority displaces ({ref: "
+                     "[superior ref]}), for the other kind of water, waived, in an undrawn part, "
+                     "folded restatements ({ref: [ref]}), the designations in force, whether a "
+                     "stamp period runs, whether the licensing set is contested, every record "
+                     "considered",
+            "documents": "[[answer per profile]] — 60 indexes into `answers`, in `profiles` order",
+            "answers": "[{documents [{doc, when {act, species?, lengths?, on?}, base, prices}], "
+                       "none_needed, requirements [{req, when, paths, displaced_by?, "
+                       "presumes_freed?, presumes_by?, terms?}], exempt?, others?, guiding?}]",
+            "profiles": "[residency/age/guidance/status] — the 60 angler profiles; the index is "
+                        "mixed radix over `profile_dims`",
+            "profile_dims": "[[dimension, [value]]] — residency, age, guidance, status",
+        },
+        "display": {
+            "what": "Derived display facts: per part key and segment the status index's code; per "
+                    "export rule its kind, closure, size bands and plain sentence; per water each "
+                    "export part's names and picker facts",
+            "version": "1",
+            "at": "[[frame index per segment] per key]",
+            "frames": "[{status}] — base | own | closed (`status_index.set_profile`: closed = "
+                      "every game fish under a speaking full closure)",
+            "rules": "[{kind, closure?, bands?, plain?}] — aligned with the export's `rules`: the "
+                     "page's 15-step kind, a gate that closes, size bands [[from_cm, to_cm|null, "
+                     "take|null]], the plain sentence (null: the page uses the label)",
+            "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
+                      "the export's parts ({order, label, runs, place, hint, km, closed_all_year, "
+                      "paper_licence [rule]} | null outside B.C.); `picker` {choices [{parts "
+                      "[export part index], closed, sections, heading, text}], headed}; "
+                      "`unresolved_licensing` [licensing ref]",
+        },
     },
-    "reserved": {k: f"v1, not yet present: {v}" for k, v in RESERVED.items()},
+    "reserved": {k: f"not yet present: {v}" for k, v in RESERVED.items()},
 }
 
 
@@ -142,6 +250,7 @@ Table = Interner
 
 class LadderCodec:
     name = "ladder"
+    static_keys: Tuple[str, ...] = ()
 
     def encode(self, values: List[dict], rix: Dict[str, int], fix: Dict[str, int]) -> Tuple[dict, List[int]]:
         verdicts, frames = Table(), Table()
@@ -204,6 +313,7 @@ class LadderCodec:
 
 class AnswerCodec:
     name = "answer"
+    static_keys: Tuple[str, ...] = ()
 
     def encode(self, values: List[dict], rix: Dict[str, int], fix: Dict[str, int]) -> Tuple[dict, List[int]]:
         decided, frames = Table(), Table()
@@ -228,8 +338,68 @@ class AnswerCodec:
         return out
 
 
+class FrameCodec:
+    """A section whose value per (key, segment) is one JSON value with its refs already integer
+    (gear, display): the distinct values are the frames."""
+    static_keys: Tuple[str, ...] = ()
+
+    def __init__(self, name: str, static_keys: Tuple[str, ...] = ()):
+        self.name, self.static_keys = name, static_keys
+
+    def encode(self, values, rix, fix):
+        frames = Table()
+        return {"frames": frames.rows}, [frames.add(v) for v in values]
+
+    def decode_frame(self, sec, ref, rules, fish):
+        return sec["frames"][ref]
+
+
+class RowsCodec:
+    name = "rows"
+    static_keys: Tuple[str, ...] = ()
+
+    def encode(self, values, rix, fix):
+        decided, rows, frames = Table(), Table(), Table()
+        refs = []
+        for v in values:
+            fish = {S: [None if r is None else decided.add(r) for r in (x["hatchery"], x["wild"])]
+                    for S, x in v["fish"].items()}
+            refs.append(frames.add([v["spp"], fish, [rows.add(r) for r in v["rows"]],
+                                    v["steelhead_line"]]))
+        return {"decided": decided.rows, "rows": rows.rows, "frames": frames.rows}, refs
+
+    def decode_frame(self, sec, ref, rules, fish):
+        spp, fs, rs, line = sec["frames"][ref]
+        return {"spp": spp,
+                "fish": {S: {"hatchery": None if h is None else sec["decided"][h],
+                             "wild": None if w is None else sec["decided"][w]}
+                         for S, (h, w) in fs.items()},
+                "rows": [sec["rows"][i] for i in rs], "steelhead_line": line}
+
+
+class LicenceCodec:
+    name = "licence"
+    static_keys = ("profiles", "profile_dims")
+
+    def encode(self, values, rix, fix):
+        holds, answers, docs, frames = Table(), Table(), Table(), Table()
+        refs = []
+        for v in values:
+            refs.append(frames.add([holds.add(v["holds"]),
+                                    docs.add([answers.add(p) for p in v["profiles"]])]))
+        return {"holds": holds.rows, "answers": answers.rows, "documents": docs.rows,
+                "frames": frames.rows}, refs
+
+    def decode_frame(self, sec, ref, rules, fish):
+        h, d = sec["frames"][ref]
+        return {"holds": sec["holds"][h], "profiles": [sec["answers"][i] for i in sec["documents"][d]]}
+
+
 #: One codec per section the file may hold — the encoder and the decoder iterate this.
-CODECS = {c.name: c for c in (LadderCodec(), AnswerCodec())}
+CODECS = {c.name: c for c in (LadderCodec(), AnswerCodec(), RowsCodec(),
+                              FrameCodec("gear", ("province_methods", "parent", "methods",
+                                                  "moments", "conduct_means")),
+                              LicenceCodec(), FrameCodec("display", ("rules", "waters")))}
 
 
 # --------------------------------------------------------------------------------------------
@@ -239,7 +409,7 @@ CODECS = {c.name: c for c in (LadderCodec(), AnswerCodec())}
 def encode(model: Model, data: dict) -> dict:
     rule_ids = data["rule_ids"]
     rix = {k: i for i, k in enumerate(rule_ids)}
-    fish = sorted({f for vals in model.sections.values() for per_key in vals
+    fish = sorted({f for name in ("ladder", "answer") for per_key in model.sections.get(name, [])
                    for v in per_key for f in v})
     fix = {f: i for i, f in enumerate(fish)}
     segs = Table()
@@ -248,7 +418,7 @@ def encode(model: Model, data: dict) -> dict:
         k = dict(zip(PART_KEY_FIELDS, key))
         keys.append([k["ruleset"], k["licensing_set"], int(k["steelhead_water"]), k["steelhead"],
                      int(k["steelhead_rules"]), list(k["province_except"]), list(k["home_region"]),
-                     segs.add(list(starts))])
+                     k["kind"], int(k["tidal"]), segs.add(list(starts))])
     sections = {}
     for name, per_key in model.sections.items():
         codec = CODECS.get(name)
@@ -260,7 +430,11 @@ def encode(model: Model, data: dict) -> dict:
         for vals in per_key:
             at.append(refs[n:n + len(vals)])
             n += len(vals)
-        sections[name] = {"version": model.versions[name], "at": at, **tables}
+        static = model.statics.get(name, {})
+        if set(static) != set(codec.static_keys):
+            raise AnswersError(f"answers: section {name!r} has static tables {sorted(static)}, its "
+                               f"codec expects {sorted(codec.static_keys)}")
+        sections[name] = {"version": model.versions[name], "at": at, **tables, **static}
     wire = {
         "about": {**model.about, "format": FORMAT,
                   "export": {"rule_ids_sha256": rule_ids_digest(rule_ids), "rules": len(rule_ids)},
@@ -303,19 +477,23 @@ def decode(wire: dict, data: dict) -> Model:
     rules, fish = data["rule_ids"], wire["fish"]
     keys, segments = [], []
     for k in wire["keys"]:
-        keys.append((k[0], k[1], bool(k[2]), k[3], bool(k[4]), tuple(k[5]), tuple(k[6])))
-        segments.append(list(wire["segments"][k[7]]))
-    sections = {}
+        keys.append((k[0], k[1], bool(k[2]), k[3], bool(k[4]), tuple(k[5]), tuple(k[6]), k[7],
+                     bool(k[8])))
+        segments.append(list(wire["segments"][k[SEG_SLOT]]))
+    sections, statics = {}, {}
     for name, sec in wire["sections"].items():
         codec = CODECS.get(name)
         if codec is None:
             raise AnswersError(f"answers: the file holds section {name!r}, which no codec reads")
         sections[name] = [[codec.decode_frame(sec, ref, rules, fish) for ref in at]
                           for at in sec["at"]]
+        if codec.static_keys:
+            statics[name] = {k: sec[k] for k in codec.static_keys}
     about = {k: v for k, v in wire["about"].items()
              if k not in ("format", "export", "sections", "reserved", "counts")}
     return Model(about=about, keys=keys, parts=wire["parts"], segments=segments,
-                 sections=sections, versions={n: s["version"] for n, s in wire["sections"].items()})
+                 sections=sections, versions={n: s["version"] for n, s in wire["sections"].items()},
+                 statics=statics)
 
 
 def spec_gaps(wire: dict) -> List[str]:
@@ -326,7 +504,7 @@ def spec_gaps(wire: dict) -> List[str]:
     out += [f"spec does not describe the top-level key {k!r}" for k in wire if k not in top]
     for name, sec in wire.get("sections", {}).items():
         if name in RESERVED:
-            out.append(f"section {name!r} is reserved for v1 and must be absent")
+            out.append(f"section {name!r} is reserved and must be absent")
         if name not in CODECS:
             out.append(f"section {name!r} has no codec")
         text = SPEC["sections"].get(name)
@@ -349,16 +527,23 @@ def segment_index(starts: List[int], day: int) -> int:
 
 
 def tap(wire: dict, data: dict, item: str, part: int, month: int, day: int,
-        fish: str, origin: str) -> Optional[dict]:
-    """What the page reads for one tap: {section name: the fish's entry for that origin}, or None
-    for a part with no rule set. A fish the key does not answer is refused (KeyError)."""
+        fish: Optional[str] = None, origin: Optional[str] = None,
+        profile: Optional[int] = None) -> Optional[dict]:
+    """What the page reads for one tap: {section name: its frame}, the fish's entry for that origin
+    where a section is per fish (ladder, answer, rows' decided answer), the profile's answer for
+    the licence — or None for a part with no rule set. A fish the key does not answer is refused
+    (KeyError)."""
     k = wire["parts"][item][part]
     if k is None:
         return None
     key = wire["keys"][k]
-    s = segment_index(wire["segments"][key[7]], day_of(month, day))
+    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of(month, day))
     out = {}
     for name, sec in wire["sections"].items():
         frame = CODECS[name].decode_frame(sec, sec["at"][k][s], data["rule_ids"], wire["fish"])
-        out[name] = frame[fish][origin]
+        if name in ("ladder", "answer") and fish is not None:
+            frame = frame[fish][origin]
+        elif name == "licence" and profile is not None:
+            frame = {"holds": frame["holds"], "profile": frame["profiles"][profile]}
+        out[name] = frame
     return out

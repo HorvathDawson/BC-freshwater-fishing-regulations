@@ -60,12 +60,11 @@ def test_spec_gaps_refuse_an_undescribed_section():
     wire["sections"] = {"ladder": {k: None for k in E.SPEC["sections"]["ladder"]}}
     assert E.spec_gaps(wire) == []
     bad = copy.deepcopy(wire)
-    bad["sections"]["gear"] = {"version": 0}                          # reserved, not yet present
     bad["sections"]["mystery"] = {"version": 0}
     bad["sections"]["ladder"]["extra"] = []
     bad["surprise"] = 1
     gaps = " | ".join(E.spec_gaps(bad))
-    for want in ("'gear' is reserved", "'mystery' has no codec", "'mystery' has no spec text",
+    for want in ("'mystery' has no codec", "'mystery' has no spec text",
                  "ladder.extra", "'surprise'"):
         assert want in gaps
 
@@ -175,7 +174,8 @@ def built():
     if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
         pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
     data, guide = A.load_export(EXPORT_DIR)
-    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, log=lambda *_: None)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, sections=["ladder", "answer"],
+                    log=lambda *_: None)
     wire = E.encode(model, data)
     return data, guide, model, json.loads(json.dumps(wire))
 
@@ -193,14 +193,14 @@ def test_integer_refs_resolve(built):
     nR, nF = len(data["rule_ids"]), len(wire["fish"])
     rule = lambda i: isinstance(i, int) and 0 <= i < nR             # noqa: E731
     for k in wire["keys"]:
-        assert 0 <= k[7] < len(wire["segments"])
+        assert 0 <= k[E.SEG_SLOT] < len(wire["segments"])
     for item, ks in wire["parts"].items():
         assert len(ks) == len(data["waters"][item]["parts"])
         assert all(k is None or 0 <= k < len(wire["keys"]) for k in ks)
     for name, sec in wire["sections"].items():
         assert len(sec["at"]) == len(wire["keys"])
         for k, at in enumerate(sec["at"]):
-            assert len(at) == len(wire["segments"][wire["keys"][k][7]])
+            assert len(at) == len(wire["segments"][wire["keys"][k][E.SEG_SLOT]])
             assert all(0 <= f < len(sec["frames"]) for f in at)
     lad = wire["sections"]["ladder"]
     for common, rows in lad["frames"]:

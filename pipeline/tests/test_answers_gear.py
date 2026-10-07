@@ -198,31 +198,67 @@ def test_the_gear_subset_reads_as_the_whole_set(bundle):
 
 
 def _key_of(B, item_id):
-    from pipeline.deliver.answers import display
-    got = sorted({v["rule"] for (w, _), v in display.parts_of_bundle(B).items() if w == item_id})
+    from pipeline.deliver.answers import common
+    db = common.connect(B.path)
+    try:
+        got = sorted({common.RuleKey(rs, bool(sw), bool(sr)) for rs, sw, sr in db.execute(
+            "SELECT r.set_id, EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
+            "EXISTS (SELECT 1 FROM section_steelhead_rules x WHERE x.sid = s.sid) "
+            "FROM item i JOIN item_section s ON s.ord = i.ord "
+            "JOIN section_ruleset r ON r.sid = s.sid WHERE i.item_id = ?", (item_id,))})
+    finally:
+        db.close()
     if not got:
         pytest.skip(f"{item_id} is not in this bundle")
     return got[0]
 
 
 def test_kootenay_lake_keeps_the_shore_line_count(bundle):
-    """Decision G2, pinned both ways. Kootenay Lake's "unlimited rods from a boat" shares the
-    province's line rule's (type, dimension), so the whole-set reader drops the province's rule —
-    "1 line" from shore with it. Asked rule by rule, the shore count stands and the boat's
-    unlimited rods ride beside it as a circumstance."""
+    """The dimension fix (was decision G2's workaround), pinned both ways. Kootenay Lake's
+    "unlimited rods from a boat" holds only in a boat (`lines_per_angler@angler=in_boat`), so the
+    reader no longer sets it against the province's line rule (`lines_per_angler` +
+    `lines_per_angler@angler=alone_in_boat&water=lake`): both speak, the shore count stands and the
+    boat's unlimited rods ride beside it as a circumstance."""
     from pipeline.deliver.answers.common import month_day
     from pipeline.deliver.bundle import read
     B = bundle
     key = _key_of(B, "wbk:-20")                                  # Kootenay Lake — Main Body
     province = ("zp:terminal_tackle", "terminal_tackle.r1")
-    whole = read.effective_rules_bound(B.sets[key.set_id], key.steelhead_water, month_day(200),
-                                       "RB", B.path, steelhead_rules_here=key.steelhead_rules)
-    assert province not in {(x["entry"], x["rule"]) for x in whole}, \
-        "the reader no longer drops the province's line rule here: revisit decision G2"
+    kootenay = next(k for k in B.rules if k[1] == "kootenay_lake_main_body.r1")
+    assert B.rules[province]["dimension"] != B.rules[kootenay]["dimension"]
+    whole = {(x["entry"], x["rule"]): x["state"] for x in read.effective_rules_bound(
+        B.sets[key.set_id], key.steelhead_water, month_day(200), "RB", B.path,
+        steelhead_rules_here=key.steelhead_rules)}
+    assert whole.get(province) == "speaks" and whole.get(kootenay) == "speaks"
     a = G.gear_answer(B, key, month_day(200), G.province_methods(B.rules.values()), G.rule_id)
     lines = a["counts"]["lines_per_angler"]
     assert lines["by"] == ["zp:terminal_tackle::terminal_tackle.r1", 1]
     assert any(c.get("while") == ["in_boat"] for c in lines.get("also", []))
+
+
+def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
+    """The dimension fix: a duty is keyed by its acts. Region 5's ice-hut duty ("remove the hut
+    before break-up", while ice fishing) used to share `conduct` with the province's "no gear in
+    the water during a closure" and displace it on every Region 5 lake; now both speak, and the
+    province's own ice-hut duty (two acts, one of them "warn others of an ice hole") too."""
+    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.bundle import read
+    B = bundle
+    closure = ("zp:further_prohibitions", "further_prohibitions.r1")
+    huts = ("z5:ice_fishing_huts", "ice_fishing_huts.r1")
+    if huts not in B.rules:
+        pytest.skip("no Region 5 ice-hut duty in this bundle")
+    key = next((k for k in B.keys if {closure, huts} <= {b[:2] for b in B.sets[k.set_id]}), None)
+    assert key is not None
+    assert B.rules[huts]["dimension"] == "conduct:remove_ice_hut_before_breakup@while=ice_fishing"
+    assert B.rules[closure]["dimension"] == "conduct:no_gear_in_water_during_closure"
+    got = {(x["entry"], x["rule"]): x["state"] for x in read.effective_rules_bound(
+        B.sets[key.set_id], key.steelhead_water, month_day(20), "RB", B.path,
+        steelhead_rules_here=key.steelhead_rules)}
+    assert got.get(closure) == "speaks" and got.get(huts) == "speaks"
+    a = G.gear_answer(B, key, month_day(20), G.province_methods(B.rules.values()), G.rule_id)
+    never = dict(a["conduct"].get("never", []))
+    assert G.rule_id(closure) in never.get("no_gear_in_water_during_closure", [])
 
 
 def test_lifts_are_the_readers(bundle):
@@ -242,9 +278,15 @@ def test_lifts_are_the_readers(bundle):
     off = next(d for d in range(1, 367) if read.in_force(lift["when"], month_day(d)) == "no")
     a_on = G.gear_answer(B, key, month_day(on), lawful, G.rule_id)
     a_off = G.gear_answer(B, key, month_day(off), lawful, G.rule_id)
-    assert {"rule": zone, "lifted_by": [G.rule_id(lifter)]} in a_on["lifted"]
-    assert zone not in {x["rule"] for x in a_off["lifted"]}
-    assert zone in a_off["decides"] + a_off["repeats"]
+    assert {"rule": zone, "state": "lifted", "reason": "lifted",
+            "by": G.rule_id(lifter)} in a_on["overruled"]
+    # off the lift's days the zone's ban is not lifted: it stands, or (May 1-Nov 30) the river's own
+    # dated bait ban says the same thing at the closer rung and displaces it — bait is banned either way
+    off_zone = [x for x in a_off["overruled"] if x["rule"] == zone]
+    assert all(x["state"] == "displaced" and x["by"].startswith("r1:quatse_river")
+               for x in off_zone)
+    assert off_zone or zone in a_off["decides"] + a_off["repeats"]
+    assert a_off["elements"]["bait:roe"]["verdict"] == "ban"
 
 
 def test_gear_answers_are_deterministic_and_lawful_methods_are_the_guides(bundle):

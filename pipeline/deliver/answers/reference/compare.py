@@ -61,8 +61,18 @@ def _answer(res: dict | None) -> dict | None:
             "roles": {k: [v["role"], v.get("by")] for k, v in res.get("roles", [])}}
 
 
+HOOK_TAGS = {"Single barbless hook": "single_barbless", "Single hook": "single",
+             "Any barbless hook": "any_barbless", "Trebles and barbs OK": "trebles_and_barbs"}
+
+
+def _num(v):
+    return "Infinity" if v in ("Infinity", float("inf")) else v
+
+
 def golden_view(golden: Path) -> dict[str, dict[tuple, dict]]:
-    """Every golden record, projected and keyed. Licence answer ids are resolved."""
+    """Every golden record, projected onto the STRUCTURED facts and keyed (the page's words —
+    titles, sentences, tiles — are presentation and not compared). Licence answer ids are
+    resolved."""
     out: dict[str, dict[tuple, dict]] = {s: {} for s in STREAMS}
     for rec in (r for f in _files(golden, "ladder") for r in _lines(f)):
         out["ladder"][(rec["w"], rec["pk"], rec["seg_from"], rec["fish"], rec["origin"])] = rec["states"]
@@ -72,25 +82,39 @@ def golden_view(golden: Path) -> dict[str, dict[tuple, dict]]:
             for o in ORIGINS:
                 out["answer"][(w, s, d, fish, o)] = _answer(a[o])
         for row in rec["rows"]:
+            rd = row.get("real_daily")
             out["row"][(w, s, d, row["kind"], row.get("pool") or row.get("win"))] = {
-                "title": row["title"], "kind": row["kind"], "pool": row.get("pool"), "win": row.get("win"),
-                "members": row.get("members"), "daily": row.get("daily"), "real_daily": row.get("real_daily"),
-                "sources": [[x["rule"], x["role"], x["by"]] for x in row["sources"]],
-                "decided": row["decided"]}
+                "kind": row["kind"], "pool": row.get("pool"), "win": row.get("win"),
+                "members": row.get("members"), "all_members": row.get("allMembers"),
+                "daily": _num(row.get("daily")) if row.get("pool") else None,
+                "real_daily": None if not rd else [rd["n"], rd["all"], rd.get("sum"),
+                                                   rd["cappedSum"], rd["rb"]],
+                "everyone": [[l["t"], l["r"], sorted(l["members"])] for l in row.get("everyone") or []],
+                "groups": [[sorted(g["members"]), [[l["t"], l["r"]] for l in g["facts"]]]
+                           for g in row.get("groups") or []]}
     for rec in (r for f in _files(golden, "gear") for r in _lines(f)):
         key = (rec["w"], rec["pk"], rec["date"])
-        out["gear"][key] = {"closed": True} if rec["closed"] else {
+        if rec["closed"]:
+            out["gear"][key] = {"closed": True}
+            continue
+        hook = next((HOOK_TAGS[t] for t in rec["tags"] if t in HOOK_TAGS), None)
+        out["gear"][key] = {
             "closed": False,
-            "counts": {k: [l[0]["rule"], l[0]["c"]] for k, l in rec["counts"].items() if l},
+            "counts": {k: [l[0]["rule"], l[0]["clause"]] for k, l in rec["counts"].items() if l},
             "elems": {k: [e["rule"], e["s"]] for k, e in rec["elems"].items()},
-            "tags": rec["tags"], "tiles": rec["tiles"]}
+            "hook": hook, "bait_ban": rec["baitBan"],
+            "bait": [[b["e"], b["ok"]] for b in rec["baitList"]],
+            "ways_no": sorted(x["k"] for x in rec["waysNo"]),
+            "circ": sorted([e["rule"], e["clause"]] for e in rec["circ"]),
+            "always": rec["alwaysN"]}
     answers = {r["id"]: r for f in _files(golden, "licence_answers") for r in _lines(f)}
     for rec in (r for f in _files(golden, "licence") for r in _lines(f)):
         s = rec["pk"]
         for prof, aid in rec["profiles"].items():
             a = answers[aid]
             out["licence"][(rec["w"], s, rec["date"], prof)] = {"closed": True} if a["closed"] else {
-                "closed": False, "buy": a["buy"], "none": a["none"], "tile": a["tile"],
+                "closed": False, "none": a["none"],
+                "buy": sorted([b["name"], b["base"]] for b in a["buy"]),
                 "mine": sorted(x["rule"] for x in a["settle"]["reqs"] if x["mine"])}
     return out
 

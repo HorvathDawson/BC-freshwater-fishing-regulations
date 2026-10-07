@@ -216,9 +216,11 @@ def check_export(B: Bundle, data: dict, guide: dict) -> Dict[str, int]:
 # --------------------------------------------------------------------------------------------
 
 #: The part key's fields, in order: the reference harness's `partKey` (`reference/golden.js`),
-#: with `steelhead_rules` the bundle's fact.
+#: with `steelhead_rules` the bundle's fact, then what the licence and the card read beyond it: the
+#: water's KIND (lake, stream, wetland — `item.kind`) and whether the part is TIDAL water. Every
+#: section of a part agrees on both, or the build stops.
 PART_KEY_FIELDS = ("ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
-                   "province_except", "home_region")
+                   "province_except", "home_region", "kind", "tidal")
 
 
 def key_dict(key: tuple) -> dict:
@@ -248,8 +250,10 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
         db.execute("INSERT INTO _sr SELECT sid FROM section_steelhead_rules")
         db.execute("CREATE TEMP TABLE _out (sid INTEGER PRIMARY KEY)")
         db.execute("INSERT INTO _out SELECT DISTINCT sid FROM outside_bc")
+        db.execute("CREATE TEMP TABLE _td (sid INTEGER PRIMARY KEY)")
+        db.execute("INSERT INTO _td SELECT DISTINCT sid FROM tidal")
         facts: Dict[tuple, dict] = {}
-        for item, rs, ls, pe, sw, st, sr, home, out in db.execute(
+        for item, rs, ls, pe, sw, st, sr, home, out, td, kind in db.execute(
                 "SELECT i.item_id, r.set_id, l.set_id, "
                 "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
                 " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
@@ -258,13 +262,17 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
                 " WHERE h.sid = s.sid), "
                 "EXISTS (SELECT 1 FROM _sr x WHERE x.sid = s.sid), "
                 "(SELECT region FROM section_home h WHERE h.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _out o WHERE o.sid = s.sid) "
+                "EXISTS (SELECT 1 FROM _out o WHERE o.sid = s.sid), "
+                "EXISTS (SELECT 1 FROM _td t WHERE t.sid = s.sid), i.kind "
                 "FROM item i JOIN item_section s ON s.ord = i.ord "
                 "LEFT JOIN section_ruleset r ON r.sid = s.sid "
                 "LEFT JOIN section_licensing l ON l.sid = s.sid"):
             f = facts.setdefault((item, rs, ls, pe, bool(sw), st),
-                                 {"sr": set(), "home": set(), "out": set()})
+                                 {"sr": set(), "home": set(), "out": set(), "tidal": set(),
+                                  "kind": set()})
             f["sr"].add(bool(sr))
+            f["tidal"].add(bool(td))
+            f["kind"].add(kind)
             f["out"].add(bool(out))
             if home:
                 f["home"].add(home)
@@ -302,8 +310,16 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
             if home != tuple(flags.get("home_region") or ()):
                 raise AnswersError(f"answers: water {item} part {pi}: home_region {home} is not the "
                                    f"export's {flags.get('home_region')}")
+            if len(f["tidal"]) != 1:
+                raise AnswersError(f"answers: water {item} part {pi}: its sections disagree on "
+                                   f"whether it is tidal water")
+            kind = w.get("kind")
+            if f["kind"] != {kind} or B.set_kind.get(rs) != kind:
+                raise AnswersError(f"answers: water {item} part {pi}: kind {kind!r} is not its "
+                                   f"sections' {sorted(map(str, f['kind']))} or its rule set's "
+                                   f"{B.set_kind.get(rs)!r}")
             key = (rs, ls, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"), sr,
-                   tuple(flags.get("province_except") or ()), home)
+                   tuple(flags.get("province_except") or ()), home, kind, next(iter(f["tidal"])))
             if key not in index:
                 index[key] = len(keys)
                 keys.append(key)

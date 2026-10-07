@@ -620,10 +620,8 @@ DECISIONS = [
     "D3 Closed all year is the status index's answer (`status_index.set_profile` all CLOSED: every "
     "game fish under a speaking full closure every day), not the page's re-reading (`isBroad`: "
     "a closure or a federal release naming ALL_GAME_FISH). One definition of closed (AGENTS 56).",
-    "D4 The steelhead line asks whether a steelhead ROW exists as: ST is a fish the part asks about "
-    "(5.1: a part with steelhead, a rule naming ST, steelhead rules not false, ST among the "
-    "applying retention rules' fish) and, on the day, the reader has a speaking gate or pool for "
-    "ST (5.2's winner exists). Shipped as runs over the part's segments.",
+    "D4 The steelhead line (5.6) is the card's: it ships in the `rows` section, read off the rows "
+    "exactly as the page does (a steelhead row exists among the card's rows).",
     "D5 `plain` is the page's `sayRule` for the rule's own fish (no row context); null where the "
     "page writes no sentence (gear, conduct, vessel, `while`, a place in words, a side, standing) "
     "and falls back to `label`.",
@@ -658,23 +656,6 @@ def build_rules(B) -> List[dict]:
     return [rule_facts(B.rules[k]) for k in order]
 
 
-def load_export(data_path, guide_path, B) -> dict:
-    """The export pair decoded by the reference decoder, refused unless it was read from this
-    bundle (`about.bundle` reach digest and section handles)."""
-    import json
-    from pathlib import Path
-    from pipeline.tools import export_codec
-    data = json.loads(Path(data_path).read_text(encoding="utf-8"))
-    guide = json.loads(Path(guide_path).read_text(encoding="utf-8"))
-    doc = export_codec.expand(data, guide)
-    about = (doc.get("about") or {}).get("bundle") or {}
-    for k in ("reach_digest", "section_handles"):
-        if about.get(k) != B.digest.get(k):
-            raise SystemExit(f"answers: the export was read from another bundle ({k} "
-                             f"{about.get(k)} != {B.digest.get(k)}) — regenerate it")
-    return doc
-
-
 def closed_all_year(B, key) -> bool:
     """Closed to every game fish on all 366 days: the status index's own profile is CLOSED every
     day. Quick refusals first, with the index's predicate: a day on which the bound full closures
@@ -703,153 +684,6 @@ def closed_all_year(B, key) -> bool:
     return all(c == SI.CLOSED for c in prof)
 
 
-_ASKED_KINDS = ("gate", "pool", "subcap", "sizecap", "size", "annual")
-
-
-def asks_steelhead(B, key, kind: Optional[str], presence: Optional[str],
-                   rules_off: bool) -> bool:
-    """Consumer 5.1 for ST: the part has steelhead, some rule of the place names ST, the
-    steelhead rules are not off, and ST is among the fish of its applying retention rules."""
-    from pipeline.deliver.answers.common import expand
-    if not presence or rules_off:
-        return False
-    xs = [B.rules[(e, r)] for e, r, _ in B.sets.get(key.set_id, []) if (e, r) in B.rules]
-    if not any("ST" in (x.get("species") or []) for x in xs):
-        return False
-    for x in xs:
-        if kind and x.get("water") and x["water"] != kind:
-            continue
-        if x.get("type") == "retention_limit" and kind_of(x) in _ASKED_KINDS and \
-                "ALL_GAME_FISH" not in (x.get("species") or []) and \
-                "ST" in expand(x.get("species")):
-            return True
-    return False
-
-
-def steelhead_runs(B, key, presence: Optional[str], asked: bool) -> List[list]:
-    """The steelhead line over the key's year, [[start_day, code]]: the row exists on a day when
-    ST is asked and the reader has a speaking gate or pool for it (5.2's winner)."""
-    from pipeline.deliver.answers.common import month_day, rule_vectors, segments
-    from pipeline.deliver.bundle import read
-    if not presence:
-        return [[1, None]]
-    if not asked:
-        return [[1, steelhead_line(presence, False)]]
-    bound = B.sets.get(key.set_id, [])
-    runs, readings = segments(rule_vectors(B.rules[(e, r)] for e, r, _ in bound
-                                           if (e, r) in B.rules))
-    codes = []
-    for d in readings:
-        rows = read.effective_rules_bound(bound, key.steelhead_water, month_day(d), "ST",
-                                          B.path, steelhead_rules_here=key.steelhead_rules)
-        has = any(x["state"] == "speaks" and x.get("type") == "retention_limit"
-                  and kind_of(x) in ("gate", "pool") for x in rows)
-        codes.append(steelhead_line(presence, has))
-    out: List[list] = []
-    for d, i in runs:
-        if not out or out[-1][1] != codes[i]:
-            out.append([d, codes[i]])
-    return out
-
-
-def part_key_c(p: dict) -> str:
-    """Agent C's reference part key (`golden.js partKey`), for joining with the page goldens."""
-    s = lambda v: "" if v is None else str(v)                     # noqa: E731 (JS join)
-    return "|".join([s(p.get("ruleset")), s(p.get("licensing_set")),
-                     "sw" if p.get("anadromous_rainbow") else "", p.get("steelhead") or "",
-                     "sr0" if p.get("steelhead_rules") is False else "",
-                     "+".join(p.get("province_except") or []),
-                     ",".join(p["home_region"]) if isinstance(p.get("home_region"), list)
-                     else (p.get("home_region") or "")])
-
-
-class PartKeyError(SystemExit):
-    """A part whose sections do not agree on one evaluation key: the part tuple would not decide
-    its answers, so the build stops (no fallback)."""
-
-
-def parts_of_bundle(B) -> Dict[Tuple[str, str], dict]:
-    """Every part of every named water, from the bundle's sections: `{(item_id, part key):
-    {"rule": RuleKey, "licence": LicenceKey | None, "sections": n}}`. The part key is agent C's
-    (`reference/golden.js partKey`): `set|lset|sw|steelhead|sr0|province_except|home_region` —
-    `sw` where a rainbow over 50 cm is a steelhead, `sr0` on a KNOWN part no steelhead rule
-    applies to (the export's `steelhead_rules: false`), the province-exception kinds joined by
-    "+", the straddling sections' home regions joined by ",". Parts with no rule set (outside
-    B.C.) are left out. A part whose sections give two rule keys or two licence keys is refused
-    (`PartKeyError`)."""
-    from collections import defaultdict
-    from pipeline.deliver.answers.common import RuleKey, connect
-    from pipeline.deliver.answers.licence import section_keys
-    db = connect(B.path)
-    try:
-        rows = db.execute(
-            "SELECT i.item_id, s.sid, r.set_id, l.set_id FROM item i JOIN item_section s "
-            "ON s.ord = i.ord JOIN section_ruleset r ON r.sid = s.sid "
-            "LEFT JOIN section_licensing l ON l.sid = s.sid").fetchall()
-        sids = {r[1] for r in rows}
-        pe: Dict[int, List[str]] = defaultdict(list)
-        for k, sid in db.execute("SELECT area_kind, sid FROM province_except ORDER BY area_kind"):
-            pe[sid].append(k)
-        sw = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
-        sr = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
-        st = {s: {1: "known", 2: "possible"}[c]
-              for s, c in db.execute("SELECT sid, code FROM section_steelhead")}
-        home = dict(db.execute("SELECT sid, region FROM section_home"))
-        lic = section_keys(db, sids)
-    finally:
-        db.close()
-    groups: Dict[tuple, dict] = defaultdict(lambda: {"rule": set(), "licence": set(),
-                                                     "sr": set(), "home": set(), "n": 0})
-    for item_id, sid, rs, ls in rows:
-        t = (item_id, rs, ls, tuple(pe.get(sid, [])), sid in sw, st.get(sid))
-        g = groups[t]
-        g["rule"].add(RuleKey(rs, sid in sw, sid in sr))
-        g["licence"].add(lic.get(sid))
-        g["sr"].add(sid in sr)
-        if sid in home:
-            g["home"].add(home[sid])
-        g["n"] += 1
-    out: Dict[Tuple[str, str], dict] = {}
-    bad = []
-    for (item_id, rs, ls, pes, swv, stv), g in sorted(groups.items(), key=lambda kv: str(kv[0])):
-        if len(g["rule"]) != 1 or len(g["licence"]) != 1 or len(g["sr"]) != 1:
-            bad.append((item_id, rs, ls))
-            continue
-        apply = next(iter(g["sr"]))
-        pk = "|".join([str(rs), "" if ls is None else str(ls), "sw" if swv else "", stv or "",
-                       "sr0" if stv == "known" and not apply else "", "+".join(pes),
-                       ",".join(sorted(g["home"]))])
-        out[(item_id, pk)] = {"rule": next(iter(g["rule"])),
-                              "licence": next(iter(g["licence"])), "sections": g["n"]}
-    if bad:
-        raise PartKeyError(f"answers: {len(bad)} part(s) whose sections give more than one "
-                           f"evaluation key (e.g. {bad[:3]})")
-    return out
-
-
-def part_keys(B, doc: dict) -> Dict[tuple, dict]:
-    """Every export part with a rule set, mapped to its bundle part: `{(item_id, export part
-    index): {"pk", "rule", "licence", "sections"}}`. An export part with no bundle part, or with
-    another section count, is refused (`PartKeyError`)."""
-    by = parts_of_bundle(B)
-    out: Dict[tuple, dict] = {}
-    bad = []
-    for item_id, w in doc["waters"].items():
-        for i, p in enumerate(w["parts"]):
-            if p.get("ruleset") is None:
-                continue
-            pk = part_key_c(p)
-            got = by.get((item_id, pk))
-            if got is None or got["sections"] != p["sections"]:
-                bad.append((item_id, i, pk))
-                continue
-            out[(item_id, i)] = {"pk": pk, **got}
-    if bad:
-        raise PartKeyError(f"answers: {len(bad)} export part(s) with no matching bundle part "
-                           f"(e.g. {bad[:3]})")
-    return out
-
-
 def paper_licence(B, key, kind: Optional[str]) -> List[str]:
     """The record duties that reach this part (7.7 step 7, "Keep a hatchery steelhead? Carry your
     paper licence"): its set's rules with `record_retention` for this kind of water — the
@@ -866,54 +700,84 @@ def produce_rules(B) -> Dict[str, dict]:
             sorted(B.rules.items(), key=lambda kv: f"{kv[0][0]}::{kv[0][1]}")}
 
 
-def produce_parts(B, doc: dict, log=print) -> Dict[str, dict]:
-    """PURE: every named water's part facts, `{item_id: {"parts": {part key: facts},
-    "picker": {...}, "unresolved_licensing": [record id]}}` where a part's facts are
-    {export, order, label, runs, place, hint, km, closed_all_year, steelhead_line
-    {start_day: code}, rule_key, licence_key}. The picker names parts by part key."""
-    keys = part_keys(B, doc)
+def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
+                  rule_ref=None, lic_ref=None, log=print) -> Dict[str, dict]:
+    """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
+    "picker": {...}, "unresolved_licensing": [record]}}`, a part's facts {order, label, runs,
+    place, hint, km, closed_all_year, paper_licence}; null for a part outside B.C. The part keys
+    are the keying module's (`common.part_keys`); the picker names parts by export index."""
+    from pipeline.deliver.answers.common import rule_key
+    rule_ref = rule_ref or (lambda k: k)
+    lic_ref = lic_ref or (lambda k: k)
     closed_memo: Dict = {}
-    st_memo: Dict = {}
     out: Dict[str, dict] = {}
     unresolved: Dict[str, List[str]] = {}
     for k, x in (doc.get("licensing") or {}).items():
         if x.get("placement") == "unresolved":
             unresolved.setdefault(x["entry_id"], []).append(k)
-    for item_id in sorted(doc["waters"]):
+    for item_id in sorted(parts):
         w = doc["waters"][item_id]
         W = Water(item_id, w, doc)
         if not W.parts:
             continue
         labels = part_labels(W)
         closed = []
-        parts: Dict[str, dict] = {}
-        pks = []
+        facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
-            k = keys[(item_id, ex)]
-            rk, lk = k["rule"], k["licence"]
+            rk = rule_key(keys[parts[item_id][ex]])
             if rk not in closed_memo:
                 closed_memo[rk] = closed_all_year(B, rk)
             closed.append(closed_memo[rk])
-            presence = p.get("steelhead")
-            off = p.get("steelhead_rules") is False
-            sk = (rk, w.get("kind"), presence, off)
-            if sk not in st_memo:
-                st_memo[sk] = steelhead_runs(
-                    B, rk, presence, asks_steelhead(B, rk, w.get("kind"), presence, off))
-            pks.append(k["pk"])
-            parts[k["pk"]] = {
-                "export": ex, "order": i, "label": labels[i], "runs": runs_label(doc, p),
+            facts[ex] = {
+                "order": i, "label": labels[i], "runs": runs_label(doc, p),
                 "place": part_place(W, i), "hint": part_label(W, i), "km": part_km(p),
                 "closed_all_year": closed[-1],
-                "steelhead_line": {d: c for d, c in st_memo[sk]},
-                "paper_licence": paper_licence(B, rk, w.get("kind")),
-                "rule_key": rk, "licence_key": lk}
-        pick = picker(W, labels, closed)
-        for c in pick["choices"]:
-            c["parts"] = [pks[W.export_ix.index(ex)] for ex in c["parts"]]
-        out[item_id] = {"parts": parts, "picker": pick,
-                        "unresolved_licensing": sorted(k for e in w.get("entries") or []
-                                                       for k in unresolved.get(e, []))}
-    log(f"  parts: {sum(len(v['parts']) for v in out.values())} parts of {len(out)} waters; "
-        f"{sum(closed_memo.values())} of {len(closed_memo)} rule keys closed all year")
+                "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"))]}
+        out[item_id] = {"parts": facts, "picker": picker(W, labels, closed),
+                        "unresolved_licensing": [lic_ref(k) for k in sorted(
+                            k for e in w.get("entries") or [] for k in unresolved.get(e, []))]}
+    log(f"  parts: {sum(1 for v in out.values() for f in v['parts'] if f)} parts of {len(out)} "
+        f"waters; {sum(closed_memo.values())} of {len(closed_memo)} rule keys closed all year")
     return out
+
+
+# --------------------------------------------------------------------------------------------
+# The `display` section of the answers file
+# --------------------------------------------------------------------------------------------
+
+STATUS_NAMES = ("base", "own", "closed")
+
+
+def section_scope(key: tuple, B):
+    """The part's status per day reads its rule key (`status_index.set_profile`)."""
+    from pipeline.deliver.answers.common import rule_key
+    return rule_key(key)
+
+
+def section_prepare(scope, ctx):
+    """The status index's code per day for the rule key (`status_index.set_profile`, the one
+    definition of closed): `base` (the tables' rules only), `own` (the water's own rules too),
+    `closed` (every game fish under a speaking full closure)."""
+    from pipeline.deliver import status_index as SI
+    prof = SI.set_profile(ctx.sets.get(scope.set_id, []), scope.steelhead_water, ctx.bundle,
+                          scope.steelhead_rules)
+    names = {SI.BASE: "base", SI.OWN: "own", SI.CLOSED: "closed"}
+    values: List[str] = []
+    per: List[int] = []
+    for c in prof:
+        v = names[c]
+        if v not in values:
+            values.append(v)
+        per.append(values.index(v))
+    return per, [{"status": v} for v in values]
+
+
+def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
+    """The facts that are not keyed by (part key, segment): per export rule (kind, closure, bands,
+    plain sentence) and per named water (each export part's names and picker facts)."""
+    from pipeline.tools import export_codec
+    doc = export_codec.expand(data, guide)
+    lic_ix = {k: i for i, k in enumerate(data.get("licensing_ids") or [])}
+    return {"rules": build_rules(ctx.B),
+            "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
+                                    lic_ref=lic_ix.__getitem__, log=lambda *_: None)}

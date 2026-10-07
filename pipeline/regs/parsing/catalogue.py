@@ -751,6 +751,20 @@ def _day_index(month: int, day: int) -> int:
     return sum(_LAST_DAY[m] for m in range(1, month)) + day
 
 
+def range_days(r: "DateRange") -> List[int]:
+    """THE DAYS A PRINTED RANGE HOLDS, on the leap calendar (1..366), wrapping New Year — the one
+    place a range's dates become days (`_days`, `complement`; `read.in_force` reads `_days`).
+
+    A RANGE PRINTED TO FEB 28 RUNS THROUGH FEB 29 (ruling 2026-10-06): the 2025-2027 synopsis is
+    written for years without a Feb 29, and "Jan 1-Feb 28" means through the end of February — in a
+    leap year the Nicola below the lake is catch and release on Feb 29, not closed. A range that
+    STARTS Mar 1 (or on any other day) is untouched."""
+    a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
+    if (r.to_month, r.to_day) == (2, 28):
+        b += 1
+    return list(range(a, b + 1)) if a <= b else list(range(a, 367)) + list(range(1, b + 1))
+
+
 def complement(ranges: List["DateRange"]) -> List["DateRange"]:
     """THE DAYS THESE RANGES DO NOT COVER, on a circular year.
 
@@ -760,9 +774,7 @@ def complement(ranges: List["DateRange"]) -> List["DateRange"]:
     """
     covered = set()
     for r in ranges:
-        a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
-        days = range(a, b + 1) if a <= b else list(range(a, 367)) + list(range(1, b + 1))
-        covered.update(days)
+        covered.update(range_days(r))
     total = sum(_LAST_DAY.values())
     free = [d for d in range(1, total + 1) if d not in covered]
     if not free:
@@ -2011,8 +2023,7 @@ def bare_whole(extents: Optional[List[dict]]) -> bool:
 def _days(ranges: List["DateRange"]) -> set:
     got: set = set()
     for r in ranges:
-        a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
-        got.update(range(a, b + 1) if a <= b else list(range(a, 367)) + list(range(1, b + 1)))
+        got.update(range_days(r))
     return got
 
 
@@ -2982,6 +2993,23 @@ class CatalogueRule(BaseModel):
             # and — being its own type — never with a quota.
             return ("closed_to:" + (self.closed_to.key() if self.closed_to else "unspecified")
                     + "".join(f"-except:{w.key()}" for w in self.closed_to_except))
+        # A GEAR OR CONDUCT RULE CARRIES ITS CONDITION AND ITS ACTS IN ITS KEY (answers v1,
+        # 2026-10-06: the answers layer's decision G2, fixed at the source). The ladder sets two
+        # rules of one (type, dimension) against each other WHOLE, so a key coarser than what the
+        # rules say drops clauses the winner never spoke about: Kootenay Lake's "unlimited rods
+        # FROM A BOAT" (`lines_per_angler`, its clause `when: in_boat`) displaced the province's
+        # line rule and its "1 line" from shore; a region's ice-hut or set-line duty (`conduct`)
+        # displaced the province's "no gear in the water during a closure" and "warn others of an
+        # ice hole". So a clause's condition is part of its slot's key for tackle as for methods
+        # (`slot@when`), a duty's ACTS are its key (`conduct:act+act`), and the MEANS the whole rule
+        # holds under (`while`: set lining, ice fishing) is a condition of every clause
+        # (`…@while=set_lining`, as on a bait or a retention rule). The water kind is NOT: where
+        # two gear rules both bind they bind the same kind of water, and a water row's "single
+        # barbless hook" replaces the zone's "single barbless hook in streams".
+        def at(c):
+            return "@" + c.when.key() if c.when is not None and not c.when.is_empty() else ""
+        means = ("@while=" + "+".join(sorted(self.while_))) if self.while_ else ""
+        acts = ("conduct:" + "+".join(sorted(self.conduct))) if self.conduct else ""
         if t is RuleType.method_rule:
             # THE METHODS NAMED, not just the slot: every method rule constrains `method`, so the
             # slot alone would let a water's "no ice fishing" displace the zone's "no set lining".
@@ -2989,18 +3017,21 @@ class CatalogueRule(BaseModel):
             # when in a boat, and keyed "method:angling" it would DISPLACE the province's
             # unconditional angling allow — shore angling would read as not allowed there. A
             # conditional clause is its own key ("method:angling@angler=in_boat").
-            def at(c):
-                return "@" + c.when.key() if c.when is not None and not c.when.is_empty() else ""
             said = sorted({(f"{c.slot.value}:{m}" if c.slot is Slot.method else c.slot.value)
                            + at(c)
                            for c in self.gear
                            for m in ((c.allow or []) + (c.only or []) + (c.ban or []) or [""])})
-            return ",".join(said) or ("conduct" if self.conduct else "unspecified")
+            return (",".join(said + ([acts] if acts else [])) or "unspecified") + means
         if t is RuleType.tackle_restriction:
             # THE SET OF SLOTS CONSTRAINED. A water's "single barbless hook" displaces the zone's
             # "single barbless hook"; its bare "barbless hook" does not, because displacing would
             # drop the zone's one-point cap, which the water never lifted.
-            return ",".join(sorted({c.slot.value for c in self.gear})) or "unspecified"
+            return (",".join(sorted({c.slot.value + at(c) for c in self.gear}))
+                    or "unspecified") + means
+        if t is RuleType.handling_rule:
+            # A DUTY IS KEYED BY WHAT IT MAKES YOU DO: "keep the head on until home" and "don't
+            # sell your catch" never replace each other.
+            return (acts or "unspecified") + means
         if t is RuleType.bait_restriction:
             # BAIT IS ONE DOMAIN, ranked by where a rule applies (province < region < water).
             # Invertebrates are a kind of bait, and the province's "you may use freshwater

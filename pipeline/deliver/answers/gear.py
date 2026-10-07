@@ -2,16 +2,17 @@
 
 TWO STEPS, AND ONLY THE SECOND IS NEW.
 
-1. WHICH GEAR RULES ARE IN FORCE is the reference reader's answer (`read.effective_rules_bound`),
-   asked of EACH gear-relevant rule with only its lifters beside it (`states`, decision G2): its
-   lifts (the Quatse's dated bait ban replacing Region 1's all-year one), `beside` for a rule held
-   some hours or on one side of the channel, `not_yet_mapped` for one in an undrawn part. The
-   reader's rule-level competition on (type, dimension) is NOT used for gear: its dimensions are
-   coarser than the clauses (measured: Kootenay Lake's boat-only "unlimited rods" removed the
-   province's "1 line" from shore; a Region 6 set-line duty removed "no gear in the water during a
-   closure"), so which clause wins is decided per slot and member in step 2, at the page's grain.
-   A gear rule names no fish (0 of 1,347 gear, conduct and vessel rules carry `species`); each is
-   asked for the first fish it speaks for ("RB", or a `when_targeting` target).
+1. WHICH GEAR RULES ARE IN FORCE is the reference reader's answer (`read.effective_rules_bound`,
+   traced) for the key's gear bindings (`states`): its lifts (the Quatse's dated bait ban
+   replacing Region 1's all-year one), `beside` for a rule held some hours or on one side of the
+   channel, `not_yet_mapped` for one in an undrawn part, and its (type, dimension) competition. A
+   gear or conduct rule's dimension carries its clause conditions, its means (`while`) and its
+   acts (`catalogue.CatalogueRule.dimension`, 2026-10-06), so the competition only ever sets the
+   same subject at two rungs against each other: Kootenay Lake's boat-only "unlimited rods" no
+   longer removes the province's "1 line" from shore, and a region's set-line or ice-hut duty no
+   longer removes "no gear in the water during a closure". A gear rule names no fish (0 of 1,347
+   gear, conduct and vessel rules carry `species`); each is read for the first fish it speaks for
+   ("RB", or a `when_targeting` target).
 
 2. HOW THE IN-FORCE CLAUSES RESOLVE is the page's `settleGear` (v35), ported:
      * a clause whose `when.water` is the other kind of water drops out;
@@ -33,8 +34,8 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import Bundle, Interner, RuleKey, dumps, expand, \
-    month_day, rule_id, rule_vectors, segments
+from pipeline.deliver.answers.common import AnswersError, Bundle, Interner, RuleKey, dumps, \
+    expand, month_day, rule_id, rule_vectors, segments
 from pipeline.deliver.bundle import read
 
 GEAR_FAMILIES = ("gear_and_method", "conduct", "vessel")
@@ -107,11 +108,13 @@ DECISIONS = [
     "G1 A rule-level `when_targeting` (white sturgeon's 'dead fin fish may be used', 3 rules) "
     "makes its clauses circumstantial ('when fishing for white sturgeon'); the page reads only a "
     "CLAUSE's `when.targeting` and would show it as a main clause.",
-    "G2 Which gear rules are in force comes from the reader (lifts, beside, not_yet_mapped), "
-    "asked rule by rule with the rule's lifters; the reader's (type, dimension) competition is "
-    "not applied to gear (it drops whole rules where only some clauses lose — Kootenay Lake's "
-    "shore line count, Region 6's no-gear-during-closure duty); precedence is per slot and member "
-    "(step 2), as the page does. A lifted rule is listed under `lifted` with its lifters.",
+    "G2 Which gear rules are in force is the reader's traced answer for the key's gear bindings "
+    "(lifts, beside, not_yet_mapped, competition). The (type, dimension) competition used to drop "
+    "whole rules where only some clauses lose (Kootenay Lake's shore line count, the "
+    "no-gear-during-closure duty); fixed at the source (gear and conduct dimensions carry their "
+    "conditions, means and acts), so the rule-by-rule workaround is gone. A rule the reader lifts "
+    "or displaces is listed under `overruled` with its state, reason and `by`; precedence among "
+    "the rules in force is per slot and member (step 2), as the page does.",
     "G3 A clause's `when.water` on a key of unknown kind (a rule set on no named water) is kept "
     "as a circumstance `water=<kind>`, never resolved as main.",
     "G4 Within one rule, clauses on one slot are 'first match wins, no `when` is the last word' "
@@ -428,7 +431,7 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
     ans["in_part"] = [r.key for r in in_part]
     ans["side"] = [r.key for r in side]
     ans["while_rules"] = [r.key for r in while_rules]
-    ans["lifted"] = list(overruled)
+    ans["overruled"] = list(overruled)
     # every rule that decides something, and every rule in force that decides nothing here (its
     # clauses all beaten, or it repeats a closer rule): the page's "All gear sources"
     won = {c[0] for v in ans["counts"].values() for c in [v["by"]]} | \
@@ -467,9 +470,6 @@ class NoFishToAsk(ValueError):
     """A gear-relevant rule that speaks for no fish the reader can be asked about."""
 
 
-_STATE_MEMO: Dict[tuple, Optional[Tuple[str, bool]]] = {}
-
-
 def _ask_fish(x: dict) -> str:
     from pipeline.regs.parsing.catalogue import BOOK_SPECIES, SALMON_FISH
     for f in ("RB",) + tuple(f for f in BOOK_SPECIES if f != "RB") + tuple(SALMON_FISH):
@@ -479,20 +479,17 @@ def _ask_fish(x: dict) -> str:
 
 
 def states(B: Bundle, key: RuleKey, bound: Sequence[Tuple[str, str, str]], md) -> Dict:
-    """`{(entry, rule): (state, partly_lifted) | ("lifted", by)}` for every gear-relevant rule in
-    force on day `md`.
-
-    EACH RULE IS ASKED ABOUT WITH ONLY ITS LIFTERS BESIDE IT (decision G2). The reader's
-    competition runs on (type, dimension), and for gear those keys are coarser than the clauses:
-    Kootenay Lake's "unlimited rods from a boat" (dimension `lines_per_angler`, every clause
-    `when: in_boat`) displaced the province's whole line rule, "1 line" from shore with it; a
-    Region 6 set-line duty (`method_rule`/`conduct`) displaced the province's "no gear in the water
-    during a closure". Asked alone, a rule gets the reader's lifts (dated, per fish), `beside`
-    (some hours, one side of the channel) and `not_yet_mapped`; which clause wins is decided per
-    slot and member by `resolve`. A rule absent from its own answer was lifted (or beaten by the
-    very rule that lifts it): ("lifted", [its lifters in force])."""
+    """`{(entry, rule): (state, partly_lifted) | (loss state, reason, by)}` for every
+    gear-relevant rule in force on day `md`: THE READER'S ANSWER for the key's gear bindings
+    (`read.effective_rules_bound(trace=True)`), each rule read for the first fish it speaks for (a
+    gear rule names no fish; one held only while fishing for white sturgeon speaks for that fish).
+    Its lifts (dated, per fish), `beside` (some hours, one side of the channel),
+    `not_yet_mapped` and its (type, dimension) competition — which no longer drops a clause the
+    winner never spoke about: gear and conduct dimensions carry their clause conditions, their
+    means and their acts (`catalogue.CatalogueRule.dimension`, 2026-10-06). A rule that lost
+    carries the reader's loss state, `reason` and `by`."""
     every = B.rules
-    out: Dict = {}
+    groups: Dict[str, List[Tuple[str, str]]] = {}
     for e, r, v in bound:
         k = (e, r)
         x = every.get(k)
@@ -500,21 +497,21 @@ def states(B: Bundle, key: RuleKey, bound: Sequence[Tuple[str, str, str]], md) -
             continue
         if read.in_force(x.get("when"), md) == "no" or x.get("dimension") == "lift":
             continue
-        lifters = [b for b in bound if b[:2] != k and any(
-            (l["entry_id"], l["rule_id"]) == k for l in every[b[:2]].get("exempts") or [])]
-        sub = [(e, r, v)] + lifters
-        sig = tuple(read.in_force(every[b[:2]].get("when"), md) for b in sub) + tuple(
-            read.in_force(l.get("when"), md) for b in lifters
-            for l in every[b[:2]].get("exempts") or [] if "when" in l)
-        mk = (B.path, tuple(sub), key.steelhead_water, key.steelhead_rules, sig)
-        if mk not in _STATE_MEMO:
-            got = read.effective_rules_bound(sub, key.steelhead_water, md, _ask_fish(x), B.path,
-                                             steelhead_rules_here=key.steelhead_rules)
-            mine = [y for y in got if (y["entry"], y["rule"]) == k]
-            _STATE_MEMO[mk] = (mine[0]["state"], bool(mine[0].get("partly_lifted"))) \
-                if mine else None
-        s = _STATE_MEMO[mk]
-        out[k] = s if s is not None else ("lifted", [b[:2] for b in lifters])
+        groups.setdefault(_ask_fish(x), []).append(k)
+    out: Dict = {}
+    for fish, ks in sorted(groups.items()):
+        got = {(y["entry"], y["rule"]): y for y in read.effective_rules_bound(
+            bound, key.steelhead_water, md, fish, B.path,
+            steelhead_rules_here=key.steelhead_rules, trace=True)}
+        for k in ks:
+            y = got.get(k)
+            if y is None:
+                raise AnswersError(f"gear: the traced reader does not return {rule_id(k)} for "
+                                   f"{fish}, though it is in force and speaks for it")
+            if y["state"] in read.SPEAKER_STATES:
+                out[k] = (y["state"], bool(y.get("partly_lifted")))
+            else:
+                out[k] = (y["state"], y["reason"], tuple(y["by"].split("::", 1)))
     return out
 
 
@@ -541,9 +538,9 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
         s = st.get(k)
         if s is None:
             continue                                     # not in force today
-        state, extra = s
-        if state == "lifted":
-            overruled.append({"rule": ref(k), "lifted_by": [ref(b) for b in extra]})
+        state = s[0]
+        if state not in read.SPEAKER_STATES:
+            overruled.append({"rule": ref(k), "state": state, "reason": s[1], "by": ref(s[2])})
             continue
         if x.get("family") not in GEAR_FAMILIES:
             if state == "speaks":
@@ -622,3 +619,37 @@ def build(B: Bundle, keys: Optional[Sequence[RuleKey]] = None, log=print) -> dic
     return {"keys": out_keys, "years": years.rows, "answers": answers.rows,
             "province_methods": province_methods(B.rules.values()), "tables": static_tables(),
             "decisions": DECISIONS, "_key_index": kix}
+
+
+# --------------------------------------------------------------------------------------------
+# The `gear` section of the answers file
+# --------------------------------------------------------------------------------------------
+
+def section_scope(key: tuple, B) -> RuleKey:
+    """Gear reads the part's rule key (its set's gear bindings, the water kind of the set, the
+    steelhead flags)."""
+    from pipeline.deliver.answers.common import rule_key
+    return rule_key(key)
+
+
+def section_prepare(scope: RuleKey, ctx):
+    """(reading per day, [gear answer per run]) for one rule key, rules by export index."""
+    import json
+    B = ctx.B
+    lawful = ctx.cache.get("lawful")
+    if lawful is None:
+        lawful = ctx.cache["lawful"] = province_methods(B.rules.values())
+    year = gear_year(B, scope, lawful, ref=lambda k: ctx.rule_index[rule_id(k)])
+    starts = sorted(year)
+    values = [json.loads(json.dumps(year[d])) for d in starts]
+    per: List[int] = []
+    for i, d in enumerate(starts):
+        end = starts[i + 1] if i + 1 < len(starts) else 367
+        per += [i] * (end - d)
+    return per, values
+
+
+def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
+    """What every gear answer refers to: the province's lawful methods and the element tree,
+    conduct moments and phrases (`static_tables`)."""
+    return {"province_methods": province_methods(ctx.B.rules.values()), **static_tables()}

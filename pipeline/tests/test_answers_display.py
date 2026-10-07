@@ -149,31 +149,36 @@ def _bundle():
 
 
 def _export(B):
-    regs = Path(os.environ.get("UI_EXPORT_DIR") or Path(B.path).parents[1] / "regs")
-    exp, gd = regs / "ui-rules-export.json", regs / "ui-rules-guide.json"
-    if not exp.exists():
-        pytest.skip(f"no export at {exp}")
+    from pipeline.deliver.answers import common
+    from pipeline.tools import export_codec
+    regs = Path(os.environ.get("ANSWERS_EXPORT_DIR") or os.environ.get("UI_EXPORT_DIR")
+                or Path(B.path).parents[1] / "regs")
+    if not (regs / "ui-rules-export.json").exists():
+        pytest.skip(f"no export at {regs}")
+    data, guide = common.load_export(regs)
     try:
-        return X.load_export(exp, gd, B)
-    except SystemExit as e:
+        common.check_export(B, data, guide)
+    except common.AnswersError as e:
         pytest.skip(str(e))
+    return data, guide, export_codec.expand(data, guide)
 
 
 @pytest.fixture(scope="module")
 def live():
     B = _bundle()
-    return B, _export(B)
+    data, guide, doc = _export(B)
+    return B, doc, data
 
 
 def test_rule_order_is_the_exports(live):
-    B, doc = live
+    B, doc, _ = live
     assert [f"{e}::{r}" for e, r in sorted(B.index, key=B.index.__getitem__)] == list(doc["rules"])
 
 
 def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
     """The facts are computed from the bundle; the page reads the export's fields. They must give
     the same kind, bands and sentence for every rule."""
-    B, doc = live
+    B, doc, _ = live
     facts = X.build_rules(B)
     bad = []
     for i, (k, x) in enumerate(doc["rules"].items()):
@@ -187,11 +192,12 @@ def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
 
 def test_every_export_part_has_one_key_and_closed_all_year_is_the_status_index(live):
     from pipeline.deliver import status_index as SI
-    B, doc = live
-    keys = X.part_keys(B, doc)
+    from pipeline.deliver.answers import common
+    B, doc, data = live
+    keys, parts = common.part_keys(B, data)
     n = sum(1 for w in doc["waters"].values() for p in w["parts"] if p.get("ruleset") is not None)
-    assert len(keys) == n
-    rule_keys = sorted({k["rule"] for k in keys.values()})
+    assert sum(1 for ks in parts.values() for k in ks if k is not None) == n
+    rule_keys = sorted({common.rule_key(k) for k in keys})
     closed = [k for k in rule_keys if X.closed_all_year(B, k)]
     assert closed, "some rule set is closed all year (e.g. a water's 'No fishing' row)"
     sample = closed[:5] + rule_keys[:: max(1, len(rule_keys) // 25)]
