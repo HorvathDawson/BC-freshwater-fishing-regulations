@@ -48,6 +48,46 @@ def test_compare_counts_missing_extra_and_differing_keys():
     assert "answer" in summary({"answer": r})
 
 
+def test_port_classes_explain_only_their_own_difference():
+    """The port's classifier (reference/port.py): a documented page bug explains a difference
+    only when its own feature is on the record; anything else is `unexplained`."""
+    from pipeline.deliver.answers.reference.port import classify_answer, classify_row
+    page = {"status": "keep", "daily": 1, "winner": "w", "narrow": None,
+            "lines": [{"t": "annual", "r": "p"}], "roles": {"w": ["governs", None], "p": ["season", None]}}
+    ours = {**page, "lines": [{"t": "possession_cap", "r": "p"}],
+            "roles": {"w": ["governs", None], "p": ["possession_cap", None]}}
+    assert classify_answer(page, page) == set()
+    assert classify_answer(page, ours) == {"F6"}
+    assert classify_answer(page, {**ours, "daily": 2}) == {"unexplained"}
+    prow = {"kind": "keep", "pool": "p", "win": None, "members": ["CT", "RB"],
+            "all_members": ["CT", "RB"], "daily": 4, "real_daily": None,
+            "everyone": [["cap", "c", ["CT", "RB"]]], "groups": []}
+    orow = {**prow, "groups": [[["CT", "RB"], [["origin2", "x"]]]]}
+    full = {"members": ["CT", "RB"], "daily": 4, "groups": [], "conds": [], "items": []}
+    assert classify_row(prow, orow, full) == {"F2"}
+    assert classify_row(prow, {**orow, "daily": 3}, full) == {"F2", "unexplained"}
+    # a real daily limit that moved with no F1/F3/F4/F5 feature on the row is not explained
+    assert classify_row(prow, {**prow, "real_daily": [4, True, 2, 2, False]}, full) == {"unexplained"}
+
+
+def test_port_on_the_pages_own_ladder():
+    """THE PORT, ISOLATED: rows.py on the page's own golden ladder reproduces the page's card on
+    every answer and row except where a documented page bug shows (port.PAGE_BUGS): needs the
+    golden outputs and the bundle and export pair they were made from (ANSWERS_GOLDEN,
+    ANSWERS_PORT_BUNDLE, ANSWERS_PORT_EXPORT)."""
+    from pipeline.deliver.answers.reference import port
+    g, b, x = _golden(), os.environ.get("ANSWERS_PORT_BUNDLE"), os.environ.get("ANSWERS_PORT_EXPORT")
+    if g is None or not b or not x:
+        pytest.skip("no golden outputs with their bundle and export (ANSWERS_GOLDEN, "
+                    "ANSWERS_PORT_BUNDLE, ANSWERS_PORT_EXPORT)")
+    rep = port.run(b, x, str(g), os.environ.get("ANSWERS_PORT_N", "all"))
+    assert rep["stats"]["cards"] > 0
+    assert not rep["stats"].get("spp_differ")
+    bad = {k: v for k, v in rep["classes"].items() if "unexplained" in k}
+    assert not bad, (bad, {k: rep["examples"][k] for k in bad})
+    assert {k.split()[1] for k in rep["classes"]} <= set(port.PAGE_BUGS)
+
+
 def _golden() -> Path | None:
     g = os.environ.get("ANSWERS_GOLDEN")
     return Path(g) if g and Path(g, "manifest.json").exists() else None

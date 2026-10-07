@@ -99,12 +99,19 @@ Per (key, segment): `[spp, {fish: [hatchery, wild]}, [row], steelhead_line]`.
   `all_members` (with the fish that go back), `daily`, `narrow`, `everyone` and `groups` (the facts:
   origin, origin2, exc, xref and every line, merged across fish, with `members`, `rules`, `general`,
   `carve_of`), `prot` (the protected fish of an open-subject row), `wins`, `lift_notes`, `scope`
-  ({of: water | region | bc, entry, share}: the badge, 5.5, `share` = a stream (lake) share of the
-  pool holds here), `conds` (rowConds: every condition on keeping), `items` (5.8: per kind its keep
-  bands `[[from_cm, to_cm|null, number]]` — the keep range is the first band's from and the last
-  band's to — `back`, `xref`, `sub`, per-origin `origins` for a fish with its own row), and
-  `real_daily` (5.7: `{n, all, sum, capped_sum, rb, shared_cap {take, over_cm}, capped, open}` or
-  null; "Really {sum} a day here" when `all`, "Only {capped_sum} of the {n} can be …" when `rb`).
+  ({of: water | area | region | bc, entry, share, apart}: the badge, 5.5 — `entry` the area's or
+  region's entry, `share` = a stream (lake) share of the pool holds here, `apart` = the row's fish
+  are counted apart from a wider total they lift and no `outer` total is left; every daily limit,
+  a water's own too, counts fish kept elsewhere today), `conds` (rowConds: every condition on
+  keeping; `who` the fish a go-back, group or origin2 condition is about; a cap with `except` is
+  general but for those fish), `items` (5.8: ONE item per kind — each fish in exactly one item —
+  with its keep bands `[[from_cm, to_cm|null, number]]` (the keep range is the first band's from
+  and the last band's to; a band of 0 is a slot to release), `back`, `xref`, `sub`, `conds`
+  (indexes of the row's `conds` about these fish), `against` (a fish with its own row: the number
+  it counts toward here) and per-origin `origins` for a fish with its own row), and `real_daily`
+  (5.7: `{n, all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, open}` or null;
+  "Really {sum} a day here" when `all`, "Only {capped_sum} of the {n} can be …" when `rb`).
+  Section version 2 (the rows fixes, §8 F1-F10).
 - `steelhead_line` (5.6): possible_with_rules | known_with_rules | known_no_rules | null.
 
 ### `gear` (Stage 7.1-7.6)
@@ -264,8 +271,24 @@ rule's own fish; D6 all splits for run-end names.
 **Rows** (`rows.DECISIONS`): R1 a `moot` loser gets role moot; R2 rank = the reader's place; R3 the
 page's member order; R4 the fish asked are the page's, a missing ladder fish is an error; R5 open-
 subject rows from the reader asked about the subject's first fish; R6 lift notes are the page's
-settle fact; R7 ICU collation for fish names; R8 the real daily limit reads the general cap
+settle fact; R7 ICU collation for fish names; R8 the real daily limit reads every general cap
 structurally.
+
+**Rows fixes** (`rows.DECISIONS` F1-F10, handoff ROWS-REVIEW; where the page contradicts the book
+the card follows the book and the port names the page bug, `reference/port.py` `PAGE_BUGS`):
+F1 one item per kind (Anderson R.: brook/brown/cutthroat "up to 4, only 1 over 50", not "keep 1
+over 60"); F1b a cap missing only the steelhead-filtered rainbow is general with `except: [RB]`;
+F2 origin2 also when the other origin's keep RANGE differs ("No wild trout over 50 cm",
+Chilliwack Lake); F3 lines about other fish compared by SET (Kitimat, Feb: the cutthroat/brown
+release); F4 a fish lifted out of the narrowing clause counts toward the outer total (Vedder
+hatchery rainbow 4 of 4, `against`); F5a slots are 0 bands (Teslin); F5b the zone's outer size cap
+caps a water's own bands (Thompson below Kamloops L.); F5c a rainbow's range ends at 50 cm on a
+steelhead water; F5d every shared cap (Region 8 "2 over 30"); F6 `possession_cap`, never a yearly
+limit; F7 `scope.apart` only when no outer total is left (Vedder r9, Kitimat r4/r5 still count
+toward the region's); F8 `of: area` (Haida Gwaii, Bowron Lake Park, Liard); F9 a water's own
+limit still counts fish kept elsewhere (the page's "Only fish kept on this lake count" is wrong);
+F10 no presence data for any fish but steelhead: the book's group wording stays. Undo: revert the
+rows-fixes commit (rows.py, the section's version 2).
 
 **Keying and reader (v1)**:
 - V1 Gear and conduct dimensions carry clause condition, means and acts, NOT the water kind · where

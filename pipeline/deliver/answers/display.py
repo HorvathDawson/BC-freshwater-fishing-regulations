@@ -233,14 +233,16 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if x.get("period") == "annual":
         return wrap(f"Keep up to {_num(take)} {sp}{over} a licence year"
                     f"{', all kinds together' if len(species) > 1 else ''}")
+    # a possession limit with a number holds what you have with you, not a day's catch (rows F6)
+    per = " in possession" if x.get("period") == "possession" else " a day"
     if take is not None and mn and not floor:
         who = re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")
-        return wrap(f"Only {_num(take)} {org}{who} over {_num(mn['min_cm'])} cm a day{ex_txt}")
+        return wrap(f"Only {_num(take)} {org}{who} over {_num(mn['min_cm'])} cm{per}{ex_txt}")
     sp += ex_txt
     bits = []
     if take is not None:
         fish = nm(" or ") + ex_txt if _is(take, 1) and not names else sp
-        bits.append(f"Keep up to {_num(take)} {fish} a day"
+        bits.append(f"{'Have no more than' if per != ' a day' else 'Keep up to'} {_num(take)} {fish}{per}"
                     f"{', all kinds together' if many and _gt0(take) and take > 1 else ''}")
     else:
         longer = f" {_num(floor['max_cm'])} cm or longer" if floor else ""

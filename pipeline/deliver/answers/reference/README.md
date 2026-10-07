@@ -25,6 +25,7 @@ or ships it. Never edit `page_v35.js`; a new page version is a new file.
 | `manifest.js` | merges the per-slice manifests |
 | `regenerate.sh` | all of the above, from the live export, into a directory you name (outside the repo) |
 | `compare.py` | the meeting point and the field-by-field diff (`test_answers_reference.py` runs it) |
+| `port.py` | the port isolated: `rows.py` on the page's own golden ladder against the page's card; every difference attributed to a documented page bug (`PAGE_BUGS`, rows.DECISIONS F1-F6) or `unexplained` |
 
 ## Running
 

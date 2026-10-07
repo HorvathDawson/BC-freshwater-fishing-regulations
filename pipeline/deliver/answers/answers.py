@@ -276,7 +276,7 @@ def _sections() -> Tuple[Section, ...]:
     return (
         Section("ladder", 0, _ladder_scope, prepare=_ladder_prepare),
         Section("answer", 0, _ladder_scope, derive_from="ladder", derive=_answer_derive),
-        Section("rows", 1, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        Section("rows", 2, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         Section("gear", 2, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 2, licence.section_scope, prepare=licence.section_prepare,

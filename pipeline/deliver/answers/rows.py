@@ -59,9 +59,42 @@ DECISIONS = [
     "already left the rule standing, partly lifted).",
     "R7 Fish names sort as the page's `localeCompare` does (ICU root collation: case and "
     "punctuation are secondary to letters).",
-    "R8 The real daily limit (5.7) reads the general 'only K over X cm' cap structurally: the first "
-    "general cap condition of the row (no fish list) on a band from X cm up — what the page finds "
-    "by matching its own sentence.",
+    "R8 The real daily limit (5.7) reads the general 'only K over X cm' caps structurally: every "
+    "general cap condition of the row (no fish list) on a band from X cm up (F5d; the page reads "
+    "only the first, by matching its own sentence).",
+    # Rows fixes (2026-10-06, ROWS-REVIEW): where the page is wrong, the card follows the book.
+    "F1 ONE ITEM PER KIND (review A1): each fish's bands, sub-limit, go-back, own-row reference "
+    "and the row's conditions about it are worked out for that fish alone; fish whose all agree "
+    "share an item. The page builds items from fact groups, so a fish sat in two items and an "
+    "item showed one range for fish with different ones (Anderson R., Jul: brook, brown and "
+    "cutthroat 'keep 1 over 60 cm'; the book: up to 4, only 1 over 50).",
+    "F1b A cap written for every fish of a row but rainbow trout, left out only because a "
+    "rainbow over 50 cm is a steelhead there, is general with `except: [RB]`.",
+    "F2 origin2 (the other origin's own limit) also when only its keep RANGE differs (review A2: "
+    "'No wild trout over 50 cm' on Chilliwack, Cultus, Harrison, … lakes), citing the release "
+    "line that makes the difference; its condition names its fish (`who`).",
+    "F3 A line is about every fish of the row only when its fish SET is the row's (review A3; the "
+    "page compares counts: Kitimat R. in Feb lost the cutthroat and brown trout release).",
+    "F4 A fish with its own row that is lifted out of (or replaced in) the row's narrowing clause "
+    "counts toward the row's OUTER total (`items[].against`), not the narrowed number (review "
+    "A4: Vedder hatchery rainbow 4 of Region 2's 4, not 'min(4, 2)').",
+    "F5a A slot ('none between X and Y cm') is a keep band of 0 (review A5: Teslin, Tagish, "
+    "Morley, Bennett). F5b The zone's outer size cap (`outersize`) caps a water's own bands "
+    "like a cap (A6). F5c On a steelhead water a rainbow's keep range ends at 50 cm (A7, as "
+    "`origin_lines`). F5d Every general shared cap counts (R8: Region 8's 'only 2 over 30 cm'), "
+    "nested caps worked from the largest size down; `shared_cap` lists those that bind.",
+    "F6 A possession limit with a number is `possession_cap` (line, role and fact), never a "
+    "yearly limit (review B1: 'Per licence year: 1 lake trout in possession').",
+    "F7 `scope.apart`: a water's (or area's) pool counts its fish apart from a wider total only "
+    "when it lifts a wider POOL that binds here and no `outer` line is left (review B4: Vedder "
+    "r9 and Kitimat r4/r5 lift only a stream share; their fish still count toward the region's).",
+    "F8 An area's pool (rank 2: Haida Gwaii, Bowron Lake Park, the Liard watershed) is badged "
+    "`of: area` with the area's entry, not 'this water' (review B3).",
+    "F9 Every daily limit counts fish kept elsewhere today, a water's own too (the book's daily "
+    "quota; review B2): the page's 'Only fish kept on this lake count' is page wording, wrong.",
+    "F10 Fish asked about (R4) are the book's: the bundle holds no presence data for any fish but "
+    "steelhead (stocking records are not presence), so the group wording stays (brown trout on "
+    "Shuswap is named because the zone's trout row names it).",
 ]
 
 
@@ -298,8 +331,12 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
                           "only": "CHAR" in (Pw.f.get("species_except") or [])})
         for r in A:
             if r.k == "annual":
-                setr(r, "season")
-                lines.append({"t": "annual", "r": r})
+                if r.f.get("period") == "possession":         # decision F6: not a yearly limit
+                    setr(r, "possession_cap")
+                    lines.append({"t": "possession_cap", "r": r})
+                else:
+                    setr(r, "season")
+                    lines.append({"t": "annual", "r": r})
         for r in A:
             if r.k == "duty":
                 setr(r, "duty")
@@ -366,12 +403,30 @@ def _fact_key(l: dict) -> str:
         return "caution" + str(l["says"])
     if t == "rel":
         return f"rel{_js(l['a'])}-{_js(l['b'])}"
-    if t == "annual":
+    if t in ("annual", "possession_cap"):
         r = l["r"]
-        return f"yr{_js(r.f.get('take'))}|{json.dumps(r.f.get('lengths') or '', separators=(',', ':'))}|{r.f.get('origin') or ''}"
+        return f"{'yr' if t == 'annual' else 'pc'}{_js(r.f.get('take'))}|{json.dumps(r.f.get('lengths') or '', separators=(',', ':'))}|{r.f.get('origin') or ''}"
     if t == "cap":
         return f"cap{_js(l['a'])}-{_js(l['b'])}-{_js(l['take'])}-{l['r'].key}"
     return t + l["r"].key
+
+
+def _min_max(res: dict) -> Tuple[Optional[float], Optional[float]]:
+    """An answer's keep range from its own release lines: (none under, none over) in cm."""
+    mn = [l["b"] for l in res["lines"] if l["t"] == "rel" and l["a"] == 0]
+    mx = [l["a"] for l in res["lines"] if l["t"] == "rel" and l["b"] == INF]
+    return (max(mn) if mn else None, min(mx) if mx else None)
+
+
+def _origin2_rule(other: dict, m: dict) -> "R":
+    """The rule an origin2 line cites: the other origin's narrowing clause or winner where its
+    number or winner differs, else (decision F2) the release line that gives it another range."""
+    if other["daily"] != m["daily"] or other["win"] is not m["win"]:
+        return other["narrow"] or other["win"]
+    mine = {(l["a"], l["b"], l["r"].key) for l in m["lines"] if l["t"] == "rel"}
+    return next((l["r"] for l in other["lines"] if l["t"] == "rel"
+                 and (l["a"] == 0 or l["b"] == INF) and (l["a"], l["b"], l["r"].key) not in mine),
+                other["narrow"] or other["win"])
 
 
 def _js(v) -> str:
@@ -393,8 +448,8 @@ def _line_key(res: Optional[dict]) -> str:
 
 
 FACT_ORDER = ["origin", "origin2", "caution", "steel", "exc", "xref", "rel", "cap", "also", "subcap",
-              "outer", "outercap", "outersize", "orphan", "partly", "annual", "record", "duty",
-              "tnote"]
+              "outer", "outercap", "outersize", "orphan", "partly", "annual", "possession_cap",
+              "record", "duty", "tnote"]
 
 
 def species_at(P: "Part") -> List[str]:
@@ -472,12 +527,12 @@ def build_model(P: "Part") -> dict:
                 if not _keepish(other["status"]):
                     add({"t": "origin", "o": other["o"], "keepO": m["o"], "r": other["win"],
                          "status": other["status"]}, S)
-                elif other["daily"] != m["daily"] or other["win"] is not m["win"]:
-                    mn = [l["b"] for l in other["lines"] if l["t"] == "rel" and l["a"] == 0]
-                    mx = [l["a"] for l in other["lines"] if l["t"] == "rel" and l["b"] == INF]
+                elif other["daily"] != m["daily"] or other["win"] is not m["win"] \
+                        or _min_max(other) != _min_max(m):            # decision F2
+                    mn, mx = _min_max(other)
                     add({"t": "origin2", "o": other["o"], "daily": other["daily"],
-                         "min": max(mn) if mn else None, "max": min(mx) if mx else None,
-                         "r": other["narrow"] or other["win"]}, S)
+                         "min": mn, "max": mx,
+                         "r": _origin2_rule(other, m)}, S)
             for l in m["lines"]:
                 add(l, S)
         for e in row["exc"]:
@@ -557,9 +612,25 @@ def build_model(P: "Part") -> dict:
 # --------------------------------------------------------------------------------------------
 
 def _who_n(l: dict, row: dict) -> Optional[List[str]]:
-    if not l.get("members") or l.get("general") or len(l["members"]) == len(row["members"]):
+    """The fish a line is about, or None when it is about every fish of the row. Decision F3:
+    the SETS are compared (the page compares counts, so a go-back line for as many other fish as
+    the row has was read as everyone's and dropped)."""
+    if not l.get("members") or l.get("general") or set(l["members"]) == set(row["members"]):
         return None
     return list(l["members"])
+
+
+def _steel_carve(P: "Part", model: dict, l: dict, row: dict) -> bool:
+    """Decision F1b: a cap written for every fish of the row but rainbow trout, where the
+    rainbow's own answer leaves it out only because a rainbow over 50 cm is a steelhead here
+    (the `steel` line), is general — with the rainbow carved out."""
+    w = l.get("members")
+    if not w or l.get("general") or not P.steelhead_water or "RB" in w:
+        return False
+    if set(row["members"]) - set(w) != {"RB"}:
+        return False
+    m = main_res(model["R"]["RB"]["H"], model["R"]["RB"]["W"])
+    return bool(m) and any(x["t"] == "steel" for x in m["lines"]) and l["a"] >= 50
 
 
 def _limit_take(l: dict):
@@ -665,75 +736,30 @@ def row_conds(P: "Part", model: dict, row: dict) -> dict:
         if l["t"] in ("cap", "outersize"):
             e.update(a=l["a"], b=l["b"], take=l["take"])
         if l["t"] == "cap":
+            if w is not None and _steel_carve(P, model, l, row):     # decision F1b
+                w = None
+                e["except"] = ["RB"]
             e["of"] = w                         # the fish the cap is written for (page: "(…)")
             e["general"] = w is None and l["a"] > 0 and l["b"] == INF
         if l["t"] == "origin2":
             e.update(o=l["o"], daily=l["daily"], min=l["min"], max=l["max"])
+            if w is not None:                   # decision F2: whose other origin it is
+                e["who"] = sorted(w)
         if l["t"] == "subcap":
             e["members"] = list(l["members"])
         conds.append(e)
     return {"conds": conds, "n": n, "hw": any(l["t"] == "origin" for l in back),
-            "extra": [l for l in allf if l["t"] in ("annual", "outer")]}
+            "extra": [l for l in allf if l["t"] in ("annual", "possession_cap", "outer")]}
 
 
 def _short(l: dict) -> bool:
     """Whether the page's `fact(l).short` is a non-empty text (it lists the line under a kind)."""
     return l["t"] not in ("partly", "tnote", "outercap", "outersize") and l["t"] in (
-        "origin", "subcap", "cap", "rel", "annual", "record", "duty", "exc", "xref", "outer",
-        "also", "origin2", "orphan", "caution", "steel")
+        "origin", "subcap", "cap", "rel", "annual", "possession_cap", "record", "duty", "exc",
+        "xref", "outer", "also", "origin2", "orphan", "caution", "steel")
 
 
 _COVER = ("cap", "rel", "subcap", "origin", "outercap", "outersize", "tnote", "partly")
-
-
-def species_items(P: "Part", model: dict, row: dict, rc: dict) -> List[dict]:
-    """The page's `speciesItems`: the fish of a keep row grouped as the card shows them."""
-    with_who = [c for c in rc["conds"] if c.get("who")]
-    used = set()
-    items = []
-    for gi, g in enumerate(row["groups"]):
-        cs = [c for c in with_who if sorted(c["who"]) == sorted(g["members"])
-              and len(c["who"]) == len(g["members"])]
-        for c in cs:
-            used.add(id(c))
-        items.append({"members": g["members"], "cs": cs, "facts": g["facts"], "key": f"g{gi}"})
-    for i, c in enumerate(c for c in with_who if id(c) not in used):
-        items.append({"members": c["who"], "cs": [c], "facts": None, "key": f"x{i}"})
-    for it in items:
-        others = [l for l in (it["facts"] or []) if (not it["cs"] or l["t"] not in _COVER)
-                  and _short(l)]
-        it["sub"] = next((c for c in it["cs"] if c.get("sub") is not None and c["c"] == "group"),
-                         None)
-        it["back"] = next((c for c in it["cs"] if c["c"] == "back"), None)
-        it["has_lines"] = bool(it["cs"]) or (not it["back"] and bool(others)) or bool(it["sub"])
-        it["only_steel"] = bool(it["facts"]) and not it["cs"] and all(
-            l["t"] in ("steel", "tnote") for l in it["facts"])
-    out = []
-    for it in items:
-        if it["only_steel"]:
-            home = next((o for o in items if o is not it and all(S in o["members"]
-                                                                 for S in it["members"])), None)
-            if home:
-                if any(l["t"] == "steel" for l in it["facts"]):
-                    home["has_lines"] = True
-                    home.setdefault("notes", []).append("steel")
-                continue
-        out.append(it)
-    items = sorted([it for it in out if it["has_lines"]], key=lambda it: -len(it["members"]))
-    sti = next((i for i, it in enumerate(items) if it["members"] == ["ST"]), -1)
-    rbi = next((i for i, it in enumerate(items) if "RB" in it["members"]), -1)
-    if sti >= 0 and rbi >= 0 and sti != rbi + 1:
-        st = items.pop(sti)
-        j = next(i for i, it in enumerate(items) if "RB" in it["members"])
-        items.insert(j + 1, st)
-    seen = {S for it in items for S in it["members"]}
-    R = model["R"]
-    rest = [S for S in row["allMembers"] if S not in seen and S in R
-            and _keepish((main_res(R[S]["H"], R[S]["W"]) or {}).get("status"))]
-    if rest:
-        items.append({"members": rest, "cs": [], "facts": None, "key": "rest", "plain": True,
-                      "sub": None, "back": None})
-    return items
 
 
 def keep_range(P: "Part", model: dict, members: Sequence[str]) -> Optional[Tuple[float, float]]:
@@ -752,38 +778,44 @@ def keep_range(P: "Part", model: dict, members: Sequence[str]) -> Optional[Tuple
                     hi = min(hi, l["a"])
         if S == "ST" and P.steelhead_water and lo < 50:
             lo = 50
+        # decision F5c: on a steelhead water a rainbow over 50 cm is a steelhead (as origin_lines)
+        if S == "RB" and P.steelhead_water and any(l["t"] == "steel" for l in m["lines"]):
+            hi = min(hi, 50)
     return (lo, hi) if anyk else None
 
 
-def quota_lines(P: "Part", model: dict, it: dict, row: dict, rc: dict) -> Optional[List[dict]]:
-    """The page's `quotaLines`: an item's keep range split into bands with their own number."""
-    if row["kind"] != "keep" or it.get("back") or any(l["t"] == "xref" for l in (it["facts"] or [])):
-        return None
-    r = keep_range(P, model, it["members"])
+def fish_bands(P: "Part", model: dict, S: str, facts: List[dict], sub: Optional[dict],
+               row: dict, rc: dict) -> Optional[List[dict]]:
+    """One fish's keep range split into bands with their own number (the page's `quotaLines`,
+    for ONE kind — decision F1): the row's number, less the fish's sub-limit, a stream share
+    holding here and every sub-limit covering it; each band capped by the fish's own size caps
+    and the row's general ones (the zone's outer size cap too: F5b); a band inside a slot ('none
+    between X and Y cm') keeps 0 (F5a)."""
+    r = keep_range(P, model, [S])
     if not r:
         return None
-    n = rc["n"]
-    base = min(n, it["sub"]["sub"] if it.get("sub") else n)
-    nw = row["narrow"]
     R = model["R"]
-    if nw is not None and nw.f.get("water") == P.kind and P.in_dates(nw) and all(
-            _covers(nw, S) and S in R and any(
-                ((R[S][o] or {}).get("roles") or {}).get(nw.key, {}).get("role") != "lifted"
-                for o in ("H", "W"))
-            for S in it["members"]):
+    n = rc["n"]
+    base = min(n, sub["sub"] if sub else n)
+    nw = row["narrow"]
+    if nw is not None and nw.f.get("water") == P.kind and P.in_dates(nw) and _covers(nw, S) \
+            and S in R and any(((R[S][o] or {}).get("roles") or {}).get(nw.key, {}).get("role")
+                               != "lifted" for o in ("H", "W")):
         base = min(base, nw.f.get("take"))
-    for l in list(it["facts"] or []) + row["everyone"]:
-        if l["t"] in ("outercap", "subcap") and l["r"].f.get("take") is not None and all(
-                (S in l["members"] if l.get("members") else True) and _covers(l["r"], S)
-                for S in it["members"]):
+    for l in facts + row["everyone"]:
+        if l["t"] in ("outercap", "subcap") and l["r"].f.get("take") is not None \
+                and (S in l["members"] if l.get("members") else True) and _covers(l["r"], S):
             base = min(base, l["r"].f["take"])
-    own = [l for l in (it["facts"] or []) if l["t"] == "cap" and l.get("take") is not None]
-    gen = [l for l in row["everyone"] if l["t"] == "cap" and l.get("take") is not None
+    capt = ("cap", "outersize")
+    own = [l for l in facts if l["t"] in capt and l.get("take") is not None]
+    gen = [l for l in row["everyone"] if l["t"] in capt and l.get("take") is not None
            and not any(o["a"] == l["a"] and o["b"] == l["b"] for o in own)]
     caps = own + gen
+    m = main_res(R[S]["H"], R[S]["W"])
+    slots = [(l["a"], l["b"]) for l in m["lines"] if l["t"] == "rel" and l["a"] > 0 and l["b"] < INF]
     pts = {r[0], r[1]}
-    for c in caps:
-        for v in (c["a"], c["b"]):
+    for a, b in [(c["a"], c["b"]) for c in caps] + slots:
+        for v in (a, b):
             if v is not None and r[0] < v < r[1]:
                 pts.add(v)
     Pp = sorted(pts)
@@ -793,11 +825,100 @@ def quota_lines(P: "Part", model: dict, it: dict, row: dict, rc: dict) -> Option
         mid = a + 1 if b == INF else (a + b) / 2
         mx = min([base] + [c["take"] for c in caps
                            if mid >= (c["a"] or 0) and mid <= (INF if c["b"] is None else c["b"])])
+        if any(x < mid < y for x, y in slots):
+            mx = 0
         if out and out[-1]["mx"] == mx:
             out[-1]["b"] = b
         else:
             out.append({"a": a, "b": b, "mx": mx})
     return out
+
+
+def _against(row: dict, model: dict, S: str):
+    """The number a fish with its own row counts toward on this row (decision F4): the row's
+    outer total where the fish's own answer lifts (or replaces) the row's narrowing clause, else
+    the row's number."""
+    nw = row["narrow"]
+    R = model["R"].get(S) or {}
+    m = main_res(R.get("H"), R.get("W"))
+    if nw is not None and m and (m["roles"].get(nw.key) or {}).get("role") in ("lifted",
+                                                                                "replaced"):
+        return INF if row["pool"].f.get("unlimited") else row["pool"].f.get("take")
+    return row["daily"]
+
+
+def species_items(P: "Part", model: dict, row: dict, rc: dict) -> List[dict]:
+    """The fish of a keep row as the card lists them (the page's `speciesItems`), ONE ITEM PER
+    KIND (decision F1): each fish's bands, sub-limit, go-back, own-row reference and the row's
+    conditions about it are worked out for that fish alone; fish whose all agree share an item.
+    (The page builds items from the fact groups, so one fish could sit in two items and an item
+    showed one range for fish with different ones.)"""
+    got = rc.get("_items")
+    if got is not None:
+        return got
+    conds = rc["conds"]
+    gfacts = [l for g in row["groups"] for l in g["facts"]]
+    universe: List[str] = []
+    for S in (list(row["allMembers"]) + [S for l in gfacts for S in l["members"]]
+              + [S for c in conds if c.get("who") for S in c["who"]]):
+        if S not in universe:
+            universe.append(S)
+    R = model["R"]
+    by_sig: Dict[str, dict] = {}
+    for S in universe:
+        facts = [l for l in gfacts if S in l["members"]]
+        ci = [i for i, c in enumerate(conds) if c.get("who") and S in c["who"]]
+        cs = [conds[i] for i in ci]
+        back = next((c for c in cs if c["c"] == "back"), None)
+        sub = next((c for c in cs if c["c"] == "group" and c.get("sub") is not None), None)
+        xref = next((l for l in facts if l["t"] == "xref"), None)
+        others = [l for l in facts if (not cs or l["t"] not in _COVER) and _short(l)]
+        has_lines = bool(cs) or (not back and bool(others)) or bool(sub)
+        if not has_lines and not (S in R and _keepish(
+                (main_res(R[S]["H"], R[S]["W"]) or {}).get("status"))):
+            continue
+        q = None if (row["kind"] != "keep" or back or xref) else \
+            fish_bands(P, model, S, facts, sub, row, rc)
+        against = _against(row, model, S) if xref else None
+        sig = json.dumps([has_lines, None if q is None else [[_js(x["a"]), _js(x["b"]), _js(x["mx"])]
+                                                             for x in q],
+                          sub["sub"] if sub else None,
+                          [back["status"], back["r"].key if back["r"] else None] if back else None,
+                          [xref["r"].key, _js(xref["daily"]), _js(against)] if xref else None, ci])
+        it = by_sig.get(sig)
+        if it is None:
+            it = by_sig[sig] = {"members": [], "cs": cs, "conds": ci, "facts": [], "sub": sub,
+                                "back": back, "xref": xref, "q": q, "against": against,
+                                "has_lines": has_lines}
+        it["members"].append(S)
+        for l in facts:
+            if not any(l is x for x in it["facts"]):
+                it["facts"].append(l)
+    # the page's order: its items came from the fact groups (in order), then the conditions
+    # naming other fish; an item stands where its first fish first stood
+    gpos = {}
+    for gi, g in enumerate(row["groups"]):
+        for S in g["members"]:
+            gpos.setdefault(S, gi)
+    for ci_, c in enumerate(c for c in conds if c.get("who")):
+        for S in c["who"]:
+            gpos.setdefault(S, len(row["groups"]) + ci_)
+    items = sorted(by_sig.values(), key=lambda it: min(gpos.get(S, INF) for S in it["members"]))
+    lined = sorted([it for it in items if it["has_lines"]], key=lambda it: -len(it["members"]))
+    sti = next((i for i, it in enumerate(lined) if it["members"] == ["ST"]), -1)
+    rbi = next((i for i, it in enumerate(lined) if "RB" in it["members"]), -1)
+    if sti >= 0 and rbi >= 0 and sti != rbi + 1:
+        st = lined.pop(sti)
+        j = next(i for i, it in enumerate(lined) if "RB" in it["members"])
+        lined.insert(j + 1, st)
+    out = lined + [it for it in items if not it["has_lines"]]
+    rc["_items"] = out
+    return out
+
+
+def quota_lines(P: "Part", model: dict, it: dict, row: dict, rc: dict) -> Optional[List[dict]]:
+    """An item's bands (decision F1: every fish of an item has the same)."""
+    return it["q"]
 
 
 def origin_lines(P: "Part", model: dict, S: str) -> List[dict]:
@@ -820,9 +941,35 @@ def origin_lines(P: "Part", model: dict, S: str) -> List[dict]:
     return [x for x in (one(R["H"], "hatchery"), one(R["W"], "wild")) if x]
 
 
+def _shared_caps(capped: List[dict], general: List[Tuple[float, float]], steel: bool):
+    """Decision F5d (was R8): every general 'only K over X cm' cap of the row, not only the
+    first. The most the capped kinds can give, nested caps worked from the largest size down:
+    the kinds from X up give at most K. Returns (the reduction, the caps that bind)."""
+    elig = [x for x in capped if not ("ST" in x["it"]["members"] and steel)]
+    caps: Dict[float, float] = {}
+    for X, K in general:
+        caps[X] = min(K, caps.get(X, INF))
+    Xs = sorted(caps)
+    if not Xs:
+        return 0, []
+    bound, binding = None, []
+    for i in range(len(Xs) - 1, -1, -1):
+        X, K = Xs[i], caps[Xs[i]]
+        nxt = Xs[i + 1] if i + 1 < len(Xs) else INF
+        seg = sum(x["c"] for x in elig if X <= x["lo"] < nxt)
+        inner = seg + (bound or 0)
+        if len([x for x in elig if x["lo"] >= X]) > 1 and inner > K:
+            bound = K
+            binding.append({"take": K, "over_cm": X})
+        else:
+            bound = inner
+    over_all = sum(x["c"] for x in elig if x["lo"] >= Xs[0])
+    return over_all - (bound or 0), sorted(binding, key=lambda c: c["over_cm"])
+
+
 def eff_cap(P: "Part", model: dict, row: dict, rc: dict) -> Optional[dict]:
     """The real daily limit (5.7, the page's `effCap`): when every kind of the row has its own
-    smaller cap, the real most is their sum, less what a shared 'only K over X cm' allows."""
+    smaller cap, the real most is their sum, less what the shared 'only K over X cm' caps allow."""
     if row["kind"] != "keep" or not row["pool"]:
         return None
     n = row["daily"]
@@ -831,11 +978,11 @@ def eff_cap(P: "Part", model: dict, row: dict, rc: dict) -> Optional[dict]:
         return None
     allm = [S for it in items for S in it["members"]]
     if len(set(allm)) != len(allm):
-        return None
+        raise AnswersError("rows: a fish sits in two items of one row (decision F1)")
     caps = []
     for it in items:
-        q = quota_lines(P, model, it, row, rc)
-        xref = next((l for l in (it["facts"] or []) if l["t"] == "xref"), None)
+        q = it["q"]
+        xref = it["xref"]
         if q:
             lo = q[0]["a"]
         elif xref:
@@ -843,27 +990,20 @@ def eff_cap(P: "Part", model: dict, row: dict, rc: dict) -> Optional[dict]:
                                   if not x.get("rel")]) for S in it["members"])
         else:
             lo = 0
-        c = min(n, max(x["mx"] for x in q)) if q else (min(xref["daily"], n) if xref else
-                                                         (0 if it.get("back") else n))
+        c = min(n, max(x["mx"] for x in q)) if q else (min(xref["daily"], it["against"]) if xref
+                                                         else (0 if it.get("back") else n))
         caps.append({"it": it, "lo": lo, "c": c})
     capped = [x for x in caps if x["c"] < n and x["c"] > 0]
     open_ = [x for x in caps if x["c"] >= n]
     total = sum(x["c"] for x in capped)
-    shared = None
-    gc = next((c for c in rc["conds"] if c["c"] == "cap" and not c.get("who") and c.get("general")),
-              None)
-    if gc:
-        K, X = gc["take"], gc["a"]
-        over = [x for x in capped if x["lo"] >= X
-                and not ("ST" in x["it"]["members"] and P.steelhead_water)]
-        os_ = sum(x["c"] for x in over)
-        if len(over) > 1 and os_ > K:
-            total -= os_ - K
-            shared = {"take": K, "over_cm": X}
+    general = [(c["a"], c["take"]) for c in rc["conds"]
+               if c["c"] == "cap" and not c.get("who") and c.get("general")]
+    cut, shared = _shared_caps(capped, general, P.steelhead_water)
+    total -= cut
     if not capped or (total >= n and not open_):
         return None
     return {"n": n, "all": not open_, "sum": None if open_ else total, "capped_sum": total,
-            "rb": any("RB" in x["it"]["members"] for x in capped), "shared_cap": shared,
+            "rb": any("RB" in x["it"]["members"] for x in capped), "shared_cap": shared or None,
             "capped": [S for x in capped for S in x["it"]["members"]],
             "open": [S for x in open_ for S in x["it"]["members"]]}
 
@@ -1036,16 +1176,27 @@ def cond_out(c: dict) -> dict:
 
 
 def scope_of(P: "Part", row: dict) -> Optional[dict]:
-    """The row badge (5.5): whose count the pool is — this water's, the region's or B.C.'s — and
-    whether a stream (or lake) share of it holds here."""
+    """The row badge (5.5): whose count the pool is — this water's, an area's (decision F8:
+    Haida Gwaii, Bowron Lake Park, the Liard watershed), the region's or B.C.'s — whether a
+    stream (or lake) share of it holds here, and (decision F7) whether the row's fish are
+    counted apart from a bigger total: the pool lifts a wider pool that binds here and no
+    `outer` line (a total they still count toward) is left on the row."""
     if not row.get("pool") or row["kind"] != "keep":
         return None
     p = row["pool"]
-    who = "bc" if p.rank == 4 else "region" if p.rank >= 3 else "water"
+    who = ("bc" if p.rank == 4 else "region" if p.rank >= 3 else "area" if p.rank == 2
+           else "water")
     n = row["narrow"]
     share = bool(who != "water" and n is not None and n.f.get("water")
                  and n.f["water"] == P.kind and n.f.get("take") < p.f.get("take"))
-    return {"of": who, "entry": p.entry_id if who != "water" else None, "share": share}
+    apart = False
+    if who in ("water", "area"):
+        lifts = [P.by_key.get(f"{e['entry_id']}::{e['rule_id']}") for e in p.f.get("exempts") or []]
+        outer = any(l["t"] == "outer" for l in
+                    row["everyone"] + [l for g in row["groups"] for l in g["facts"]])
+        apart = any(t is not None and t.k == "pool" and t.rank >= 2 for t in lifts) and not outer
+    return {"of": who, "entry": p.entry_id if who != "water" else None, "share": share,
+            "apart": apart}
 
 
 def produce(P: Part) -> dict:
@@ -1072,12 +1223,15 @@ def produce(P: Part) -> dict:
             items = species_items(P, model, row, rc)
             o["items"] = []
             for it in items:
-                q = quota_lines(P, model, it, row, rc)
-                xref = next((l for l in (it["facts"] or []) if l["t"] == "xref"), None)
+                q = it["q"]
+                xref = it["xref"]
                 io = {"members": list(it["members"]),
                       "bands": [[_num(x["a"]), _num(x["b"]), _num(x["mx"])] for x in q] if q else None,
                       "back": bool(it.get("back")), "xref": bool(xref),
-                      "sub": _num(it["sub"]["sub"]) if it.get("sub") else None}
+                      "sub": _num(it["sub"]["sub"]) if it.get("sub") else None,
+                      "conds": list(it["conds"])}
+                if xref:
+                    io["against"] = _num(it["against"])               # decision F4
                 if xref and len(it["members"]) == 1:
                     io["origins"] = [{k: _num(v) if k in ("n", "lo", "hi") else v
                                       for k, v in x.items()}

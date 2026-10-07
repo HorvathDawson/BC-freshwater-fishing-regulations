@@ -60,14 +60,20 @@ def page_doc(fx: dict):
 # --------------------------------------------------------------------------------------------
 
 def test_rule_kind_bands_and_plain_match_the_page(page):
-    bad = []
+    bad, possession = [], 0
     for k, r in page["rules"].items():
         x, want = _flat(r), page["expect"]["rules"][k]
         got = {"kind": X.kind_of(x), "closed": X.is_closure_gate(x), "bands": X.bands(x),
                "plain": X.plain(x)}
+        if x.get("period") == "possession" and x.get("take"):
+            # a documented page bug (rows F6): the page says "a day" of a possession limit
+            possession += 1
+            want = dict(want, plain=want["plain"] and want["plain"].replace(" a day", " in possession")
+                        .replace("Keep up to", "Have no more than"))
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]
+    assert possession == 3
     kinds = {v["kind"] for v in page["expect"]["rules"].values()}
     assert {"gear", "pool", "gate", "sizecap", "size", "annual", "duty", "while"} <= kinds
     assert sum(v["plain"] is not None for v in page["expect"]["rules"].values()) > 150

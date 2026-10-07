@@ -137,7 +137,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "1",
+            "version": "2",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -150,9 +150,11 @@ SPEC = {
                        "[{t, r, a?, b?, take?, o?, keepO?, status?, daily?, min?, max?, says?, "
                        "only?, capped?, carve?, outer?}] in the page's order (t: rel, cap, "
                        "subcap, also, outer, steel, outercap, outersize, orphan, partly, caution, "
-                       "tnote, annual, duty, record; a/b band edges in cm, b null = no top); "
-                       "`roles` [[rule, role, by]] (governs, agrees, contains, also, narrows, "
-                       "limit, floor, season, duty, possession, falls, moot, replaced, lifted); "
+                       "tnote, annual, possession_cap, duty, record; a/b band edges in cm, b "
+                       "null = no top; possession_cap is a possession limit with a number, never "
+                       "a yearly limit); `roles` [[rule, role, by]] (governs, agrees, contains, "
+                       "also, narrows, limit, floor, season, possession_cap, duty, possession, "
+                       "falls, moot, replaced, lifted); "
                        "`lift_notes` [[lifter, {when_targeting | while | lengths}]]. Rules are "
                        "rule refs",
             "rows": "[{kind, pool, win, members, all_members, daily, narrow, everyone, groups, "
@@ -162,13 +164,20 @@ SPEC = {
                     "`everyone` the lines for every member and `groups` [{members, facts}] the "
                     "rest, each fact a line plus `members`, `rules`, `general`, `carve_of` "
                     "(origin, origin2, exc, xref included); `prot` the protected fish of an "
-                    "open-subject row; `scope` {of: water | region | bc, entry, share} (the "
-                    "badge, 5.5); `conds` the conditions on keeping ({c: origin | size | back | "
-                    "group | cap | subcap | outercap | outersize | origin2 | streamcap, …}); "
-                    "`items` [{members, bands [[from_cm, to_cm|null, number]], back, xref, sub, "
-                    "origins?}] (5.8: the keep range is the first band's from and the last's to); "
-                    "`real_daily` {n, all, sum, capped_sum, rb, shared_cap, capped, open} or null "
-                    "(5.7: \"Really {sum} a day here\" when `all`)",
+                    "open-subject row; `scope` {of: water | area | region | bc, entry, share, "
+                    "apart} (the badge, 5.5: `entry` the area's or region's entry; `apart` the "
+                    "row's fish are counted apart from a wider total they lift, with none left "
+                    "to count toward; every daily limit, a water's own too, counts fish kept "
+                    "elsewhere today); `conds` the conditions on keeping ({c: origin | size | "
+                    "back | group | cap | subcap | outercap | outersize | origin2 | streamcap, "
+                    "who?, …}; a cap with `except` is general but for those fish); `items` "
+                    "[{members, bands [[from_cm, to_cm|null, number]], back, xref, sub, conds, "
+                    "against?, origins?}] (5.8: ONE item per kind, each fish in exactly one; the "
+                    "keep range is the first band's from and the last's to, a band of 0 a slot "
+                    "to release; `conds` indexes the row's `conds` about these fish; `against` "
+                    "the number a fish with its own row counts toward here); `real_daily` {n, "
+                    "all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, "
+                    "open} or null (5.7: \"Really {sum} a day here\" when `all`)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

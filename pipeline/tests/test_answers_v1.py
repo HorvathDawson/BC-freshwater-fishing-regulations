@@ -240,7 +240,8 @@ def test_chilliwack_stream_share_and_hatchery_only(built):
     row = next(r for r in t["rows"] if r["pool"] is not None
                and _rid(data, r["pool"]) == "trout_char_quota.r1")
     assert row["daily"] == 2 and _rid(data, row["narrow"]) == "trout_char_quota.r4"
-    assert row["scope"] == {"of": "region", "entry": "z2:trout_char_quota", "share": True}
+    assert row["scope"] == {"of": "region", "entry": "z2:trout_char_quota", "share": True,
+                            "apart": False}
     origin = [l for l in row["everyone"] if l["t"] == "origin"]
     assert origin and origin[0]["o"] == "wild" and origin[0]["keepO"] == "hatchery"
     rb = t["fish"]["RB"]["hatchery"]
