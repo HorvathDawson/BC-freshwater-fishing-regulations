@@ -47,7 +47,8 @@ def catalog_entries(area_defs: list[dict], polys_by_def: dict[str, dict]) -> lis
     by_id: dict[str, AreaEntry] = {}
     for ad in area_defs:
         kind = ad.get("kind", ad["id"])
-        cut = ad.get("cut", True)
+        from pipeline.atlas.splits.area_splits import cut_mode
+        cut = cut_mode(ad) is not None
         for name, poly in (polys_by_def.get(ad["id"], {}) or {}).items():
             if poly is None or getattr(poly, "is_empty", False):
                 continue

@@ -314,3 +314,15 @@ def test_only_a_channel_crossing_the_line_is_cut():
     oxbow = LineString([(300, 150), (520, 260), (350, 50)])        # bulges across, both ends west
     assert _spans(crosses, cut) is True
     assert _spans(oxbow, cut) is False
+
+
+def test_area_boundary_cut_that_would_leave_a_sliver_is_not_made():
+    """BOUND round (2026-10-06): the Tweedsmuir split cut the Talchako 0.26 m from its own end. A
+    cut within `sliver_gate.SLIVER_M` of the line's mouth or source is not made."""
+    coords = [(0, 0), (100, 0), (150, 0), (199.7, 0)]             # source 0.2 m past the far edge
+    chains = build_blk_chains([_fid("X1", "X", "100", coords, 0, 199.7, gnis_name="X River")], {})
+    park = box(100, -50, 199.5, 50)
+    sd = SplitDef(id="pk", blk="X",
+                  anchor=SplitAnchor(type=AnchorType.area_boundary, area_layer="parks_bc", area_name="PARK"))
+    pts = resolve_split_defs([sd], chains, area_polys={"PARK": park})
+    assert sorted(round(p.route_measure) for p in pts) == [100], "enter only; no cut 0.2 m from the end"

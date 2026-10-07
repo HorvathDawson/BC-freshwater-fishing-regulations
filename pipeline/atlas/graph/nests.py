@@ -41,7 +41,7 @@ def nest_ports(graph, comp: set[str]):
     """Where the nest meets the rest of the world: {water -> (sources, entry pieces)}, and the exits."""
     exits: set[str] = set()
     ins: dict[str, tuple[set[str], set[str]]] = defaultdict(lambda: (set(), set()))
-    for nid in comp:
+    for nid in sorted(comp):                     # DETERMINISM: `ins` keeps first-seen order
         for i in graph.down_adj.get(nid, []):
             if graph.edges[i].to_node not in comp:
                 exits.add(graph.edges[i].to_node)
@@ -94,7 +94,7 @@ def _route(graph, comp: set[str], entries: set[str], exit_node: str, free: set[s
     Routing each water independently made them carve parallel channels through the same nest; charging
     nothing for a piece that is already staying makes them share one."""
     best = None
-    for entry in entries:
+    for entry in sorted(entries):                # DETERMINISM: a tie keeps the first entry tried
         start = (0 if entry in free else 1, 0.0)
         dist = {entry: start}
         prev: dict[str, str | None] = {entry: None}
@@ -141,16 +141,23 @@ def essential_routes(graph, comp: set[str]) -> tuple[set[str], int]:
     can reach that destination without the nest at all; otherwise one route is kept for it."""
     ins, exits = nest_ports(graph, comp)
     demands, spare = [], 0
-    for _water, (srcs, entries) in ins.items():
-        for ex in _reaches_through(graph, entries, comp, exits):
-            if any(_reaches_without(graph, s, comp, ex) for s in srcs):
+    for _water, (srcs, entries) in sorted(ins.items()):
+        for ex in sorted(_reaches_through(graph, entries, comp, exits)):
+            if any(_reaches_without(graph, s, comp, ex) for s in sorted(srcs)):
                 spare += 1
                 continue
             demands.append((entries, ex))
+    # DETERMINISM (BOUND round, 2026-10-06). Every container above is a set of node-id strings, whose
+    # iteration order changes with PYTHONHASHSEED; the routing below is GREEDY (a route made earlier
+    # is free for the next), so the order demands are routed in decides which of two equal channels
+    # survives. Unsorted, two atlas builds from identical inputs kept different anabranches on ~50
+    # braided rivers (Kechika, Liard, Finlay, Herrick …) — whole blue lines present in one build and
+    # not the other. The order is now a function of the node ids alone.
+    demands.sort(key=lambda d: (-len(d[0]), sorted(d[0]), d[1]))
     keep: set[str] = set()
     for _ in range(3):                       # re-route against what is already kept until it settles
         nxt: set[str] = set()
-        for entries, ex in sorted(demands, key=lambda d: -len(d[0])):
+        for entries, ex in demands:
             nxt |= _route(graph, comp, entries, ex, nxt)
         if nxt == keep:
             break

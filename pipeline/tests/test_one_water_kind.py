@@ -177,7 +177,10 @@ def test_flowing_polygons_belong_to_their_water(registry):
     water = {k: v for k, v in registry.items() if v.kind in ("stream", "lake", "wetland")}
     assert not [k for k, v in water.items() if v.kind != "stream" and flows(v.kind, v.name)]
     secs = lambda i: set(registry[i].section_ids)           # noqa: E731
-    assert len(secs("gnis:11267")) == 138                    # Rancheria: the 42 on the Little Rancheria
+    # Rancheria: the 42 on the Little Rancheria. 137 since the border is cut by the clean rule (BOUND
+    # round, 2026-10-06): the Little Rancheria crossed the outline 4.9 m above its mouth, inside the
+    # border's 10 m zone of that end, so it is no longer cut there (138 on an atlas built before).
+    assert len(secs("gnis:11267")) == 137
     assert len(secs("wsc:915-679587-924307")) == 13          # East Gribbell
     assert len(secs("gnis:7836")) == 9 and "lake:329148363" in secs("gnis:7836")   # Stellako
     assert registry["gnis:6438"].name == "Six Mile Slough" and len(secs("gnis:6438")) == 12

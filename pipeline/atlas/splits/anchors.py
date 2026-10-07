@@ -386,12 +386,24 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
             if poly is None:
                 continue
             boundary = poly.boundary
+            # A CUT THAT WOULD LEAVE A SLIVER IS NOT MADE (BOUND round, 2026-10-06), as for the
+            # blanket areas (`area_splits.resolve_area_splits`): one within `sliver_gate.SLIVER_M`
+            # of the line's own mouth or source, a lake edge, or another cut of this split — the
+            # Tweedsmuir split cut the Talchako 0.26 m and 3.7 m from its ends, Ape Creek 1.35 m.
+            from pipeline.atlas.splits.sliver_gate import SLIVER_M
             scope = _target_blks(sd, chains, descendants=a.wsc_descendants)
             for blk in scope:
                 c = by_blk.get(blk)
                 if c is None or c.geometry is None or c.geometry.is_empty:
                     continue
-                for m in _area_transition_measures(c.geometry, poly, boundary):
+                ms = _area_transition_measures(c.geometry, poly, boundary)
+                ends = [0.0, c.geometry.length]
+                ends += [e - c.mouth_measure for r in (c.waterbody_runs or ())
+                         for e in (r.down_m, r.up_m)]
+                for m in ms:
+                    others = [x for x in ms if x != m]
+                    if any(abs(e - m) < SLIVER_M for e in ends + others):
+                        continue
                     _emit(sd, blk, c.mouth_measure + m)
 
     return out

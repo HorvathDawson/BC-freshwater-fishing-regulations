@@ -164,9 +164,14 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
                 # relabel an INTERIOR lake edge; and it reads authorship off the id spelling,
                 # which is a list that has already been wrong once — it belongs on SplitPoint,
                 # set where each family is minted.
-                if _auto_split(sp.split_id):
+                # A LAKE EDGE at the end is the one exception for an auto split: it may DEFER to
+                # it (the edge keeps its id, kind and label; the minted id joins as an alias, below)
+                # — there is no name to lose, and the cut it would otherwise make is a sliver: the
+                # Quinsam's gauge 08HD034 sits 1.95 m below Lower Quinsam Lake's edge.
+                at_lake = bnd is not None and str(bnd.boundary_id).startswith("lake:")
+                if _auto_split(sp.split_id) and not at_lake:
                     continue
-                if bnd is not None and not str(bnd.boundary_id).startswith("lake:"):
+                if bnd is not None and not at_lake:
                     continue
             d = abs(m - M)
             if d <= best_d:
@@ -330,6 +335,63 @@ def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
     return None
 
 
+#: ONE PLACE, computed twice. The border pass and the region cutter intersect the same blue line
+#: with the same edge segment (the B.C. outline is the exact union of the units the regions are
+#: dissolved from), and two computations of one intersection agree to ~1e-9 m. This is that identity
+#: — float noise on a shared point — not a positional tolerance: two cuts a millimetre apart are two
+#: places and are both cut.
+SAME_PLACE_M = 1e-6
+
+
+def _coincident(graph, blk, sp, by_blk=None) -> bool:
+    """A cut AT an existing boundary (within `SAME_PLACE_M`) is that boundary under another name.
+
+    It joins the boundary's `aliases` on every piece the boundary bounds, so a rule binding either
+    name binds the same place. Without this the cut was dropped in silence (`_find_piece` finds no
+    piece strictly around a measure that IS a boundary), or — a hair inside a piece — cut a
+    zero-length sliver. THE BORDER IS NAMED THE BORDER: where the provincial border and a region
+    edge are one cut, the border is the canonical id (the run's end token reads `bc_border`) and the
+    region cut is its alias, whichever came first. Returns True when it aliased."""
+    M = sp.route_measure
+    mine = f"split:{sp.split_id}"
+    kind = _ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split)
+    nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
+    hit = None
+    for nid in nids:
+        n = graph.nodes.get(nid)
+        if n is None or n.kind != NodeKind.stream or n.blk != blk:
+            continue
+        for b in (n.lower_bound, n.upper_bound):
+            if b is not None and abs(b.route_measure - M) <= SAME_PLACE_M:
+                hit = b
+                break
+        if hit is not None:
+            break
+    if hit is None:
+        return False
+    if mine == hit.boundary_id or mine in (hit.aliases or ()):
+        return True
+    if kind == BoundaryKind.border and hit.kind != BoundaryKind.border:
+        prior = set(hit.aliases or ()) | {str(hit.boundary_id)}
+        if hit.label and not str(hit.boundary_id).startswith("split:"):
+            prior.add(f"label:{hit.label}")
+        merged = SectionBoundary(boundary_id=mine, kind=kind, route_measure=hit.route_measure,
+                                 label=(sp.label or sp.split_id),
+                                 aliases=tuple(sorted(prior - {mine})))
+    else:
+        merged = replace(hit, aliases=tuple(hit.aliases or ()) + (mine,))
+    for nid in nids:                                  # the bound is shared by the pieces it separates
+        n = graph.nodes.get(nid)
+        if n is None or n.kind != NodeKind.stream or n.blk != blk:
+            continue
+        patch = {e: merged for e in ("lower_bound", "upper_bound")
+                 if getattr(n, e) is not None and getattr(n, e).boundary_id == hit.boundary_id
+                 and getattr(n, e).route_measure == hit.route_measure}
+        if patch:
+            graph.nodes[nid] = replace(n, **patch)
+    return True
+
+
 def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
                edges_by_from=None) -> bool:
     M = sp.route_measure
@@ -452,6 +514,8 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
     for blk, sps in sp_by_blk.items():
         for sp in sorted(sps, key=lambda s: s.route_measure):
             picked = _pickup(graph, blk, sp, node_by_blk) if proximity_pickup else False
+            if not picked:
+                picked = _coincident(graph, blk, sp, node_by_blk)
             cut = False
             if not picked:
                 cut = _split_one(graph, geoms, blk, sp, fid_index, node_by_blk, edges_by_to,

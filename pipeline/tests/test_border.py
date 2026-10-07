@@ -207,3 +207,46 @@ def test_a_short_zero_length_piece_is_a_cut_artifact_not_another_country():
 
     assert mark_out_of_bc(graph, geoms, outline) == 0
     assert graph.nodes[nid].out_of_bc is False
+
+
+def test_the_fast_prefilter_finds_the_same_cuts():
+    """BOUND round (2026-10-06): the exact outline has 54,000 vertices, and `covered_by` of 1.2 M
+    lines against it took 593 s. `border.candidates` asks an STRtree of 64-vertex outline chunks which
+    lines meet the edge, plus one point test for lines wholly outside — 3.9 s province-wide, and the
+    1,451 split points of a full build identical to the bit. Here: the reference (`covered_by`) and
+    the fast path on lines crossing, touching from inside, wholly inside and wholly outside, around a
+    many-vertex outline."""
+    import math
+
+    import numpy as np
+    import shapely
+    from shapely.geometry import LineString, Polygon
+
+    from pipeline.atlas.splits import border as BD
+    from pipeline.common.models import BlkChain
+
+    ring = [(1000 * math.cos(t) + 3 * math.sin(40 * t), 1000 * math.sin(t))
+            for t in np.linspace(0, 2 * math.pi, 3000, endpoint=False)]
+    outline = Polygon(ring)
+    lines = {
+        "cross": LineString([(0, 0), (1500, 10)]),
+        "cross_twice": LineString([(0, -1200), (0, 1200)]),
+        "inside": LineString([(0, 0), (100, 100)]),
+        "outside": LineString([(1200, 1200), (1500, 1500)]),
+        "touch": LineString([(0, 0), ring[0]]),
+        "wander": LineString([(990 + (8 if i % 2 else -8), i * 3.0) for i in range(30)]),
+    }
+    chains = [BlkChain(blk=k, fwa_watershed_code="1", fids=(), geometry=g, mouth_measure=0.0,
+                       length_m=g.length, name_tuples=()) for k, g in sorted(lines.items())]
+    arr = np.array([c.geometry for c in chains], dtype=object)
+    ref = ~shapely.covered_by(arr, outline)
+    fast = BD.candidates(arr, outline)
+    assert all(f or not r for f, r in zip(fast, ref)), "every reference candidate is still examined"
+    extra = [c.blk for c, f, r in zip(chains, fast, ref) if f and not r]
+    assert set(extra) <= {"touch"}, extra
+    got = BD.border_split_points(chains, outline)
+    # the reference: the same cutter over exactly the covered_by candidates
+    ref_chains = [c for c, r in zip(chains, ref) if r]
+    want = BD.border_split_points(ref_chains, outline)
+    assert [(p.blk, p.route_measure, p.split_id) for p in got] == \
+        [(p.blk, p.route_measure, p.split_id) for p in want]

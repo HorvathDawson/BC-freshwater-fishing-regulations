@@ -504,3 +504,40 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     field on a record ships as is; a new SHAPE (a part flag, a run field) must be taught to the
     codec, which refuses what it does not know. Only the lake edges something names ship. Neither
     file names a section: a closure note's example is a key (`example_sid` resolves it in the bundle).
+59. **Boundaries are cut once, at the source, and the build only asserts.** (user rulings
+    2026-10-06, BOUND round.) THE ATLAS BUILD IS DETERMINISTIC: the braid prune's greedy router
+    (`nests.essential_routes`) took its demands and entries in set order, and unnamed waterbodies
+    were minted from a set; both are sorted (`test_prune.py::test_the_braid_prune_does_not_depend_on_
+    the_hash_seed`; `test_no_slivers.py::test_two_builds_of_identical_inputs_are_identical` with
+    `ATLAS_BUILD_TWIN`). THE B.C. OUTLINE is the EXACT union of the `wmu` units the regions are
+    dissolved from (`bc_boundary.load_outline`: a valid coverage, cached as WKB; never simplified,
+    never buffered; an invalid coverage is refused); the border prefilter queries it in 64-vertex
+    chunks (`border.candidates`, 593 s -> 4 s, identical cuts). EVERY AREA is clipped to it in
+    `load_area_polys` except the `wmu` coverage itself (`areas.json` `_clip_policy`). HOW an area is
+    cut is `areas.json` `cut` (`area_splits.cut_mode`; `true` is refused):
+      * `"clean"` (national parks, ecological reserves, the Chilkoot — closures), with a MEASURED
+        `rejoin_m` (1,000 m) and its note (`clean_cut.decide_rejoin`): A STRADDLE IS INSIDE — the
+        line's inside stretches are joined across every continuous outside run of at most
+        `rejoin_m`; an EXIT happens only after a longer run out, and re-entry is a new entry cut;
+        cuts sit at the straddle's OUTER crossings; an isolated dip under 5 m (positional error) is
+        ignored, as is an outside run that short at a stretch END (the line's mouth or source, a
+        lake edge, a border cut — `clean_cut.stretches`); the area is cut only inside B.C.
+        (`bc_inside`), and a cut within 5 m of a boundary already on the line IS that boundary
+        (`clean_cut.onto_existing`). THE CUTTER ASSIGNS MEMBERSHIP: a stream piece is in the area
+        exactly when it lies in the inside the cutter decided (`mark_inside_areas(cutter=)`, no
+        overlap test; lakes keep the outline test).
+      * `"first_last"` + `"membership": "both_sides"` (regions, MU groups, sign zones, restricted
+        land), and the curated `area_boundary` splits: AS BEFORE — first entry and last exit
+        (`anchors._area_transition_measures`), overlap membership, a straddle carries both regions.
+        Two differences only: a crossing on the outline follows the border's single cut, and a cut
+        that would leave a piece under the gate is not made (`area_splits.resolve_area_splits`).
+    THE BORDER is cut by the zone rule (`clean_cut.decide`, `border.BORDER_CROSSING_ZONE_M` = 10 m:
+    crossings closer than that are one place, cut once at the representative middle crossing; a
+    zone at a stretch end is no cut — FWA draws streams on past the province). A cut at the place another boundary holds joins it as an ALIAS and the
+    border keeps its name (`sectionizer._coincident`, `SAME_PLACE_M` 1e-6 = float identity); an
+    area whose inside ends at a border cut is offered there so the cut carries both names; an auto
+    (gauge) split may defer to a lake edge at a line's end (`_pickup`). THE SLIVER GATE
+    (`sliver_gate.check`) stops the build on any stream piece under 5 m a cut made, or a clean-cut
+    piece straddling its cutter's inside, naming each (`sliver_gate.json`); it repairs nothing, and
+    a failure is fixed where the cut came from. Pins: `test_clean_cut.py`, `test_bc_boundary.py`,
+    `test_border.py`, `test_anchors.py`, and on a built atlas `test_no_slivers.py` (`-m slow`).

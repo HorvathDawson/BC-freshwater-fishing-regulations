@@ -46,3 +46,6 @@ generated/*
 # gov.bc.ca's own copies of the synopsis chapters, fetched for the print cross-check;
 # the tests skip (naming the file) when they are absent. See quota_print.OFFICIAL_DIR.
 source/official/
+
+# BC outline cache (pipeline/atlas/splits/bc_boundary.py): derived from the gpkg, rebuilt on demand
+source/bc_boundary.exact.*

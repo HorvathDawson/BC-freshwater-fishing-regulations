@@ -555,7 +555,10 @@ def main() -> None:
     if _todo:
         _wet = get_wetland_wbks(fwa, bbox)
         _n = 0
-        for _w in _todo:
+        # SORTED (BOUND round, 2026-10-06): `_todo` is a set of wbk strings, and minting in its
+        # order made graph.nodes' order — and with it every registry item's section list — follow
+        # PYTHONHASHSEED (482 area items differed between two builds of identical inputs).
+        for _w in sorted(_todo):
             _pl = wb_polys.get(_w)
             if _pl is None or _pl.is_empty:
                 continue
@@ -639,11 +642,20 @@ def main() -> None:
 
     fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
 
+    # THE SHORT PIECES FWA DREW ITSELF, before any cut: the sliver gate below refuses every OTHER one.
+    from pipeline.atlas.splits.sliver_gate import short_pieces as _short_pieces
+    _short_before_cuts = _short_pieces(graph)
+
+    #: {blk: [border cut measures]} — the region and clean cutters defer to the border's decisions
+    border_cuts: dict = {}
+    #: {blk: [inside-B.C. intervals]} for every line the border pass looked at
+    border_inside: dict = {}
     # Border pass FIRST (like lakes, but via splits) so curated points can pick up border splits.
     if (args.border or args.full) and not args.no_border:
         from pipeline.atlas.splits.border import apply_border
         print("applying BC border splits (cross-border BLKs) ...")
-        n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index)
+        n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index,
+                                            cuts_out=border_cuts, inside_out=border_inside)
         print(f"  {n_bsplits} border split(s); {n_flagged} out-of-BC piece(s) flagged "
               f"-> {len(graph.nodes)} nodes")
         _tick("border")
@@ -774,7 +786,14 @@ def main() -> None:
     # hits no such area.
     from pipeline.atlas.splits.area_splits import (load_area_attrs, load_area_split_defs,
                                                    load_area_polys, resolve_area_splits)
+    from pipeline.atlas.splits.area_splits import cut_mode
+    from pipeline.atlas.splits.clean_cut import resolve_clean_cuts
+    from pipeline.atlas.splits.area_catalog import area_id as _area_id
     area_defs = load_area_split_defs()
+    #: {area id: {blk: inside intervals}} — what each CLEAN-cut area's cutter decided. The membership
+    #: pass stamps their stream pieces from these and runs no overlap test on them; first_last areas
+    #: keep the overlap test (both sides) — areas.json _cut_policy.
+    clean_inside: dict[str, dict] = {}
     catalog_polys: dict[str, dict] = {}                # {area_def id: {name: polygon}} for the lazy catalog
     if area_defs:
         from pipeline.atlas.splits.sectionizer import split_graph_at
@@ -783,7 +802,8 @@ def main() -> None:
             if not polys:
                 continue
             catalog_polys[ad["id"]] = polys
-            if ad.get("cut", True):                    # `cut` flag is the SOLE cut trigger (default on)
+            _mode = cut_mode(ad)                       # `cut` names HOW (areas.json _cut_policy)
+            if _mode is not None:
                 # `label_term` turns a cut's label from the polygon's own name into what it
                 # SEPARATES — "Region 2 – Region 3 boundary" rather than "2". An area whose
                 # name already reads as a place ("Garibaldi Provincial Park") sets no term
@@ -791,7 +811,36 @@ def main() -> None:
                 # `cuts` on each feature narrows the cut to the water the area is about —
                 # blanket for a park, one river for a sign zone drawn across a confluence.
                 scope = {n: a["cuts"] for n, a in load_area_attrs(ad).items() if a.get("cuts")}
-                apts = resolve_area_splits(polys, chains, term=ad.get("label_term"), scope=scope)
+                # every boundary already on the graph, per blue line: an area cut within its
+                # crossing zone of one IS that boundary (`clean_cut.onto_existing`)
+                _existing: dict = {}
+                for _n in graph.nodes.values():
+                    if getattr(_n.kind, "value", _n.kind) != "stream":
+                        continue
+                    for _b in (_n.lower_bound, _n.upper_bound):
+                        if _b is not None:
+                            _existing.setdefault(_n.blk, set()).add(_b.route_measure)
+                _existing = {k: sorted(v) for k, v in _existing.items()}
+                if _mode == "clean":
+                    # CLEAN CUT: one cut per crossing ZONE that changes side, none for a graze; the
+                    # cutter's inside intervals ARE the membership (`clean_cut`, areas.json).
+                    _cc = resolve_clean_cuts(polys, chains, float(ad["rejoin_m"]), scope=scope,
+                                             existing=_existing, bc_inside=border_inside)
+                    apts = _cc.points
+                    for _nm, _spans in _cc.inside.items():
+                        clean_inside[_area_id(ad.get("kind", ad["id"]), _nm)] = _spans
+                    print(f"  area '{ad['id']}': clean cut, rejoin {ad['rejoin_m']} m — "
+                          f"{len(_cc.grazes)} isolated dip(s) ignored")
+                else:
+                    # First-enter/last-exit, as before this round; a crossing on the B.C. outline
+                    # follows the border's single cut, and a cut that would leave a sliver is not
+                    # made (`resolve_area_splits`). Membership stays the overlap test (both sides).
+                    from pipeline.atlas.splits.border import bc_outline as _bc_outline
+                    _outline = _bc_outline(fwa) if border_cuts else None
+                    apts = resolve_area_splits(
+                        polys, chains, term=ad.get("label_term"), scope=scope,
+                        border=((_outline.boundary, border_cuts) if _outline is not None else None),
+                        existing=_existing)
                 # OFFERED IS NOT APPLIED, and the line used to print only the first.
                 #
                 # Cuts are resolved against the FWA CHAINS while the graph has already been
@@ -886,11 +935,23 @@ def main() -> None:
         # Every waterbody, not just the ones with no line geometry: a NODED lake's sidecar
         # geometry is the under-lake route through it, which is the wrong shape to test a
         # polygon against. Its actual outline is here.
+        _straddlers: list = []
         _flags = mark_inside_areas(graph, geoms, _polys,
-                                   extra={f"lake:{w}": pl for w, pl in wbk_polys.items()})
+                                   extra={f"lake:{w}": pl for w, pl in wbk_polys.items()},
+                                   cutter=clean_inside, straddlers=_straddlers)
         print(f"  area membership: {_flags} flag(s) across {len(_polys)} area(s) "
-              f"({len(wbk_polys)} minted waterbody polygon(s) included)")
+              f"({len(wbk_polys)} minted waterbody polygon(s) included; {len(clean_inside)} "
+              f"cut area(s) stamped by their cutter)")
         _tick("area membership")
+    else:
+        _straddlers = []
+
+    # THE SLIVER GATE (BOUND round, 2026-10-06). ASSERTS ONLY: it repairs nothing. A cut that leaves a
+    # stream piece under `sliver_gate.SLIVER_M`, or a clean-cut piece straddling the inside its cutter
+    # decided, stops the build and names every one (also written to sliver_gate.json in --out), so
+    # the SOURCE that made it can be fixed. FWA's own short pieces are not cuts and are not counted.
+    from pipeline.atlas.splits.sliver_gate import check as _sliver_check
+    _sliver_check(graph, _short_before_cuts, _straddlers, Path(args.out))
 
     # MANAGEMENT UNITS. Separate pass from area membership, and unconditional, because the two
     # are different kinds of fact: `in_areas` is membership of a REGULATED area and exists only

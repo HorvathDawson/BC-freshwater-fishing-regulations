@@ -408,3 +408,42 @@ def test_a_braid_that_rejoins_its_own_piece_never_becomes_a_self_loop():
     assert not [e for e in g.edges if e.from_node == e.to_node], \
         "a piece must never end up flowing into itself"
     assert g.down_adj.get("M:lo"), "and M:lo keeps its way downstream"
+
+
+# ---- DETERMINISM (BOUND round, 2026-10-06) -------------------------------------------------------
+_TIE_NEST = r"""
+from pipeline.tests.test_prune import _graph, _n, TRIB
+from pipeline.atlas.graph.prune import prune_mainstem_loops
+# A tributary reaching the river through one nest by three equal entries (E1/E2 -> X, E3/E2 -> Y):
+# one route must stay, and nothing about the water prefers any. Before the fix the survivor was whichever entry the
+# set of node ids happened to yield first, i.e. PYTHONHASHSEED.
+nodes = [_n("M:hi", "M", length=5000.0), _n("M:lo", "M", length=5000.0),
+         _n("T:0", "T", wsc=TRIB, name="Small Creek")]
+nodes += [_n(f"{b}:0", b) for b in ("E1", "E2", "E3", "X", "Y")]
+# T reaches one braid nest through three equal entries; each entry is one hop from the exit
+edges = [("M:hi", "M:lo"), ("T:0", "E1:0"), ("T:0", "E2:0"), ("T:0", "E3:0"), ("E1:0", "X:0"),
+         ("E2:0", "X:0"), ("E3:0", "Y:0"), ("E2:0", "Y:0"), ("X:0", "M:lo"), ("Y:0", "M:lo"),
+         ("M:hi", "E2:0")]
+g, n, _ = prune_mainstem_loops(_graph(edges, nodes), reconnect_tributaries=True)
+print(",".join(sorted(g.nodes)), "|", ",".join(sorted(f"{e.from_node}>{e.to_node}" for e in g.edges)))
+"""
+
+
+def test_the_braid_prune_does_not_depend_on_the_hash_seed():
+    """Two atlas builds from identical inputs used to keep different anabranches on ~50 braided
+    rivers (Kechika, Liard, Finlay, Herrick …): `nests.essential_routes` routes GREEDILY, and it
+    took its demands and entries in set-iteration order. The same nest, under eight hash seeds, must
+    keep the same channels. MUTATION: with the containers unsorted (HEAD 120a0486) it gave 3 distinct answers."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    got = set()
+    for seed in range(8):
+        env = {**os.environ, "PYTHONHASHSEED": str(seed), "PYTHONPATH": str(root)}
+        out = subprocess.run([sys.executable, "-c", _TIE_NEST], env=env, cwd=root,
+                             capture_output=True, text=True, check=True)
+        got.add(out.stdout.strip())
+    assert len(got) == 1, got

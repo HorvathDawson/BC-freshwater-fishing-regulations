@@ -21,6 +21,31 @@ ROOT = get_config().project_root
 _GPKG = str(get_config().fwa_data_gpkg)
 
 
+#: The cut modes an area may declare (`areas.json` `cut`; see its `_cut_policy`).
+CUT_MODES = ("clean", "first_last")
+
+
+def cut_mode(area_def: dict) -> str | None:
+    """`"clean"`, `"first_last"`, or None (membership only). Refuses anything else — including the
+    old boolean `true`, which no longer says HOW to cut."""
+    v = area_def.get("cut")
+    if v is False:
+        return None
+    if v not in CUT_MODES:
+        raise ValueError(f"areas.json {area_def.get('id')!r}: cut must be one of {CUT_MODES} or false, "
+                         f"got {v!r}")
+    if v == "clean" and not (area_def.get("rejoin_m") or 0) > 0:
+        raise ValueError(f"areas.json {area_def.get('id')!r}: a clean cut states rejoin_m")
+    if v == "first_last" and (area_def.get("crossing_zone_m") is not None
+                              or area_def.get("rejoin_m") is not None):
+        raise ValueError(f"areas.json {area_def.get('id')!r}: a first_last area is cut where it "
+                         f"crosses, with no zone or rejoin distance")
+    if v == "first_last" and area_def.get("membership") != "both_sides":
+        raise ValueError(f"areas.json {area_def.get('id')!r}: first_last cuts declare "
+                         f"membership: both_sides")
+    return v
+
+
 def load_area_split_defs(path: str | None = None) -> list[dict]:
     p = Path(path) if path else CURATED.waters.areas
     if not p.exists():
@@ -117,6 +142,45 @@ def load_area_attrs(area_def: dict) -> dict:
             for _, r in g.iterrows() if r.get(nf)}
 
 
+def clips_to_bc(area_def: dict) -> bool:
+    """Is this area clipped to the B.C. outline? Every area is, except one drawn FROM the units the
+    outline is made of (`layer: wmu` — the regions and the MU groups): those ARE the coverage, and
+    clipping them would only re-node edges that already coincide with the outline exactly."""
+    return area_def.get("layer") != "wmu"
+
+
+def _clip_to_bc(g, area_def: dict) -> None:
+    """CLIP AN AREA TO THE B.C. OUTLINE, in place (BOUND round, 2026-10-06).
+
+    A B.C. regulation stops at the border, and so does every area it is written for. A park, a
+    reserve, a WMA or a watershed polygon that runs past the outline (the Liard watershed into the
+    Yukon; a park digitised a few metres across the Alberta line) is cut back to it, so the area's
+    border edge IS the outline's edge: a river leaving the province through it is cut ONCE, at the
+    border (`sectionizer._coincident`), never again a few metres away at the park's own line.
+    Only polygons that actually reach outside are touched — one wholly inside B.C. keeps its
+    geometry bit for bit. Every consumer (the cutter, the area catalog, the tiles) reads polygons
+    through `load_area_polys`, so all of them see the same clipped shape."""
+    if not clips_to_bc(area_def):
+        return
+    import shapely
+
+    from pipeline.atlas.splits.bc_boundary import load_outline
+    outline = load_outline(_GPKG)
+    if outline is None:
+        raise RuntimeError("no B.C. outline (wmu layer) to clip areas to")
+    shapely.prepare(outline)
+    geoms = list(g.geometry)
+    for i, geom in enumerate(geoms):
+        if geom is None or geom.is_empty or outline.covers(geom):
+            continue
+        cut = geom.intersection(outline)
+        if cut.geom_type not in ("Polygon", "MultiPolygon"):   # drop the lines/points of a touch
+            polys = [q for q in shapely.get_parts(cut) if q.geom_type in ("Polygon", "MultiPolygon")]
+            cut = shapely.union_all(polys) if polys else shapely.Polygon()
+        geoms[i] = cut
+    g.set_geometry(geoms, inplace=True, crs=g.crs)
+
+
 def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     """{key -> (Multi)Polygon} for one area def. `where` filters the layer (e.g. ecological reserves
     within parks_bc); absent `where` = the whole layer.
@@ -165,6 +229,7 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     out: dict = {}
     if g.empty:
         return out
+    _clip_to_bc(g, area_def)
 
     if area_def.get("combine"):
         # ONE POLYGON FOR A GROUP OF UNITS, because that is the shape the regulation has.
@@ -236,7 +301,9 @@ def _neighbour_label(polys_by_name: dict, line, m: float, here: str, term: str) 
 
 def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
                         term: str | None = None,
-                        scope: dict | None = None) -> list[SplitPoint]:
+                        scope: dict | None = None,
+                        border: tuple | None = None,
+                        existing: dict | None = None) -> list[SplitPoint]:
     """Cut every chain crossing each polygon at first-enter/last-exit (transition cutting).
 
     `term` has three states, because there are three kinds of name:
@@ -259,25 +326,75 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
     The scope is not a new thing to maintain: it is the `cuts` property the ring already carries to
     say which water it sits on, so the tile link and the cut scope cannot disagree. An area with no
     scope stays blanket, which is every area that existed before this.
+
+    TWO DIFFERENCES FROM BEFORE THE BOUND ROUND (2026-10-06), and only these — the regions keep
+    their first-enter/last-exit cuts and their both-sides membership (`border.mark_inside_areas`):
+
+      * A CROSSING ON THE B.C. OUTLINE is the border's (`border` = (outline boundary, {blk: [border
+        cut measures]})): the outline is the exact union of the units the regions are dissolved
+        from, so a region's edge there IS the border. Where the border pass cut at that place the
+        area's cut takes the border cut's measure and becomes its alias (`sectionizer._coincident`:
+        one cut, both names, `bc_border`); where it cut nothing (a line's end or a graze inside the
+        border's crossing zone) the area does not cut either.
+      * A CUT THAT WOULD LEAVE A SLIVER IS NOT MADE (`sliver_gate.SLIVER_M`): one within that
+        distance of the line's own mouth or source, a lake edge, a boundary already on the line
+        (`existing`), or another cut of the same pass — Contact Creek dipping 2.8 m into Region 6, a
+        region line 0.3 m below the West Road's source, the Region 3 line 0.001 m from a lake on
+        Slack Creek, the 2/3 line 0.42 mm from the curated Spuzzum Creek cut. A cut within
+        `clean_cut.SAME_PLACE_M` of an existing boundary is not a sliver but the same place: it is
+        made, and becomes that boundary's alias.
     """
     from shapely.strtree import STRtree
+
+    from pipeline.atlas.splits.clean_cut import SAME_PLACE_M
+    from pipeline.atlas.splits.sliver_gate import SLIVER_M
 
     keep = [c for c in chains if c.geometry is not None and not c.geometry.is_empty]
     if not keep:
         return []
+    out_bd, border_cuts = border if border is not None else (None, {})
+    if out_bd is not None:
+        import shapely
+        shapely.prepare(out_bd)
     tree = STRtree([c.geometry for c in keep])
-    out: list[SplitPoint] = []
+    cands: dict[str, list] = {}                    # blk -> [(M, name, m, chain)]
+    import shapely
     for name, poly in polys_by_name.items():
         boundary = poly.boundary
+        shapely.prepare(poly)
         want = (scope or {}).get(name)
-        for i in tree.query(poly):                 # bbox candidates; transition cutter filters non-crossers
+        # Only a chain meeting the EDGE can be cut: one wholly inside reads inside at every vertex and
+        # one wholly outside meets nothing, so both yield no measure. Querying the edge instead of the
+        # polygon's bbox gives the same cuts without testing every vertex of every chain in a region
+        # (the stage took 2,020 s on the bbox, 88 s on the edge).
+        for i in sorted(tree.query(boundary, predicate="intersects")):
             c = keep[i]
             if want and f"gnis:{c.gnis_id}" != want and f"wbk:{getattr(c, 'wbk', '')}" != want:
                 continue                           # a water this area is not about — see `scope`
             for m in _area_transition_measures(c.geometry, poly, boundary):
-                label = (name if term is None
-                         else _neighbour_label(polys_by_name, c.geometry, m, name, term))
-                out.append(SplitPoint(split_id=f"area:{name}", blk=c.blk,
-                                      route_measure=c.mouth_measure + m, fid="",
-                                      label=label, anchor_type=AnchorType.area_boundary, source="area"))
+                M = c.mouth_measure + m
+                if out_bd is not None and out_bd.distance(c.geometry.interpolate(m)) <= SAME_PLACE_M:
+                    same = [b for b in border_cuts.get(c.blk, ()) if abs(b - M) <= SAME_PLACE_M]
+                    if not same:
+                        continue                   # on the outline, and the border cut nothing here
+                    M = same[0]                    # the border's cut: one place, both names
+                cands.setdefault(c.blk, []).append((M, name, m, c))
+    out: list[SplitPoint] = []
+    for blk in sorted(cands):
+        got = cands[blk]
+        c = got[0][3]
+        ends = [c.mouth_measure, c.mouth_measure + c.geometry.length]
+        ends += [e for r in (c.waterbody_runs or ()) for e in (r.down_m, r.up_m)]
+        ends += list((existing or {}).get(blk, ()))
+        places = sorted({M for M, *_ in got})
+        for M, name, m, c in sorted(got, key=lambda t: (t[0], t[1])):
+            near = [e for e in ends + [P for P in places if abs(P - M) > SAME_PLACE_M]
+                    if SAME_PLACE_M < abs(e - M) < SLIVER_M]
+            if near:
+                continue                           # it would leave a sliver: not cut
+            label = (name if term is None
+                     else _neighbour_label(polys_by_name, c.geometry, m, name, term))
+            out.append(SplitPoint(split_id=f"area:{name}", blk=c.blk,
+                                  route_measure=M, fid="",
+                                  label=label, anchor_type=AnchorType.area_boundary, source="area"))
     return out

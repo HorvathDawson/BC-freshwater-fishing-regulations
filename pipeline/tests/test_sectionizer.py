@@ -407,7 +407,8 @@ def test_pickup_takes_a_lake_edge_at_a_natural_end_and_keeps_its_id():
 
 
 def test_pickup_refuses_a_natural_end_for_an_auto_split():
-    """The Sproat regression. A pickup relabels, and for a split the pipeline minted itself that
+    """The Sproat regression — an auto split may never RELABEL an end; it may only defer to a lake
+    edge there (alias), and never take a bare end. A pickup relabels, and for a split the pipeline minted itself that
     is pure loss — nothing binds to `gauge__08HB008` by name, while `sproat_river__sproat_lake`
     resolves THROUGH the lake edge it would overwrite, collapsing "No Fishing from Sproat Lake to
     the Hwy 4 signs" to an empty reach.
@@ -420,8 +421,13 @@ def test_pickup_refuses_a_natural_end_for_an_auto_split():
         lake = SectionBoundary(boundary_id="lake:329016196", kind=BoundaryKind.lake,
                                route_measure=1000.0, label="Sproat Lake")
         g, by_blk = _one_block(head_bound=lake)
-        assert _pickup(g, "1", _sp(auto), by_blk) is False, f"{auto} must not take an end"
-        assert g.nodes["1:0"].upper_bound.boundary_id == "lake:329016196"
+        # BOUND round (2026-10-06): an auto split DEFERS to a lake edge at an end instead of cutting
+        # a sliver beside it (the Quinsam's gauge 08HD034, 1.95 m below its lake): the edge keeps
+        # its id, kind and label — the Sproat name survives — and the minted id is an alias.
+        assert _pickup(g, "1", _sp(auto), by_blk) is True, f"{auto} defers to the lake edge"
+        b = g.nodes["1:0"].upper_bound
+        assert b.boundary_id == "lake:329016196" and b.label == "Sproat Lake"
+        assert f"split:{auto}" in b.aliases
 
         g, by_blk = _one_block(head_bound=None)
         assert _pickup(g, "1", _sp(auto), by_blk) is False, f"{auto} must not take a bare end"

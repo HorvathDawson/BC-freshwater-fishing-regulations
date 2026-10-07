@@ -72,3 +72,26 @@ def test_apply_remap_refuses_an_unknown_field():
     g = pd.DataFrame({"MU": ["6-12"], "REG": ["6"]})
     with pytest.raises(KeyError):
         apply_remap(g, "REG", {"field": "NOPE", "values": {"6-12": "1"}}, layer="wmu")
+
+
+def test_the_edge_query_finds_the_same_cuts_as_the_bbox_query():
+    """`resolve_area_splits` asks the STRtree for lines meeting the polygon's EDGE (88 s province-
+    wide) instead of its bbox (2,020 s). Same cuts: a line not meeting the edge lies wholly inside or
+    wholly outside and yields none. Reference: the transition cutter over every bbox candidate."""
+    from shapely.geometry import LineString, box
+    from shapely.strtree import STRtree
+
+    from pipeline.atlas.splits.anchors import _area_transition_measures
+    from pipeline.common.models import BlkChain
+    park = box(100, -50, 200, 150)
+    lines = {"through": LineString([(0, 0), (300, 0)]), "inside": LineString([(120, 0), (180, 0)]),
+             "in_bbox_outside": LineString([(90, 160), (210, 160)]),
+             "touch": LineString([(100, 10), (150, 10)]), "far": LineString([(900, 0), (999, 0)]),
+             "weave": LineString([(0, 50), (110, 50), (120, 200), (130, 50), (300, 50)])}
+    chains = [BlkChain(blk=k, fwa_watershed_code="1", fids=(), geometry=g, mouth_measure=0.0,
+                       length_m=g.length, name_tuples=()) for k, g in sorted(lines.items())]
+    got = sorted((p.blk, round(p.route_measure, 9)) for p in resolve_area_splits({"P": park}, chains))
+    tree = STRtree([c.geometry for c in chains])
+    want = sorted((chains[i].blk, round(m, 9)) for i in tree.query(park)
+                  for m in _area_transition_measures(chains[i].geometry, park, park.boundary))
+    assert got == want

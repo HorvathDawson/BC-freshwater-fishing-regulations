@@ -142,7 +142,7 @@ def loop_nodes(graph: StreamGraph, protected_blks: set[str] | None = None,
         if not cand:
             continue
         seen: set[str] = set()
-        for start in cand:
+        for start in sorted(cand):                   # DETERMINISM: records in node-id order
             if start in seen:
                 continue
             comp, stack = set(), [start]

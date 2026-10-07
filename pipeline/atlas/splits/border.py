@@ -11,9 +11,8 @@ every crossing of a BLK with the BC outline, run them through the normal `sectio
 each resulting piece whose representative point falls outside the outline. A curated point near a
 border split (e.g. Kootenay "Idaho border") later reuses it via the sectionizer's proximity pickup.
 
-The BC outline here is the union of the WMU polygons (they tile the province) — good enough as an
-in-data boundary. A dedicated provincial-boundary layer (a future fetch) would be crisper; swap it
-into ``bc_outline`` without touching the split/flag logic.
+The BC outline is the EXACT union of the WMU polygons (a valid coverage: they tile the province),
+the same polygons the regions are dissolved from — see ``pipeline.atlas.splits.bc_boundary``.
 """
 
 from __future__ import annotations
@@ -29,27 +28,76 @@ from pipeline.common.models import AnchorType, BlkChain, NodeKind, SplitPoint, S
 
 
 def bc_outline(fwa):
-    """The BC land outline as a shapely (Multi)Polygon, or None if unavailable.
+    """The B.C. outline: the EXACT union of the `wmu` units the regions are dissolved from
+    (`bc_boundary.load_outline`, cached beside the gpkg as WKB). Its edge is the regions' outer
+    edge, vertex for vertex, so a river leaving the province through a region's edge is cut ONCE
+    (`sectionizer` aliases the region cut onto the border cut at the same place). None without
+    the layer."""
+    from pipeline.atlas.splits.bc_boundary import load_outline
 
-    FAST PATH: the province never changes, so the outline is precomputed once and cached at
-    ``data/bc_boundary.geojson`` (see ``pipeline.atlas.splits.bc_boundary``). A cheap file read replaces
-    the ~225-WMU ``union_all`` that used to dominate the border stage.
-
-    FALLBACK (cache missing): union the WMU polygons on the fly via ``fast_wmu_union`` — this
-    simplifies each poly + micro-buffers BEFORE the union, so it's also fast (~seconds) and could run
-    every build; the cache is just an even-cheaper file read. Loaded whole (≈225 rows) on purpose: a
-    bbox-clipped union would expose the loaded set's cut edge as a fake "border" (``fast_wmu_union``
-    simplifies internally)."""
-    from pipeline.atlas.splits.bc_boundary import fast_wmu_union, load_cached_boundary
-
-    cached = load_cached_boundary(fwa.gpkg_path)
-    if cached is not None:
-        return cached
-    outline, _ = fast_wmu_union(fwa)
-    return outline
+    return load_outline(fwa.gpkg_path)
 
 
-def border_split_points(chains: list[BlkChain], outline, prof=None) -> list[SplitPoint]:
+#: THE BORDER'S CROSSING ZONE (BOUND round, 2026-10-06). FWA draws a stream on past the province
+#: — tens of metres on the U.S. line, 70-90 m (p10-p50) on the Alberta 120th meridian — and then
+#: stops, so a line leaving B.C. usually ENDS a little beyond the outline. Measured over the 1,402
+#: blue lines crossing the exact outline (1,644 crossings): 61 cross it within 5 m of the line's own
+#: end and 123 within 10 m (the U.S. 49th and the Alaska panhandle hold most: Elmer Creek's ends
+#: 0.21 m past the line). Cut there, each left a stub of 0.2-4.7 m "outside B.C." that is not a
+#: stretch of anything: the two datasets agree on the border only to about their 1:20,000 mapping
+#: accuracy. So the border is cut by the clean-cut rule (`clean_cut.decide_chain`): crossings under
+#: 10 m apart are one zone (one cut at its median when the side changes, none for a graze), and a
+#: zone within 10 m of a stretch's end — the line's own end, or a lake edge (a border cut 0.86 m
+#: below a lake on 359342465) — takes no side there: the end goes with the water it is attached to.
+#: Real crossings are untouched: the Kootenay's two (168,733 and 431,761 m) and the Tatshenshini's
+#: keep their ids (`border:{blk}:{i}`, numbered over the CUTS in measure order).
+BORDER_CROSSING_ZONE_M = 10.0
+
+
+#: Vertices per outline chunk in the prefilter's STRtree.
+_CHUNK = 64
+
+
+def outline_chunks(outline):
+    """The outline's rings cut into short runs of `_CHUNK` vertices — a spatial index can then
+    return only the stretch of the 54,000-vertex B.C. outline near a line."""
+    import shapely
+    from shapely.geometry import LineString
+
+    out = []
+    for ring in shapely.get_rings(shapely.get_parts(outline)):
+        xy = list(ring.coords)
+        for i in range(0, len(xy) - 1, _CHUNK):
+            out.append(LineString(xy[i:i + _CHUNK + 1]))
+    return out
+
+
+def candidates(arr, outline):
+    """Which lines can cross the outline: those meeting its edge, and those lying wholly outside.
+
+    THE SAME SET THE OLD PREFILTER GAVE (`not covered_by(line, outline)`), minus nothing a cut can
+    come from: a line that does not meet the edge lies wholly inside or wholly outside, and its first
+    vertex says which. A line inside that merely touches the edge is now examined too; it has no
+    crossing that changes side, so it yields no cut. FAST because the edge test runs against the
+    outline in 64-vertex chunks through an STRtree (one bulk query) instead of 1.2 million
+    covered_by tests against a 54,000-vertex polygon — 593 s before, seconds now; the cuts are
+    unchanged (`test_border.py::test_the_fast_prefilter_finds_the_same_cuts`)."""
+    import numpy as np
+    import shapely
+    from shapely.strtree import STRtree
+
+    tree = STRtree(outline_chunks(outline))
+    hit = np.zeros(len(arr), dtype=bool)
+    q = tree.query(arr, predicate="intersects")
+    hit[np.unique(q[0])] = True
+    first = shapely.get_point(arr, 0)
+    shapely.prepare(outline)
+    outside = ~shapely.contains_xy(outline, shapely.get_x(first), shapely.get_y(first))
+    return hit | outside
+
+
+def border_split_points(chains: list[BlkChain], outline, prof=None,
+                        inside_out: Optional[dict] = None) -> list[SplitPoint]:
     """One `border` SplitPoint per crossing of each BLK with the outline boundary.
 
     Province-scale fast path: only a chain that is NOT fully inside BC can cross the boundary, so a
@@ -69,23 +117,30 @@ def border_split_points(chains: list[BlkChain], outline, prof=None) -> list[Spli
                  if getattr(c, "geometry", None) is not None and not c.geometry.is_empty]
     if not valid:
         return []
-    with prof.phase("  covered_by prefilter (vectorized)"):
+    with prof.phase("  edge/outside prefilter (STRtree over outline chunks)"):
         arr = np.fromiter((c.geometry for c in valid), dtype=object, count=len(valid))
-        covered = shapely.covered_by(arr, outline)  # True = fully inside BC -> cannot cross the border
+        covered = ~candidates(arr, outline)        # True = cannot cross the border
 
     import time
+
+    from pipeline.atlas.splits.clean_cut import decide_chain
     boundary = outline.boundary
+    shapely.prepare(boundary)
     out: list[SplitPoint] = []
     _t = time.perf_counter()
     for c, cov in zip(valid, covered):
         if cov:
             continue                               # fully inland: skip the intersection entirely
         g = c.geometry
-        crossings = _points(g.intersection(boundary))
-        for i, p in enumerate(sorted(crossings, key=lambda p: g.project(p))):
+        # THE BORDER IS CUT CLEAN (BOUND round, 2026-10-06): the same rule as a reserve's edge, with
+        # the border's own crossing zone — see BORDER_CROSSING_ZONE_M.
+        cuts, inside, _grazes = decide_chain(c, outline, boundary, BORDER_CROSSING_ZONE_M)
+        if inside_out is not None:                  # the stretches in B.C. (regions cut only these)
+            inside_out[c.blk] = inside
+        for i, (M, *_rest) in enumerate(cuts):
             out.append(SplitPoint(
                 split_id=f"border:{c.blk}:{i}", blk=c.blk,
-                route_measure=c.mouth_measure + g.project(p), fid="",
+                route_measure=M, fid="",
                 label="BC boundary", anchor_type=AnchorType.border, source="border"))
     prof.add("  crossing intersection loop", time.perf_counter() - _t)
     return out
@@ -108,6 +163,8 @@ def _pieces_in_polygon(graph: StreamGraph, geoms: dict, poly, blks=None, inside:
     province-wide sweep."""
     if poly is None:
         return
+    import shapely
+    shapely.prepare(poly)
     for nid, node in list(graph.nodes.items()):
         if node.kind != NodeKind.stream or (blks is not None and node.blk not in blks):
             continue
@@ -236,7 +293,8 @@ def _membership_geoms(graph: StreamGraph, geoms: dict, extra: dict) -> tuple[lis
 
 
 def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
-                      extra: dict | None = None) -> int:
+                      extra: dict | None = None, cutter: dict | None = None,
+                      straddlers: list | None = None) -> int:
     """Batch membership: flag ``in_areas`` for every water piece that lies inside — or reaches into —
     each polygon, using ONE STRtree over the piece geometries. Returns the number of flags added.
 
@@ -265,14 +323,27 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
     supplies its FWA polygon keyed by node id; without it exactly the waters that most need an area
     closure — a pond or marsh sitting inside a park — would be the ones the pass could not see.
     Idempotent (won't double-add).
+
+    A CLEAN-CUT AREA (`cutter`: {area name: {blk: [(lo, hi), …]}} — the inside measure intervals
+    `clean_cut.resolve_clean_cuts` decided) is NOT tested by overlap for its stream pieces: the cutter
+    already said which stretches are inside, and a piece is a member exactly when it lies in one of
+    them. A first_last area keeps the overlap test (both sides). A piece that straddles an interval end means a cut the cutter asked for did not happen; it
+    is not flagged, it is appended to `straddlers` (area, node id) for the build's gate to refuse.
+    Lakes and wetlands are never cut and keep the outline test.
     """
     from shapely.strtree import STRtree
 
     extra = extra or {}
+    cutter = cutter or {}
+    by_blk: dict[str, list[str]] = {}
+    if cutter:
+        for nid, node in graph.nodes.items():
+            if node.kind == NodeKind.stream and node.blk:
+                by_blk.setdefault(node.blk, []).append(nid)
     nids, gs, outline = _membership_geoms(graph, geoms, extra)
-    if not gs or not polys_by_name:
+    if not polys_by_name or (not gs and not cutter):
         return 0
-    tree = STRtree(gs)
+    tree = STRtree(gs) if gs else None
     n = 0
 
     def _flag(nid: str, name: str) -> int:
@@ -282,8 +353,39 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
         graph.nodes[nid] = replace(node, in_areas=node.in_areas + (name,))
         return 1
 
+    from pipeline.atlas.splits.clean_cut import SAME_PLACE_M
+
     for name, poly in polys_by_name.items():
         if poly is None or poly.is_empty:
+            continue
+        if name in cutter:
+            for blk, spans in sorted(cutter.get(name, {}).items()):
+                for nid in by_blk.get(blk, ()):
+                    node = graph.nodes[nid]
+                    lo_, hi_ = node.down_m, node.up_m
+                    if any(lo - SAME_PLACE_M <= lo_ and hi_ <= hi + SAME_PLACE_M for lo, hi in spans):
+                        n += _flag(nid, name)
+                    elif any(lo_ < e - SAME_PLACE_M and e + SAME_PLACE_M < hi_
+                             for lo, hi in spans for e in (lo, hi)) and straddlers is not None:
+                        straddlers.append((name, nid, lo_, hi_, tuple(spans)))
+            if tree is None:
+                continue
+            covered = set(tree.query(poly, predicate="covers"))
+            for i in tree.query(poly, predicate="intersects"):     # waterbodies, as for any area
+                if graph.nodes[nids[i]].kind == NodeKind.stream:
+                    continue
+                if i in covered:
+                    n += _flag(nids[i], name)
+                    continue
+                part = poly.intersection(gs[i])
+                if part.is_empty:
+                    continue
+                if (_waterbody_overlap_counts(part.area, gs[i].area) if i in outline
+                        else part.length > _AREA_MIN_OVERLAP_M or part.area > 0
+                        or poly.covers(gs[i])):
+                    n += _flag(nids[i], name)
+            continue
+        if tree is None:
             continue
         inside = set(tree.query(poly, predicate="covers"))
         for i in inside:
@@ -430,7 +532,9 @@ def stamp_waterbody_membership(gpkg: str, mu_polys: dict, area_polys: dict,
 
 
 def apply_border(fwa, graph: StreamGraph, geoms: dict, chains: list[BlkChain],
-                 fid_index: Optional[dict] = None, prof=None) -> tuple[int, int]:
+                 fid_index: Optional[dict] = None, prof=None,
+                 cuts_out: Optional[dict] = None,
+                 inside_out: Optional[dict] = None) -> tuple[int, int]:
     """Full border pass: outline -> split cross-border BLKs -> flag out-of-BC pieces.
     Returns (n_border_splits, n_pieces_flagged). Call BEFORE curated splits so their points can
     pick up the border boundaries. Meaningful on province-scale builds; on a small inland bbox
@@ -447,10 +551,13 @@ def apply_border(fwa, graph: StreamGraph, geoms: dict, chains: list[BlkChain],
     if outline is None:
         return 0, 0
     with prof.phase("border_split_points"):
-        pts = border_split_points(chains, outline, prof=prof)
+        pts = border_split_points(chains, outline, prof=prof, inside_out=inside_out)
     with prof.phase("split_graph_at"):
         if pts:
             split_graph_at(graph, geoms, pts, fid_index)
+    if cuts_out is not None:          # {blk: [measures]} — the region cutter defers to these
+        for p in pts:
+            cuts_out.setdefault(p.blk, []).append(p.route_measure)
     with prof.phase("mark_out_of_bc"):
         flagged = mark_out_of_bc(graph, geoms, outline, blks={p.blk for p in pts})
     prof.report("border")

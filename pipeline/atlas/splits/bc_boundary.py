@@ -1,127 +1,130 @@
-"""Build (once) and load the cached BC provincial boundary used by the border split stage.
+"""The B.C. outline: the EXACT union of the wildlife management units (BOUND round, 2026-10-06).
 
-The province outline never changes, so there is no reason to re-union the ~225 WMU polygons on
-every build (that union was the border stage's multi-minute bottleneck). This module computes the
-outline ONE time, simplifies it, and writes ``data/bc_boundary.geojson`` (EPSG:3005) next to the
-gpkg. ``pipeline.atlas.splits.border.bc_outline`` then just loads that single polygon — turning the
-border stage's union cost into a cheap file read.
+The province's outline is a fact of the same polygons the regions are dissolved from — the `wmu`
+layer's 225 units — so it is computed FROM them, exactly, and nothing else. Its edge is then the
+same geometry, vertex for vertex, as every region's outer edge, and the border pass and the region
+cutter find the SAME crossing where a river leaves the province through a region's edge: one cut,
+carrying both names, with `bc_border` as its token (`sectionizer._coincident`).
 
-Regenerate only if the WMU layer itself changes:
+It used to be built for speed: each unit simplified by 50 m before the union, the result by 100 m,
+plus a 1 m buffer to close the gaps the simplification opened and a pass filling the 4,594 hairline
+holes that still came out. The outline then disagreed with the region polygons by up to 128 m
+(Hausdorff), and a river crossing the border cut twice — once at the outline, once at the region's
+edge — leaving a strip between them that lay in no region: 31 stretches inside B.C. that the reach
+run called OUTSIDE B.C. (Beaver Creek, the Pasayten, the Ashnola, Russian Creek …), and 108 cuts
+under a metre.
 
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.splits.bc_boundary --gpkg data/bc_fisheries_data.gpkg
+The exact union needs none of that. Measured on the layer (2026-10-06): 0 invalid units, a VALID
+COVERAGE (`shapely.coverage_is_valid`, no overlaps, no gaps between neighbours), and its
+`coverage_union_all` is one polygon with no holes in 0.13 s. A coverage that is not valid is
+REFUSED with the offending edges named — fix the source layer, never buffer it shut.
 
-Speed: the one-time union is made fast by simplifying each WMU polygon BEFORE the union and using a
-tiny positive buffer so adjacent units always overlap — no gaps that would read as fake inland
-borders. Vertex detail is irrelevant at border scale (streams cross the line by kilometres)."""
+The cache sits beside the gpkg as WKB (exact doubles — a GeoJSON round trip rounds coordinates, and
+a rounded outline no longer coincides with the regions), keyed by the gpkg's size and mtime.
+
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.splits.bc_boundary
+"""
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
-BOUNDARY_FILENAME = "bc_boundary.geojson"
-_INPUT_SIMPLIFY = 50.0     # per-WMU vertex thinning before the union (m)
-_GAP_BUFFER = 1.0          # tiny overlap so simplified neighbours never leave a sliver gap (m)
-_RESULT_SIMPLIFY = 100.0   # final outline thinning (m)
-_MAX_SLIVER_HOLE = 5_000_000.0   # interior rings smaller than this (m^2) are simplification slivers
-
-
 from project_config import get_config
+
+#: The drawing copy (tile mask, place filter) — written from the same exact union by `main`.
+BOUNDARY_FILENAME = "bc_boundary.geojson"
+#: The atlas's copy: exact, binary.
+EXACT_FILENAME = "bc_boundary.exact.wkb"
+
+
 def boundary_path(gpkg_path: str | Path) -> Path:
-    """Where the cached boundary lives — beside the gpkg, in the same data dir."""
+    """The drawing copy, beside the gpkg."""
     return Path(gpkg_path).parent / BOUNDARY_FILENAME
 
 
-def load_cached_boundary(gpkg_path: str | Path):
-    """The cached BC outline as a shapely geometry, or None if it hasn't been built yet."""
-    path = boundary_path(gpkg_path)
-    if not path.exists():
+def exact_path(gpkg_path: str | Path) -> Path:
+    return Path(gpkg_path).parent / EXACT_FILENAME
+
+
+def _stamp(gpkg_path: str | Path) -> dict:
+    st = Path(gpkg_path).stat()
+    return {"gpkg": Path(gpkg_path).name, "size": st.st_size, "mtime_ns": st.st_mtime_ns}
+
+
+def exact_union(polys):
+    """The exact union of a polygon COVERAGE. Refuses an invalid coverage, naming its bad edges."""
+    import numpy as np
+    import shapely
+
+    arr = np.asarray([p for p in polys if p is not None and not p.is_empty], dtype=object)
+    if not len(arr):
         return None
+    bad = [i for i, p in enumerate(arr) if not p.is_valid]
+    if bad:
+        raise ValueError(f"bc_boundary: {len(bad)} invalid unit polygon(s) (indexes {bad[:10]})")
+    if not shapely.coverage_is_valid(arr):
+        edges = shapely.coverage_invalid_edges(arr)
+        where = [(i, round(e.length, 1)) for i, e in enumerate(edges)
+                 if e is not None and not e.is_empty]
+        raise ValueError(f"bc_boundary: the units are not a valid coverage — {len(where)} unit(s) "
+                         f"with overlapping or mismatched edges (index, metres): {where[:10]}. "
+                         f"Fix the source layer; the outline is never buffered shut.")
+    return shapely.coverage_union_all(arr)
+
+
+def wmu_outline(gpkg_path: str | Path):
+    """(outline, crs) from the gpkg's `wmu` layer, exactly. (None, None) without the layer."""
     import geopandas as gpd
+    import pyogrio
 
-    gdf = gpd.read_file(path)
-    geoms = [g for g in gdf.geometry if g is not None and not g.is_empty]
-    if not geoms:
-        return None
-    import shapely
-
-    outline = shapely.union_all(geoms) if len(geoms) > 1 else geoms[0]
-    return fill_sliver_holes(outline)        # also heal an older cache built before the sliver fix
-
-
-def fill_sliver_holes(outline, max_area: float = _MAX_SLIVER_HOLE):
-    """Drop interior rings smaller than ``max_area`` — the simplification slivers, not real enclaves.
-
-    ``_INPUT_SIMPLIFY`` thins each WMU by 50 m BEFORE the union, so two units that share a boundary
-    (very often a river's own course) no longer trace the same line: their simplified edges diverge by
-    tens of metres and the 1 m ``_GAP_BUFFER`` cannot close the gap. The union therefore comes out
-    riddled with hairline interior rings running *along the rivers*, and every one of them reads to
-    ``border.py`` as a provincial boundary — 4,594 of them in the pre-fix cache, giving the Thompson 50
-    fake 'BC boundary' splits and the Fraser 235, plus reaches wrongly flagged ``out_of_bc``.
-
-    BC has no enclaves, so any interior ring is a sliver; the threshold is only a guard in case the WMU
-    layer ever leaves a genuine (and much larger) void. Filling them costs nothing at border scale —
-    streams cross the REAL boundary by kilometres."""
-    import shapely
-    from shapely.geometry import MultiPolygon, Polygon
-
-    if outline is None:
-        return None
-    polys = list(outline.geoms) if outline.geom_type == "MultiPolygon" else [outline]
-    out = []
-    for p in polys:
-        keep = [r for r in p.interiors if Polygon(r).area >= max_area]
-        out.append(Polygon(p.exterior, keep) if len(keep) != len(p.interiors) else p)
-    return out[0] if len(out) == 1 else MultiPolygon(out)
-
-
-def fast_wmu_union(fwa):
-    """The BC outline unioned from the WMU polygons, made fast by simplifying each poly (50 m) and
-    micro-buffering (1 m) BEFORE the union — so no gap between adjacent units reads as a fake inland
-    border. Returns (outline, crs) or (None, None). Fast enough (~seconds) to run every build; the
-    cached geojson is just an even-cheaper file read. Shared by ``build_boundary`` and the
-    ``bc_outline`` fallback so both take the same fast path and produce the same geometry."""
-    if "wmu" not in getattr(fwa, "layer_names", []):
+    if "wmu" not in {n for n, *_ in pyogrio.list_layers(str(gpkg_path))}:
         return None, None
+    gdf = gpd.read_file(str(gpkg_path), layer="wmu", engine="pyogrio",
+                        columns=["WILDLIFE_MGMT_UNIT_ID"])
+    return exact_union(list(gdf.geometry)), (gdf.crs or "EPSG:3005")
+
+
+def load_outline(gpkg_path: str | Path, write_cache: bool = True):
+    """The exact B.C. outline: from the cache when it was made from this gpkg, else computed (and
+    cached). None when the gpkg has no `wmu` layer."""
     import shapely
 
-    gdf = fwa.get_layer("wmu", columns=["WILDLIFE_MGMT_UNIT_ID"])
-    polys = [g for g in gdf.geometry if g is not None and not g.is_empty]
-    if not polys:
-        return None, None
-    prepped = [g.simplify(_INPUT_SIMPLIFY, preserve_topology=True).buffer(_GAP_BUFFER) for g in polys]
-    outline = shapely.union_all(prepped)
-    if _RESULT_SIMPLIFY:
-        outline = outline.simplify(_RESULT_SIMPLIFY, preserve_topology=True)
-    outline = fill_sliver_holes(outline)      # see fill_sliver_holes: 50 m input simplify opens
-    return outline, (getattr(gdf, "crs", None) or "EPSG:3005")   # hairline gaps along shared river edges
-
-
-def build_boundary(fwa, out_path: Path) -> object:
-    """Union the WMU polygons into one simplified outline and write it as GeoJSON. Returns the geom."""
-    outline, crs = fast_wmu_union(fwa)
-    if outline is None:
-        raise RuntimeError("no usable 'wmu' polygons in the gpkg — cannot build the BC boundary")
-    import geopandas as gpd
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    gpd.GeoDataFrame({"name": ["BC"]}, geometry=[outline], crs=crs).to_file(out_path, driver="GeoJSON")
+    gpkg_path = Path(gpkg_path)
+    path = exact_path(gpkg_path)
+    meta = path.with_suffix(".json")
+    if path.exists() and meta.exists() and gpkg_path.exists():
+        try:
+            if json.loads(meta.read_text()) == _stamp(gpkg_path):
+                return shapely.from_wkb(path.read_bytes())
+        except (ValueError, OSError):
+            pass
+    if not gpkg_path.exists():
+        return None
+    outline, _crs = wmu_outline(gpkg_path)
+    if outline is not None and write_cache:
+        path.write_bytes(shapely.to_wkb(outline))
+        meta.write_text(json.dumps(_stamp(gpkg_path)))
     return outline
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build the cached BC provincial boundary (one-time).")
+    ap = argparse.ArgumentParser(description="Build the exact BC outline cache (+ the drawing copy).")
     ap.add_argument("--gpkg", default=str(get_config().fwa_data_gpkg))
+    ap.add_argument("--drawing-copy", action="store_true",
+                    help=f"also rewrite {BOUNDARY_FILENAME} (tile mask, bundle place filter)")
     args = ap.parse_args()
-
-    from pipeline.atlas.fwa import FWADataAccessor
-
-    fwa = FWADataAccessor(args.gpkg)
-    out = boundary_path(args.gpkg)
-    print(f"building BC boundary from WMU union -> {out} ...")
-    geom = build_boundary(fwa, out)
-    print(f"done: {out} ({out.stat().st_size / 1024:.0f} KB), geom type={geom.geom_type}, "
-          f"bounds={tuple(round(b) for b in geom.bounds)}")
+    outline = load_outline(args.gpkg)
+    if outline is None:
+        raise SystemExit("no `wmu` layer in the gpkg — cannot build the BC outline")
+    print(f"exact outline: {outline.geom_type}, {outline.area / 1e6:,.0f} km2 -> {exact_path(args.gpkg)}")
+    if args.drawing_copy:
+        import geopandas as gpd
+        out = boundary_path(args.gpkg)
+        gpd.GeoDataFrame({"name": ["BC"]}, geometry=[outline], crs="EPSG:3005").to_file(
+            out, driver="GeoJSON")
+        print(f"drawing copy -> {out}")
 
 
 if __name__ == "__main__":
