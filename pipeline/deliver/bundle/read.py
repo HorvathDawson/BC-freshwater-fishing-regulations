@@ -783,6 +783,16 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                                  steelhead_rules_here=rules_here, origin=origin, trace=trace)
 
 
+def origin_matters(bound, path: str = BUNDLE) -> bool:
+    """WHETHER THE ORIGIN ASKED CAN CHANGE THIS ANSWER: only a lift limited to one origin reads it
+    (`effective_rules_bound` step 3 — "Nothing else reads the origin"). Where no rule of the set
+    lifts anything for one origin, the hatchery and wild answers ARE the answer with the origin
+    not known, and need not be asked (the verdicts stage's shortcut; proved over every key by
+    `test_verdicts.py`). The reader owns this predicate, beside the only code that reads it."""
+    every = _rules_of(path)
+    return any(x.get("origin") for e, r, _ in bound for x in every[(e, r)].get("exempts") or [])
+
+
 def _leaf_fish(fish: str) -> None:
     from pipeline.regs.parsing.catalogue import expand_species
     if expand_species([fish]) != [fish]:

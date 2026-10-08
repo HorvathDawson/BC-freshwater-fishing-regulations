@@ -1,7 +1,8 @@
-"""ONE DELIVERY: bundle -> status index -> UI export, each cut from the one before.
+"""ONE DELIVERY: bundle -> verdicts -> status index -> UI export, each cut from the one before.
 
-    python -m pipeline.deliver                       # all three steps, canonical paths
+    python -m pipeline.deliver                       # every step, canonical paths
     python -m pipeline.deliver bundle [--build DIR] [--reaches DIR] [--out FILE]
+    python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
     python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
@@ -31,6 +32,12 @@ def _bundle(a) -> Path:
     out = a.out or (GENERATED.bundle / "bundle.sqlite")
     print(f"bundling {build_dir} -> {out}")
     build(build_dir, out, reaches=a.reaches, entries=a.entries)
+    return out
+
+
+def _verdicts(bundle: Path, out: Path, workers: int) -> Path:
+    from pipeline.deliver.verdicts.build import build
+    build(str(bundle), out, workers=workers)
     return out
 
 
@@ -64,6 +71,11 @@ def main(argv=None) -> int:
     b.add_argument("--reaches", type=Path, default=None)
     b.add_argument("--entries", type=Path, default=None)
     b.add_argument("--out", type=Path, default=None)
+    v = sub.add_parser("verdicts", help="the reader's every answer, once: verdicts.sqlite")
+    v.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    v.add_argument("--out", type=Path, default=None,
+                   help="default: verdicts.sqlite beside the bundle")
+    v.add_argument("--workers", type=int, default=4)
     s = sub.add_parser("status_index", help="the status index from a bundle")
     s.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     s.add_argument("--out", type=Path, default=GENERATED.bundle / "status_index.bin")
@@ -95,6 +107,7 @@ def main(argv=None) -> int:
             if v is not None:
                 b += [flag, str(v)]
         _step(b)
+        _step(["verdicts", "--bundle", str(bundle), "--out", str(bundle.with_name("verdicts.sqlite"))])
         _step(["status_index", "--bundle", str(bundle), "--out",
                str((d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")])
         _step(["export", "--bundle", str(bundle), "--out",
@@ -105,6 +118,8 @@ def main(argv=None) -> int:
         return 0 if ok else 1
     if a.step == "bundle":
         _bundle(a)
+    elif a.step == "verdicts":
+        _verdicts(a.bundle, a.out or a.bundle.with_name("verdicts.sqlite"), a.workers)
     elif a.step == "status_index":
         _status_index(a.bundle, a.out)
     elif a.step == "export":
