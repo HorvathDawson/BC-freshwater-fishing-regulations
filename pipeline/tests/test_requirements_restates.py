@@ -122,18 +122,39 @@ def test_every_water_quota_silenced_under_a_blanket_closure_is_listed_as_known(d
 
 
 def _tiny(tmp_path, rules: list) -> str:
+    """One section, one rule set of these rules, and its stored verdicts (the export's scans look
+    the reader's answers up there — DATAFLOW P5)."""
+    from pipeline.deliver.bundle.derived import rule_ids_digest
+    from pipeline.deliver.bundle.rules import closure_grade
+    from pipeline.deliver.verdicts.build import build as build_verdicts
     path = str(tmp_path / "tiny.sqlite")
     con = sqlite3.connect(path)
-    con.execute("create table section_ruleset (sid integer, set_id integer)")
-    con.execute("create table ruleset (set_id integer, entry_id text, rule_id text, via text)")
-    con.execute("insert into section_ruleset values (1, 0)")
+    ids = sorted(f"{x['entry']}::{x['rule']}" for x in rules)
+    con.executescript(
+        "create table meta (k text primary key, v text);"
+        "create table rule (entry_id text, rule_id text, closure_grade text);"
+        "create table rule_ix (ix integer primary key, entry_id text, rule_id text);"
+        "create table rule_key (key_ix integer primary key, set_id integer, steelhead_water integer,"
+        " steelhead_rules integer, kind text, sections integer, rep_sid integer);"
+        "create table section_ruleset (sid integer, set_id integer, key_ix integer);"
+        "create table ruleset (set_id integer, entry_id text, rule_id text, via text);"
+        "insert into section_ruleset values (1, 0, 0);"
+        "insert into rule_key values (0, 0, 0, 1, NULL, 1, 1);")
+    con.executemany("insert into meta values (?, ?)", [("section_handles", "0" * 16),
+                    ("reach_digest", "1" * 16), ("rule_ids_sha256", rule_ids_digest(ids))])
     con.executemany("insert into ruleset values (0, ?, ?, 'reach')",
                     [(x["entry"], x["rule"]) for x in rules])
+    con.executemany("insert into rule values (?, ?, ?)",
+                    [(x["entry"], x["rule"], closure_grade({"type": "retention_limit", **x}))
+                     for x in rules])
+    con.executemany("insert into rule_ix values (?, ?, ?)",
+                    [(i, *k.split("::", 1)) for i, k in enumerate(ids)])
     con.commit()
     con.close()
     R._RULES_BY_PATH[path] = {(x["entry"], x["rule"]): dict(
         {"type": "retention_limit", "dimension": "daily", "family": "retention"}, **x)
         for x in rules}
+    build_verdicts(path, tmp_path / "verdicts.sqlite", workers=1, log=lambda *_: None)
     return path
 
 

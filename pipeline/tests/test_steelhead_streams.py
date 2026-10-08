@@ -951,7 +951,7 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     assert W["gnis:39400"]["steelhead_source"] == ["curated list"]
     assert "steelhead_rows" not in W["gnis:39400"]
     assert all(p.get("anadromous_rainbow") for p in W["gnis:39400"]["parts"])
-    assert not any("steelhead_rules" in p for p in W["gnis:39400"]["parts"])
+    assert all(p["steelhead_rules"] is True for p in W["gnis:39400"]["parts"])     # DF4
     assert W["gnis:24531"]["steelhead"] == "known"
     assert {p.get("steelhead") for p in W["gnis:24531"]["parts"]} == {"known", "possible"}
     assert W["gnis:27764"]["steelhead"] == "possible" and "steelhead_source" not in W["gnis:27764"]
@@ -1562,8 +1562,16 @@ def test_steelhead_rules_false_is_exactly_the_known_parts_no_steelhead_rule_appl
     creeks carry it whole; the Fraser carries it on its Zone 7A parts only (steelhead rules apply
     on its other parts). Mutation: the check refuses it moved either way."""
     W = doc["waters"]
+    # DF4 (2026-10-08): every part with a rule set says whether the steelhead rules apply, true
+    # or false — the bundle's answer, the one `steelhead_rules_apply` re-reads off the rule set
+    for i, w in W.items():
+        for p in w["parts"]:
+            if p["ruleset"] is not None:
+                assert p["steelhead_rules"] is X.steelhead_rules_apply(doc, p), (i, p)
+            else:
+                assert "steelhead_rules" not in p, i
     flagged = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
-               if p.get("steelhead_rules") is False}
+               if p.get("steelhead_rules") is False and p.get("steelhead") == "known"}
     want = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
             if p.get("steelhead") == "known" and not X.steelhead_rules_apply(doc, p)}
     assert flagged == want and flagged
