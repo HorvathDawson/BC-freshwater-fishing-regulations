@@ -266,11 +266,14 @@ def test_the_parity_check_catches_one_flipped_stored_verdict(built, tmp_path):
     key = db.execute("SELECT key_ix FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()[0]
     db.close()
     from pipeline.deliver.verdicts.store import VerdictStore
-    reading = VerdictStore.open(src, BUNDLE).reading_of(key, CAL.day_of(on))
+    st = VerdictStore.open(src, BUNDLE)
+    # a day is closed when it is closed at every moment of its key (answers 2.1): flip them all
+    readings = {st.reading_of(key, CAL.day_of(on), m) for m in range(len(st.moments(key)))}
     dst = tmp_path / "verdicts.sqlite"
     shutil.copy(src, dst)
     v = sqlite3.connect(dst)
-    v.execute("UPDATE reading SET closed = 0 WHERE key_ix = ? AND reading = ?", (key, reading))
+    v.executemany("UPDATE reading SET closed = 0 WHERE key_ix = ? AND reading = ?",
+                  [(key, r) for r in readings])
     v.commit()
     v.close()
     flipped = SI.Index(SI.encode(SI.compute(BUNDLE, str(dst), log=lambda *_: None)))

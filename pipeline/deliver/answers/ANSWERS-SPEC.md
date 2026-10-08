@@ -47,6 +47,57 @@ Nobody had consumed answers/1, so there is no migration note (user decision U3).
 The models are `pipeline/deliver/answers/model.py`; `python -m pipeline.deliver.answers.model`
 writes `app/packages/core/src/answers.generated.{json,ts}` and `--check` fails CI on drift.
 
+## answers/2.1 (2026-10-08) — moments, closing rules, side channels
+
+Same format string (`answers/2`); the sections that changed carry new versions: **ladder 1, rows 3,
+gear 3, display 3** (licence 2 unchanged). A reader that does not know section versions ladder 1 /
+display 3 must refuse the file.
+
+**Weekday and hours rules DECIDE (user ruling 2026-10-08; review D2, gap G5).** A rule whose `when`
+holds on some weekdays ("Kokanee — 5 per day, on Saturdays and Sundays", Kootenay Lake Lower West Arm,
+p.37) or some hours ("No fishing, one hour after sunset to one hour before sunrise", the Fraser above
+Mission) was read "beside" — shown, deciding nothing — so the card answered Region 4's 15 kokanee a
+day. Now the reader is asked at a MOMENT (`calendar.Moment`: a class of weekdays, and inside or
+outside the key's one hours window — `calendar.moments` cuts each rule key's week and day by its own
+rules) and such a rule decides at the moments it covers and is not in force at the others. The
+verdicts store every moment (`verdicts/2`: tables `moment`, `segment.moment`, `reading.moment`); a key
+with no such rule has one moment and its answers are unchanged (proved: every one of the 2,071 other
+rule keys' frames, readings and runs is identical to answers/2's, and the status index is
+byte-identical).
+
+In this file: a key whose day reads differently by moment has slot 10 of its `keys` row set (an index
+into `segment_moments`); its segments then REPEAT a start day, once per moment group, and
+`segment_moments[...][s]` names each segment's moment in the top-level `moments` table:
+`{weekdays: [names, Monday first], hours: null | {start, end, in}}`. Moments with equal answers at a
+start are merged (inside and outside the window into the whole day, then alike weekday classes). The
+tap (§2) picks the segment holding the date's weekday; of an hours pair, `in: false` is the answer at
+every hour but the window, `in: true` the answer inside it. Every section's `at[k][s]` indexes the same
+segments. Model: `schemas["top.moments"]`.
+
+* Kootenay Lake — Lower West Arm, kokanee: Mon–Fri `release` (the arm's r4), Sat–Sun `keep 5` (r3).
+* A night or hours closure: outside the window the closure is not in force (the card is the day's);
+  inside it the closure speaks for every game fish, `display.status` `closed`, `closing` names it.
+  A day is never closed by its night (the status index colours a day CLOSED only when every moment of
+  it is closed — unchanged bytes).
+* An angler closure for some weekdays (Region 6's "non-guided non-resident aliens, on Saturdays and
+  Sundays"): `speaks` on those days, absent on the others.
+* Nothing else changes. 394 waters (every one binding one of the 22 rules, directly or by the
+  tributary walk) — see the round's report.
+
+**`display.closing` (gap G1).** Each display frame (version 3) carries `closing`: `[[rule, [fish]]]`,
+every full closure that speaks, not partly lifted, for some game fish at that segment, with the game
+fish it closes — `verdicts.project.closing`, the same predicate `reading.closed` is made of (status
+`closed` exactly when every game fish is under one; the model refuses otherwise). The page reads it;
+it never infers the closing rules from the ladder.
+
+**Side-channel-only parts (review C2).** A part made only of side channels says where they join the
+river, from the branch runs' `km_from`: "5 side channels, joining 1.1–5.5 km from the mouth", "Side
+channel, joining 5.7 km from the mouth" (was "5 side channels", "Side channel (from the mouth up to the
+top of the river)"); 26 parts, labels and `runs` only.
+
+**The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
+`common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
+
 ## 1. Pairing
 
 | check | how |
@@ -63,7 +114,10 @@ its `licensing` / `licensing_ids`.
 1. **Part → key.** `k = parts[item][i]`, `i` the part's index in the export's `waters[item].parts`.
    `null`: the part has no rule set — it is wholly outside B.C. (`water.outside_bc`).
 2. **Date → segment.** Day number `d` (§3); `starts = segments[keys[k][9]]`; `s` = the last index with
-   `starts[s] <= d`.
+   `starts[s] <= d`. Where `keys[k][10]` is not null and that start repeats, the segments sharing it
+   are the day's moments: take the one whose `moments[segment_moments[keys[k][10]][s]]` holds the
+   date's weekday (and, of an hours pair, `in` false for the day, `in` true for the window — show
+   both).
 3. **Section → frame.** `frame = sections[name].frames[sections[name].at[k][s]]`, decoded as the
    section says (§6).
 4. **Fish, origin, profile.** In the ladder frame, the fish (index into `fish`) and the
@@ -87,7 +141,8 @@ Every section uses the same `k` and `s`: they join with no remapping.
 ## 4. The keys
 
 `keys` rows: `[ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, province_except,
-home_region, kind, tidal, segments]` — the reference harness's `partKey` plus the water's kind and
+home_region, kind, tidal, segments, moments]` (`moments`: an index into `segment_moments` or null —
+answers 2.1) — the reference harness's `partKey` plus the water's kind and
 tidal water (`common.part_keys`). Each section reads what it needs of it (`Section.scope`):
 
 | section | scope (what its answers depend on) |
@@ -154,7 +209,9 @@ the angler's requirements with paths; exempt; others; guiding). Static: `profile
 
 ### `display`
 
-Per (key, segment): `{status}` — base | own | closed, the status index's code. Static: `rules`
+Per (key, segment): `{status, closing}` — base | own | closed, the verdicts' code at the
+segment's moment; `closing` the full closures that speak, unlifted, with the game fish each closes
+(version 3, gap G1). Static: `rules`
 (per export rule: kind, closure, bands, plain sentence) and `waters` (per named water: per export
 part its label, runs, place, hint, km, closed_all_year, paper_licence; the picker; unresolved
 licensing records).
@@ -188,8 +245,8 @@ drawings, arithmetic over shipped numbers); otherwise the section and field. **G
 | "Opens <date>", "Closed from <date>" | `display` status per segment + `segments`; the date lookup is page |
 | "Trout closed until …" / "release only until …" | `rows` rows (kind release/closed) per segment |
 | Water strip (365 days, legend) | `display` status per segment; drawing is page |
-| Tidal banner + text | export `waters[].tidal.guide`; key `tidal`; the `display`, `gear` and `licence` frames of a tidal key (FIX D12) |
-| Closed banner: closures in the chain, ranks | `ladder` (closures that speak) + `display.rules[].plain`; merging back-to-back runs is page |
+| Tidal banner + text | export `waters[].tidal.guide` (angler words only, B17); key `tidal`; the `display`, `gear` and `licence` frames of a tidal key (FIX D12) |
+| Closed banner: closures in the chain, ranks | `display` frame `closing` (G1, decided) + `display.rules[].plain`; merging back-to-back runs is page |
 | Per-group strip, short keeping windows | `rows` decided status per fish per segment, grouped by `rows` members |
 | Run sentences, date chips | `rows`/`display` per segment + `segments`; wording and choice of chips page |
 
@@ -234,7 +291,7 @@ drawings, arithmetic over shipped numbers); otherwise the section and field. **G
 | Spots box (undrawn-part rules) | `ladder` `not_yet_mapped` + export `undrawn_part`, `parts`, `when` |
 | One side of the channel box | `ladder` `beside` + export `side` |
 | "Closed to some anglers" | `ladder` speaks + export `type: angler_closure` |
-| "At certain times" | `ladder` `beside` + export `when.hours` / `weekdays` |
+| "At certain times" / "differs on other days" | the day's other MOMENTS (`moments`, `segment_moments`): the segment at the date's weekday is the card; the others (other weekdays, inside an hours window) are named with their answer |
 | "? Check" box | export `provenance.uncertain` / `why` |
 | "No quota rules reach this part of the water" | `rows` with no row |
 | "Anywhere in B.C." standing rules | `ladder` `shown` + export `standing`, `verbatim` |

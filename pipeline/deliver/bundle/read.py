@@ -254,17 +254,44 @@ def _days_of(dates_json: str):
     return frozenset(_days(dates)) if dates else None
 
 
-def in_force(when: dict | None, on) -> str:
-    """Whether a `when` (the bundle's JSON) holds on a day: "yes" all of it, "no", or "part" —
-    it holds on that day only at some hours or weekdays, or its season could not be read
-    (`unparsed`). A "part" rule is shown BESIDE what it would displace and displaces nothing."""
+def in_force(when: dict | None, on, at=None) -> str:
+    """Whether a `when` (the bundle's JSON) holds on a day, at a MOMENT: "yes", "no", or "part".
+
+    `at` is a `calendar.Moment` — a class of weekdays and, where the key holds an hours rule,
+    inside or outside its window (`calendar.moments`). Asked at a moment, a weekday or hours rule
+    DECIDES (user ruling 2026-10-08, review D2/G5): "yes" on the weekdays and hours it covers,
+    "no" at the others — Kootenay Lake's Lower West Arm keeps 5 kokanee on a Saturday and releases
+    them on a Monday; the Fraser above Mission is closed from one hour after sunset to one hour
+    before sunrise and open by day. A moment that straddles a rule's weekdays, or names another
+    hours window, is refused: `moments` cuts every key so that none does.
+
+    Without a moment (`at` None: the day only), such a rule reads "part", as does a season that
+    could not be read (`unparsed`, always): shown BESIDE what it would displace, displacing
+    nothing — the export's own scans, which ask a day and not a moment, still read it so."""
     if not when:
         return "yes"
     days = _days_of(json.dumps(when.get("dates") or [], sort_keys=True))
     if days is not None and _day(on) not in days:
         return "no"
-    if when.get("hours") or when.get("weekdays") or when.get("unparsed"):
+    if when.get("unparsed"):
         return "part"
+    wd, hr = when.get("weekdays"), when.get("hours")
+    if not (wd or hr):
+        return "yes"
+    if at is None:
+        return "part"
+    from pipeline.deliver.calendar import ALL_WEEK, hours_key, weekday_mask
+    if wd:
+        m = weekday_mask(wd)
+        if not at.weekdays & m:
+            return "no"
+        if at.weekdays & ~m & ALL_WEEK:
+            raise ValueError(f"in_force: moment {at} straddles the weekdays {wd}")
+    if hr:
+        if at.hours != hours_key(hr):
+            raise ValueError(f"in_force: moment {at} does not cut the hours window {hr}")
+        if not at.inside:
+            return "no"
     return "yes"
 
 
@@ -589,15 +616,20 @@ def stricter(a: dict, b: dict) -> bool:
 
 def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
                     by_naming: bool = True, origin: str | None = None,
-                    trace: bool = False) -> List[dict]:
+                    trace: bool = False, at=None) -> List[dict]:
     """THE RULES THAT SPEAK FOR ONE FISH, ON ONE SECTION, ON ONE DAY — the ladder as code.
 
     `section` is a bundle `sid`, `on` a `datetime.date` or `(month, day)`, `fish` a leaf species
     code. Returns the rules bound to the section that say something about that fish on that day,
-    each a `rules()` dict with `state` added: "speaks", "beside" (in force only some hours or
-    weekdays, or of unreadable season, or on one half of the channel only — `side`: shown, never
-    displacing), "shown" (never competes), or
+    each a `rules()` dict with `state` added: "speaks", "beside" (of unreadable season, or on one
+    half of the channel only — `side` — or, asked without a moment, in force only some hours or
+    weekdays: shown, never displacing), "shown" (never competes), or
     "not_yet_mapped" (holds only in a part nothing draws). Sorted by `rid`.
+
+    `at` is the MOMENT asked (`calendar.Moment`: a class of weekdays, inside or outside the key's
+    hours window). Asked at one, a weekday or hours rule DECIDES like any other rule — in force at
+    the moments it covers, out at the others (`in_force`; user ruling 2026-10-08). The verdicts
+    ask every moment of every key (`calendar.moments`).
 
       0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
          (`steelhead_water`, p.80): asked about "RB" there, every rule is read over rainbow of 50
@@ -613,7 +645,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
       3. LIFTS. A lift from a rule in force here removes the lifted rule for this fish — outright,
          or when its `species` holds the fish and its `when` holds the day. A lift that holds only
          while fishing FOR something (`when_targeting`) or while doing something (`while`), or
-         only some hours, or only for a fish of some origin or size (`origin`, `lengths`: known
+         only some hours or weekdays when no moment is asked, or only for a fish of some origin or size (`origin`, `lengths`: known
          only once it is caught), leaves the rule standing (the angler is unknown). Lifts are
          printed exemptions, or DERIVED at build (`basis: names_the_fish`, `rules._named_lifts`): a
          water row naming a fish its region closes lifts that closure for the fish both name — the
@@ -780,7 +812,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
     finally:
         db.close()
     return effective_rules_bound(bound, steelhead_here, on, fish, path, by_naming=by_naming,
-                                 steelhead_rules_here=rules_here, origin=origin, trace=trace)
+                                 steelhead_rules_here=rules_here, origin=origin, trace=trace,
+                                 at=at)
 
 
 def origin_matters(bound, path: str = BUNDLE) -> bool:
@@ -802,7 +835,8 @@ def _leaf_fish(fish: str) -> None:
 
 def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str = BUNDLE, *,
                           by_naming: bool = True, steelhead_rules_here: bool = True,
-                          origin: str | None = None, trace: bool = False) -> List[dict]:
+                          origin: str | None = None, trace: bool = False,
+                          at=None) -> List[dict]:
     """`effective_rules` with the section's bindings already in hand — the SAME code, minus the
     three lookups that are all a section contributes: its `(entry_id, rule_id, via)` rows (its
     ruleset), whether the steelhead definition holds there (`steelhead_water`, which matters
@@ -818,7 +852,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     words (`steelhead_rules: false`); this is the one definition the status index and every
     client reader follow.
 
-    `origin` and `trace`: see `effective_rules`."""
+    `origin`, `trace` and `at` (the moment): see `effective_rules`."""
     _leaf_fish(fish)
     if origin is not None and origin not in ASKABLE_ORIGINS:
         raise ValueError(f"effective_rules: origin {origin!r} — ask "
@@ -851,7 +885,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                     no_rainbow.add(k)
                 else:
                     every[k] = v
-    state = {k: in_force(every[k].get("when"), on) for k in here}
+    state = {k: in_force(every[k].get("when"), on, at) for k in here}
     # ONE HALF OF THE CHANNEL (`side`: Kitimat River's "No Fishing on the west half of river …"):
     # the rule holds on part of the section's width, so, like a rule holding some hours, it is
     # shown BESIDE the rules the other half answers to and displaces none (user ruling 2026-09-28).
@@ -889,7 +923,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                 partly.add(t)
                 partly_by.setdefault(t, []).append(k)
                 continue
-            got = in_force(x.get("when"), on) if "when" in x else "yes"
+            got = in_force(x.get("when"), on, at) if "when" in x else "yes"
             if got == "yes":
                 lifted.add(t)
                 why.setdefault(t, ("lifted", k))

@@ -131,19 +131,35 @@ from pipeline.deliver.verdicts.project import beyond_base  # noqa: E402
 # One rule key's year: a PROJECTION of the stored verdicts (DATAFLOW P4)
 # --------------------------------------------------------------------------------------------
 
-def key_profile(store, key: int) -> Tuple[int, ...]:
-    """The status code of a section carrying this rule key, on each day 1..366: CLOSED on a day
-    whose reading is closed (`reading.closed`, the predicate computed once by the verdicts from
-    the reader's stored answers), else the key's floor — OWN when a water table's row binds it
-    (`key_meta.own`), BASE otherwise. No reader call: the verdicts are the reader's."""
+def moment_profiles(store, key: int) -> List[Tuple[int, ...]]:
+    """Per moment of the key (`store.moments`), its status code on each day 1..366: CLOSED on a
+    day whose reading at that moment is closed (`reading.closed`, the predicate computed once by
+    the verdicts from the reader's stored answers), else the key's floor — OWN when a water
+    table's row binds it (`key_meta.own`), BASE otherwise. No reader call."""
     floor = OWN if store.own(key) else BASE
     closed = {r.ix: r.closed for r in store.readings(key)}
-    out: List[int] = []
-    runs = store.runs(key)
-    for i, (start, reading) in enumerate(runs):
-        end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
-        out += [CLOSED if closed[reading] else floor] * (end - start)
-    return tuple(out)
+    out: List[Tuple[int, ...]] = []
+    for m in range(len(store.moments(key))):
+        codes: List[int] = []
+        runs = store.runs(key, m)
+        for i, (start, reading) in enumerate(runs):
+            end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
+            codes += [CLOSED if closed[reading] else floor] * (end - start)
+        out.append(tuple(codes))
+    return out
+
+
+def key_profile(store, key: int) -> Tuple[int, ...]:
+    """The status code of a section carrying this rule key, on each day 1..366: CLOSED on a day
+    closed at EVERY moment of the key (`moment_profiles`), else the key's floor. A night closure
+    closes its hours, never the day; a rule of some weekdays closes those weekdays, never the
+    day (answers 2.1: the map colours a day, and a day open at some moment is open — the answers
+    file carries each moment's own status)."""
+    profs = moment_profiles(store, key)
+    if len(profs) == 1:
+        return profs[0]
+    return tuple(CLOSED if all(p[d] == CLOSED for p in profs) else
+                 next(p[d] for p in profs if p[d] != CLOSED) for d in range(DAYS))
 
 
 def runs_of(profile: Sequence[int]) -> List[Tuple[int, int]]:

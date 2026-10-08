@@ -585,3 +585,15 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     `[Includes Tributaries]`): ingest cleans every quote (`catalogue.clean_verbatim`), the model refuses
     one; `regs_verbatim` keeps the batch's text. A `between` whose sentence prints signs ends at the
     curated sign split, never a hydrometric gauge (`test_rules_round.py`).
+61. **A rule held on some weekdays or some hours DECIDES at those moments** (user ruling 2026-10-08,
+    review D2/G5, answers 2.1). The reader is asked at a MOMENT (`calendar.Moment`: a weekday class,
+    inside or outside the key's one hours window; `calendar.moments` cuts each rule key by its own
+    rules, a key with two different windows is refused); `read.in_force(when, on, at)` says yes/no
+    for weekday and hours rules at a moment and "part" (beside) only without one. The verdicts store
+    every moment (`verdicts/2`: `moment`, `segment.moment`, `reading.moment`; 108 keys have more than
+    one). A day is CLOSED in the status index only when every moment of it is (a night closure closes
+    its hours, never the day — byte-identical index). The answers repeat a segment's start once per
+    moment group (`keys[k][10]` -> `segment_moments`, top-level `moments`); the display frame carries
+    `closing` (the decided closing rules, gap G1, `verdicts.project.closing`). The export's tidal
+    `guide` is angler words only; how to show it is in the field dictionary (B17,
+    `test_moments.py::test_no_shipped_angler_text_carries_a_developer_instruction`).

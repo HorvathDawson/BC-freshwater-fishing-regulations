@@ -1,10 +1,12 @@
 """THE VERDICTS STAGE — the ONLY production caller of `read.effective_rules_bound` (DATAFLOW P3).
 
 One task per rule key (`rule_key`). For each distinct reading of the key's year
-(`calendar.segments` over every member rule's `when` and every lift's — exactly the reader's
-signature), each fish asked and each origin, the traced reader answers once; the parent interns
-the answers (equal verdicts share one id, in task order, so two builds give the same ids) and
-writes `verdicts.sqlite`.
+(`calendar.moment_segments` over every member rule's `when` and every lift's, asked at each of the
+key's MOMENTS — `calendar.moments`: its weekday classes, inside / outside its hours window — exactly
+the reader's signature), each fish asked and each origin, the traced reader answers once; the
+parent interns the answers (equal verdicts share one id, in task order, so two builds give the same
+ids) and writes `verdicts.sqlite`. A key with no weekday or hours rule has one moment and reads
+exactly as before the moments existed (answers 2.1).
 
 WHICH FISH (Q15). Every game fish on every key (`catalogue.GAME_FISH`: the status predicate is
 then a projection, and "ST" is asked everywhere — answered as "RB" where no steelhead rule applies,
@@ -32,7 +34,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
-from pipeline.deliver.calendar import month_day, rule_vectors, segments
+from pipeline.deliver.calendar import moment_segments, moments, month_day, rule_vectors
 from pipeline.deliver.verdicts import project
 from pipeline.deliver.verdicts.store import VerdictsError, bundle_meta, create
 
@@ -107,7 +109,8 @@ def _init(bundle: str) -> None:
 
 
 def one_key(task) -> tuple:
-    """(key_ix, runs, first days, fish, own, closed per reading, local verdicts, frames)."""
+    """(key_ix, moments, runs per moment, (first day, moment) per reading, fish, own, closed per
+    reading, local verdicts, frames)."""
     key_ix, set_id, sw, sr = task
     bundle, every, ix = _W["bundle"], _W["every"], _W["ix"]
     bound = _W["sets"].get(set_id)
@@ -117,7 +120,8 @@ def one_key(task) -> tuple:
     if missing:
         raise VerdictsError(f"verdicts: rule set {set_id} names rules the bundle lacks: {missing[:3]}")
     rules = [every[(e, r)] for e, r, _ in bound]
-    runs, firsts = segments(rule_vectors(rules))
+    ms = moments(rules)
+    runs, firsts = moment_segments([rule_vectors(rules, at=m) for m in ms])
     fish = asked_fish(rules)
     by_origin = read.origin_matters(bound, bundle)
     own = any(project.beyond_base(every[(e, r)], v) for e, r, v in bound)
@@ -133,8 +137,8 @@ def one_key(task) -> tuple:
             verdicts.append(v)
         return i
 
-    for ri, first in enumerate(firsts):
-        md = month_day(first)
+    for ri, (first, mi) in enumerate(firsts):
+        md, at = month_day(first), ms[mi]
         none_of: Dict[str, tuple] = {}
         for f in fish:
             for o in ("none",) + tuple(read.ASKABLE_ORIGINS):
@@ -143,12 +147,12 @@ def one_key(task) -> tuple:
                 else:
                     v = verdict_of(read.effective_rules_bound(
                         bound, sw, md, f, bundle, steelhead_rules_here=sr,
-                        origin=None if o == "none" else o, trace=True), ix)
+                        origin=None if o == "none" else o, trace=True, at=at), ix)
                     if o == "none":
                         none_of[f] = v
                 frames.append((ri, _FISH[f], _ORIGIN[o], intern(v)))
         closed.append(project.closed(none_of.__getitem__, _W["grade"]))
-    return (key_ix, runs, firsts, fish, own, closed, verdicts, frames)
+    return (key_ix, ms, runs, firsts, fish, own, closed, verdicts, frames)
 
 
 # --------------------------------------------------------------------------------------------
@@ -183,7 +187,7 @@ def build(bundle: str, out: Path, *, workers: int = MAX_WORKERS, keys: Optional[
                                          maxtasksperchild=400)
         got = pool.imap(one_key, tasks, chunksize=4)       # ORDERED: deterministic verdict ids
     try:
-        for n, (k, runs, firsts, fish, own, closed, verdicts, frames) in enumerate(got, 1):
+        for n, (k, ms, runs, firsts, fish, own, closed, verdicts, frames) in enumerate(got, 1):
             ids = []
             for v in verdicts:
                 i = seen.get(v)
@@ -198,10 +202,16 @@ def build(bundle: str, out: Path, *, workers: int = MAX_WORKERS, keys: Optional[
             db.execute("INSERT INTO key_meta (key_ix, own) VALUES (?,?)", (k, int(own)))
             db.executemany("INSERT INTO key_fish (key_ix, fish) VALUES (?,?)",
                            [(k, _FISH[f]) for f in fish])
-            db.executemany("INSERT INTO reading (key_ix, reading, first_day, closed) VALUES (?,?,?,?)",
-                           [(k, ri, d, int(c)) for ri, (d, c) in enumerate(zip(firsts, closed))])
-            db.executemany("INSERT INTO segment (key_ix, start, reading) VALUES (?,?,?)",
-                           [(k, d, r) for d, r in runs])
+            db.executemany("INSERT INTO moment (key_ix, moment, weekdays, hours, inside) "
+                           "VALUES (?,?,?,?,?)",
+                           [(k, mi, m.weekdays, m.hours, None if m.inside is None else int(m.inside))
+                            for mi, m in enumerate(ms)])
+            db.executemany("INSERT INTO reading (key_ix, reading, first_day, moment, closed) "
+                           "VALUES (?,?,?,?,?)",
+                           [(k, ri, d, mi, int(c))
+                            for ri, ((d, mi), c) in enumerate(zip(firsts, closed))])
+            db.executemany("INSERT INTO segment (key_ix, moment, start, reading) VALUES (?,?,?,?)",
+                           [(k, mi, d, r) for mi, rs in enumerate(runs) for d, r in rs])
             db.executemany("INSERT INTO frame (key_ix, reading, fish, origin, verdict) "
                            "VALUES (?,?,?,?,?)", [(k, r, f, o, ids[v]) for r, f, o, v in frames])
             stats["keys"] += 1

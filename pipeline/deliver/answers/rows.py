@@ -1030,7 +1030,8 @@ class Part:
     kind and steelhead facts, the reader's verdict per fish and origin."""
 
     def __init__(self, B, set_id: int, steelhead_water: bool, steelhead_rules: bool, kind,
-                 presence, ladder_value: dict, md, open_states: Optional[dict] = None):
+                 presence, ladder_value: dict, md, open_states: Optional[dict] = None,
+                 at=None):
         self.B = B
         self.kind, self.presence = kind, presence
         self.steelhead_water = steelhead_water
@@ -1038,6 +1039,9 @@ class Part:
         # the export says `steelhead_rules: false` only on a KNOWN part none applies to
         self.rules_off_in_export = presence == "known" and not steelhead_rules
         self.md = md
+        #: the moment the reading is asked at (`calendar.Moment`; answers 2.1): a weekday or
+        #: hours rule is in force at the moments it covers, out at the others
+        self.at = at
         bound = B.sets[set_id]
         reach = [(e, r, v) for e, r, v in bound if v == "reach"]
         trib = [(e, r, v) for e, r, v in bound if v == "trib"]
@@ -1064,7 +1068,7 @@ class Part:
         """The rule's dates hold today (the reader's calendar, `read.in_force`; some hours count —
         the page reads only the dates here)."""
         from pipeline.deliver.bundle import read
-        return read.in_force(r.f.get("when"), self.md) != "no"
+        return read.in_force(r.f.get("when"), self.md, self.at) != "no"
 
     def sp_name(self, S: str) -> str:
         return common.sp_name(S)
@@ -1084,12 +1088,13 @@ class Part:
         if self._notes is None:
             self._notes = {}
             for L in self.cands:
-                if not self.applies(L) or read.in_force(L.f.get("when"), self.md) != "yes" \
+                if not self.applies(L) or read.in_force(L.f.get("when"), self.md, self.at) != "yes" \
                         or read.not_yet_mapped(L.f) or L.f.get("side"):
                     continue
                 for e in L.f.get("exempts") or []:
                     t = f"{e['entry_id']}::{e['rule_id']}"
-                    if t == L.key or ("when" in e and read.in_force(e["when"], self.md) == "no"):
+                    if t == L.key or ("when" in e
+                                      and read.in_force(e["when"], self.md, self.at) == "no"):
                         continue
                     q = {k: e[k] for k in ("when_targeting", "while", "lengths") if e.get(k)}
                     if q:
@@ -1289,13 +1294,13 @@ def section_scope(key: tuple, B):
     return (common.rule_key(key), k["kind"], k["steelhead"])
 
 
-def open_states(ctx, rk, md) -> dict:
+def open_states(ctx, rk, md, at=None) -> dict:
     """Decision R5: the reader's state of every open-subject gate rule of the set, asked about the
     subject's first named fish: {rule id: (state, lifted_in_part_by)} — the STORED verdicts
     (`verdicts.sqlite`, origin not known; the verdicts ask every fish a member rule names)."""
     from pipeline.deliver.calendar import day_of
     from pipeline.regs.parsing.catalogue import OPEN_SUBJECTS, PROTECTED_FISH
-    ck = ("rows_open", rk, md)
+    ck = ("rows_open", rk, md, at)
     got = ctx.cache.get(ck)
     if got is not None:
         return got
@@ -1309,7 +1314,8 @@ def open_states(ctx, rk, md) -> dict:
             by_fish.setdefault(open_fish(x), []).append(f"{e}::{r}")
     out = {}
     key = ctx.B.key_ix[rk]
-    reading = ctx.store.reading_of(key, day_of(md))
+    ms = ctx.store.moments(key)
+    reading = ctx.store.reading_of(key, day_of(md), None if len(ms) == 1 else ms.index(at))
     for f, ks in sorted(by_fish.items()):
         ans = ctx.ladder_dict(ctx.store.verdict_id(key, reading, f, "none"))
         for k in ks:
@@ -1356,10 +1362,11 @@ def refs(out: dict, ix) -> dict:
             "rows": [row(r) for r in out["rows"]]}
 
 
-def section_derive(ladder_value: dict, scope, ctx, first_day: int) -> dict:
-    """The card's rows for one part scope on one reading (the ladder's), rules by export index."""
+def section_derive(ladder_value: dict, scope, ctx, first_day: int, at=None) -> dict:
+    """The card's rows for one part scope on one reading (the ladder's: its first day and the
+    moment it is asked at), rules by export index."""
     rk, kind, presence = scope
     md = month_day(first_day)
     P = Part(ctx.B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kind, presence,
-             ladder_value, md, open_states(ctx, rk, md))
+             ladder_value, md, open_states(ctx, rk, md, at), at=at)
     return refs(json.loads(json.dumps(produce(P))), ctx.rule_index.__getitem__)

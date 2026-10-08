@@ -208,12 +208,15 @@ def _store(B):
     return _STORES[B.path]
 
 
-def _answer(B, key, md, lawful, ref=G.rule_id):
-    """The gear answer for a key on a day: its reading's, from the stored verdicts."""
+def _answer(B, key, md, lawful, ref=G.rule_id, moment=None):
+    """The gear answer for a key on a day at a moment (a key with one: None): its reading's, from
+    the stored verdicts."""
     from pipeline.deliver.calendar import day_of
     st = _store(B)
+    k = B.key_ix[key]
     return G.gear_answer(B, key, md, lawful, ref, store=st,
-                         reading=st.reading_of(B.key_ix[key], day_of(md)))
+                         reading=st.reading_of(k, day_of(md), moment),
+                         at=st.moments(k)[moment or 0])
 
 
 def _key_of(B, item_id):
@@ -347,9 +350,11 @@ def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, mo
             continue
         regions |= zones
         for md in ((1, 15), (7, 15)):
-            acts = {a for m in _answer(B, key, md, lawful)["conduct"].values() for a, _ in m}
-            if "no_gear_in_water_during_closure" not in acts:
-                missing.append((key, md))
+            for mo in range(len(_store(B).moments(B.key_ix[key]))):
+                acts = {a for m in _answer(B, key, md, lawful, moment=mo)["conduct"].values()
+                        for a, _ in m}
+                if "no_gear_in_water_during_closure" not in acts:
+                    missing.append((key, md, mo))
     assert not missing, missing[:10]
     assert regions >= {"z1", "z2", "z3", "z4", "z5", "z6", "z7a", "z7b", "z8"}
     huts = ("z5:ice_fishing_huts", "ice_fishing_huts.r1")

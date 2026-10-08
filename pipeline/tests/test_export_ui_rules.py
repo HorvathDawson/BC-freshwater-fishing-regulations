@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.deliver import calendar as CAL
+
 from pipeline.regs.parsing import catalogue as C
 from pipeline.tools import export_ui_rules as X
 
@@ -793,7 +795,8 @@ def _case_section(db, c) -> int | None:
 
 
 def test_every_case_expects_what_the_reference_answers(doc, db):
-    """Each case's `expect` IS `read.effective_rules` on a section of that water's part — asked
+    """Each case's `expect` IS `read.effective_rules` on a section of that water's part, at the
+    case's moment (`at`) where it names one — asked
     afresh here from the ids the case carries, so a case cannot rot into a stale answer. A
     licensing case's `expect_licensing` is exactly its licensing set in the bundle."""
     from pipeline.deliver.bundle import read as RD
@@ -805,7 +808,8 @@ def test_every_case_expects_what_the_reference_answers(doc, db):
         m, d = (int(x) for x in c["date"].split("-"))
         got = [{"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
                 **({"partly_lifted": True} if x.get("partly_lifted") else {})}
-               for x in RD.effective_rules(sid, (m, d), c["fish"], str(BUNDLE))]
+               for x in RD.effective_rules(sid, (m, d), c["fish"], str(BUNDLE),
+                                           at=CAL.Moment.from_json(c["at"]) if "at" in c else None)]
         assert got == c["expect"], c["mechanism"]
         if "expect_licensing" in c:
             want = sorted(f"{e}#{r}" for e, r in db.execute(
@@ -841,7 +845,10 @@ def test_the_cases_show_their_mechanisms(doc):
     assert set(by["quota_beside"]["because"]) <= speaks(by["quota_beside"])
     assert by["outside_bc"]["expect"] == [] and by["outside_bc"]["expect_licensing"] == []
     assert any(x.get("partly_lifted") for x in by["partly_lifted"]["expect"])
-    assert any(x["state"] == "beside" for x in by["part_day_beside"]["expect"])
+    # a rule held some hours or weekdays DECIDES at its moment (user ruling 2026-10-08): asked
+    # inside the Fraser's night window, its "No fishing" speaks
+    pd = by["part_day_decides"]
+    assert pd["because"][0] in speaks(pd) and pd["at"]["hours"]["in"] is True
     # a REAL straddling lake: never a lake the book divides into parts (Williston's halves each
     # take one table; its parent section is a 0.14 km2 sliver), and both tables speak on it
     two = by["two_regions_lake"]

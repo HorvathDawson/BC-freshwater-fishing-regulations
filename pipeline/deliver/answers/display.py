@@ -34,6 +34,7 @@ Wording follows the page (v35) so a 1-to-1 check can compare strings; the page k
 """
 from __future__ import annotations
 
+import json
 import math
 import re
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -491,6 +492,18 @@ def _run_txt(doc: dict, r: dict) -> str:
     return f"Side channel ({t[:1].lower() + t[1:]})" if r.get("branch") else t
 
 
+def _joining(side: List[dict]) -> str:
+    """Where side channels join their river, from their runs' `km_from` (the main stem's measure
+    from the mouth): "joining 4.1 km from the mouth", "joining 1.1-5.5 km from the mouth", or ""
+    when no run carries a measure."""
+    kms = sorted(round(float(r["km_from"]), 1) for r in side if r.get("km_from") is not None)
+    if not kms:
+        return ""
+    lo, hi = kms[0], kms[-1]
+    return (f"joining {lo:g} km from the mouth" if lo == hi
+            else f"joining {lo:g}–{hi:g} km from the mouth")
+
+
 def runs_label(doc: dict, part: dict) -> str:
     """`runsLabel` — where a part runs, said from the mouth upward (consumer 3.1 step 2)."""
     rs = [r for r in part.get("runs") or []
@@ -522,7 +535,14 @@ def runs_label(doc: dict, part: dict) -> str:
     else:
         t = f"{len(bits)} stretches, including {low(bits[0])}"
     if not t and side:
-        t = _run_txt(doc, side[0]) if len(side) == 1 else f"{len(side)} side channels"
+        # A PART OF SIDE CHANNELS ONLY says where they join the river (review C2, answers 2.1):
+        # each branch run's `km_from` is the main-stem measure it leaves at, from the mouth.
+        # Where no branch carries one, the old words stand.
+        where = _joining(side)
+        if len(side) == 1:
+            t = f"Side channel, {where}" if where else _run_txt(doc, side[0])
+        else:
+            t = f"{len(side)} side channels" + (f", {where}" if where else "")
     elif side:
         t += f" and {len(side)} side channel{'s' if len(side) > 1 else ''}"
     return t
@@ -744,26 +764,43 @@ def section_scope(key: tuple, B):
 
 
 def section_prepare(scope, ctx):
-    """The status index's code per day for the rule key — a projection of the verdicts
-    (`status_index.key_profile`: closed on a closed reading, else the key's floor): `base` (the
-    tables' rules only), `own` (the water's own rules too), `closed` (every game fish under a
-    speaking full closure). On tidal water, all year, `{"status": "tidal", **common.TIDAL_STATE}`:
+    """Per slot (day x moment, `answers.slots`): the status index's code for the rule key at that
+    moment — a projection of the verdicts (closed on a closed reading, else the key's floor):
+    `base` (the tables' rules only), `own` (the water's own rules too), `closed` (every game fish
+    under a speaking full closure) — and `closing` (gap G1, answers 2.1): every full closure that
+    SPEAKS, not partly lifted, for some game fish, with the fish it closes
+    (`verdicts.project.closing`, the one predicate `closed` is made of), rule by export index. A
+    night closure's hours and a weekday rule's days are their own moments, so their status and
+    closures are theirs. On tidal water, all year, `{"status": "tidal", **common.TIDAL_STATE}`:
     no freshwater status at all (FIX D12)."""
-    from pipeline.deliver import status_index as SI
+    from pipeline.deliver.answers.answers import slots
     from pipeline.deliver.answers.common import TIDAL_SCOPE, TIDAL_STATE
     from pipeline.deliver.calendar import DAYS
+    from pipeline.deliver.verdicts import project
     if scope == TIDAL_SCOPE:
         return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
-    prof = SI.key_profile(ctx.store, ctx.B.key_ix[scope])
-    names = {SI.BASE: "base", SI.OWN: "own", SI.CLOSED: "closed"}
-    values: List[str] = []
-    per: List[int] = []
-    for c in prof:
-        v = names[c]
-        if v not in values:
+    st = ctx.store
+    k = ctx.B.key_ix[scope]
+    floor = "own" if st.own(k) else "base"
+    none = "none"
+    by_reading = []
+    for rd in st.readings(k):
+        closing = project.closing(lambda f, r=rd.ix: st.rows(st.verdict_id(k, r, f, none)),
+                                  st.grade)
+        by_reading.append({
+            "status": "closed" if rd.closed else floor,
+            "closing": [[ctx.rule_index[st.rule_ids[r]], fs] for r, fs in sorted(
+                closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])]})
+    values: List[dict] = []
+    seen: Dict[str, int] = {}
+    ix = []
+    for v in by_reading:
+        key = json.dumps(v, sort_keys=True)
+        if key not in seen:
+            seen[key] = len(values)
             values.append(v)
-        per.append(values.index(v))
-    return per, [{"status": v} for v in values]
+        ix.append(seen[key])
+    return [ix[r] for r in slots(st, k)], values
 
 
 def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:

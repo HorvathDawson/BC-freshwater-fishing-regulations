@@ -1003,8 +1003,10 @@ TOUCHES_TEXT = (
 #: book's own note (p.17, Nitinat Lake).
 #: The first sentences ARE the answers layer's own (`answers.common.TIDAL_NOTE`, FIX D12: "tidal
 #: water — a different regulation system; see DFO regulations / the Fishing BC app"), imported.
-TIDAL_GUIDE = TIDAL_NOTE + (" Show this note at the top of the water, and never read its "
-                            "sections as 'open under the general rules'.")
+#: ANGLER WORDS ONLY (review B17, 2026-10-08): the shipped field once ended with a builder
+#: instruction ("Show this note at the top of the water …") that a page printed to anglers. How to
+#: show it is in the field dictionary (`TIDAL_TEXT["guide"]`), never in the data.
+TIDAL_GUIDE = TIDAL_NOTE
 
 #: How sure we are that steelhead are present (user ruling 2026-10-01) — on a part, and rolled up on
 #: the water.
@@ -1163,7 +1165,9 @@ WATER_TEXT = {
 TIDAL_TEXT = {
     "sections": "how many of the water's sections are tidal",
     "entry": "the row that says the water is tidal",
-    "guide": "the words to show at the top of the water (federal tidal regulations apply)",
+    "guide": "the ANGLER-FACING words (federal tidal regulations apply), angler text only. "
+             "Show them at the top of the water, and never read its sections as 'open under "
+             "the general rules'.",
 }
 
 #: A water's part, field by field.
@@ -2058,10 +2062,17 @@ def guide(d: dict) -> dict:
                        "region's outside its dates, and a stream's 'No fishing, Jan 1-Jun 15' "
                        "does not silence its region's lake trout release on Oct 1. A record "
                        "dormant under `suspended_while` is not in force (today only licensing "
-                       "records carry it — no regulation rule does). A rule uncertain in time "
-                       "(`when.unparsed`), or asked about for a date when it holds only some "
-                       "hours, is shown BESIDE what it would displace, each with its own `when`, "
-                       "never in place of it; so is a rule holding on one half of the channel "
+                       "records carry it — no regulation rule does). A rule held on some "
+                       "WEEKDAYS or some HOURS decides at the moments it covers and is not in "
+                       "force at the others, like a date (user ruling 2026-10-08): Kootenay "
+                       "Lake's Lower West Arm keeps 5 kokanee on Saturday and Sunday and releases "
+                       "them Monday-Friday; the Fraser above Mission is closed from one hour after "
+                       "sunset to one hour before sunrise and open by day. The reference is asked "
+                       "at a MOMENT (a class of weekdays, inside or outside the hours window: "
+                       "`pipeline.deliver.calendar.moments`); the answers file carries every "
+                       "moment's answer. A rule uncertain in time (`when.unparsed`) is shown "
+                       "BESIDE what it would displace, with its own `when`, never in place of it; "
+                       "so is a rule holding on one half of the channel "
                        "only (`fields.side`), which the other half's anglers do not answer to. A lift is in force only while its lifter is "
                        "(`exempts[].when`).",
         "who_speaks": "Among competitors for one fish, in this order: (1) a superior authority "
@@ -2733,7 +2744,9 @@ def guide(d: dict) -> dict:
                    "except …' stores the days it DOES hold.",
         "fields": {k: WHEN_TEXT.get(k) for k in _fields(C.When)},
         "hours_and_weekdays": "Apply them on the angler's own clock and day; they never "
-                              "resolve to a date.",
+                              "resolve to a date. A rule held some weekdays or hours DECIDES at "
+                              "those moments and is out at the others (`ladder.competition`); "
+                              "a case asked at one states it in `at`.",
         "unparsed": "Uncertain, never all year.",
         "suspended_while": "On a rule or a designation: dormant while the named closure rule in "
                            "the same entry binds ('not required until reopened').",
@@ -3409,9 +3422,12 @@ def guide(d: dict) -> dict:
                    "page shows. Use it to colour; use this file to explain.",
         "statuses": {
             "closed": "on that day every game fish (the book's list minus crayfish) is answered "
-                      "by an unconditional closure that speaks — not a closure of some hours, "
-                      "weekdays or an unreadable season, not one half of the channel, not a "
-                      "`not_yet_mapped` note, not a closure of some species only",
+                      "by an unconditional closure that speaks AT EVERY MOMENT of the day — a "
+                      "night closure closes its hours, never the day, and a closure of some "
+                      "weekdays closes those weekdays, never the day (the answers file carries "
+                      "each moment's status); not a closure of an unreadable season, not one half "
+                      "of the channel, not a `not_yet_mapped` note, not a closure of some species "
+                      "only",
             "own": "not closed, and a water table's row (`r<n>:` — the water's own row, a cut "
                    "piece's, an area row, or one reaching it by the tributary walk) binds it; all "
                    "year, as the synopsis lists the water",
@@ -3593,8 +3609,8 @@ CASE_MECHANISMS = {
     "dated_out_of_force": "the same water and fish on a day the dated rule is not in force",
     "semicolon_dated_clause": "a date printed after a semicolon clause scopes only that clause: the "
                               "clause before it holds all year",
-    "part_day_beside": "a rule in force only some hours or weekdays (or of unreadable season) "
-                       "stands BESIDE what it would displace",
+    "part_day_decides": "a rule in force only some hours or weekdays DECIDES at the moments it "
+                        "covers (`at`: inside its hours, on its weekdays) and is out at the others",
     "suspended_while": "a record dormant while its named closure is in force (`suspended_while`: "
                        "today only licensing records carry it) — asked on a day the closure "
                        "speaks",
@@ -3785,8 +3801,9 @@ WHAT_TO_SHOW = {
                           "says for {fish}.",
     "semicolon_dated_clause": "The date after the semicolon scopes only the clause before it; "
                               "the first clause holds all year — show it.",
-    "part_day_beside": "A rule in force only some hours or days: show it BESIDE the rule it "
-                       "would replace, with its hours, never instead of it.",
+    "part_day_decides": "A rule in force only some hours or days decides then: show {water}'s "
+                        "answer for that moment (`at`), and say plainly that it differs at the "
+                        "other hours or days.",
     "suspended_while": "This is a LICENSING record (a licence, stamp or designation), dormant "
                        "while its closure speaks: show the closure, and the licensing line as "
                        "not required today. No regulation rule carries `suspended_while` — only "
@@ -3998,21 +4015,32 @@ class _Cases:
                              ",".join(part.get("province_except") or ()) or None,
                              bool(part.get("anadromous_rainbow")), part.get("steelhead")))
 
-    def answer(self, item: str, part: dict, on, fish: str) -> list[dict]:
-        """The stored verdict for the part's rule key on the day (`verdicts_of`), as the reader
-        answered on any of its sections."""
+    def key_of(self, item: str, part: dict):
         ident = (item, part["ruleset"], part["licensing_set"],
                  ",".join(part.get("province_except") or ()) or None,
                  bool(part.get("anadromous_rainbow")), part.get("steelhead"))
         if ident not in self.sid:
             raise SystemExit(f"export_ui_rules: case on {item} part {part['ruleset']}/"
                              f"{part['licensing_set']} — the bundle has no such part")
-        key = self.sid[ident]
+        return self.sid[ident]
+
+    def moments(self, item: str, part: dict) -> list:
+        """The part's moments (`calendar.moments`, stored by the verdicts): one unless a rule of
+        its set holds some weekdays or hours only."""
+        key = self.key_of(item, part)
+        return [] if key is None else self.store.moments(key)
+
+    def answer(self, item: str, part: dict, on, fish: str, moment=None) -> list[dict]:
+        """The stored verdict for the part's rule key on the day (`verdicts_of`), at `moment`
+        (an index into `moments`; required where there are several), as the reader answered on
+        any of its sections."""
+        key = self.key_of(item, part)
         if key is None:
             return []           # a part wholly outside B.C.: no rule binds it (no rule set)
-        return answer_on(self.store, key, on, fish)
+        return answer_on(self.store, key, on, fish, moment=moment)
 
-    def record(self, mech, item, part, on, fish, because, ans, licensing=False) -> dict:
+    def record(self, mech, item, part, on, fish, because, ans, licensing=False,
+               at=None) -> dict:
         w = self.d["waters"][item]
         return {
             "mechanism": mech, "shows": CASE_MECHANISMS[mech],
@@ -4026,6 +4054,7 @@ class _Cases:
             **({"province_except": part["province_except"]} if part.get("province_except") else {}),
             **({"steelhead": part["steelhead"]} if part.get("steelhead") else {}),
             "date": f"{on[0]:02d}-{on[1]:02d}", "fish": fish,
+            **({"at": at} if at is not None else {}),
             "because": sorted(set(because)),
             "expect": ans,
             **({"expect_licensing": sorted(self.lic.get(part["licensing_set"] or "", []))}
@@ -4040,7 +4069,10 @@ class _Cases:
     def day_out(self, x):
         return next((on for on in _DAYS if self.RD.in_force(x.get("when"), on) == "no"), None)
 
-    def first(self, mech, cands, check, licensing=False):
+    def first(self, mech, cands, check, licensing=False, pick=None):
+        """The first candidate whose stored answer passes `check`. Where the part reads
+        differently by weekday or hour (several moments), the case is asked at ONE moment — the
+        first (`pick` None) or `pick(on, moments)`'s — and states it (`at`)."""
         seen = set()
         for item, part, on, fish, because in cands:
             if on is None or fish is None:
@@ -4049,9 +4081,14 @@ class _Cases:
             if key in seen:
                 continue
             seen.add(key)
-            ans = self.answer(item, part, on, fish)
+            ms = self.moments(item, part)
+            m = None if len(ms) <= 1 else (pick(on, ms) if pick else 0)
+            if len(ms) > 1 and m is None:
+                continue
+            ans = self.answer(item, part, on, fish, moment=m)
             if check(ans):
-                return self.record(mech, item, part, on, fish, because, ans, licensing)
+                return self.record(mech, item, part, on, fish, because, ans, licensing,
+                                   at=None if m is None else ms[m].as_json())
         return None
 
     def by_set(self, test):
@@ -4541,7 +4578,7 @@ def cases(d: dict, bundle: Path) -> dict:
                 break
 
     # one rule of a kind, in the answer on a day it is in force
-    def single(mech, test, check=None, state="yes"):
+    def single(mech, test, check=None, state="yes", pick=None):
         for s in K.sets:
             item, part = K.first_part[s]
             for k in sorted(K.members[s]):
@@ -4553,16 +4590,21 @@ def cases(d: dict, bundle: Path) -> dict:
                     f = C.expand_species(list(x["when_targeting"]))[0]
                 on = K.day(x, state=state)
                 ok = check(k) if check else (lambda a, k=k: rid(k) in _ids(a))
-                case = K.first(mech, [(item, part, on, f, [rid(k)])], ok)
+                case = K.first(mech, [(item, part, on, f, [rid(k)])], ok,
+                               pick=None if pick is None else (lambda on, ms, x=x: pick(x, on, ms)))
                 if case:
                     add(mech, case)
                     return
 
+    # a rule held some hours or weekdays DECIDES at the moments it covers (user ruling
+    # 2026-10-08): asked at the first moment it is in force, it speaks
     part_day = lambda x: bool((x.get("when") or {}).get("hours") or (x.get("when") or {})
-                              .get("weekdays") or (x.get("when") or {}).get("unparsed"))
-    single("part_day_beside", lambda k, x: part_day(x),
-           lambda k: lambda a: any(i["id"] == rid(k) and i["state"] == "beside" for i in a),
-           state="part")
+                              .get("weekdays"))
+    single("part_day_decides", lambda k, x: part_day(x),
+           lambda k: lambda a: any(i["id"] == rid(k) and i["state"] == "speaks" for i in a),
+           state="part",
+           pick=lambda x, on, ms: next((i for i, m in enumerate(ms)
+                                        if RD.in_force(x.get("when"), on, m) == "yes"), None))
     # suspended_while: no rule carries it today; a licensing record does ("Steelhead Stamp not
     # required until reopened to steelhead fishing") — the case asks on a day its closure speaks.
     for it, p in K.parts:
@@ -4964,8 +5006,10 @@ def cases(d: dict, bundle: Path) -> dict:
                    "carry `ruleset` (and `licensing_set`; `anadromous_rainbow` where a rainbow "
                    "over 50 cm is a steelhead; `steelhead`, known | possible, where steelhead "
                    "rules apply — the part's own), on `date` (MM-DD, any year), for `fish` (a leaf "
-                   "code), the rules in play are `expect` — each `speaks`, stands "
-                   "`beside` (in force only some hours or days, or of unreadable season), is "
+                   "code), at `at` where the part reads differently by weekday or hour (the "
+                   "moment asked: `weekdays`, and `hours` with `in`), the rules in play are "
+                   "`expect` — each `speaks`, stands "
+                   "`beside` (of unreadable season, or one side of the channel), is "
                    "`shown` (standing, information), or is `not_yet_mapped` (a part nobody has "
                    "drawn: show it at the top, it decides nothing); `partly_lifted` where a lift "
                    "holds only for some anglers or fish. `what_to_show` is one plain line for "
@@ -6035,13 +6079,15 @@ def rule_keys_of(bundle: Path) -> dict[int, list[tuple[int, int, bool, bool, int
         db.close()
 
 
-def answer_on(store, key: int, on, fish: str, *, trace: bool = False) -> list[dict]:
-    """The reader's stored answer for a rule key on a day (`(month, day)`), origin not known:
+def answer_on(store, key: int, on, fish: str, *, trace: bool = False,
+              moment=None) -> list[dict]:
+    """The reader's stored answer for a rule key on a day (`(month, day)`) at a moment (an index
+    into `store.moments(key)`; required where the key has several), origin not known:
     `[{"id", "state", partly_lifted?, reason?, by?}]` by rule id — the speakers (`trace` adds the
     losers), exactly what `read.effective_rules` returned for a section of the key."""
     from pipeline.deliver import types as T
     out = []
-    for r in store.on_day(key, CAL.day_of(on), fish, "none"):
+    for r in store.on_day(key, CAL.day_of(on), fish, "none", moment):
         st = r.state.value
         if st not in RD_SPEAKERS and not trace:
             continue
@@ -6131,21 +6177,28 @@ def _closure_scan(bundle: Path) -> dict:
                     for fish in fish_of(x, asked):
                         if not any(RD.speaks_for(R[c], fish) for c in shut_on):
                             continue
-                        if (on, fish) not in cache:
-                            # a quota the WATER'S OWN closure silences (DENETIAH ruling,
-                            # 2026-10-06) is the row closing itself, not a zone closure hiding a
-                            # missed exemption — it counts as speaking here
-                            cache[(on, fish)] = {
-                                tuple(y["id"].split("::", 1)): y
-                                for y in answer_on(store, key_ix, on, fish, trace=True)
-                                if y["state"] == "speaks" or y.get("reason") == "water_closure"}
-                        got = cache[(on, fish)]
-                        shut = [f"{e}::{r}" for (e, r) in sorted(got)
-                                if str(e).startswith("z") and closure_grade(R[(e, r)]) == "full"
-                                and RD.base_region(e) is not None]
-                        # a release that SPEAKS under the closure; a quota in force that does NOT
-                        if shut and ((k in got) if what == "release" else (k not in got)):
-                            hit = (on, fish, shut)
+                        # EVERY MOMENT of the key (weekday classes, inside / outside an hours
+                        # window — `calendar.moments`; one for almost every key)
+                        for m in range(len(store.moments(key_ix))):
+                            if (on, fish, m) not in cache:
+                                # a quota the WATER'S OWN closure silences (DENETIAH ruling,
+                                # 2026-10-06) is the row closing itself, not a zone closure
+                                # hiding a missed exemption — it counts as speaking here
+                                cache[(on, fish, m)] = {
+                                    tuple(y["id"].split("::", 1)): y
+                                    for y in answer_on(store, key_ix, on, fish, trace=True,
+                                                       moment=m)
+                                    if y["state"] == "speaks" or y.get("reason") == "water_closure"}
+                            got = cache[(on, fish, m)]
+                            shut = [f"{e}::{r}" for (e, r) in sorted(got)
+                                    if str(e).startswith("z") and closure_grade(R[(e, r)]) == "full"
+                                    and RD.base_region(e) is not None]
+                            # a release that SPEAKS under the closure; a quota in force that does
+                            # NOT
+                            if shut and ((k in got) if what == "release" else (k not in got)):
+                                hit = (on, fish, shut)
+                                break
+                        if hit:
                             break
                     if hit:
                         break
@@ -6278,12 +6331,20 @@ def closures_combine(bundle: Path) -> dict:
         answer: dict = {}
 
         def speaks(d, f, key_ix=key_ix):
-            r = store.reading_of(key_ix, d)
-            if (r, f) not in answer:
-                answer[(r, f)] = {tuple(y["id"].split("::", 1))
-                                  for y in answer_on(store, key_ix, CAL.MD[d], f)
-                                  if y["state"] == "speaks"}
-            return answer[(r, f)]
+            # every moment of the key must say the same of the zone closure: a claim "both hold"
+            # or "lifted" is made per day, and a day read two ways is refused, never guessed
+            got = None
+            for m in range(len(store.moments(key_ix))):
+                r = store.reading_of(key_ix, d, m)
+                if (r, f) not in answer:
+                    answer[(r, f)] = {tuple(y["id"].split("::", 1))
+                                      for y in answer_on(store, key_ix, CAL.MD[d], f, moment=m)
+                                      if y["state"] == "speaks"}
+                if got is not None and (z in got) != (z in answer[(r, f)]):
+                    raise SystemExit(f"export_ui_rules: closures_combine — {z} speaks at one "
+                                     f"moment of rule key {key_ix} on day {d} and not at another")
+                got = answer[(r, f)]
+            return got
 
         for k, z, common in cands[s]:
             dk, dz = days(R[k]), days(R[z])

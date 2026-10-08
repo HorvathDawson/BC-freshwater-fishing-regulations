@@ -100,9 +100,11 @@ class Section:
     the date segment; what differs is what of the part key its answers depend on.
 
     `scope(key, B)`         what of the part key the answers depend on (hashable);
-    `prepare(scope, ctx)`   -> (reading index per day [366], [value per reading]);
+    `prepare(scope, ctx)`   -> (reading index per SLOT [366 x the key's moments, day-major; 366
+                            for a section that does not read the rule key], [value per reading]);
     `derive_from`, `derive` or: a section whose values are a function of another's, per reading
-                            (`derive(value_of_that, scope, ctx, first_day)` -> value). Its scope
+                            (`derive(value_of_that, scope, ctx, first_day, at)` -> value, `at`
+                            the reading's moment). Its scope
                             may be FINER than the parent's (it may read more of the part key), but
                             the parent's scope must be a function of it: it adds no day cuts;
     `static(ctx, data, guide, keys, parts)` -> {table: value}: tables of the section that are not keyed by
@@ -157,35 +159,68 @@ class Context:
         self.cache: dict = {}
         self._ladder: Dict[int, dict] = {}
 
+    def moments_of(self, scope) -> list:
+        """The moments a section scope's values are cut by: its rule key's (the verdicts'), or
+        [ALWAYS] for a scope that is no rule key of the bundle (the tidal scope, licence keys)."""
+        from pipeline.deliver.calendar import ALWAYS
+        rk = scope if isinstance(scope, RuleKey) else None
+        if rk is None and isinstance(scope, tuple) and scope and isinstance(scope[0], RuleKey):
+            rk = scope[0]
+        k = self.B.key_ix.get(rk) if rk is not None else None
+        return [ALWAYS] if k is None else self.store.moments(k)
+
 
 def _ladder_scope(key: tuple, B) -> RuleKey:
     return eval_key(key)
 
 
+# --------------------------------------------------------------------------------------------
+# SLOTS: a day of the year at one MOMENT of the key (answers 2.1)
+# --------------------------------------------------------------------------------------------
+#
+# A section that reads the rule key reads it at every MOMENT of the key (`calendar.moments`: its
+# weekday classes, inside / outside its hours window — one, ALWAYS, for almost every key). Its
+# `prepare` returns one value index per SLOT, slot = (day - 1) * M + moment for the key's M
+# moments, so a key with one moment is exactly its 366 days. A section that does not read the rule
+# key (the licence) returns 366 and holds at every moment.
+
+def slots(store, key: int) -> List[int]:
+    """The reading of each slot of a rule key: day-major, moment-minor (`store.runs` per
+    moment)."""
+    m_count = len(store.moments(key))
+    out = [0] * (DAYS * m_count)
+    for m in range(m_count):
+        for d, r in enumerate(per_day(store.runs(key, m))):
+            out[d * m_count + m] = r
+    return out
+
+
 def _ladder_prepare(scope: RuleKey, ctx: Context):
-    """The key's year and, per reading, every asked fish's verdict id per origin — the stored
-    verdicts (`verdicts.sqlite`, DATAFLOW P6): the reader is not called here. Every fish the
-    verdicts asked is listed (every game fish, and the extras a member rule names)."""
+    """The key's year (one reading per slot: day x moment) and, per reading, every asked fish's
+    verdict id per origin — the stored verdicts (`verdicts.sqlite`, DATAFLOW P6): the reader is not
+    called here. Every fish the verdicts asked is listed (every game fish, and the extras a member
+    rule names)."""
     st = ctx.store
     k = ctx.B.key_ix[scope]
-    runs = [list(r) for r in st.runs(k)]
     fish = st.fish(k)
     values = []
     for rd in st.readings(k):
         values.append({f: {o: st.verdict_id(k, rd.ix, f, o) for o in ORIGINS} for f in fish})
-    return per_day(runs), values
+    return slots(st, k), values
 
 
 def _sections() -> Tuple[Section, ...]:
     from pipeline.deliver.answers import display, gear, licence, rows
     return (
-        Section("ladder", 0, _ladder_scope, prepare=_ladder_prepare),
-        Section("rows", 2, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
-        Section("gear", 2, gear.section_scope, prepare=gear.section_prepare,
+        # answers 2.1: ladder 1, rows 3, gear 3, display 3 — cut by MOMENT (a weekday or hours
+        # rule decides at its moments); display adds `closing` (gap G1)
+        Section("ladder", 1, _ladder_scope, prepare=_ladder_prepare),
+        Section("rows", 3, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        Section("gear", 3, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 2, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
-        Section("display", 2, display.section_scope, prepare=display.section_prepare,
+        Section("display", 3, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static),
     )
 
@@ -208,10 +243,10 @@ def _init_worker(bundle, rule_index, licence_reps, verdicts):
     _WORKER = Context(bundle, rule_index, licence_reps, verdicts=verdicts)
 
 
-def _first_days(per_day: Sequence[int]) -> List[int]:
+def _first_slots(per_slot: Sequence[int]) -> List[int]:
     first: Dict[int, int] = {}
-    for d, i in enumerate(per_day, start=1):
-        first.setdefault(i, d)
+    for n, i in enumerate(per_slot):
+        first.setdefault(i, n)
     return [first[i] for i in range(len(first))]
 
 
@@ -222,16 +257,20 @@ def _run_scope(task):
     name, scope, derived = task
     sec = next(s for s in SECTIONS if s.name == name)
     per_day, values = sec.prepare(scope, _WORKER)
-    if len(per_day) != DAYS or sorted(set(per_day)) != list(range(len(values))):
+    ms = _WORKER.moments_of(scope)
+    if len(per_day) not in (DAYS, DAYS * len(ms)) or \
+            sorted(set(per_day)) != list(range(len(values))):
         raise AnswersError(f"answers: section {name} returned a year that does not index its values")
-    days = _first_days(per_day)
+    m_count = len(per_day) // DAYS
+    firsts = _first_slots(per_day)
     # the ladder travels as verdict ids; what derives from it reads the verdicts themselves
     full = [_WORKER.expand_ladder(v) for v in values] if name == "ladder" else values
     out = {}
     for dname, scopes in derived:
         d = next(s for s in SECTIONS if s.name == dname)
         for ds in scopes:
-            out[(dname, ds)] = [d.derive(v, ds, _WORKER, days[i]) for i, v in enumerate(full)]
+            out[(dname, ds)] = [d.derive(v, ds, _WORKER, firsts[i] // m_count + 1,
+                                         ms[firsts[i] % m_count]) for i, v in enumerate(full)]
     return name, scope, per_day, values, out
 
 
@@ -241,10 +280,14 @@ class Model:
     about: dict
     keys: List[tuple]
     parts: Dict[str, List[Optional[int]]]
-    segments: List[List[int]]                     # per key: start days
+    segments: List[List[int]]                     # per key: start days (a start repeats where
+                                                  # the day reads differently by moment)
     sections: Dict[str, List[List[object]]]       # name -> per key -> per segment -> value
     versions: Dict[str, int]
     statics: Dict[str, dict] = field(default_factory=dict)   # name -> {table: value}
+    #: per key: None (every segment holds at every moment), or per segment its moment
+    #: (`calendar.Moment.as_json`: weekdays, and hours with `in`) — answers 2.1
+    moments: List[Optional[List[dict]]] = field(default_factory=list)
 
 
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
@@ -326,19 +369,23 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         if k[0] == "ladder":
             results[k] = (pd, [ctx.expand_ladder(v) for v in vals])
     segs: List[List[int]] = []
+    seg_moments: List[Optional[List[dict]]] = []
     out: Dict[str, List[List[object]]] = {s.name: [] for s in chosen}
     for key in keys:
         per_root = {s.name: results[(s.name, s.scope(key, B))] for s in roots}
-        combined = list(zip(*(per_root[s.name][0] for s in roots)))
-        starts = segments_of(combined)
+        ms = moments_of_key(ctx, key, roots, per_root, B)
+        starts, at, picks = cut(ms, [per_root[s.name][0] for s in roots])
         segs.append(starts)
+        seg_moments.append(at)
         for s in chosen:
             if s.prepare is not None:
                 pd, vals = per_root[s.name]
             else:
                 pd = per_root[s.derive_from][0]
                 vals = derived_vals[(s.name, s.scope(key, B))]
-            out[s.name].append([vals[pd[d - 1]] for d in starts])
+            m_count = len(pd) // DAYS
+            out[s.name].append([vals[pd[(d - 1) * m_count + (m if m_count > 1 else 0)]]
+                                for d, m in picks])
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen
                if s.static is not None}
     about = {
@@ -351,4 +398,73 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     }
     log(f"answers: built in {time.time() - t0:.0f} s")
     return Model(about=about, keys=keys, parts=parts, segments=segs, sections=out,
-                 versions={s.name: s.version for s in chosen}, statics=statics)
+                 versions={s.name: s.version for s in chosen}, statics=statics,
+                 moments=seg_moments)
+
+
+def moments_of_key(ctx: Context, key: tuple, roots, per_root, B) -> list:
+    """A part key's moments: those of the root sections cut by more than one (all the same — the
+    part's rule key's), or [ALWAYS]."""
+    from pipeline.deliver.calendar import ALWAYS
+    got = None
+    for s in roots:
+        ms = ctx.moments_of(s.scope(key, B))
+        if len(per_root[s.name][0]) == DAYS * len(ms) and len(ms) > 1:
+            if got is not None and got != ms:
+                raise AnswersError(f"answers: two sections cut part key {key} by different moments")
+            got = ms
+    return got or [ALWAYS]
+
+
+def cut(ms: list, per_slots: Sequence[Sequence[int]]):
+    """THE FILE'S SEGMENTS of one part key: the days where any section's value changes at any
+    moment, and at each such start, the moments whose values differ (answers 2.1). Returns
+    (`starts` — a start day repeats once per moment group, `at` — None when no start repeats, else
+    per segment its moment as `Moment.as_json`, `picks` — per segment the (day, moment index) whose
+    values it holds). Moments with equal values at a start are merged: first a weekday class's
+    inside and outside of the hours window (into the whole day), then weekday classes alike in
+    everything (their weekdays joined). Ordered by the group's first weekday, outside before
+    inside. A key with one moment is exactly the old cut."""
+    from pipeline.deliver.calendar import ALWAYS, Moment
+    m_count = len(ms)
+
+    def val(d, m):
+        return tuple(p[(d - 1) * (len(p) // DAYS) + (m if len(p) > DAYS else 0)] for p in per_slots)
+    starts0 = segments_of([tuple(val(d, m) for m in range(m_count)) for d in range(1, DAYS + 1)])
+    starts: List[int] = []
+    picks: List[Tuple[int, int]] = []
+    groups_at: List[Optional[Moment]] = []
+    for d in starts0:
+        vals = [val(d, m) for m in range(m_count)]
+        if len(set(vals)) == 1:
+            starts.append(d)
+            picks.append((d, 0))
+            groups_at.append(None)
+            continue
+        # 1. per weekday class, inside == outside -> the whole day
+        by_class: Dict[int, List[Tuple[Moment, int]]] = {}
+        for m, mo in enumerate(ms):
+            by_class.setdefault(mo.weekdays, []).append((mo, m))
+        entries = []          # (weekdays, [(hours, inside, value, m)])
+        for wd, lst in by_class.items():
+            if len(lst) == 2 and vals[lst[0][1]] == vals[lst[1][1]]:
+                lst = [(Moment(wd), lst[0][1])]
+            entries.append((wd, [(mo.hours, mo.inside, vals[m], m) for mo, m in lst]))
+        # 2. weekday classes alike in everything -> one group
+        merged: Dict[tuple, List] = {}
+        for wd, lst in entries:
+            sig = tuple((h, i, v) for h, i, v, _ in lst)
+            g = merged.setdefault(sig, [0, lst])
+            g[0] |= wd
+        out = []
+        for sig, (wd, lst) in merged.items():
+            for h, i, _, m in lst:
+                out.append((Moment(wd, h, i).check(), m))
+        out.sort(key=lambda p: (p[0].weekdays & -p[0].weekdays, p[0].weekdays, bool(p[0].inside)))
+        for mo, m in out:
+            starts.append(d)
+            picks.append((d, m))
+            groups_at.append(mo)
+    if all(g is None for g in groups_at):
+        return starts, None, picks
+    return starts, [(g or ALWAYS).as_json() for g in groups_at], picks

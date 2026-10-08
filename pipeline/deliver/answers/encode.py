@@ -30,8 +30,10 @@ FORMAT = "answers/2"
 VERDICT_LISTS = ("speaks", "beside", "shown", "not_yet_mapped", "partly", "lost")
 #: The loss reasons, in wire order (`read.LOSS_REASONS`: reason -> the state it gives).
 REASONS = tuple(read.LOSS_REASONS)
-#: The `keys` row's slot holding the segments index (the last).
+#: The `keys` row's slot holding the segments index.
 SEG_SLOT = len(PART_KEY_FIELDS)
+#: The `keys` row's slot holding the segment-moments index, or null (the last; answers 2.1).
+MOMENT_SLOT = SEG_SLOT + 1
 
 
 #: The SHA-256 (first 16 hex digits) of the export's `rule_ids`, one per line: the integer rule refs
@@ -68,7 +70,13 @@ SPEC = {
     "tap": "How a tap resolves, with lookups only: (1) the water's item id and the part's index i "
            "in the export's `waters[item].parts` -> k = `parts[item][i]` (null: the part has no "
            "rule set — wholly outside B.C., `water.outside_bc`); (2) the day d -> the segment s = "
-           f"the last index with `segments[keys[k][{SEG_SLOT}]][s] <= d`; (3) per section, frame = "
+           f"the last index with `segments[keys[k][{SEG_SLOT}]][s] <= d`; WHERE THAT START "
+           "REPEATS (the day reads differently by weekday or hour: `keys[k]["
+           f"{MOMENT_SLOT}]` not null), the segments sharing it are the day's MOMENTS — take the one "
+           f"whose `moments[segment_moments[keys[k][{MOMENT_SLOT}]][s]]` holds the date's "
+           "weekday; of two for that weekday, `hours.in` false is the answer at every hour but "
+           "the window and `hours.in` true the answer inside it (show both: 'closed 1 hour after "
+           "sunset to 1 hour before sunrise'); (3) per section, frame = "
            "`sections[name].frames[sections[name].at[k][s]]` (decoded as the section says); (4) in "
            "the frame, the fish and the origin (none | hatchery | wild), or the angler profile.",
     "top level": {
@@ -83,27 +91,41 @@ SPEC = {
         "fish": "[fish code] — the leaf species codes (`ui-rules-guide.json` `species`) the "
                 "ladder and answer frames refer to by index",
         "keys": "[[ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, "
-                "province_except, home_region, kind, tidal, segments]] — one per distinct PART "
+                "province_except, home_region, kind, tidal, segments, moments]] — one per distinct PART "
                 "KEY: the export part's rule set and licensing set ids (integers, licensing set or "
                 "null), `steelhead_water` (0/1: a rainbow over 50 cm is a steelhead here, the "
                 "part's `anadromous_rainbow`), `steelhead` (\"known\" | \"possible\" | null), "
                 "`steelhead_rules` (0/1: the bundle's fact — the export ships it only as false on "
                 "a known part), `province_except` [kind], `home_region` [region], `kind` (the "
-                "water's: lake | stream | wetland), `tidal` (0/1), and `segments` (an index into "
-                "`segments`)",
+                "water's: lake | stream | wetland), `tidal` (0/1), `segments` (an index into "
+                "`segments`) and `moments` (an index into `segment_moments`, or null: no weekday "
+                "or hours rule makes the part's day read two ways — answers 2.1)",
         "segments": "[[start day]] — interned; a key's segments start on these days (the first is "
                     "always 1) and run to the day before the next start (the last to 366). A "
                     "segment is a run of days on which every section's inputs read the same: the "
                     "union of every section's cuts (a member rule's or a lift's `when`, a "
                     "requirement's or a designation's `when`)",
         "parts": "{item_id: [key index | null]} — aligned with the export's `waters[item].parts`",
+        "moments": "[{weekdays, hours}] — interned MOMENTS (answers 2.1, user ruling 2026-10-08: "
+                   "a rule held on some weekdays or hours DECIDES then and is out at the other "
+                   "moments). `weekdays` the days of the week the segment holds on (Monday "
+                   "first); `hours` null (every hour of them) or {start, end, in}: the window of "
+                   "the part's hours rule as the export prints it (`at` HH:MM or `solar` sunrise "
+                   "| sunset, with `offset_min`), `in` true inside the window, false at every "
+                   "other hour. Model: `schemas[\"top.moments\"]`",
+        "segment_moments": "[[moment index per segment]] — interned; aligned with a key's "
+                           "`segments` where its slot "
+                           f"{MOMENT_SLOT} is not null (a start day then repeats once per "
+                           "moment group, ordered by first weekday, outside the window before "
+                           "inside). A key whose slot is null holds every segment at every "
+                           "moment",
         "sections": "{name: section} — see `sections`",
     },
     "sections": {
         "ladder": {
             "what": "Stage 4, the ladder: per fish and origin, every rule the reader returns "
                     "(`read.effective_rules_bound(trace=True, origin=…)`) — speakers and losers",
-            "version": "0",
+            "version": "1",
             "at": "[[frame index per segment] per key]",
             "frames": "[[common, [[fish, v] | [fish, v_none, v_hatchery, v_wild]]]] — `common` a "
                       "verdict index holding the rules whose entry is the same for every fish and "
@@ -128,7 +150,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "2",
+            "version": "3",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -176,7 +198,7 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "2",
+            "version": "3",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
@@ -223,12 +245,17 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "2",
+            "version": "3",
             "at": "[[frame index per segment] per key]",
-            "frames": "[{status}] — base | own | closed (`status_index.set_profile`: closed = "
-                      "every game fish under a speaking full closure) | tidal: on TIDAL water "
-                      "`{status: tidal, tidal: true, note, see, licence}` all year (no freshwater "
-                      "status)",
+            "frames": "[{status, closing}] — `status` base | own | closed (the verdicts' "
+                      "`reading.closed` at the segment's moment: closed = every game fish under a "
+                      "speaking full closure) | tidal: on TIDAL water `{status: tidal, tidal: true, "
+                      "note, see, licence}` all year (no freshwater status). `closing` (version 3, "
+                      "gap G1): [[rule, [fish code]]] every full closure that SPEAKS, not partly "
+                      "lifted, for some game fish at this segment, with the game fish it closes "
+                      "(`verdicts.project.closing`) — the rules that close the water when status "
+                      "is closed (every game fish is under one), or close those fish; decided, "
+                      "never to be re-derived from the ladder",
             "rules": "[{kind, closure?, bands?, plain?}] — aligned with the export's `rules`: the "
                      "page's 15-step kind, a gate that closes, size bands [[from_cm, to_cm|null, "
                      "take|null]], the plain sentence (null: the page uses the label)",
@@ -393,13 +420,23 @@ def encode(model: Model, data: dict) -> dict:
     fish = sorted({f for name in ("ladder",) for per_key in model.sections.get(name, [])
                    for v in per_key for f in v})
     fix = {f: i for i, f in enumerate(fish)}
-    segs = Table()
+    segs, moments, seg_moments = Table(), Table(), Table()
     keys = []
-    for key, starts in zip(model.keys, model.segments):
+    per_key_moments = model.moments or [None] * len(model.keys)
+    if len(per_key_moments) != len(model.keys):
+        raise AnswersError("answers: the model's moments are not one per key")
+    from pipeline.deliver.answers.model import validate_top
+    for key, starts, at in zip(model.keys, model.segments, per_key_moments):
         k = dict(zip(PART_KEY_FIELDS, key))
+        if at is not None and len(at) != len(starts):
+            raise AnswersError(f"answers: key {key} has {len(at)} moments for {len(starts)} segments")
+        if at is None and len(set(starts)) != len(starts):
+            raise AnswersError(f"answers: key {key} repeats a start day without moments")
         keys.append([k["ruleset"], k["licensing_set"], int(k["steelhead_water"]), k["steelhead"],
                      int(k["steelhead_rules"]), list(k["province_except"]), list(k["home_region"]),
-                     k["kind"], int(k["tidal"]), segs.add(list(starts))])
+                     k["kind"], int(k["tidal"]), segs.add(list(starts)),
+                     None if at is None else seg_moments.add([moments.add(m) for m in at])])
+    validate_top("moments", moments.rows)
     # THE TYPES AT THE BOUNDARY (answers/2): every distinct value of every section, and its static
     # tables, against its model before anything is encoded
     from pipeline.deliver.answers.model import validate_section
@@ -427,6 +464,7 @@ def encode(model: Model, data: dict) -> dict:
                   "sections": {n: s["version"] for n, s in sections.items()},
                   "reserved": dict(SPEC["reserved"]),
                   "counts": {"keys": len(keys), "segments": sum(len(s) for s in model.segments),
+                             "moments": len(moments.rows),
                              "waters": len(model.parts),
                              "parts": sum(len(p) for p in model.parts.values()),
                              "fish": len(fish)}},
@@ -435,6 +473,8 @@ def encode(model: Model, data: dict) -> dict:
         "fish": fish,
         "keys": keys,
         "segments": segs.rows,
+        "moments": moments.rows,
+        "segment_moments": seg_moments.rows,
         "parts": model.parts,
         "sections": sections,
     }
@@ -467,11 +507,13 @@ def decode(wire: dict, data: dict) -> Model:
     if wire["about"]["export"]["rule_ids_sha256"] != rule_ids_digest(data["rule_ids"]):
         raise AnswersError("answers: rule_ids_sha256 is not the export's rule_ids")
     rules, fish = data["rule_ids"], wire["fish"]
-    keys, segments = [], []
+    keys, segments, at = [], [], []
     for k in wire["keys"]:
         keys.append((k[0], k[1], bool(k[2]), k[3], bool(k[4]), tuple(k[5]), tuple(k[6]), k[7],
                      bool(k[8])))
         segments.append(list(wire["segments"][k[SEG_SLOT]]))
+        m = k[MOMENT_SLOT]
+        at.append(None if m is None else [wire["moments"][i] for i in wire["segment_moments"][m]])
     sections, statics = {}, {}
     for name, sec in wire["sections"].items():
         codec = CODECS.get(name)
@@ -485,7 +527,7 @@ def decode(wire: dict, data: dict) -> Model:
              if k not in ("format", "export", "sections", "reserved", "counts")}
     return Model(about=about, keys=keys, parts=wire["parts"], segments=segments,
                  sections=sections, versions={n: s["version"] for n, s in wire["sections"].items()},
-                 statics=statics)
+                 statics=statics, moments=at)
 
 
 def spec_gaps(wire: dict) -> List[str]:
@@ -512,15 +554,31 @@ def spec_gaps(wire: dict) -> List[str]:
 # A tap (the page's lookup, in Python)
 # --------------------------------------------------------------------------------------------
 
-def segment_index(starts: List[int], day: int) -> int:
+def segment_index(starts: List[int], day: int, moments: Optional[List[dict]] = None,
+                  weekday: Optional[str] = None, inside: bool = False) -> int:
+    """The segment holding a day (§2). Where the day's start repeats (`moments`), the one whose
+    moment holds `weekday` (a `calendar.WEEKDAYS` name) and, with an hours window, is inside it
+    or not (`inside`); a weekday must then be given."""
     if not 1 <= day <= DAYS:
         raise AnswersError(f"answers: day {day} is not 1..{DAYS}")
-    return bisect_right(starts, day) - 1
+    s = bisect_right(starts, day) - 1
+    if moments is None or (s == 0 or starts[s - 1] != starts[s]) and \
+            (s + 1 == len(starts) or starts[s + 1] != starts[s]):
+        return s
+    if weekday is None:
+        raise AnswersError(f"answers: day {day} reads differently by weekday or hour — name one")
+    first = starts.index(starts[s])
+    for i in range(first, s + 1):
+        m = moments[i]
+        if weekday in m["weekdays"] and (m["hours"] is None or m["hours"]["in"] == inside):
+            return i
+    raise AnswersError(f"answers: no moment of day {day} holds {weekday} (inside={inside})")
 
 
 def tap(wire: dict, data: dict, item: str, part: int, month: int, day: int,
         fish: Optional[str] = None, origin: Optional[str] = None,
-        profile: Optional[int] = None) -> Optional[dict]:
+        profile: Optional[int] = None, weekday: Optional[str] = None,
+        inside: bool = False) -> Optional[dict]:
     """What the page reads for one tap: {section name: its frame}, the fish's entry for that origin
     where a section is per fish (ladder, answer, rows' decided answer), the profile's answer for
     the licence — or None for a part with no rule set. A fish the key does not answer is refused
@@ -529,7 +587,11 @@ def tap(wire: dict, data: dict, item: str, part: int, month: int, day: int,
     if k is None:
         return None
     key = wire["keys"][k]
-    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of((month, day)))
+    m = key[MOMENT_SLOT]
+    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of((month, day)),
+                      None if m is None else [wire["moments"][i]
+                                              for i in wire["segment_moments"][m]],
+                      weekday, inside)
     out = {}
     for name, sec in wire["sections"].items():
         frame = CODECS[name].decode_frame(sec, sec["at"][k][s], data["rule_ids"], wire["fish"])

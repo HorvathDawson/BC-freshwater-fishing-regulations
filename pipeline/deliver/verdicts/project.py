@@ -10,7 +10,7 @@ function from the stored frames (a check of the column, not a second definition)
 """
 from __future__ import annotations
 
-from typing import Callable, Iterable, Mapping, Optional
+from typing import Callable, Dict, Iterable, List, Mapping, Optional
 
 from pipeline.deliver import types as T
 
@@ -26,6 +26,20 @@ def closes(rows: Iterable[tuple], grade: Mapping[int, Optional[str]]) -> bool:
 def closed(verdict_of: Callable[[str], Iterable[tuple]], grade: Mapping[int, Optional[str]]) -> bool:
     """Closed on a reading: every game fish's origin-none verdict closes (`verdict_of(fish)`)."""
     return all(closes(verdict_of(f), grade) for f in T.GAME_FISH)
+
+
+def closing(verdict_of: Callable[[str], Iterable[tuple]],
+            grade: Mapping[int, Optional[str]]) -> Dict[int, List[str]]:
+    """WHICH RULES CLOSE (gap G1, answers 2.1): {rule: [game fish it closes]} — every rule that,
+    in a game fish's origin-none verdict, speaks as a full closure not partly lifted (`closes`,
+    rule by rule). `closed` holds exactly when every game fish is under one of them. The answers'
+    `display` frame ships it; the page never re-derives it from the ladder."""
+    out: Dict[int, List[str]] = {}
+    for f in T.GAME_FISH:
+        for r in verdict_of(f):
+            if r[1] == SPEAKS and grade[r[0]] == "full" and not r[4]:
+                out.setdefault(r[0], []).append(f)
+    return out
 
 
 def beyond_base(rule: dict, via: str) -> bool:

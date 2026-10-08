@@ -3,7 +3,7 @@
     python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
 
 `read.effective_rules_bound(trace=True)` answers, for every rule key of the bundle (`rule_key`),
-every distinct reading of its year (`calendar.segments`), every fish asked (every game fish, plus
+every distinct reading of its year at every MOMENT of the key (`calendar.moments` + `calendar.moment_segments`: weekday classes, inside / outside an hours window — answers 2.1), every fish asked (every game fish, plus
 crayfish, chinook and the protected species a member rule names) and every origin (none, hatchery,
 wild), and the answer is stored exactly as returned — speakers and losers, each loser's reason
 and `by`, every partial lift — interned, in `verdicts.sqlite` beside `bundle.sqlite` (decision

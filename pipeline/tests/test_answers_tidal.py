@@ -100,13 +100,14 @@ def test_mutation_the_licence_half_returns_to_no_licence_needed(monkeypatch):
     assert all(p.get("none_needed") is True for p in t["licence"]["profiles"])
 
 
-def test_the_tidal_sections_are_version_2():
-    assert {s.name: s.version for s in A.SECTIONS if s.name in ("display", "gear", "licence")} == {
-        "display": 2, "gear": 2, "licence": 2}
+def test_the_tidal_sections_carry_their_versions():
+    # answers 2.1 (moments; display `closing`): display 3, gear 3; the licence stays 2
+    want = {"display": 3, "gear": 3, "licence": 2}
+    assert {s.name: s.version for s in A.SECTIONS if s.name in want} == want
     from pipeline.deliver.answers.encode import SPEC
-    for name in ("display", "gear", "licence"):
+    for name in want:
         sec = SPEC["sections"][name]
-        assert sec["version"] == "2" and "tidal" in json.dumps(sec).lower(), name
+        assert sec["version"] == str(want[name]) and "tidal" in json.dumps(sec).lower(), name
 
 
 def test_the_page_view_projections_read_a_tidal_frame():

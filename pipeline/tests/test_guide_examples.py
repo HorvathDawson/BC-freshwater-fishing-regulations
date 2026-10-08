@@ -51,8 +51,20 @@ def test_each_example_reasked(ex):
         db.close()
     assert sid is not None, f"no section of {ex.water} carries {ex.speaks + ex.part}"
     m, d = (int(x) for x in ex.date.split("-"))
+    from pipeline.deliver import calendar as CAL
+    rules = RD._rules_of(str(BUNDLE))
+    db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    try:
+        bound = [rules[(e, r)] for e, r in db.execute(
+            "SELECT r.entry_id, r.rule_id FROM section_ruleset s JOIN ruleset r "
+            "ON r.set_id = s.set_id WHERE s.sid = ?", (sid,))]
+    finally:
+        db.close()
+    ms = CAL.moments(bound)
+    mi = G.moment_of(ex, ms)
     got = {f"{x['entry']}::{x['rule']}": x["state"]
-           for x in RD.effective_rules(sid, (m, d), ex.fish, str(BUNDLE))}
+           for x in RD.effective_rules(sid, (m, d), ex.fish, str(BUNDLE),
+                                       at=None if mi is None else ms[mi])}
     for r in ex.speaks:
         assert got.get(r) == "speaks", (r, got.get(r))
     for r in ex.silent:

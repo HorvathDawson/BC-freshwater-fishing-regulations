@@ -6,6 +6,65 @@
     "StatusFrame": {
      "additionalProperties": false,
      "properties": {
+      "closing": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "minimum": 0,
+          "type": "integer"
+         },
+         {
+          "items": {
+           "enum": [
+            "RB",
+            "ST",
+            "CT",
+            "GB",
+            "DV",
+            "LT",
+            "EB",
+            "LW",
+            "MW",
+            "LMB",
+            "SMB",
+            "KO",
+            "GR",
+            "BB",
+            "WSG",
+            "BCB",
+            "NP",
+            "YP",
+            "WP",
+            "GE",
+            "IN",
+            "CRA",
+            "CH",
+            "CULTUS_LAKE_SCULPIN",
+            "ENOS_LAKE_STICKLEBACK",
+            "MISTY_LAKE_STICKLEBACK",
+            "NOOKSACK_DACE",
+            "PAXTON_LAKE_STICKLEBACK",
+            "ROCKY_MOUNTAIN_SCULPIN",
+            "SHORTHEAD_SCULPIN",
+            "SALISH_SUCKER",
+            "VANANDA_CREEK_STICKLEBACK",
+            "VANCOUVER_LAMPREY",
+            "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+            "WHITE_STURGEON_PROTECTED_POPULATIONS",
+            "GREEN_STURGEON"
+           ],
+           "type": "string"
+          },
+          "type": "array"
+         }
+        ],
+        "type": "array"
+       },
+       "title": "Closing",
+       "type": "array"
+      },
       "status": {
        "enum": [
         "base",
@@ -17,7 +76,8 @@
       }
      },
      "required": [
-      "status"
+      "status",
+      "closing"
      ],
      "title": "StatusFrame",
      "type": "object"
@@ -4688,6 +4748,118 @@
    ],
    "title": "RowsFrame",
    "type": "object"
+  },
+  "top.moments": {
+   "$defs": {
+    "ClockTime": {
+     "additionalProperties": false,
+     "properties": {
+      "at": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "At"
+      },
+      "offset_min": {
+       "title": "Offset Min",
+       "type": "integer"
+      },
+      "solar": {
+       "anyOf": [
+        {
+         "enum": [
+          "sunrise",
+          "sunset"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Solar"
+      }
+     },
+     "required": [
+      "offset_min"
+     ],
+     "title": "ClockTime",
+     "type": "object"
+    },
+    "Moment": {
+     "additionalProperties": false,
+     "description": "When in the week and the day a segment holds (`calendar.Moment.as_json`).",
+     "properties": {
+      "hours": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/MomentHours"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "weekdays": {
+       "items": {
+        "enum": [
+         "Monday",
+         "Tuesday",
+         "Wednesday",
+         "Thursday",
+         "Friday",
+         "Saturday",
+         "Sunday"
+        ],
+        "type": "string"
+       },
+       "maxItems": 7,
+       "minItems": 1,
+       "title": "Weekdays",
+       "type": "array"
+      }
+     },
+     "required": [
+      "weekdays",
+      "hours"
+     ],
+     "title": "Moment",
+     "type": "object"
+    },
+    "MomentHours": {
+     "additionalProperties": false,
+     "properties": {
+      "end": {
+       "$ref": "#/$defs/ClockTime"
+      },
+      "in": {
+       "title": "In",
+       "type": "boolean"
+      },
+      "start": {
+       "$ref": "#/$defs/ClockTime"
+      }
+     },
+     "required": [
+      "start",
+      "end",
+      "in"
+     ],
+     "title": "MomentHours",
+     "type": "object"
+    }
+   },
+   "items": {
+    "$ref": "#/$defs/Moment"
+   },
+   "type": "array"
   }
  }
 }

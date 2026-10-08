@@ -629,6 +629,20 @@ class LicenceFrame(Model):
 
 class StatusFrame(Model):
     status: Literal["base", "own", "closed"]
+    #: gap G1 (answers 2.1): every full closure that speaks, not partly lifted, for some game
+    #: fish, with the game fish it closes (`verdicts.project.closing`); status `closed` <=> every
+    #: game fish is under one of them
+    closing: Tuple[Tuple[RuleIx, Tuple[FishLit, ...]], ...]
+
+    @model_validator(mode="after")
+    def _closing_closes(self):
+        if any(not fs for _, fs in self.closing):
+            raise ValueError("a closing rule closes at least one fish")
+        if self.status == "closed":
+            shut = {f for _, fs in self.closing for f in fs}
+            if not set(T.GAME_FISH) <= shut:
+                raise ValueError("status closed, but the closing rules leave a game fish open")
+        return self
 
 
 class TidalStatus(Model):
@@ -686,6 +700,38 @@ class WaterFacts(Model):
 
 
 # --------------------------------------------------------------------------------------------
+# The top level: a segment's MOMENT (answers 2.1)
+# --------------------------------------------------------------------------------------------
+
+WeekdayLit = Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+class ClockTime(Model):
+    at: Optional[StrictStr] = None                   # "HH:MM" — or a solar event:
+    solar: Optional[Literal["sunrise", "sunset"]] = None
+    offset_min: StrictInt
+
+    @model_validator(mode="after")
+    def _one(self):
+        if (self.at is None) == (self.solar is None):
+            raise ValueError("a time is a clock time (`at`) or a solar event (`solar`), not both")
+        return self
+
+
+class MomentHours(Model):
+    start: ClockTime
+    end: ClockTime
+    in_: StrictBool = Field(alias="in")              # inside the window (else every other hour)
+    model_config = ConfigDict(strict=True, extra="forbid", frozen=True, populate_by_name=True)
+
+
+class Moment(Model):
+    """When in the week and the day a segment holds (`calendar.Moment.as_json`)."""
+    weekdays: Tuple[WeekdayLit, ...] = Field(min_length=1, max_length=7)
+    hours: Optional[MomentHours]                     # None: every hour of those days
+
+
+# --------------------------------------------------------------------------------------------
 # The sections' frames, and validation
 # --------------------------------------------------------------------------------------------
 
@@ -696,6 +742,9 @@ FRAMES: Dict[str, TypeAdapter] = {
     "licence": TypeAdapter(LicenceFrame),
     "display": TypeAdapter(DisplayFrame),
 }
+#: The top-level tables' models (not sections): `moments`.
+TOP: Dict[str, TypeAdapter] = {"moments": TypeAdapter(Tuple[Moment, ...])}
+
 STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "rules"): TypeAdapter(Tuple[RuleFacts, ...]),
     ("display", "waters"): TypeAdapter(Dict[StrictStr, WaterFacts]),
@@ -743,7 +792,16 @@ def json_schemas() -> dict:
     """The JSON Schema of every frame and static model (shipped in the file's `spec`)."""
     out = {name: ad.json_schema(by_alias=True) for name, ad in FRAMES.items()}
     out.update({f"{n}.{t}": ad.json_schema(by_alias=True) for (n, t), ad in STATICS.items()})
+    out.update({f"top.{t}": ad.json_schema(by_alias=True) for t, ad in TOP.items()})
     return out
+
+
+def validate_top(name: str, value) -> None:
+    """Validate a top-level table (`TOP`) against its model."""
+    try:
+        TOP[name].validate_json(_wire(value))
+    except Exception as e:
+        raise ShapeError(f"answers/2: top-level `{name}` is not its model: {e}") from None
 
 
 # --------------------------------------------------------------------------------------------

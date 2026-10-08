@@ -268,20 +268,28 @@ class Part:
 
 @dataclass(frozen=True, slots=True)
 class Reading:
-    """One distinct reading of a key's year: the day the reader is asked on, and whether every
-    game fish is under a speaking full closure then (the status predicate, stored once)."""
+    """One distinct reading of a key's year: the day and the moment (index into the key's
+    `calendar.moments`) the reader is asked at, and whether every game fish is under a speaking
+    full closure then (the status predicate, stored once)."""
     key: int
     ix: int
     first_day: int
     closed: bool
+    moment: int = 0
 
 
 @dataclass(frozen=True, slots=True)
 class Segment:
-    """A contiguous run of days of a key's year, from `start` to the day before the next start."""
+    """A contiguous run of days of a key's year at one moment, from `start` to the day before the
+    next start of the same moment."""
     key: int
     start: int
     reading: int
+    moment: int = 0
+
+
+#: When in the week and the day a reading holds (`calendar.Moment`; answers 2.1).
+from pipeline.deliver.calendar import ALWAYS, Moment  # noqa: E402,F401
 
 
 class VerdictRow(NamedTuple):

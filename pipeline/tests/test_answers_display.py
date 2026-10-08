@@ -81,7 +81,11 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
     assert sum(v["plain"] is not None for v in page["expect"]["rules"].values()) > 150
 
 
-def test_part_labels_match_the_page(page):
+def test_part_labels_match_the_page(page, monkeypatch):
+    # review C2 (answers 2.1): a part of side channels only now says where they join the river;
+    # the page's own words (the golden) said only "N side channels" — read as the page did here,
+    # and the new words are pinned in `test_side_channel_parts_say_where_they_join`
+    monkeypatch.setattr(X, "_joining", lambda side: "")
     doc, ws = page_doc(page)
     bad = []
     for want in page["expect"]["waters"]:
@@ -220,3 +224,15 @@ def test_every_export_part_has_one_key_and_closed_all_year_is_the_status_index(l
         by_reader = all(SI.status_by_reader(sid, d, B.path) in (SI.CLOSED, SI.TIDAL) for d in days)
         if X.closed_all_year(store, B.key_ix[k]):
             assert by_reader, k
+
+
+def test_side_channel_parts_say_where_they_join():
+    """Review C2: "5 side channels" gave no place; the branch runs' `km_from` (the main stem's
+    measure where each leaves, from the mouth) now says where."""
+    doc = {"waters": {}}
+    side = [{"from": "source", "to": "mouth", "km_from": k, "km_to": k, "branch": True}
+            for k in (5.46, 4.08, 1.12)]
+    assert X.runs_label(doc, {"runs": side}) == "3 side channels, joining 1.1–5.5 km from the mouth"
+    assert X.runs_label(doc, {"runs": side[:1]}) == "Side channel, joining 5.5 km from the mouth"
+    none = [dict(r, km_from=None) for r in side]
+    assert X.runs_label(doc, {"runs": none}) == "3 side channels"

@@ -2,8 +2,10 @@
 problem found (empty: the file holds):
 
   * every key of the bundle has a key_meta row (when the file is a full build);
-  * every key's segments start on day 1 and cover 366 days, and every reading is used, its
-    `first_day` the first day of its first segment;
+  * every key's moments are 0..n-1 and partition the week (their weekday masks, each taken once
+    or, with an hours window, once outside and once inside it), and at every moment its segments
+    start on day 1 and cover 366 days; every reading is used, its (`first_day`, `moment`) the
+    first segment holding it, moment by moment;
   * every (key, reading, asked fish, origin) has exactly one frame;
   * every rule in a verdict, and every `by` and lifter, is a member of the key's rule set;
   * `reading.closed` equals the predicate (`project.closed`) recomputed from the stored frames
@@ -38,12 +40,18 @@ def check(db: sqlite3.Connection, bundle: str, *, all_keys: bool = True) -> List
     keys = [k for (k,) in db.execute("SELECT key_ix FROM key_meta ORDER BY key_ix")]
     if all_keys and keys != sorted(key_set):
         out.append(f"{len(set(key_set) - set(keys))} rule keys of the bundle have no verdicts")
-    seg: Dict[int, list] = defaultdict(list)
-    for k, start, r in db.execute("SELECT key_ix, start, reading FROM segment ORDER BY key_ix, start"):
-        seg[k].append((start, r))
+    mo: Dict[int, list] = defaultdict(list)
+    for k, m, wd, h, ins in db.execute("SELECT key_ix, moment, weekdays, hours, inside FROM moment "
+                                       "ORDER BY key_ix, moment"):
+        mo[k].append((m, wd, h, ins))
+    seg: Dict[tuple, list] = defaultdict(list)
+    for k, m, start, r in db.execute("SELECT key_ix, moment, start, reading FROM segment "
+                                     "ORDER BY key_ix, moment, start"):
+        seg[(k, m)].append((start, r))
     rd: Dict[int, dict] = defaultdict(dict)
-    for k, r, first, closed in db.execute("SELECT key_ix, reading, first_day, closed FROM reading"):
-        rd[k][r] = (first, closed)
+    for k, r, first, m, closed in db.execute("SELECT key_ix, reading, first_day, moment, closed "
+                                             "FROM reading"):
+        rd[k][r] = ((first, m), closed)
     fish: Dict[int, set] = defaultdict(set)
     for k, f in db.execute("SELECT key_ix, fish FROM key_fish"):
         fish[k].add(f)
@@ -63,20 +71,39 @@ def check(db: sqlite3.Connection, bundle: str, *, all_keys: bool = True) -> List
 
     none = T.code(T.AskOrigin.none)
     for k in keys:
-        s = seg[k]
-        if not s or s[0][0] != 1:
-            out.append(f"key {k}: its segments do not start on day 1")
+        ms = mo[k]
+        if not ms or [m for m, *_ in ms] != list(range(len(ms))):
+            out.append(f"key {k}: its moments are not 0..n-1")
             continue
-        if any(a >= b for (a, _), (b, _) in zip(s, s[1:])) or s[-1][0] > DAYS:
-            out.append(f"key {k}: its segments are not 1..{DAYS} in order")
-        used = {r for _, r in s}
+        cover = defaultdict(int)
+        for _, wd, h, ins in ms:
+            cover[(h, ins)] |= wd
+            if (h is None) != (ins is None):
+                out.append(f"key {k}: a moment's `inside` does not go with its `hours`")
+        hs = {h for h, _ in cover}
+        want = {(None, None): 127} if hs == {None} else \
+            {(h, i): 127 for h in hs for i in (0, 1)} if None not in hs and len(hs) == 1 else None
+        if want is None or dict(cover) != want or \
+                sum(bin(wd).count("1") for _, wd, _, _ in ms) != 7 * len(want):
+            out.append(f"key {k}: its moments do not partition the week (and the hours window)")
+        used, first_of, bad = set(), {}, False
+        for m, *_ in ms:
+            s = seg[(k, m)]
+            if not s or s[0][0] != 1:
+                out.append(f"key {k} moment {m}: its segments do not start on day 1")
+                bad = True
+                break
+            if any(a >= b for (a, _), (b, _) in zip(s, s[1:])) or s[-1][0] > DAYS:
+                out.append(f"key {k} moment {m}: its segments are not 1..{DAYS} in order")
+            for d, r in s:
+                used.add(r)
+                first_of.setdefault(r, (d, m))
+        if bad:
+            continue
         if used != set(rd[k]):
             out.append(f"key {k}: readings {sorted(set(rd[k]) ^ used)} unused or missing")
-        first_of = {}
-        for d, r in s:
-            first_of.setdefault(r, d)
         if any(rd[k][r][0] != first_of.get(r) for r in rd[k]):
-            out.append(f"key {k}: a reading's first_day is not its first segment's start")
+            out.append(f"key {k}: a reading's (first_day, moment) is not its first segment's")
         if not game <= fish[k]:
             out.append(f"key {k}: not every game fish is asked")
         frames = db.execute("SELECT reading, fish, origin, verdict FROM frame WHERE key_ix = ?",

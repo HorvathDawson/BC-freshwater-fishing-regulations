@@ -149,7 +149,7 @@ def _full():
 @pytest.mark.slow
 def test_every_stored_frame_is_a_fresh_reader_call():
     """Every key, one sampled reading and three sampled fish each, all three origins: the stored
-    verdict equals the traced reader asked afresh on the reading's first day."""
+    verdict equals the traced reader asked afresh on the reading's first day, at its moment."""
     S = _full()
     db = _bundle()
     bound = {}
@@ -166,7 +166,8 @@ def test_every_stored_frame_is_a_fresh_reader_call():
             for o in ("none", "hatchery", "wild"):
                 want = VB.verdict_of(read.effective_rules_bound(
                     bound[s], bool(sw), month_day(rd.first_day), f, str(BUNDLE),
-                    steelhead_rules_here=bool(sr), origin=None if o == "none" else o, trace=True), ix)
+                    steelhead_rules_here=bool(sr), origin=None if o == "none" else o, trace=True,
+                    at=S.moments(k)[rd.moment]), ix)
                 assert S.rows(S.verdict_id(k, rd.ix, f, o)) == want, (k, rd, f, o)
                 n += 1
     assert n > 10_000
@@ -192,7 +193,8 @@ def test_the_origin_shortcut_equals_full_asks_on_every_key():
                 for o in read.ASKABLE_ORIGINS:
                     got = VB.verdict_of(read.effective_rules_bound(
                         bound[s], bool(sw), month_day(rd.first_day), f, str(BUNDLE),
-                        steelhead_rules_here=bool(sr), origin=o, trace=True), ix)
+                        steelhead_rules_here=bool(sr), origin=o, trace=True,
+                        at=S.moments(k)[rd.moment]), ix)
                     assert got == S.rows(S.verdict_id(k, rd.ix, f, "none")), (k, rd.ix, f, o)
                     checked += 1
     assert checked > 10_000

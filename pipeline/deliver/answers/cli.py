@@ -51,7 +51,7 @@ def cmd_build(a) -> int:
     for name, sec in wire["sections"].items():
         b = json.dumps(sec, separators=(",", ":")).encode()
         per[name] = {"raw": len(b), "gz": len(gzip.compress(b, 9, mtime=0))}
-    for name in ("keys", "segments", "parts", "fish", "spec"):
+    for name in ("keys", "segments", "moments", "segment_moments", "parts", "fish", "spec"):
         b = json.dumps(wire[name], separators=(",", ":")).encode()
         per[name] = {"raw": len(b), "gz": len(gzip.compress(b, 9, mtime=0))}
     counts = wire["about"]["counts"]
@@ -201,7 +201,13 @@ def page_view(wire: dict, data: dict, guide: dict, golden: Path) -> dict:
         pi = parts_by_pk[(item, pk)]
         k = wire["parts"][item][pi]
         key = wire["keys"][k]
-        s = E.segment_index(wire["segments"][key[E.SEG_SLOT]], day_of((md // 100, md % 100)))
+        # the golden page knew no moments: a part that reads by weekday or hour (answers 2.1) is
+        # compared on a Monday, outside any hours window — named, never the last segment by chance
+        m = key[E.MOMENT_SLOT]
+        s = E.segment_index(wire["segments"][key[E.SEG_SLOT]], day_of((md // 100, md % 100)),
+                            None if m is None else [wire["moments"][i]
+                                                    for i in wire["segment_moments"][m]],
+                            "Monday", False)
         sec = wire["sections"][name]
         ref = sec["at"][k][s]
         got = cache.get((name, ref))

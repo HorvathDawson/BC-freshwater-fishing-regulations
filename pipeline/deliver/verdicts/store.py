@@ -10,8 +10,11 @@ the reader is a refusal until both move together.
   enum_*        the codes: rule state, loss reason (with the ONE state it gives), fish, origin
   key_meta      per rule key: `own` — a water table's row binds the set (the status floor)
   key_fish      per rule key: the fish asked (every game fish + the extras a member rule names)
-  reading       per rule key: each distinct reading of its year, the day it is asked on, `closed`
-  segment       per rule key: the runs of days, each to a reading (cover 1..366, start on 1)
+  moment        per rule key: its moments (`calendar.moments`: a weekday class, inside / outside
+                its hours window) — one, ALWAYS, for a key with no weekday or hours rule
+  reading       per rule key: each distinct reading, the day and moment it is asked at, `closed`
+  segment       per rule key and moment: the runs of days, each to a reading (cover 1..366, start
+                on 1) — format verdicts/2 (answers 2.1) added the moment
   verdict_rule  one rule's line in an interned verdict: state; a loser's reason and `by`
   verdict_lifter  the rules lifting a speaker in part
   frame         (key, reading, fish, origin) -> verdict: the address of one reader call
@@ -26,7 +29,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
 
-FORMAT = "verdicts/1"
+FORMAT = "verdicts/2"
 
 #: The digests a verdicts file must share with its bundle (meta keys of both).
 DIGESTS = ("section_handles", "reach_digest", "rule_ids_sha256")
@@ -46,15 +49,26 @@ CREATE TABLE key_meta (key_ix INTEGER PRIMARY KEY CHECK (key_ix >= 0),
 CREATE TABLE key_fish (key_ix INTEGER NOT NULL REFERENCES key_meta(key_ix),
                        fish INTEGER NOT NULL REFERENCES enum_fish(code),
                        PRIMARY KEY (key_ix, fish)) WITHOUT ROWID;
+CREATE TABLE moment (key_ix INTEGER NOT NULL REFERENCES key_meta(key_ix),
+                     moment INTEGER NOT NULL CHECK (moment >= 0),
+                     weekdays INTEGER NOT NULL CHECK (weekdays BETWEEN 1 AND 127),
+                     hours TEXT,
+                     inside INTEGER CHECK (inside IN (0, 1)),
+                     CHECK ((hours IS NULL) = (inside IS NULL)),
+                     PRIMARY KEY (key_ix, moment)) WITHOUT ROWID;
 CREATE TABLE reading (key_ix INTEGER NOT NULL REFERENCES key_meta(key_ix),
                       reading INTEGER NOT NULL CHECK (reading >= 0),
                       first_day INTEGER NOT NULL CHECK (first_day BETWEEN 1 AND 366),
+                      moment INTEGER NOT NULL,
                       closed INTEGER NOT NULL CHECK (closed IN (0, 1)),
-                      PRIMARY KEY (key_ix, reading)) WITHOUT ROWID;
+                      PRIMARY KEY (key_ix, reading),
+                      FOREIGN KEY (key_ix, moment) REFERENCES moment(key_ix, moment)) WITHOUT ROWID;
 CREATE TABLE segment (key_ix INTEGER NOT NULL,
+                      moment INTEGER NOT NULL,
                       start INTEGER NOT NULL CHECK (start BETWEEN 1 AND 366),
                       reading INTEGER NOT NULL,
-                      PRIMARY KEY (key_ix, start),
+                      PRIMARY KEY (key_ix, moment, start),
+                      FOREIGN KEY (key_ix, moment) REFERENCES moment(key_ix, moment),
                       FOREIGN KEY (key_ix, reading) REFERENCES reading(key_ix, reading))
                       WITHOUT ROWID;
 CREATE TABLE verdict_rule (
@@ -137,7 +151,8 @@ class VerdictStore:
     rule_ids: List[str]                                  # RuleIx -> "entry::rule"
     grade: Dict[int, Optional[str]]                      # RuleIx -> rule.closure_grade
     _fish_code: Dict[str, int] = field(default_factory=dict)
-    _segments: Optional[Dict[int, List[Tuple[int, int]]]] = None
+    _segments: Optional[Dict[int, List[List[Tuple[int, int]]]]] = None
+    _moments: Optional[Dict[int, List[T.Moment]]] = None
     _readings: Optional[Dict[int, List[T.Reading]]] = None
     _own: Optional[Dict[int, bool]] = None
     _fish: Optional[Dict[int, Tuple[str, ...]]] = None
@@ -183,14 +198,22 @@ class VerdictStore:
     def _load(self) -> None:
         if self._segments is not None:
             return
-        seg: Dict[int, List[Tuple[int, int]]] = {}
-        for k, start, r in self.db.execute("SELECT key_ix, start, reading FROM segment "
-                                           "ORDER BY key_ix, start"):
-            seg.setdefault(k, []).append((start, r))
+        mo: Dict[int, List[T.Moment]] = {}
+        for k, m, wd, h, ins in self.db.execute("SELECT key_ix, moment, weekdays, hours, inside "
+                                                "FROM moment ORDER BY key_ix, moment"):
+            if m != len(mo.setdefault(k, [])):
+                raise VerdictsError(f"verdicts: rule key {k}'s moments are not 0..n-1")
+            mo[k].append(T.Moment(wd, h, None if ins is None else bool(ins)).check())
+        seg: Dict[int, List[List[Tuple[int, int]]]] = {k: [[] for _ in v] for k, v in mo.items()}
+        for k, m, start, r in self.db.execute("SELECT key_ix, moment, start, reading FROM segment "
+                                              "ORDER BY key_ix, moment, start"):
+            seg[k][m].append((start, r))
         rd: Dict[int, List[T.Reading]] = {}
-        for k, r, first, closed in self.db.execute("SELECT key_ix, reading, first_day, closed "
-                                                   "FROM reading ORDER BY key_ix, reading"):
-            rd.setdefault(k, []).append(T.Reading(k, r, first, bool(closed)))
+        for k, r, first, m, closed in self.db.execute(
+                "SELECT key_ix, reading, first_day, moment, closed FROM reading "
+                "ORDER BY key_ix, reading"):
+            rd.setdefault(k, []).append(T.Reading(k, r, first, bool(closed), m))
+        self._moments = mo
         fish: Dict[int, List[str]] = {}
         for k, f in self.db.execute("SELECT key_ix, fish FROM key_fish ORDER BY key_ix, fish"):
             fish.setdefault(k, []).append(T.by_code(T.FishCode, f).value)
@@ -203,18 +226,35 @@ class VerdictStore:
         self._load()
         return sorted(self._own)
 
-    def runs(self, key: int) -> List[Tuple[int, int]]:
-        """[(start day, reading)] covering 1..366."""
+    def moments(self, key: int) -> List[T.Moment]:
+        """The key's moments (`calendar.moments`): [ALWAYS] unless a member rule holds on some
+        weekdays or hours only."""
         self._load()
-        return self._segments[key]
+        return self._moments[key]
+
+    def _moment(self, key: int, moment: Optional[int]) -> int:
+        n = len(self.moments(key))
+        if moment is None:
+            if n != 1:
+                raise VerdictsError(f"verdicts: rule key {key} reads differently at {n} moments "
+                                    f"(weekdays / hours) — ask one (`moment=`)")
+            return 0
+        if not 0 <= moment < n:
+            raise VerdictsError(f"verdicts: rule key {key} has no moment {moment} (0..{n - 1})")
+        return moment
+
+    def runs(self, key: int, moment: Optional[int] = None) -> List[Tuple[int, int]]:
+        """[(start day, reading)] covering 1..366, at one moment (a key with one moment: None)."""
+        self._load()
+        return self._segments[key][self._moment(key, moment)]
 
     def readings(self, key: int) -> List[T.Reading]:
         self._load()
         return self._readings[key]
 
-    def reading_of(self, key: int, day: int) -> int:
+    def reading_of(self, key: int, day: int, moment: Optional[int] = None) -> int:
         from pipeline.deliver.calendar import reading_of
-        return reading_of(self.runs(key), day)
+        return reading_of(self.runs(key, moment), day)
 
     def closed(self, key: int, reading: int) -> bool:
         return self.readings(key)[reading].closed
@@ -271,6 +311,7 @@ class VerdictStore:
                                   None if rs is None else T.by_code(T.LossReason, rs), b, l)
                      for r, s, rs, b, l in self.rows(self.verdict_id(key, reading, fish, origin)))
 
-    def on_day(self, key: int, day: int, fish: str, origin: str = "none"):
-        """The verdict for a key on a day (1..366)."""
-        return self.verdict(key, self.reading_of(key, day), fish, origin)
+    def on_day(self, key: int, day: int, fish: str, origin: str = "none",
+               moment: Optional[int] = None):
+        """The verdict for a key on a day (1..366), at a moment (a key with one moment: None)."""
+        return self.verdict(key, self.reading_of(key, day, moment), fish, origin)

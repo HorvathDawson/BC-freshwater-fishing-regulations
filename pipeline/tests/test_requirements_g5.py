@@ -24,7 +24,10 @@ JUL_1 = (7, 1)
 
 KHARTOUM_LAKE = "wbk:329197063"               # a book-known steelhead lake by its own row (AGENTS 54)
 SHUSWAP_LAKE = "wbk:329518145"
-NITINAT_RIVER = "gnis:23318"                  # in Pacific Rim National Park Reserve
+#: A water in a national park (Yoho), its lowest section inside it. The Nitinat River (Pacific Rim)
+#: served here until its lowest section became tidal water (Nitinat Lake, FIX D12): no provincial
+#: requirement holds there, so both tests skipped — never point them at a water that can skip.
+PARK_WATER = "gnis:9991"                      # Amiskwi River, Yoho National Park
 STAMP_KNOWN = "zp:steelhead#steelhead_targeting_known"
 CHAR_STAMP = "zp:shuswap_char_stamp#shuswap_char_stamp"
 CHAR_STAMP_ROW = ("r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
@@ -151,14 +154,13 @@ def test_a_restatement_binds_as_the_record_it_restates(db, copy_db):
 # --------------------------------------------------------------------------------------------
 
 def test_a_national_park_permit_displaces_the_provincial_requirements(db, copy_db):
-    """On the Nitinat River (Pacific Rim) the park's permit holds and the angling guide licence,
+    """On the Amiskwi River (Yoho) the park's permit holds and the angling guide licence,
     which would otherwise hold, is displaced by it. MUTATION: take away the permit's
     `authority: superior` and the guide licence holds beside it again; take away the guide
     licence's `satisfied_by` and there is nothing to displace."""
-    sid = _sid(db, NITINAT_RIVER)
+    sid = _sid(db, PARK_WATER)
     got = R.requirements_in_force(db, sid, JUL_1)
-    if PARK_PERMIT not in got["holds"]:
-        pytest.skip("the Nitinat is not in a national park in this bundle")
+    assert PARK_PERMIT in got["holds"], "the park water's lowest section is not in a national park"
     assert got["displaced"] == {GUIDE: [PARK_PERMIT]} and GUIDE not in got["holds"]
     _edit(copy_db, PARK_PERMIT, authority=None)
     got = R.requirements_in_force(copy_db, sid, JUL_1)
@@ -174,11 +176,10 @@ def test_the_licence_answer_reads_the_readers_g5(db):
     displaced requirement is shown (a row) but sells nothing."""
     from pipeline.deliver.answers import licence as L
     C = L.corpus(db)
-    sid = _sid(db, NITINAT_RIVER)
+    sid = _sid(db, PARK_WATER)
     h = L.holds(db, C, sid, JUL_1)
     got = R.requirements_in_force(db, sid, JUL_1)
-    if not got["displaced"]:
-        pytest.skip("nothing displaced on the Nitinat in this bundle")
+    assert got["displaced"] == {GUIDE: [PARK_PERMIT]}, "nothing displaced on the park water"
     assert set(h["holds"]) == set(got["holds"]) and h["displaced"] == got["displaced"]
     assert set(h["rows"]) == set(got["holds"]) | set(got["displaced"])
     for name in ("PROPOSALS_FOR_READER",):

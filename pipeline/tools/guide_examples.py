@@ -63,6 +63,8 @@ class Example:
     says: str = ""             # the claim, in a few words
     named_as: str = ""         # the name the prose uses, where it is not the item's own (a lake
                                # part: "Kootenay Lake" for "Kootenay Lake — Main Body")
+    weekday: str = ""          # where the water reads differently by weekday or hour (answers
+    inside: bool = False       # 2.1): the weekday asked, and whether inside the hours window
 
 
 E = Example
@@ -238,6 +240,13 @@ EXAMPLES: tuple[Example, ...] = (
     E("duck_lake_row_beats_cvwma", ("ladder.who_speaks",), "wbk:329246292", "07-01", "SMB",
       ("r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r1",),
       ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6::creston_valley_wma_waters.r1",)),
+    # ---- ladder.competition: weekday rules decide (user ruling 2026-10-08, review D2) ----------
+    E("lower_west_arm_kokanee_saturday", ("ladder.competition",), "wbk:-22", "07-04", "KO",
+      ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r3",), ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r4",), named_as="Kootenay Lake", weekday="Saturday",
+      says="Saturday: the arm's 'kokanee 5 per day' speaks; the weekday release is not in force"),
+    E("lower_west_arm_kokanee_monday", ("ladder.competition",), "wbk:-22", "07-06", "KO",
+      ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r4",), ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r3",), named_as="Kootenay Lake", weekday="Monday",
+      says="Monday: the arm's kokanee release speaks; the weekend 5 is not in force"),
 )
 
 #: Waters the ladder and gotcha prose NAME without making a claim about the reader's answer there —
@@ -276,6 +285,19 @@ def _section(db, ex: Example) -> int | None:
     return db.execute(q, args).fetchone()[0]
 
 
+def moment_of(ex: Example, ms: list):
+    """The index of the moment an example is asked at among its key's moments (None: one)."""
+    if len(ms) <= 1:
+        return None
+    from pipeline.deliver.calendar import WEEKDAYS
+    if not ex.weekday:
+        raise SystemExit(f"guide example {ex.id}: its water reads by weekday or hour — declare "
+                         f"`weekday`")
+    bit = 1 << WEEKDAYS.index(ex.weekday)
+    return next(i for i, mo in enumerate(ms) if mo.weekdays & bit
+                and (mo.hours is None or mo.inside == ex.inside))
+
+
 def examples(bundle: Path | str) -> dict:
     """{id: example as shipped}: the declaration and the reader's answer (`expect`) on its section
     — `expect` is None where no section of the water carries the rules it names."""
@@ -291,12 +313,19 @@ def examples(bundle: Path | str) -> dict:
         for ex in EXAMPLES:
             sid = _section(db, ex)
             m, d = (int(x) for x in ex.date.split("-"))
-            # THE STORED VERDICT of the section's rule key (DATAFLOW P5): the reader's answer
-            expect = None if sid is None else answer_on(store, key_of(sid), (m, d), ex.fish)
+            # THE STORED VERDICT of the section's rule key (DATAFLOW P5): the reader's answer, at
+            # the moment the example names where the key reads by weekday or hour
+            expect = None
+            if sid is not None:
+                k = key_of(sid)
+                ms = store.moments(k)
+                mi = moment_of(ex, ms)
+                expect = answer_on(store, k, (m, d), ex.fish, moment=mi)
             out[ex.id] = {"cited_in": list(ex.cited_in),
                           "water": {"item_id": ex.water, "name": names.get(ex.water)},
                           **({"named_as": ex.named_as} if ex.named_as else {}),
                           "date": ex.date, "fish": ex.fish, "says": ex.says,
+                          **({"weekday": ex.weekday, "inside": ex.inside} if ex.weekday else {}),
                           "speaks": list(ex.speaks), "silent": list(ex.silent),
                           **({"states": dict(ex.states)} if ex.states else {}),
                           **({"part": list(ex.part)} if ex.part else {}),

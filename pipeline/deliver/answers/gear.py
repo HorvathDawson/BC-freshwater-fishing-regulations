@@ -485,7 +485,7 @@ def _ask_fish(x: dict) -> str:
 
 
 def states(B: Bundle, bound: Sequence[Tuple[str, str, str]], md, store, key_ix: int,
-           reading: int) -> Dict:
+           reading: int, at=None) -> Dict:
     """`{(entry, rule): (state, partly_lifted) | (loss state, reason, by)}` for every
     gear-relevant rule in force on day `md`: THE READER'S ANSWER for the key's FULL rule set —
     the stored verdict of the key's reading (`verdicts.sqlite`, DATAFLOW P6; it used to re-ask the
@@ -503,7 +503,7 @@ def states(B: Bundle, bound: Sequence[Tuple[str, str, str]], md, store, key_ix: 
         x = every[k]
         if not (x.get("family") in GEAR_FAMILIES or x.get("while")):
             continue
-        if read.in_force(x.get("when"), md) == "no" or x.get("dimension") == "lift":
+        if read.in_force(x.get("when"), md, at) == "no" or x.get("dimension") == "lift":
             continue
         groups.setdefault(_ask_fish(x), []).append(k)
     out: Dict = {}
@@ -527,12 +527,13 @@ def states(B: Bundle, bound: Sequence[Tuple[str, str, str]], md, store, key_ix: 
 
 
 def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
-                ref: Callable = None, *, store, reading: int) -> dict:
-    """The gear answer for one rule key on one reading of its year (asked on day `md` of it)."""
+                ref: Callable = None, *, store, reading: int, at=None) -> dict:
+    """The gear answer for one rule key on one reading of its year (asked on day `md` of it, at
+    moment `at` — `calendar.Moment`)."""
     every = B.rules
     bound = gear_subset(B, B.sets[key.set_id])
     kind = B.set_kind.get(key.set_id)
-    st = states(B, bound, md, store, B.key_ix[key], reading)
+    st = states(B, bound, md, store, B.key_ix[key], reading, at)
     via = {(e, r): v for e, r, v in bound}
     order = sorted(via, key=lambda k: (via[k] != "reach", f"{k[0]}::{k[1]}"))
     ref = ref or (lambda k: k)
@@ -569,16 +570,27 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
                    overruled=overruled, while_rules=wr)
 
 
-def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,
-              store) -> Dict[int, dict]:
-    """The key's gear answer over the year, `{start_day: answer}`: one per READING of the key
-    (the verdicts', `store.runs`), equal neighbours merged; equal readings are answered once."""
+def gear_readings(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,
+                  store) -> List[dict]:
+    """The key's gear answer per READING of the verdicts (each asked on its first day, at its
+    moment)."""
     k = B.key_ix[key]
-    got = [gear_answer(B, key, month_day(rd.first_day), lawful, ref, store=store, reading=rd.ix)
-           for rd in store.readings(k)]
+    ms = store.moments(k)
+    return [gear_answer(B, key, month_day(rd.first_day), lawful, ref, store=store, reading=rd.ix,
+                        at=ms[rd.moment])
+            for rd in store.readings(k)]
+
+
+def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,
+              store, moment: Optional[int] = None) -> Dict[int, dict]:
+    """The key's gear answer over the year at one moment (a key with one: None), `{start_day:
+    answer}`: one per READING of the key (the verdicts', `store.runs`), equal neighbours merged;
+    equal readings are answered once."""
+    k = B.key_ix[key]
+    got = gear_readings(B, key, lawful, ref, store=store)
     out: Dict[int, dict] = {}
     last = None
-    for d, i in store.runs(k):
+    for d, i in store.runs(k, moment):
         s = dumps(got[i])
         if s != last:
             out[d] = got[i]
@@ -620,14 +632,20 @@ def section_prepare(scope: RuleKey, ctx):
     lawful = ctx.cache.get("lawful")
     if lawful is None:
         lawful = ctx.cache["lawful"] = province_methods(B.rules.values())
-    year = gear_year(B, scope, lawful, ref=lambda k: ctx.rule_index[rule_id(k)], store=ctx.store)
-    starts = sorted(year)
-    values = [json.loads(json.dumps(year[d])) for d in starts]
-    per: List[int] = []
-    for i, d in enumerate(starts):
-        end = starts[i + 1] if i + 1 < len(starts) else 367
-        per += [i] * (end - d)
-    return per, values
+    # per SLOT (day x moment, `answers.slots`): each reading's answer, equal answers once
+    st, k = ctx.store, B.key_ix[scope]
+    got = gear_readings(B, scope, lawful, ref=lambda k: ctx.rule_index[rule_id(k)], store=st)
+    values: List[dict] = []
+    seen: Dict[str, int] = {}
+    ix = []
+    for g in got:
+        s = dumps(g)
+        if s not in seen:
+            seen[s] = len(values)
+            values.append(json.loads(json.dumps(g)))
+        ix.append(seen[s])
+    from pipeline.deliver.answers.answers import slots
+    return [ix[r] for r in slots(st, k)], values
 
 
 def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
