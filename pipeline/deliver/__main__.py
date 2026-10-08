@@ -3,6 +3,7 @@
     python -m pipeline.deliver                       # every step, canonical paths
     python -m pipeline.deliver bundle [--build DIR] [--reaches DIR] [--out FILE]
     python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
+    python -m pipeline.deliver answers [--bundle FILE] [--export-dir DIR] [--out FILE]
     python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
@@ -83,6 +84,13 @@ def main(argv=None) -> int:
     e.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     e.add_argument("--out", type=Path, default=None,
                    help="the data file; ui-rules-guide.json is written beside it")
+    an = sub.add_parser("answers", help="the answers file (answers/2) beside the export pair")
+    an.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    an.add_argument("--export-dir", type=Path, default=None,
+                    help="the export pair's directory (default: the canonical export's)")
+    an.add_argument("--out", type=Path, default=None,
+                    help="default: ui-rules-answers.json in the export's directory")
+    an.add_argument("--workers", type=int, default=4)
     al = sub.add_parser("all", help="bundle, then the index and the export from THAT bundle")
     al.add_argument("--build", type=Path, default=None)
     al.add_argument("--reaches", type=Path, default=None)
@@ -110,8 +118,9 @@ def main(argv=None) -> int:
         _step(["verdicts", "--bundle", str(bundle), "--out", str(bundle.with_name("verdicts.sqlite"))])
         _step(["status_index", "--bundle", str(bundle), "--out",
                str((d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")])
-        _step(["export", "--bundle", str(bundle), "--out",
-               str((d / "ui-rules-export.json") if d else _EXPORT_OUT)])
+        export_out = (d / "ui-rules-export.json") if d else _EXPORT_OUT
+        _step(["export", "--bundle", str(bundle), "--out", str(export_out)])
+        _step(["answers", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
         from pipeline.common.vintage import report
         ok, msg = report(GENERATED.tiles, bundle)
         print(msg)
@@ -122,6 +131,15 @@ def main(argv=None) -> int:
         _verdicts(a.bundle, a.out or a.bundle.with_name("verdicts.sqlite"), a.workers)
     elif a.step == "status_index":
         _status_index(a.bundle, a.out)
+    elif a.step == "answers":
+        from pipeline.deliver.answers.cli import main as answers_main
+        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        exp = a.export_dir or _EXPORT_OUT.parent
+        out = a.out or exp / "ui-rules-answers.json"
+        rc = answers_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
+                           "--out", str(out), "--workers", str(a.workers)])
+        if rc:
+            raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
     elif a.step == "export":
         from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
         _export(a.bundle, a.out or _EXPORT_OUT)
