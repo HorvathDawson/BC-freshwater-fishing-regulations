@@ -233,7 +233,7 @@
   {
    "entry_id": "r8:bluey_lake_potholes@8-6",
    "name": "\"BLUEY LAKE POTHOLES\"",
-   "display_name": "Kentucky Se Pothole",
+   "display_name": "Bluey Lake Potholes",
    "region": "8",
    "regs_verbatim": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
    "source_pages": [
@@ -260,7 +260,7 @@
     {
      "rule_id": "bluey_lake_potholes.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -308,7 +308,7 @@
     {
      "rule_id": "burnell_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -399,7 +399,7 @@
     {
      "rule_id": "burnell_lake.r6",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -432,7 +432,7 @@
     {
      "rule_id": "butler_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -502,7 +502,7 @@
     {
      "rule_id": "chain_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -533,7 +533,7 @@
     {
      "rule_id": "chain_lake.r3",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -563,7 +563,7 @@
     {
      "rule_id": "chapman_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -663,7 +663,7 @@
     {
      "rule_id": "christina_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31",
+     "verbatim": "No Fishing north of a line between Bald and Knob Points, Mar 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -927,7 +927,7 @@
     {
      "rule_id": "eastmere_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -1120,7 +1120,7 @@
     {
      "rule_id": "five_oclock_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -1220,7 +1220,7 @@
   {
    "entry_id": "r8:friday_lake@8-6",
    "name": "FRIDAY LAKE",
-   "display_name": "Tepee Lakes",
+   "display_name": "Friday Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
@@ -1350,7 +1350,7 @@
     {
      "rule_id": "gardom_lake.r3",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -1380,7 +1380,7 @@
     {
      "rule_id": "garnet_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1407,7 +1407,7 @@
     {
      "rule_id": "garnet_lake.r3",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -1629,7 +1629,7 @@
   {
    "entry_id": "r8:hall_road_mission_pond@8-10",
    "name": "HALL ROAD (Mission) POND",
-   "display_name": "HALL ROAD POND",
+   "display_name": "Hall Road (Mission) Pond",
    "region": "8",
    "regs_verbatim": "Trout daily quota = 1; Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
    "source_pages": [
@@ -1921,7 +1921,7 @@
     {
      "rule_id": "idleback_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -2092,7 +2092,7 @@
     {
      "rule_id": "jewel_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
+     "verbatim": "No Fishing from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2369,7 +2369,7 @@
     {
      "rule_id": "kettle_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 25-Sept 15",
+     "verbatim": "No Fishing July 25-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2458,7 +2458,7 @@
     {
      "rule_id": "kettle_river_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Jul 25-Sept 15",
+     "verbatim": "No Fishing Jul 25-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2542,7 +2542,7 @@
     {
      "rule_id": "kidd_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -2645,7 +2645,7 @@
     {
      "rule_id": "kidd_lake.r7",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -2678,7 +2678,7 @@
     {
      "rule_id": "kump_lost_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -2800,7 +2800,7 @@
     {
      "rule_id": "larry_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -2992,7 +2992,7 @@
     {
      "rule_id": "loch_drinkie.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -3065,7 +3065,7 @@
     {
      "rule_id": "loon_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -3211,7 +3211,7 @@
     {
      "rule_id": "mabel_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31",
+     "verbatim": "No Fishing south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3362,7 +3362,7 @@
     {
      "rule_id": "martin_lake.r2",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -3425,7 +3425,7 @@
     {
      "rule_id": "mcrae_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
+     "verbatim": "No Fishing downstream of falls situated approximately 4 km upstream of Christina Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3567,7 +3567,7 @@
     {
      "rule_id": "mission_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
+     "verbatim": "No Fishing from falls at Gallagher Canyon to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3714,7 +3714,7 @@
     {
      "rule_id": "okanagan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Oct 1-Nov 15",
+     "verbatim": "No Fishing Oct 1-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3824,7 +3824,7 @@
   {
    "entry_id": "r8:okanagan_river_oxbows@8-1",
    "name": "OKANAGAN RIVER OXBOWS",
-   "display_name": "OKANAGAN RIVER OXBOWS",
+   "display_name": "Okanagan River Oxbows",
    "region": "8",
    "regs_verbatim": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
    "source_pages": [
@@ -3870,8 +3870,7 @@
     "wbk:329461983",
     "wbk:329462424",
     "wbk:329462306",
-    "wbk:329462043",
-    "gnis:22618"
+    "wbk:329462043"
    ],
    "extents": [
     {
@@ -4107,7 +4106,7 @@
     {
      "rule_id": "peachland_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Hardy Falls to Okanagan Lake",
+     "verbatim": "No Fishing from Hardy Falls to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4179,7 +4178,7 @@
     {
      "rule_id": "powers_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
+     "verbatim": "No Fishing downstream of Hwy 97 bridge to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4356,7 +4355,7 @@
     {
      "rule_id": "sandner_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4373,7 +4372,7 @@
   {
    "entry_id": "r8:saturday_lake@8-6",
    "name": "SATURDAY LAKE",
-   "display_name": "Tepee Lakes",
+   "display_name": "Saturday Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
@@ -4600,7 +4599,7 @@
     {
      "rule_id": "shorts_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
+     "verbatim": "No Fishing from Westside Road Bridge to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4638,7 +4637,7 @@
     {
      "rule_id": "shuswap_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Mara Lake upstream to Mara Bridge",
+     "verbatim": "No Fishing from Mara Lake upstream to Mara Bridge",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4657,7 +4656,7 @@
     {
      "rule_id": "shuswap_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15",
+     "verbatim": "No Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4678,7 +4677,7 @@
        "op": "between",
        "splits": [
         "shuswap_river__signs_50_m_upstream_of_trinity_bridge",
-        "gauge__08LC002"
+        "shuswap_river__signs_50_m_downstream_of_trinity_bridge"
        ]
       }
      ]
@@ -4695,11 +4694,7 @@
      "may_target": true,
      "extents": [
       {
-       "op": "between",
-       "splits": [
-        "shuswap_river__mara_bridge",
-        "shuswap_river__sugar_lake"
-       ]
+       "op": "whole"
       }
      ]
     },
@@ -4728,7 +4723,7 @@
     {
      "rule_id": "shuswap_river.r5",
      "type": "retention_limit",
-     "verbatim": "**No fishing** Sept 1-Oct 31",
+     "verbatim": "No fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4884,6 +4879,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -4918,7 +4914,7 @@
     {
      "rule_id": "sitkum_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 15",
+     "verbatim": "No Fishing Sept 1-Oct 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4991,6 +4987,8 @@
        }
       ]
      },
+     "may_target": true,
+     "within": "skaha_lake.r1",
      "lengths": [
       {
        "min_cm": 35,
@@ -5046,6 +5044,23 @@
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn.",
      "undrawn_part": "various locations (as buoyed and signed)"
+    },
+    {
+     "rule_id": "skaha_lake.r6",
+     "type": "vessel_rule",
+     "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+     "aspect": "propulsion",
+     "level": "none",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "unresolved_locators": [
+      "various locations (as buoyed and signed)"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed no-vessel locations are not polygons in the atlas. Needs them drawn.",
+     "undrawn_part": "various locations (as buoyed and signed)"
     }
    ]
   },
@@ -5070,7 +5085,7 @@
     {
      "rule_id": "south_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -5143,7 +5158,7 @@
     {
      "rule_id": "square_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -5292,7 +5307,7 @@
   {
    "entry_id": "r8:sunday_lake@8-6",
    "name": "SUNDAY LAKE",
-   "display_name": "Tepee Lakes",
+   "display_name": "Sunday Lake",
    "region": "8",
    "regs_verbatim": "Electric motor only - max 7.5 kW",
    "source_pages": [
@@ -5477,7 +5492,7 @@
     {
      "rule_id": "trepanier_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
+     "verbatim": "No Fishing from Hwy 97C to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5515,7 +5530,7 @@
     {
      "rule_id": "trout_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake",
+     "verbatim": "No Fishing from the trestle in Trout Creek Canyon to Okanagan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5807,7 +5822,7 @@
   {
    "entry_id": "r8:unnamed_lakes_located_immediately_north_and_south_of_bluey_l@8-6",
    "name": "UNNAMED LAKES (located immediately north and south of Bluey Lake)",
-   "display_name": "\"BLUEY LAKE POTHOLES\"",
+   "display_name": "Unnamed lakes north and south of Bluey Lake",
    "region": "8",
    "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
    "source_pages": [
@@ -5833,7 +5848,7 @@
     {
      "rule_id": "unnamed_lakes_bluey.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5938,7 +5953,7 @@
     {
      "rule_id": "wap_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30",
+     "verbatim": "No Fishing downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5959,6 +5974,9 @@
        "op": "downstream_of",
        "splits": [
         "wap_creek__frog_falls"
+       ],
+       "outside_items": [
+        "wbk:329663971"
        ]
       }
      ]
@@ -6007,7 +6025,7 @@
     {
      "rule_id": "west_kettle_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 25-Sept 15",
+     "verbatim": "No Fishing July 25-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6109,11 +6127,12 @@
      "op": "whole"
     }
    ],
+   "includes_tributaries": true,
    "rules": [
     {
      "rule_id": "west_kettle_rivers_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **Jul 25-Sept 15",
+     "verbatim": "No Fishing Jul 25-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6212,7 +6231,7 @@
     {
      "rule_id": "wood_lake.r2",
      "type": "retention_limit",
-     "verbatim": "No Fishing** for kokanee Sept 1-Mar 31",
+     "verbatim": "No Fishing for kokanee Sept 1-Mar 31",
      "species": [
       "KO"
      ],
@@ -6339,7 +6358,7 @@
     {
      "rule_id": "yellow_lake.r3",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration",
      "extents": [
       {
        "op": "whole"
@@ -6424,6 +6443,10 @@
      "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam, monitor fish navigation of the ladder, and upstream habitat utilization of sockeye and Chinook slamon. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200.",
      "obligation": "should",
      "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:32069"
+      },
       {
        "op": "whole",
        "item_id": "wbk:329459116"

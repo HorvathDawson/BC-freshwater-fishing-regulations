@@ -252,6 +252,9 @@ def test_stripping_any_real_rules_dates_is_nearly_always_caught(raw):
         ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t",
          "thompson_river_downstream_of_kamloops_lake.r3o"),
         ("r6:fulton_river", "fulton_river.r1b"),
+        # the Salmon Arm community pier's exemption from the Shuswap closure (FIX batch §5,
+        # 2026-10-07): a lift held in an undrawn part, on the closure's dates
+        ("r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak", "shuswap_lake.r5x"),
         # RU-2 (2026-10-03): below Nicola Lake the row's "Trout catch and release, Jan 1-Feb 28"
         # lifts Region 3's spring closure on those dates, for trout (2026-10-05)
         ("r3:nicola_river", "nicola_river.r3x")]), json.dumps(missed)
@@ -288,24 +291,23 @@ def test_a_date_after_a_semicolon_is_only_its_own_clauses():
         bait, verbatim="bait ban, June 15-Aug 31", when=w2)))
 
 
-def test_coquihallas_fly_only_is_not_dated_by_the_bait_bans_season(raw):
+def test_coquihallas_fly_only_is_dated_and_placed_like_the_bait_ban(raw):
     """p.22, COQUIHALLA RIVER, printed line 2: "Fly fishing only; bait ban upstream of the northern
-    entrance to the upper most railway tunnel, Jul 1-Oct 31". The date is the bait ban's."""
+    entrance to the upper most railway tunnel, Jul 1-Oct 31". USER RULING Q17 (2026-10-07): the
+    place and the dates scope the fly-only clause too — the one row read against the semicolon
+    rule (2026-09-25). The rule quotes its whole line, so its dates are in its own words."""
     ce = CatalogueEntry.model_validate(raw["r2:coquihalla_river@2-17"])
     rules = {r.rule_id: r for r in ce.rules}
-    assert rules["coquihalla_river.r2"].verbatim == "Fly fishing only"
-    assert rules["coquihalla_river.r2"].when is None
-    # ...and the place is the bait ban's too: fly fishing only is the WHOLE river (user ruling
-    # 2026-09-25) — it reads the upstream-of-tunnel words, like the date, as the bait ban's
-    assert [x.model_dump(exclude_none=True) if hasattr(x, "model_dump") else x
-            for x in rules["coquihalla_river.r2"].extents] == [{"op": "whole"}]
-    assert rules["coquihalla_river.r3"].extents[0]["op"] == "upstream_of"
+    r2 = rules["coquihalla_river.r2"]
+    assert r2.verbatim.startswith("Fly fishing only; bait ban upstream") and r2.verbatim.endswith("Jul 1-Oct 31")
+    assert r2.when.words() == "Jul 1-Oct 31"
+    assert r2.extents[0]["op"] == "upstream_of" if isinstance(r2.extents[0], dict) \
+        else r2.extents[0].op.value == "upstream_of"
     assert rules["coquihalla_river.r3"].when.words() == "Jul 1-Oct 31"
-    # MUTATION: spread the date back across the `;` and the model refuses the row
+    # MUTATION: quote only "Fly fishing only" and the semicolon guard refuses the borrowed dates
     broken = copy.deepcopy(raw["r2:coquihalla_river@2-17"])
     for r in broken["rules"]:
         if r["rule_id"] == "coquihalla_river.r2":
-            r["when"] = {"dates": [{"from_month": 7, "from_day": 1, "to_month": 10,
-                                    "to_day": 31}]}
+            r["verbatim"] = "Fly fishing only"
     with pytest.raises(ValueError, match="coquihalla_river.r2: its `when` .* across a `;`"):
         CatalogueEntry.model_validate(broken)

@@ -146,10 +146,10 @@ A list, unioned. **A rule never inherits its entry's extents** (AGENTS 13). Ops,
 - **A bull trout is a Dolly Varden** (p.80 footnote). `BT` is refused; "bull trout" is `DV`, and
   the label reads "Dolly Varden/bull trout". 105 rules name `DV` (*catalogue*).
 - **"Trout" is `TROUT_CHAR`** — trout includes char unless char are specifically excluded (p.80).
-  `TROUT` is refused. **When the same row or zone table mentions char apart** (char, Dolly
-  Varden/bull trout, lake trout, brook trout — not the group word "trout/char"), its bare "trout"
-  lines are `TROUT_CHAR` with `species_except: [CHAR]`; never one char alone
-  (`trout_scope_problems`, refused both ways). 394 rules name `TROUT_CHAR`; 25 carry
+  `TROUT` is refused. A bare "trout" line is `TROUT_CHAR` with `species_except: [CHAR]` only when
+  (a) it excludes char in words, or (b) its row or zone table gives char a RELATED rule of its own
+  (same aspect, water kind, days: `catalogue.related_rules`; user ruling 2026-10-07); never one char
+  alone (`trout_scope_problems`, refused both ways). 394 rules name `TROUT_CHAR`; 25 carry
   `species_except: [CHAR]` (*catalogue*). Such lines label "Trout — …"; the export guide carries a
   user-facing note saying so.
 - Groups: `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH` (the whole list). **`CHAR` is

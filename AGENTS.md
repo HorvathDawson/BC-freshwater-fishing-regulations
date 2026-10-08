@@ -264,11 +264,16 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     `BT` is refused — "bull trout" is `DV` (p.80: "Any bull trout that you catch and keep must be
     counted as part of your Dolly Varden quota"). Chinook `CH` is the one salmon the book names:
     in SALMON, never a game fish. (29ef0a20, aeb070cf)
-46. **"Trout" is `TROUT_CHAR`, scoped by its row or zone table.** Trout includes char unless
-    char are excluded (p.80); `TROUT` is refused. When the same row or zone table mentions a char
-    apart (char, Dolly Varden/bull trout, lake trout, brook trout — not the group word
-    "trout/char"), its bare "trout" lines carry `species_except: [CHAR]` — never one char alone.
-    `trout_scope_problems` refuses it both ways. (38149b92)
+46. **"Trout" is `TROUT_CHAR`; it excludes char only by (a) or (b).** Trout includes char unless
+    (a) the line excludes char in so many words, or (b) the same row or zone table SPECIFIES CHAR
+    SEPARATELY WITH A RELATED RULE of its own — one governing the same aspect (how many are kept /
+    released / closed, sizes, gear: `catalogue.rule_aspects`), kind of water and days
+    (`catalogue.related_rules`) — which is the same as excluding char (user ruling 2026-10-07,
+    TROUT/CHAR CLARIFIED, superseding the 2026-09-28 "mentions char" reading). Region 1's "2 from
+    streams (must be hatchery)" beside "All char" release: trout only; "no trout under 25 cm" beside
+    "bull trout catch and release" (another aspect): covers bull trout. A combined "trout/char" never
+    excludes char. Such a line carries `species_except: [CHAR]` — never one char alone; `TROUT` is
+    refused; `trout_scope_problems` refuses it both ways.
 47. **A `;` ends a dating run.** "Trout/char catch and release; bait ban, June 15-Oct 31" dates
     only the bait ban; an "and"/comma chain shares the date. The model refuses a `when` that
     crosses a `;` and a quote that prints dates its rule does not carry. (3b5c6e9c, 1c8dfac8)
@@ -439,8 +444,12 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     WHERE THE WATER HAS NO ENTRY OF ITS OWN in that region (`own_entry_regions`; a row whose
     every rule is `tributaries_only` is not one): the Fraser (rows in 3, 5, 7) and the Canim
     never carry; West Road's mainstem pieces in Region 6 / Zone 7A keep its lift (only tributary
-    rows there) and NO lift reaches a West Road tributary in any region; the Similkameen's
-    reaches its 28 Region 3 tributary sections. G4 — "open all year" lifts only FULL blanket
+    rows there) and NO lift reaches a West Road tributary in any region. NO EXEMPTION PRINTED ON A ✱
+    ROW REACHES ITS TRIBUTARIES (user ruling Q3, 2026-10-07): the row's ✱ carries its closures,
+    quotas and gear, never its lifts — every lift-only rule of a ✱ row is `includes_tributaries:
+    false` (Nitinat, Quinsam, Duncan, Lardeau, Dutch, Hevenor, Fulton, Babine's Rainbow Alley, and
+    the Similkameen, whose lift no longer reaches its Region 3 tributaries); `test_rules_round.py`
+    refuses one that walks, and the export's `gotchas.exemption_stays_on_its_water` lists them. G4 — "open all year" lifts only FULL blanket
     closures, never a species closure: Region 6's steelhead closure (May 15-Jun 15, p.49) holds
     on every Region 6 river and stream except the Skeena, Nass, Iskut, Stikine and Taku
     mainstems (its own sibling lift, which binds exactly those five items). G5 — a row's DATED
@@ -557,3 +566,16 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     piece straddling its cutter's inside, naming each (`sliver_gate.json`); it repairs nothing, and
     a failure is fixed where the cut came from. Pins: `test_clean_cut.py`, `test_bc_boundary.py`,
     `test_border.py`, `test_anchors.py`, and on a built atlas `test_no_slivers.py` (`-m slow`).
+60. **The 2026-10-07 rulings (RULES round).** A ROW WHOSE NAME CARRIES THE GLOBAL ✱ includes tributaries
+    for EVERY rule, even when a clause repeats a ✱ (San Juan, Inland, Sooke, Bull River, Kitsumkalum);
+    only a row WITHOUT the global ✱ narrows to the clause printing one (p.4: Oyster r2, Anderson r4,
+    Dinosaur r1 walk, their other rules do not). NO EXEMPTION ON A ✱ ROW REACHES ITS TRIBUTARIES (rule 57 G3). A TRIBUTARY WITH
+    ITS OWN ROW gets both its own and its inherited rules; on one competition key its OWN row speaks,
+    before naming (`read.OWN_ROW_BEATS_INHERITED`, Granby under "Kettle River's tributaries") — never a
+    closure either way (an inherited closure is only lifted). A FISH EXACTLY ON A PRINTED SIZE BOUND IS
+    LEGAL: a take-0 band does not hold its own bounds (`catalogue.EXACT_BOUND_IS_LEGAL`); the book's "X
+    cm or more/or less" is the band's `closed: true`. TROUT/CHAR: rule 46 (a)/(b), relatedness per rule
+    pair. A RECORD'S `verbatim` CARRIES NO EXTRACTION MARKUP (`**`,
+    `[Includes Tributaries]`): ingest cleans every quote (`catalogue.clean_verbatim`), the model refuses
+    one; `regs_verbatim` keeps the batch's text. A `between` whose sentence prints signs ends at the
+    curated sign split, never a hydrometric gauge (`test_rules_round.py`).

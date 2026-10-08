@@ -218,6 +218,25 @@ class Obligation(str, Enum):
 _DASH = dict.fromkeys(map(ord, "‐‑‒–—―−"), "-")
 
 
+#: THE EXTRACTION'S MARKUP — never the book's words (FIX BATCH §6/§7, 2026-10-07). `**` is the
+#: book's bold kept as markdown, `[Includes Tributaries]` the token the extraction writes for an
+#: inline ✱. Both belong to `regs_verbatim` (the batch's row, stored byte for byte); a RECORD's
+#: `verbatim` is the printed sentence a reader is shown, so it carries neither: 662 rules once
+#: did, 40 with an unbalanced pair ("No Fishing** from …"). `clean_verbatim` is the one cleaner
+#: (ingest applies it to every quote the model writes); `CatalogueEntry` refuses a quote with any.
+EXTRACTION_MARKUP = re.compile(r"\*\*|\[Includes Tributaries\]")
+
+
+def clean_verbatim(text: str) -> str:
+    """A quote with the extraction's markup taken out: `**` dropped, `[Includes Tributaries]`
+    dropped (the ✱ is a fact the rule's `includes_tributaries` carries), the spaces it leaves
+    tidied — "Creek[Includes Tributaries], Dec 1" -> "Creek, Dec 1". Newlines are kept."""
+    t = (text or "").replace("**", "")
+    t = re.sub(r"[ \t]*\[Includes Tributaries\][ \t]*(?=[,;.:)\n]|$)", "", t)
+    t = re.sub(r"[ \t]*\[Includes Tributaries\][ \t]*", " ", t)
+    return "\n".join(line.strip() for line in t.split("\n")).strip()
+
+
 def squash(text: str) -> str:
     """Normalise away what carries no meaning when comparing a quote to its source: EMPHASIS,
     bullets, blockquote markers, dash variants, whitespace, case.
@@ -227,7 +246,7 @@ def squash(text: str) -> str:
     it without them, and a raw substring check then calls a perfect quote a fabrication. It called
     700 of them that. What is STORED is still the batch's own text, byte for byte; only the
     comparison is normalised."""
-    t = (text or "").translate(_DASH).replace("*", "")
+    t = (text or "").replace("[Includes Tributaries]", "").translate(_DASH).replace("*", "")
     t = re.sub(r"(?m)^\s*[>|]\s?", " ", t)
     t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)
     return re.sub(r"\s+", " ", t).strip().lower()
@@ -362,15 +381,79 @@ def trout_word(text: str) -> Optional[str]:
     return None
 
 
+#: (a) A LINE THAT EXCLUDES CHAR IN SO MANY WORDS — "trout (not char)", "trout other than char",
+#: "excluding char". The book prints none today; a parse that writes one is honoured.
+_EXCLUDES_CHAR = re.compile(r"\b(?:not|other than|excluding|except)\s+(?:the\s+)?char\b", re.I)
+
+
+def rule_aspects(r) -> set:
+    """WHAT ASPECT OF A FISH A RULE GOVERNS (user refinement 2026-10-07 of TROUT/CHAR CLARIFIED (b)):
+    ("retention", period) — how many you keep, a release (take 0) or a closure: one aspect, keep
+    and release being two answers to it; ("size",) — the lengths it keeps or returns; ("gear",
+    type) — a method, tackle or bait rule. A rule may govern several ("1 bull trout over 60 cm":
+    retention and size)."""
+    t = getattr(r.type, "value", r.type)
+    out = set()
+    if t == "retention_limit":
+        if r.exempts and r.take is None and not r.unlimited and not r.lengths:
+            out.add(("retention", r.period or "daily"))      # a lift opens the keeping of the fish
+        if r.take is not None or r.unlimited:
+            if not (r.lengths and r.take is None):
+                out.add(("retention", r.period or "daily"))
+        if r.lengths:
+            out.add(("size",))
+            if any(b.take is not None and b.take > 0 for b in r.lengths):
+                out.add(("retention", r.period or "daily"))
+    elif t in ("tackle_restriction", "bait_restriction", "method_rule"):
+        out.add(("gear", t))
+    return out
+
+
+def _dates_meet(a, b) -> bool:
+    da = set(_days(a.when.dates)) if a.when is not None and a.when.dates else None
+    db = set(_days(b.when.dates)) if b.when is not None and b.when.dates else None
+    return da is None or db is None or bool(da & db)
+
+
+def related_rules(t, c) -> bool:
+    """Do two rules govern the SAME ASPECT of a fish (`rule_aspects`), for the same kind of water
+    and on days that meet? "no trout under 30 cm" (size) and "bull trout release Aug 1-Oct 31"
+    (retention) do not; Region 1's "2 from streams (must be hatchery)" and its "All char" release
+    (retention) do; "No wild trout over 50 cm" and "1 bull trout over 60 cm" (size) do."""
+    if not (rule_aspects(t) & rule_aspects(c)):
+        return False
+    wa, wb = getattr(t.water, "value", t.water), getattr(c.water, "value", c.water)
+    if wa and wb and wa != wb:
+        return False
+    return _dates_meet(t, c)
+
+
+def char_rules_apart(rules) -> list:
+    """(b) The rules of this row (or zone table) that SPECIFY CHAR SEPARATELY — whose `species`
+    names char as a group (`CHAR`) or a char (Dolly Varden/bull trout, lake trout, brook trout),
+    not the group word "trout/char" (user ruling 2026-10-07, TROUT/CHAR CLARIFIED)."""
+    chars = set(BOOK_FAMILIES["CHAR"]) | {"CHAR"}
+    return [r for r in rules if set(r.species) & chars and "TROUT_CHAR" not in r.species]
+
+
 def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
-    """EVERY "TROUT" LINE IS SCOPED BY ITS ROW (user ruling 2026-09-28; `mentions_char_apart`).
-    A `TROUT_CHAR` rule printing the bare word "trout" (itself, or the quota it is a clause
-    `within`: Region 1's "1 over 50 cm" under "Trout: 4") carries `species_except: [CHAR]` exactly
-    when its row or zone table names a char apart. A line printing "trout/char" names char in and
-    never excludes them. A bare "trout" line never excludes one char alone (the book's exclusion
-    is of char as a group, `CHAR`) — the seven Region 2 rows that once excluded only the bull trout
-    their row gave its own limit are the general rule now."""
-    apart = mentions_char_apart(regs_verbatim)
+    """EVERY "TROUT" LINE IS SCOPED BY ITS ROW (user ruling 2026-10-07, TROUT/CHAR CLARIFIED; p.80
+    "all regulations that apply to trout (as a group) also apply to char unless char are
+    specifically excluded"). A `TROUT_CHAR` rule printing the bare word "trout" (itself, or the
+    quota it is a clause `within`: Region 1's "1 over 50 cm" under "Trout: 4") carries
+    `species_except: [CHAR]` exactly when
+      (a) its own text excludes char explicitly (`_EXCLUDES_CHAR`), or
+      (b) its row or zone table SPECIFIES CHAR SEPARATELY WITH ITS OWN RULE that is RELATED to
+          this line — governs the same aspect, kind of water and days (`related_rules`): Region 1's
+          "you must release: All char" beside "2 from streams (must be hatchery)", Chilliwack
+          Lake's "1 bull trout over 60 cm" beside "No wild trout over 50 cm" — specifying char
+          separately IS excluding it. An UNRELATED char rule excludes nothing: "no trout under 30
+          cm" still covers a bull trout beside "bull trout release Aug 1-Oct 31".
+    A combined "trout/char" mention names char in and never excludes them; a mention of char that is
+    no rule of its own does not exclude them either ("Wild trout/char quota = 2 (no wild trout over
+    40 cm)": the 40 cm cap covers char). A bare "trout" line never excludes one char alone (the
+    book's exclusion is of char as a group, `CHAR`)."""
+    apart = char_rules_apart(rules)
     by_id = {r.rule_id: r for r in rules}
     out: List[str] = []
     for r in rules:
@@ -390,13 +473,17 @@ def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
         lone = sorted(c for c in r.species_except if c in BOOK_FAMILIES["CHAR"])
         if lone:
             out.append(f"{r.rule_id}: species_except {lone} — a 'trout' line excludes char as a "
-                       f"group (CHAR) when its row mentions char apart, never one char")
-        if apart and not out_char:
-            out.append(f"{r.rule_id}: prints 'trout' and its row mentions char apart — its "
-                       f"trout exclude char (p.80; user ruling 2026-09-28): species_except [CHAR]")
-        elif not apart and out_char:
-            out.append(f"{r.rule_id}: prints 'trout' and its row mentions no char apart — trout "
-                       f"includes char (p.80): drop CHAR from species_except")
+                       f"group (CHAR), never one char")
+        excluded = any(related_rules(r, c) for c in apart) \
+            or bool(_EXCLUDES_CHAR.search(r.verbatim or ""))
+        if excluded and not out_char:
+            out.append(f"{r.rule_id}: prints 'trout' and its row specifies char separately (or the "
+                       f"line excludes char) — its trout exclude char (p.80; user ruling 2026-10-07): "
+                       f"species_except [CHAR]")
+        elif not excluded and out_char:
+            out.append(f"{r.rule_id}: prints 'trout', its row has no char rule of its own and the "
+                       f"line excludes no char — trout includes char (p.80): drop CHAR from "
+                       f"species_except")
     return out
 
 #: SUBJECTS THE BOOK NAMES THAT ARE NOT GAME FISH, so no fish code lies under them. Each is a word
@@ -1312,17 +1399,37 @@ _PRESUMED_SAID = {
 }
 
 
+#: POLICY (user ruling Q9, 2026-10-07): A FISH EXACTLY ON A PRINTED SIZE BOUND IS LEGAL. "None under
+#: 30 cm" keeps a 30.0 cm fish; "no trout over 50 cm" keeps a 50.0 cm one. One reading for the
+#: whole corpus, decided here and nowhere else: a band that keeps NONE (`take: 0` — a floor, a
+#: ceiling, a hole) does not hold its own finite bounds, so the bound itself falls to the band that
+#: keeps (or to no band: the rule says nothing about it). Before, `[{max_cm: 30, take: 0}]` alone
+#: denied 30.0 while `[{min_cm: 30}, {max_cm: 30, take: 0}]` granted it (order settled the shared
+#: endpoint) — two answers for one printed phrase. A plain half-open `[min, max)` would have made
+#: "no trout over 50 cm" deny 50.0, so the openness belongs to the denying band, not to one side.
+#: The book's "X cm OR MORE" / "X cm OR LESS" put X inside the band (Inland, Khartoum, Lois, Ruby
+#: "40 cm or more"; Chilliwack "(50 cm or less)"): those bands say so with `closed: true`.
+EXACT_BOUND_IS_LEGAL = True
+
+
 class LengthBand(BaseModel):
     """ONE RANGE OF FISH LENGTHS, AND HOW MANY OF THEM YOU MAY KEEP.
 
-    `min_cm` and `max_cm` are INCLUSIVE, and null is open at that end. `take` is how many of
+    `min_cm` and `max_cm` bound the range, and null is open at that end. `take` is how many of
     THESE you may keep; omitted, the rule's own `take` applies to them.
+
+    A BOUND IS INCLUSIVE, EXCEPT ON A BAND THAT KEEPS NONE (`take: 0`): a fish exactly on such a
+    band's bound is not in it (`EXACT_BOUND_IS_LEGAL`, user ruling Q9) — unless the book prints
+    "X cm or more" / "X cm or less", which the band records as `closed: true`.
     """
     model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
     min_cm: Optional[int] = None
     max_cm: Optional[int] = None
     take: Optional[int] = None
+    #: the book's "X cm OR MORE" / "X cm OR LESS": this take-0 band holds X itself (only on a
+    #: take-0 band — every other band already holds its bounds; True or absent, never False)
+    closed: Optional[bool] = None
 
     @model_validator(mode="after")
     def _real(self) -> "LengthBand":
@@ -1332,9 +1439,17 @@ class LengthBand(BaseModel):
             raise ValueError(f"min_cm {self.min_cm} >= max_cm {self.max_cm} is an empty range")
         if self.take is not None and self.take < 0:
             raise ValueError("take cannot be negative")
+        if self.closed is not None and (self.closed is not True or self.take != 0):
+            raise ValueError("`closed` is only `true`, and only on a band that keeps none "
+                             "(take 0): the book's 'X cm or more' / 'X cm or less'")
         return self
 
-    def holds(self, cm: int) -> bool:
+    def holds(self, cm: float) -> bool:
+        """Whether a fish of `cm` is in this band. A take-0 band does not hold its own finite
+        bounds unless `closed` (`EXACT_BOUND_IS_LEGAL`): the bound is legal."""
+        if self.take == 0 and not self.closed and EXACT_BOUND_IS_LEGAL:
+            return ((self.min_cm is None or cm > self.min_cm) and
+                    (self.max_cm is None or cm < self.max_cm))
         return ((self.min_cm is None or cm >= self.min_cm) and
                 (self.max_cm is None or cm <= self.max_cm))
 
@@ -2743,10 +2858,10 @@ class CatalogueRule(BaseModel):
     #:                                                {min_cm: 30, take: 0}]
     #:   "none between 70 cm and 100 cm"             [{min_cm: 70, max_cm: 100, take: 0}]
     #:
-    #: ORDER SETTLES THE SHARED ENDPOINT. A grant is written before the denial beneath it, so a
-    #: fish of exactly 60 cm is granted rather than denied. (The book's "over 60" and "60 cm or
-    #: more" differ by one fish and `over_cm`/`under_cm` never stored which was meant; that is a
-    #: pre-existing loss and is not invented here.)
+    #: A SHARED ENDPOINT IS LEGAL (`EXACT_BOUND_IS_LEGAL`, user ruling Q9 2026-10-07): a band that
+    #: keeps none does not hold its own bounds, so a fish of exactly 60 cm is granted whatever the
+    #: order, and "none under 30 cm" written alone keeps a 30.0 cm fish too. The book's "60 cm or
+    #: more" (the bound IS denied) is the band's `closed: true`.
     #:
     #: A LENGTH NO BAND COVERS IS NOT SPOKEN ABOUT by this rule — at the top level nothing else
     #: grants it, and inside a `within` clause the parent quota governs it. That is what makes
@@ -3675,6 +3790,9 @@ def _size(r: CatalogueRule) -> str:
         # because both spellings of the prohibition make the same band.
         b = denied[0]
         end, cm = ("over", b.min_cm) if b.min_cm is not None else ("under", b.max_cm)
+        if b.closed:                    # the book's "40 cm or more": the bound goes back too
+            words = f"{cm} cm or {'more' if end == 'over' else 'less'}"
+            return f" {words}" if r.take == 0 else f" (none {words})"
         return f" {end} {cm} cm" if r.take == 0 else f" (none {end} {cm} cm)"
 
     g = granted[0]
@@ -3694,6 +3812,8 @@ def _size(r: CatalogueRule) -> str:
     # every fish kept, and "no more than 1 under 60 cm" would say the opposite of
     # `r2:cultus_lake`'s "1 bull trout over 60 cm", where the fish you keep must BE over 60.
     if g.max_cm is not None:
+        if any(b.closed and b.min_cm == g.max_cm for b in denied):
+            return f" (none {g.max_cm} cm or more)"
         return f" (none over {g.max_cm} cm)"
     n = g.take if g.take is not None else r.take
     return (f" (no more than {n}, none under {g.min_cm} cm)" if r.within and n
@@ -4760,6 +4880,9 @@ class CatalogueEntry(BaseModel):
             [(f"licensing {x.id}", x.verbatim) for x in self.licensing] + \
             [("see", s.verbatim) for s in self.see]
         for who, v in quoted:
+            if EXTRACTION_MARKUP.search(v or ""):
+                e.append(f"{who}: verbatim carries the extraction's markup ('**' / '[Includes "
+                         f"Tributaries]') — quote the printed sentence (`clean_verbatim`)")
             m = LIST_MARKER.match(v or "")
             if m:
                 e.append(f"{who}: verbatim starts with the list marker {m.group(0).strip()!r} — "

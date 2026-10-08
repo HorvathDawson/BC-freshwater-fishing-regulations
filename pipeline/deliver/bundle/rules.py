@@ -286,7 +286,7 @@ def statement(x: dict) -> tuple:
     releases "All char": trout only) both say "trout", so for a trout the lake's 2 replaces the
     4 — and Region 1's char release still binds the char. So a `CHAR` exception on `TROUT_CHAR` is
     the word's scope, not part of what the statement is about."""
-    bands = tuple((b.get("min_cm"), b.get("max_cm"), b.get("take") == 0)
+    bands = tuple((b.get("min_cm"), b.get("max_cm"), b.get("take") == 0, bool(b.get("closed")))
                   for b in (x.get("lengths") or []))
     sp = list(x.get("species") or [])
     out = [c for c in (x.get("species_except") or [])

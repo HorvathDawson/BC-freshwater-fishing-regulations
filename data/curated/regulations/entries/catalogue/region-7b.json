@@ -97,6 +97,9 @@
        "slot": "bait",
        "ban": [
         "fin_fish"
+       ],
+       "except": [
+        "roe"
        ]
       }
      ],
@@ -327,7 +330,7 @@
       }
      ],
      "extent_text": "Peace River watershed",
-     "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b."
+     "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half has no zone rule (WINDOWS_HELD_ELSEWHERE): the Liard River Watershed row prints the same release (liard_river_watershed.r1, Aug 15-Oct 15) and r10 releases bull trout across Zone B all year."
     },
     {
      "rule_id": "trout_char_quota.r10",
@@ -879,7 +882,7 @@
    "display_name": "Lakes of Zone B",
    "region": "7b",
    "scope_note": "SPLIT: one sentence carried a 'should' and an offence. Rendering both as law is the mirror of rendering law as advice.",
-   "regs_verbatim": "ICE FISHING HUTS Ice fishing huts should have the owner's contact information displayed in a prominent location when left unoccupied. Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act. Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
+   "regs_verbatim": "ICE FISHING HUTS Ice fishing huts should have the owner's contact information displayed in a prominent location when left unoccupied. Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
    "source_pages": [
     64
    ],
@@ -911,7 +914,7 @@
     {
      "rule_id": "ice_fishing_huts.r2",
      "type": "method_rule",
-     "verbatim": "Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
+     "verbatim": "Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
      "while": [
       "ice_fishing"
      ],

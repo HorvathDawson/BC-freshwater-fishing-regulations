@@ -69,6 +69,9 @@ def test_anderson_creek_bull_trout_on_sep_15_is_release_only(db):
     ruling 2026-10-05). Jul 15 (release not in force): the quotas and the clause speak. Jan 15,
     lake trout: the no-water release displaces the same, the clause included."""
     sep, jul, lt = _anderson(db)
+    # (Region 3's "Possession quotas = 2 daily quotas" — z3:possession_quota, added 2026-10-07 from
+    # p.28 — is the possession clock, beside any daily answer, as Region 5's always was)
+    sep = {k for k in sep if not k.startswith("z3:possession_quota")}
     assert sep == {f"{Z3}::trout_char_quota.r6"}
     assert {f"{Z3}::trout_char_quota.r{n}" for n in ("1", "2", "3", "4", "4b")} <= jul
     assert f"{Z3}::trout_char_quota.r6" not in jul
@@ -82,7 +85,8 @@ def test_andreen_creek_trout_and_char_on_jan_15_are_release_only(db):
     speak again."""
     jan, jul = _andreen(db)
     for fish, got in jan.items():
-        assert {k for k in got if k.startswith("z4:")} == {f"{Z4W}::trout_char_winter_release.r1"}, fish
+        assert {k for k in got if k.startswith("z4:") and not k.startswith("z4:possession_quota")} \
+            == {f"{Z4W}::trout_char_winter_release.r1"}, fish
     assert {f"{Z4}::trout_char_quota.r1", f"{Z4}::trout_char_quota.r2",
             f"{Z4}::trout_char_quota.r3"} <= jul
     assert f"{Z4W}::trout_char_winter_release.r1" not in jul

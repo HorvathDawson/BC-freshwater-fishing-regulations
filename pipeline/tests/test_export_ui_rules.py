@@ -1039,7 +1039,13 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
     assert notes and all(n["zone_holds"] and n["example"]["ruleset"] for n in notes)
     # the example is a KEY, resolved in the bundle; no section handle ships (AGENTS 5)
     assert all("example_section" not in n for e in cc.values() for n in e["notes"])
-    assert FULTON not in cc
+    # The Fulton's own river carries no note (its lift answers the winter closure there); since
+    # the RULES round (user Q3, 2026-10-07) its lift no longer reaches its TRIBUTARIES, so a note
+    # there is right — every Fulton note's example is a rule set without the lift.
+    for n in (cc.get(FULTON) or {}).get("notes") or []:
+        lifts = db.execute("select 1 from ruleset where set_id = ? and entry_id = ? and rule_id = "
+                           "'fulton_river.r1b'", (int(n["example"]["ruleset"]), FULTON)).fetchone()
+        assert lifts is None, n
     got = db.execute("select sr.set_id, sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
                      "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? "
                      "and a.rule_id = 'fulton_river.r1' and b.entry_id = ? and b.rule_id = ? "

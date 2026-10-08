@@ -203,7 +203,7 @@ def _equivalents(db, eid, rid) -> set:
 
 def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
     """On the bundle: the Fraser's and the Canim's carried lifts are gone; West Road keeps its
-    Region 6 / Zone 7A ones; the Similkameen gains Region 3's (W6, 28 tributary sections)."""
+    Region 6 / Zone 7A ones; the Similkameen's no longer reaches its Region 3 tributaries (Q3)."""
     fraser = "r5:fraser_river@5-2"
     # positive control: the Fraser row still lifts its OWN region's closure, by name
     own = {f"{x['entry_id']}::{x['rule_id']}" for x in json.loads(db.execute(
@@ -216,15 +216,17 @@ def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
         (canim,)).fetchone()[0])}
     assert canim_lifts == {Z5_SPRING}
     assert {Z6_FRASER, Z7A_SPRING} <= _equivalents(db, WEST_ROAD, "west_road_blackwater_river.r6")
-    assert Z3_SPRING in _equivalents(db, "r8:similkameen_river@8-2", "similkameen_river.r3")
-    # and it takes effect: a Similkameen tributary section in Region 3 is open on Jun 15
+    # USER RULING Q3 (2026-10-07): no exemption printed on a ✱ row reaches its tributaries — the
+    # Similkameen's "exempt from spring closure" stays on the river, so its Region 3 tributaries
+    # (walked by the row's other rules) are closed under Region 3's spring closure on Jun 15.
+    assert Z3_SPRING not in _equivalents(db, "r8:similkameen_river@8-2", "similkameen_river.r3")
     sid = db.execute(
         "select min(sr.sid) from ruleset a join ruleset b on b.set_id = a.set_id "
         "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? and a.rule_id = ? "
-        "and b.entry_id = 'z3:spring_stream_closure'",
-        ("r8:similkameen_river@8-2", "similkameen_river.r3")).fetchone()[0]
+        "and a.via = 'trib' and b.entry_id = 'z3:spring_stream_closure'",
+        ("r8:similkameen_river@8-2", "similkameen_river.r1")).fetchone()[0]
     assert sid is not None and Z3_SPRING in _bound(db, sid)
-    assert _closures(sid, (6, 15), "RB") == set()
+    assert Z3_SPRING in _closures(sid, (6, 15), "RB")
 
 
 # ---- 6. West Road: the mainstem is lifted, no tributary is ------------------------------------

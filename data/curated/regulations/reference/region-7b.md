@@ -11,7 +11,7 @@ boat travel between 2 km upstream of the dam site (warning signs are on shore) a
 construction bridge. See https://www.sitecproject.com/boating for details.
 
 **ICE FISHING HUTS** should have the owner's contact information displayed in a prominent location
-when left unoccupied. Failure to remove ice fishing huts before spring breakup is an offence under
+when left unoccupied. Failure to remove ice fishing huts from lakes before spring breakup is an offence under
 the Environmental Management Act.
 
 **THIN ICE AND OPEN WATER** Due to aeration projects, dangerous thin ice and open water may exist

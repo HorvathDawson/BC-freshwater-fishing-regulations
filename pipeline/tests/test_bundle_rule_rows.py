@@ -366,9 +366,9 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
     # clause is lifted whole, so it is not listed here).
     larger = [(e, f"{r}.r{n}", f"trout_char_quota.r{t}") for e, r, n, ts in (
         ("r2:ross_lake_boundary_between_ross_lake_and_skagit_river_is_mar@2-2", "ross_lake", 4,
-         (1, 2)),
-        ("r2:lois_lake@2-12", "lois_lake", 4, (1, 2)),
-        ("r2:khartoum_lake@2-12", "khartoum_lake", 5, (1, 2)),
+         (1, 2, "2b")),
+        ("r2:lois_lake@2-12", "lois_lake", 4, (1, 2, "2b")),
+        ("r2:khartoum_lake@2-12", "khartoum_lake", 5, (1, 2, "2b")),
         ("r3:tranquille_lake@3-29", "tranquille_lake", 1, (1, 3)),
         ("r4:beaver_creek@4-8", "beaver_creek", 1, (1,)),
         ("r4:big_fish_dunbar_lake@4-34", "big_fish_dunbar_lake", 1, (1,)),
@@ -406,6 +406,9 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r4"),
         (chw, "chilliwack_vedder_rivers.r9", "trout_char_quota.r8"),
         ("r2:coquitlam_river@2-8", "coquitlam_river.r3", "trout_char_quota.r8"),
+        # LONZO CREEK's 20-30 cm window (Jun 16-Jan 31) lifts Region 2's hatchery-under-30 release
+        # on its dates, as Coquitlam's does (FIX batch §5, 2026-10-07)
+        ("r2:lonzo_marshall_creek@2-4", "lonzo_creek.r2", "trout_char_quota.r8"),
         # NICOLA below its lake: the row's catch and release (Jan 1-Feb 28) lifts Region 3's
         # spring closure on those days only (user ruling 2026-10-03, RU-2).
         ("r3:nicola_river@3-13", "nicola_river.r3x", "spring_stream_closure.r1"),

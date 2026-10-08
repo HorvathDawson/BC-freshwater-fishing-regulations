@@ -96,13 +96,10 @@ take = 0, may_target = true     fish for it, but put it back
 take = 5                        keep up to five
 ```
 
-*"Kokanee: none from streams"* is the **first** one — these are spawning fish and you may not target
-them in a stream at all. The stream itself stays open for trout, which is why `may_target` is per
-species: read as a water closure it would shut streams across eight regions.
-
-(A reviewer argued the other way, from the printed page: the same block writes *"Bass: 0 quota,
-CLOSED TO FISHING"* when it means a closure, so *"none from streams"* should be a retention
-sub-limit. The call is no-targeting, on the fishery rather than the typography.)
+*"Kokanee: none from streams"* is the **second** one (user ruling Q42, 2026-10-07): you may fish a stream
+for kokanee but must put them back. The same block writes *"Bass: 0 quota, CLOSED TO FISHING"* when it
+means no-targeting, and *"none from streams"* prints no such words — it is a retention sub-limit
+on streams (`take=0, may_target=true, water: stream`), never a closure.
 
 **And it is per species.** A water is only closed when *every* species is `may_target = false`.
 
@@ -115,7 +112,10 @@ sub-limit. The call is no-targeting, on the fishery rather than the typography.)
 ```
 
 One English word carries all three; `lengths` writes the range and its number, so the reader
-never has to work out which is meant. It is an ordered list, first match wins, bounds inclusive,
+never has to work out which is meant. It is an ordered list, first match wins, bounds inclusive
+— except that a range keeping none (`take: 0`) does not hold its own bounds, so a fish exactly on a
+printed bound is legal (user ruling 2026-10-07; the book's "X cm or more / or less" is the range's
+`closed: true`) —
 a range without its own `take` uses the rule's, and a length no range covers is not spoken about.
 Get it backwards and you invert the rule on exactly the fish it was written to protect.
 `over_cm`, `under_cm` and `band` are refused, and `lengths` is refused on any type but

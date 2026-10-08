@@ -241,6 +241,10 @@ def water_regions(entry: dict, registry) -> tuple[str, ...]:
     return tuple(sorted(out))
 
 
+#: "(also in M.U. 5-15)" printed in a row's water name (`region_limit`)
+_ALSO_IN = re.compile(r"also in M\.?\s*U\.?\s*(\d+[A-Za-z]?-\d+)", re.I)
+
+
 def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     """The sections a regional row may bind, or `None` when it is not limited.
 
@@ -263,6 +267,12 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     regions = entry_regions(str(entry.get("entry_id") or ""), registry)
     if not regions:
         return None
+    # A ROW THAT PRINTS ITS OTHER UNITS IN ITS NAME — "CANIM RIVER (also in M.U. 5-15)" (p.29) and its
+    # Region 5 twin "(also in M.U. 3-46)" (p.43) — is a row of those regions too (user Q24,
+    # 2026-10-07): the entry id names only the row's own MU column.
+    also = {mu.split("-", 1)[0].lower() for mu in _ALSO_IN.findall(str(entry.get("name") or ""))}
+    if also - set(regions):
+        regions = tuple(sorted(set(regions) | also))
     if shared is not None and not (set(entry.get("matched") or ()) & set(shared)):
         if WATER_ROW_WALKS_CROSS_REGIONS:
             return None

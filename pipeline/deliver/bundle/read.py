@@ -456,6 +456,18 @@ MOOT_SIZE_CLAUSE_HIDDEN = True
 #: step is what silences them.
 WATER_CLOSURE_DOMINANT = True
 
+#: POLICY (user ruling Q5, 2026-10-07, KETTLE -> GRANBY / WEST KETTLE): a tributary with a row of its
+#: own gets BOTH its own row's rules and the rules it inherits by the tributary walk ("Kettle River's
+#: tributaries"), and where the two speak to the same thing (one competition key, one fish) ITS OWN
+#: ROW SPEAKS — before naming: Granby River's own "trout/char daily quota = 1" (upstream of Burrell
+#: Creek) beats the inherited "Rainbow trout catch and release" for a rainbow, although the inherited
+#: line names the fish. A CLOSURE IS NOT A STATEMENT AN OWN ROW OUT-RANKS: an inherited "No Fishing
+#: Jul 25-Sept 15" still closes Granby River on its dates (it gives way only to a lift — a printed
+#: exemption, or a dated opening inside it — exactly as a zone closure does under the 2026-10-05
+#: strict-lift ruling), and an inherited keeping rule an own CLOSURE beats is silenced as before.
+#: `effective_rules` step 4; named so a test can switch it off and prove the step decides it.
+OWN_ROW_BEATS_INHERITED = True
+
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
@@ -465,6 +477,7 @@ SPEAKER_STATES = frozenset({"speaks", "beside", "shown", "not_yet_mapped"})
 LOSS_REASONS = {
     "lifted": "lifted",                      # step 3: an exemption in force lifts it
     "ladder": "displaced",                   # step 4: a better rung of its key beats it
+    "own_row": "displaced",                  # step 4: the water's own row beats an inherited rule
     "water_dates": "displaced",              # step 4a: a water row's own dates override it
     "zone_release": "displaced",             # step 4b: its table's release empties it
     "closure": "displaced",                  # step 4c: a full closure beats it by the ladder
@@ -579,6 +592,11 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
            "Trout/char catch and release"); then
            PLACE — `source_of(rule).rank`: this water, then inherited by the tributary walk (a
            water rule reaching this section `via: trib`), then an area, the region, the province.
+         THE WATER'S OWN ROW BEATS WHAT IT INHERITS, BEFORE NAMING (user ruling Q5, 2026-10-07,
+         `OWN_ROW_BEATS_INHERITED`): a tributary with a row of its own (Granby River under "Kettle
+         River's tributaries") gets both, and on one key its own rule speaks — "trout/char daily
+         quota = 1" over the inherited "Rainbow trout catch and release" for a rainbow. Never a
+         closure either way: an inherited closure is only lifted, an own closure beats as before.
          So a water row that itself names the fish ("Bull trout daily quota = 1") beats the
          zone's bull trout rule: both name it, and the water is more specific.
          A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
@@ -1000,7 +1018,19 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
             return exact_same(o, k)
         if zone_line_restated(o, k):
             return True
+        if own_over_inherited(o, k):
+            return True
+        if own_over_inherited(k, o):
+            return False
         return order(o) < order(k)
+
+    def own_over_inherited(o, k) -> bool:
+        """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (user ruling Q5, `OWN_ROW_BEATS_INHERITED`):
+        `o` is written for this water (bound here by its own place, not the walk) and `k` reaches
+        it only by the tributary walk, and neither is a closure (an inherited closure is lifted,
+        never out-ranked; an own closure already beats every keeper by the ladder)."""
+        return OWN_ROW_BEATS_INHERITED and place(o) == 0 and here[k] == "trib" \
+            and every[k]["_rank"] == 0 and not closure(o) and not closure(k)
 
     def base(k) -> str | None:
         """The region whose OWN table (`z<region>:`, not the province's) wrote the rule."""
@@ -1049,7 +1079,8 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         falls |= {k for k in group if k not in stands}        # a cycle: the old reading
         for k in sorted(falls):
             won = sorted(o for o in beaters[k] if o in stands) or sorted(beaters[k])
-            lose(k, "water_dates" if water_dates_override(won[0], k) else "ladder", won[0])
+            lose(k, "water_dates" if water_dates_override(won[0], k)
+                 else "own_row" if own_over_inherited(won[0], k) else "ladder", won[0])
         overridden |= {k for k in falls
                        if any(o in stands and water_dates_override(o, k) for o in beaters[k])}
 
@@ -1238,8 +1269,9 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     for k in cand:
         o = release_origins(every[k]) if competes(k) else None
         # A release a water row's own dates overrode releases nothing here (SP-12): it is not in
-        # force at this water on this day, whatever step 4's naming said about it.
-        if not o or k in overridden:
+        # force at this water on this day, whatever step 4's naming said about it. Nor does an
+        # INHERITED release the water's own row beat (Q5): the own row answers for the fish here.
+        if not o or k in overridden or (k not in out_ and why.get(k, ("",))[0] == "own_row"):
             continue
         by = beaten_by(k)
         if any(every[b]["_rank"] < 0 and yields_to_release(every[b]) for b in by):

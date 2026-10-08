@@ -20,7 +20,7 @@
     {
      "rule_id": "abruzzi_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -108,7 +108,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -338,7 +338,7 @@
     {
      "rule_id": "alexander_creek_upper.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -425,7 +425,7 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
+     "verbatim": "Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers",
      "kind": "designation"
     }
    ]
@@ -548,7 +548,7 @@
     {
      "rule_id": "arrow_park_mosquito_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -578,7 +578,7 @@
     {
      "rule_id": "asher_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of South Fork (approximately 5 km from Trout Lake), June 15-Oct 31",
+     "verbatim": "No Fishing downstream of South Fork (approximately 5 km from Trout Lake), June 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -896,7 +896,7 @@
    "includes_tributaries": true,
    "see": [
     {
-     "verbatim": "A tributary of Wigwam River; see Wigwam River[Includes Tributaries]",
+     "verbatim": "A tributary of Wigwam River; see Wigwam River",
      "entry_ids": [
       "r4:wigwam_river_downstream_of_the_access_road_adjacent_to_km_42@4-2",
       "r4:wigwam_river_upstream_of_the_forest_service_recreation_site@4-2"
@@ -1081,7 +1081,7 @@
     {
      "rule_id": "bull_river.r1",
      "type": "retention_limit",
-     "verbatim": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]",
+     "verbatim": "Trout/char catch and release from Galbraith Creek to Van Creek, Aberfeldie Dam to Tie Mill Dam and Quinn Creek",
      "species": [
       "TROUT_CHAR"
      ],
@@ -1186,7 +1186,7 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -1207,7 +1207,7 @@
     {
      "rule_id": "burton_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
+     "verbatim": "No Fishing from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1260,7 +1260,7 @@
     {
      "rule_id": "cadorna_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1348,7 +1348,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+     "verbatim": "Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers",
      "kind": "designation"
     }
    ]
@@ -1400,7 +1400,7 @@
     {
      "rule_id": "caribou_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
+     "verbatim": "No Fishing from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1656,7 +1656,7 @@
     {
      "rule_id": "champion_lakes_no_1_2.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -1760,7 +1760,7 @@
     {
      "rule_id": "chatter_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1883,7 +1883,7 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Part described is NOT a Classified Water**",
+     "verbatim": "Part described is NOT a Classified Water",
      "kind": "not_classified"
     }
    ]
@@ -1909,7 +1909,7 @@
     {
      "rule_id": "coffee_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
+     "verbatim": "No Fishing downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2024,7 +2024,7 @@
     {
      "rule_id": "columbia_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** (except Dutch Creek)",
+     "verbatim": "No Fishing (except Dutch Creek)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2069,7 +2069,7 @@
     {
      "rule_id": "columbia_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+     "verbatim": "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2088,7 +2088,7 @@
     {
      "rule_id": "columbia_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+     "verbatim": "No Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2136,7 +2136,7 @@
     {
      "rule_id": "columbia_river.r4",
      "type": "retention_limit",
-     "verbatim": "the regional Apr 1-June 14 closure",
+     "verbatim": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2392,7 +2392,9 @@
     36
    ],
    "matched": [
-    "wbk:329123411"
+    "wbk:329123411",
+    "wbk:329123415",
+    "wbk:329123568"
    ],
    "extents": [
     {
@@ -2403,7 +2405,7 @@
     {
      "rule_id": "connor_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2437,7 +2439,9 @@
     36
    ],
    "matched": [
-    "wbk:329123411"
+    "wbk:329123411",
+    "wbk:329123415",
+    "wbk:329123568"
    ],
    "extents": [
     {
@@ -2449,7 +2453,7 @@
     {
      "rule_id": "connor_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 30",
+     "verbatim": "No Fishing Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2530,7 +2534,7 @@
     {
      "rule_id": "crawford_creek_4_33.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** June 15-Oct 31",
+     "verbatim": "No Fishing June 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2575,7 +2579,7 @@
     {
      "rule_id": "crawford_creek_4_6.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2756,7 +2760,7 @@
     {
      "rule_id": "cultus_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Laib Creek",
+     "verbatim": "No Fishing downstream of Laib Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2794,7 +2798,7 @@
     {
      "rule_id": "deer_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3115,10 +3119,11 @@
     {
      "rule_id": "duncan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**Exempt from spring closure",
+     "verbatim": "Exempt from spring closure",
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "downstream_of",
@@ -3140,6 +3145,7 @@
      "species": [
       "DV"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "downstream_of",
@@ -3339,6 +3345,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -3374,7 +3381,7 @@
     {
      "rule_id": "east_white_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3401,7 +3408,8 @@
     "Stocked"
    ],
    "matched": [
-    "wbk:329524034"
+    "wbk:329524034",
+    "wbk:329524104"
    ],
    "extents": [
     {
@@ -3412,7 +3420,7 @@
     {
      "rule_id": "echoes_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -3688,7 +3696,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -3718,7 +3726,7 @@
     {
      "rule_id": "elk_river_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4166,14 +4174,13 @@
        "walk_past": true
       }
      ],
-     "verbatim": "ALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
-     "review_reason": "the printed carve-out '(EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River)' is not drawn: a tributary_excludes on that split would also remove Coal Creek ABOVE the bridge, which IS classified. Coal Creek's own entry carries the not_classified; a curator must draw the carve-out",
+     "verbatim": "ALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) are Class II waters when open",
      "kind": "designation"
     }
    ],
    "see": [
     {
-     "verbatim": "**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River",
+     "verbatim": "EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr. upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr., Grave\nCreek, Michel Cr., Morrissey Cr., Wigwam River",
      "entry_ids": [
       "r4:abruzzi_creek@4-23",
       "r4:alexander_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23",
@@ -4381,8 +4388,7 @@
        "walk_past": true
       }
      ],
-     "verbatim": "**Class II water when open, including tributaries**",
-     "review_reason": "its tributary walk reaches lower Coal Creek, which Coal Creek's own row prints as 'NOT a Classified Water' (downstream of the old MF&M railway bridge); the carve-out is not drawn — a tributary_excludes on that split would also cut Coal Creek above the bridge, which is classified. A curator must draw it",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -4730,9 +4736,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "when": {
       "dates": [
        {
@@ -4757,6 +4760,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -4811,7 +4817,7 @@
     {
      "rule_id": "flathead_river_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5008,7 +5014,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+     "verbatim": "Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers",
      "kind": "designation"
     }
    ]
@@ -5042,7 +5048,7 @@
     {
      "rule_id": "fording_river_upstream.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5080,7 +5086,7 @@
     {
      "rule_id": "forsyth_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Connor Lake downstream 3 km",
+     "verbatim": "No Fishing from Connor Lake downstream 3 km",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5110,7 +5116,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when/where open, including tributaries**",
+     "verbatim": "Class II water when/where open, including tributaries",
      "kind": "designation"
     }
    ],
@@ -5378,7 +5384,7 @@
     {
      "rule_id": "grave_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5413,7 +5419,7 @@
     {
      "rule_id": "grizzly_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5520,7 +5526,7 @@
     {
      "rule_id": "halfway_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls approximately 11 km from Arrow Lake",
+     "verbatim": "No Fishing downstream of falls approximately 11 km from Arrow Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5593,7 +5599,7 @@
     {
      "rule_id": "hellroaring_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Angus Creek",
+     "verbatim": "No Fishing downstream of Angus Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5621,7 +5627,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
+     "verbatim": "Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers",
      "kind": "designation"
     }
    ]
@@ -5693,7 +5699,7 @@
     {
      "rule_id": "hill_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5766,7 +5772,7 @@
     {
      "rule_id": "idlewild_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -5844,7 +5850,7 @@
     {
      "rule_id": "illecillewaet_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Albert Canyon",
+     "verbatim": "No Fishing downstream of Albert Canyon",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5882,7 +5888,7 @@
     {
      "rule_id": "irishman_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6043,7 +6049,7 @@
     {
      "rule_id": "jordan_river.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** upstream of Kirkup Creek, Nov 1-June 14",
+     "verbatim": "No Fishing upstream of Kirkup Creek, Nov 1-June 14",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6130,7 +6136,7 @@
     {
      "rule_id": "jordan_river.r4",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+     "verbatim": "No Fishing from Kirkup Creek downstream, including Kirkup Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6341,7 +6347,7 @@
     {
      "rule_id": "kinbasket_lake.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
+     "verbatim": "No Fishing within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6469,7 +6475,7 @@
    ],
    "see": [
     {
-     "verbatim": "A tributary of Slocan River. See Slocan River [Includes Tributaries]",
+     "verbatim": "A tributary of Slocan River. See Slocan River",
      "entry_ids": [
       "r4:slocan_river@4-17"
      ]
@@ -6733,7 +6739,7 @@
     {
      "rule_id": "kootenay_lake_lower_west_arm.r3",
      "type": "retention_limit",
-     "verbatim": "kokanee daily quota = 5, **but only on Saturday and Sunday of each week.**",
+     "verbatim": "kokanee daily quota = 5, but only on Saturday and Sunday of each week.",
      "species": [
       "KO"
      ],
@@ -7158,7 +7164,7 @@
     {
      "rule_id": "kootenay_river_lower.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+     "verbatim": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7500,9 +7506,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "when": {
       "dates": [
        {
@@ -7529,7 +7532,10 @@
        ]
       }
      ],
-     "extent_text": "upstream of Koocanusa Reservoir to White River"
+     "extent_text": "upstream of Koocanusa Reservoir to White River",
+     "species_except": [
+      "CHAR"
+     ]
     },
     {
      "rule_id": "kootenay_river_upper.r7",
@@ -7600,9 +7606,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "when": {
       "dates": [
        {
@@ -7627,6 +7630,9 @@
         "kootenay_river__white_river_into_kootenay_river"
        ]
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -7924,7 +7930,7 @@
     {
      "rule_id": "lardeau_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of fishing boundary signs at Trout Lake outlet,** to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek",
+     "verbatim": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7947,6 +7953,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -7965,6 +7972,7 @@
      "species": [
       "TROUT_CHAR"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -8540,7 +8548,7 @@
     {
      "rule_id": "little_slocan_lake_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "EXEMPT from Slocan River's[Includes Tributaries] closure",
+     "verbatim": "EXEMPT from Slocan River's closure",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8560,7 +8568,7 @@
     {
      "rule_id": "little_slocan_lake_tributaries.r2",
      "type": "retention_limit",
-     "verbatim": "Slocan River's[Includes Tributaries] trout/char catch and release",
+     "verbatim": "Slocan River's trout/char catch and release",
      "species": [
       "TROUT_CHAR"
      ],
@@ -8627,7 +8635,7 @@
    ],
    "see": [
     {
-     "verbatim": "A tributary of Slocan River. See Slocan River[Includes Tributaries]",
+     "verbatim": "A tributary of Slocan River. See Slocan River",
      "entry_ids": [
       "r4:slocan_river@4-17"
      ]
@@ -8658,7 +8666,7 @@
     {
      "rule_id": "lodgepole_creek_lower.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8777,7 +8785,7 @@
     {
      "rule_id": "lodgepole_creek_upper.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8960,7 +8968,7 @@
     {
      "rule_id": "loon_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -9158,7 +9166,7 @@
     {
      "rule_id": "lower_elk_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -9473,7 +9481,7 @@
     {
      "rule_id": "mackenzie_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9512,7 +9520,7 @@
     {
      "rule_id": "mcclain_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -9855,7 +9863,7 @@
     {
      "rule_id": "midge_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9990,7 +9998,7 @@
     {
      "rule_id": "morrissey_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10077,7 +10085,7 @@
        "op": "whole"
       }
      ],
-     "verbatim": "**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**",
+     "verbatim": "Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers",
      "kind": "designation"
     }
    ]
@@ -10103,7 +10111,7 @@
     {
      "rule_id": "moses_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10130,7 +10138,8 @@
     "Stocked"
    ],
    "matched": [
-    "wbk:329246294"
+    "wbk:329246294",
+    "wbk:329246297"
    ],
    "extents": [
     {
@@ -10269,7 +10278,7 @@
     {
      "rule_id": "murphy_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10304,7 +10313,7 @@
     {
      "rule_id": "nagle_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10378,7 +10387,7 @@
     {
      "rule_id": "new_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** - this lake has been closed to fishing due to illegal introduction of perch",
+     "verbatim": "No Fishing - this lake has been closed to fishing due to illegal introduction of perch",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10416,7 +10425,7 @@
     {
      "rule_id": "nine_bay_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -10613,7 +10622,7 @@
     {
      "rule_id": "norns_pass_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls approximately 2 km from Columbia River",
+     "verbatim": "No Fishing downstream of falls approximately 2 km from Columbia River",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11204,7 +11213,7 @@
     {
      "rule_id": "prattle_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11242,7 +11251,7 @@
     {
      "rule_id": "premier_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** south of fishing boundary signs on the lake shore, May 15-June 20",
+     "verbatim": "No Fishing south of fishing boundary signs on the lake shore, May 15-June 20",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11351,7 +11360,7 @@
     {
      "rule_id": "premier_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11523,7 +11532,7 @@
     {
      "rule_id": "rock_island_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11959,7 +11968,7 @@
     {
      "rule_id": "sandown_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12040,7 +12049,7 @@
     {
      "rule_id": "schroeder_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12109,7 +12118,7 @@
     {
      "rule_id": "silverton_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12149,7 +12158,7 @@
     {
      "rule_id": "skookumchuck_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)",
+     "verbatim": "No Fishing from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12367,7 +12376,7 @@
     {
      "rule_id": "slocan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)",
+     "verbatim": "No Fishing July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12437,7 +12446,7 @@
     {
      "rule_id": "slocan_river.r3",
      "type": "retention_limit",
-     "verbatim": "Trout/char catch and release (EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Little Slocan Lake's tributaries)",
+     "verbatim": "Trout/char catch and release (EXCEPT Koch Creek upstream of falls and Little Slocan Lake's tributaries)",
      "species": [
       "TROUT_CHAR"
      ],
@@ -12481,7 +12490,7 @@
     {
      "rule_id": "snow_creek.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** downstream of Hail Creek",
+     "verbatim": "No Fishing downstream of Hail Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12736,7 +12745,7 @@
     {
      "rule_id": "st_leon_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of barrier approximately 1 km upstream of the Hwy 23 bridge",
+     "verbatim": "No Fishing downstream of barrier approximately 1 km upstream of the Hwy 23 bridge",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12863,7 +12872,7 @@
     {
      "rule_id": "st_mary_river.r3",
      "type": "bait_restriction",
-     "verbatim": "Bait ban[Includes Tributaries]",
+     "verbatim": "Bait ban",
      "gear": [
       {
        "slot": "bait",
@@ -12963,7 +12972,7 @@
     {
      "rule_id": "sullivan_river.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13104,7 +13113,7 @@
     {
      "rule_id": "summit_creek.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing**, June 15-July 15",
+     "verbatim": "No Fishing, June 15-July 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13322,7 +13331,7 @@
     {
      "rule_id": "tonkawatla_tum_tum_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13387,7 +13396,7 @@
     {
      "rule_id": "trout_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
+     "verbatim": "No Fishing northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13514,7 +13523,16 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "whole",
+     "item_id": "wbk:328961689"
+    },
+    {
+     "op": "between",
+     "item_id": "gnis:37414",
+     "splits": [
+      "columbia_river__hwy_1_bridge_in_revelstoke",
+      "columbia_river__upper_arrow_lake"
+     ]
     }
    ],
    "rules": [
@@ -13528,9 +13546,31 @@
      "take": 2,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ]
+    },
+    {
+     "rule_id": "upper_arrow_lake_drawdown_area.r1b",
+     "type": "retention_limit",
+     "verbatim": "trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:328961689"
+      }
+     ],
+     "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
     },
     {
      "rule_id": "upper_arrow_lake_drawdown_area.r2",
@@ -13552,9 +13592,41 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ]
+    },
+    {
+     "rule_id": "upper_arrow_lake_drawdown_area.r2b",
+     "type": "retention_limit",
+     "verbatim": "no bull trout under 60 cm and only 1 bull trout over 60 cm",
+     "species": [
+      "DV"
+     ],
+     "take": 1,
+     "within": "upper_arrow_lake_drawdown_area.r1b",
+     "lengths": [
+      {
+       "min_cm": 60
+      },
+      {
+       "max_cm": 60,
+       "take": 0
+      }
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:328961689"
+      }
+     ],
+     "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
     },
     {
      "rule_id": "upper_arrow_lake_drawdown_area.r3",
@@ -13574,9 +13646,39 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ]
+    },
+    {
+     "rule_id": "upper_arrow_lake_drawdown_area.r3b",
+     "type": "tackle_restriction",
+     "verbatim": "single barbless hook",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:328961689"
+      }
+     ],
+     "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
     },
     {
      "rule_id": "upper_arrow_lake_drawdown_area.r4",
@@ -13587,7 +13689,12 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ],
      "exempts": [
@@ -13606,7 +13713,12 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ],
      "exempts": [
@@ -13624,7 +13736,12 @@
      ],
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "item_id": "gnis:37414",
+       "splits": [
+        "columbia_river__hwy_1_bridge_in_revelstoke",
+        "columbia_river__upper_arrow_lake"
+       ]
       }
      ],
      "exempts": [
@@ -14036,7 +14153,7 @@
     {
      "rule_id": "whatshan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Whatshan Lake",
+     "verbatim": "No Fishing upstream of Whatshan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14191,7 +14308,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -14258,7 +14375,7 @@
     {
      "rule_id": "whiteswan_lakes_inlet_outlet_streams.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
+     "verbatim": "No Fishing EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14278,7 +14395,7 @@
     {
      "rule_id": "whiteswan_lakes_inlet_outlet_streams.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Mar 31",
+     "verbatim": "No Fishing Aug 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14522,7 +14639,7 @@
     {
      "rule_id": "whitetail_lakes_inlet_outlet_streams.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14608,7 +14725,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -14634,7 +14751,7 @@
     {
      "rule_id": "wigwam_river_upstream_km42.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Sept 1-Oct 31",
+     "verbatim": "No Fishing Sept 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14714,7 +14831,7 @@
       }
      ],
      "includes_tributaries": true,
-     "verbatim": "**Class II water when open, including tributaries**",
+     "verbatim": "Class II water when open, including tributaries",
      "kind": "designation"
     }
    ]
@@ -14738,7 +14855,7 @@
     {
      "rule_id": "wilbur_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -14839,7 +14956,7 @@
     {
      "rule_id": "wilkie_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14923,7 +15040,7 @@
     {
      "rule_id": "wilson_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Burkitt Creek",
+     "verbatim": "No Fishing downstream of Burkitt Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -15057,7 +15174,7 @@
     {
      "rule_id": "winlaw_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -15092,7 +15209,7 @@
     {
      "rule_id": "wood_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** within Hamber Provincial Park, Sept 1-Nov 30",
+     "verbatim": "No Fishing within Hamber Provincial Park, Sept 1-Nov 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -15138,7 +15255,7 @@
     {
      "rule_id": "woodbury_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls at small hydro structure approximately 800 m upstream of Hwy 31 bridge",
+     "verbatim": "No Fishing downstream of falls at small hydro structure approximately 800 m upstream of Hwy 31 bridge",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -15391,6 +15508,40 @@
       }
      ],
      "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true."
+    }
+   ]
+  },
+  {
+   "entry_id": "z4:possession_quota",
+   "name": "Possession quota",
+   "display_name": "Region 4",
+   "region": "4",
+   "regs_verbatim": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+   "source_pages": [
+    34
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:4"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4"
+      }
+     ]
     }
    ]
   },

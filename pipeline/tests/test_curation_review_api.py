@@ -655,7 +655,10 @@ def test_verification_is_a_sidecar_keyed_by_content(env):
         # an edit makes the mark STALE: it was verified, not in the form it has now
         d = _get(env, BULL)
         edited = copy.deepcopy(d["entry"])
-        edited["rules"][2]["includes_tributaries"] = False
+        # flip it (bull_river.r3 is `false` since the RULES round's Q4: the row's ✱ is printed
+        # after its catch-and-release reaches only)
+        edited["rules"][2]["includes_tributaries"] = \
+            edited["rules"][2].get("includes_tributaries") is False
         assert _put(env, BULL, "4", edited).status_code == 200
         assert _get(env, BULL)["verification"]["status"] == "stale"
         assert [x["entry_id"] for x in env["client"].get(

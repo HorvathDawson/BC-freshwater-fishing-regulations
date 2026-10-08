@@ -210,7 +210,7 @@
     {
      "rule_id": "amor_de_cosmos_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater",
+     "verbatim": "No Fishing from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -229,7 +229,7 @@
     {
      "rule_id": "amor_de_cosmos_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from mouth to falls about 4 km upstream, Dec 1-May 31",
+     "verbatim": "No Fishing from mouth to falls about 4 km upstream, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -380,7 +380,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "includes_tributaries": true
     }
    ]
   },
@@ -444,7 +445,7 @@
     {
      "rule_id": "artlish_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30",
+     "verbatim": "No Fishing upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -492,7 +493,7 @@
     {
      "rule_id": "ash_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Elsie Lake to Dickson Lake",
+     "verbatim": "No Fishing from Elsie Lake to Dickson Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -511,7 +512,7 @@
     {
      "rule_id": "ash_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30",
+     "verbatim": "No Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -540,7 +541,7 @@
     {
      "rule_id": "ash_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Dickson Falls downstream 30 m to signs",
+     "verbatim": "No Fishing from Dickson Falls downstream 30 m to signs",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -850,7 +851,7 @@
     {
      "rule_id": "black_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+     "verbatim": "No Fishing Dec 1-May 31 and July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1161,7 +1162,7 @@
     {
      "rule_id": "browns_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1254,7 +1255,7 @@
     {
      "rule_id": "campbell_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between Elk Falls and John Hart Dam Power Station",
+     "verbatim": "No Fishing between Elk Falls and John Hart Dam Power Station",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1273,7 +1274,7 @@
     {
      "rule_id": "campbell_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Strathcona Dam downstream 100 m",
+     "verbatim": "No Fishing from Strathcona Dam downstream 100 m",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1292,7 +1293,7 @@
     {
      "rule_id": "campbell_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31",
+     "verbatim": "No Fishing from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1312,7 +1313,7 @@
       {
        "op": "between",
        "splits": [
-        "gauge__08HD022",
+        "campbell_river__maple_street_boundary_sign",
         "campbell_river__cement_block_boundary_sign"
        ]
       }
@@ -1321,7 +1322,7 @@
     {
      "rule_id": "campbell_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31",
+     "verbatim": "No Fishing in any tributaries (except Quinsam River), Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1342,7 +1343,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "campbell_river__john_hart_dam_power_station"
+        "campbell_river__strathcona_dam"
        ]
       }
      ],
@@ -1452,7 +1453,7 @@
     {
      "rule_id": "carnation_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1487,7 +1488,7 @@
     {
      "rule_id": "catherine_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1522,7 +1523,7 @@
     {
      "rule_id": "caycuse_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1588,7 +1589,7 @@
     {
      "rule_id": "chemainus_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30",
+     "verbatim": "No Fishing downstream of Bannon Creek July 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1617,7 +1618,7 @@
     {
      "rule_id": "chemainus_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30",
+     "verbatim": "No Fishing upstream of Bannon Creek Dec 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1646,7 +1647,7 @@
     {
      "rule_id": "chemainus_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
+     "verbatim": "No Fishing from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1871,7 +1872,7 @@
     {
      "rule_id": "cluxewe_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the West Main logging road bridge (approximately 7.5 km upstream of the Hwy 19 bridge), Dec 1-May 31",
+     "verbatim": "No Fishing upstream of the West Main logging road bridge (approximately 7.5 km upstream of the Hwy 19 bridge), Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2042,7 +2043,7 @@
     {
      "rule_id": "copper_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30",
+     "verbatim": "No Fishing from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2176,7 +2177,7 @@
     {
      "rule_id": "courtenay_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-Sept 30",
+     "verbatim": "No Fishing Dec 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2235,7 +2236,7 @@
     {
      "rule_id": "cous_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1 - Apr 30",
+     "verbatim": "No Fishing Nov 1 - Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2440,7 +2441,7 @@
     {
      "rule_id": "cowichan_river.r2",
      "type": "retention_limit",
-     "verbatim": "No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2466,7 +2467,7 @@
     {
      "rule_id": "cowichan_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15",
+     "verbatim": "No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2496,7 +2497,7 @@
     {
      "rule_id": "cowichan_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in tributaries upstream of and including Holt Creek",
+     "verbatim": "No Fishing in tributaries upstream of and including Holt Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2548,7 +2549,7 @@
     {
      "rule_id": "cowichan_river.r6",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15",
+     "verbatim": "No Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3011,7 +3012,7 @@
     {
      "rule_id": "davie_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Schoen Lake, Dec 1-May 31",
+     "verbatim": "No Fishing downstream of Schoen Lake, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3064,7 +3065,7 @@
     {
      "rule_id": "deena_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary",
+     "verbatim": "No Fishing upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3673,7 +3674,7 @@
     {
      "rule_id": "englishman_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3699,7 +3700,7 @@
     {
      "rule_id": "englishman_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from lower falls in Englishman River Park to signs approximately 100 m downstream",
+     "verbatim": "No Fishing from lower falls in Englishman River Park to signs approximately 100 m downstream",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3719,7 +3720,7 @@
     {
      "rule_id": "englishman_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of Allsbrook Road",
+     "verbatim": "No Fishing downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of Allsbrook Road",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3849,7 +3850,7 @@
     {
      "rule_id": "eve_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of\nthe Hwy 19 bridge, Dec 1-May 31",
+     "verbatim": "No Fishing upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of\nthe Hwy 19 bridge, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4494,7 +4495,7 @@
     {
      "rule_id": "gold_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the Muchalat River",
+     "verbatim": "No Fishing upstream of the Muchalat River",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4514,7 +4515,7 @@
     {
      "rule_id": "gold_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers",
+     "verbatim": "No Fishing downstream of the Muchalat River, Dec 1-Aug 15, but not including the Muchalat or Heber Rivers",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4551,7 +4552,7 @@
     {
      "rule_id": "gold_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+     "verbatim": "No Fishing between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4606,7 +4607,7 @@
     {
      "rule_id": "goldstream_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4645,7 +4646,7 @@
     {
      "rule_id": "gordon_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4670,7 +4671,7 @@
     {
      "rule_id": "gordon_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Bugaboo Creek, Nov 1-Apr 30",
+     "verbatim": "No Fishing upstream of Bugaboo Creek, Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4806,7 +4807,7 @@
     {
      "rule_id": "great_central_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
+     "verbatim": "No Fishing Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4935,7 +4936,7 @@
     {
      "rule_id": "greenstone_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5127,7 +5128,7 @@
     {
      "rule_id": "harris_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5152,7 +5153,7 @@
     {
      "rule_id": "harris_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of and including Hemmingsen Creek",
+     "verbatim": "No Fishing upstream of and including Hemmingsen Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5191,7 +5192,7 @@
     {
      "rule_id": "haslam_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5226,7 +5227,7 @@
     {
      "rule_id": "hawarth_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5261,7 +5262,7 @@
     {
      "rule_id": "healy_lake_s_outlet_stream.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5393,7 +5394,7 @@
     {
      "rule_id": "heber_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14",
+     "verbatim": "No Fishing upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5422,7 +5423,7 @@
     {
      "rule_id": "heber_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence",
+     "verbatim": "No Fishing downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5488,7 +5489,7 @@
     {
      "rule_id": "hemmingsen_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6012,7 +6013,7 @@
     {
      "rule_id": "john_hart_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+     "verbatim": "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6038,7 +6039,7 @@
     {
      "rule_id": "john_hart_lake_s_tributaries.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+     "verbatim": "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6296,7 +6297,7 @@
     {
      "rule_id": "keogh_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of lower fish counting fence near tidewater",
+     "verbatim": "No Fishing downstream of lower fish counting fence near tidewater",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6315,7 +6316,7 @@
     {
      "rule_id": "keogh_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in all parts[Includes Tributaries], Dec 1-May 31",
+     "verbatim": "No Fishing in all parts, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6418,7 +6419,7 @@
     {
      "rule_id": "kokish_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30",
+     "verbatim": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6456,7 +6457,7 @@
     {
      "rule_id": "kokish_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream",
+     "verbatim": "No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6476,7 +6477,7 @@
     {
      "rule_id": "kokish_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+     "verbatim": "No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6520,7 +6521,7 @@
     {
      "rule_id": "koksilah_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 31 and July 1-Sept 30",
+     "verbatim": "No Fishing Dec 1-May 31 and July 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6847,7 +6848,7 @@
     {
      "rule_id": "little_qualicum_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31[Includes Tributaries]",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6873,7 +6874,7 @@
     {
      "rule_id": "little_qualicum_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** - All tributaries",
+     "verbatim": "No Fishing - All tributaries",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6889,7 +6890,7 @@
     {
      "rule_id": "little_qualicum_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31",
+     "verbatim": "No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7286,7 +7287,7 @@
     {
      "rule_id": "campbell_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+     "verbatim": "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7312,7 +7313,7 @@
     {
      "rule_id": "campbell_lake_s_tributaries.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+     "verbatim": "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7364,7 +7365,7 @@
     {
      "rule_id": "macktush_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7480,7 +7481,7 @@
     {
      "rule_id": "mahatta_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-Apr 30",
+     "verbatim": "No Fishing Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7623,7 +7624,7 @@
     {
      "rule_id": "mamin_river.r3",
      "type": "retention_limit",
-     "verbatim": "No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30",
+     "verbatim": "No Fishing upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7785,9 +7786,14 @@
        ]
       }
      ],
+     "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "marble_river__victoria_lake",
+        "marble_river__alice_lake"
+       ]
       }
      ]
     }
@@ -8245,7 +8251,7 @@
     {
      "rule_id": "miller_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8313,7 +8319,7 @@
     {
      "rule_id": "misty_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** (located in an Ecological Reserve)",
+     "verbatim": "No Fishing (located in an Ecological Reserve)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8352,7 +8358,7 @@
     {
      "rule_id": "mohun_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 31",
+     "verbatim": "No Fishing Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8377,7 +8383,7 @@
     {
      "rule_id": "mohun_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Menzies Bay logging mainline bridge crossing to Morton Lake",
+     "verbatim": "No Fishing from Menzies Bay logging mainline bridge crossing to Morton Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8452,7 +8458,7 @@
     {
      "rule_id": "muchalat_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 15",
+     "verbatim": "No Fishing Dec 1-May 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8518,7 +8524,7 @@
     {
      "rule_id": "myra_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8646,7 +8652,7 @@
     {
      "rule_id": "nahmint_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30",
+     "verbatim": "No Fishing Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8712,7 +8718,7 @@
     {
      "rule_id": "nanaimo_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8737,7 +8743,7 @@
     {
      "rule_id": "nanaimo_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
+     "verbatim": "No Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8756,7 +8762,7 @@
     {
      "rule_id": "nanaimo_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
+     "verbatim": "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8785,7 +8791,7 @@
     {
      "rule_id": "nanaimo_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31",
+     "verbatim": "No Fishing upstream of the Hwy 1 bridge, Dec 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8872,7 +8878,7 @@
     {
      "rule_id": "nimpkish_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Davie River, Dec 1-May 15",
+     "verbatim": "No Fishing upstream of Davie River, Dec 1-May 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8959,6 +8965,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "upstream_of",
@@ -8976,7 +8983,7 @@
     {
      "rule_id": "nitinat_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Parker Creek",
+     "verbatim": "No Fishing upstream of Parker Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8994,7 +9001,7 @@
     {
      "rule_id": "nitinat_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31",
+     "verbatim": "No Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9023,7 +9030,7 @@
     {
      "rule_id": "nitinat_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
+     "verbatim": "No Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9072,7 +9079,7 @@
     {
      "rule_id": "nola_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9208,7 +9215,7 @@
     {
      "rule_id": "oyster_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the confluence with Little Oyster River[Includes Tributaries], Dec 1-June 30",
+     "verbatim": "No Fishing upstream of the confluence with Little Oyster River, Dec 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9231,7 +9238,8 @@
         "oyster_river__little_oyster_river_into_oyster_river"
        ]
       }
-     ]
+     ],
+     "includes_tributaries": true
     }
    ]
   },
@@ -9700,7 +9708,7 @@
     {
      "rule_id": "puntledge_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)",
+     "verbatim": "No Fishing downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9719,7 +9727,7 @@
     {
      "rule_id": "puntledge_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek",
+     "verbatim": "No Fishing between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9738,7 +9746,7 @@
     {
      "rule_id": "puntledge_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)",
+     "verbatim": "No Fishing from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9749,7 +9757,7 @@
        "op": "between",
        "splits": [
         "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
-        "gauge__08HB006"
+        "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
        ]
       }
      ]
@@ -9757,7 +9765,7 @@
     {
      "rule_id": "puntledge_river.r5",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **tributaries",
+     "verbatim": "No Fishing tributaries",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9819,7 +9827,7 @@
     {
      "rule_id": "qualicum_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence",
+     "verbatim": "No Fishing downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9838,7 +9846,7 @@
     {
      "rule_id": "qualicum_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m\ndownstream of the hatchery counting fence, Aug 15-Oct 15",
+     "verbatim": "No Fishing from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m\ndownstream of the hatchery counting fence, Aug 15-Oct 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9879,7 +9887,7 @@
     {
      "rule_id": "qualicum_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** tributaries",
+     "verbatim": "No Fishing tributaries",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9974,7 +9982,7 @@
     {
      "rule_id": "quatse_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 15",
+     "verbatim": "No Fishing May 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10014,7 +10022,7 @@
     {
      "rule_id": "quatse_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15",
+     "verbatim": "No Fishing upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10172,7 +10180,7 @@
     {
      "rule_id": "quinsam_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing\nboundary signs approximately 300 m downstream of weir",
+     "verbatim": "No Fishing from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing\nboundary signs approximately 300 m downstream of weir",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10191,7 +10199,7 @@
     {
      "rule_id": "quinsam_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing\n(approximately 25 m upstream of the Quinsam hatchery weir), Dec 1-June 30",
+     "verbatim": "No Fishing from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing\n(approximately 25 m upstream of the Quinsam hatchery weir), Dec 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10225,6 +10233,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -10427,7 +10436,7 @@
     {
      "rule_id": "rogers_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-Apr 30",
+     "verbatim": "No Fishing Dec 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10638,7 +10647,7 @@
     {
      "rule_id": "salmon_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Kay Creek",
+     "verbatim": "No Fishing upstream of Kay Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10710,7 +10719,7 @@
     {
      "rule_id": "san_juan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Fleet River",
+     "verbatim": "No Fishing upstream of Fleet River",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10728,7 +10737,7 @@
     {
      "rule_id": "san_juan_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10889,7 +10898,7 @@
     {
      "rule_id": "somass_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the\nsouthern most end of Collins Farm/Arrow Vale Campground on Hector Road), Aug 25-Nov 15",
+     "verbatim": "No Fishing between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the\nsouthern most end of Collins Farm/Arrow Vale Campground on Hector Road), Aug 25-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10909,7 +10918,7 @@
       {
        "op": "between",
        "splits": [
-        "gauge__08HB017",
+        "somass_river__tidal_boundary_at_papermill_dam",
         "somass_river__boundary_signs_1km_u_s"
        ]
       }
@@ -11041,7 +11050,7 @@
     {
      "rule_id": "sooke_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 15-Aug 31",
+     "verbatim": "No Fishing July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11066,7 +11075,7 @@
     {
      "rule_id": "sooke_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the base of the lower \"potholes\" falls to signs approximately 100 m downstream",
+     "verbatim": "No Fishing from the base of the lower \"potholes\" falls to signs approximately 100 m downstream",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11232,7 +11241,7 @@
     {
      "rule_id": "sproat_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15",
+     "verbatim": "No Fishing from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11373,7 +11382,7 @@
     {
      "rule_id": "stamp_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls, June 15-Nov 15",
+     "verbatim": "No Fishing between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls, June 15-Nov 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11402,7 +11411,7 @@
     {
      "rule_id": "stamp_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the confluence with Ash River upstream to the Great Central Lake dam",
+     "verbatim": "No Fishing from the confluence with Ash River upstream to the Great Central Lake dam",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11792,16 +11801,16 @@
      "extents": [
       {
        "op": "within",
-       "area_id": "area:park:strathcona_park"
+       "area_id": "area:park:strathcona_park",
+       "outside_items": [
+        "wbk:329161786",
+        "wbk:329069967",
+        "wbk:329069966",
+        "wbk:329016195"
+       ]
       }
      ],
-     "extent_text": "any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
-     "unresolved_locators": [
-      "Gold Lake",
-      "Upper Campbell Lake",
-      "Buttle Lake"
-     ],
-     "review_reason": "Placed within area:park:strathcona_park, but the printed exception (Gold, Upper Campbell and Buttle lakes) cannot be subtracted from a `within` and none of the three lakes' rows carries a propulsion rule that would override it; kept as unresolved_locators so the rule stays UNBOUND (AREA_CARVE_OUTS_UNBIND) rather than widen onto the excepted water. Needs an item subtraction on area extents."
+     "extent_text": "any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes"
     }
    ]
   },
@@ -11959,7 +11968,7 @@
     {
      "rule_id": "thelwood_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12149,7 +12158,7 @@
     {
      "rule_id": "tlools_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12321,7 +12330,7 @@
     {
      "rule_id": "toquart_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31.",
+     "verbatim": "No Fishing upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12447,7 +12456,7 @@
     {
      "rule_id": "trent_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+     "verbatim": "No Fishing Dec 1-May 31 and July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12577,7 +12586,7 @@
     {
      "rule_id": "tsable_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+     "verbatim": "No Fishing Dec 1-May 31 and July 15-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12628,7 +12637,7 @@
     {
      "rule_id": "tsitika_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream of Catherine Creek, Nov 1-Apr 30",
+     "verbatim": "No Fishing upstream of Catherine Creek, Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -12701,7 +12710,7 @@
     {
      "rule_id": "tsolum_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13678,7 +13687,7 @@
     {
      "rule_id": "white_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between fishing boundary signs at the salmon viewing pool",
+     "verbatim": "No Fishing between fishing boundary signs at the salmon viewing pool",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13699,7 +13708,7 @@
     {
      "rule_id": "white_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
+     "verbatim": "No Fishing upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -13939,7 +13948,7 @@
     {
      "rule_id": "yakoun_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30",
+     "verbatim": "No Fishing from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14082,7 +14091,7 @@
     {
      "rule_id": "zeballos_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14121,7 +14130,7 @@
     {
      "rule_id": "zeballos_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-Apr 30",
+     "verbatim": "No Fishing Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -14486,7 +14495,7 @@
    "name": "Mercury advisory",
    "display_name": "Lakes of Vancouver Island and the Gulf Islands",
    "region": "1",
-   "regs_verbatim": "MERCURY ADVISORY Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. The general public, especially children and women of child bearing age, including pregnant and breastfeeding women, are recommended to limit their consumption of Smallmouth Bass.",
+   "regs_verbatim": "MERCURY ADVISORY Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. Mercury levels tend to increase with the size of the fish and larger Smallmouth Bass generally have higher levels of mercury. The general public, especially children and women of child bearing age, including pregnant and breastfeeding women, are recommended to limit their consumption of Smallmouth Bass. More information on mercury in fish and fish consumption can be found in the HealthLinkBC Food Safety: Mercury in Fish at https://www.healthlinkbc.ca/healthwise/avoiding-mercury-fish. It is advised to regularly check the online Freshwater Fishing Regulation Synopsis for more up-to-date information at www.gov.bc.ca/FishingRegulations.",
    "source_pages": [
     13
    ],
@@ -14512,6 +14521,40 @@
        "feature_types": [
         "lake"
        ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z1:possession_quota",
+   "name": "Possession quota",
+   "display_name": "Region 1",
+   "region": "1",
+   "regs_verbatim": "Possession quotas = 2 daily quotas",
+   "source_pages": [
+    13
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:1"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1"
       }
      ]
     }
@@ -14801,6 +14844,32 @@
        "outside_area": "area:mu_group:management_units_6_12_and_6_13"
       }
      ]
+    },
+    {
+     "rule_id": "trout_quota.r2b",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "species_except": [
+      "CHAR"
+     ],
+     "take": 2,
+     "within": "trout_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ],
+     "review_reason": "User ruling Q44 (2026-10-07): at most 2 trout over 50 cm in total, at most 1 of them a non-steelhead (r2) and both may be hatchery steelhead (r3) — this clause is the total."
     },
     {
      "rule_id": "trout_quota.r3",

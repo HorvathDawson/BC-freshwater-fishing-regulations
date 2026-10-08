@@ -22,7 +22,7 @@
         {
           "rule_id": "airline_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -249,7 +249,7 @@
         {
           "rule_id": "arctic_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -327,7 +327,7 @@
         {
           "rule_id": "attichika_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+          "verbatim": "No Fishing 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -400,7 +400,7 @@
         {
           "rule_id": "beattie_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1- Apr 30",
+          "verbatim": "No Fishing Nov 1- Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -508,7 +508,7 @@
         {
           "rule_id": "bednesti_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -586,7 +586,7 @@
         {
           "rule_id": "belcourt_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -1329,7 +1329,7 @@
         {
           "rule_id": "carina_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -1727,7 +1727,7 @@
         {
           "rule_id": "chief_gray_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -1941,7 +1941,7 @@
         {
           "rule_id": "chuchi_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -2421,7 +2421,7 @@
         {
           "rule_id": "crooked_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** downstream (north) of the 200 Road Bridge, Apr 1-June 30",
+          "verbatim": "No Fishing downstream (north) of the 200 Road Bridge, Apr 1-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -2518,7 +2518,7 @@
         {
           "rule_id": "cunningham_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -2696,7 +2696,7 @@
         {
           "rule_id": "davis_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing**",
+          "verbatim": "No Fishing",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -2731,7 +2731,7 @@
         {
           "rule_id": "dem_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -3002,7 +3002,7 @@
         {
           "rule_id": "dina_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing**",
+          "verbatim": "No Fishing",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -3108,13 +3108,13 @@
         {
           "rule_id": "dinosaur_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam",
+          "verbatim": "No Fishing from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam",
           "species": [
             "ALL_GAME_FISH"
           ],
           "take": 0,
           "may_target": false,
-          "includes_tributaries": false,
+          "includes_tributaries": true,
           "extents": [
             {
               "op": "whole"
@@ -3239,7 +3239,7 @@
         {
           "rule_id": "east_hautete_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -3427,7 +3427,7 @@
         {
           "rule_id": "endako_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 15-June 30",
+          "verbatim": "No Fishing Nov 15-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -3473,7 +3473,7 @@
         {
           "rule_id": "eye_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -3943,7 +3943,7 @@
         {
           "rule_id": "goat_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** upstream of the Macleod Creek confluence, including Macleod Creek[Includes Tributaries], Sept 1-June 30",
+          "verbatim": "No Fishing upstream of the Macleod Creek confluence, including Macleod Creek, Sept 1-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -4782,7 +4782,7 @@
         {
           "rule_id": "humphrey_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -4860,7 +4860,7 @@
         {
           "rule_id": "indata_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5037,7 +5037,7 @@
         {
           "rule_id": "johns_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5273,7 +5273,7 @@
         {
           "rule_id": "kemess_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** from Attichka Creek to a point 500 m upstream",
+          "verbatim": "No Fishing from Attichka Creek to a point 500 m upstream",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5312,7 +5312,7 @@
         {
           "rule_id": "klwali_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5732,7 +5732,7 @@
         {
           "rule_id": "little_lost_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5831,7 +5831,7 @@
         {
           "rule_id": "little_tomas_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -5909,7 +5909,7 @@
         {
           "rule_id": "lower_beaverpond_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -6187,7 +6187,7 @@
         {
           "rule_id": "macleod_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Sept 1-June 30",
+          "verbatim": "No Fishing Sept 1-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -6270,7 +6270,7 @@
         {
           "rule_id": "mclennan_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Apr 1-Aug 31",
+          "verbatim": "No Fishing Apr 1-Aug 31",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -6506,7 +6506,7 @@
         {
           "rule_id": "moberly_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Sept 15-Oct 31",
+          "verbatim": "No Fishing Sept 15-Oct 31",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -6632,7 +6632,7 @@
         {
           "rule_id": "monkman_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -7129,7 +7129,7 @@
         {
           "rule_id": "nakinilerak_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -7340,7 +7340,7 @@
         {
           "rule_id": "nation_arm.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30",
+          "verbatim": "No Fishing west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -8077,7 +8077,7 @@
         {
           "rule_id": "peace_river.r5",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30",
+          "verbatim": "No Fishing from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -8106,7 +8106,7 @@
         {
           "rule_id": "peace_river.r6",
           "type": "retention_limit",
-          "verbatim": "**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
+          "verbatim": "No Fishing between Peace Canyon Dam and Hwy 29 Bridge",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -8149,7 +8149,7 @@
         {
           "rule_id": "peace_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing**",
+          "verbatim": "No Fishing",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -8553,7 +8553,7 @@
         {
           "rule_id": "rainbow_lakes.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31",
+          "verbatim": "No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9177,7 +9177,7 @@
           "steelhead_stamp_waived": {
             "verbatim": "Steelhead Stamp not required"
           },
-          "verbatim": "Class II water[Includes Tributaries] when open",
+          "verbatim": "Class II water when open",
           "kind": "designation"
         }
       ],
@@ -9384,7 +9384,7 @@
         {
           "rule_id": "sundance_lake.r1",
           "type": "hazard",
-          "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+          "verbatim": "WARNING! Dangerous thin ice due to aeration!",
           "extents": [
             {
               "op": "whole"
@@ -9457,7 +9457,7 @@
         {
           "rule_id": "swift_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Apr 1-Aug 31",
+          "verbatim": "No Fishing Apr 1-Aug 31",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9482,7 +9482,7 @@
         {
           "rule_id": "swift_creek.r2",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** from upstream side of weir to CNR Bridge in Valemount",
+          "verbatim": "No Fishing from upstream side of weir to CNR Bridge in Valemount",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9521,7 +9521,7 @@
         {
           "rule_id": "tacheeda_lakes.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9633,7 +9633,7 @@
         {
           "rule_id": "tchentlo_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9809,7 +9809,7 @@
         {
           "rule_id": "thorn_creek.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** from Attichika Creek to a point 500 m upstream",
+          "verbatim": "No Fishing from Attichika Creek to a point 500 m upstream",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9848,7 +9848,7 @@
         {
           "rule_id": "tomas_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -9926,7 +9926,7 @@
         {
           "rule_id": "tomias_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -10040,7 +10040,7 @@
         {
           "rule_id": "tsayta_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -10203,7 +10203,7 @@
         {
           "rule_id": "tupper_river.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** within 100 m downstream of outlet weir at Swan Lake",
+          "verbatim": "No Fishing within 100 m downstream of outlet weir at Swan Lake",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -10623,7 +10623,7 @@
         {
           "rule_id": "whitefish_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -10701,7 +10701,7 @@
         {
           "rule_id": "wicheeda_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -10878,7 +10878,7 @@
         {
           "rule_id": "williston_lake.r5",
           "type": "advisory",
-          "verbatim": "**See mercury warning on **page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
+          "verbatim": "See mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
           "extents": [
             {
               "op": "whole"
@@ -10935,7 +10935,7 @@
         {
           "rule_id": "williston_lake_zone_b.r2",
           "type": "advisory",
-          "verbatim": "**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80",
+          "verbatim": "See mercury warning page 57 in Region 7A, and definition of \"stream mouth\" on page 80",
           "extents": [
             {
               "op": "whole"
@@ -10945,7 +10945,7 @@
         {
           "rule_id": "williston_lake_zone_b.r3",
           "type": "retention_limit",
-          "verbatim": "Arctic grayling catch and release[Includes Tributaries]",
+          "verbatim": "Arctic grayling catch and release",
           "species": [
             "GR"
           ],
@@ -11183,7 +11183,7 @@
         {
           "rule_id": "witch_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -11261,7 +11261,7 @@
         {
           "rule_id": "wolverine_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31",
+          "verbatim": "No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31",
           "species": [
             "ALL_GAME_FISH"
           ],
@@ -11392,7 +11392,7 @@
         {
           "rule_id": "yellowhead_lake.r1",
           "type": "retention_limit",
-          "verbatim": "**No Fishing** Nov 1-Apr 30",
+          "verbatim": "No Fishing Nov 1-Apr 30",
           "species": [
             "ALL_GAME_FISH"
           ],

@@ -6,7 +6,7 @@
    "name": "Spring stream closure",
    "display_name": "Every stream in Zone A",
    "region": "7a",
-   "regs_verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See tables for exceptions). No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
+   "regs_verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See tables for exceptions).",
    "source_pages": [
     58
    ],
@@ -23,7 +23,7 @@
     {
      "rule_id": "spring_stream_closure.r1",
      "type": "retention_limit",
-     "verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
+     "verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -661,7 +661,7 @@
    "name": "White sturgeon — SARA",
    "display_name": "Upper Fraser and Nechako",
    "region": "7a",
-   "regs_verbatim": "White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
+   "regs_verbatim": "White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers. Help from the public will also be necessary for recovery and the NWSRI requests that you report the date and location of all sightings or incidental captures, particularly in the Nechako, Fraser Lake and Stuart/Takla watersheds. If you observe or accidentally catch a White Sturgeon in the Omineca Region, please call the Ministry of Water, Land and Resource Stewardship at 250-614-7400.",
    "source_pages": [
     58
    ],
@@ -690,6 +690,18 @@
      "authority": "superior",
      "extent_text": "Upper Fraser and Nechako rivers",
      "review_reason": "Held to Region 7A (the page's heading: 'White Sturgeon in the Omineca Region'). Bound to the whole Fraser and Nechako before, it closed the lower Fraser's catch-and-release sturgeon fishery in Regions 2, 3 and 5 with superior authority. The Upper Fraser population's lower end below Region 7A, and the upper Nechako in Region 6, are for a curator."
+    },
+    {
+     "rule_id": "sara_sturgeon.r2",
+     "type": "advisory",
+     "verbatim": "Help from the public will also be necessary for recovery and the NWSRI requests that you report the date and location of all sightings or incidental captures, particularly in the Nechako, Fraser Lake and Stuart/Takla watersheds. If you observe or accidentally catch a White Sturgeon in the Omineca Region, please call the Ministry of Water, Land and Resource Stewardship at 250-614-7400.",
+     "obligation": "should",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
     }
    ]
   },

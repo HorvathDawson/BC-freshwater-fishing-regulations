@@ -86,7 +86,7 @@ def test_the_row_decides_the_scope_both_ways():
             (_entry("1 trout from streams; bull trout catch and release",
                     [trout, ok["rules"][1]]), "its trout exclude char"),
             (_entry("1 trout from streams", [dict(trout, species_except=["CHAR"])]),
-             "mentions no char apart"),
+             "no char rule of its own"),
             (_entry("Trout/char: 5; char catch and release",
                     [dict(trout, verbatim="Trout/char: 5", take=5, species_except=["CHAR"])]),
              "names char in"),
@@ -124,10 +124,12 @@ def _rule(corpus, eid, rid):
 
 
 def test_region_6_and_region_1_trout_lines_are_trout_only(corpus):
-    """R6 (p.49) and R1 (p.13) mention char, so their bare 'trout' lines exclude it; their
-    'Trout/char' lines keep it. The label says 'Trout'."""
+    """R6 (p.49) and R1 (p.13) give char RELATED lines of their own (user 2026-10-07, TROUT/CHAR
+    CLARIFIED), so their bare 'trout' count/release lines exclude it; their 'Trout/char' lines keep
+    it, and Region 6's size line 'Trout under 30 cm from any stream' (no char size line beside it)
+    covers char. The label says 'Trout'."""
+    assert "CHAR" not in _rule(corpus, "z6:trout_char_quota", "trout_char_quota.r6").species_except
     for eid, rid in (("z6:trout_char_quota", "trout_char_quota.r4"),
-                     ("z6:trout_char_quota", "trout_char_quota.r6"),
                      ("z6:trout_char_quota", "trout_char_quota.r7"),
                      ("z1:trout_quota", "trout_quota.r1"), ("z1:trout_quota", "trout_quota.r2"),
                      ("z1:trout_quota", "trout_quota.r4"), ("z1:trout_quota", "trout_quota.r6")):

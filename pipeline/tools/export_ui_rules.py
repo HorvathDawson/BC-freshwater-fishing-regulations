@@ -1841,9 +1841,14 @@ LIFT_TEXT = {
 }
 
 LENGTH_TEXT = {
-    "min_cm": "inclusive lower bound; absent = open",
-    "max_cm": "inclusive upper bound; absent = open",
+    "min_cm": "lower bound; absent = open. Inclusive, EXCEPT on a range with take 0 (see `closed`)",
+    "max_cm": "upper bound; absent = open. Inclusive, EXCEPT on a range with take 0 (see `closed`)",
     "take": "how many of THESE you may keep; absent = the rule's own `take`",
+    "closed": "only on a take-0 range, only `true`: the book prints 'X cm or more' / 'X cm or less', "
+              "so a fish of exactly X is in the range (goes back). Absent, a take-0 range does NOT "
+              "hold its own bounds: a fish exactly on a printed size bound is LEGAL ('none under 30 "
+              "cm' keeps a 30.0 cm fish, 'no trout over 50 cm' keeps a 50.0 cm one; user ruling "
+              "2026-10-07, `catalogue.EXACT_BOUND_IS_LEGAL`)",
 }
 
 WHO_TEXT = {
@@ -2111,7 +2116,15 @@ def guide(d: dict) -> dict:
                       "replaces the CVWMA's 'unlimited' there). "
                       "`provenance.rank` is the rank where the rule is written; on a "
                       "section it reached by the tributary walk (`via: trib` in its ruleset) a "
-                      "water rule speaks at the `inherited` rung instead. A rule is displaced "
+                      "water rule speaks at the `inherited` rung instead. A WATER'S OWN ROW "
+                      "BEATS WHAT IT INHERITS, BEFORE NAMING (user ruling 2026-10-07): a "
+                      "tributary with a row of its own gets both its own rules and the ones the "
+                      "walk brings, and on one key its own rule speaks — Granby River's own "
+                      "'trout/char daily quota = 1' above Burrell Creek, not the inherited "
+                      "'Rainbow trout catch and release' of Kettle River's tributaries, answers "
+                      "for a rainbow. Never a closure: the inherited 'No Fishing Jul 25-Sept 15' "
+                      "still closes Granby River on its dates (only a lift removes a closure). "
+                      "A rule is displaced "
                       "only by a better rule of ANOTHER quota: a quota and its `within` clauses "
                       "are one statement ('Trout/char: 5, but not more than 3 lake trout') and "
                       "never displace each other. Rules that tie all speak. A RULE THAT IS "
@@ -2709,8 +2722,10 @@ def guide(d: dict) -> dict:
                    "length the FIRST range that contains it answers; its `take` (or, absent, "
                    "the rule's `take`) is how many of those you may keep. A length no range "
                    "covers is not spoken about by this rule: at the top level nothing grants "
-                   "it; inside a `within` clause the parent quota governs it. A grant is "
-                   "written before the denial beneath it, so a shared endpoint is granted.",
+                   "it; inside a `within` clause the parent quota governs it. A FISH EXACTLY "
+                   "ON A PRINTED BOUND IS LEGAL: a range with take 0 does not hold its own "
+                   "bounds unless it is `closed` (the book's 'X cm or more' / 'or less'), so a "
+                   "shared endpoint always falls to the range that keeps.",
         "range_fields": LENGTH_TEXT,
         "examples": {
             "quota with a ceiling": pick(lambda x: _f(x).get("take") and any(
@@ -3256,22 +3271,23 @@ def guide(d: dict) -> dict:
             "rules": len(in_part),
         },
         "trout_includes_char": {
-            "says": "'Trout' includes char UNLESS THE REGULATION MENTIONS CHAR (p.80; user ruling "
-                    "2026-09-28). A lake row printing only 'Trout daily quota = 2' is TROUT_CHAR: "
-                    "a char counts toward the 2 — never label it 'trout only'. But where the SAME "
-                    "row, or the same zone table, names a char on its own ('char', Dolly "
-                    "Varden/bull trout, lake trout, brook trout), its bare 'trout' lines are "
-                    "about trout alone: TROUT_CHAR with species_except CHAR (label 'Trout'). "
-                    "Region 6's box mentions Dolly Varden and lake trout, so its '1 trout from "
-                    "streams', 'Trout under 30 cm from any stream' and 'Trout of any size from "
-                    "streams, Nov 1-June 30' do not bind char; Region 1's box releases 'All "
-                    "char', so its 'Trout: 4' counts trout only. 'Trout/char' always includes "
-                    "char. Show `note` beside every trout rule, and `note_trout_only` beside one "
-                    "whose char are excluded, so the reader sees which reading applies.",
+            "says": "'Trout' includes char (p.80: 'all regulations that apply to trout (as a group) "
+                    "also apply to char unless char are specifically excluded') UNLESS the line "
+                    "excludes char in so many words, or its own row or zone table gives char a "
+                    "RELATED line of their own — about the same thing (how many you keep or must "
+                    "release, sizes, gear), on the same kind of water and days (user ruling "
+                    "2026-10-07). Region 1's box releases 'All char', so its 'Trout: 4' and '2 from "
+                    "streams (must be hatchery)' count trout only; Region 6's 'Trout of any size from "
+                    "streams, Nov 1-June 30' sits beside its own Dolly Varden stream release, so it "
+                    "is trout only, but its size line 'Trout under 30 cm from any stream' has no char "
+                    "size line beside it and covers char. A row printing only 'no trout under 25 cm' "
+                    "and 'Bull trout catch and release' keeps the 25 cm limit on bull trout too. "
+                    "'Trout/char' always includes char. Show `note` beside every trout rule, and "
+                    "`note_trout_only` beside one whose char are excluded.",
             "note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook trout) "
-                    "unless the regulation lists char separately.",
-            "note_trout_only": "This regulation lists char separately, so 'trout' here means "
-                               "trout only (rainbow, steelhead, cutthroat, brown); char follow "
+                    "unless the line excludes them or char have their own line about the same thing.",
+            "note_trout_only": "Char have their own line about the same thing here, so 'trout' "
+                               "means trout only (rainbow, steelhead, cutthroat, brown); char follow "
                                "their own lines.",
             "key_on": "species contains TROUT_CHAR (note); and species_except contains CHAR "
                       "(note_trout_only)",
@@ -5042,11 +5058,13 @@ def species_table() -> dict:
             "fish": fish, "groups": groups,
             "trout_includes_char": "p.80: 'all regulations that apply to trout (as a group) "
                                    "also apply to char unless char are specifically excluded' "
-                                   "— the trout group is TROUT_CHAR; a bare 'trout' line of a "
-                                   "row or zone table that mentions char apart is TROUT_CHAR "
-                                   "with species_except CHAR (user ruling 2026-09-28)",
+                                   "— the trout group is TROUT_CHAR; a bare 'trout' line is "
+                                   "TROUT_CHAR with species_except CHAR only where it excludes "
+                                   "char in words or its row or zone table gives char a RELATED "
+                                   "line of their own (same aspect, water kind and days; user "
+                                   "ruling 2026-10-07)",
             "trout_note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook "
-                          "trout) unless the regulation lists char separately.",
+                          "trout) unless the line excludes them or char have their own line about the same thing.",
             # A SALMON THE BOOK NAMES — not a game fish, not in `fish` (user ruling 2026-09-28)
             "salmon": {c: {"name": _name(c), "group": g, "game_fish": False}
                        for c, g in sorted(C.SALMON_FISH.items())},
@@ -5236,6 +5254,43 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
                   "both hold), its `zone_lifted` the zone's own days the reader lifts, for which "
                   "fish, by which rules; the answer itself already holds both closures (`ladder`)",
         "entries": combine,
+    }
+    g["gotchas"]["exemption_stays_on_its_water"] = exemption_stays_on_its_water(d, bundle)
+    g["gotchas"]["excepted_rivers_creeks_stay_closed"] = {
+        "says": "A row closing its tributaries 'EXCEPT' some named rivers excepts those rivers' "
+                "OWN channels only: a creek flowing into an excepted river is still a tributary of "
+                "the row's water and stays closed (user ruling 2026-10-07, the Squamish row's 'No "
+                "Fishing tributaries EXCEPT Ashlu, Cheakamus, Elaho, Mamquam, Powerhouse Channel', "
+                "p.26). The excepted river follows its own row; never show its creeks as open "
+                "because the river is.",
+        "key_on": "rules[id].fields.tributary_excludes[*].walk_past == true: the excluded water "
+                  "is out, the walk goes on above it",
+        "entries": [e for e in EXCEPTED_RIVERS_CREEKS_CLOSED if e in d["entries"]],
+    }
+    binds: dict = {}
+    for x in d["rules"].values():
+        binds.setdefault(x["entry_id"], []).append(x.get("binds"))
+    lost = sorted(i for i, e in d["entries"].items() if i.startswith("r") and e.get("kind") == "water"
+                  and not e.get("matched") and not e.get("item_id") and binds.get(i)
+                  and all(b == "nowhere" for b in binds[i]))
+    g["gotchas"]["not_located"] = {
+        "says": "Rows the book prints whose water the map does not hold under that name in that "
+                "management unit (no FWA feature, registry item or place name found): NOT LOCATED, "
+                "NOT SHOWN on any water. Their rules bind nothing; list them where a reader searches "
+                "by name, so an angler is never told such a water has only the zone rules.",
+        "key_on": "entries[entry_id] with kind 'water', no matched and no item_id",
+        "entries": lost,
+    }
+    notes = sorted(i for i in UNDRAWN_PART_TRIBUTARIES if i in d["rules"])
+    g["gotchas"]["undrawn_part_tributaries"] = {
+        "says": "A rule printed with ✱ (includes tributaries) whose own reach nothing draws — held on "
+                "its water as an undrawn-part note — reaches the TRIBUTARIES OF THAT PART only, and "
+                "those are not drawn either (user ruling 2026-10-07): the note says the part's "
+                "tributaries are included; no tributary is coloured or closed by it. Show the note "
+                "with that sentence on the water.",
+        "key_on": "rules[id] listed here (an undrawn part whose rule reaches tributaries; "
+                  "`UNDRAWN_PART_TRIBUTARIES`, pinned against the corpus by test_rules_round.py)",
+        "rules": notes,
     }
     g["gotchas"]["dated_bait_ban_replaces_zone"] = {
         "says": "A row printing a DATED bait ban ('Bait ban, May 1-Nov 30') where its zone "
@@ -5909,6 +5964,12 @@ QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
      "west_road_blackwater_rivers_tributaries.r1"):
         "tributaries only: as Region 6's — Zone 7A's spring stream closure holds on them ("
         "'tributaries subject to spring closure'); the 1 per day holds the rest of the year",
+    ("r4:duncan_river@4-19", "duncan_river.r4"):
+        "on the Duncan's TRIBUTARIES (the row's ✱ carries its quotas): its 'Exempt from spring "
+        "closure' stays on the river itself (user ruling Q3, 2026-10-07), so Region 4's Apr 1-Jun 14 "
+        "stream closure holds there; the 5 rainbow holds the rest of the year",
+    ("r4:duncan_river@4-19", "duncan_river.r5"):
+        "as duncan_river.r4: the 2 bull trout on the tributaries hold outside Region 4's stream closure",
     ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r1"):
         "the park's streams lying in Zone 7A fall under Zone 7A's spring stream closure: Region "
         "5's page exception (p.42) lifts only Region 5's closure, and the row prints no "
@@ -6415,6 +6476,59 @@ def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
                                f"{n.get('example')} on any of {h['dates']} for {h['fish']}, "
                                f"yet the note says both hold")
     return out
+
+
+#: THE UNDRAWN-PART RULES WHOSE ROW OR RULE INCLUDES TRIBUTARIES (user ruling 2026-10-07): held on
+#: their water as a note, they no longer walk (`reach.classify.UNDRAWN_PART_DOES_NOT_WALK`), so the
+#: tributaries of their part are named here. The bundle does not carry a rule's tributary scope;
+#: `test_rules_round.py` re-derives this list from the corpus and refuses a drift.
+UNDRAWN_PART_TRIBUTARIES = (
+    "r1:deena_creek@6-12::deena_creek.r1",
+    "r1:mamin_river@6-13::mamin_river.r3",
+    "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31::dinosaur_lake.r1",
+)
+
+#: Rows closing their tributaries EXCEPT named rivers, whose excepted rivers' creeks stay closed
+#: (user ruling Q6, 2026-10-07; `tributary_excludes` with `walk_past`). Pinned against the corpus by
+#: test_rules_round.py (the bundle does not carry `tributary_excludes`).
+EXCEPTED_RIVERS_CREEKS_CLOSED = ("r2:squamish_river_s_tributaries@2-6",)
+
+
+def exemption_stays_on_its_water(d: dict, bundle=None) -> dict:
+    """AN EXEMPTION PRINTED ON A ✱ ROW STAYS ON THE ROW'S OWN WATER (user ruling Q3, 2026-10-07):
+    the row's ✱ (p.4: "all regulations cited apply to both the named body of water and its
+    tributaries") carries its closures, quotas and gear to the tributaries, never its lifts — a
+    small Quinsam tributary is closed Jul 15-Aug 31 under Region 1's summer closure although the
+    Quinsam itself is "Exempt from July 15-Aug 31 summer closure". GENERATED from the export: every
+    rule of a ✱ row that lifts something (`exempts`) and does not walk (`includes_tributaries:
+    false`)."""
+    walkers = {i for i, e in d["entries"].items() if "Incl. Tribs" in (e.get("symbols") or [])}
+    walked: set = set()
+    if bundle is not None:
+        db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+        try:
+            walked = {f"{e}::{r}" for e, r in db.execute(
+                "SELECT DISTINCT entry_id, rule_id FROM ruleset WHERE via = 'trib'")}
+        finally:
+            db.close()
+    # a lift-only rule (no number, no sizes) of a ✱ row that binds sections but none by the walk
+    lifts = sorted(i for i, x in d["rules"].items() if x["entry_id"] in walkers
+                   and x["fields"].get("exempts") and x.get("binds") == "sections"
+                   and x["type"] == "retention_limit" and x["fields"].get("take") is None
+                   and not x["fields"].get("unlimited") and not x["fields"].get("lengths")
+                   and i not in walked)
+    return {
+        "says": "A row marked ✱ (includes tributaries) carries its closures, quotas and gear "
+                "rules to its tributary streams — but NOT an exemption it prints (user ruling "
+                "2026-10-07): 'Exempt from July 15-Aug 31 summer closure', 'exempt from spring "
+                "closure', 'open all year', 'Open June 16-Apr 30' open the row's own water only "
+                "(`rules` lists every one). On a tributary the zone closure the row lifts still "
+                "holds; never show the row's exemption there.",
+        "key_on": "rules[id].fields.exempts with rules[id].fields.includes_tributaries == false "
+                  "on an entry whose symbols hold 'Incl. Tribs'; an answer on a tributary never "
+                  "carries them (the reach does not bind them there)",
+        "rules": lifts,
+    }
 
 
 def dated_bait_ban_replaces_zone(rules: dict) -> dict:

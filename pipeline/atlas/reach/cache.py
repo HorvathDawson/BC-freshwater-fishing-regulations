@@ -68,7 +68,11 @@ from typing import Callable
 #:    order past the border) is unknown to the Strahler guard (`tributaries.ORDER_ZERO_IS_UNKNOWN`);
 #:    a lake is book-known steelhead water only as a steelhead row's own water
 #:    (`steelhead.LAKES_ONLY_BY_OWN_ROW`).
-POLICY_VERSION = "15"
+#: 16: (RULES round 2026-10-07) a row printing "(also in M.U. X)" in its name binds in X's region too
+#:    (`outside.region_limit`, the Canim River rows, user Q24).
+#: 17: (RULES round 2026-10-07) a rule held as an undrawn part never walks tributaries
+#:    (`classify.UNDRAWN_PART_DOES_NOT_WALK`: Dinosaur, Deena, Mamin).
+POLICY_VERSION = "17"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

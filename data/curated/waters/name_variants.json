@@ -72891,5 +72891,19 @@
     "reviewed_at": "2026-09-03"
    }
   ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328988335"
+   ]
+  },
+  "names": [
+   {
+    "name": "Seton Canal",
+    "source": "regulation",
+    "note": "BC Hydro power canal from Seton Lake to the Seton generating station on the Fraser (book p.32 row 'SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake)'). FWA manmade polygon, no GNIS name; blk 355995374. [geo-a 2026-10-07]"
+   }
+  ]
  }
 ]

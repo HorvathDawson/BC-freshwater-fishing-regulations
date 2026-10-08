@@ -2487,6 +2487,25 @@
       -122.91698,
       49.24793
      ]
+    },
+    {
+     "id": "brunette_river__salamander_creek_into_brunette_river",
+     "label": "Salamander Creek → Brunette River",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.922876,
+       49.245863
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[rules round 2026-10-07: a POINT anchor at the mouth, since no confluence split targets an added stream] [geo-a] Book p.22 'No Fishing ... from Cariboo Dam to Salamander Creek'. Salamander Creek is a municipal added stream (wsc 100-019698-693800, blk -2000000291); mouth [-122.922876, 49.245863] on the Brunette at ~6,776 m, 499 m above Cariboo Dam (6,277 m), 1.03 km below the Burnaby Lake edge (7,810 m).",
+     "_coord": [
+      -122.922876,
+      49.245863
+     ]
     }
    ]
   },
@@ -4046,7 +4065,7 @@
     },
     {
      "id": "thompson_river__boundary_signs",
-     "label": "boundary signs",
+     "label": "boundary signs 1 km downstream of Martel",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5912,6 +5931,28 @@
      "applies_to": {
       "wsc": "910-275583-999439"
      }
+    },
+    {
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary",
+     "label": "Tweedsmuir Park eastern boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.64739,
+       52.17863
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[GEO-B 2026-10-07] where the Atnarko River (blk 360879335 @ 63793.1 m) enters Tweedsmuir Park from the east (parks_bc TWEEDSMUIR PARK boundary; 200 m below inside, 200 m above outside). The book's 'upstream of Tweedsmuir Provincial Park' (r1) and 'downstream of eastern boundary' (r10) are both this place; Tenas Lake (wbk 329021804) lies wholly inside the park, hence 'plus Tenas Lake'.",
+     "_coord": [
+      -125.64739,
+      52.17863
+     ],
+     "applies_to": {
+      "gnis_id": "17209"
+     }
     }
    ]
   },
@@ -5941,6 +5982,25 @@
      "applies_to": {
       "wsc": "100-458476"
      }
+    },
+    {
+     "id": "baker_creek__pinnacles_park_downstream_boundary",
+     "label": "Pinnacles Park downstream boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.55131,
+       52.97737
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[GEO-B 2026-10-07, user ruling Q18] where Baker Creek leaves Pinnacles Park downstream (FWA blk 356354559 @ 7093.95 m, on the parks_bc PINNACLES PARK boundary). ONE split: upstream of it = 'upstream of Pinnacles Provincial Park', downstream = 'downstream of Park'.",
+     "_coord": [
+      -122.55131,
+      52.97737
+     ]
     }
    ]
   },
@@ -6916,7 +6976,7 @@
       ],
       "is_lonlat": true
      },
-     "note": "",
+     "note": "Cut at the lower culvert, not at the fishing boundary signs: the book places the signs 'downstream of lower culvert near fish cannery' and no source locates them. The culvert is essentially the mouth (the cut lands 0.25 m above the bottom of the FWA line), so the closure 'upstream of the signs' and 'upstream of the culvert' cover the same FWA water.",
      "_note": "[auto-proposal L] boundary signs at lower culvert near fish cannery, Prince Rupert on Hays Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the lower culvert / fish cannery on Hays Creek in Prince Rupert; culvert+signs, map-only.. Small urban creek in Prince Rupert; landmark is a culvert near a cannery with boundary signs, not a road bridge. Not in FWA/FSR. Map-only. [curated 2026-08-11 needs-pin batch6] [user: culvert d/s ~54.32141,-130.30852 = essentially the mouth; incl Oldfield Ck]",
      "_coord": [
       -130.30827,
@@ -9452,6 +9512,25 @@
      },
      "note": "",
      "_note": "[dfo-salmon 2026-09-02] DFO r6 scope B(i): 'Telkwa River downstream of Howson Creek.' (coho 4/day, only 2 over 50 cm, Jul 15-Oct 15). A NAME lookup for 'Howson Creek' returns gnis:21600 — a different creek in the Kootenays (wsc 300-625474-020842-864570-252226, MU 4-17, 49.989/-117.289). The real one is wsc 400-431358-415251-382286, 26,548 m, a direct child of the Telkwa's 400-431358-415251. The child-code test is what separates them."
+    }
+   ]
+  },
+  {
+   "name": "PENNASK CREEK",
+   "applies_to": {
+    "gnis_id": "14707"
+   },
+   "splits": [
+    {
+     "id": "pennask_creek__pennask_lake",
+     "label": "Pennask Lake",
+     "kind": "lake",
+     "anchor": {
+      "type": "lake",
+      "wbk": "329451883"
+     },
+     "note": "",
+     "_note": "[geo-a 2026-10-07] Book p.31 PENNASK CREEK 'No Fishing upstream of Pennask Lake'. FWA: Pennask Creek (blk 356344849, wsc 100-190442-244975-651947-946536) is an INLET: it enters Pennask Lake (wbk 329451883, on Spahomin Creek's line 651947) at its mouth; lake run 0-1447 m, wetland 329451889 1447-3980 m, source 33,640 m."
     }
    ]
   }

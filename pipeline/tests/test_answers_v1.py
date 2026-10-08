@@ -194,6 +194,12 @@ def test_really_2_a_day_on_the_pages_own_ladder():
                                        for r, s in states.items()}
     for f in fx["spp"]:
         ladder.setdefault(f, {"hatchery": {}, "wild": {}})
+    # a fish the golden predates (the RULES round's Zone B white sturgeon closure, 2026-10-07): asked
+    # with an empty ladder, and left out of the comparison below
+    from pipeline.regs.parsing.catalogue import BOOK_SPECIES
+    late = [f for f in BOOK_SPECIES if f not in ladder]
+    for f in late:
+        ladder[f] = {"hatchery": {}, "wild": {}}
 
     class Ctx:
         pass
@@ -203,9 +209,10 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                 ladder, md, RW.open_states(ctx, rk, md))
     out = RW.produce(P)
-    assert out["spp"] == fx["spp"]
+    assert [f for f in out["spp"] if f not in late] == fx["spp"]
     got = [{"kind": r["kind"], "pool": r["pool"], "win": r["win"], "members": r["members"],
-            "daily": r["daily"]} for r in out["rows"]]
+            "daily": r["daily"]} for r in out["rows"]
+           if not (r["members"] and set(r["members"]) <= set(late))]
     assert got == [{k: v for k, v in r.items() if k != "real_daily"} for r in fx["rows"]]
     lt = next(r for r in out["rows"] if r["pool"] and r["pool"].endswith("::peace_river.r4"))
     assert lt["daily"] == 3

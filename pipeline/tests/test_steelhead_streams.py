@@ -763,7 +763,12 @@ def test_the_walk_is_gone_past_the_steelhead_regions(db, item_id, name):
         assert f"zp:steelhead#{STAMP_TWIN}" not in _requirements_on(db, sid)
         rb = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "RB", str(BUNDLE))
               if x["state"] == "speaks"}
-        assert "z8:trout_char_quota::trout_char_quota.r2" in rb, (name, rb)
+        if name == "Pennask Creek":
+            # its own Region 3 row, "No Fishing upstream of Pennask Lake" (p.31), binds since the
+            # RULES round's FIX batch (the whole creek is the lake's inlet): closed, not Region 8's
+            assert "r3:pennask_creek@3-12::pennask_creek.r1" in rb, (name, rb)
+        else:
+            assert "z8:trout_char_quota::trout_char_quota.r2" in rb, (name, rb)
 
 
 def _presence_fixture(SH, NS):

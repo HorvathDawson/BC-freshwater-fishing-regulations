@@ -349,7 +349,7 @@
        "op": "between",
        "splits": [
         "babine_river__fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence",
-        "gauge__08EC013"
+        "babine_river__signs_80_m_downstream_of_adult_fish_counting_fence"
        ]
       }
      ]
@@ -361,6 +361,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "between",
@@ -426,7 +427,7 @@
       {
        "op": "between",
        "splits": [
-        "gauge__08EC013",
+        "babine_river__signs_80_m_downstream_of_adult_fish_counting_fence",
         "babine_river__nichyeskwa_creek_into_babine_river"
        ]
       }
@@ -957,12 +958,35 @@
     {
      "rule_id": "bennett_lake.r14",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Bennett Lake, but\nonly one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling",
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Bennett Lake",
+     "kind": "alternative"
     }
    ]
   },
@@ -1172,7 +1196,7 @@
     {
      "rule_id": "buckley_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-Apr 30",
+     "verbatim": "No Fishing Nov 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1258,7 +1282,7 @@
     {
      "rule_id": "buckley_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1- Apr 30",
+     "verbatim": "No Fishing Nov 1- Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1805,7 +1829,7 @@
     {
      "rule_id": "chilkoot_trail_nhp.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing (please contact Parks Canada for details, see",
+     "verbatim": "No Fishing (please contact Parks Canada for details, see page 9 in the Provincial Regulations)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1944,7 +1968,7 @@
     {
      "rule_id": "cranberry_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between fishing boundary signs upstream of and downstream of Cranberry River Canyon",
+     "verbatim": "No Fishing between fishing boundary signs upstream of and downstream of Cranberry River Canyon",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2003,7 +2027,7 @@
     {
      "rule_id": "dala_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** June 15-Aug 1",
+     "verbatim": "No Fishing June 15-Aug 1",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2238,7 +2262,7 @@
     {
      "rule_id": "diana_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Oct 31",
+     "verbatim": "No Fishing Aug 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2471,7 +2495,7 @@
     {
      "rule_id": "endako_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 15-June 30",
+     "verbatim": "No Fishing Nov 15-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2741,6 +2765,7 @@
        }
       ]
      },
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -3005,7 +3030,7 @@
     {
      "rule_id": "gosnell_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Sept 30",
+     "verbatim": "No Fishing Aug 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3080,7 +3105,8 @@
         "hays_creek__lower_culvert_near_cannery"
        ]
       }
-     ]
+     ],
+     "extent_text": "upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert"
     }
    ]
   },
@@ -3100,7 +3126,7 @@
     {
      "rule_id": "helene_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
+     "verbatim": "No Fishing northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3189,6 +3215,7 @@
      "species": [
       "ALL_GAME_FISH"
      ],
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -3264,7 +3291,7 @@
     {
      "rule_id": "insect_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Jan 1-June 15",
+     "verbatim": "No Fishing Jan 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3353,7 +3380,7 @@
     {
      "rule_id": "iskut_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Forest Kerr Canyon",
+     "verbatim": "No Fishing downstream of Forest Kerr Canyon",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3418,7 +3445,7 @@
     {
      "rule_id": "johanson_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3489,7 +3516,7 @@
     {
      "rule_id": "khutzeymateen_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3581,7 +3608,7 @@
     {
      "rule_id": "kispiox_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -4005,7 +4032,7 @@
     {
      "rule_id": "kitseguecla_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -4220,7 +4247,7 @@
     {
      "rule_id": "kitwanga_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -4311,7 +4338,7 @@
     {
      "rule_id": "klahowya_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** within 100 m of outlet, May 15-July 31",
+     "verbatim": "No Fishing within 100 m of outlet, May 15-July 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4439,7 +4466,7 @@
     {
      "rule_id": "kloiya_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Oct 31",
+     "verbatim": "No Fishing Aug 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4574,7 +4601,7 @@
     {
      "rule_id": "kowatua_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-June 30 and Aug 20-Sept 15",
+     "verbatim": "No Fishing Dec 1-June 30 and Aug 20-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5163,12 +5190,35 @@
     {
      "rule_id": "laidlaw_lake.r8",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Laidlaw Lake, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Laidlaw Lake",
+     "kind": "alternative"
     }
    ]
   },
@@ -5238,7 +5288,7 @@
     {
      "rule_id": "lakelse_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -5382,7 +5432,7 @@
     {
      "rule_id": "lean_to_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5417,7 +5467,7 @@
     {
      "rule_id": "lost_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5452,7 +5502,7 @@
     {
      "rule_id": "magar_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Oct 31",
+     "verbatim": "No Fishing Aug 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5643,7 +5693,7 @@
     {
      "rule_id": "meziadin_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No fishing **from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
+     "verbatim": "No fishing from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5696,7 +5746,7 @@
     {
      "rule_id": "morice_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -5728,7 +5778,7 @@
     {
      "rule_id": "morice_river.r2",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)",
+     "verbatim": "No Fishing from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5747,7 +5797,7 @@
     {
      "rule_id": "morice_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek",
+     "verbatim": "No Fishing Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5776,7 +5826,7 @@
     {
      "rule_id": "morice_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31",
+     "verbatim": "No Fishing from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6020,6 +6070,47 @@
      ]
     },
     {
+     "rule_id": "morley_lake.r13b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 90 cm",
+     "species": [
+      "LT"
+     ],
+     "take": 1,
+     "within": "morley_lake.r13",
+     "lengths": [
+      {
+       "min_cm": 90
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r13c",
+     "type": "retention_limit",
+     "verbatim": "none between 60 cm and 90 cm",
+     "species": [
+      "LT"
+     ],
+     "within": "morley_lake.r13",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "morley_lake.r4",
      "type": "retention_limit",
      "verbatim": "Arctic grayling daily and possession quotas = 4",
@@ -6090,6 +6181,47 @@
      ]
     },
     {
+     "rule_id": "morley_lake.r14b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 44 cm",
+     "species": [
+      "GR"
+     ],
+     "take": 1,
+     "within": "morley_lake.r14",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r14c",
+     "type": "retention_limit",
+     "verbatim": "none between 36 cm and 44 cm",
+     "species": [
+      "GR"
+     ],
+     "within": "morley_lake.r14",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "morley_lake.r7",
      "type": "retention_limit",
      "verbatim": "northern pike daily and possession quotas = 4",
@@ -6153,6 +6285,47 @@
      ],
      "take": 4,
      "period": "possession",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r15b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 100 cm",
+     "species": [
+      "NP"
+     ],
+     "take": 1,
+     "within": "morley_lake.r15",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "morley_lake.r15c",
+     "type": "retention_limit",
+     "verbatim": "none\nbetween 70 cm and 100 cm",
+     "species": [
+      "NP"
+     ],
+     "within": "morley_lake.r15",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -6421,7 +6594,7 @@
     {
      "rule_id": "nakina_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** July 20-Aug 15",
+     "verbatim": "No Fishing July 20-Aug 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6488,7 +6661,7 @@
     {
      "rule_id": "nass_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
+     "verbatim": "No Fishing from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6591,7 +6764,7 @@
     {
      "rule_id": "nichyeskwa_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6632,6 +6805,11 @@
        "slot": "method",
        "only": [
         "fly_fishing"
+       ],
+       "unless": [
+        {
+         "method": "set_lining"
+        }
        ]
       }
      ],
@@ -6711,7 +6889,7 @@
     {
      "rule_id": "nithi_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 15-June 30",
+     "verbatim": "No Fishing Nov 15-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6756,7 +6934,7 @@
     {
      "rule_id": "ogston_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -7000,7 +7178,7 @@
     {
      "rule_id": "pinkut_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the fish fence, Aug 15-Sept 15",
+     "verbatim": "No Fishing downstream of the fish fence, Aug 15-Sept 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7215,13 +7393,42 @@
     {
      "rule_id": "rancheria_river_tributaries.r4",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Rancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
      "includes_tributaries": true,
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:basin:200-692231-770914-",
+       "within_area": "area:region:6",
+       "feature_types": [
+        "stream"
+       ],
+       "item_id": "area:basin:200-"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Rancheria River including tributary streams but not lakes",
+     "kind": "alternative"
     }
    ]
   },
@@ -7890,7 +8097,7 @@
     {
      "rule_id": "stellako_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 15-May 14",
+     "verbatim": "No Fishing Nov 15-May 14",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7981,7 +8188,7 @@
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not required"
      },
-     "verbatim": "Class II water[Includes Tributaries] when open",
+     "verbatim": "Class II water when open",
      "kind": "designation"
     }
    ],
@@ -8106,7 +8313,7 @@
     {
      "rule_id": "sustut_lakes.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8146,7 +8353,7 @@
     {
      "rule_id": "sustut_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of BCR Bridge at Bear River mouth",
+     "verbatim": "No Fishing upstream of BCR Bridge at Bear River mouth",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8293,12 +8500,40 @@
     {
      "rule_id": "swift_river.r4",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Swift River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling.",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling.",
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:basin:800-901317-630554-",
+       "within_area": "area:region:6",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Swift River including tributary streams but not lakes",
+     "kind": "alternative"
     }
    ]
   },
@@ -8350,6 +8585,47 @@
      ],
      "take": 2,
      "period": "possession",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagish_lake.r2b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 90 cm",
+     "species": [
+      "LT"
+     ],
+     "take": 1,
+     "within": "tagish_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 90
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagish_lake.r2c",
+     "type": "retention_limit",
+     "verbatim": "none between 60 cm and 90 cm",
+     "species": [
+      "LT"
+     ],
+     "within": "tagish_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -8427,6 +8703,47 @@
      ]
     },
     {
+     "rule_id": "tagish_lake.r6b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 44 cm",
+     "species": [
+      "GR"
+     ],
+     "take": 1,
+     "within": "tagish_lake.r6",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagish_lake.r6c",
+     "type": "retention_limit",
+     "verbatim": "none between 36 cm and 44 cm",
+     "species": [
+      "GR"
+     ],
+     "within": "tagish_lake.r6",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "tagish_lake.r7",
      "type": "retention_limit",
      "verbatim": "only 1 over 44 cm",
@@ -8497,6 +8814,47 @@
      ]
     },
     {
+     "rule_id": "tagish_lake.r10b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 100 cm",
+     "species": [
+      "NP"
+     ],
+     "take": 1,
+     "within": "tagish_lake.r10",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagish_lake.r10c",
+     "type": "retention_limit",
+     "verbatim": "none between 70 cm and 100 cm",
+     "species": [
+      "NP"
+     ],
+     "within": "tagish_lake.r10",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "tagish_lake.r11",
      "type": "retention_limit",
      "verbatim": "only 1 over 100 cm",
@@ -8554,12 +8912,35 @@
     {
      "rule_id": "tagish_lake.r14",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Tagish Lake, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Tagish Lake",
+     "kind": "alternative"
     }
    ]
   },
@@ -8588,7 +8969,7 @@
     {
      "rule_id": "tahltan_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.",
+     "verbatim": "No Fishing all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8608,7 +8989,7 @@
     {
      "rule_id": "tahltan_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-June 30",
+     "verbatim": "No Fishing Dec 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8653,7 +9034,7 @@
     {
      "rule_id": "takysie_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
+     "verbatim": "No Fishing northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8831,7 +9212,7 @@
     {
      "rule_id": "telkwa_river.r1",
      "type": "angler_closure",
-     "verbatim": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31",
+     "verbatim": "Angling prohibited for non-guided non-resident aliens Sept 1-Oct 31",
      "closed_to": {
       "residency": [
        "non_resident_alien"
@@ -8963,6 +9344,27 @@
      ]
     },
     {
+     "rule_id": "teslin_lake.r2b",
+     "type": "retention_limit",
+     "verbatim": "none between 60 cm and 90 cm",
+     "species": [
+      "LT"
+     ],
+     "within": "teslin_lake.r2",
+     "lengths": [
+      {
+       "min_cm": 60,
+       "max_cm": 90,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "teslin_lake.r3",
      "type": "retention_limit",
      "verbatim": "none between 60 cm and 90 cm",
@@ -9006,6 +9408,47 @@
      ],
      "take": 4,
      "period": "possession",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "teslin_lake.r5b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 44 cm",
+     "species": [
+      "GR"
+     ],
+     "take": 1,
+     "within": "teslin_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 44
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "teslin_lake.r5c",
+     "type": "retention_limit",
+     "verbatim": "none between 36 cm and 44 cm",
+     "species": [
+      "GR"
+     ],
+     "within": "teslin_lake.r5",
+     "lengths": [
+      {
+       "min_cm": 36,
+       "max_cm": 44,
+       "take": 0
+      }
+     ],
      "extents": [
       {
        "op": "whole"
@@ -9083,6 +9526,47 @@
      ]
     },
     {
+     "rule_id": "teslin_lake.r9b",
+     "type": "retention_limit",
+     "verbatim": "only 1 over 100 cm",
+     "species": [
+      "NP"
+     ],
+     "take": 1,
+     "within": "teslin_lake.r9",
+     "lengths": [
+      {
+       "min_cm": 100
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "teslin_lake.r9c",
+     "type": "retention_limit",
+     "verbatim": "none between 70 cm and 100 cm",
+     "species": [
+      "NP"
+     ],
+     "within": "teslin_lake.r9",
+     "lengths": [
+      {
+       "min_cm": 70,
+       "max_cm": 100,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
      "rule_id": "teslin_lake.r10",
      "type": "retention_limit",
      "verbatim": "only 1 over 100 cm",
@@ -9140,12 +9624,35 @@
     {
      "rule_id": "teslin_lake.r13",
      "type": "advisory",
-     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Teslin Lake, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+     "verbatim": "only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
      "extents": [
       {
        "op": "whole"
       }
      ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "yukon_licence",
+     "alternative_to": {
+      "entry_id": "zp:basic_licence",
+      "id": "basic_licence"
+     },
+     "satisfied_by": [
+      {
+       "hold": [
+        "yukon_angling_licence"
+       ]
+      }
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "verbatim": "B.C. and Yukon angling licences are valid on all parts of Teslin Lake",
+     "kind": "alternative"
     }
    ]
   },
@@ -9174,7 +9681,7 @@
     {
      "rule_id": "thautil_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-Sept 30",
+     "verbatim": "No Fishing Aug 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9311,7 +9818,7 @@
     {
      "rule_id": "triumph_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-May 31",
+     "verbatim": "No Fishing Nov 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9910,6 +10417,35 @@
    "anadromous_rainbow": true
   },
   {
+   "entry_id": "z6:atlantic_salmon_alert",
+   "name": "Atlantic Salmon",
+   "display_name": "Region 6",
+   "region": "6",
+   "regs_verbatim": "INVASIVE SPECIES ALERT Atlantic Salmon Please refer to the salmon section, page 78",
+   "source_pages": [
+    49
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:6"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "atlantic_salmon_alert.r1",
+     "type": "advisory",
+     "verbatim": "INVASIVE SPECIES ALERT Atlantic Salmon Please refer to the salmon section, page 78",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z6:first_nations_notice",
    "name": "First Nations notices",
    "display_name": "Region 6",
@@ -10092,6 +10628,35 @@
    ]
   },
   {
+   "entry_id": "z6:salmon_quotas_notice",
+   "name": "Daily and annual quotas for salmon",
+   "display_name": "Region 6",
+   "region": "6",
+   "regs_verbatim": "Daily and Annual Quotas for Salmon Please refer to the NOTICE on page 77",
+   "source_pages": [
+    49
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:6"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "salmon_quotas_notice.r1",
+     "type": "advisory",
+     "verbatim": "Daily and Annual Quotas for Salmon Please refer to the NOTICE on page 77",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z6:set_lining",
    "name": "Set lining",
    "display_name": "Lakes of Region 6",
@@ -10240,6 +10805,35 @@
    ]
   },
   {
+   "entry_id": "z6:skeena_fisheries_management",
+   "name": "Skeena Fisheries Management",
+   "display_name": "Region 6",
+   "region": "6",
+   "regs_verbatim": "Skeena Fisheries Management For additional fisheries management information for the Skeena Region, please visit https://www2.gov.bc.ca/gov/content/environment/plants-animals-ecosystems/fish/fish-management/region-6",
+   "source_pages": [
+    49
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:6"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "skeena_fisheries_management.r1",
+     "type": "advisory",
+     "verbatim": "Skeena Fisheries Management For additional fisheries management information for the Skeena Region, please visit https://www2.gov.bc.ca/gov/content/environment/plants-animals-ecosystems/fish/fish-management/region-6",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z6:skeena_nass_bait_ban",
    "name": "Skeena and Nass bait ban",
    "display_name": "Skeena and Nass watersheds",
@@ -10304,7 +10898,7 @@
    "name": "Skeena and Nass winter closures",
    "display_name": "Skeena and Nass watersheds",
    "region": "6",
-   "regs_verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+   "regs_verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31). See tables for other exceptions.",
    "source_pages": [
     49
    ],
@@ -10312,7 +10906,7 @@
     {
      "rule_id": "skeena_nass_winter_closure.r1",
      "type": "retention_limit",
-     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31). See tables for other exceptions.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10350,7 +10944,7 @@
     {
      "rule_id": "skeena_nass_winter_closure.r2",
      "type": "retention_limit",
-     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31). See tables for other exceptions.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10388,7 +10982,7 @@
     {
      "rule_id": "skeena_nass_winter_closure.r3",
      "type": "retention_limit",
-     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+     "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31). See tables for other exceptions.",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10682,7 +11276,7 @@
    "name": "High reward tagging programs",
    "display_name": "Region 6",
    "region": "6",
-   "regs_verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
+   "regs_verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region, so check your catch carefully! Tags can be difficult to see, and can be covered in algae or slime. If you capture a tagged fish, do not allow the tag to influence your decision to kill or release the fish. If you had intended to release the fish prior to seeing the tag, do so. If you had intended to keep the fish as part of your quota prior to seeing the tag, do so. In either circumstance, record the tag number, tag colour, species, location, and date of capture. If you are releasing the fish, do not remove the tag. Reward payments can be received by reporting capture information by call or text to: 250-643-7290, or return tags in person to the Skeena Fish & Wildlife office at 3726 Alfred Ave. in Smithers. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program. Tagged Sockeye, Chinook, Pink, Chum, and Coho should be reported to the nearest Department of Fisheries and Oceans office (Smithers: 250-847-2312 and Terrace: 250-615-5350).",
    "source_pages": [
     49
    ],
@@ -10696,7 +11290,31 @@
     {
      "rule_id": "tagging_program.r1",
      "type": "advisory",
-     "verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
+     "verbatim": "If you capture a tagged fish, do not allow the tag to influence your decision to kill or release the fish. If you had intended to release the fish prior to seeing the tag, do so. If you had intended to keep the fish as part of your quota prior to seeing the tag, do so. In either circumstance, record the tag number, tag colour, species, location, and date of capture. If you are releasing the fish, do not remove the tag.",
+     "obligation": "should",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagging_program.r2",
+     "type": "advisory",
+     "verbatim": "Reward payments can be received by reporting capture information by call or text to: 250-643-7290, or return tags in person to the Skeena Fish & Wildlife office at 3726 Alfred Ave. in Smithers.",
+     "obligation": "should",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6"
+      }
+     ]
+    },
+    {
+     "rule_id": "tagging_program.r3",
+     "type": "advisory",
+     "verbatim": "Tagged Sockeye, Chinook, Pink, Chum, and Coho should be reported to the nearest Department of Fisheries and Oceans office (Smithers: 250-847-2312 and Terrace: 250-615-5350).",
      "obligation": "should",
      "extents": [
       {
@@ -10835,9 +11453,6 @@
      "verbatim": "Trout under 30 cm from any stream",
      "species": [
       "TROUT_CHAR"
-     ],
-     "species_except": [
-      "CHAR"
      ],
      "lengths": [
       {

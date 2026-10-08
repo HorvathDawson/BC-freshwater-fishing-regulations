@@ -227,6 +227,14 @@ EXAMPLES: tuple[Example, ...] = (
     E("williston_bull_trout_row_names_the_fish", ("ladder.who_speaks",), "wbk:-19", "07-01", "DV",
       ("r7:williston_lake_in_zone_b@7-31+7-36::williston_lake_zone_b.r4",), (f"{Z7B}.r9",),
       named_as="Williston Lake"),
+    E("granby_own_row_beats_inherited_release", ("ladder.who_speaks",), "gnis:18775", "06-20",
+      "RB", ("r8:granby_river@8-15::granby_river.r3",),
+      ("r8:kettle_river_s_tributaries@8-14::kettle_river_s_tributaries.r2",),
+      says="user ruling 2026-10-07 (Q5): the water's own row beats what the tributary walk brings"),
+    E("granby_inherited_closure_still_closes", ("ladder.who_speaks",), "gnis:18775", "08-01",
+      "RB", ("r8:kettle_river_s_tributaries@8-14::kettle_river_s_tributaries.r1",),
+      ("r8:granby_river@8-15::granby_river.r3",),
+      part=("r8:granby_river@8-15::granby_river.r3",)),
     E("duck_lake_row_beats_cvwma", ("ladder.who_speaks",), "wbk:329246292", "07-01", "SMB",
       ("r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r1",),
       ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6::creston_valley_wma_waters.r1",)),
@@ -244,6 +252,12 @@ NAMED_NOT_CLAIMED: dict[tuple[str, str], str] = {
     ("ladder.closure_any_key", "Liard River"): "names an area row ('the Liard River watershed "
                                                "row'); the claim is Denetiah Creek's example",
     ("ladder.who_speaks", "Peace River"): "names a watershed ('the Peace River watershed')",
+    ("ladder.who_speaks", "Burrell Creek"): "a place on the Granby ('above Burrell Creek'); the "
+                                            "claim is granby_own_row_beats_inherited_release",
+    ("ladder.who_speaks", "Kettle River"): "names the row 'Kettle River's tributaries'; the claim is "
+                                           "the Granby examples",
+    ("gotchas.excepted_rivers_creeks_stay_closed", "Powerhouse Channel"):
+        "quotes the Squamish row's exception list (a binding, pinned in test_rules_round.py)",
 }
 
 #: The prose this gate reads: the ladder's texts and the gotchas' `says`.

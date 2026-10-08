@@ -41,7 +41,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing.catalogue import CatalogueEntry
+from pipeline.regs.parsing.catalogue import CatalogueEntry, clean_verbatim
 from pipeline.regs.parsing.io import dump_entry
 from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
@@ -124,6 +124,12 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
         # classified is a fact for the rules, not a symbol.
         data = json.loads(json.dumps(data))     # deep copy: the split check rewrites in place
         data.update(_passthrough(item))
+        # A QUOTE IS THE PRINTED SENTENCE: the extraction's `**` / `[Includes Tributaries]` stay in
+        # `regs_verbatim` (the batch's own text) and come out of every record the model quoted.
+        for group in ("rules", "licensing", "see"):
+            for rec in data.get(group) or []:
+                if isinstance(rec, dict) and isinstance(rec.get("verbatim"), str):
+                    rec["verbatim"] = clean_verbatim(rec["verbatim"])
         source = data["regs_verbatim"]
         # `item` carries the boundary menu, so this also checks every split id and rewrites an
         # alias to its canonical spelling — the same gate the agent runs on itself.

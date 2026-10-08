@@ -85,6 +85,10 @@ COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND = True
 COMPLEMENT_WITHHOLDS_STRADDLERS = True
 
 
+#: An `undrawn_part` rule never walks tributaries (`wants_tributaries`).
+UNDRAWN_PART_DOES_NOT_WALK = True
+
+
 def wants_tributaries(rule: dict, entry: dict) -> bool:
     """Does this rule extend to tributaries?
 
@@ -92,6 +96,13 @@ def wants_tributaries(rule: dict, entry: dict) -> bool:
     only the rule's own field undercounts badly — 132 rules set it explicitly, but 554 across
     264 entries are actually in scope once inheritance is applied.
     """
+    if UNDRAWN_PART_DOES_NOT_WALK and str(rule.get("undrawn_part") or "").strip():
+        # A RULE HELD AS A NOTE OVER AN UNDRAWN PART is bound to the whole water only so it can be
+        # shown; walking from there put it on the tributaries of the WHOLE water (Dinosaur Lake's
+        # "No Fishing … between the anti-vortex dyke and Peace Canyon Dam✱": 1,109 km). The
+        # tributaries of an undrawn part are themselves undrawn: the export's gotcha
+        # `undrawn_part_tributaries` names them (user ruling 2026-10-07).
+        return False
     own = rule.get("includes_tributaries")
     if own is None:
         own = entry.get("includes_tributaries")

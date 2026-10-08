@@ -75,6 +75,29 @@ found under Angler Alerts at www.gov.bc.ca/FishingRegulations.
 
 ---
 
+
+## Box text read from the rendered page (RULES round, 2026-10-07)
+
+Atlantic salmon alert (p.49):
+
+> INVASIVE SPECIES ALERT Atlantic Salmon Please refer to the salmon section, page 78
+
+Daily and annual quotas for salmon (p.49):
+
+> Daily and Annual Quotas for Salmon Please refer to the NOTICE on page 77
+
+Skeena Fisheries Management (p.49):
+
+> Skeena Fisheries Management For additional fisheries management information for the Skeena Region, please visit https://www2.gov.bc.ca/gov/content/environment/plants-animals-ecosystems/fish/fish-management/region-6
+
+Skeena and Nass winter closures (p.49):
+
+> No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31). See tables for other exceptions.
+
+High reward tagging programs (p.49):
+
+> HIGH REWARD ($100) TAGGING PROGRAMS The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region, so check your catch carefully! Tags can be difficult to see, and can be covered in algae or slime. If you capture a tagged fish, do not allow the tag to influence your decision to kill or release the fish. If you had intended to release the fish prior to seeing the tag, do so. If you had intended to keep the fish as part of your quota prior to seeing the tag, do so. In either circumstance, record the tag number, tag colour, species, location, and date of capture. If you are releasing the fish, do not remove the tag. Reward payments can be received by reporting capture information by call or text to: 250-643-7290, or return tags in person to the Skeena Fish & Wildlife office at 3726 Alfred Ave. in Smithers. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program. Tagged Sockeye, Chinook, Pink, Chum, and Coho should be reported to the nearest Department of Fisheries and Oceans office (Smithers: 250-847-2312 and Terrace: 250-615-5350).
+
 ## Checked against the curated entries
 
 `region-6.json` — 35 entries (9 of them `hg_*`, which belong in Region 1).

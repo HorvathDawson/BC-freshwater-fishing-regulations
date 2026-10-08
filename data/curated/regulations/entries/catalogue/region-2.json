@@ -118,7 +118,7 @@
     {
      "rule_id": "alouette_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link fence) of the Alouette River Management Society",
+     "verbatim": "No Fishing upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link fence) of the Alouette River Management Society",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -137,7 +137,7 @@
     {
      "rule_id": "alouette_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30",
+     "verbatim": "No Fishing upstream of 216th Street (including North Alouette River), May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -244,7 +244,7 @@
     {
      "rule_id": "alta_lake.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing **Dec 1-Mar 31",
+     "verbatim": "No Fishing Dec 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -422,7 +422,7 @@
     {
      "rule_id": "anderson_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -457,7 +457,7 @@
     {
      "rule_id": "angus_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -567,7 +567,7 @@
     {
      "rule_id": "bear_mahood_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+     "verbatim": "No Fishing upstream of 152nd Street (Johnson Road)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -606,7 +606,7 @@
     {
      "rule_id": "big_silver_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -732,7 +732,7 @@
     {
      "rule_id": "brem_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream",
+     "verbatim": "No Fishing from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -751,7 +751,7 @@
     {
      "rule_id": "brem_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30",
+     "verbatim": "No Fishing upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -842,7 +842,7 @@
     {
      "rule_id": "brothers_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -907,7 +907,7 @@
     {
      "rule_id": "brunette_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
+     "verbatim": "No Fishing upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -920,11 +920,28 @@
        "item_id": "wbk:329291868"
       }
      ],
-     "extent_text": "upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
-     "unresolved_locators": [
-      "from Cariboo Dam to Salamander Creek"
+     "extent_text": "upstream of Burnaby Lake"
+    },
+    {
+     "rule_id": "brunette_river.r1b",
+     "type": "retention_limit",
+     "verbatim": "No Fishing upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
+     "species": [
+      "ALL_GAME_FISH"
      ],
-     "review_reason": "'from Cariboo Dam to Salamander Creek' is not drawn: there is no cut at Salamander Creek's mouth on the Brunette (the piece below Cariboo Dam runs to the Fraser). Only 'upstream of Burnaby Lake' — the lake's tributaries — binds."
+     "take": 0,
+     "may_target": false,
+     "includes_tributaries": false,
+     "extents": [
+      {
+       "op": "between",
+       "splits": [
+        "brunette_river__cariboo_dam",
+        "brunette_river__salamander_creek_into_brunette_river"
+       ]
+      }
+     ],
+     "extent_text": "from Cariboo Dam to Salamander Creek"
     },
     {
      "rule_id": "brunette_river.r2",
@@ -966,7 +983,7 @@
     {
      "rule_id": "brunette_river_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1057,7 +1074,7 @@
     {
      "rule_id": "burnaby_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1097,7 +1114,7 @@
     {
      "rule_id": "campbell_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream of 12th Avenue",
+     "verbatim": "No Fishing upstream of 12th Avenue",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1115,7 +1132,7 @@
     {
      "rule_id": "campbell_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **downstream of 12th Avenue Apr 1-June 30",
+     "verbatim": "No Fishing downstream of 12th Avenue Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1143,7 +1160,7 @@
     {
      "rule_id": "campbell_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30",
+     "verbatim": "No Fishing between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1172,7 +1189,7 @@
     {
      "rule_id": "campbell_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+     "verbatim": "No Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1271,7 +1288,7 @@
     {
      "rule_id": "capilano_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence",
+     "verbatim": "No Fishing upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1281,7 +1298,7 @@
       {
        "op": "upstream_of",
        "splits": [
-        "gauge__08GA031"
+        "capilano_river__cable_pool_bridge_footbridge"
        ]
       }
      ]
@@ -1421,7 +1438,7 @@
     {
      "rule_id": "chapman_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1446,7 +1463,7 @@
     {
      "rule_id": "chapman_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
+     "verbatim": "No Fishing from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1521,7 +1538,7 @@
     {
      "rule_id": "cheam_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1560,7 +1577,7 @@
     {
      "rule_id": "cheekye_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** (including Brohm Creek)",
+     "verbatim": "No Fishing (including Brohm Creek)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1599,9 +1616,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -1614,6 +1628,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -1662,7 +1679,7 @@
     {
      "rule_id": "chehalis_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1702,7 +1719,7 @@
     {
      "rule_id": "chehalis_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake",
+     "verbatim": "No Fishing from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1722,7 +1739,7 @@
     {
      "rule_id": "chehalis_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+     "verbatim": "No Fishing downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1775,9 +1792,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -1790,6 +1804,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -1823,7 +1840,7 @@
    "display_name": "Chilliwack River",
    "region": "2",
    "scope_note": "does not include Sumas River",
-   "regs_verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+   "regs_verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatchery\n cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
    "source_pages": [
     22
    ],
@@ -1844,7 +1861,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek",
+     "verbatim": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the confluence of the Chilliwack River and Slesse Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1863,7 +1880,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30",
+     "verbatim": "No Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the confluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1893,7 +1910,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30",
+     "verbatim": "No Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2002,7 +2019,8 @@
      "lengths": [
       {
        "max_cm": 50,
-       "take": 0
+       "take": 0,
+       "closed": true
       }
      ],
      "origin": "hatchery",
@@ -2018,7 +2036,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r7",
      "type": "retention_limit",
-     "verbatim": "hatch-\nery cutthroat catch and release",
+     "verbatim": "hatchery cutthroat catch and release",
      "species": [
       "CT"
      ],
@@ -2047,7 +2065,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r8",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** June 1-30",
+     "verbatim": "No Fishing June 1-30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2075,7 +2093,7 @@
     {
      "rule_id": "chilliwack_vedder_rivers.r9",
      "type": "retention_limit",
-     "verbatim": "hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+     "verbatim": "hatchery rainbow trout of any length 50 cm or less: daily quota = 4, July 1-Apr 30",
      "species": [
       "RB"
      ],
@@ -2177,7 +2195,7 @@
     {
      "rule_id": "cogburn_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2222,7 +2240,7 @@
     {
      "rule_id": "colvin_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2320,7 +2338,7 @@
     {
      "rule_id": "coquihalla_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30",
+     "verbatim": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2348,7 +2366,7 @@
     {
      "rule_id": "coquihalla_river.r2",
      "type": "tackle_restriction",
-     "verbatim": "Fly fishing only",
+     "verbatim": "Fly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31",
      "gear": [
       {
        "slot": "method",
@@ -2357,11 +2375,25 @@
        ]
       }
      ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "coquihalla_river__coquihalla_othello_upper_tunnel"
+       ]
       }
-     ]
+     ],
+     "review_reason": "user ruling Q17 (2026-10-07): 'Fly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31' (p.22) — the place and the dates scope the fly-only clause too"
     },
     {
      "rule_id": "coquihalla_river.r3",
@@ -2397,7 +2429,7 @@
     {
      "rule_id": "coquihalla_river.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31",
+     "verbatim": "No Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2425,7 +2457,7 @@
     {
      "rule_id": "coquihalla_river.r5",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length",
+     "verbatim": "No Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2524,7 +2556,7 @@
     {
      "rule_id": "coquitlam_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Mary Hill Bypass Bridge, May 1-June 30",
+     "verbatim": "No Fishing upstream of Mary Hill Bypass Bridge, May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2675,7 +2707,7 @@
     {
      "rule_id": "cougar_canyon_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2768,9 +2800,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -2783,6 +2812,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -3094,7 +3126,7 @@
     {
      "rule_id": "eagle_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3171,7 +3203,7 @@
     {
      "rule_id": "elgin_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3285,7 +3317,7 @@
     {
      "rule_id": "fergus_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3502,7 +3534,7 @@
     {
      "rule_id": "fraser_river_upstream_of_mission.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement, May 1-Oct 31",
+     "verbatim": "No Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement, May 1-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3529,7 +3561,7 @@
     {
      "rule_id": "fraser_river_upstream_of_mission.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise",
+     "verbatim": "No Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3555,6 +3587,22 @@
         "fraser_river__the_cpr_bridge_at_mission"
        ],
        "within_area": "area:region:2"
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:11481"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355994562"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355992187"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355991777"
       }
      ],
      "extent_text": "non-tidal portion of the Fraser River in Region 2"
@@ -3562,7 +3610,7 @@
     {
      "rule_id": "fraser_river_upstream_of_mission.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31",
+     "verbatim": "No Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3597,7 +3645,7 @@
     {
      "rule_id": "fraser_river_upstream_of_mission.r5",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31",
+     "verbatim": "No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31",
      "species": [
       "ST"
      ],
@@ -3668,7 +3716,7 @@
     {
      "rule_id": "frosst_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Oct 15-Apr 15",
+     "verbatim": "No Fishing Oct 15-Apr 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3771,7 +3819,7 @@
     {
      "rule_id": "goat_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-Mar 31",
+     "verbatim": "No Fishing Nov 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3851,7 +3899,7 @@
     {
      "rule_id": "green_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **Dec 1-Mar 31",
+     "verbatim": "No Fishing Dec 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4020,9 +4068,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -4035,6 +4080,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -4101,7 +4149,7 @@
     {
      "rule_id": "harrison_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included",
+     "verbatim": "No Fishing from one hour after sunset to one hour before sunrise, tributaries not included",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4230,7 +4278,7 @@
     {
      "rule_id": "hastings_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4271,7 +4319,7 @@
     {
      "rule_id": "hatzic_lake_and_slough.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for Sturgeon in Hatzic Lake",
+     "verbatim": "No Fishing for Sturgeon in Hatzic Lake",
      "species": [
       "WSG"
      ],
@@ -4518,7 +4566,7 @@
     {
      "rule_id": "hyde_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4557,7 +4605,7 @@
     {
      "rule_id": "hyland_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+     "verbatim": "No Fishing upstream of 152nd Street (Johnson Road)",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4647,7 +4695,7 @@
     {
      "rule_id": "inland_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-Mar 31",
+     "verbatim": "No Fishing Nov 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4712,7 +4760,8 @@
      "lengths": [
       {
        "min_cm": 40,
-       "take": 0
+       "take": 0,
+       "closed": true
       }
      ],
      "extents": [
@@ -4840,7 +4889,7 @@
     {
      "rule_id": "ivey_horseshoe_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-Mar 31",
+     "verbatim": "No Fishing Dec 1-Mar 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5008,7 +5057,7 @@
     {
      "rule_id": "kanaka_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5033,7 +5082,7 @@
     {
      "rule_id": "kanaka_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Cliff Park Falls to 112th Avenue",
+     "verbatim": "No Fishing from Cliff Park Falls to 112th Avenue",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5072,7 +5121,7 @@
     {
      "rule_id": "kawkawa_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-Feb 28",
+     "verbatim": "No Fishing Dec 1-Feb 28",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5154,7 +5203,8 @@
      "lengths": [
       {
        "min_cm": 40,
-       "take": 0
+       "take": 0,
+       "closed": true
       }
      ],
      "origin": "wild",
@@ -5230,8 +5280,31 @@
        "target": "trout_char_quota.r2",
        "entry_id": "z2:trout_char_quota",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      },
+      {
+       "target": "trout_char_quota.r2b",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
+    },
+    {
+     "rule_id": "khartoum_lake.r5b",
+     "type": "retention_limit",
+     "verbatim": "Rainbow trout/hatchery steelhead quota = 6 in the aggregate",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "within": "khartoum_lake.r5",
+     "origin": "wild",
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "The 'hatchery' of 'rainbow trout/hatchery steelhead = 6 in the aggregate' (p.23/24): the steelhead the 6 may include are hatchery fish, so wild steelhead count none of it. A clause of the aggregate (`within`), not a release of its own — Region 2's wild steelhead release (z2:trout_char_quota.r7b) still reaches this lake as a steelhead water."
     }
    ]
   },
@@ -5457,9 +5530,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -5472,6 +5542,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -5800,7 +5873,7 @@
     {
      "rule_id": "liumchen_creek.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** downstream of the lower falls",
+     "verbatim": "No Fishing downstream of the lower falls",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5862,7 +5935,8 @@
      "lengths": [
       {
        "min_cm": 40,
-       "take": 0
+       "take": 0,
+       "closed": true
       }
      ],
      "origin": "wild",
@@ -5916,9 +5990,31 @@
        "target": "trout_char_quota.r2",
        "entry_id": "z2:trout_char_quota",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      },
+      {
+       "target": "trout_char_quota.r2b",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      }
+     ]
+    },
+    {
+     "rule_id": "lois_lake.r4b",
+     "type": "retention_limit",
+     "verbatim": "Rainbow trout/hatchery steelhead quota = 6 in the aggregate",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "within": "lois_lake.r4",
+     "origin": "wild",
+     "extents": [
+      {
+       "op": "whole"
       }
      ],
-     "review_reason": "Steelhead in this aggregate are hatchery-origin per the printed text, but rainbow trout's origin is not stated in the same clause; a single `origin` field cannot capture that asymmetry, and how this aggregate relates to the 'hatchery rainbow trout = 6' figure in the line above is not fully clear from the text alone."
+     "review_reason": "The 'hatchery' of 'rainbow trout/hatchery steelhead = 6 in the aggregate' (p.23/24): the steelhead the 6 may include are hatchery fish, so wild steelhead count none of it. A clause of the aggregate (`within`), not a release of its own — Region 2's wild steelhead release (z2:trout_char_quota.r7b) still reaches this lake as a steelhead water."
     },
     {
      "rule_id": "lois_lake.r5",
@@ -5970,7 +6066,7 @@
     {
      "rule_id": "lonzo_creek.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** Feb 1-June 15",
+     "verbatim": "No Fishing Feb 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6026,6 +6122,13 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r8",
+       "entry_id": "z2:trout_char_quota",
+       "note": "20-30 cm"
       }
      ]
     },
@@ -6159,7 +6262,7 @@
     {
      "rule_id": "lynn_creek.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge",
+     "verbatim": "No Fishing between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7713,9 +7816,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "may_target": true,
      "lengths": [
       {
@@ -7728,6 +7828,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -8242,9 +8345,6 @@
      "species": [
       "TROUT_CHAR"
      ],
-     "species_except": [
-      "CHAR"
-     ],
      "take": 1,
      "lengths": [
       {
@@ -8259,6 +8359,9 @@
       {
        "op": "whole"
       }
+     ],
+     "species_except": [
+      "CHAR"
      ]
     },
     {
@@ -8282,6 +8385,11 @@
       },
       {
        "target": "trout_char_quota.r2",
+       "entry_id": "z2:trout_char_quota",
+       "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
+      },
+      {
+       "target": "trout_char_quota.r2b",
        "entry_id": "z2:trout_char_quota",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
@@ -8417,7 +8525,8 @@
      "lengths": [
       {
        "min_cm": 40,
-       "take": 0
+       "take": 0,
+       "closed": true
       },
       {
        "max_cm": 40
@@ -8911,7 +9020,7 @@
     {
      "rule_id": "scotia_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8950,7 +9059,7 @@
     {
      "rule_id": "scott_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8989,7 +9098,7 @@
     {
      "rule_id": "serpentine_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of 168th Street at Bothwell Park",
+     "verbatim": "No Fishing upstream of 168th Street at Bothwell Park",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9007,7 +9116,7 @@
     {
      "rule_id": "serpentine_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of 168th Street at Bothwell Park, Apr 1-June 30",
+     "verbatim": "No Fishing downstream of 168th Street at Bothwell Park, Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9035,7 +9144,7 @@
     {
      "rule_id": "serpentine_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of 168th Street at Bothwell Park from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+     "verbatim": "No Fishing downstream of 168th Street at Bothwell Park from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9119,7 +9228,7 @@
     {
      "rule_id": "seymour_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Seymour Lake",
+     "verbatim": "No Fishing downstream of Seymour Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9161,7 +9270,7 @@
     {
      "rule_id": "shovelnose_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9196,7 +9305,7 @@
     {
      "rule_id": "silver_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Dec 1-Apr 30",
+     "verbatim": "No Fishing Dec 1-Apr 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9301,7 +9410,7 @@
     {
      "rule_id": "silverhope_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Silver Lake, Nov 1-June 30",
+     "verbatim": "No Fishing upstream of Silver Lake, Nov 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9391,7 +9500,7 @@
     {
      "rule_id": "silverhope_creek.r4",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+     "verbatim": "No Fishing from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9455,7 +9564,7 @@
     {
      "rule_id": "skagit_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-June 30",
+     "verbatim": "No Fishing Nov 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9641,7 +9750,7 @@
     {
      "rule_id": "squamish_river_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+     "verbatim": "No Fishing tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9656,27 +9765,33 @@
      "tributary_excludes": [
       {
        "op": "whole",
-       "item_id": "gnis:17155"
+       "item_id": "gnis:17155",
+       "walk_past": true
       },
       {
        "op": "whole",
-       "item_id": "gnis:12999"
+       "item_id": "gnis:12999",
+       "walk_past": true
       },
       {
        "op": "whole",
-       "item_id": "gnis:10716"
+       "item_id": "gnis:10716",
+       "walk_past": true
       },
       {
        "op": "whole",
-       "item_id": "gnis:12746"
+       "item_id": "gnis:12746",
+       "walk_past": true
       },
       {
        "op": "whole",
-       "item_id": "blk:360219234"
+       "item_id": "blk:360219234",
+       "walk_past": true
       },
       {
        "op": "whole",
-       "item_id": "wsc:900-105574-416908"
+       "item_id": "wsc:900-105574-416908",
+       "walk_past": true
       }
      ],
      "review_reason": "tributaries_only, with the five printed exceptions as tributary_excludes (Ashlu Creek gnis:17155, Cheakamus River gnis:12999, Elaho River gnis:10716, Mamquam River gnis:12746, the Squamish Powerhouse Channel blk:360219234 / wsc:900-105574-416908). Bound as `whole` of the Squamish River it closed the MAINSTEM, which the row does not name."
@@ -9708,7 +9823,7 @@
     {
      "rule_id": "statlu_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9743,7 +9858,7 @@
     {
      "rule_id": "stave_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
+     "verbatim": "No Fishing in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9760,7 +9875,7 @@
     {
      "rule_id": "stave_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway",
+     "verbatim": "No Fishing in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9843,7 +9958,7 @@
     {
      "rule_id": "still_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9917,7 +10032,7 @@
     {
      "rule_id": "sumallo_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-June 30",
+     "verbatim": "No Fishing Nov 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9984,7 +10099,7 @@
     {
      "rule_id": "sweltzer_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10019,7 +10134,7 @@
     {
      "rule_id": "taillefer_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** May 1-June 30",
+     "verbatim": "No Fishing May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10064,7 +10179,7 @@
     {
      "rule_id": "tamihi_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River",
+     "verbatim": "No Fishing downstream of the falls situated approximately 200 m upstream of Chilliwack River",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10082,7 +10197,7 @@
     {
      "rule_id": "tamihi_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
+     "verbatim": "No Fishing upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10201,7 +10316,7 @@
     {
      "rule_id": "twin_lakes.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10262,7 +10377,7 @@
     {
      "rule_id": "wagg_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10354,7 +10469,7 @@
     {
      "rule_id": "wahleach_jones_lake_s_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10428,7 +10543,7 @@
     {
      "rule_id": "weaver_lake_and_weaver_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
+     "verbatim": "No Fishing from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -10788,6 +10903,40 @@
    ]
   },
   {
+   "entry_id": "z2:possession_quota",
+   "name": "Possession quota",
+   "display_name": "Region 2",
+   "region": "2",
+   "regs_verbatim": "Possession quotas = 2 daily quotas",
+   "source_pages": [
+    21
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:2"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "z2:protected_species",
    "name": "Protected species in Region 2",
    "display_name": "Region 2",
@@ -11107,6 +11256,28 @@
        "area_id": "area:region:2"
       }
      ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2b",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ],
+     "review_reason": "User ruling Q44 (2026-10-07): at most 2 trout over 50 cm in total, at most 1 of them a non-steelhead (r2) and both may be hatchery steelhead (r3) — this clause is the total."
     },
     {
      "rule_id": "trout_char_quota.r3",

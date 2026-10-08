@@ -86,6 +86,13 @@ Waters **regardless of the species being angled for**.
 
 ---
 
+
+## Box text read from the rendered page (RULES round, 2026-10-07)
+
+Pelican alert (p.41):
+
+> PELICAN ALERT American White Pelicans are an endangered species and protected under the B.C. Wildlife Act. B.C.'s only nesting colony (350 nesting pairs) is located in the Cariboo-Chilcotin. Pelicans return to the region each April/May to breed. After the young have fledged in August, they migrate south to overwinter in the westerm U.S. and Mexico. Pelicans forage for fish on lakes throughout the region and travel as far as 165 km from the nesting colony. They do not dive but feed from the surface in shallow water. When breeding pelicans are disturbed while foraging, their feeding and timely return to the nests is disrupted. This leaves the young without food and may reduce survival. Please do not approach pelicans. To report pelican sightings, please contact the Fish and Wildlife Regional Office in Williams Lake.
+
 ## Checked against the curated entries
 
 `data/curated/regulations/entries/zones/region-5.json` — 20 entries, 20 rules.

@@ -451,8 +451,14 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
 def gear_subset(B: Bundle, bound: Sequence[Tuple[str, str, str]]) -> List[Tuple[str, str, str]]:
     """The bindings the gear answer reads: gear, conduct and vessel rules, rules with a `while`,
     and every rule lifting one of them."""
+    from pipeline.regs.parsing.catalogue import PROTECTED_FISH
     every = B.rules
-    want = {(e, r) for e, r, _ in bound if (e, r) in every
+    # A duty about PROTECTED fish only ("If you accidentally catch one, you must release it right
+    # away", zp:protected_species.r3 — named since the RULES round) is about fish no gear answer is
+    # asked for; the rows show it beside the protected-species closure.
+    protected = lambda x: bool(x.get("species")) and all(c in PROTECTED_FISH  # noqa: E731
+                                                         for c in x["species"])
+    want = {(e, r) for e, r, _ in bound if (e, r) in every and not protected(every[(e, r)])
             and (every[(e, r)].get("family") in GEAR_FAMILIES or every[(e, r)].get("while"))}
     lifters = {(e, r) for e, r, _ in bound if (e, r) in every
                and any((l["entry_id"], l["rule_id"]) in want

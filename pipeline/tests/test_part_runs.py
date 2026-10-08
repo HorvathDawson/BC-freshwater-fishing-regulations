@@ -316,7 +316,7 @@ def test_the_splits_table_names_every_cut_once(doc):
         assert (x["water_id"] is None) == (x["km"] is None), sid
         if x["water_id"]:
             assert x["water_id"] in doc["waters"], sid
-    assert S["thompson_river__boundary_signs"]["name"] == "boundary signs"
+    assert S["thompson_river__boundary_signs"]["name"] == "boundary signs 1 km downstream of Martel"   # §6 relabel (RULES round)
     assert S["thompson_river__thompson_river_into_fraser_river"]["name"] == \
         "Thompson River confluence"
 

@@ -351,7 +351,7 @@
     {
      "rule_id": "atnarko_bella_coola_rivers.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30",
+     "verbatim": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -371,7 +371,7 @@
       {
        "op": "upstream_of",
        "splits": [
-        "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary"
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
        ]
       },
       {
@@ -407,7 +407,7 @@
     {
      "rule_id": "atnarko_bella_coola_rivers.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite",
+     "verbatim": "No Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -762,7 +762,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary"
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
        ]
       }
      ],
@@ -862,7 +862,7 @@
     {
      "rule_id": "atnarko_bella_coola_rivers.r13",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for steelhead",
+     "verbatim": "No Fishing for steelhead",
      "species": [
       "ST"
      ],
@@ -1138,7 +1138,7 @@
     {
      "rule_id": "baker_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
+     "verbatim": "No Fishing upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1158,16 +1158,15 @@
       {
        "op": "upstream_of",
        "splits": [
-        "baker_creek__pinnacles_park_upstream_boundary"
-       ],
-       "outside_area": "area:park:pinnacles_park"
+        "baker_creek__pinnacles_park_downstream_boundary"
+       ]
       }
      ]
     },
     {
      "rule_id": "baker_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
+     "verbatim": "No Fishing upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1187,7 +1186,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "baker_creek__pinnacles_park_upstream_boundary"
+        "baker_creek__pinnacles_park_downstream_boundary"
        ]
       }
      ]
@@ -1195,7 +1194,7 @@
     {
      "rule_id": "baker_creek.r2x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
+     "verbatim": "No Fishing upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1220,7 +1219,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "baker_creek__pinnacles_park_upstream_boundary"
+        "baker_creek__pinnacles_park_downstream_boundary"
        ]
       }
      ]
@@ -1253,7 +1252,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "baker_creek__pinnacles_park_upstream_boundary"
+        "baker_creek__pinnacles_park_downstream_boundary"
        ]
       }
      ]
@@ -1440,7 +1439,7 @@
    ],
    "see": [
     {
-     "verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+     "verbatim": "No Ice Fishing; trout catch and release; bait ban, single barbless hook",
      "entry_ids": [
       "r6:basalt_lake@6-1"
      ]
@@ -1472,7 +1471,7 @@
     {
      "rule_id": "beaver_creek_chain_of_lakes.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing for bass**",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -1507,7 +1506,7 @@
     {
      "rule_id": "beaver_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing for bass**",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -1539,7 +1538,7 @@
    "includes_tributaries": true,
    "see": [
     {
-     "verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "verbatim": "See Atnarko/Bella Coola Rivers",
      "entry_ids": [
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
@@ -1898,7 +1897,7 @@
     {
      "rule_id": "blue_lead_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
+     "verbatim": "No Fishing downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -1926,7 +1925,7 @@
     {
      "rule_id": "blue_lead_creek.r1x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
+     "verbatim": "No Fishing downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2289,29 +2288,6 @@
        ]
       }
      ]
-    },
-    {
-     "rule_id": "bowron_lake_park_waters.r5x",
-     "type": "retention_limit",
-     "verbatim": "Bait ban, single barbless hook; no powered boats",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:park:bowron_lake_park",
-       "outside_items": [
-        "wbk:329058703"
-       ]
-      }
-     ],
-     "exempts": [
-      {
-       "default_id": "spring_stream_closure",
-       "note": "Region 5's spring closure (p.42): 'No fishing in any stream in Fraser River Watershed of Region 5 … Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables' — this stream is listed; its own row's closures govern it"
-      }
-     ]
     }
    ]
   },
@@ -2438,7 +2414,7 @@
     {
      "rule_id": "burnt_bridge_creek.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for steelhead",
+     "verbatim": "No Fishing for steelhead",
      "species": [
       "ST"
      ],
@@ -2499,7 +2475,7 @@
    ],
    "see": [
     {
-     "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "verbatim": "Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers",
      "entry_ids": [
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
@@ -2523,7 +2499,7 @@
     {
      "rule_id": "cameron_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Oct 1-June 30",
+     "verbatim": "No Fishing Oct 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2548,7 +2524,7 @@
     {
      "rule_id": "cameron_creek.r1x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Oct 1-June 30",
+     "verbatim": "No Fishing Oct 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2639,7 +2615,7 @@
     {
      "rule_id": "canim_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
+     "verbatim": "No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2817,7 +2793,7 @@
     {
      "rule_id": "chambers_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **for bass",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -2855,7 +2831,7 @@
     {
      "rule_id": "chilcotin_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** upstream of Chilko River, Apr 1-June 30",
+     "verbatim": "No Fishing upstream of Chilko River, Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2883,7 +2859,7 @@
     {
      "rule_id": "chilcotin_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Chilko River, Oct 1-June 10",
+     "verbatim": "No Fishing downstream of Chilko River, Oct 1-June 10",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -2911,7 +2887,7 @@
     {
      "rule_id": "chilcotin_river.r2x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Chilko River, Oct 1-June 10",
+     "verbatim": "No Fishing downstream of Chilko River, Oct 1-June 10",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3216,7 +3192,7 @@
     {
      "rule_id": "chilko_lake_tributaries.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-June 30",
+     "verbatim": "No Fishing Aug 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3242,7 +3218,7 @@
     {
      "rule_id": "chilko_lake_tributaries.r1x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Aug 1-June 30",
+     "verbatim": "No Fishing Aug 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3301,7 +3277,7 @@
     {
      "rule_id": "chilko_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-June 10",
+     "verbatim": "No Fishing Nov 1-June 10",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3326,7 +3302,7 @@
     {
      "rule_id": "chilko_river.r1x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-June 10",
+     "verbatim": "No Fishing Nov 1-June 10",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3437,15 +3413,14 @@
      "verbatim": "speed restriction (5 km/h) on part",
      "aspect": "speed",
      "max_kmh": 5.0,
+     "includes_tributaries": false,
      "extents": [
       {
-       "op": "upstream_of",
-       "splits": [
-        "chilko_river__henry_crossing_bridge"
-       ]
+       "op": "whole"
       }
      ],
-     "review_reason": "'on part' is vague; assumed to be the same reach as the adjacent powered-boat restriction (upstream of Henry's Crossing bridge) but the printed text does not confirm this"
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'speed restriction (5 km/h) on part' does not say which part (user ruling Q28).",
+     "undrawn_part": "on part"
     }
    ],
    "licensing": [
@@ -3476,7 +3451,7 @@
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not required"
      },
-     "verbatim": "Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31",
+     "verbatim": "Class II water upstream of Brittany Creek, June 11-Oct 31",
      "kind": "designation"
     }
    ]
@@ -3604,7 +3579,7 @@
     {
      "rule_id": "chuckwalla_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** entire river, June 1-Aug 31",
+     "verbatim": "No Fishing entire river, June 1-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3629,7 +3604,7 @@
     {
      "rule_id": "chuckwalla_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** between fishing boundary signs at Ten Mile Pool",
+     "verbatim": "No Fishing between fishing boundary signs at Ten Mile Pool",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -3681,7 +3656,7 @@
       },
       "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
      },
-     "verbatim": "Class II water**[Includes Tributaries]** Apr 1-May 31",
+     "verbatim": "Class II water Apr 1-May 31",
      "kind": "designation"
     }
    ],
@@ -3785,7 +3760,7 @@
     {
      "rule_id": "cook_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -4208,7 +4183,7 @@
     {
      "rule_id": "dean_river.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14",
+     "verbatim": "No Fishing upstream of Iltasyuko River, including upstream of Anahim Lake, Apr 1-June 14",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4237,7 +4212,7 @@
     {
      "rule_id": "dean_river.r2",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]",
+     "verbatim": "No Fishing from Iltasyuko River to Crag Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4257,7 +4232,7 @@
     {
      "rule_id": "dean_river.r3",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31",
+     "verbatim": "No Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, Oct 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4288,7 +4263,7 @@
     {
      "rule_id": "dean_river.r4",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon",
+     "verbatim": "No Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4308,7 +4283,7 @@
     {
      "rule_id": "dean_river.r5",
      "type": "retention_limit",
-     "verbatim": "No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31",
+     "verbatim": "No Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -4360,7 +4335,7 @@
     {
      "rule_id": "dean_river.r7",
      "type": "bait_restriction",
-     "verbatim": "Bait ban all parts[Includes Tributaries]",
+     "verbatim": "Bait ban all parts",
      "gear": [
       {
        "slot": "bait",
@@ -4379,7 +4354,7 @@
     {
      "rule_id": "dean_river.r8",
      "type": "tackle_restriction",
-     "verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31",
+     "verbatim": "Fly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31",
      "gear": [
       {
        "slot": "method",
@@ -4411,7 +4386,7 @@
     {
      "rule_id": "dean_river.r9",
      "type": "tackle_restriction",
-     "verbatim": "and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
+     "verbatim": "and (b) Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
      "gear": [
       {
        "slot": "method",
@@ -5086,7 +5061,7 @@
     {
      "rule_id": "dragon_lake.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing** southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek, Apr 1-May 31",
+     "verbatim": "No Fishing southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek, Apr 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -5874,7 +5849,7 @@
     {
      "rule_id": "fraser_river.r1",
      "type": "retention_limit",
-     "verbatim": "No Fishing **for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31",
+     "verbatim": "No Fishing for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31",
      "species": [
       "TROUT_CHAR"
      ],
@@ -5895,7 +5870,8 @@
        "op": "downstream_of",
        "splits": [
         "fraser_river__chilcotin_river_into_fraser_river"
-       ]
+       ],
+       "within_area": "area:region:5"
       }
      ]
     },
@@ -5949,7 +5925,7 @@
     {
      "rule_id": "fraser_river.r4",
      "type": "retention_limit",
-     "verbatim": "No Fishing** for sturgeon Sept 15-July 15",
+     "verbatim": "No Fishing for sturgeon Sept 15-July 15",
      "species": [
       "WSG"
      ],
@@ -5974,7 +5950,7 @@
     {
      "rule_id": "fraser_river.r5",
      "type": "retention_limit",
-     "verbatim": "No Fishing** for sturgeon in the Fraser River Watershed upstream of Williams Lake River (sturgeon catch and release)",
+     "verbatim": "No Fishing for sturgeon in the Fraser River Watershed upstream of Williams Lake River (sturgeon catch and release)",
      "species": [
       "WSG"
      ],
@@ -5993,7 +5969,7 @@
     {
      "rule_id": "fraser_river.r6",
      "type": "retention_limit",
-     "verbatim": "No Fishing** for steelhead from the confluence with the Chilcotin River downstream to the Region 5 boundary Jan 1-Dec 31",
+     "verbatim": "No Fishing for steelhead from the confluence with the Chilcotin River downstream to the Region 5 boundary Jan 1-Dec 31",
      "species": [
       "ST"
      ],
@@ -6014,11 +5990,12 @@
        "op": "downstream_of",
        "splits": [
         "fraser_river__chilcotin_river_into_fraser_river"
-       ]
+       ],
+       "within_area": "area:region:5"
       }
      ],
      "extent_text": "confluence with the Chilcotin River downstream to the Region 5 boundary",
-     "review_reason": "downstream terminus is stated as \"the Region 5 boundary\" but the boundary menu offers only area ids (area:5, area:3, area:7A) of unclear polygon-vs-line semantics — bound the confirmed upstream end (Chilcotin confluence) and flag the downstream cutoff for a curator to confirm"
+     "review_reason": "the downstream terminus 'the Region 5 boundary' is the extent's within_area area:region:5 (user ruling Q46, 2026-10-07)"
     }
    ]
   },
@@ -6183,7 +6160,7 @@
     {
      "rule_id": "geese_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -6399,7 +6376,7 @@
     {
      "rule_id": "green_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
+     "verbatim": "No Fishing northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -6452,7 +6429,7 @@
     {
      "rule_id": "greenlee_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -6583,7 +6560,7 @@
     {
      "rule_id": "grizzly_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -6738,7 +6715,7 @@
     {
      "rule_id": "hidden_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -6846,7 +6823,7 @@
     {
      "rule_id": "higgins_lake.r2",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -6954,7 +6931,7 @@
     {
      "rule_id": "homathko_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 30",
+     "verbatim": "No Fishing Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7005,7 +6982,7 @@
     {
      "rule_id": "horsefly_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-May 31",
+     "verbatim": "No Fishing Nov 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7030,7 +7007,7 @@
     {
      "rule_id": "horsefly_river.r1x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-May 31",
+     "verbatim": "No Fishing Nov 1-May 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7115,10 +7092,9 @@
      ],
      "extents": [
       {
-       "op": "between",
+       "op": "downstream_of",
        "splits": [
-        "horsefly_river__woodjam_bridge",
-        "gauge__08KH031"
+        "horsefly_river__woodjam_bridge"
        ]
       }
      ]
@@ -7149,7 +7125,7 @@
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not required"
      },
-     "verbatim": "Class II water**[Includes Tributaries]** June 1-Oct 31",
+     "verbatim": "Class II water June 1-Oct 31",
      "kind": "designation"
     }
    ]
@@ -7210,7 +7186,7 @@
     {
      "rule_id": "hunlen_creek.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 30",
+     "verbatim": "No Fishing Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7259,7 +7235,7 @@
    ],
    "see": [
     {
-     "verbatim": "Downstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "verbatim": "Downstream of Hunlen Falls: see Atnarko/Bella Coola Rivers",
      "entry_ids": [
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
@@ -7322,7 +7298,7 @@
     {
      "rule_id": "iltasyuko_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 15",
+     "verbatim": "No Fishing Apr 1-June 15",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -7799,7 +7775,7 @@
     {
      "rule_id": "kestrel_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -7977,7 +7953,7 @@
     {
      "rule_id": "kilbella_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** June 1-Aug 31",
+     "verbatim": "No Fishing June 1-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8035,7 +8011,7 @@
       },
       "verbatim": "Steelhead Stamp mandatory Apr 1-May 31"
      },
-     "verbatim": "Class II water**[Includes Tributaries]**, Apr 1-May 31",
+     "verbatim": "Class II water, Apr 1-May 31",
      "kind": "designation"
     }
    ],
@@ -8066,7 +8042,7 @@
     {
      "rule_id": "klinaklini_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 30",
+     "verbatim": "No Fishing Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -8146,7 +8122,7 @@
     {
      "rule_id": "lemon_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -8494,7 +8470,7 @@
     {
      "rule_id": "little_jones_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -8736,7 +8712,7 @@
     {
      "rule_id": "mccauley_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for bass",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -9061,7 +9037,7 @@
     {
      "rule_id": "mitchell_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** within 100 m radius of the weir at the lake's outlet",
+     "verbatim": "No Fishing within 100 m radius of the weir at the lake's outlet",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9105,7 +9081,7 @@
     {
      "rule_id": "mitchell_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** within 100 m radius of the weir at the outlet of Michell Lake",
+     "verbatim": "No Fishing within 100 m radius of the weir at the outlet of Michell Lake",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9125,7 +9101,7 @@
     {
      "rule_id": "mitchell_river.r2",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** from Michell Lake to Cameron Creek",
+     "verbatim": "No Fishing from Michell Lake to Cameron Creek",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9144,7 +9120,7 @@
     {
      "rule_id": "mitchell_river.r3",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30",
+     "verbatim": "No Fishing downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9172,7 +9148,7 @@
     {
      "rule_id": "mitchell_river.r3x",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30",
+     "verbatim": "No Fishing downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -9634,7 +9610,7 @@
     {
      "rule_id": "opheim_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** for bass",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -10160,7 +10136,7 @@
        "op": "between",
        "splits": [
         "quesnel_river__signs_50_m_upstream_of_likely_bridge",
-        "gauge__08KH001"
+        "quesnel_river__signs_50_m_downstream_of_likely_bridge"
        ]
       }
      ]
@@ -10449,7 +10425,7 @@
     {
      "rule_id": "robert_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing for bass**",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -10484,7 +10460,7 @@
     {
      "rule_id": "rye_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing for bass**",
+     "verbatim": "No Fishing for bass",
      "species": [
       "BASS"
      ],
@@ -10519,7 +10495,7 @@
     {
      "rule_id": "sandy_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -10615,7 +10591,7 @@
     {
      "rule_id": "sardine_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -10689,7 +10665,7 @@
     {
      "rule_id": "secret_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -10820,7 +10796,7 @@
     {
      "rule_id": "simon_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -10892,7 +10868,7 @@
     {
      "rule_id": "simon_lake.r5",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -10971,7 +10947,7 @@
     {
      "rule_id": "skulow_lake.r2",
      "type": "hazard",
-     "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+     "verbatim": "WARNING! Dangerous thin ice due to aeration!",
      "extents": [
       {
        "op": "whole"
@@ -11081,7 +11057,7 @@
     {
      "rule_id": "snag_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing;**",
+     "verbatim": "No Ice Fishing;",
      "gear": [
       {
        "slot": "method",
@@ -11378,7 +11354,7 @@
     {
      "rule_id": "stum_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Mar 1-Aug 31",
+     "verbatim": "No Fishing Mar 1-Aug 31",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11572,7 +11548,7 @@
     {
      "rule_id": "takia_river.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing**",
+     "verbatim": "No Fishing",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11638,7 +11614,7 @@
     {
      "rule_id": "teepee_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Nov 1-June 14",
+     "verbatim": "No Fishing Nov 1-June 14",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11760,7 +11736,7 @@
     {
      "rule_id": "tenas_lake.r1",
      "type": "retention_limit",
-     "verbatim": "**No Fishing** Apr 1-June 30",
+     "verbatim": "No Fishing Apr 1-June 30",
      "species": [
       "ALL_GAME_FISH"
      ],
@@ -11805,7 +11781,7 @@
     {
      "rule_id": "tilgatgo_lake.r1",
      "type": "method_rule",
-     "verbatim": "**No Ice Fishing**",
+     "verbatim": "No Ice Fishing",
      "gear": [
       {
        "slot": "method",
@@ -13179,7 +13155,7 @@
    ],
    "see": [
     {
-     "verbatim": "Downstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
+     "verbatim": "Downstream of Hwy 20: see Atnarko/Bella Coola Rivers",
      "entry_ids": [
       "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8"
      ]
@@ -13389,6 +13365,57 @@
      "type": "advisory",
      "verbatim": "Size limit: There is no minimum size in lakes (see tables for exceptions).",
      "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z5:pelican_alert",
+   "name": "Pelican alert",
+   "display_name": "Lakes of Region 5",
+   "region": "5",
+   "regs_verbatim": "PELICAN ALERT American White Pelicans are an endangered species and protected under the B.C. Wildlife Act. B.C.'s only nesting colony (350 nesting pairs) is located in the Cariboo-Chilcotin. Pelicans return to the region each April/May to breed. After the young have fledged in August, they migrate south to overwinter in the westerm U.S. and Mexico. Pelicans forage for fish on lakes throughout the region and travel as far as 165 km from the nesting colony. They do not dive but feed from the surface in shallow water. When breeding pelicans are disturbed while foraging, their feeding and timely return to the nests is disrupted. This leaves the young without food and may reduce survival. Please do not approach pelicans. To report pelican sightings, please contact the Fish and Wildlife Regional Office in Williams Lake.",
+   "source_pages": [
+    41
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:5",
+     "feature_types": [
+      "lake"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "pelican_alert.r1",
+     "type": "advisory",
+     "verbatim": "Please do not approach pelicans.",
+     "obligation": "should",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "pelican_alert.r2",
+     "type": "advisory",
+     "verbatim": "To report pelican sightings, please contact the Fish and Wildlife Regional Office in Williams Lake.",
+     "obligation": "should",
      "extents": [
       {
        "op": "within",

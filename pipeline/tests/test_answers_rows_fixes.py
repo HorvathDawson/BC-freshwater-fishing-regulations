@@ -225,8 +225,10 @@ def test_teslin_slots_and_possession(built):
     assert not any(l["t"] == "annual" for r in t["rows"] for l in r["everyone"])
     roles = {_rid(data, k): role for k, role, _ in t["fish"]["LT"]["wild"]["roles"]}
     assert roles[next(x for x in roles if x.endswith("teslin_lake.r2"))] == "possession_cap"
-    # MUTATION: without the grayling slot rule the 36-44 cm band is gone
-    m = row_of(built, card(built, TESLIN, 0, (6, 15), displace("teslin_lake.r7")), "teslin_lake.r4")
+    # MUTATION: without the grayling slot rules (the daily one, and since 2026-10-07 its possession
+    # copy r5c — p.54 prints the sizes on "daily and possession quotas") the 36-44 cm band is gone
+    m = row_of(built, card(built, TESLIN, 0, (6, 15), displace("teslin_lake.r7", "teslin_lake.r5c")),
+               "teslin_lake.r4")
     assert m["items"][0]["bands"] == [[0, 44, 4], [44, None, 1]]
 
 

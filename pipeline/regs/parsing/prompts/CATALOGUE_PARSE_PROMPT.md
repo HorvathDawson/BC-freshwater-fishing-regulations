@@ -148,10 +148,13 @@ it is refused.
   excluded."* *"Trout daily quota = 2"*, *"No trout over 50 cm"*, *"Trout/char: 5"* are all
   `TROUT_CHAR`. There is no trout-only code — `TROUT` is refused. `CHAR` is for a line that says
   *char* (*"char catch and release"*, *"All char (includes Dolly Varden)"*).
-* **"TROUT" INCLUDES CHAR UNLESS CHAR ARE MENTIONED.** When the same water row (entry), or the
-  same zone table (the region's quota box / zone entry), mentions char separately — *char*,
-  *Dolly Varden/bull trout*, *lake trout*, *brook trout* — that row's or table's "trout" lines
-  EXCLUDE char. Otherwise "trout" = trout + char.
+* **"TROUT" INCLUDES CHAR UNLESS (a) THE LINE EXCLUDES CHAR, OR (b) CHAR HAVE A RELATED LINE OF
+  THEIR OWN** (user ruling 2026-10-07). (b): the same water row (entry), or the same zone table,
+  gives char — *char*, *Dolly Varden/bull trout*, *lake trout*, *brook trout* — a rule of their own
+  about the SAME THING as the trout line: how many you keep / must release / closure (one aspect),
+  sizes, or gear — on the same kind of water and days that meet. Then that "trout" line EXCLUDES
+  char. A char line about something else excludes nothing: *"no trout under 25 cm"* beside *"bull
+  trout catch and release"* (size vs release) still covers bull trout. Otherwise "trout" = trout + char.
   - Write an excluding line `species: ["TROUT_CHAR"], species_except: ["CHAR"]` (keep any other
     exception beside it: `["CHAR", "ST"]`). A clause printed under a "trout" quota (*"1 over 50
     cm"* under *"Trout: 4"*) is a "trout" line too.
@@ -164,9 +167,10 @@ it is refused.
   - Example — Region 6's box: *"Trout/char: 5, but not more than … 3 Dolly Varden/bull trout
     and/or lake trout combined, 1 trout from streams July 1-Oct 31. And you must release: … Trout
     under 30 cm from any stream, Trout of any size from streams, Nov 1-June 30"*. The box
-    mentions char (Dolly Varden/bull trout, lake trout), so *"1 trout from streams July 1-Oct
-    31"*, *"Trout under 30 cm from any stream"* and *"Trout of any size from streams, Nov 1-June
-    30"* are `["TROUT_CHAR"]` except `["CHAR"]`; *"Trout/char: 5"* stays `["TROUT_CHAR"]`.
+    gives Dolly Varden/bull trout and lake trout count and release lines of their own, so *"1
+    trout from streams July 1-Oct 31"* and *"Trout of any size from streams, Nov 1-June 30"* are
+    `["TROUT_CHAR"]` except `["CHAR"]`; *"Trout under 30 cm from any stream"* is a SIZE line with no
+    char size line beside it: plain `["TROUT_CHAR"]`; *"Trout/char: 5"* stays `["TROUT_CHAR"]`.
     Region 1's *"Trout: 4 … And you must release: … All char (includes Dolly Varden)"* likewise
     makes *"Trout: 4"* trout only. A lake row printing only *"Trout daily quota = 2"* mentions no
     char: `["TROUT_CHAR"]`, and a char counts toward the 2.
@@ -422,7 +426,11 @@ left to infer:
 ```
 
 An ORDERED list of ranges, FIRST MATCH WINS. `min_cm`/`max_cm` are INCLUSIVE, either may be
-omitted for "open at that end", and a range without its own `take` uses the rule's `take`.
+omitted for "open at that end", and a range without its own `take` uses the rule's `take` —
+EXCEPT that a range with `"take": 0` does NOT hold its own bounds: a fish EXACTLY on a printed size
+bound is legal ("none under 30 cm" keeps a 30.0 cm fish; "no trout over 50 cm" keeps a 50.0 cm one).
+Only where the book prints "X cm OR MORE" / "X cm OR LESS" does the take-0 range hold X: write
+`"closed": true` on it — "No cutthroat trout 40 cm or more" -> `[{"min_cm":40,"take":0,"closed":true}]`.
 **A length no range covers is not spoken about by this rule** — at the top level nothing else
 grants it, and inside a `within` clause the parent quota governs it.
 

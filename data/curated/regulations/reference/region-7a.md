@@ -60,6 +60,13 @@ for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Ne
 
 ---
 
+
+## Box text read from the rendered page (RULES round, 2026-10-07)
+
+White sturgeon — SARA (p.58):
+
+> White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers. Help from the public will also be necessary for recovery and the NWSRI requests that you report the date and location of all sightings or incidental captures, particularly in the Nechako, Fraser Lake and Stuart/Takla watersheds. If you observe or accidentally catch a White Sturgeon in the Omineca Region, please call the Ministry of Water, Land and Resource Stewardship at 250-614-7400.
+
 ## Checked against the curated entries
 
 `region-7a.json` — 25 entries.
