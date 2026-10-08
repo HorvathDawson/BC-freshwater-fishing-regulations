@@ -75,7 +75,7 @@ def _edit(c, key: str, **fields) -> None:
 def test_the_answer_has_every_key(db):
     got = R.requirements_in_force(db, _sid(db, KHARTOUM_LAKE), JUL_1)
     assert set(got) == {"holds", "waived", "not_yet_mapped", "also_printed", "wrong_water",
-                        "displaced"}
+                        "displaced", "considered"}
 
 
 def test_designations_in_force_is_public_and_the_waiver_reads_it(db):

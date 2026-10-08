@@ -126,11 +126,24 @@ def live():
     db.close()
 
 
+def _keys(db) -> dict:
+    """{LicenceKey: [the lowest section of each part carrying it]} — off the bundle's parts."""
+    from pipeline.deliver.bundle.derived import parts
+    sleepy = L.sleepy_sets(db)
+    out: dict = {}
+    for ps in parts(db).values():
+        for p in ps:
+            if p.set_id is not None:
+                out.setdefault(L.part_licence_key(p, sleepy), []).append(p.rep_sid)
+    return {k: sorted(v) for k, v in out.items()}
+
+
 def test_the_key_decides_the_answer(live):
-    """`requirements_in_force` asked at any section of a licence key gives that key's answer."""
+    """`requirements_in_force` asked at a section of any part with one licence key gives that
+    key's answer."""
     from pipeline.deliver.calendar import month_day
     path, db, C = live
-    K = L.keys(db)
+    K = _keys(db)
     rnd = random.Random(7)
     checked = 0
     for key, sids in K.items():
@@ -150,7 +163,7 @@ def test_live_profiles_answer_as_the_book_says(live):
     for a non-resident under 16, nothing for a status First Nations person living in B.C.
     (exempt from every licence and stamp, p.5)."""
     path, db, C = live
-    K = L.keys(db)
+    K = _keys(db)
     ref = C.index.__getitem__
     from pipeline.deliver.calendar import month_day
     key = next(k for k in K if k.licensing_set is None and not k.province_except
@@ -170,10 +183,12 @@ def test_live_profiles_answer_as_the_book_says(live):
     assert first["none_needed"] and not first["documents"]
 
 
-def test_build_is_deterministic(live):
-    path, _, _ = live
-    a = L.build(path, log=lambda *_: None)
-    b = L.build(path, log=lambda *_: None)
-    a.pop("_key_index"), b.pop("_key_index")
-    assert a == b
-    assert len(a["profiles"]) == 60 and all(len(t) == 60 for t in a["documents"])
+def test_key_years_are_deterministic(live):
+    path, db, C = live
+    K = _keys(db)
+    days, P_, contested = L.change_days(db), L.profiles(), L.contested_sets(db)
+    keys = sorted(K, key=lambda k: str(k.as_list()))[:25]
+    a = [L.key_year(db, C, k, K[k][0], days, P_, contested, C.index.__getitem__, {}) for k in keys]
+    b = [L.key_year(db, C, k, K[k][0], days, P_, contested, C.index.__getitem__, {}) for k in keys]
+    assert a == b and len(P_) == 60
+    assert all(len(v["profiles"]) == 60 for y in a for v in y.values())

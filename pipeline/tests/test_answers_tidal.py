@@ -61,7 +61,13 @@ def test_nitinat_lake_is_a_documented_tidal_state_all_year(built, on):
     assert t["licence"]["holds"] == {"tidal": C.TIDAL_STATE}, "the documented state only"
     assert t["licence"]["profiles"] and all(p == {"tidal": True} for p in t["licence"]["profiles"]), \
         "never 'no licence needed', no computed provincial field"
-    assert t["ladder"] == {} and t["answer"] == {} and t["rows"]["rows"] == []
+    # the ladder lists every fish the verdicts asked (DATAFLOW P6, bucket a): on tidal water each
+    # holds only the tidal row's own note, SHOWN — no provincial rule speaks, nothing is decided
+    assert t["ladder"] and all(
+        v == {"r1:nitinat_lake@1-3::nitinat_lake.r1": ["shown", None, None, None]}
+        for by_o in t["ladder"].values() for v in by_o.values())
+    assert all(d == ["no_rule", None, None] for by_o in t["answer"].values() for d in by_o.values())
+    assert t["rows"]["rows"] == []
 
 
 def test_a_freshwater_part_is_never_tidal(built):

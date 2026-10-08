@@ -34,9 +34,10 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import AnswersError, Bundle, Interner, RuleKey, dumps, \
+from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps, \
     expand, rule_id
-from pipeline.deliver.calendar import month_day, rule_vectors, segments
+from pipeline.deliver.calendar import month_day
+from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
 
 GEAR_FAMILIES = ("gear_and_method", "conduct", "vessel")
@@ -454,6 +455,9 @@ def gear_subset(B: Bundle, bound: Sequence[Tuple[str, str, str]]) -> List[Tuple[
     and every rule lifting one of them."""
     from pipeline.regs.parsing.catalogue import PROTECTED_FISH
     every = B.rules
+    stray = [rule_id((e, r)) for e, r, _ in bound if (e, r) not in every]
+    if stray:
+        raise AnswersError(f"gear: the rule set names rules the bundle lacks: {stray[:3]}")
     # A duty about PROTECTED fish only ("If you accidentally catch one, you must release it right
     # away", zp:protected_species.r3 — named since the RULES round) is about fish no gear answer is
     # asked for; the rows show it beside the protected-species closure.
@@ -468,11 +472,6 @@ def gear_subset(B: Bundle, bound: Sequence[Tuple[str, str, str]]) -> List[Tuple[
     return [b for b in bound if (b[0], b[1]) in keep]
 
 
-def _rank(x: dict, via: str) -> int:
-    base = x["_rank"]
-    return 1 if via == "trib" and base >= 0 else base
-
-
 class NoFishToAsk(ValueError):
     """A gear-relevant rule that speaks for no fish the reader can be asked about."""
 
@@ -485,10 +484,12 @@ def _ask_fish(x: dict) -> str:
     raise NoFishToAsk(f"gear: {x['entry']}::{x['rule']} speaks for no fish the reader answers")
 
 
-def states(B: Bundle, key: RuleKey, bound: Sequence[Tuple[str, str, str]], md) -> Dict:
+def states(B: Bundle, bound: Sequence[Tuple[str, str, str]], md, store, key_ix: int,
+           reading: int) -> Dict:
     """`{(entry, rule): (state, partly_lifted) | (loss state, reason, by)}` for every
-    gear-relevant rule in force on day `md`: THE READER'S ANSWER for the key's gear bindings
-    (`read.effective_rules_bound(trace=True)`), each rule read for the first fish it speaks for (a
+    gear-relevant rule in force on day `md`: THE READER'S ANSWER for the key's FULL rule set —
+    the stored verdict of the key's reading (`verdicts.sqlite`, DATAFLOW P6; it used to re-ask the
+    reader over a subset of the bindings) — each rule read for the first fish it speaks for (a
     gear rule names no fish; one held only while fishing for white sturgeon speaks for that fish).
     Its lifts (dated, per fish), `beside` (some hours, one side of the channel),
     `not_yet_mapped` and its (type, dimension) competition — which no longer drops a clause the
@@ -499,36 +500,39 @@ def states(B: Bundle, key: RuleKey, bound: Sequence[Tuple[str, str, str]], md) -
     groups: Dict[str, List[Tuple[str, str]]] = {}
     for e, r, v in bound:
         k = (e, r)
-        x = every.get(k)
-        if x is None or not (x.get("family") in GEAR_FAMILIES or x.get("while")):
+        x = every[k]
+        if not (x.get("family") in GEAR_FAMILIES or x.get("while")):
             continue
         if read.in_force(x.get("when"), md) == "no" or x.get("dimension") == "lift":
             continue
         groups.setdefault(_ask_fish(x), []).append(k)
     out: Dict = {}
     for fish, ks in sorted(groups.items()):
-        got = {(y["entry"], y["rule"]): y for y in read.effective_rules_bound(
-            bound, key.steelhead_water, md, fish, B.path,
-            steelhead_rules_here=key.steelhead_rules, trace=True)}
+        got = {}
+        for r, st, rs, by, lift in store.rows(store.verdict_id(key_ix, reading, fish, "none")):
+            got[tuple(store.rule_ids[r].split("::", 1))] = (
+                T.by_code(T.RuleState, st).value, bool(lift),
+                None if rs is None else T.by_code(T.LossReason, rs).value,
+                None if by is None else tuple(store.rule_ids[by].split("::", 1)))
         for k in ks:
             y = got.get(k)
             if y is None:
-                raise AnswersError(f"gear: the traced reader does not return {rule_id(k)} for "
+                raise AnswersError(f"gear: the stored verdict does not hold {rule_id(k)} for "
                                    f"{fish}, though it is in force and speaks for it")
-            if y["state"] in read.SPEAKER_STATES:
-                out[k] = (y["state"], bool(y.get("partly_lifted")))
+            if y[0] in read.SPEAKER_STATES:
+                out[k] = (y[0], y[1])
             else:
-                out[k] = (y["state"], y["reason"], tuple(y["by"].split("::", 1)))
+                out[k] = (y[0], y[2], y[3])
     return out
 
 
 def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
-                ref: Callable = None) -> dict:
-    """The gear answer for one rule key on one day (any day of its segment)."""
+                ref: Callable = None, *, store, reading: int) -> dict:
+    """The gear answer for one rule key on one reading of its year (asked on day `md` of it)."""
     every = B.rules
-    bound = gear_subset(B, B.sets.get(key.set_id, []))
+    bound = gear_subset(B, B.sets[key.set_id])
     kind = B.set_kind.get(key.set_id)
-    st = states(B, key, bound, md)
+    st = states(B, bound, md, store, B.key_ix[key], reading)
     via = {(e, r): v for e, r, v in bound}
     order = sorted(via, key=lambda k: (via[k] != "reach", f"{k[0]}::{k[1]}"))
     ref = ref or (lambda k: k)
@@ -536,12 +540,14 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
     def mk(k):
         x = every[k]
         parent = every.get((k[0], x["condition_of"])) if x.get("condition_of") else None
-        return Rule(ref(k), _rank(x, via[k]), x, cond_methods(x, parent))
+        return Rule(ref(k), read.place(x, via[k]), x, cond_methods(x, parent))
     active, timed, in_part, side, wr, overruled = [], [], [], [], [], []
     for k in order:
         x = every[k]
         if kind and x.get("water") and x["water"] != kind:
-            continue
+            # M3: the binding enforces a rule's `water` (feature_types); one bound to the other
+            # kind of water is a binding defect, never filtered here
+            raise AnswersError(f"gear: {rule_id(k)} is for {x['water']}s, bound to a {kind}")
         s = st.get(k)
         if s is None:
             continue                                     # not in force today
@@ -563,41 +569,20 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
                    overruled=overruled, while_rules=wr)
 
 
-def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str],
-              ref: Callable = rule_id) -> Dict[int, dict]:
-    """The key's gear answer over the year, `{start_day: answer}`, cut where any gear-relevant
-    rule's `when` (or a lift's) changes — a coarsening of the key's segments, each of which lies
-    inside one of these — with equal neighbours merged; equal readings are answered once."""
-    bound = gear_subset(B, B.sets.get(key.set_id, []))
-    vecs = rule_vectors(B.rules[(e, r)] for e, r, _ in bound if (e, r) in B.rules)
-    runs, readings = segments(vecs)
-    got = [gear_answer(B, key, month_day(d), lawful, ref) for d in readings]
+def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,
+              store) -> Dict[int, dict]:
+    """The key's gear answer over the year, `{start_day: answer}`: one per READING of the key
+    (the verdicts', `store.runs`), equal neighbours merged; equal readings are answered once."""
+    k = B.key_ix[key]
+    got = [gear_answer(B, key, month_day(rd.first_day), lawful, ref, store=store, reading=rd.ix)
+           for rd in store.readings(k)]
     out: Dict[int, dict] = {}
     last = None
-    for d, i in runs:
+    for d, i in store.runs(k):
         s = dumps(got[i])
         if s != last:
             out[d] = got[i]
             last = s
-    return out
-
-
-def produce(B: Bundle, keys: Optional[Sequence[RuleKey]] = None,
-            ref: Callable = rule_id) -> Dict[RuleKey, Dict[int, dict]]:
-    """PURE: every rule key's gear answers, `{RuleKey: {start_day: answer}}` (day 1..366 on the
-    catalogue's leap calendar). Rules are named by `ref((entry_id, rule_id))` — the rule id
-    "entry::rule" by default, the export's `rules` index for the wire. Keys whose gear bindings,
-    kind and steelhead flags agree share one computed year."""
-    lawful = province_methods(B.rules.values())
-    memo: Dict[tuple, Dict[int, dict]] = {}
-    out: Dict[RuleKey, Dict[int, dict]] = {}
-    for key in (keys if keys is not None else list(B.keys)):
-        bound = gear_subset(B, B.sets.get(key.set_id, []))
-        mk = (tuple(bound), B.set_kind.get(key.set_id), key.steelhead_water,
-              key.steelhead_rules)
-        if mk not in memo:
-            memo[mk] = gear_year(B, key, lawful, ref)
-        out[key] = memo[mk]
     return out
 
 
@@ -609,23 +594,6 @@ def static_tables() -> dict:
             "moments": [[m, [[a, phrase, CONDUCT_ACTS.get(a)] for a, phrase in acts]]
                         for m, acts in MOMENTS],
             "conduct_means": dict(sorted(CONDUCT_ACTS.items()))}
-
-
-def build(B: Bundle, keys: Optional[Sequence[RuleKey]] = None, log=print) -> dict:
-    """`produce`, interned format-2 style for inspection and measurement, rules named by their
-    export index: {keys: [[set, steelhead_water, steelhead_rules, kind, year]], years:
-    [[[start_day, answer]]], answers, province_methods, tables, decisions}."""
-    got = produce(B, keys, ref=B.index.__getitem__)
-    answers, years = Interner(), Interner()
-    out_keys, kix = [], {}
-    for key, year in got.items():
-        y = years([[d, answers(a)] for d, a in year.items()])
-        kix[key] = len(out_keys)
-        out_keys.append(key.as_list() + [B.set_kind.get(key.set_id), y])
-    log(f"  gear: {len(out_keys)} keys, {len(years.rows)} years, {len(answers.rows)} answers")
-    return {"keys": out_keys, "years": years.rows, "answers": answers.rows,
-            "province_methods": province_methods(B.rules.values()), "tables": static_tables(),
-            "decisions": DECISIONS, "_key_index": kix}
 
 
 # --------------------------------------------------------------------------------------------
@@ -652,7 +620,7 @@ def section_prepare(scope: RuleKey, ctx):
     lawful = ctx.cache.get("lawful")
     if lawful is None:
         lawful = ctx.cache["lawful"] = province_methods(B.rules.values())
-    year = gear_year(B, scope, lawful, ref=lambda k: ctx.rule_index[rule_id(k)])
+    year = gear_year(B, scope, lawful, ref=lambda k: ctx.rule_index[rule_id(k)], store=ctx.store)
     starts = sorted(year)
     values = [json.loads(json.dumps(year[d])) for d in starts]
     per: List[int] = []

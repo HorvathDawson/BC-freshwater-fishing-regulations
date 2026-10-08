@@ -327,8 +327,12 @@ def _species():
 
 
 def sp_name(code: str) -> str:
-    """A fish or group's display name (`catalogue._SPECIES_WORDS`, the export's `species` names)."""
-    return _species()._SPECIES_WORDS.get(code) or code
+    """A fish or group's display name (`catalogue._SPECIES_WORDS`, the export's `species` names).
+    A code with no name is refused (L1: it used to print the code itself)."""
+    got = _species()._SPECIES_WORDS.get(code)
+    if not got:
+        raise AnswersError(f"answers: the fish or group {code!r} has no name")
+    return got
 
 
 _PROPER = re.compile(r"^(Dolly|Arctic|Nooksack|Salish|Cultus|Enos|Coastal|Westslope|Misty|Vananda"

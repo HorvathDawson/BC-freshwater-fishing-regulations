@@ -367,7 +367,9 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
             setr(r, "possession")
         elif r.f.get("within"):
             p = f"{r.entry_id}::{r.f['within']}"
-            setr(r, "falls", p if p in P.all_rules else None)
+            if p not in P.all_rules:
+                raise AnswersError(f"rows: {r.key} falls within {p}, which is not a rule (L1)")
+            setr(r, "falls", p)
         elif r.k in ("size", "subcap", "sizecap", "annual", "possession_cap", "duty"):
             setr(r, "moot", win.key)
     return res
@@ -1052,7 +1054,11 @@ class Part:
         self._notes: Optional[dict] = None
 
     def applies(self, r: R) -> bool:
-        return not (r.f.get("water") and r.f["water"] != self.kind)
+        """M3: a rule bound here is for this kind of water — its binding enforced `water`
+        (feature_types). One that is not is a binding defect: refused, never filtered."""
+        if r.f.get("water") and self.kind and r.f["water"] != self.kind:
+            raise AnswersError(f"rows: {r.key} is for {r.f['water']}s, bound to a {self.kind}")
+        return True
 
     def in_dates(self, r: R) -> bool:
         """The rule's dates hold today (the reader's calendar, `read.in_force`; some hours count —
@@ -1186,6 +1192,21 @@ def cond_out(c: dict) -> dict:
     return out
 
 
+def badge_of(r: R) -> str:
+    """Whose count a pool is (M2): from the rule's two typed axes (`read.source_of`: authority
+    and scope), never the folded rank — a rule reached by the tributary walk is the water's; an
+    area's pool is the area's; a region-wide one the region's, or B.C.'s when the province
+    wrote it; a superior authority's (a national park's) is the place it names: its area, or the
+    water."""
+    from pipeline.deliver.bundle import read as RD
+    src = RD.source_of(r.x)
+    if r.via == "trib" or src.scope in (RD.Scope.water, RD.Scope.inherited):
+        return "water"
+    if src.scope is RD.Scope.area:
+        return "area"
+    return "bc" if src.authority is RD.Authority.province else "region"
+
+
 def scope_of(P: "Part", row: dict) -> Optional[dict]:
     """The row badge (5.5): whose count the pool is — this water's, an area's (decision F8:
     Haida Gwaii, Bowron Lake Park, the Liard watershed), the region's or B.C.'s — whether a
@@ -1195,8 +1216,7 @@ def scope_of(P: "Part", row: dict) -> Optional[dict]:
     if not row.get("pool") or row["kind"] != "keep":
         return None
     p = row["pool"]
-    who = ("bc" if p.rank == 4 else "region" if p.rank >= 3 else "area" if p.rank == 2
-           else "water")
+    who = badge_of(p)
     n = row["narrow"]
     share = bool(who != "water" and n is not None and n.f.get("water")
                  and n.f["water"] == P.kind and n.f.get("take") < p.f.get("take"))
@@ -1271,8 +1291,9 @@ def section_scope(key: tuple, B):
 
 def open_states(ctx, rk, md) -> dict:
     """Decision R5: the reader's state of every open-subject gate rule of the set, asked about the
-    subject's first named fish: {rule id: (state, lifted_in_part_by)}."""
-    from pipeline.deliver.bundle import read
+    subject's first named fish: {rule id: (state, lifted_in_part_by)} — the STORED verdicts
+    (`verdicts.sqlite`, origin not known; the verdicts ask every fish a member rule names)."""
+    from pipeline.deliver.calendar import day_of
     from pipeline.regs.parsing.catalogue import OPEN_SUBJECTS, PROTECTED_FISH
     ck = ("rows_open", rk, md)
     got = ctx.cache.get(ck)
@@ -1287,15 +1308,15 @@ def open_states(ctx, rk, md) -> dict:
                 (c in OPEN_SUBJECTS and c != "ALL_FIN_FISH") or c in PROTECTED_FISH for c in sp):
             by_fish.setdefault(open_fish(x), []).append(f"{e}::{r}")
     out = {}
+    key = ctx.B.key_ix[rk]
+    reading = ctx.store.reading_of(key, day_of(md))
     for f, ks in sorted(by_fish.items()):
-        ans = {read.rid(y): y for y in read.effective_rules_bound(
-            bound, rk.steelhead_water, md, f, ctx.bundle,
-            steelhead_rules_here=rk.steelhead_rules, trace=True)}
+        ans = ctx.ladder_dict(ctx.store.verdict_id(key, reading, f, "none"))
         for k in ks:
             y = ans.get(k)
             if y is None:
-                raise AnswersError(f"rows: the reader does not answer {k} asked about {f}")
-            out[k] = (y["state"], y.get("lifted_in_part_by"))
+                raise AnswersError(f"rows: the verdict does not hold {k} asked about {f}")
+            out[k] = (y[0], y[1])
     ctx.cache[ck] = out
     return out
 

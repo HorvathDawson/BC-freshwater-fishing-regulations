@@ -45,6 +45,7 @@ from pipeline.deliver.answers.common import (PART_KEY_FIELDS, AnswersError, Rule
                                              key_dict, load_export)
 from pipeline.deliver.calendar import (DAYS, day_of, month_day, per_day,  # noqa: F401
                                        rule_vectors, segments, segments_of)
+from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
@@ -68,25 +69,6 @@ STATUSES = ("closed", "release", "keep", "no_limit", "no_rule", "by_origin")
 def eval_key(key: tuple) -> RuleKey:
     """The ladder's and the answer's scope: the part key's rule key (`common.rule_key`)."""
     return common.rule_key(key)
-
-
-def fish_of(bound: Sequence[tuple], rules: dict, steelhead_rules: bool) -> Tuple[str, ...]:
-    """THE FISH ASKED ABOUT for a rule set: every game fish (the book's list, p.80,
-    `catalogue.BOOK_SPECIES`) any member rule names in `species` (groups expanded), plus "ST"
-    where the steelhead rules apply. A rule naming only an open group (`ALL_FIN_FISH`) names no
-    fish by itself. This is a superset of the consumer page's Stage 5.1 (which asks only fish named
-    by applying retention rules, minus protected species and `ALL_GAME_FISH` rules); the page
-    filters as it does now (DESIGN D6)."""
-    from pipeline.regs.parsing.catalogue import BOOK_SPECIES, expand_species
-    named = set()
-    for e, r, _ in bound:
-        x = rules.get((e, r))
-        if x is None:
-            raise AnswersError(f"answers: rule set member {e}::{r} is not in the bundle's rules")
-        named.update(f for f in expand_species(list(x.get("species") or [])) if f in BOOK_SPECIES)
-    if steelhead_rules:
-        named.add("ST")
-    return tuple(f for f in BOOK_SPECIES if f in named)
 
 
 def ladder_verdict(rows: Iterable[dict]) -> dict:
@@ -218,6 +200,24 @@ class Context:
     """What every producer reads, loaded once per process: the bundle (`common.load`), the
     export's rule index (`common.check_export`) and each producer's own cache (`cache`)."""
 
+    def ladder_dict(self, verdict: int) -> dict:
+        """One stored verdict as the ladder states it: {rule id: [state, partly lifting rules |
+        None, reason | None, by | None]} — ONE object per verdict id (shared by every frame that
+        holds it)."""
+        got = self._ladder.get(verdict)
+        if got is None:
+            ids = self.store.rule_ids
+            got = self._ladder[verdict] = {
+                ids[r]: [T.by_code(T.RuleState, s).value, [ids[x] for x in lift] or None,
+                         None if rs is None else T.by_code(T.LossReason, rs).value,
+                         None if by is None else ids[by]]
+                for r, s, rs, by, lift in self.store.rows(verdict)}
+        return got
+
+    def expand_ladder(self, value: dict) -> dict:
+        """A ladder value of verdict ids -> its verdicts (`ladder_dict`)."""
+        return {f: {o: self.ladder_dict(v) for o, v in by_o.items()} for f, by_o in value.items()}
+
     def __init__(self, bundle: str, rule_index: Dict[str, int],
                  licence_reps: Optional[dict] = None, doc: Optional[dict] = None,
                  verdicts: Optional[str] = None):
@@ -235,6 +235,7 @@ class Context:
         self.rules = self.B.rules                      # the reader's own rule table
         self.by_id = {common.rule_id(k): x for k, x in self.rules.items()}
         self.cache: dict = {}
+        self._ladder: Dict[int, dict] = {}
 
 
 def _ladder_scope(key: tuple, B) -> RuleKey:
@@ -242,24 +243,16 @@ def _ladder_scope(key: tuple, B) -> RuleKey:
 
 
 def _ladder_prepare(scope: RuleKey, ctx: Context):
-    bound = ctx.sets.get(scope.set_id)
-    if not bound:
-        raise AnswersError(f"answers: rule set {scope.set_id} has no members in the bundle")
-    for e, r, _ in bound:
-        if (e, r) not in ctx.rules:
-            raise AnswersError(f"answers: rule set member {e}::{r} is not in the bundle's rules")
-    fish = fish_of(bound, ctx.rules, scope.steelhead_rules)
-    runs, readings = segments(rule_vectors([ctx.rules[(e, r)] for e, r, _ in bound]))
+    """The key's year and, per reading, every asked fish's verdict id per origin — the stored
+    verdicts (`verdicts.sqlite`, DATAFLOW P6): the reader is not called here. Every fish the
+    verdicts asked is listed (every game fish, and the extras a member rule names)."""
+    st = ctx.store
+    k = ctx.B.key_ix[scope]
+    runs = [list(r) for r in st.runs(k)]
+    fish = st.fish(k)
     values = []
-    for first in readings:
-        md = month_day(first)
-        v = {}
-        for f in fish:
-            v[f] = {o: ladder_verdict(read.effective_rules_bound(
-                bound, scope.steelhead_water, md, f, ctx.bundle,
-                steelhead_rules_here=scope.steelhead_rules,
-                origin=None if o == "none" else o, trace=True)) for o in ORIGINS}
-        values.append(v)
+    for rd in st.readings(k):
+        values.append({f: {o: st.verdict_id(k, rd.ix, f, o) for o in ORIGINS} for f in fish})
     return per_day(runs), values
 
 
@@ -331,11 +324,13 @@ def _run_scope(task):
     if len(per_day) != DAYS or sorted(set(per_day)) != list(range(len(values))):
         raise AnswersError(f"answers: section {name} returned a year that does not index its values")
     days = _first_days(per_day)
+    # the ladder travels as verdict ids; what derives from it reads the verdicts themselves
+    full = [_WORKER.expand_ladder(v) for v in values] if name == "ladder" else values
     out = {}
     for dname, scopes in derived:
         d = next(s for s in SECTIONS if s.name == dname)
         for ds in scopes:
-            out[(dname, ds)] = [d.derive(v, ds, _WORKER, days[i]) for i, v in enumerate(values)]
+            out[(dname, ds)] = [d.derive(v, ds, _WORKER, days[i]) for i, v in enumerate(full)]
     return name, scope, per_day, values, out
 
 
@@ -423,6 +418,12 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         pool.close()
         pool.join()
 
+    ctx = Context(B.path, rule_index, licence_reps, doc, verdicts=verdicts)
+    # the ladder's verdict ids -> the verdicts, ONE object per verdict id (M9: the parent no
+    # longer holds a copy of every rule state per key, reading, fish and origin)
+    for k, (pd, vals) in list(results.items()):
+        if k[0] == "ladder":
+            results[k] = (pd, [ctx.expand_ladder(v) for v in vals])
     segs: List[List[int]] = []
     out: Dict[str, List[List[object]]] = {s.name: [] for s in chosen}
     for key in keys:
@@ -437,7 +438,6 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
                 pd = per_root[s.derive_from][0]
                 vals = derived_vals[(s.name, s.scope(key, B))]
             out[s.name].append([vals[pd[d - 1]] for d in starts])
-    ctx = Context(B.path, rule_index, licence_reps, doc, verdicts=verdicts)
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen
                if s.static is not None}
     about = {

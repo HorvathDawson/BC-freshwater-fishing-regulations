@@ -197,6 +197,25 @@ def test_the_gear_subset_reads_as_the_whole_set(bundle):
     assert checked >= 300
 
 
+_STORES: dict = {}
+
+
+def _store(B):
+    """The bundle's stored verdicts (`verdicts.sqlite` beside it): what gear reads (P6)."""
+    from pipeline.deliver.verdicts.store import VerdictStore
+    if B.path not in _STORES:
+        _STORES[B.path] = VerdictStore.open(Path(B.path).with_name("verdicts.sqlite"), B.path)
+    return _STORES[B.path]
+
+
+def _answer(B, key, md, lawful, ref=G.rule_id):
+    """The gear answer for a key on a day: its reading's, from the stored verdicts."""
+    from pipeline.deliver.calendar import day_of
+    st = _store(B)
+    return G.gear_answer(B, key, md, lawful, ref, store=st,
+                         reading=st.reading_of(B.key_ix[key], day_of(md)))
+
+
 def _key_of(B, item_id):
     from pipeline.deliver.answers import common
     db = common.connect(B.path)
@@ -230,7 +249,7 @@ def test_kootenay_lake_keeps_the_shore_line_count(bundle):
         B.sets[key.set_id], key.steelhead_water, month_day(200), "RB", B.path,
         steelhead_rules_here=key.steelhead_rules)}
     assert whole.get(province) == "speaks" and whole.get(kootenay) == "speaks"
-    a = G.gear_answer(B, key, month_day(200), G.province_methods(B.rules.values()), G.rule_id)
+    a = _answer(B, key, month_day(200), G.province_methods(B.rules.values()))
     lines = a["counts"]["lines_per_angler"]
     assert lines["by"] == ["zp:terminal_tackle::terminal_tackle.r1", 1]
     assert any(c.get("while") == ["in_boat"] for c in lines.get("also", []))
@@ -256,7 +275,7 @@ def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
         B.sets[key.set_id], key.steelhead_water, month_day(20), "RB", B.path,
         steelhead_rules_here=key.steelhead_rules)}
     assert got.get(closure) == "speaks" and got.get(huts) == "speaks"
-    a = G.gear_answer(B, key, month_day(20), G.province_methods(B.rules.values()), G.rule_id)
+    a = _answer(B, key, month_day(20), G.province_methods(B.rules.values()))
     never = dict(a["conduct"].get("never", []))
     assert G.rule_id(closure) in never.get("no_gear_in_water_during_closure", [])
 
@@ -276,8 +295,8 @@ def test_lifts_are_the_readers(bundle):
     zone = "z1:bait_ban_streams::bait_ban_streams.r1"
     on = next(d for d in range(1, 367) if read.in_force(lift["when"], month_day(d)) == "yes")
     off = next(d for d in range(1, 367) if read.in_force(lift["when"], month_day(d)) == "no")
-    a_on = G.gear_answer(B, key, month_day(on), lawful, G.rule_id)
-    a_off = G.gear_answer(B, key, month_day(off), lawful, G.rule_id)
+    a_on = _answer(B, key, month_day(on), lawful)
+    a_off = _answer(B, key, month_day(off), lawful)
     assert {"rule": zone, "state": "lifted", "reason": "lifted",
             "by": G.rule_id(lifter)} in a_on["overruled"]
     # off the lift's days the zone's ban is not lifted: it stands, or (May 1-Nov 30) the river's own
@@ -292,20 +311,20 @@ def test_lifts_are_the_readers(bundle):
 def test_gear_answers_are_deterministic_and_lawful_methods_are_the_guides(bundle):
     B = bundle
     keys = list(B.keys)[:60]
-    a = G.build(B, keys, log=lambda *_: None)
-    b = G.build(B, keys, log=lambda *_: None)
-    pub = lambda d: json.dumps({k: v for k, v in d.items() if k != "_key_index"},  # noqa: E731
-                               sort_keys=True)
-    assert pub(a) == pub(b)
-    assert a["province_methods"] == ["angling", "crayfish_trapping", "ice_fishing",
-                                     "set_lining", "spear_fishing"]
-    # every key has an answer for every day, and each answer names rules by export index
+    lawful = G.province_methods(B.rules.values())
+    ix = {G.rule_id(k): i for i, k in enumerate(sorted(B.rules, key=G.rule_id))}
+    a = [G.gear_year(B, k, lawful, ref=lambda x: ix[G.rule_id(x)], store=_store(B)) for k in keys]
+    b = [G.gear_year(B, k, lawful, ref=lambda x: ix[G.rule_id(x)], store=_store(B)) for k in keys]
+    assert json.dumps(a, sort_keys=True, default=str) == json.dumps(b, sort_keys=True, default=str)
+    assert lawful == ["angling", "crayfish_trapping", "ice_fishing", "set_lining", "spear_fishing"]
+    # every key has an answer from day 1, and each answer names rules by export index
     n = len(B.rules)
-    for y in a["years"]:
-        assert y[0][0] == 1 and all(p[0] < q[0] for p, q in zip(y, y[1:]))
-    for ans in a["answers"]:
-        for v in ans["elements"].values():
-            assert 0 <= v["by"][0] < n
+    for y in a:
+        days = sorted(y)
+        assert days[0] == 1
+        for ans in y.values():
+            for v in ans["elements"].values():
+                assert 0 <= v["by"][0] < n
 
 
 def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, monkeypatch):
@@ -328,7 +347,7 @@ def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, mo
             continue
         regions |= zones
         for md in ((1, 15), (7, 15)):
-            acts = {a for m in G.gear_answer(B, key, md, lawful)["conduct"].values() for a, _ in m}
+            acts = {a for m in _answer(B, key, md, lawful)["conduct"].values() for a, _ in m}
             if "no_gear_in_water_during_closure" not in acts:
                 missing.append((key, md))
     assert not missing, missing[:10]
@@ -338,8 +357,12 @@ def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, mo
         rules = read._rules_of(B.path)
         monkeypatch.setitem(rules, huts, {**rules[huts], "dimension": rules[closure]["dimension"]})
         key = next(k for k in B.keys if {closure, huts} <= {b[:2] for b in B.sets[k.set_id]})
-        acts = {a for m in G.gear_answer(B, key, (1, 20), lawful)["conduct"].values() for a, _ in m}
-        assert "no_gear_in_water_during_closure" not in acts, "the mutation must displace it"
+        # the stored verdicts are the reader's: the mutation is seen where they are made
+        from pipeline.deliver.calendar import month_day
+        got = {(x["entry"], x["rule"]): x["state"] for x in read.effective_rules_bound(
+            B.sets[key.set_id], key.steelhead_water, month_day(20), "RB", B.path,
+            steelhead_rules_here=key.steelhead_rules)}
+        assert got.get(closure) != "speaks", "the mutation must displace it"
 
 
 def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alone_in_a_boat(bundle):
@@ -351,14 +374,14 @@ def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alon
     B = bundle
     lawful = G.province_methods(B.rules.values())
     province = "zp:terminal_tackle::terminal_tackle.r1"
-    a = G.gear_answer(B, _key_of(B, "wbk:-20"), month_day(200), lawful, G.rule_id)
+    a = _answer(B, _key_of(B, "wbk:-20"), month_day(200), lawful)
     lines = a["counts"]["lines_per_angler"]
     assert lines["by"] == [province, 1]                                   # shore: 1 line
     also = {tuple(c.get("while") or ()): c["clause"] for c in lines.get("also", [])}
     assert also.get(("in_boat",), [""])[0].endswith("kootenay_lake_main_body.r1")
     assert ("alone_in_boat",) not in also, "the row's boat clause replaces the province's 2"
     k = _key_of(B, "wbk:329563838")                                       # Kamloops Lake
-    a = G.gear_answer(B, k, month_day(200), lawful, G.rule_id)
+    a = _answer(B, k, month_day(200), lawful)
     lines = a["counts"]["lines_per_angler"]
     assert lines["by"] == [province, 1]
     assert [c["clause"] for c in lines.get("also", []) if c.get("while") == ["alone_in_boat"]] \

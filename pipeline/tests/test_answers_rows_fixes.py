@@ -75,10 +75,7 @@ def card(built, item, part, md, mutate=None, patch=None):
     key = model.keys[k]
     rk, kd = C.rule_key(key), C.key_dict(key)
 
-    class Ctx:
-        pass
-    ctx = Ctx()
-    ctx.B, ctx.sets, ctx.rules, ctx.bundle, ctx.cache = B, B.sets, B.rules, B.path, {}
+    ctx = A.Context(BUNDLE, {}, verdicts=str(Path(BUNDLE).with_name("verdicts.sqlite")))
     P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                 ladder, md, RW.open_states(ctx, rk, md))
     rix = {x: i for i, x in enumerate(data["rule_ids"])}

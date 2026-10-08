@@ -121,7 +121,8 @@ def test_taps_equal_the_producers(built):
     lawful = G.province_methods(B.rules.values())
     db = C.connect(B.path)
     Cp = L.corpus(db)
-    K = L.keys(db)
+    reps = L.representatives(B.path, {L.section_scope(key, B) for key in model.keys})
+    ctx = A.Context(BUNDLE, rix, verdicts=str(Path(BUNDLE).with_name("verdicts.sqlite")))
     rng = random.Random(7)
     checked = 0
     try:
@@ -132,9 +133,10 @@ def test_taps_equal_the_producers(built):
             for day in _days(wire, k, rng):
                 md = CAL.month_day(day)
                 s = E.segment_index(model.segments[k], day)
-                g = G.gear_answer(B, rk, md, lawful, ref=lambda x: rix[C.rule_id(x)])
+                g = G.gear_answer(B, rk, md, lawful, ref=lambda x: rix[C.rule_id(x)], store=store,
+                                  reading=store.reading_of(B.key_ix[rk], day))
                 assert model.sections["gear"][k][s] == json.loads(json.dumps(g)), (key, day)
-                h = L.holds(db, Cp, K[lk][0], md)
+                h = L.holds(db, Cp, reps[lk], md)
                 assert [Cp.index[x] for x in h["holds"]] == \
                     model.sections["licence"][k][s]["holds"]["holds"], (key, day)
                 assert model.sections["display"][k][s]["status"] == \
@@ -143,14 +145,9 @@ def test_taps_equal_the_producers(built):
                     B.sets[rk.set_id], rk.steelhead_water, md, f, B.path,
                     steelhead_rules_here=rk.steelhead_rules,
                     origin=None if o == "none" else o, trace=True)) for o in A.ORIGINS}
-                    for f in A.fish_of(B.sets[rk.set_id], B.rules, rk.steelhead_rules)}
+                    for f in store.fish(B.key_ix[rk])}          # the fresh reader, every fish asked
                 assert model.sections["ladder"][k][s] == ladder, (key, day)
                 kd = C.key_dict(key)
-
-                class Ctx:
-                    pass
-                ctx = Ctx()
-                ctx.B, ctx.sets, ctx.rules, ctx.bundle, ctx.cache = B, B.sets, B.rules, B.path, {}
                 P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                             kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
                 want = RW.to_refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
@@ -204,10 +201,7 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     for f in late:
         ladder[f] = {"hatchery": {}, "wild": {}}
 
-    class Ctx:
-        pass
-    ctx = Ctx()
-    ctx.B, ctx.sets, ctx.rules, ctx.bundle, ctx.cache = B, B.sets, B.rules, B.path, {}
+    ctx = A.Context(BUNDLE, {}, verdicts=str(Path(BUNDLE).with_name("verdicts.sqlite")))
     md = tuple(fx["md"])
     P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                 ladder, md, RW.open_states(ctx, rk, md))
@@ -285,10 +279,7 @@ def test_a_clause_dropped_from_the_ladder_moves_the_number(built):
             if share in o:
                 o[share] = ["displaced", None, "ladder", data["rule_ids"][0]]
 
-    class Ctx:
-        pass
-    ctx = Ctx()
-    ctx.B, ctx.sets, ctx.rules, ctx.bundle, ctx.cache = B, B.sets, B.rules, B.path, {}
+    ctx = A.Context(BUNDLE, {}, verdicts=str(Path(BUNDLE).with_name("verdicts.sqlite")))
     P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                 ladder, (7, 1), RW.open_states(ctx, rk, (7, 1)))
     out = RW.produce(P)

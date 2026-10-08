@@ -1636,7 +1636,39 @@ def requirements_in_force(db, section: int, on) -> dict:
                 holds.pop(k)
     also = {k: v for k, v in also.items() if k in holds or k in displaced}
     return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn, "also_printed": also,
-            "wrong_water": wrong, "displaced": displaced}
+            "wrong_water": wrong, "displaced": displaced,
+            "considered": considered_records(db, section, tidal, excepted)}
+
+
+#: Every licensing table and its id column: the records a section's sources may list.
+LICENSING_TABLES = (("requirement", "req_id"), ("designation", "designation_id"),
+                    ("exemption", "exemption_id"), ("alternative", "alternative_id"),
+                    ("licence_terms", "terms_id"), ("not_classified", "not_classified_id"))
+
+
+def considered_records(db, section: int, tidal: bool, excepted: set) -> list[str]:
+    """EVERY RECORD A SECTION'S "ALL LICENCE SOURCES" LISTS (consumer 7.7 step 2, M4: decided here,
+    beside the requirements in force, not again by the answers): its licensing set's records, in
+    (entry, record) order, then every record placed `province`, `on_designation` or `not_placed`
+    — unless an extent stops it at one of the section's province-exception kinds, or the water is
+    tidal, where no province-wide record holds."""
+    row = db.execute("SELECT set_id FROM section_licensing WHERE sid = ?", (section,)).fetchone()
+    own = [f"{e}#{r}" for e, r in db.execute(
+        "SELECT entry_id, record_id FROM licensing_set WHERE set_id = ? ORDER BY entry_id, "
+        "record_id", (row[0],))] if row else []
+    glob: list[str] = []
+    if not tidal:
+        recs = []
+        for tab, idcol in LICENSING_TABLES:
+            cols = [c[1] for c in db.execute(f"PRAGMA table_info({tab})")]
+            for x in db.execute(f"SELECT * FROM {tab}"):
+                d = dict(zip(cols, x))
+                recs.append((f"{d['entry_id']}#{d[idcol]}", d.get("placement"),
+                             json.loads(d["record"])))
+        glob = [k for k, placement, r in sorted(recs, key=lambda t: t[0])
+                if placement in ("province", "on_designation", "not_placed")
+                and not any(x.get("outside_area_kind") in excepted for x in r.get("extents") or [])]
+    return list(dict.fromkeys(own + glob))
 
 
 def section_kind(db, section: int) -> str | None:

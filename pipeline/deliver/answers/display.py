@@ -405,7 +405,9 @@ def part_place(W: Water, i: int) -> str:
         for k in W.rules[j]:
             x = W.r(k)
             rk = W.rank(k)
-            if (4 if rk is None else rk) == 0 and \
+            if rk is None:
+                raise AnswersError(f"display: rule {k} ships no provenance rank")
+            if rk == 0 and \
                     (entries.get(x["entry_id"]) or {}).get("kind") == "water" and \
                     x["entry_id"] not in out:
                 out.append(x["entry_id"])
@@ -667,16 +669,17 @@ def paper_licence(B, key, kind: Optional[str]) -> List[str]:
     """The record duties that reach this part (7.7 step 7, "Keep a hatchery steelhead? Carry your
     paper licence"): its set's rules with `record_retention` for this kind of water — the
     `records` of `zp:licence_administration#carry_paper_licence` that bind here."""
-    return [f"{e}::{r}" for e, r, _ in B.sets.get(key.set_id, [])
-            if (e, r) in B.rules and B.rules[(e, r)].get("record_retention")
-            and not (kind and B.rules[(e, r)].get("water")
-                     and B.rules[(e, r)]["water"] != kind)]
-
-
-def produce_rules(B) -> Dict[str, dict]:
-    """PURE: `{"entry::rule": {kind, closure?, bands?, plain?}}` for every rule of the bundle."""
-    return {f"{e}::{r}": rule_facts(x) for (e, r), x in
-            sorted(B.rules.items(), key=lambda kv: f"{kv[0][0]}::{kv[0][1]}")}
+    out = []
+    for e, r, _ in B.sets[key.set_id]:
+        x = B.rules[(e, r)]
+        if not x.get("record_retention"):
+            continue
+        if kind and x.get("water") and x["water"] != kind:
+            # M3: a rule's `water` is enforced by its binding; one bound to the other kind of
+            # water is a binding defect, never filtered here
+            raise AnswersError(f"display: {e}::{r} is for {x['water']}s, bound to a {kind}")
+        out.append(f"{e}::{r}")
+    return out
 
 
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],

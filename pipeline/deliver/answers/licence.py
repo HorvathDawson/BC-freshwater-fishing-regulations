@@ -113,9 +113,8 @@ class Corpus:
     terms: List[Tuple[str, dict]]
 
 
-_TABLES = (("requirement", "req_id"), ("designation", "designation_id"),
-           ("exemption", "exemption_id"), ("alternative", "alternative_id"),
-           ("licence_terms", "terms_id"), ("not_classified", "not_classified_id"))
+#: Every licensing table and its id column (the reader's list, one definition).
+_TABLES = read.LICENSING_TABLES
 
 
 def corpus(db: sqlite3.Connection) -> Corpus:
@@ -142,34 +141,11 @@ def corpus(db: sqlite3.Connection) -> Corpus:
 # Keys
 # --------------------------------------------------------------------------------------------
 
-def keys(db: sqlite3.Connection) -> Dict[LicenceKey, List[int]]:
-    """Every section carrying a rule set or a licensing set, grouped by what
-    `requirements_in_force` reads of it (plus its water kind, which the G5 step reads)."""
-    out: Dict[LicenceKey, List[int]] = defaultdict(list)
-    for sid, k in section_keys(db).items():
-        out[k].append(sid)
-    return dict(sorted(out.items(), key=lambda kv: json.dumps(kv[0].as_list())))
-
-
-def section_keys(db: sqlite3.Connection, sids: Optional[set] = None) -> Dict[int, LicenceKey]:
-    """`{sid: LicenceKey}` for every section with a rule set or a licensing set (or only `sids`)."""
-    lset = dict(db.execute("SELECT sid, set_id FROM section_licensing"))
-    rset = dict(db.execute("SELECT sid, set_id FROM section_ruleset"))
-    pe: Dict[int, List[str]] = defaultdict(list)
-    for k, sid in db.execute("SELECT area_kind, sid FROM province_except ORDER BY area_kind"):
-        pe[sid].append(k)
-    tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
-    kind = dict(db.execute("SELECT s.sid, i.kind FROM item_section s JOIN item i "
-                           "ON i.ord = s.ord"))
-    sleepy = sleepy_sets(db)
-    out: Dict[int, LicenceKey] = {}
-    for sid in sorted(rset.keys() | lset.keys()):
-        if sids is not None and sid not in sids:
-            continue
-        ls = lset.get(sid)
-        out[sid] = LicenceKey(ls, ",".join(pe.get(sid, [])), sid in tidal, kind.get(sid),
-                              rset.get(sid) if ls in sleepy else None)
-    return out
+def part_licence_key(p, sleepy: set) -> LicenceKey:
+    """A part's licence key (`types.Part`, the bundle's `part`): what `requirements_in_force`
+    reads of its sections — read off the part, never off a scan of every section (M4)."""
+    return LicenceKey(p.licensing_set, ",".join(p.province_except), p.tidal, p.kind,
+                      p.set_id if p.licensing_set in sleepy else None)
 
 
 def change_days(db: sqlite3.Connection) -> List[int]:
@@ -219,6 +195,7 @@ def holds(db, C: Corpus, sid: int, md) -> dict:
     desig = read.designations_in_force(db, sid, md)
     rows = _order(C, list(got["holds"]) + list(got["displaced"]))
     return {"holds": [k for k in rows if k in got["holds"]],
+            "considered": got["considered"],
             "displaced": {k: got["displaced"][k] for k in rows if k in got["displaced"]},
             "wrong_water": _order(C, got["wrong_water"]),
             "waived": sorted(got["waived"]), "not_yet_mapped": sorted(got["not_yet_mapped"]),
@@ -374,7 +351,6 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
     of its sections (`sid`; every section of a key answers alike, pinned by the tests), cut on
     `days` (`change_days`) with equal neighbours merged."""
     alts = _alternatives_here(db, C, sid)
-    seen = [ref(k) for k in considered(db, C, key)]
     year: Dict[int, dict] = {}
     last = None
     for d in days:
@@ -388,7 +364,7 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
                       "designations": [ref(k) for k in h["designations"]],
                       "stamp_period": h["stamp_period"],
                       "contested": key.licensing_set in contested,
-                      "considered": seen}
+                      "considered": [ref(k) for k in h["considered"]]}
         for f in ("wrong_water", "waived", "not_yet_mapped"):
             wire[f] = [ref(k) for k in h[f]]
         wire["displaced"] = {str(ref(k)): [ref(s) for s in v]
@@ -404,26 +380,6 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
             year[d] = ans
             last = s
     return year
-
-
-def produce(path: str, ref: Optional[Callable[[str], object]] = None,
-            stats: Optional[dict] = None) -> Dict[LicenceKey, Dict[int, dict]]:
-    """PURE: every licence key's answers, `{LicenceKey: {start_day: {"holds": {...},
-    "profiles": [60 answers in `profile_index` order]}}}`. Records are named by `ref(id)` — the
-    record id "entry#id" by default, the export's `licensing` index for the wire."""
-    db = connect(path)
-    try:
-        C = corpus(db)
-        K = keys(db)
-        days = change_days(db)
-        ref = ref or (lambda k: k)
-        P = profiles()
-        contested = contested_sets(db)
-        memo: Dict[str, list] = {}
-        return {key: key_year(db, C, key, sids[0], days, P, contested, ref, memo, stats)
-                for key, sids in K.items()}
-    finally:
-        db.close()
 
 
 # --------------------------------------------------------------------------------------------
@@ -459,22 +415,28 @@ def section_scope(key: tuple, B) -> LicenceKey:
 
 
 def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
-    """The LOWEST section of each wanted licence key (every section of a key answers alike) — ONE
-    scan of the bundle's sections, in the build's parent, handed to the workers (DATAFLOW P1b,
-    M4: each worker used to scan all ~2 M sections and hold the result)."""
+    """The LOWEST section of each wanted licence key (every section of a key answers alike): the
+    lowest `rep_sid` of the bundle's parts carrying it (`part`, DATAFLOW P6 — no scan of the
+    sections), read once in the build's parent and handed to the workers."""
     from pipeline.deliver.answers.common import AnswersError
+    from pipeline.deliver.bundle.derived import parts
     wanted = set(wanted)
     db = connect(path)
     try:
+        sleepy = sleepy_sets(db)
         out: Dict[LicenceKey, int] = {}
-        for sid, k in section_keys(db).items():            # ascending sid: the first is the lowest
-            if k in wanted and k not in out:
-                out[k] = sid
+        for ps in parts(db).values():
+            for p in ps:
+                if p.set_id is None:
+                    continue
+                k = part_licence_key(p, sleepy)
+                if k in wanted and (k not in out or p.rep_sid < out[k]):
+                    out[k] = p.rep_sid
     finally:
         db.close()
     missing = sorted(wanted - set(out), key=lambda k: json.dumps(k.as_list()))
     if missing:
-        raise AnswersError(f"licence: no section of the bundle has the licence key {missing[0]}")
+        raise AnswersError(f"licence: no part of the bundle has the licence key {missing[0]}")
     return out
 
 
@@ -537,52 +499,8 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
             "profile_dims": [[d, list(v)] for d, v in PROFILE_DIMS]}
 
 
-def considered(db, C: Corpus, key: LicenceKey) -> List[str]:
-    """Every record the page's "All licence sources" lists for a part (7.7 step 2): its licensing
-    set's records, and every record placed `province`, `on_designation` or `not_placed` unless an
-    extent stops it at one of the part's province-exception kinds — or the water is tidal, where
-    no province-wide record holds (`read.requirements_in_force`; the page misses this, see the
-    report)."""
-    own = [f"{e}#{r}" for e, r in db.execute(
-        "SELECT entry_id, record_id FROM licensing_set WHERE set_id = ? ORDER BY entry_id, "
-        "record_id", (key.licensing_set,))] if key.licensing_set is not None else []
-    pe = set(key.province_except.split(",")) - {""}
-    glob = [] if key.tidal else [
-        k for k, r in sorted(C.records.items())
-        if r.get("_placement") in ("province", "on_designation", "not_placed")
-        and not any(x.get("outside_area_kind") in pe for x in r.get("extents") or [])]
-    return list(dict.fromkeys(own + glob))
-
-
 def contested_sets(db) -> set:
     """Licensing sets the page flags "Check: part of this water is also marked 'not a Classified
     Water'": a `not_classified` record or a `contested` designation in the set."""
     return {s for s, kind, via in db.execute("SELECT set_id, kind, via FROM licensing_set")
             if kind == "not_classified" or via == "contested"}
-
-
-def build(path: str, log=print) -> dict:
-    """`produce`, interned for inspection and measurement, records named by their export index:
-    {keys: [[licensing_set, province_except, tidal, kind, ruleset, year, sections]], years:
-    [[[start_day, holds, documents table]]], holds, profile_rows, documents (60 profile-row
-    indexes each), profiles}."""
-    db = connect(path)
-    try:
-        C = corpus(db)
-        K = keys(db)
-    finally:
-        db.close()
-    stats: dict = {}
-    got = produce(path, ref=C.index.__getitem__, stats=stats)
-    holds_t, rows_t, tables_t, years_t = Interner(), Interner(), Interner(), Interner()
-    out_keys = []
-    for key, year in got.items():
-        runs = [[d, holds_t(a["holds"]), tables_t([rows_t(r) for r in a["profiles"]])]
-                for d, a in year.items()]
-        out_keys.append(key.as_list() + [years_t(runs), len(K[key])])
-    log(f"  licence: {len(out_keys)} keys, {len(holds_t.rows)} holds, {len(rows_t.rows)} profile "
-        f"rows, {len(tables_t.rows)} tables; {stats}")
-    return {"keys": out_keys, "years": years_t.rows, "holds": holds_t.rows,
-            "profile_rows": rows_t.rows, "documents": tables_t.rows,
-            "profiles": ["/".join(p[d] for d, _ in PROFILE_DIMS) for p in profiles()],
-            "stats": stats, "_key_index": {k: i for i, k in enumerate(got)}}

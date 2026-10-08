@@ -84,9 +84,6 @@ READER_ORACLES = {
 
 #: Call sites a later phase removes (phase in the value). Only shrinks.
 READER_PENDING: dict[tuple[str, str], str] = {
-    ("pipeline/deliver/answers/answers.py", "_ladder_prepare"): "P6",
-    ("pipeline/deliver/answers/rows.py", "open_states"): "P6",
-    ("pipeline/deliver/answers/gear.py", "states"): "P6",
 }
 
 
@@ -191,7 +188,6 @@ PART_WRITERS = {"pipeline/deliver/bundle/build.py", "pipeline/deliver/bundle/der
 PART_TALLIES = {("pipeline/tools/export_ui_rules.py", "section_counts")}
 
 PARTS_PENDING: dict[tuple[str, str], str] = {
-    ("pipeline/deliver/answers/licence.py", "section_keys"): "P6",
 }
 
 
@@ -269,6 +265,5 @@ def test_gate_4_goes_red_on_a_planted_calendar():
 # The refactor's end state
 # --------------------------------------------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="DATAFLOW refactor in progress: P-phases still pending")
 def test_pending_is_empty_at_the_end():
     assert READER_PENDING == {} and PARTS_PENDING == {}
