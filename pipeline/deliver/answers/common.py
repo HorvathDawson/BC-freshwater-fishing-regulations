@@ -82,6 +82,7 @@ class Bundle:
     sets: Dict[int, List[Tuple[str, str, str]]]   # set_id -> [(entry, rule, via)]
     set_kind: Dict[int, Optional[str]]            # set_id -> water kind (None: no named water)
     digest: dict                                  # meta digests
+    key_ix: Dict[RuleKey, int]                    # rule key -> the bundle's `rule_key.key_ix`
     _keys: Optional[Dict[RuleKey, int]] = field(default=None, repr=False, compare=False)
 
     @property
@@ -135,12 +136,15 @@ def load(path: Optional[str] = None) -> Bundle:
                                f"kinds (e.g. {mixed[:3]}) — a key needs one kind")
         digest = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('reach_digest', "
                                  "'section_handles', 'version')"))
+        key_ix = {RuleKey(s, bool(sw), bool(sr)): k for k, s, sw, sr in db.execute(
+            "SELECT key_ix, set_id, steelhead_water, steelhead_rules FROM rule_key")}
     finally:
         db.close()
     rules = every_rule(path)
     ids = sorted(rules, key=rule_id)
     B = Bundle(path=path, rules=rules, index={k: i for i, k in enumerate(ids)}, sets=dict(sets),
-               set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest)
+               set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest,
+               key_ix=key_ix)
     _LOADED[path] = B
     return B
 

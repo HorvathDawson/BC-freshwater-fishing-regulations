@@ -26,3 +26,12 @@ def closes(rows: Iterable[tuple], grade: Mapping[int, Optional[str]]) -> bool:
 def closed(verdict_of: Callable[[str], Iterable[tuple]], grade: Mapping[int, Optional[str]]) -> bool:
     """Closed on a reading: every game fish's origin-none verdict closes (`verdict_of(fish)`)."""
     return all(closes(verdict_of(f), grade) for f in T.GAME_FISH)
+
+
+def beyond_base(rule: dict, via: str) -> bool:
+    """Is this bound rule MORE than the base — a rule of a water table's row (`r<n>:` entries)?
+    Everything a zone or provincial table writes (`z<n>:` / `zp:`) is the base, including the
+    rules those tables write about named waters; a row reaching a tributary by the walk is the
+    row's rule there too (`via` is accepted for symmetry and unused). A key is `own` when any
+    bound rule is (`key_meta.own`: the status index's floor, the water's "own regulations")."""
+    return not str(rule["entry"]).startswith("z")

@@ -657,32 +657,10 @@ def build_rules(B) -> List[dict]:
     return [rule_facts(B.rules[k]) for k in order]
 
 
-def closed_all_year(B, key) -> bool:
-    """Closed to every game fish on all 366 days: the status index's own profile is CLOSED every
-    day. Quick refusals first, with the index's predicate: a day on which the bound full closures
-    in force do not cover every game fish is not closed."""
-    from pipeline.deliver import status_index as SI
-    from pipeline.deliver.bundle import read
-    every = B.rules
-    bound = B.sets.get(key.set_id, [])
-    # a STANDING closure ("no fishing within 23 m of a fish ladder") is only ever "shown" by the
-    # reader, so it never closes a day; leaving it out of the quick test changes no answer
-    shut = [(e, r) for e, r, _ in bound if (e, r) in every and SI.is_full_closure(every[(e, r)])
-            and not every[(e, r)].get("standing")]
-    if not shut:
-        return False
-    covers = {k: frozenset(f for f in SI.GAME_FISH if read.speaks_for(every[k], f))
-              for k in shut}
-    from pipeline.deliver.calendar import month_day
-    for d in range(1, 367):
-        held = set()
-        for k in shut:
-            if read.in_force(every[k].get("when"), month_day(d)) == "yes":
-                held |= covers[k]
-        if len(held) < len(SI.GAME_FISH):
-            return False
-    prof = SI.set_profile(bound, key.steelhead_water, B.path, key.steelhead_rules)
-    return all(c == SI.CLOSED for c in prof)
+def closed_all_year(store, key_ix: int) -> bool:
+    """Closed to every game fish on all 366 days: every reading of the rule key is closed
+    (`reading.closed`, the verdicts' one predicate — the status index's own answer)."""
+    return all(r.closed for r in store.readings(key_ix))
 
 
 def paper_licence(B, key, kind: Optional[str]) -> List[str]:
@@ -702,7 +680,7 @@ def produce_rules(B) -> Dict[str, dict]:
 
 
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
-                  rule_ref=None, lic_ref=None, log=print) -> Dict[str, dict]:
+                  rule_ref=None, lic_ref=None, log=print, store=None) -> Dict[str, dict]:
     """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
     "picker": {...}, "unresolved_licensing": [record]}}`, a part's facts {order, label, runs,
     place, hint, km, closed_all_year, paper_licence}; null for a part outside B.C. The part keys
@@ -711,6 +689,8 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
     rule_ref = rule_ref or (lambda k: k)
     lic_ref = lic_ref or (lambda k: k)
     closed_memo: Dict = {}
+    if store is None:
+        raise AnswersError("display: the part facts need the verdicts (`closed_all_year`)")
     out: Dict[str, dict] = {}
     unresolved: Dict[str, List[str]] = {}
     for k, x in (doc.get("licensing") or {}).items():
@@ -727,7 +707,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
             rk = rule_key(keys[parts[item_id][ex]])
             if rk not in closed_memo:
-                closed_memo[rk] = closed_all_year(B, rk)
+                closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
             facts[ex] = {
                 "order": i, "label": labels[i], "runs": runs_label(doc, p),
@@ -757,17 +737,17 @@ def section_scope(key: tuple, B):
 
 
 def section_prepare(scope, ctx):
-    """The status index's code per day for the rule key (`status_index.set_profile`, the one
-    definition of closed): `base` (the tables' rules only), `own` (the water's own rules too),
-    `closed` (every game fish under a speaking full closure). On tidal water, all year,
-    `{"status": "tidal", **common.TIDAL_STATE}`: no freshwater status at all (FIX D12)."""
+    """The status index's code per day for the rule key — a projection of the verdicts
+    (`status_index.key_profile`: closed on a closed reading, else the key's floor): `base` (the
+    tables' rules only), `own` (the water's own rules too), `closed` (every game fish under a
+    speaking full closure). On tidal water, all year, `{"status": "tidal", **common.TIDAL_STATE}`:
+    no freshwater status at all (FIX D12)."""
     from pipeline.deliver import status_index as SI
     from pipeline.deliver.answers.common import TIDAL_SCOPE, TIDAL_STATE
     from pipeline.deliver.calendar import DAYS
     if scope == TIDAL_SCOPE:
         return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
-    prof = SI.set_profile(ctx.sets.get(scope.set_id, []), scope.steelhead_water, ctx.bundle,
-                          scope.steelhead_rules)
+    prof = SI.key_profile(ctx.store, ctx.B.key_ix[scope])
     names = {SI.BASE: "base", SI.OWN: "own", SI.CLOSED: "closed"}
     values: List[str] = []
     per: List[int] = []
@@ -788,4 +768,5 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
     lic_ix = {k: i for i, k in enumerate(data.get("licensing_ids") or [])}
     return {"rules": build_rules(ctx.B),
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
-                                    lic_ref=lic_ix.__getitem__, log=lambda *_: None)}
+                                    lic_ref=lic_ix.__getitem__, log=lambda *_: None,
+                                    store=ctx.store)}

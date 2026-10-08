@@ -115,6 +115,8 @@ def test_taps_equal_the_producers(built):
     from pipeline.deliver import status_index as SI
     data, _, model, wire = built
     B = C.load(BUNDLE)
+    from pipeline.deliver.verdicts.store import VerdictStore
+    store = VerdictStore.open(Path(BUNDLE).with_name("verdicts.sqlite"), BUNDLE)
     rix = C.check_export(B, data, C.load_export(EXPORT_DIR)[1])
     lawful = G.province_methods(B.rules.values())
     db = C.connect(B.path)
@@ -126,7 +128,7 @@ def test_taps_equal_the_producers(built):
         for k, key in enumerate(model.keys):
             rk = C.rule_key(key)
             lk = L.section_scope(key, B)
-            prof = SI.set_profile(B.sets[rk.set_id], rk.steelhead_water, B.path, rk.steelhead_rules)
+            prof = SI.key_profile(store, B.key_ix[rk])
             for day in _days(wire, k, rng):
                 md = CAL.month_day(day)
                 s = E.segment_index(model.segments[k], day)

@@ -120,7 +120,7 @@ def one_key(task) -> tuple:
     runs, firsts = segments(rule_vectors(rules))
     fish = asked_fish(rules)
     by_origin = read.origin_matters(bound, bundle)
-    own = any(not str(e).startswith("z") for e, _, _ in bound)
+    own = any(project.beyond_base(every[(e, r)], v) for e, r, v in bound)
     local: Dict[tuple, int] = {}
     verdicts: List[tuple] = []
     frames: List[tuple] = []

@@ -43,7 +43,8 @@ def cmd_build(a) -> int:
     and the bytes at once)."""
     data, guide = load_export(a.export_dir)
     model = build(a.bundle, a.export_dir, workers=a.workers,
-                  items=a.items.split(",") if a.items else None, export=(data, guide))
+                  items=a.items.split(",") if a.items else None, export=(data, guide),
+                  verdicts=a.verdicts)
     wire = E.encode(model, data)
     E.check_pair(wire, data, guide)
     per = {}
@@ -259,6 +260,7 @@ def main(argv=None) -> int:
     b.add_argument("--out", required=True, type=Path)
     b.add_argument("--workers", type=int, default=0)
     b.add_argument("--items", help="comma-separated item ids (a partial file, for checks)")
+    b.add_argument("--verdicts", default=None, help="default: verdicts.sqlite beside the bundle")
     t = sub.add_parser("tap")
     t.add_argument("--answers", required=True, type=Path)
     t.add_argument("--export-dir", required=True, type=Path)

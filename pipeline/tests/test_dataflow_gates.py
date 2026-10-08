@@ -84,7 +84,6 @@ READER_ORACLES = {
 
 #: Call sites a later phase removes (phase in the value). Only shrinks.
 READER_PENDING: dict[tuple[str, str], str] = {
-    ("pipeline/deliver/status_index.py", "set_profile"): "P4",
     ("pipeline/tools/export_ui_rules.py", "_Cases.answer"): "P5",
     ("pipeline/tools/export_ui_rules.py", "_closure_scan"): "P5",
     ("pipeline/tools/export_ui_rules.py", "closures_combine.speaks"): "P5",

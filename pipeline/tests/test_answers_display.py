@@ -205,10 +205,17 @@ def test_every_export_part_has_one_key_and_closed_all_year_is_the_status_index(l
     keys, parts = common.part_keys(B, data)
     n = sum(1 for w in doc["waters"].values() for p in w["parts"] if p.get("ruleset") is not None)
     assert sum(1 for ks in parts.values() for k in ks if k is not None) == n
+    import sqlite3
+    from pipeline.deliver.verdicts.store import VerdictStore
+    store = VerdictStore.open(Path(B.path).with_name("verdicts.sqlite"), B.path)
     rule_keys = sorted({common.rule_key(k) for k in keys})
-    closed = [k for k in rule_keys if X.closed_all_year(B, k)]
+    closed = [k for k in rule_keys if X.closed_all_year(store, B.key_ix[k])]
     assert closed, "some rule set is closed all year (e.g. a water's 'No fishing' row)"
-    sample = closed[:5] + rule_keys[:: max(1, len(rule_keys) // 25)]
-    for k in sample:                       # the quick refusals change no answer
-        prof = SI.set_profile(B.sets[k.set_id], k.steelhead_water, B.path, k.steelhead_rules)
-        assert X.closed_all_year(B, k) == all(c == SI.CLOSED for c in prof), k
+    db = sqlite3.connect(f"file:{B.path}?mode=ro", uri=True)
+    rep = dict(db.execute("SELECT key_ix, rep_sid FROM rule_key"))
+    for k in closed[:5] + rule_keys[:: max(1, len(rule_keys) // 25)]:   # against the reader itself
+        sid = rep[B.key_ix[k]]
+        days = [(1, 1), (4, 15), (7, 1), (10, 31)]
+        by_reader = all(SI.status_by_reader(sid, d, B.path) in (SI.CLOSED, SI.TIDAL) for d in days)
+        if X.closed_all_year(store, B.key_ix[k]):
+            assert by_reader, k

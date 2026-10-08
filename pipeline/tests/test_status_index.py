@@ -2,8 +2,8 @@
 
 The index answers "closed / own / base" for a section on a day from a precomputed table; the
 reference is `read.effective_rules`, asked once per game fish on that one section and day. The
-file is built through `effective_rules_bound` with two shortcuts (rulesets shared, days with the
-same reading asked once); these tests ask the reader DIRECTLY, section by section, with no
+file is a PROJECTION of the stored verdicts (`verdicts.sqlite`: the reader run once per rule key
+and reading — DATAFLOW P4); these tests ask the reader DIRECTLY, section by section, with no
 shortcut, and hold the file to it.
 
 Fast tests (no bundle needed): the format round-trips, the calendar (Feb 29 is day 60 every
@@ -137,7 +137,8 @@ def built():
     given = os.environ.get("STATUS_INDEX")
     if given:
         return SI.Index(Path(given).read_bytes())
-    return SI.Index(SI.encode(SI.compute(BUNDLE, log=lambda *_: None)))
+    return SI.Index(SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"),
+                                         log=lambda *_: None)))
 
 
 def _pairs(ix: SI.Index, n: int = 6000, seed: int = 20261001) -> list:
@@ -251,6 +252,29 @@ def test_the_parity_check_catches_a_swapped_profile(built):
         assert _mismatches(built, [(sid, on)])
     finally:
         built.sections[sid] = pi
+
+
+@pytest.mark.slow
+def test_the_parity_check_catches_one_flipped_stored_verdict(built, tmp_path):
+    """Mutation (DATAFLOW G1): the index is a projection of the verdicts, so a stored verdict
+    flipped — one closed reading read as open — must turn the reader parity red."""
+    import shutil
+    src = Path(os.environ.get("UI_EXPORT_VERDICTS") or Path(BUNDLE).with_name("verdicts.sqlite"))
+    pairs = _pairs(built, n=400, seed=7)
+    sid, on = next((s, o) for s, o in pairs if built.code(s, o) == SI.CLOSED)
+    db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    key = db.execute("SELECT key_ix FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()[0]
+    db.close()
+    from pipeline.deliver.verdicts.store import VerdictStore
+    reading = VerdictStore.open(src, BUNDLE).reading_of(key, CAL.day_of(on))
+    dst = tmp_path / "verdicts.sqlite"
+    shutil.copy(src, dst)
+    v = sqlite3.connect(dst)
+    v.execute("UPDATE reading SET closed = 0 WHERE key_ix = ? AND reading = ?", (key, reading))
+    v.commit()
+    v.close()
+    flipped = SI.Index(SI.encode(SI.compute(BUNDLE, str(dst), log=lambda *_: None)))
+    assert flipped.code(sid, on) != SI.CLOSED and _mismatches(flipped, [(sid, on)])
 
 
 # --------------------------------------------------------------------------- the app's fixture

@@ -121,70 +121,28 @@ def closes(rows: Iterable[dict]) -> bool:
                for r in rows)
 
 
-def beyond_base(rule: dict, via: str) -> bool:
-    """Is this bound rule MORE than the base — a rule of a water table's row (`r<n>:` entries)?
-    Everything a zone or provincial table writes (`z<n>:` / `zp:`) is the base, including the
-    rules those tables write about named waters ("streams of the Skeena and Nass watersheds",
-    the white sturgeon licence waters): the base is the TABLES, not the scope (`source_of` rank
-    0 on a zone entry is still the zone's table). `via` is accepted for symmetry and unused —
-    a row reaching a tributary by the walk is the row's rule there too."""
-    return not str(rule["entry"]).startswith("z")
+#: Is a bound rule more than the base — a rule of a water table's row (`r<n>:` entries)? The ONE
+#: definition is the verdicts stage's (`verdicts.project.beyond_base`, stored as `key_meta.own`);
+#: the oracle below reads it from there.
+from pipeline.deliver.verdicts.project import beyond_base  # noqa: E402
 
 
 # --------------------------------------------------------------------------------------------
-# One ruleset's year
+# One rule key's year: a PROJECTION of the stored verdicts (DATAFLOW P4)
 # --------------------------------------------------------------------------------------------
 
-def set_floor(bound: Sequence[tuple], path: str) -> int:
-    """OWN when any bound rule is beyond the base (`beyond_base`), else BASE — the answer on
-    every day the section is not closed."""
-    every = read._rules_of(path)
-    return OWN if any(beyond_base(every[(e, r)], v) for e, r, v in bound
-                      if (e, r) in every) else BASE
-
-
-def set_profile(bound: Sequence[tuple], steelhead: bool, path: str,
-                steelhead_rules: bool = True) -> Tuple[int, ...]:
-    """The status code of a section carrying these bindings, on each day 1..366.
-
-    Faithful shortcut through `effective_rules_bound`, in two steps that change no answer:
-      * a day on which, for some game fish, NO bound full closure speaking for it is in force
-        cannot be closed (effective_rules returns only bound, in-force rules) — skipped;
-      * days on which every bound rule's `when` (and every lift's `when`) reads the same give
-        the same answer — the reader is asked once per distinct reading."""
-    every = read._rules_of(path)
-    keys = [(e, r) for e, r, _ in bound if (e, r) in every]
-    floor = set_floor(bound, path)
-
-    shut = [k for k in keys if is_full_closure(every[k])]
-    if not shut:
-        return (floor,) * DAYS
-    whens = [every[k].get("when") for k in keys]
-    lifts = [x.get("when") for k in keys for x in (every[k].get("exempts") or []) if "when" in x]
-    covers_fish = {k: frozenset(f for f in GAME_FISH if read.speaks_for(every[k], f))
-                   for k in shut}
-
-    memo: Dict[tuple, int] = {}
+def key_profile(store, key: int) -> Tuple[int, ...]:
+    """The status code of a section carrying this rule key, on each day 1..366: CLOSED on a day
+    whose reading is closed (`reading.closed`, the predicate computed once by the verdicts from
+    the reader's stored answers), else the key's floor — OWN when a water table's row binds it
+    (`key_meta.own`), BASE otherwise. No reader call: the verdicts are the reader's."""
+    floor = OWN if store.own(key) else BASE
+    closed = {r.ix: r.closed for r in store.readings(key)}
     out: List[int] = []
-    for day in range(1, DAYS + 1):
-        md = month_day(day)
-        held = set()
-        for k in shut:
-            if read.in_force(every[k].get("when"), md) == "yes":
-                held |= covers_fish[k]
-        if len(held) < len(GAME_FISH):
-            out.append(floor)
-            continue
-        sig = (tuple(read.in_force(w, md) for w in whens),
-               tuple(read.in_force(w, md) for w in lifts))
-        got = memo.get(sig)
-        if got is None:
-            got = CLOSED if all(
-                closes(read.effective_rules_bound(bound, steelhead, md, f, path,
-                                                  steelhead_rules_here=steelhead_rules))
-                for f in GAME_FISH) else floor
-            memo[sig] = got
-        out.append(got)
+    runs = store.runs(key)
+    for i, (start, reading) in enumerate(runs):
+        end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
+        out += [CLOSED if closed[reading] else floor] * (end - start)
     return tuple(out)
 
 
@@ -226,56 +184,48 @@ def rollup(parts: Sequence[Tuple[Tuple[int, ...], int]]) -> Tuple[int, ...]:
 # Build
 # --------------------------------------------------------------------------------------------
 
-def compute(path: str, log=print) -> dict:
+def compute(path: str, verdicts: Optional[str] = None, log=print) -> dict:
     """Everything the file holds, as plain Python: `profiles` (tuples of 366 codes),
-    `sections` {sid: profile index}, `items` {item_id: profile index}, `handles`."""
+    `sections` {sid: profile index}, `items` {item_id: profile index}, `handles`. A projection of
+    the verdicts (`verdicts.sqlite` beside the bundle unless named): no reader runs here."""
+    from pipeline.deliver.verdicts.store import VerdictStore
     t0 = time.time()
+    store = VerdictStore.open(verdicts or str(Path(path).with_name("verdicts.sqlite")), path)
     db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
-        handles = db.execute("SELECT v FROM meta WHERE k = 'section_handles'").fetchone()
-        if not handles or not handles[0]:
-            raise SystemExit(f"status_index: {path} records no meta.section_handles — rebuild "
-                             f"the bundle")
-        handles = handles[0]
-        reach = db.execute("SELECT v FROM meta WHERE k = 'reach_digest'").fetchone()
-        if not reach or not reach[0]:
-            raise SystemExit(f"status_index: {path} records no meta.reach_digest — rebuild the "
-                             f"bundle")
-        reach = reach[0]
-        sets: Dict[int, list] = defaultdict(list)
-        for set_id, e, r, via in db.execute(
-                "SELECT set_id, entry_id, rule_id, via FROM ruleset "
-                "ORDER BY set_id, entry_id, rule_id"):
-            sets[set_id].append((e, r, via))
-        sid_set = db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid").fetchall()
-        steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
-        # where the steelhead rules apply (`section_steelhead_rules`): elsewhere "ST" is
-        # answered as a rainbow (`read.effective_rules_bound`, RU-6)
-        st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
+        meta = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('section_handles', "
+                               "'reach_digest')"))
+        for k in ("section_handles", "reach_digest"):
+            if not meta.get(k):
+                raise SystemExit(f"status_index: {path} records no meta.{k} — rebuild the bundle")
+        handles, reach = meta["section_handles"], meta["reach_digest"]
         tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
         outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
+        by_key: Dict[int, Tuple[Tuple[int, ...], int]] = {}
+        sec: Dict[int, Tuple[Tuple[int, ...], int]] = {}       # sid -> (profile, floor), not base
+        base = (BASE,) * DAYS
+        n = 0
+        for sid, key in db.execute("SELECT sid, key_ix FROM section_ruleset ORDER BY sid"):
+            n += 1
+            got = by_key.get(key)
+            if got is None:
+                got = by_key[key] = (key_profile(store, key), OWN if store.own(key) else BASE)
+            if sid in tidal:
+                got = ((TIDAL,) * DAYS, got[1])
+            if got[0] != base:
+                sec[sid] = got
+        for sid in outside:
+            sec.setdefault(sid, ((OUTSIDE,) * DAYS, BASE))
         items = db.execute("SELECT i.item_id, s.sid FROM item i JOIN item_section s "
                            "ON s.ord = i.ord ORDER BY i.item_id, s.sid").fetchall()
     finally:
         db.close()
+    total = n + len(outside)            # outside B.C. carries no rule set (the bundle proves it)
+    log(f"  {len(by_key)} (ruleset, steelhead, steelhead rules) keys projected in {time.time() - t0:.1f}s")
 
-    by_key: Dict[tuple, Tuple[Tuple[int, ...], int]] = {}
-    sec: Dict[int, Tuple[Tuple[int, ...], int]] = {}       # sid -> (profile, floor)
-    for sid, set_id in sid_set:
-        key = (set_id, sid in steel, sid in st_rules)
-        got = by_key.get(key)
-        if got is None:
-            bound = sets.get(set_id, [])
-            got = by_key[key] = (set_profile(bound, key[1], path, key[2]),
-                                 set_floor(bound, path))
-        sec[sid] = ((TIDAL,) * DAYS, got[1]) if sid in tidal else got
-    for sid in outside:
-        sec.setdefault(sid, ((OUTSIDE,) * DAYS, BASE))
-    log(f"  {len(by_key)} (ruleset, steelhead, steelhead rules) keys evaluated in {time.time() - t0:.1f}s")
-
-    base = (BASE,) * DAYS
     parts: Dict[str, set] = defaultdict(set)
     for item_id, sid in items:
+        # a section absent from `sec` reads base every day, so its floor is BASE too
         parts[item_id].add(sec.get(sid, (base, BASE)))
     item_profile: Dict[str, Tuple[int, ...]] = {}
     memo: Dict[frozenset, Tuple[int, ...]] = {}
@@ -287,8 +237,7 @@ def compute(path: str, log=print) -> dict:
         if p != base:
             item_profile[item_id] = p
 
-    sec_profile = {sid: p for sid, (p, _) in sec.items()}
-    kept = {sid: p for sid, p in sec_profile.items() if p != base}
+    kept = {sid: p for sid, (p, _) in sec.items()}
     profiles = sorted(set(kept.values()) | set(item_profile.values()),
                       key=lambda p: (runs_of(p), p))
     idx = {p: i for i, p in enumerate(profiles)}
@@ -298,7 +247,7 @@ def compute(path: str, log=print) -> dict:
         "profiles": profiles,
         "sections": {sid: idx[p] for sid, p in sorted(kept.items())},
         "items": {i: idx[p] for i, p in sorted(item_profile.items())},
-        "total_sections": len(sec_profile),
+        "total_sections": total,
         "total_items": len(parts),
     }
 
@@ -460,12 +409,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                  description=__doc__.split("\n\n")[0])
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument("--verdicts", type=Path, default=None,
+                    help="default: verdicts.sqlite beside the bundle")
     a = ap.parse_args(argv)
     if not a.bundle.exists():
         raise SystemExit(f"status_index: no bundle at {a.bundle} — build it first "
                          f"(`python -m pipeline.deliver.bundle`)")
     print(f"status index: {a.bundle} -> {a.out}")
-    idx = compute(str(a.bundle))
+    idx = compute(str(a.bundle), str(a.verdicts) if a.verdicts else None)
     data = encode(idx)
     if Index(data).sections != idx["sections"]:
         raise SystemExit("status_index: the encoded file does not read back")
