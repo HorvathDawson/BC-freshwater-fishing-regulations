@@ -20,6 +20,7 @@ The flags are read here for ONE thing (`uncertain`) and that is not a re-derivat
 from __future__ import annotations
 
 import json
+from array import array
 import re
 import sqlite3
 from pathlib import Path
@@ -1028,20 +1029,33 @@ def intern_sets(rows) -> tuple[dict[str, int], list[list[tuple[str, str, str]]]]
     bundle whose set numbering moved between builds would diff as though every section had
     changed.
     """
-    by_section: dict[str, set[tuple[str, str, str]]] = {}
+    # MEMORY (DATAFLOW P1b): 149 M rows. Held as a (entry, rule, scope) TUPLE per row in a set per
+    # section, they were the bundle build's 28 GB peak; each binding is now a small int (`ids`,
+    # one tuple per distinct binding) appended to a compact unsigned array per section. Same sets,
+    # same numbering: a set is still the sorted tuples, interned in sorted-section order.
+    ids: dict[tuple[str, str, str], int] = {}
+    binding: list[tuple[str, str, str]] = []
+    by_section: dict[str, array] = {}
     for r in rows:
-        by_section.setdefault(r["section_id"], set()).add(
-            (r["entry_id"], r["rule_id"], r["scope"]))
+        t = (r["entry_id"], r["rule_id"], r["scope"])
+        i = ids.get(t)
+        if i is None:
+            i = ids[t] = len(binding)
+            binding.append(t)
+        a = by_section.get(r["section_id"])
+        if a is None:
+            a = by_section[r["section_id"]] = array("I")
+        a.append(i)
 
     intern: dict[frozenset, int] = {}
     sets: list[list[tuple[str, str, str]]] = []
     section_set: dict[str, int] = {}
     for section in sorted(by_section):
-        key = frozenset(by_section[section])
+        key = frozenset(by_section.pop(section))
         got = intern.get(key)
         if got is None:
             got = intern[key] = len(sets)
-            sets.append(sorted(key))
+            sets.append(sorted(binding[i] for i in key))
         section_set[section] = got
     return section_set, sets
 

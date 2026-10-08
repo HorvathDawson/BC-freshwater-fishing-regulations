@@ -52,7 +52,7 @@ def _fixture(tmp_path):
 
 def test_a_lake_s_area_is_its_polygon_in_whole_hectares(tmp_path):
     db, reg = _fixture(tmp_path)
-    B._lake_areas(db, tmp_path, reg, _Cov())
+    B._lake_areas(db, tmp_path, json.loads(reg.read_text())["items"], _Cov())
     got = dict(db.execute("SELECT item_id, area_ha FROM item"))
     assert got == {"wbk:1": 200, "wbk:2": 0, "gnis:3": None, "wbk:4": None}   # 2 km² = 200 ha; a pond reads 0
 
@@ -61,7 +61,7 @@ def test_mutation_without_the_polygons_nothing_is_invented(tmp_path):
     db, reg = _fixture(tmp_path)
     (tmp_path / "waterbody_polys.pkl").unlink()
     cov = _Cov()
-    B._lake_areas(db, tmp_path, reg, cov)
+    B._lake_areas(db, tmp_path, json.loads(reg.read_text())["items"], cov)
     assert all(a is None for (a,) in db.execute("SELECT area_ha FROM item"))
     assert "no waterbody_polys.pkl" in cov.got["item.area_ha"]
 

@@ -184,14 +184,15 @@ def _lake_parts(items: list[dict]) -> dict[str, str]:
     return out
 
 
-def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
+def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
+           cov: Coverage) -> None:
     """item / alias / item_section, from the registry.
 
     The registry is the province-wide answer to "what is this water called and which
     sections is it". It is also the whole search index: 20,609 distinct strings, which is
     ~90 KB gzipped — small enough that no server-side search is needed anywhere.
     """
-    items = [i for i in json.loads(registry.read_text())["items"] if is_water(i)]
+    items = [i for i in registry_items if is_water(i)]
     # A LAKE WITH PARTS OWNS NO SECTION (user ruling 2026-10-03; `registry.add_lake_parts`): its
     # parts are the water. REFUSED, not trimmed, when the registry still gives it one — the ghost
     # section would answer with the zone base beside parts that carry the lake's own rows.
@@ -248,7 +249,7 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     # same build, and a wrong handle is worse than a missing row.
     from pipeline.common.section_handles import read as _read_handles
 
-    _, sid = _read_handles(registry.parent)
+    _, sid = _read_handles(build_dir)
     _unknown = [s for i in items for s in i.get("section_ids", []) if s not in sid]
     if _unknown:
         raise SystemExit(f"item_section: {len(_unknown):,} sections are not in the handle "
@@ -259,7 +260,8 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     cov.filled("item_section", len(pairs))
 
 
-def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry: Path, cov: Coverage) -> None:
+def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
+                cov: Coverage) -> None:
     """`item.area_ha`: how big each LAKE is, for ranking — the lake's size signal, as stream
     magnitude is a stream's.
 
@@ -278,7 +280,7 @@ def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry: Path, cov: Co
     with poly_path.open("rb") as fh:
         polys = pickle.load(fh)
     rows = []
-    for i in json.loads(registry.read_text())["items"]:
+    for i in registry_items:
         if i.get("kind") != "lake" or not is_water(i):
             continue
         got = [polys[s] for s in i.get("section_ids", []) if s in polys]
@@ -306,24 +308,21 @@ def touching_pairs(edges, sid: dict[str, int],
     return sorted(out)
 
 
-def _section_touch(db: sqlite3.Connection, build_dir: Path, cov: Coverage) -> None:
+def _section_touch(db: sqlite3.Connection, build_dir: Path, graph, cov: Coverage) -> None:
     """`section_touch`, from the atlas graph and the `item_section` already written.
 
     REFUSED, not skipped, without a graph: an empty table reads as "no part of any water borders
     another", and a reader merging neighbours would then show every stretch apart.
     """
-    graph_path = build_dir / "graph.pkl"
-    if not graph_path.exists():
-        raise SystemExit(f"section_touch: no {graph_path} — the bundle cannot say which parts "
-                         f"of a water border each other without the atlas graph")
-    from pipeline.common.io.serialize import read_artifact
+    if graph is None:
+        raise SystemExit(f"section_touch: no {build_dir / 'graph.pkl'} — the bundle cannot say "
+                         f"which parts of a water border each other without the atlas graph")
     from pipeline.common.section_handles import read as _read_handles
 
     _, sid = _read_handles(build_dir)
     waters_of: dict[int, set[int]] = {}
     for ord_, s in db.execute("SELECT ord, sid FROM item_section"):
         waters_of.setdefault(s, set()).add(ord_)
-    graph = read_artifact(str(graph_path))
     pairs = touching_pairs(((e.from_node, e.to_node) for e in graph.edges), sid, waters_of)
     db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", pairs)
     cov.filled("section_touch", len(pairs))
@@ -331,7 +330,6 @@ def _section_touch(db: sqlite3.Connection, build_dir: Path, cov: Coverage) -> No
     # a part's runs go between (`section_span`, `split`). Read here so it loads once.
     from pipeline.deliver.bundle import spans as _spans
     _spans.write(db, graph, build_dir, cov)
-    del graph
 
 
 def _place_id(p: dict) -> str:
@@ -385,7 +383,8 @@ def _places(db: sqlite3.Connection, places_json: Path, boundary: Path,
 
 
 def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
-                 cov: Coverage, radius_km: float = 25.0) -> None:
+                 registry_items: list[dict], geoms, cov: Coverage,
+                 radius_km: float = 25.0) -> None:
     """What water is near each town.
 
     THE PRECOMPUTE, done here so the phone never has to hold geometry. Measured to every
@@ -397,18 +396,15 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
     Works in BC Albers, where a metre is a metre. Doing this in degrees is the classic way
     to get a radius that is 40% wrong at the top of the province.
     """
-    geom_path = build_dir / "geometries.pkl"
-    registry = build_dir / "registry.json"
-    if not places or not geom_path.exists():
-        cov.skip("place_water", f"needs {geom_path.name} and a gazetteer")
+    if not places or geoms is None:
+        cov.skip("place_water", "needs geometries.pkl and a gazetteer")
         return
 
-    import pickle
     import geopandas as gpd
     from shapely.geometry import Point
     from shapely.strtree import STRtree
 
-    items = json.loads(registry.read_text())["items"]
+    items = registry_items
     # section -> (item_id, name), for WATERS that have a name a person could search.
     #
     # `_is_water` for the same reason as in `_gauges`: an `area:` item's name is a slug
@@ -422,9 +418,6 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
             continue
         for sec in i.get("section_ids", []):
             owner.setdefault(sec, (i["id"], i["name"]))
-
-    with geom_path.open("rb") as fh:
-        geoms = pickle.load(fh)
 
     keys = [s for s in owner if s in geoms]
     if not keys:
@@ -458,7 +451,8 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
     cov.filled("place_water", len(rows))
 
 
-def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Coverage) -> None:
+def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_items: list[dict],
+            graph, geoms, cov: Coverage) -> None:
     """Which water has a gauge, and how well that gauge speaks for it.
 
     THE ANSWER A USER IS ACTUALLY ASKING FOR. Not "where are the gauges" — a map of 440
@@ -477,19 +471,15 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     gauge's shed by definition.
     """
     stations_path = data_dir / "bc_hydrometric_stations.json"
-    graph_path = build_dir / "graph.pkl"
-    geom_path = build_dir / "geometries.pkl"
     if not stations_path.exists():
         cov.skip("section_gauge", f"no {stations_path.name} "
                                   "(data/fetch_data.py --layers hydrometric_stations)")
         cov.skip("section_down", "needs section_gauge")
         return
-    if not graph_path.exists():
-        cov.skip("section_gauge", f"no {graph_path.name} in this build")
+    if graph is None:
+        cov.skip("section_gauge", "no graph.pkl in this build")
         cov.skip("section_down", "needs section_gauge")
         return
-
-    import pickle
 
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.generate.match import nodes_for, read_match, summarise
@@ -503,8 +493,6 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     _, sid = _read_handles(build_dir)
 
     stations = load_stations(stations_path)
-    with graph_path.open("rb") as fh:
-        graph = pickle.load(fh)
 
     # THE FROZEN MATCH — `pipeline/gauge_match.json`, the same file the build read to cut
     # rivers at their gauges. Nothing is matched here: the file says where each station is
@@ -518,8 +506,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         cov.skip("section_down", "needs section_gauge")
         return
 
-    with geom_path.open("rb") as fh:
-        geoms = pickle.load(fh)
+    if geoms is None:
+        raise SystemExit("section_gauge: no geometries.pkl in this build — stations cannot be "
+                         "placed on the graph")
     # EVERY LOSS IS COUNTED. A station that matched and then failed to place, or placed and
     # then won no section, is a river the app will call ungauged — and both used to happen
     # in silence: 79 stations (7 of them active) fell out of `nodes_for` against a cap the
@@ -529,7 +518,6 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     place_lost: list[str] = []
     shed_lost: list[str] = []
     matched = nodes_for(matches, graph, geoms, report=place_lost)
-    del geoms
     prov = {m.station: m for m in matches}
 
     # section -> the WATER that owns it, so a client can name the river, not just the gauge.
@@ -541,7 +529,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # before the filter: 542 of 2,018 `gauge.item_id` and 123 of 220 `lake_gauge` rows named
     # an `area:` id that `_items` never inserted, so the app looked them up and found nothing.
     owner: dict[str, str] = {}
-    for i in json.loads((build_dir / "registry.json").read_text())["items"]:
+    for i in registry_items:
         if not is_water(i):
             continue
         for sec in i.get("section_ids", []):
@@ -781,13 +769,28 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     registry = build_dir / "registry.json"
     if not registry.exists():
         raise FileNotFoundError(f"{registry} not found — run the build first")
-    _items(db, registry, cov)
-    _lake_areas(db, build_dir, registry, cov)
-    _section_touch(db, build_dir, cov)
+    # THE ATLAS'S BIG INPUTS, EACH LOADED ONCE (DATAFLOW P1b, M10.2): `registry.json` was parsed
+    # five times and `graph.pkl` / `geometries.pkl` twice each. Loaded here, handed down, dropped
+    # after their last reader.
+    import pickle
+    registry_items = json.loads(registry.read_text())["items"]
+    _items(db, build_dir, registry_items, cov)
+    _lake_areas(db, build_dir, registry_items, cov)
+    graph_path, geom_path = build_dir / "graph.pkl", build_dir / "geometries.pkl"
+    graph = None
+    if graph_path.exists():
+        with graph_path.open("rb") as fh:
+            graph = pickle.load(fh)
+    _section_touch(db, build_dir, graph, cov)
     places =_places(db, data_dir / "bc_places.json",
                      data_dir / "bc_boundary.geojson", cov)
-    _place_water(db, build_dir, places, cov)
-    _gauges(db, build_dir, data_dir, cov)
+    geoms = None
+    if geom_path.exists():
+        with geom_path.open("rb") as fh:
+            geoms = pickle.load(fh)
+    _place_water(db, build_dir, places, registry_items, geoms, cov)
+    _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov)
+    del graph, geoms, registry_items
     # The regulations. The reach builder resolved which water every rule covers; this only
     # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
     if reaches is not None:
@@ -859,12 +862,13 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     _valid_until = ""
     _reach_digest, _reach_run_name = "", ""
     if _reaches is not None:
-        try:
-            _rep = json.loads((_reaches / "report.json").read_text())
-            _reach_digest = str(_rep.get("digest") or "")
-            _reach_run_name = _reaches.name
-        except (OSError, ValueError):
-            pass
+        # NO FALLBACK: a run whose report cannot be read, or states no digest, stops the build —
+        # an empty `reach_digest` is refused by every reader downstream anyway.
+        _rep = json.loads((_reaches / "report.json").read_text())
+        _reach_digest = str(_rep["digest"])
+        if not _reach_digest:
+            raise SystemExit(f"bundle: {_reaches}/report.json states no `digest`")
+        _reach_run_name = _reaches.name
 
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema", SCHEMA.read_text().split("\n")[0]),

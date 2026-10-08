@@ -458,12 +458,32 @@ def section_scope(key: tuple, B) -> LicenceKey:
                       k["ruleset"] if ls in _SLEEPY[B.path] else None)
 
 
+def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
+    """The LOWEST section of each wanted licence key (every section of a key answers alike) — ONE
+    scan of the bundle's sections, in the build's parent, handed to the workers (DATAFLOW P1b,
+    M4: each worker used to scan all ~2 M sections and hold the result)."""
+    from pipeline.deliver.answers.common import AnswersError
+    wanted = set(wanted)
+    db = connect(path)
+    try:
+        out: Dict[LicenceKey, int] = {}
+        for sid, k in section_keys(db).items():            # ascending sid: the first is the lowest
+            if k in wanted and k not in out:
+                out[k] = sid
+    finally:
+        db.close()
+    missing = sorted(wanted - set(out), key=lambda k: json.dumps(k.as_list()))
+    if missing:
+        raise AnswersError(f"licence: no section of the bundle has the licence key {missing[0]}")
+    return out
+
+
 def _section_cache(ctx) -> dict:
     c = ctx.cache.get("licence")
     if c is None:
         db = connect(ctx.bundle)
         C = corpus(db)
-        c = ctx.cache["licence"] = {"db": db, "C": C, "K": keys(db), "days": change_days(db),
+        c = ctx.cache["licence"] = {"db": db, "C": C, "days": change_days(db),
                                     "P": profiles(), "contested": contested_sets(db), "memo": {}}
     return c
 
@@ -477,10 +497,10 @@ def section_prepare(scope: LicenceKey, ctx):
     """(reading per day, [value per reading]) for one licence key; records by export index."""
     from pipeline.deliver.answers.common import AnswersError
     c = _section_cache(ctx)
-    sids = c["K"].get(scope)
-    if not sids:
-        raise AnswersError(f"licence: no section of the bundle has the licence key {scope}")
-    year = key_year(c["db"], c["C"], scope, sids[0], c["days"], c["P"], c["contested"],
+    sid = (ctx.licence_reps or {}).get(scope)
+    if sid is None:
+        raise AnswersError(f"licence: the build handed no section for the licence key {scope}")
+    year = key_year(c["db"], c["C"], scope, sid, c["days"], c["P"], c["contested"],
                     c["C"].index.__getitem__, c["memo"])
     if scope.tidal and TIDAL_IS_DOCUMENTED:
         # TIDAL WATER (FIX D12, code review A-7): no provincial licence or stamp holds (L7) — and

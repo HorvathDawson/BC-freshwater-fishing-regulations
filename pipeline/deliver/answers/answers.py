@@ -218,8 +218,13 @@ class Context:
     """What every producer reads, loaded once per process: the bundle (`common.load`), the
     export's rule index (`common.check_export`) and each producer's own cache (`cache`)."""
 
-    def __init__(self, bundle: str, rule_index: Dict[str, int]):
+    def __init__(self, bundle: str, rule_index: Dict[str, int],
+                 licence_reps: Optional[dict] = None, doc: Optional[dict] = None):
         self.B = common.load(bundle)
+        #: the lowest section of each licence key (`licence.representatives`, read in the parent)
+        self.licence_reps = licence_reps
+        #: the export pair, decoded ONCE (`export_codec.expand`), for the statics (parent only)
+        self.doc = doc
         self.bundle = self.B.path
         self.sets = self.B.sets
         self.rule_index = rule_index
@@ -300,9 +305,9 @@ RESERVED: Dict[str, str] = {}
 _WORKER: Optional[Context] = None
 
 
-def _init_worker(bundle, rule_index):
+def _init_worker(bundle, rule_index, licence_reps):
     global _WORKER
-    _WORKER = Context(bundle, rule_index)
+    _WORKER = Context(bundle, rule_index, licence_reps)
 
 
 def _first_days(per_day: Sequence[int]) -> List[int]:
@@ -343,14 +348,18 @@ class Model:
 
 
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
-          sections: Optional[Sequence[str]] = None, log=print) -> Model:
+          sections: Optional[Sequence[str]] = None, log=print,
+          export: Optional[Tuple[dict, dict]] = None) -> Model:
     """Every answer for every part of every named water in the export (or only `items`), for
-    every section (or only `sections`, with the sections they derive from)."""
+    every section (or only `sections`, with the sections they derive from). `export` is the pair
+    already read (`load_export`), so a caller holding it does not read it twice (M9)."""
     import time
+    from pipeline.tools.export_codec import expand
     t0 = time.time()
-    data, guide = load_export(export_dir)
+    data, guide = export if export is not None else load_export(export_dir)
     B = common.load(bundle)
-    rule_index = common.check_export(B, data, guide)
+    doc = expand(data, guide)                  # decoded ONCE (M9.4): the check and the statics
+    rule_index = common.check_export(B, data, guide, doc)
     keys, parts = common.part_keys(B, data)
     if items is not None:
         want = set(items)
@@ -390,7 +399,10 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     workers = workers or min(4, max(1, (os.cpu_count() or 2) - 1))
     results: Dict[Tuple[str, object], tuple] = {}
     derived_vals: Dict[Tuple[str, object], list] = {}
-    args = (B.path, rule_index)
+    from pipeline.deliver.answers import licence as _licence
+    lic_scopes = [sc for name, sc, _ in tasks if name == "licence"]
+    licence_reps = _licence.representatives(B.path, lic_scopes) if lic_scopes else {}
+    args = (B.path, rule_index, licence_reps)
     if workers == 1:
         _init_worker(*args)
         got = map(_run_scope, tasks)
@@ -420,7 +432,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
                 pd = per_root[s.derive_from][0]
                 vals = derived_vals[(s.name, s.scope(key, B))]
             out[s.name].append([vals[pd[d - 1]] for d in starts])
-    ctx = Context(B.path, rule_index)
+    ctx = Context(B.path, rule_index, licence_reps, doc)
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen
                if s.static is not None}
     about = {

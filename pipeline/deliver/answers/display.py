@@ -38,7 +38,7 @@ import math
 import re
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import (cap, clean, join, lc, range_txt, sp_name,
+from pipeline.deliver.answers.common import (AnswersError, cap, clean, join, lc, range_txt, sp_name,
                                              when_dates)
 from pipeline.deliver.bundle.rules import closure_grade
 
@@ -782,8 +782,9 @@ def section_prepare(scope, ctx):
 def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
     """The facts that are not keyed by (part key, segment): per export rule (kind, closure, bands,
     plain sentence) and per named water (each export part's names and picker facts)."""
-    from pipeline.tools import export_codec
-    doc = export_codec.expand(data, guide)
+    doc = ctx.doc
+    if doc is None:
+        raise AnswersError("display: the statics need the decoded export (`Context.doc`)")
     lic_ix = {k: i for i, k in enumerate(data.get("licensing_ids") or [])}
     return {"rules": build_rules(ctx.B),
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,

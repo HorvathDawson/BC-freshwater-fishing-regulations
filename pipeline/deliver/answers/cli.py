@@ -25,8 +25,11 @@ from pipeline.deliver.answers.answers import AnswersError, build, load_export
 from pipeline.deliver.calendar import day_of
 
 
-def _write(wire: dict, out: Path) -> dict:
-    raw = json.dumps(wire, ensure_ascii=False, separators=(",", ":")).encode("utf-8") + b"\n"
+def _raw(wire: dict) -> bytes:
+    return json.dumps(wire, ensure_ascii=False, separators=(",", ":")).encode("utf-8") + b"\n"
+
+
+def _write(raw: bytes, out: Path) -> dict:
     out.write_bytes(raw)
     gz = gzip.compress(raw, compresslevel=9, mtime=0)
     Path(str(out) + ".gz").write_bytes(gz)
@@ -34,15 +37,15 @@ def _write(wire: dict, out: Path) -> dict:
 
 
 def cmd_build(a) -> int:
+    """Build, encode, prove the bytes decode back to the model, write. ONE serialised copy is
+    held (DATAFLOW P1b, M9.3): the wire is serialised once, dropped, and the check decodes those
+    very bytes (it used to hold the model, the wire, a JSON round-trip copy, the decoded model
+    and the bytes at once)."""
     data, guide = load_export(a.export_dir)
     model = build(a.bundle, a.export_dir, workers=a.workers,
-                  items=a.items.split(",") if a.items else None)
+                  items=a.items.split(",") if a.items else None, export=(data, guide))
     wire = E.encode(model, data)
     E.check_pair(wire, data, guide)
-    back = E.decode(json.loads(json.dumps(wire)), data)
-    if back != model:
-        raise AnswersError("answers: the file does not decode to the answers it was built from")
-    sizes = _write(wire, a.out)
     per = {}
     for name, sec in wire["sections"].items():
         b = json.dumps(sec, separators=(",", ":")).encode()
@@ -50,8 +53,15 @@ def cmd_build(a) -> int:
     for name in ("keys", "segments", "parts", "fish", "spec"):
         b = json.dumps(wire[name], separators=(",", ":")).encode()
         per[name] = {"raw": len(b), "gz": len(gzip.compress(b, 9, mtime=0))}
-    print(json.dumps({"file": str(a.out), **sizes, "parts": per, "counts": wire["about"]["counts"]},
-                     indent=1))
+    counts = wire["about"]["counts"]
+    raw = _raw(wire)
+    del wire
+    back = E.decode(json.loads(raw), data)
+    if back != model:
+        raise AnswersError("answers: the file does not decode to the answers it was built from")
+    del back, model
+    sizes = _write(raw, a.out)
+    print(json.dumps({"file": str(a.out), **sizes, "parts": per, "counts": counts}, indent=1))
     return 0
 
 

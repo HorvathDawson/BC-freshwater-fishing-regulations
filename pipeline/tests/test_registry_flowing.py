@@ -441,11 +441,11 @@ def test_the_bundle_refuses_a_split_lake_parent_that_keeps_a_section(tmp_path):
         def filled(self, *a): pass
         def skip(self, *a): pass
     with pytest.raises(SystemExit, match="still owns a section"):
-        B._items(db, tmp_path / "registry.json", Cov())
+        B._items(db, tmp_path, json.loads((tmp_path / "registry.json").read_text())["items"], Cov())
     items[0]["section_ids"] = []
     items[1]["aliases"] = ["wbk:77"]
     (tmp_path / "registry.json").write_text(json.dumps({"items": items}))
-    B._items(db, tmp_path / "registry.json", Cov())
+    B._items(db, tmp_path, json.loads((tmp_path / "registry.json").read_text())["items"], Cov())
     assert db.execute("SELECT COUNT(*) FROM item_section").fetchone()[0] == 1
     assert db.execute("SELECT * FROM item_alias").fetchall() == [("wbk:77", "wbk:-1")]
 

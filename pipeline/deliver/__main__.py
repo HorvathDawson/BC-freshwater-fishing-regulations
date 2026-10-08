@@ -49,6 +49,13 @@ def _export(bundle: Path, out: Path) -> Path:
     return out
 
 
+def _step(args: list) -> None:
+    """One step of the chain, as `python -m pipeline.deliver <step> …` in a fresh process."""
+    import subprocess
+    print(f"pipeline.deliver: {' '.join(args)}", flush=True)
+    subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="pipeline.deliver", description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="step")
@@ -79,10 +86,19 @@ def main(argv=None) -> int:
             a.out_dir = None
         from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
         d = a.out_dir
-        a.out = (d / "bundle.sqlite") if d else None
-        bundle = _bundle(a)
-        _status_index(bundle, (d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")
-        _export(bundle, (d / "ui-rules-export.json") if d else _EXPORT_OUT)
+        bundle = (d / "bundle.sqlite") if d else (GENERATED.bundle / "bundle.sqlite")
+        # EACH STEP IN ITS OWN PROCESS (DATAFLOW P1b, M10.1): CPython rarely hands a fragmented
+        # heap back, so a step run in-process inherited the bundle build's peak. A step that
+        # fails stops the chain (`check=True`); each still runs alone.
+        b = ["bundle", "--out", str(bundle)]
+        for flag, v in (("--build", a.build), ("--reaches", a.reaches), ("--entries", a.entries)):
+            if v is not None:
+                b += [flag, str(v)]
+        _step(b)
+        _step(["status_index", "--bundle", str(bundle), "--out",
+               str((d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")])
+        _step(["export", "--bundle", str(bundle), "--out",
+               str((d / "ui-rules-export.json") if d else _EXPORT_OUT)])
         from pipeline.common.vintage import report
         ok, msg = report(GENERATED.tiles, bundle)
         print(msg)

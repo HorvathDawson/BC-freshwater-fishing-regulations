@@ -32,7 +32,7 @@ import os
 import re
 import sqlite3
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -68,15 +68,9 @@ def rule_id(k: Tuple[str, str]) -> str:
     return f"{k[0]}::{k[1]}"
 
 
-@dataclass(frozen=True, order=True)
-class RuleKey:
-    """One rule answer key: what a section contributes to `read.effective_rules_bound`."""
-    set_id: int
-    steelhead_water: bool
-    steelhead_rules: bool
-
-    def as_list(self) -> list:
-        return [self.set_id, int(self.steelhead_water), int(self.steelhead_rules)]
+#: One rule answer key: what a section contributes to `read.effective_rules_bound` (the delivery's
+#: one definition, `types.RuleKey`).
+from pipeline.deliver.types import RuleKey  # noqa: E402
 
 
 @dataclass
@@ -86,10 +80,26 @@ class Bundle:
     rules: dict                                   # (entry, rule) -> rule dict (the reader's)
     index: Dict[Tuple[str, str], int]             # (entry, rule) -> export `rules` index
     sets: Dict[int, List[Tuple[str, str, str]]]   # set_id -> [(entry, rule, via)]
-    keys: Dict[RuleKey, int]                      # every section's rule key -> section count
-    key_sid: Dict[RuleKey, int]                   # rule key -> its smallest section
     set_kind: Dict[int, Optional[str]]            # set_id -> water kind (None: no named water)
     digest: dict                                  # meta digests
+    _keys: Optional[Dict[RuleKey, int]] = field(default=None, repr=False, compare=False)
+
+    @property
+    def keys(self) -> Dict[RuleKey, int]:
+        """Every section's rule key -> its section count. LAZY (DATAFLOW P1b, M5): a scan of
+        every one of the ~1.96 M sections that no shipped producer reads; tests and tools ask."""
+        if self._keys is None:
+            db = connect(self.path)
+            try:
+                steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
+                st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
+                keys: Dict[RuleKey, int] = defaultdict(int)
+                for sid, set_id in db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid"):
+                    keys[RuleKey(set_id, sid in steel, sid in st_rules)] += 1
+            finally:
+                db.close()
+            self._keys = dict(sorted(keys.items()))
+        return self._keys
 
     @property
     def rule_ids(self) -> List[str]:
@@ -114,14 +124,6 @@ def load(path: Optional[str] = None) -> Bundle:
         for set_id, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset "
                                             "ORDER BY set_id, entry_id, rule_id"):
             sets[set_id].append((e, r, via))
-        steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
-        st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
-        keys: Dict[RuleKey, int] = defaultdict(int)
-        key_sid: Dict[RuleKey, int] = {}
-        for sid, set_id in db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid"):
-            k = RuleKey(set_id, sid in steel, sid in st_rules)
-            keys[k] += 1
-            key_sid.setdefault(k, sid)
         kinds: Dict[int, set] = defaultdict(set)
         for set_id, kind in db.execute(
                 "SELECT DISTINCT r.set_id, i.kind FROM section_ruleset r JOIN item_section s "
@@ -138,7 +140,6 @@ def load(path: Optional[str] = None) -> Bundle:
     rules = every_rule(path)
     ids = sorted(rules, key=rule_id)
     B = Bundle(path=path, rules=rules, index={k: i for i, k in enumerate(ids)}, sets=dict(sets),
-               keys=dict(sorted(keys.items())), key_sid=key_sid,
                set_kind={s: next(iter(v)) for s, v in kinds.items()}, digest=digest)
     _LOADED[path] = B
     return B
@@ -155,7 +156,7 @@ def load_export(export_dir: Path) -> Tuple[dict, dict]:
     return data, guide
 
 
-def check_export(B: Bundle, data: dict, guide: dict) -> Dict[str, int]:
+def check_export(B: Bundle, data: dict, guide: dict, model: Optional[dict] = None) -> Dict[str, int]:
     """The export pair must be ONE pair, cut from THIS bundle, and its rule sets must be the
     bundle's — otherwise its integer rule refs would point at other rules. Returns the export's
     rule index, `{"entry::rule": index}`."""
@@ -177,7 +178,7 @@ def check_export(B: Bundle, data: dict, guide: dict) -> Dict[str, int]:
         mine = set(B.rule_ids)
         miss = sorted(mine - set(ids))[:3] + sorted(set(ids) - mine)[:3]
         raise AnswersError(f"answers: the export's rules are not the bundle's (e.g. {miss})")
-    model = expand(data, guide)
+    model = model if model is not None else expand(data, guide)
     for sid, s in model["rulesets"].items():
         want = sorted((i.split("::", 1)[0], i.split("::", 1)[1], via)
                       for via, members in s.items() if via != "sections" for i in members)
