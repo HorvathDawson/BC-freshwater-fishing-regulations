@@ -42,8 +42,8 @@ HERE = Path(__file__).resolve().parent
 EXPORT_DIR = convert.MAIN_TREE / "data/generated/regs"
 JS = HERE / "page_v36.js"
 
-#: The waters the page offers: v35's 28 (page order), then the ones added for the v36 review
-#: (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal).
+#: The waters the page offers: v35's 28 (page order; Kootenay Lake's Lower West Arm among them), then
+#: the ones added for the v36 review (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal).
 EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244"]
 
 RULE_KEEP = convert.RULE_KEEP
@@ -181,11 +181,13 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
     order = list(dict.fromkeys(full_keys + ladder_keys))
     new_of = {k: i for i, k in enumerate(order)}
     full = set(full_keys)
-    segs = Interner()
+    segs, seg_moments = Interner(), Interner()
     keys = []
     for k in order:
         row = list(ans["keys"][k])
         row[E.SEG_SLOT] = segs.add(ans["segments"][row[E.SEG_SLOT]])
+        m = row[E.MOMENT_SLOT]
+        row[E.MOMENT_SLOT] = None if m is None else seg_moments.add(ans["segment_moments"][m])
         keys.append(row)
     S = ans["sections"]
     rrefs, lrefs = set(), set()
@@ -260,6 +262,8 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
                 v = G["frames"][f]
                 if name == "gear":
                     _rule_refs_gear(v, rrefs)
+                else:
+                    rrefs.update(r for r, _ in v.get("closing") or [])
                 row.append(frames.add(v))
             at.append(row)
         sec = {"version": G["version"], "frames": frames.rows, "at": at}
@@ -287,7 +291,7 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
     out["licence"] = {"version": Lc["version"], "holds": holds.rows, "answers": answers.rows,
                       "documents": docs.rows, "frames": frames.rows, "at": at,
                       "profiles": Lc["profiles"], "profile_dims": Lc["profile_dims"]}
-    return out, keys, segs.rows, new_of, rrefs, lrefs
+    return out, keys, (segs.rows, seg_moments.rows), new_of, rrefs, lrefs
 
 
 def _lic_key(l: dict) -> str:
@@ -370,6 +374,7 @@ def build(export_dir: Path, waters: list, inputs: dict):
                 "shows": c.get("shows") or (c.get("id") or "").replace("_", " "),
                 "what": c.get("what_to_show") or c.get("what"), "ruling": c.get("ruling"),
                 "water": c["water"], "ruleset": c.get("ruleset"), "date": c["date"], "fish": c["fish"],
+                "at": c.get("at"),
                 "part": pi, "key": k, "members": members, "expect": expect,
                 "only_listed": src == "ours"})
             member_rules += [rule_ids[r] for r, _ in members] + [rule_ids[int(r)] for r in expect]
@@ -413,7 +418,8 @@ def build(export_dir: Path, waters: list, inputs: dict):
             "about": {"bundle": raw["about"]["bundle"], "export_counts": raw["about"]["counts"]["rules"]}}
     answers = {"about": {"format": ans["about"]["format"], "bundle": ans["about"]["bundle"],
                          "export": ans["about"]["export"], "sections": ans["about"]["sections"]},
-               "fish": ans["fish"], "keys": keys, "segments": segments, "parts": parts_map,
+               "fish": ans["fish"], "keys": keys, "segments": segments[0],
+               "moments": ans["moments"], "segment_moments": segments[1], "parts": parts_map,
                "sections": A}
     case_rules = {}
     for c in case_list:

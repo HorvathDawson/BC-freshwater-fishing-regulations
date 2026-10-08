@@ -109,8 +109,19 @@ function makePlace(wi, pi){
   return { water, part:p, pi, k, key: k == null ? null : A.keys[k], name:water.name, kind:water.kind, R, cands, disp: DWATERS[water.id]?.parts?.[pi] || null, _seg:{} };
 }
 const segStarts = w => A.segments[w.key[9]];
-// the segment holding a day: the last start on or before it (ANSWERS-SPEC §2)
-function segOf(w, md){ const s = segStarts(w), d = dayOf(md); let i = 0; for (let j = 0; j < s.length; j++) if (s[j] <= d) i = j; return i; }
+// MOMENTS (answers 2.1): where a weekday or hours rule makes a day read two ways, the day's start repeats,
+// one segment per moment ({weekdays, hours: null | {start, end, in}}); null where the part has none
+const momentsOf = w => w.key && w.key[10] != null ? A.segment_moments[w.key[10]].map(i => A.moments[i]) : null;
+// the page's year is the date box's (2026): a date's weekday
+const YEAR = 2026, WEEK = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const weekdayOf = md => WEEK[(new Date(Date.UTC(YEAR, Math.floor(md/100) - 1, md % 100)).getUTCDay() + 6) % 7];
+// the day's segments: every segment sharing the start on or before it (one unless the part has moments)
+function daySegs(w, md){ const s = segStarts(w), d = dayOf(md); let i = 0; for (let j = 0; j < s.length; j++) if (s[j] <= d) i = j;
+  const out = []; for (let j = s.indexOf(s[i]); j <= i; j++) out.push(j); return out; }
+// the segment holding a day (ANSWERS-SPEC §2): at the date's weekday, outside any hours window unless `inside`
+function segAt(w, md, wd, inside){ const ss = daySegs(w, md), M = momentsOf(w); if (!M || ss.length === 1) return ss[ss.length - 1];
+  const j = ss.find(j => M[j].weekdays.includes(wd) && (!M[j].hours || M[j].hours.in === !!inside)); return j == null ? -1 : j; }
+const segOf = (w, md) => segAt(w, md, weekdayOf(md), false);
 // the segment's first day as MMDD (no Feb 29 in the page's year)
 const mdOfDay = d => { let m = 11; while (m > 0 && LEAP0[m] >= d) m--; const md = (m + 1) * 100 + (d - LEAP0[m]); return md === 229 ? 301 : md; };
 const frameIx = (w, name, s) => { const at = SEC[name].at[w.k]; return at ? at[s] : undefined; };
@@ -144,9 +155,12 @@ function settle(w, md){
   if (!w._nym){ w._nym = new Map(); segStarts(w).forEach((_, i) => { const Li = ladderAt(w, i); if (Li) for (const S of Object.keys(Li)) for (const [ix, v] of Li[S].none) if (v.state === 'not_yet_mapped') w._nym.set(ix, true); }); }
   const nymNow = new Set(with_('not_yet_mapped').map(r => r.ix));
   const inpart = [...w._nym.keys()].map(ix => Object.assign(Object.create(w.R(ix)), { now: nymNow.has(ix) }));
-  // full closures in force today: closures that speak for every game fish the ladder asks (answers ladder + display.rules closure)
-  const broad = L ? speaks.filter(r => closedGate(r) && GAME.every(S => !L[S] || L[S].none.get(r.ix)?.state === 'speaks')).sort((a, b) => a.rank - b.rank) : [];
+  // the closures that close the water today: the answers' decided `closing` (display frame, gap G1) — those closing
+  // every game fish, else every one listed; the page infers nothing from the ladder
   const disp = frameIx(w, 'display', s), status = disp == null ? null : SEC.display.frames[disp];
+  const closing = (status?.closing || []).map(([ix, fs]) => [w.R(ix), fs]);
+  // the one closing the most game fish first (every one, where one does), then by rank
+  const broad = closing.slice().sort((a, b) => b[1].length - a[1].length || a[0].rank - b[0].rank).map(([r]) => r);
   return (w._seg[ck] = { w, md, s, L, status, speaks, beside, shown, inpart, lifted, broad,
     timed: beside.filter(r => r.tcond), side: beside.filter(r => r.f.side), standing: shown.filter(r => r.k === 'standing'),
     anglerclosed: speaks.filter(r => r.k === 'anglerclosure') });
@@ -412,9 +426,11 @@ function waterSegs(w){ if (w._wsegs) return w._wsegs; const segs = []; let cur =
   for (const d of DAYS){ const s = isClosedAt(w, d) ? 'closed' : 'keep'; if (s === cur) len++; else { if (cur) segs.push([cur, len]); cur = s; len = 1; } }
   segs.push([cur, len]); return (w._wsegs = segs); }
 // tidal water is a documented state (answers display frame, D12): the freshwater rules do not apply
+// the words are the export's tidal note (angler words only since answers 2.1, review B17), as v35 showed them
 function tidalHtml(w, md){
   const t = settle(w, md).status || {};
-  return `<div class="banner tidal"><div class="big">Tidal water</div><p>${esc(t.note || '')}</p>${t.see ? `<p class="small"><b>See:</b> ${esc([].concat(t.see).join(' · '))}</p>` : ''}${t.licence ? `<p class="small"><b>Licence:</b> ${esc(t.licence)}</p>` : ''}</div>`;
+  if (t.status !== 'tidal') return missing(`the tidal state on ${fmtMd(md)} (display frame for this part key and segment)`);
+  return `<div class="banner"><div class="big">Tidal water</div><p>${esc(w.water.tidal?.guide || t.note || '')}</p></div>`;
 }
 function waterStrip(w, md){
   if (isTidal(w)) return tidalHtml(w, md);
@@ -425,7 +441,7 @@ function waterStrip0(w, md){
   const segs = waterSegs(w), ctx = settle(w, md), openNow = ctx.status.status !== 'closed', has = new Set(segs.map(s => s[0]));
   // "Open, except some parts": a retention rule of an undrawn part in force today (answers ladder not_yet_mapped)
   const partShut = openNow && ctx.inpart.some(r => r.now && r.family === 'retention');
-  return `<div class="wstrip"><div class="wsline"><span class="wsstat ${openNow ? 'open' : 'closed'}">${openNow ? (partShut ? 'Open, except some parts' : 'Open') : 'Closed'}</span><span class="muted small">${md === TODAY ? 'today' : 'on ' + fmtMd(md)}</span>${(() => { if (!openNow){ const n = nextOpen(w, md); return n ? `<span class="wsoon open">Opens ${fmtMd(n)}</span>` : ''; } const i = DAYS.indexOf(md); for (let k = 1; k <= 21; k++){ const d = DAYS[(i + k) % 365]; if (isClosedAt(w, d)) return `<span class="wsoon">Closed from ${fmtMd(d)}</span>`; }
+  return `<div class="wstrip"><div class="wsline"><span class="wsstat ${openNow ? 'open' : 'closed'}">${openNow ? (partShut ? 'Open, except some parts' : 'Open') : 'Closed'}</span><span class="muted small">${md === TODAY ? 'today' : 'on ' + fmtMd(md)}${momentsOf(w) && daySegs(w, md).length > 1 ? ` (${weekdayOf(md).slice(0, 3)})` : ''}</span>${(() => { if (!openNow){ const n = nextOpen(w, md); return n ? `<span class="wsoon open">Opens ${fmtMd(n)}</span>` : ''; } const i = DAYS.indexOf(md); for (let k = 1; k <= 21; k++){ const d = DAYS[(i + k) % 365]; if (isClosedAt(w, d)) return `<span class="wsoon">Closed from ${fmtMd(d)}</span>`; }
       const tr = (MODEL && w === PLACE) ? MODEL.rows.find(r => !r.pool && ['closed','release'].includes(r.kind) && r.members.some(S => ['RB','CT','EB','GB','LT','DV'].includes(S))) : null;
       if (tr){ const ru = runOf(strip(w, tr.members), md); return `<span class="wsoon">Trout ${tr.kind === 'closed' ? 'closed' : 'release only'}${ru.all ? ' all year' : ` until ${fmtMd(ru.until)}`}</span>`; }
       return ''; })()}</div>
@@ -490,9 +506,46 @@ function closedBanner(what){
     <ul class="closechain">${list.map(r => `<li>${esc(describe(r))}. <span class="muted small">${esc(RANK[String(r.rank)].t)}</span> <button class="srcbtn inline" type="button" data-rule="${esc(r.key)}">Source</button></li>`).join('')}</ul>
     ${REOPEN ? `<button class="golink" type="button" data-md="${REOPEN}">Opens again ${fmtMd(REOPEN)}. See the ${what || 'rules'} from then ›</button>` : ''}${mergedHtml()}</div>`;
 }
+// days of the week in words: "Mon–Fri", "Sat–Sun", "Fri–Sun", "Sat"
+function daysTxt(wds){ const ix = wds.map(d => WEEK.indexOf(d)).sort((a, b) => a - b), runs = [];
+  ix.forEach(i => { const r = runs[runs.length - 1]; if (r && r[1] === i - 1) r[1] = i; else runs.push([i, i]); });
+  const sh = i => WEEK[i].slice(0, 3); return runs.map(([a, b]) => a === b ? sh(a) : `${sh(a)}–${sh(b)}`).join(', '); }
+const hoursTxt = h => timeCond({ hours:h });
+function momentTxt(m){ if (!m) return ''; const d = m.weekdays.length === 7 ? '' : daysTxt(m.weekdays);
+  return [d, m.hours ? (m.hours.in ? hoursTxt(m.hours) : 'other hours') : ''].filter(Boolean).join(', '); }
+const answerTxt = d => !d ? 'no rule' : d.status === 'keep' ? `${d.daily} a day` : d.status === 'no_limit' ? 'no limit' : d.status === 'release' ? 'release' : 'closed';
+// AT CERTAIN TIMES (answers 2.1): the day reads differently by weekday or hour. The card is the date's own moment
+// (its weekday, outside any hours window); each other moment of the day is named with what it decides: a closure
+// of some hours or days (its decided `closing`), a fish whose answer differs ("Kokanee: 5 a day Sat–Sun; release
+// Mon–Fri"), an angler closure of some days. Every word is a lookup in the answers frames.
 function timedHtml(ctx){
-  const seenT = new Set(), t = ctx.timed.filter(r => (r.type === 'retention_limit' || r.type === 'angler_closure') && !seenT.has(describe(r)) && seenT.add(describe(r)));
-  return t.length ? `<div class="caveats top"><div class="lbl">⚠ At certain times</div><ul>${t.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}"><b>${esc(cap(describe(r).replace(/ \(.*\)$/, '')))}</b><span class="where">${esc(r.tcond)}</span></button></li>`).join('')}</ul></div>` : '';
+  const w = ctx.w, M = momentsOf(w); if (!M) return '';
+  const ss = daySegs(w, ctx.md); if (ss.length < 2) return '';
+  const cur = ctx.s, items = [], dispOf = j => { const f = frameIx(w, 'display', j); return f == null ? null : SEC.display.frames[f]; };
+  // a closure of some hours or some days
+  ss.filter(j => j !== cur && dispOf(j)?.status === 'closed' && dispOf(cur)?.status !== 'closed').forEach(j => {
+    const cl = (dispOf(j).closing || []).map(([ix, fs]) => [w.R(ix), fs]), asked = GAME.filter(S => A.fish.includes(S));
+    // as the banner reads them (`settle`): those closing every game fish, else every one listed — less any that
+    // closes at the day's own moment too (it is on the card already)
+    const all = cl.filter(([, fs]) => asked.every(S => fs.includes(S))), pick = (all.length ? all : cl.slice().sort((a, b) => b[1].length - a[1].length).slice(0, 1)).map(([r]) => r);
+    const whole = pick.filter(r => !(dispOf(cur).closing || []).some(([ix]) => ix === r.ix));
+    whole.forEach(r => items.push(`<li><button class="factbtn" type="button" data-rule="${esc(r.key)}"><b>${esc(cap(describe(r).replace(/ \(.*\)$/, '')))}</b><span class="where">${esc(momentTxt(M[j]))}</span></button></li>`));
+    if (!whole.length) items.push(`<li>${missing('the closure that closes it ' + momentTxt(M[j]))}</li>`); });
+  // a fish whose answer differs between the day's moments
+  // (a moment the water is closed at is said once, above, never fish by fish)
+  const rs = ss.filter(j => j === cur || dispOf(j)?.status !== 'closed').map(j => [j, rowsAt(w, j)]), spp = [...new Set(rs.flatMap(([, r]) => r ? r.spp : []))];
+  for (const S of spp){
+    const by = rs.map(([j, r]) => [j, r && r.R[S] ? mainRes(r.R[S].H, r.R[S].W) : null]);
+    const words = by.map(([j, d]) => [j, answerTxt(d)]); if (new Set(words.map(([, t]) => t)).size < 2) continue;
+    const grp = new Map(); words.forEach(([j, t]) => (grp.get(t) || grp.set(t, []).get(t)).push(j));
+    const line = [...grp].map(([t, js]) => `${t} ${daysTxt([...new Set(js.flatMap(j => M[j].weekdays))])}${js.every(j => M[j].hours) ? (js.every(j => M[j].hours.in) ? ' ' + hoursTxt(M[js[0]].hours) : ' other hours') : ''}`).join('; ');
+    items.push(`<li><button class="factbtn" type="button" data-fish="${esc(S)}"><b>${esc(spName(S))}: ${esc(line.replace(/ Mon–Sun/g, ''))}</b><span class="where">${esc('today (' + momentTxt(M[cur]) + '): ' + answerTxt(by.find(([j]) => j === cur)?.[1]))}</span></button></li>`); }
+  // an angler closure of some days
+  const spk = j => { const L = ladderAt(w, j), out = new Set(); if (L) for (const S of Object.keys(L)) for (const [ix, v] of L[S].none) if (v.state === 'speaks' && w.R(ix).k === 'anglerclosure') out.add(ix); return out; };
+  const sets = ss.map(j => [j, spk(j)]), all = new Set(sets.flatMap(([, x]) => [...x]));
+  for (const ix of all){ const on = sets.filter(([, x]) => x.has(ix)).map(([j]) => j); if (on.length === ss.length || on.includes(cur)) continue;
+    const r = w.R(ix); items.push(`<li><button class="factbtn" type="button" data-rule="${esc(r.key)}"><b>${esc(cap(describe(r).replace(/ \(.*\)$/, '')))}</b><span class="where">${esc(r.tcond || daysTxt([...new Set(on.flatMap(j => M[j].weekdays))]))}</span></button></li>`); }
+  return items.length ? `<div class="caveats top"><div class="lbl">⚠ At certain times</div><ul>${items.join('')}</ul></div>` : '';
 }
 function anglerClosures(ctx){
   const a = ctx.anglerclosed;
@@ -1214,7 +1267,9 @@ const caseRule = ix => CASES.rules[String(ix)] || { id:'#' + ix, label:`(rule ${
 function caseLadder(c){
   if (c.key == null) return null;
   const w = { k:c.key, key:A.keys[c.key], _seg:{} }, [m, d] = c.date.split('-').map(Number);
-  const L = ladderAt(w, segOf(w, m * 100 + d));
+  // a case asked at a moment (answers 2.1: `at`, a weekday class and inside / outside an hours window)
+  const s = c.at ? segAt(w, m * 100 + d, c.at.weekdays[0], !!c.at.hours?.in) : segOf(w, m * 100 + d);
+  const L = ladderAt(w, s);
   return L ? (L[c.fish] ? L[c.fish].none : 'nofish') : null;
 }
 function runCase(c){
@@ -1269,7 +1324,8 @@ function defaultPart(wi){
 // date chips: the days the answers' segments start (where some rule's or lift's dates begin)
 function dateChips(){
   if (PLACE.k == null) return `<button class="dchip now" data-md="${TODAY}" type="button">Today</button>`;
-  const s = [...new Set(segStarts(PLACE).map(mdOfDay))];
+  // a part whose year is never cut has no date to offer (as v35: no window, no chip)
+  const s0 = [...new Set(segStarts(PLACE).map(mdOfDay))], s = s0.length === 1 ? [] : s0;
   const arr = s.filter(x => x !== 101 || s.length < 4).sort((a, b) => a - b).slice(0, 6);
   return `<button class="dchip now" data-md="${TODAY}" type="button">Today</button>` + arr.map(md => `<button class="dchip" data-md="${md}" type="button">${fmtMd(md)}</button>`).join('');
 }
