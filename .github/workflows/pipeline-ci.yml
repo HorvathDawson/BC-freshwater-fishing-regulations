@@ -61,6 +61,11 @@ jobs:
       - name: Generated gauge policy is current
         run: python -m pipeline.tools.emit_gauge_policy --check
 
+      # The answers/2 frame models exist in Python (pydantic) and in TypeScript/JSON Schema for the
+      # page; the generator re-runs and fails on any drift (AGENTS 40, DATAFLOW P7).
+      - name: Generated answers/2 schema and types are current
+        run: python -m pipeline.deliver.answers.model --check
+
       - name: Tests
         run: python -m pytest -q
 

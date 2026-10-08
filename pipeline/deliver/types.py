@@ -163,7 +163,7 @@ DisplayKind = closed_enum("DisplayKind", (
     "possession", "annual", "possession_cap", "sizecap", "subcap", "gate", "pool", "size"))
 
 #: The decided answer's status (`rows`), the card row's kind.
-DecidedStatus = closed_enum("DecidedStatus", ("keep", "nolimit", "release", "closed"))
+DecidedStatus = closed_enum("DecidedStatus", ("keep", "no_limit", "release", "closed"))
 
 #: A rule's role in a decided answer (`rows.eval_sp`).
 Role = closed_enum("Role", (

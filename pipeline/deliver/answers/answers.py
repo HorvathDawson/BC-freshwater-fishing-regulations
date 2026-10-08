@@ -1,36 +1,35 @@
-"""THE ANSWERS LAYER (v0) — every decided reading of the rules, computed once, beside the UI export.
+"""THE ANSWERS LAYER (answers/2) — every decided reading of the rules, arranged once, beside the UI
+export.
 
     python -m pipeline.deliver.answers.cli build --bundle FILE --export-dir DIR --out FILE
 
 The UI export (`ui-rules-export.json` + `ui-rules-guide.json`) ships what the book SAYS. This module
 works out what it COMES TO for every part of every named water, on every day and for every fish,
 and `encode.py` writes it as a third file, `ui-rules-answers.json`, stamped with the export pair's
-`about.bundle` digests. The export is not changed; nothing here replaces it (handoff
-ANSWERS/DESIGN.md, user constraint 2026-10-05).
+`about.bundle` digests.
 
-ONE SOURCE PER FACT. Every rule state, every loser's reason and `by`, comes from
-`read.effective_rules_bound(trace=True, origin=…)` — the one reference reader, called here and never
-re-implemented. This module only ARRANGES: which questions to ask (keys, segments, fish, origins), and
-the one derivation the consumer page made on top of the reader, the decided answer (consumer
-Stage 5.2 steps 1-4, `decide`), written down as code with every choice named.
+ONE SOURCE PER FACT (DATAFLOW). Every rule state, every loser's reason and `by`, is the reader's,
+STORED ONCE by the verdicts stage (`verdicts.sqlite`, `read.effective_rules_bound(trace=True)` per
+rule key, reading, fish and origin); nothing here calls the reader. The parts are the bundle's
+(`part`), the calendar is `pipeline.deliver.calendar`, closed is `reading.closed`. The decided
+answer is `rows` alone (the v0 `answer` section and its `decide` are gone: one decided answer).
 
 NO FALLBACKS. A question that cannot be answered stops the build with an `AnswersError` naming it:
-an export pair that does not match the bundle, a part whose sections disagree, a rule the export does
-not list, a fish the reader refuses. A state that IS an answer is stated explicitly (`no_rule`,
-`by_origin`), never left out.
+an export pair that does not match the bundle, a rule bound to the other kind of water, a rule the
+export does not list, a fish the verdicts were not asked. Every section value is validated against
+its answers/2 model (`model.py`: strict, extra=forbid) before it is encoded.
 
-THE KEYING, shared by every section, is `common.py` (the one keying module): the bundle
-(`common.load`), the export pairing (`common.check_export`), the part keys (`common.part_keys`), the
-rule key (`common.RuleKey`), the calendar and the segments (`common.segments`, `common.segments_of`).
-A section's value is a function of (part key, segment); the file's segments are the union of every
-section's cuts. Adding a section is a new `Section` with its own `scope` and producer: the existing
-sections' code does not change.
+THE KEYING, shared by every section, is `common.py`: the bundle (`common.load`), the export pairing
+(`common.check_export`), the part keys (`common.part_keys`, from the bundle's parts). A section's
+value is a function of (part key, segment); the file's segments are the union of every section's
+cuts. Adding a section is a new `Section` with its own `scope` and producer.
 
-v0 SECTIONS
-  ladder   per fish x origin: every rule's state (speaks, beside, shown, not_yet_mapped) and every
-           loser (lifted, displaced, moot) with its reason and `by` — the traced reader, verbatim.
-  answer   per fish x origin: the decided answer — status (closed / release / keep / no_limit /
-           no_rule / by_origin), the daily number, the winner rule (`decide`).
+SECTIONS
+  ladder   per fish x origin, every fish the verdicts asked: every rule's state (speaks, beside,
+           shown, not_yet_mapped) and every loser (lifted, displaced, moot) with its reason and
+           `by` — the stored verdict, verbatim
+  rows     the card (consumer 5.1-5.8): per fish and origin the decided answer, the rows
+  gear     7.1-7.6 · licence 7.7 · display: status per day, per-rule and per-part facts
 """
 from __future__ import annotations
 
@@ -52,10 +51,6 @@ from pipeline.deliver.bundle import read
 #: `origin=None`); "hatchery" / "wild" are `read.ASKABLE_ORIGINS`.
 ORIGINS = ("none",) + tuple(read.ASKABLE_ORIGINS)
 
-#: The decided statuses (`decide`). `no_rule`: no rule in scope speaks for the fish (the page shows
-#: no row). `by_origin`: asked with the origin unknown, the hatchery and wild answers differ — read
-#: those two.
-STATUSES = ("closed", "release", "keep", "no_limit", "no_rule", "by_origin")
 
 
 # --------------------------------------------------------------------------------------------
@@ -93,81 +88,6 @@ def ladder_verdict(rows: Iterable[dict]) -> dict:
                 raise AnswersError(f"answers: loser {k} has state {st!r}, reason {reason!r}, by {by!r}")
             out[k] = [st, None, reason, by]
     return out
-
-
-# ---- the decided answer (consumer Stage 5.2 steps 1-4) ---------------------------------------
-
-#: The consumer page's rule kind (Stage 2.3, `kindOf`): ONE implementation, `display.kind_of`.
-#: Only `gate` (a release or a closure: take 0, no lengths) and `pool` (a daily number) can win.
-from pipeline.deliver.answers.display import kind_of  # noqa: E402
-
-
-def closes(x: dict) -> bool:
-    """A gate that may not be fished for: a closure, not a release — the one closure predicate
-    (`rules.closure_grade`, AGENTS 56)."""
-    from pipeline.deliver.bundle.rules import closure_grade
-    return closure_grade(x) is not None
-
-
-def in_scope(x: dict, origin: str) -> bool:
-    """Stage 5.2's scope: a retention rule or a duty, not a `while` limit, a lift or a standing
-    rule, of no origin or the origin asked."""
-    k = kind_of(x)
-    return ((x.get("type") == "retention_limit" or k == "duty")
-            and k not in ("while", "exempt", "standing") and x.get("dimension") != "lift"
-            and (not x.get("origin") or x.get("origin") == origin))
-
-
-def rank_here(x: dict, via: str) -> int:
-    """The rule's rung where it is bound (`read.source_of(...).rank`; a water row reaching the
-    section by the tributary walk ranks 1, as the reader's `place` reads it)."""
-    return read.place(x, via)
-
-
-def decide(verdict: dict, origin: str, rules: dict, via: dict, order: dict) -> list:
-    """THE DECIDED ANSWER for one fish and one KNOWN origin (consumer Stage 5.2 steps 1-4, page_v35
-    `evalSp`), from the reader's verdict only — the rules that SPEAK, in scope (`in_scope`):
-
-      1. WINNER: the closure of the lowest rank, else the release of the lowest rank, else the
-         pool with the smallest number (unlimited is the largest), lower rank first between equal
-         numbers. Ties beyond that go to the rule earlier in the export's `rules` order (`order`)
-         — the page keeps its part's member order (reach before trib, rule order within each),
-         which is the same order for every tie the corpus holds between two rules of one rank.
-      2. STATUS: a closure "closed", a release "release", an unlimited pool "no_limit", any other
-         pool "keep"; no winner "no_rule".
-      3. DAILY: the winning pool's take (null for a gate and for no_limit). The page then narrows
-         it by the winner's sub-caps and orphan clauses (step 5) — v1 (`rows`), not here.
-      4. Roles are v1.
-
-    Returns [status, daily, winner rule id | None]."""
-    if origin not in read.ASKABLE_ORIGINS:
-        raise AnswersError(f"answers: decide is asked for a known origin, not {origin!r}")
-    A = [k for k, v in verdict.items() if v[0] == "speaks" and in_scope(rules[k], origin)]
-
-    def rk(k):
-        return (rank_here(rules[k], via[k]), order[k])
-
-    gates = [k for k in A if kind_of(rules[k]) == "gate"]
-    closed = sorted((k for k in gates if closes(rules[k])), key=rk)
-    rel = sorted((k for k in gates if not closes(rules[k])), key=rk)
-    pools = sorted((k for k in A if kind_of(rules[k]) == "pool"),
-                   key=lambda k: (float("inf") if rules[k].get("unlimited") else rules[k]["take"],)
-                   + rk(k))
-    win = (closed or rel or pools or [None])[0]
-    if win is None:
-        return ["no_rule", None, None]
-    x = rules[win]
-    if kind_of(x) == "gate":
-        return ["closed" if closes(x) else "release", None, win]
-    if x.get("unlimited"):
-        return ["no_limit", None, win]
-    return ["keep", int(x["take"]), win]
-
-
-def decide_unknown(h: list, w: list) -> list:
-    """The answer with the origin NOT known: the hatchery and the wild answers when they agree,
-    else `by_origin` (no daily, no winner — read the two)."""
-    return list(h) if h == w else ["by_origin", None, None]
 
 
 # --------------------------------------------------------------------------------------------
@@ -256,29 +176,10 @@ def _ladder_prepare(scope: RuleKey, ctx: Context):
     return per_day(runs), values
 
 
-def _answer_derive(ladder_value: dict, scope: RuleKey, ctx: Context, first_day: int) -> dict:
-    set_id = scope.set_id
-    via = {f"{e}::{r}": v for e, r, v in ctx.sets[set_id]}
-    out = {}
-    for f, by_origin in ladder_value.items():
-        rules = {}
-        for verdict in by_origin.values():
-            for k in verdict:
-                if k not in via:
-                    raise AnswersError(f"answers: the reader answered with {k}, not a member of "
-                                       f"rule set {set_id}")
-                rules[k] = ctx.by_id[k]
-        h = decide(by_origin["hatchery"], "hatchery", rules, via, ctx.rule_index)
-        w = decide(by_origin["wild"], "wild", rules, via, ctx.rule_index)
-        out[f] = {"none": decide_unknown(h, w), "hatchery": h, "wild": w}
-    return out
-
-
 def _sections() -> Tuple[Section, ...]:
     from pipeline.deliver.answers import display, gear, licence, rows
     return (
         Section("ladder", 0, _ladder_scope, prepare=_ladder_prepare),
-        Section("answer", 0, _ladder_scope, derive_from="ladder", derive=_answer_derive),
         Section("rows", 2, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         Section("gear", 2, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),

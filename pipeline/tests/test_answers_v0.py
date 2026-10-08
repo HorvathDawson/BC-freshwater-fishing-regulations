@@ -7,7 +7,7 @@ exactly what the reference reader says.
   * a tap (part -> key -> segment by date -> fish -> origin) equals `read.effective_rules` on a REAL
     section of that part, on real waters (Chilliwack, Denetiah, Kitimat, Ahbau, Thompson);
   * every day of a segment answers alike (the segmentation changes no answer);
-  * `decide` (consumer Stage 5.2 steps 1-4), each choice pinned on small verdicts.
+  * the decided answer is `rows`' alone (answers/2: the v0 `answer` section and `decide` are gone).
 
 `UI_EXPORT_BUNDLE` and `ANSWERS_EXPORT_DIR` (the export pair cut from that bundle) point the suite at
 a side bundle; the bundle tests skip without them.
@@ -71,87 +71,6 @@ def test_spec_gaps_refuse_an_undescribed_section():
 
 
 # --------------------------------------------------------------------------------------------
-# decide — consumer Stage 5.2 steps 1-4 (no bundle needed)
-# --------------------------------------------------------------------------------------------
-
-def _r(eid, take=None, **kw):
-    x = {"entry": eid, "rule": "x", "entry_id": eid, "rule_id": "x", "type": "retention_limit",
-         "family": "retention", "dimension": "daily", "period": "daily", "extents": [],
-         "extent_text": "here", **kw}
-    if take is not None:
-        x["take"] = take
-    x["_rank"] = R.source_of(x).rank          # as `read._rules_of` holds every rule
-    return x
-
-
-RULES = {
-    "zone_pool": _r("z3:t", take=5, extents=[{"op": "within", "area_id": "area:region:3"}]),
-    "water_pool": _r("r3:w", take=2),
-    "water_pool_10": _r("r3:w2", take=10),
-    "zone_release": _r("z3:rel", take=0, extents=[{"op": "within", "area_id": "area:region:3"}]),
-    "water_release": _r("r3:rel", take=0),
-    "water_closed": _r("r3:shut", take=0, may_target=0),
-    "zone_closed": _r("z3:shut", take=0, may_target=0,
-                      extents=[{"op": "within", "area_id": "area:region:3"}]),
-    "hatchery_pool": _r("r3:h", take=2, origin="hatchery"),
-    "unlimited": _r("r3:u", unlimited=True),
-    "size_only": _r("z3:s", lengths=[{"min_cm": 30}],
-                    extents=[{"op": "within", "area_id": "area:region:3"}]),
-    "while_pool": _r("r3:wh", take=9, **{"while": ["ice_fishing"]}),
-}
-VIA = {k: "reach" for k in RULES}
-ORDER = {k: i for i, k in enumerate(sorted(RULES))}
-
-
-def _decide(speaking, origin="wild", via=VIA, losers=()):
-    v = {k: ["speaks", None, None, None] for k in speaking}
-    v.update({k: ["displaced", None, "ladder", "zone_pool"] for k in losers})
-    return A.decide(v, origin, RULES, via, ORDER)
-
-
-def test_decide_closure_beats_release_beats_pool():
-    assert _decide(["zone_pool", "water_release", "zone_closed"]) == ["closed", None, "zone_closed"]
-    assert _decide(["zone_pool", "water_release"]) == ["release", None, "water_release"]
-    assert _decide(["zone_pool", "water_pool"]) == ["keep", 2, "water_pool"]
-
-
-def test_decide_lowest_rank_among_closures_and_releases():
-    assert _decide(["zone_closed", "water_closed"])[2] == "water_closed"
-    assert _decide(["zone_release", "water_release"])[2] == "water_release"
-
-
-def test_decide_smallest_pool_wins_whatever_its_rank():
-    assert _decide(["zone_pool", "water_pool_10"]) == ["keep", 5, "zone_pool"]
-    assert _decide(["unlimited", "zone_pool"]) == ["keep", 5, "zone_pool"]
-    assert _decide(["unlimited"]) == ["no_limit", None, "unlimited"]
-
-
-def test_decide_reads_only_speakers_in_scope():
-    assert _decide([], losers=["water_pool"]) == ["no_rule", None, None]
-    assert _decide(["size_only"]) == ["no_rule", None, None]            # a size clause sets no number
-    assert _decide(["while_pool"]) == ["no_rule", None, None]           # a `while` limit: one method only
-    assert _decide(["hatchery_pool"], origin="wild") == ["no_rule", None, None]
-    assert _decide(["hatchery_pool"], origin="hatchery") == ["keep", 2, "hatchery_pool"]
-
-
-def test_decide_a_trib_row_ranks_below_a_water_row():
-    via = dict(VIA, water_release="trib")
-    assert _decide(["water_release", "zone_release"], via=via)[2] == "water_release"   # 1 < 3
-    assert A.rank_here(RULES["water_release"], "trib") == 1
-
-
-def test_unknown_origin_is_explicit():
-    keep = ["keep", 2, "a"]
-    assert A.decide_unknown(keep, keep) == keep
-    assert A.decide_unknown(keep, ["release", None, "b"]) == ["by_origin", None, None]
-
-
-def test_decide_refuses_an_unknown_origin():
-    with pytest.raises(A.AnswersError):
-        A.decide({}, "none", RULES, VIA, ORDER)
-
-
-# --------------------------------------------------------------------------------------------
 # The calendar and the segments
 # --------------------------------------------------------------------------------------------
 
@@ -176,7 +95,7 @@ def built():
     if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
         pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
     data, guide = A.load_export(EXPORT_DIR)
-    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, sections=["ladder", "answer"],
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, sections=["ladder", "rows"],
                     log=lambda *_: None)
     wire = E.encode(model, data)
     return data, guide, model, json.loads(json.dumps(wire))
@@ -185,7 +104,7 @@ def built():
 def test_round_trip(built):
     data, _, model, wire = built
     assert E.decode(wire, data) == model
-    assert set(wire["sections"]) == {"ladder", "answer"}
+    assert set(wire["sections"]) == {"ladder", "rows"}
     assert not set(wire["sections"]) & set(A.RESERVED)             # reserved: absent, not empty
     assert E.spec_gaps(wire) == []
 
@@ -214,12 +133,9 @@ def test_integer_refs_resolve(built):
         assert all(rule(i) for lst in v[:4] for i in lst)
         assert all(rule(i) and all(rule(b) for b in by) for i, by in v[4])
         assert all(rule(i) and 0 <= r < len(lad["reasons"]) and rule(by) for i, r, by in v[5])
-    ans = wire["sections"]["answer"]
-    for rows in ans["frames"]:
-        assert all(0 <= row[0] < nF and all(0 <= d < len(ans["decided"]) for d in row[1:])
-                   for row in rows)
-    for s, daily, win in ans["decided"]:
-        assert 0 <= s < len(ans["statuses"]) and (win is None or rule(win))
+    rows = wire["sections"]["rows"]
+    for d in rows["decided"]:
+        assert rule(d["win"]) and (d["narrow"] is None or rule(d["narrow"]))
 
 
 def test_the_digest_stamp(built):
@@ -291,8 +207,9 @@ def test_taps_equal_the_reader_on_real_sections(built):
 def test_denetiah_closure_is_the_answer(built):
     data, _, _, wire = built
     got = E.tap(wire, data, "gnis:39298", 0, 7, 10, "DV", "wild")
-    assert got["answer"][0] == "closed"
-    assert got["answer"][2] == "r7:denetiah_creek@7-52::denetiah_creek.r1"
+    dv = got["rows"]["fish"]["DV"]["wild"]                     # the decided answer: rows' alone
+    assert dv["status"] == "closed"
+    assert data["rule_ids"][dv["win"]] == "r7:denetiah_creek@7-52::denetiah_creek.r1"
     liard = [k for k, v in got["ladder"].items() if k.startswith("r7:liard_river_watershed")
              and v[0] == "displaced"]
     # the row's daily 1 loses by the ladder (its own key); the possession 1 by DENETIAH

@@ -150,7 +150,7 @@ def test_taps_equal_the_producers(built):
                 kd = C.key_dict(key)
                 P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                             kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
-                want = RW.to_refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
+                want = RW.refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
                 assert model.sections["rows"][k][s] == want, (key, day)
                 checked += 1
     finally:

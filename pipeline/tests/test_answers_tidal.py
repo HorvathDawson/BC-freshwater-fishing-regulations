@@ -66,7 +66,6 @@ def test_nitinat_lake_is_a_documented_tidal_state_all_year(built, on):
     assert t["ladder"] and all(
         v == {"r1:nitinat_lake@1-3::nitinat_lake.r1": ["shown", None, None, None]}
         for by_o in t["ladder"].values() for v in by_o.values())
-    assert all(d == ["no_rule", None, None] for by_o in t["answer"].values() for d in by_o.values())
     assert t["rows"]["rows"] == []
 
 

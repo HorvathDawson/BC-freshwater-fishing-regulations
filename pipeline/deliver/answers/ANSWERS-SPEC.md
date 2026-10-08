@@ -1,4 +1,4 @@
-# ui-rules-answers.json — format `answers/1` (v1)
+# ui-rules-answers.json — format `answers/2`
 
 The answers file is a third file beside the UI export pair (`ui-rules-export.json` +
 `ui-rules-guide.json`). The export says what the book says; the answers file says what it comes to,
@@ -7,14 +7,19 @@ every angler profile. The export format is unchanged. The answers file replaces 
 verified 1-to-1 against the consumer page (COMPARISON.md).
 
 - **Built by** `python -m pipeline.deliver.answers.cli build --bundle FILE --export-dir DIR --out FILE
-  [--workers N]` (about 90 s on 4 processes, 9.3 GB peak). The build refuses to write a file that
-  does not decode back to what it built. It is deterministic (4 and 2 workers give the same bytes).
+  [--verdicts FILE] [--workers N]` (35 s on 4 processes, 3.9 GB peak, measured 2026-10-08; the
+  verdicts default to `verdicts.sqlite` beside the bundle). The build refuses to write a file that
+  does not decode back to what it built, and validates every value of every section against its
+  answers/2 model first (`model.py`). It is deterministic (4 and 2 workers give the same bytes).
 - **Reference decoder** `pipeline/deliver/answers/encode.py` `decode(wire, data)`; one tap is
   `encode.tap(...)`.
-- **One source per fact.** Every rule state, every loser's `reason` and `by`: `read.effective_rules_bound(
-  trace=True, origin=…)`. Every requirement in force: `read.requirements_in_force` (with the G5 steps:
-  wrong water, superior authority). Every status: `status_index.set_profile`. The calendar, the keys
-  and the segments: `common.py`, the one keying module. The answers layer arranges what these say;
+- **One source per fact (DATAFLOW).** Every rule state, every loser's `reason` and `by`: the
+  verdicts stage's stored answer (`verdicts.sqlite`: `read.effective_rules_bound(trace=True,
+  origin=…)` run ONCE per rule key, reading, fish and origin) — nothing in the answers calls the
+  reader. Every requirement in force, and every record a part's sources consider:
+  `read.requirements_in_force` (with the G5 steps). Every status: `reading.closed` / `key_meta.own`
+  of the verdicts (the status index is the same projection). The parts: the bundle's `part` table.
+  The calendar: `pipeline.deliver.calendar`. The decided answer: `rows` alone. The answers layer arranges what these say;
   the card's rows (`rows.py`) are the consumer page's own arrangement of the ladder's speakers, ported
   and proven exact on the page's own ladder (COMPARISON.md §1).
 - **No fallbacks.** Anything that cannot be answered stops the build with an `AnswersError` naming
@@ -26,13 +31,29 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
   written out: `no_rule`, `by_origin`, a `null` part key for a part outside B.C., a `null` decided
   answer (no rule in scope speaks).
 
+## answers/2 (DATAFLOW P7, 2026-10-08) — what changed from answers/1
+
+Nobody had consumed answers/1, so there is no migration note (user decision U3). The changes:
+
+| change | answers/1 | answers/2 |
+|---|---|---|
+| the decided answer | `answer` section (`decide`) beside `rows` | `rows` only |
+| a no-limit answer / row | `nolimit` | `no_limit` |
+| a part with no run measure | `km: 1e9` | `km: null` |
+| a part with no entry heading | `place: ""` | `place: null` |
+| the ladder's fish | the game fish a member rule names, + ST | every fish the verdicts asked |
+| the models | prose in `spec` | `schemas`: every frame's JSON Schema (strict, no extra field) |
+
+The models are `pipeline/deliver/answers/model.py`; `python -m pipeline.deliver.answers.model`
+writes `app/packages/core/src/answers.generated.{json,ts}` and `--check` fails CI on drift.
+
 ## 1. Pairing
 
 | check | how |
 |---|---|
 | same bundle | `about.bundle` equals `about.bundle` in both export files (`reach_digest`, `section_handles`, …) |
 | same rules | `about.export.rule_ids_sha256` is the first 16 hex digits of SHA-256(`rule_ids` joined by `"\n"`) |
-| same format | `about.format == "answers/1"` |
+| same format | `about.format == "answers/2"` |
 
 Every rule ref is an index into the export's `rules` / `rule_ids`; every licensing ref an index into
 its `licensing` / `licensing_ids`.
@@ -45,7 +66,7 @@ its `licensing` / `licensing_ids`.
    `starts[s] <= d`.
 3. **Section → frame.** `frame = sections[name].frames[sections[name].at[k][s]]`, decoded as the
    section says (§6).
-4. **Fish, origin, profile.** In the ladder and answer frames, the fish (index into `fish`) and the
+4. **Fish, origin, profile.** In the ladder frame, the fish (index into `fish`) and the
    origin (none | hatchery | wild); in the rows frame, the fish code and hatchery | wild; in the
    licence frame, the profile index (mixed radix over `profile_dims`).
 
@@ -54,9 +75,9 @@ Every section uses the same `k` and `s`: they join with no remapping.
 ## 3. Calendar, segments, wrap-around, Feb 29
 
 - **Day numbers** 1..366 on the leap calendar: Jan 1 = 1, Feb 29 = 60, Mar 1 = 61 in every year,
-  Dec 31 = 366 (`status_index.day_of`). In a year without Feb 29, day 60 is never asked.
+  Dec 31 = 366 (`calendar.day_of`). In a year without Feb 29, day 60 is never asked.
 - **Segments** are the union of every section's cuts: a member rule's or a lift's `when` (ladder,
-  answer, rows, gear, display), a requirement's or a designation's `when` (licence). Day 1 always
+  rows, gear, display), a requirement's or a designation's `when` (licence). Day 1 always
   starts a segment; a reading across New Year is two segments sharing one value.
 - **Feb 29 (ruling 2026-10-06).** A range printed to Feb 28 runs through Feb 29: the book is written
   for years without one and means "through the end of February" (`catalogue.range_days`, the one
@@ -71,24 +92,26 @@ tidal water (`common.part_keys`). Each section reads what it needs of it (`Secti
 
 | section | scope (what its answers depend on) |
 |---|---|
-| ladder, answer, gear, display | the rule key: (ruleset, steelhead_water, steelhead_rules) |
+| ladder, gear, display | the rule key: (ruleset, steelhead_water, steelhead_rules) |
 | rows | the rule key, the water's kind, the steelhead presence |
 | licence | (licensing_set, province_except, tidal, kind, the rule set where a designation can sleep) |
 
 ## 5. Sections
 
-### `ladder` (Stage 4) and `answer` (Stage 5.2 steps 1-4) — unchanged from v0
+### `ladder` (Stage 4)
 
-Per fish and origin, every rule the traced reader returns, and the decided winner (`status`, the
-winning pool's own `daily`, `winner`). Field dictionary: the file's `spec`. The number an angler may
-keep is `rows`' decided `daily` (after the winner's clauses).
+Per fish and origin, every rule the traced reader returned (the stored verdict), for EVERY fish the
+verdicts asked: every game fish (ST everywhere — answered as RB where no steelhead rule applies), and
+crayfish, chinook or a protected fish where a member rule names it. The page filters to its own
+fish. Field dictionary: the file's `spec`. The decided answer is `rows`' (`decided`); answers/1's
+`answer` section, a second decision with its own tie-break, is gone.
 
 ### `rows` (Stages 5.1-5.8): today's card
 
 Per (key, segment): `[spp, {fish: [hatchery, wild]}, [row], steelhead_line]`.
 
 - `spp`: the fish the card asks about (5.1), in the page's order.
-- `decided` (per fish and origin, or null): `status` (keep | nolimit | release | closed), `win`,
+- `decided` (per fish and origin, or null): `status` (keep | no_limit | release | closed), `win`,
   `daily` — **the number after the winner's clauses** (5.2 step 5: a sub-limit covering every fish of
   the pool narrows it; an orphan clause whose own total was replaced still binds), `narrow`, `lines`
   (every line of steps 6-11, in the page's order: rel, cap, subcap, also, outer, steel, outercap,
@@ -307,7 +330,7 @@ rows-fixes commit (rows.py, the section's version 2).
   `rows` in licence.section wire.
 - V5 The part key carries `kind` and `tidal` · the licence key reads both · v0 sections unchanged ·
   undo: drop them (the licence key would then not be a function of the part key).
-- V6 Display status per segment is the status index's set_profile code (base/own/closed); a tidal
+- V6 Display status per segment is the status index's code — the verdicts' projection (base/own/closed); a tidal
   part reads its key's `tidal`, not a TIDAL code · one definition of closed · undo: map tidal keys.
 - D12 (FIX round, user ruling 2026-10-06) TIDAL WATER IS A DOCUMENTED STATE. On a part key with
   `tidal` 1 the `display` frame is `{"status": "tidal", "tidal": true, "note", "see", "licence"}`
@@ -315,8 +338,8 @@ rows-fixes commit (rows.py, the section's version 2).
   waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence
   is required"), the `gear` frame is `TIDAL_STATE` itself (never "angling: not allowed here"), and
   the `licence` frame's `holds.tidal` is `TIDAL_STATE` with every profile `{documents: [],
-  none_needed: false, requirements: [], tidal: true}` (never "no licence needed"). Its ladder, answer
-  and rows hold no rule by definition. All year, one scope (`common.TIDAL_SCOPE`). The export's
+  none_needed: false, requirements: [], tidal: true}` (never "no licence needed"). Its ladder lists
+  each fish with only the tidal row's own note, shown; its rows hold no rule. All year, one scope (`common.TIDAL_SCOPE`). The export's
   `waters[].tidal.guide` starts with the same words · undo: drop the `TIDAL_SCOPE` branches in
   display/gear/licence.
 - V7 Feb 29 (coordinator ruling): a range to Feb 28 runs through Feb 29 · `catalogue.range_days` ·

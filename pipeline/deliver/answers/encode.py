@@ -18,13 +18,13 @@ from __future__ import annotations
 from bisect import bisect_right
 from typing import Dict, List, Optional, Tuple
 
-from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED, STATUSES,
-                                              AnswersError, Model)
+from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED, AnswersError,
+                                              Model)
 from pipeline.deliver.calendar import DAYS, day_of
 from pipeline.deliver.answers.common import Interner
 from pipeline.deliver.bundle import read
 
-FORMAT = "answers/1"
+FORMAT = "answers/2"
 
 #: The ladder's verdict lists, in wire order.
 VERDICT_LISTS = ("speaks", "beside", "shown", "not_yet_mapped", "partly", "lost")
@@ -47,7 +47,13 @@ _RULE = "a rule ref (index into the export's `rules`)"
 _LIC = "a licensing ref (index into the export's `licensing`)"
 
 SPEC = {
-    "format": f"`about.format` is {FORMAT!r}: answers file format 1. A reader refuses any other.",
+    "format": f"`about.format` is {FORMAT!r}: answers file format 2. A reader refuses any other. "
+              "Changed from format 1 (DATAFLOW P7): the `answer` section is gone (the decided "
+              "answer is `rows`' alone); a no-limit answer and row say `no_limit` (was `nolimit`); "
+              "a part's `km` and `place` are null where there is none (were 1e9 and \"\"); the "
+              "ladder lists EVERY fish the verdicts asked (every game fish, and crayfish, chinook "
+              "or a protected fish a member rule names); `schemas` holds every frame's JSON "
+              "Schema.",
     "pairing": "This file pairs with ONE export pair (ui-rules-export.json + ui-rules-guide.json): "
                "`about.bundle` equals both files' `about.bundle` (digests `reach_digest`, "
                "`section_handles`), and `about.export.rule_ids_sha256` is the first 16 hex digits "
@@ -71,6 +77,9 @@ SPEC = {
                  "present, `reserved` {name: what it will hold} — sections not yet present "
                  "(absent, never empty), `counts`",
         "spec": "this dictionary",
+        "schemas": "{section | section.table: JSON Schema} — every frame's and static table's "
+                   "model (`pipeline/deliver/answers/model.py`: strict, no extra field; each "
+                   "nullable field null exactly where its model says)",
         "fish": "[fish code] — the leaf species codes (`ui-rules-guide.json` `species`) the "
                 "ladder and answer frames refer to by index",
         "keys": "[[ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, "
@@ -101,8 +110,9 @@ SPEC = {
                       "origin of the frame; then per fish (index into `fish`, ascending) its own "
                       "verdict index, one for all three origins or one per origin. A fish's "
                       "verdict for an origin = `common` + its own (disjoint by rule). The fish "
-                      "listed are every game fish the rule set's rules name, plus ST where the "
-                      "steelhead rules apply",
+                      "listed are every fish the verdicts asked: every game fish (ST everywhere: "
+                      "answered as RB where no steelhead rule applies), and crayfish, chinook or a "
+                      "protected fish where a member rule names it",
             "verdicts": "[[speaks, beside, shown, not_yet_mapped, partly, lost]] — the first four "
                         "sorted rule refs in that state; `partly` [[rule, [lifting rule]]]: a "
                         "rule in one of those states that a lift holds for only some anglers or "
@@ -111,24 +121,6 @@ SPEC = {
                         "or lifted it",
             "reasons": "[reason] — `read.LOSS_REASONS` keys: the step that removed the rule",
             "reason_state": "[state] parallel to `reasons`: lifted | displaced | moot",
-        },
-        "answer": {
-            "what": "Stage 5.2 steps 1-4, the decided answer per fish and origin, from the ladder "
-                    "only: the winner among the speaking rules in scope — the lowest-rank "
-                    "closure, else the lowest-rank release, else the smallest daily pool",
-            "version": "0",
-            "at": "[[frame index per segment] per key] — the same keys and segments as `ladder`",
-            "frames": "[[[fish, d] | [fish, d_none, d_hatchery, d_wild]]] — per fish (index into "
-                      "`fish`, ascending, the ladder frame's fish) its decided index, one for "
-                      "all three origins or one per origin",
-            "decided": "[[status, daily, winner]] — `status` an index into `statuses`; `daily` "
-                       "the WINNING POOL'S OWN NUMBER (consumer 5.2 step 4), BEFORE its clauses "
-                       "(the number an angler may keep is `rows.decided[].daily`); null for "
-                       "closed, release, no_limit, no_rule, by_origin. `winner` a rule ref (null "
-                       "for no_rule, by_origin)",
-            "statuses": "[status] — closed | release | keep | no_limit | no_rule (no rule in "
-                        "scope speaks: the page shows no row) | by_origin (origin unknown and "
-                        "the hatchery and wild answers differ: read those)",
         },
         "rows": {
             "what": "Stages 5.1-5.8, today's card, from the ladder's speakers (the page's evalSp, "
@@ -143,7 +135,7 @@ SPEC = {
                       "hatchery and wild answers (indexes into `decided`, null: no rule in scope "
                       "speaks); the rows in card order (indexes into `rows`); `steelhead_line` "
                       "possible_with_rules | known_with_rules | known_no_rules | null (5.6)",
-            "decided": "[{status: keep|nolimit|release|closed, win, daily, narrow, lines, roles, "
+            "decided": "[{status: keep|no_limit|release|closed, win, daily, narrow, lines, roles, "
                        "lift_notes}] — `daily` the number after the winner's clauses (null for "
                        "no limit, release, closed), `narrow` the clause that lowered it; `lines` "
                        "[{t, r, a?, b?, take?, o?, keepO?, status?, daily?, min?, max?, says?, "
@@ -158,7 +150,7 @@ SPEC = {
                        "rule refs",
             "rows": "[{kind, pool, win, members, all_members, daily, narrow, everyone, groups, "
                     "prot, wins, lift_notes, scope, conds?, items?, real_daily?}] — `kind` keep | "
-                    "nolimit | release | closed; `pool` (keep rows) or `win` the rule; `members` "
+                    "no_limit | release | closed; `pool` (keep rows) or `win` the rule; `members` "
                     "the fish (codes) of the row, `all_members` with the fish that go back; "
                     "`everyone` the lines for every member and `groups` [{members, facts}] the "
                     "rest, each fact a line plus `members`, `rules`, `general`, `carve_of` "
@@ -244,7 +236,8 @@ SPEC = {
                       "the export's parts ({order, label, runs, place, hint, km, closed_all_year, "
                       "paper_licence [rule]} | null outside B.C.); `picker` {choices [{parts "
                       "[export part index], closed, sections, heading, text}], headed}; "
-                      "`unresolved_licensing` [licensing ref]",
+                      "`unresolved_licensing` [licensing ref]. `km` null: no run carries a measure; `place` null: "
+                      "no entry heading",
         },
     },
     "reserved": {k: f"not yet present: {v}" for k, v in RESERVED.items()},
@@ -326,33 +319,6 @@ class LadderCodec:
         return out
 
 
-class AnswerCodec:
-    name = "answer"
-    static_keys: Tuple[str, ...] = ()
-
-    def encode(self, values: List[dict], rix: Dict[str, int], fix: Dict[str, int]) -> Tuple[dict, List[int]]:
-        decided, frames = Table(), Table()
-        refs = []
-        for v in values:
-            rows = []
-            for f in sorted(v, key=lambda f: fix[f]):
-                ds = [decided.add([STATUSES.index(v[f][o][0]), v[f][o][1],
-                                   None if v[f][o][2] is None else rix[v[f][o][2]]]) for o in ORIGINS]
-                rows.append([fix[f], ds[0]] if ds[0] == ds[1] == ds[2] else [fix[f]] + ds)
-            refs.append(frames.add(rows))
-        return {"statuses": list(STATUSES), "decided": decided.rows, "frames": frames.rows}, refs
-
-    def decode_frame(self, sec: dict, ref: int, rules: List[str], fish: List[str]) -> dict:
-        out = {}
-        for row in sec["frames"][ref]:
-            own = row[1:] * 3 if len(row) == 2 else row[1:]
-            out[fish[row[0]]] = {}
-            for i, o in enumerate(ORIGINS):
-                s, daily, win = sec["decided"][own[i]]
-                out[fish[row[0]]][o] = [sec["statuses"][s], daily, None if win is None else rules[win]]
-        return out
-
-
 class FrameCodec:
     """A section whose value per (key, segment) is one JSON value with its refs already integer
     (gear, display): the distinct values are the frames."""
@@ -411,7 +377,7 @@ class LicenceCodec:
 
 
 #: One codec per section the file may hold — the encoder and the decoder iterate this.
-CODECS = {c.name: c for c in (LadderCodec(), AnswerCodec(), RowsCodec(),
+CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
                                                   "moments", "conduct_means")),
                               LicenceCodec(), FrameCodec("display", ("rules", "waters")))}
@@ -424,7 +390,7 @@ CODECS = {c.name: c for c in (LadderCodec(), AnswerCodec(), RowsCodec(),
 def encode(model: Model, data: dict) -> dict:
     rule_ids = data["rule_ids"]
     rix = {k: i for i, k in enumerate(rule_ids)}
-    fish = sorted({f for name in ("ladder", "answer") for per_key in model.sections.get(name, [])
+    fish = sorted({f for name in ("ladder",) for per_key in model.sections.get(name, [])
                    for v in per_key for f in v})
     fix = {f: i for i, f in enumerate(fish)}
     segs = Table()
@@ -434,6 +400,11 @@ def encode(model: Model, data: dict) -> dict:
         keys.append([k["ruleset"], k["licensing_set"], int(k["steelhead_water"]), k["steelhead"],
                      int(k["steelhead_rules"]), list(k["province_except"]), list(k["home_region"]),
                      k["kind"], int(k["tidal"]), segs.add(list(starts))])
+    # THE TYPES AT THE BOUNDARY (answers/2): every distinct value of every section, and its static
+    # tables, against its model before anything is encoded
+    from pipeline.deliver.answers.model import validate_section
+    for name, per_key in model.sections.items():
+        validate_section(name, (v for vals in per_key for v in vals), model.statics.get(name))
     sections = {}
     for name, per_key in model.sections.items():
         codec = CODECS.get(name)
@@ -460,6 +431,7 @@ def encode(model: Model, data: dict) -> dict:
                              "parts": sum(len(p) for p in model.parts.values()),
                              "fish": len(fish)}},
         "spec": SPEC,
+        "schemas": _schemas(),
         "fish": fish,
         "keys": keys,
         "segments": segs.rows,
@@ -470,6 +442,11 @@ def encode(model: Model, data: dict) -> dict:
     if gaps:
         raise AnswersError("answers: " + "; ".join(gaps))
     return wire
+
+
+def _schemas() -> dict:
+    from pipeline.deliver.answers.model import json_schemas
+    return json_schemas()
 
 
 def check_pair(wire: dict, data: dict, guide: dict) -> None:
@@ -556,7 +533,7 @@ def tap(wire: dict, data: dict, item: str, part: int, month: int, day: int,
     out = {}
     for name, sec in wire["sections"].items():
         frame = CODECS[name].decode_frame(sec, sec["at"][k][s], data["rule_ids"], wire["fish"])
-        if name in ("ladder", "answer") and fish is not None:
+        if name == "ladder" and fish is not None:
             frame = frame[fish][origin]
         elif name == "licence" and profile is not None:
             frame = {"holds": frame["holds"], "profile": frame["profiles"][profile]}

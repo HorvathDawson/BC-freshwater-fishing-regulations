@@ -89,7 +89,8 @@ def test_part_labels_match_the_page(page):
         got = {"labels": X.part_labels(W), "runs": [X.runs_label(doc, p) for p in W.parts],
                "place": [X.part_place(W, i) for i in range(len(W.parts))],
                "hint": [X.part_label(W, i) for i in range(len(W.parts))],
-               "km": [X.part_km(p) for p in W.parts]}
+               # the page's partKm says 1e9 for "no measure"; answers/2 says null (P7)
+               "km": [1e9 if X.part_km(p) is None else X.part_km(p) for p in W.parts]}
         bad += [(want["name"], f, got[f], want[f]) for f in got if got[f] != want[f]]
     assert not bad, bad[:3]
     thompson = next(w for w in page["expect"]["waters"] if w["name"] == "Thompson River")

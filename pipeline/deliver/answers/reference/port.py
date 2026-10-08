@@ -184,7 +184,7 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
             ladder.setdefault(S, {"hatchery": {}, "wild": {}})
         P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                     kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
-        out = RW.to_refs(json.loads(json.dumps(RW.produce(P))), rule_index.__getitem__)
+        out = RW.refs(json.loads(json.dumps(RW.produce(P))), rule_index.__getitem__)
         stats["cards"] += 1
         if out["spp"] != rec["spp"]:
             stats["spp_differ"] += 1

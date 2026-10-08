@@ -322,6 +322,25 @@ bundle's, exactly as it refuses a mixed tiles/bundle pair — handles never leav
 directly for 6,000+ (section, date) pairs — listed and absent sections, every table's boundary
 days, Dec 31 / Jan 1, Feb 29 — and requires agreement; checks every ruleset an unlisted section
 carries binds no row and reads base across the year; checks the digest; and shows the check fails
-on a swapped table. The builder goes through `read.effective_rules_bound` (the same code
-`effective_rules` runs, with a section's bindings in hand) once per (ruleset, steelhead) and once
-per distinct reading of the rules' dates.
+on a swapped table. Since DATAFLOW P4 (2026-10-08) the builder calls no reader: it is a PROJECTION of `verdicts.sqlite`
+(the reader run once per rule key and reading, `pipeline.deliver.verdicts`): closed on a reading
+whose stored `closed` is set, else the key's floor (`key_meta.own`). Byte-identical to the
+reader-built file it replaced; 4 s instead of ~35 s. A slow mutation test flips one stored verdict
+and requires the reader-parity check to fail.
+
+## Part 8 — The decided answers: `ui-rules-answers.json` (answers/2) and the verdicts
+
+`python -m pipeline.deliver` is the chain bundle → **verdicts** → status index → export; the answers
+file (`python -m pipeline.deliver.answers.cli build`) is built beside the export pair from the same
+bundle and verdicts. Its format, tap and fields: `pipeline/deliver/answers/ANSWERS-SPEC.md`; its
+types: `pipeline/deliver/answers/model.py` (strict pydantic, JSON Schema in the file's `schemas`,
+generated TypeScript in `app/packages/core/src/answers.generated.ts`).
+
+`verdicts.sqlite` sits beside `bundle.sqlite`, stamped with its digests, and is never shipped: it is
+the reader's every traced answer (every rule key × reading × asked fish × origin), stored once and
+looked up by the status index, the export (closure scans, closures-combine notes, cases, guide
+examples) and the answers (ladder, rows, gear, display). Nothing downstream of it calls the reader
+except two named oracles that re-ask it on purpose to check a stored answer
+(`status_index.status_by_reader`, `export_ui_rules.closures_combine_problems`;
+`pipeline/tests/test_dataflow_gates.py` gate 1).
+

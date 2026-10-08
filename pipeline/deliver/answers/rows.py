@@ -136,7 +136,7 @@ def _closed_gate(r: R) -> bool:
 
 
 def _keepish(s: Optional[str]) -> bool:
-    return s in ("keep", "nolimit")
+    return s in ("keep", "no_limit")
 
 
 def _covers(r: R, S: str) -> bool:
@@ -214,7 +214,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     if win.k == "gate":
         status = "closed" if _closed_gate(win) else "release"
     else:
-        status = "nolimit" if win.f.get("unlimited") else "keep"
+        status = "no_limit" if win.f.get("unlimited") else "keep"
     setr(win, "governs")
     for r in closed + rel:
         if r is not win:
@@ -1321,15 +1321,39 @@ def open_states(ctx, rk, md) -> dict:
     return out
 
 
-def to_refs(x, ref):
-    """Every rule id ("entry::rule") in a value, as its export index (`ref`)."""
-    if isinstance(x, str):
-        return ref(x) if "::" in x else x
-    if isinstance(x, list):
-        return [to_refs(v, ref) for v in x]
-    if isinstance(x, dict):
-        return {k: to_refs(v, ref) for k, v in x.items()}
-    return x
+def refs(out: dict, ix) -> dict:
+    """`produce`'s rows with every rule named by its export index (`ix("entry::rule")`) — FIELD
+    BY FIELD, the fields that hold a rule (L1: a blind scan turned any string holding "::" into a
+    rule, a caution's text included)."""
+    def res(d):
+        if d is None:
+            return None
+        return {**d, "win": ix(d["win"]), "narrow": None if d["narrow"] is None else ix(d["narrow"]),
+                "lines": [line(l) for l in d["lines"]],
+                "roles": [[ix(k), role, None if by is None else ix(by)] for k, role, by in d["roles"]],
+                "lift_notes": [[ix(by), q] for by, q in d["lift_notes"]]}
+
+    def line(l):
+        l = {**l, "r": ix(l["r"])}
+        if "outer" in l:
+            l["outer"] = ix(l["outer"])
+        if "rules" in l:
+            l["rules"] = [ix(r) for r in l["rules"]]
+        return l
+
+    def row(r):
+        o = {**r, "pool": None if r["pool"] is None else ix(r["pool"]),
+             "win": None if r["win"] is None else ix(r["win"]),
+             "narrow": None if r["narrow"] is None else ix(r["narrow"]),
+             "everyone": [line(l) for l in r["everyone"]],
+             "groups": [{**g, "facts": [line(l) for l in g["facts"]]} for g in r["groups"]],
+             "wins": None if r["wins"] is None else [ix(w) for w in r["wins"]],
+             "lift_notes": [[ix(by), q] for by, q in r["lift_notes"]]}
+        if "conds" in r:
+            o["conds"] = [{**c, "r": None if c.get("r") is None else ix(c["r"])} for c in r["conds"]]
+        return o
+    return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
+            "rows": [row(r) for r in out["rows"]]}
 
 
 def section_derive(ladder_value: dict, scope, ctx, first_day: int) -> dict:
@@ -1338,4 +1362,4 @@ def section_derive(ladder_value: dict, scope, ctx, first_day: int) -> dict:
     md = month_day(first_day)
     P = Part(ctx.B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kind, presence,
              ladder_value, md, open_states(ctx, rk, md))
-    return to_refs(json.loads(json.dumps(produce(P))), ctx.rule_index.__getitem__)
+    return refs(json.loads(json.dumps(produce(P))), ctx.rule_index.__getitem__)

@@ -528,14 +528,14 @@ def runs_label(doc: dict, part: dict) -> str:
     return t
 
 
-def part_km(part: dict) -> float:
+def part_km(part: dict) -> Optional[float]:
     """`partKm` — the picker's mouth-upward sort key: the highest `km_from` of the main-stem runs,
     else of the side channels (they sort where they join), else last."""
     def km(rs):
         return [r["km_from"] for r in rs if r.get("km_from") is not None]
     m = km([r for r in part.get("runs") or [] if not r.get("branch")])
     b = km([r for r in part.get("runs") or [] if r.get("branch")])
-    return max(m) if m else max(b) if b else 1e9
+    return max(m) if m else max(b) if b else None          # None: no run carries a measure
 
 
 def part_labels(W: Water) -> List[str]:
@@ -593,7 +593,10 @@ def picker(W: Water, labels: Sequence[str], closed: Sequence[bool]) -> dict:
     if shut:
         groups.append({"idx": shut, "closed": True})
     groups.sort(key=lambda g: g["idx"][0])
-    groups.sort(key=lambda g: (g["closed"], part_km(W.parts[g["idx"][0]])))
+    def km_key(g):
+        km = part_km(W.parts[g["idx"][0]])
+        return (km is None, km or 0)                            # a part with no measure last
+    groups.sort(key=lambda g: (g["closed"],) + km_key(g))
 
     def label(g):
         if g["closed"]:
@@ -714,7 +717,8 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             closed.append(closed_memo[rk])
             facts[ex] = {
                 "order": i, "label": labels[i], "runs": runs_label(doc, p),
-                "place": part_place(W, i), "hint": part_label(W, i), "km": part_km(p),
+                "place": part_place(W, i) or None,           # null: no entry heading
+                "hint": part_label(W, i), "km": part_km(p),
                 "closed_all_year": closed[-1],
                 "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"))]}
         out[item_id] = {"parts": facts, "picker": picker(W, labels, closed),

@@ -79,7 +79,7 @@ def card(built, item, part, md, mutate=None, patch=None):
     P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                 ladder, md, RW.open_states(ctx, rk, md))
     rix = {x: i for i, x in enumerate(data["rule_ids"])}
-    return RW.to_refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
+    return RW.refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
 
 
 def row_of(built, t, pool_tail):

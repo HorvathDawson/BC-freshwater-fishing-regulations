@@ -408,7 +408,13 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     bundle → status index → export (each still runs alone); the index header (version 2) carries the
     bundle's `reach_digest` beside the handles, and the app refuses a mismatch. An atlas built before
     the sidecars existed gets them from `python -m pipeline.atlas.sidecars` (same inputs, never a
-    rebuild).
+    rebuild). THE READER RUNS ONCE (DATAFLOW, 2026-10-08): the bundle decides the rule order
+    (`rule_ix`), each section's rule key (`section_ruleset.key_ix`), every rule's `closure_grade`
+    and THE PARTS of every named water (`part`/`part_section`); `python -m pipeline.deliver
+    verdicts` writes `verdicts.sqlite` beside it (the traced reader per rule key × reading × fish ×
+    origin, typed and CHECKed, never shipped); the status index, the export and the answers
+    (answers/2, `answers/model.py`) LOOK ANSWERS UP there. `test_dataflow_gates.py` refuses a reader
+    call, a `may_target` read, a part grouping or a calendar spelled anywhere else.
 57. **The 2026-10-03 rulings, as built (Phase 3).** Classified Waters: ONE UNIT PER SECTION — a
     walked section takes the designation of the FIRST classified water it flows into (the nearest
     downstream water with a designation of its own: Gosnell → Morice, not Bulkley; the Nanika above

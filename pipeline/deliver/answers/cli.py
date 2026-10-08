@@ -130,7 +130,9 @@ def decided_projection(d, rules: list) -> dict | None:
                 v = _inf(v)
             x[k] = v
         lines.append(x)
-    return {"status": d["status"], "daily": "Infinity" if d["status"] == "nolimit" else d["daily"],
+    # the page's words: its "nolimit" is answers/2's `no_limit`
+    page_status = "nolimit" if d["status"] == "no_limit" else d["status"]
+    return {"status": page_status, "daily": "Infinity" if d["status"] == "no_limit" else d["daily"],
             "winner": rules[d["win"]], "narrow": None if d["narrow"] is None else rules[d["narrow"]],
             "lines": lines,
             "roles": {rules[k]: [role, None if by is None else rules[by]] for k, role, by in d["roles"]}}
@@ -138,10 +140,11 @@ def decided_projection(d, rules: list) -> dict | None:
 
 def row_projection(r: dict, rules: list) -> dict:
     rd = r.get("real_daily")
-    return {"kind": r["kind"], "pool": None if r["pool"] is None else rules[r["pool"]],
+    return {"kind": "nolimit" if r["kind"] == "no_limit" else r["kind"],
+            "pool": None if r["pool"] is None else rules[r["pool"]],
             "win": None if r["win"] is None else rules[r["win"]],
             "members": r["members"], "all_members": r["all_members"],
-            "daily": (("Infinity" if r["kind"] == "nolimit" else r["daily"])
+            "daily": (("Infinity" if r["kind"] == "no_limit" else r["daily"])
                       if r["pool"] is not None else None),
             "real_daily": None if not rd else [rd["n"], rd["all"], rd["sum"], rd["capped_sum"],
                                                rd["rb"]],
@@ -221,7 +224,8 @@ def page_view(wire: dict, data: dict, guide: dict, golden: Path) -> dict:
                     decided_projection(by_o[o], rules)
         for r in fr["rows"]:
             k = r["pool"] if r["pool"] is not None else r["win"]
-            out["row"][(rec["w"], rec["pk"], rec["date"], r["kind"], rules[k])] = \
+            page_kind = "nolimit" if r["kind"] == "no_limit" else r["kind"]     # the page's word
+            out["row"][(rec["w"], rec["pk"], rec["date"], page_kind, rules[k])] = \
                 row_projection(r, rules)
     for rec in (r for f in _files(golden, "gear") for r in _lines(f)):
         g, _ = frame("gear", rec["w"], rec["pk"], rec["md"])
