@@ -15,7 +15,6 @@ codec, or without its text in `SPEC`, is refused (`spec_gaps`, pinned by the tes
 """
 from __future__ import annotations
 
-import hashlib
 from bisect import bisect_right
 from typing import Dict, List, Optional, Tuple
 
@@ -35,10 +34,9 @@ REASONS = tuple(read.LOSS_REASONS)
 SEG_SLOT = len(PART_KEY_FIELDS)
 
 
-def rule_ids_digest(rule_ids: List[str]) -> str:
-    """The SHA-256 (first 16 hex digits) of the export's `rule_ids`, one per line: the integer
-    rule refs mean these rules and no others."""
-    return hashlib.sha256("\n".join(rule_ids).encode("utf-8")).hexdigest()[:16]
+#: The SHA-256 (first 16 hex digits) of the export's `rule_ids`, one per line: the integer rule refs
+#: mean these rules and no others — the bundle's `meta.rule_ids_sha256` (one definition).
+from pipeline.deliver.bundle.derived import rule_ids_digest  # noqa: E402
 
 
 # --------------------------------------------------------------------------------------------

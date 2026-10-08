@@ -624,6 +624,26 @@ def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: 
     }
 
 
+def section_counts(db) -> dict:
+    """The bundle's section tallies (`about.sections`): counts, never a grouping into parts."""
+    return {
+        "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
+                            "SELECT sid FROM section_licensing UNION "
+                            "SELECT sid FROM item_section)").fetchone()[0],
+        "with_a_ruleset": db.execute("SELECT COUNT(*) FROM section_ruleset").fetchone()[0],
+        "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
+        "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
+        "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
+        "tidal": db.execute("SELECT COUNT(*) FROM tidal").fetchone()[0],
+        "province_except": dict(db.execute("SELECT area_kind, COUNT(*) FROM province_except "
+                                           "GROUP BY 1 ORDER BY 1").fetchall()),
+        "anadromous_rainbow": db.execute("SELECT COUNT(DISTINCT sid) FROM steelhead_water")
+                                .fetchone()[0],
+        "steelhead": {("known", "possible")[c - 1]: n for c, n in db.execute(
+            "SELECT code, COUNT(*) FROM section_steelhead GROUP BY 1 ORDER BY 1")},
+    }
+
+
 def read(bundle: Path) -> dict:
     """Everything the export ships, straight from the bundle."""
     if not Path(bundle).exists():
@@ -750,39 +770,21 @@ def read(bundle: Path) -> dict:
     # indexes (into this water's `parts`) of the other parts some section of this one borders in
     # the stream graph (`section_touch`: end to end, or a branch of the water flowing into it).
     # Section handles stay in here (AGENTS 5); only the part-to-part relation leaves.
-    _PART_SQL = (
-        "FROM item i JOIN item_section s ON s.ord = i.ord "
-        "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-        "LEFT JOIN section_licensing l ON l.sid = s.sid ")
-    # THE BUNDLE'S OWN VIEWS, read once each into keyed temp tables (`section_steelhead`, the
-    # presence code; `section_steelhead_rules`, where the provincial steelhead set applies) — the
-    # view's definition is the schema's, never re-spelled here. Correlated per row they cost a
-    # scan each; materialised, a lookup.
-    db.execute("CREATE TEMP TABLE _st (sid INTEGER PRIMARY KEY, code INTEGER NOT NULL)")
-    db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")
-    db.execute("CREATE TEMP TABLE _sr (sid INTEGER PRIMARY KEY)")
-    db.execute("INSERT INTO _sr SELECT sid FROM section_steelhead_rules")
-    _PART_COLS = (
-        "i.item_id, r.set_id, l.set_id, "
-        "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
-        " WHERE p.sid = s.sid ORDER BY p.area_kind)) AS pe, "
-        "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid) AS sw, "
-        "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END FROM _st h "
-        " WHERE h.sid = s.sid) AS st")
-    part_ix: dict[tuple, int] = {}
-    for item_id, rs, ls, pe, sw, st, n in db.execute(
-            f"SELECT {_PART_COLS}, COUNT(*) {_PART_SQL}"
-            "GROUP BY i.item_id, r.set_id, l.set_id, pe, sw, st "
-            "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id, "
-            "pe IS NOT NULL, pe, sw, st IS NULL, st"):
-        part_ix[(item_id, rs, ls, pe, sw, st)] = len(waters[item_id]["parts"])
-        waters[item_id]["parts"].append({
-            "ruleset": None if rs is None else str(rs),
-            "licensing_set": None if ls is None else str(ls), "sections": n,
-            **({"province_except": pe.split(",")} if pe else {}),
-            **({"anadromous_rainbow": True} if sw else {}),
-            **({"steelhead": st} if st else {}),
-            "touches": []})
+    # THE PARTS ARE THE BUNDLE'S (`part`, DATAFLOW P2): decided once by the bundle builder
+    # (`bundle.derived`), in the order this file always listed them, so `part_ix` is the index
+    # here. Nothing in the export groups sections into parts any more.
+    from pipeline.deliver.bundle.derived import parts as _bundle_parts
+    bundle_parts = _bundle_parts(db)
+    for item_id, ps in bundle_parts.items():
+        for p in ps:
+            waters[item_id]["parts"].append({
+                "ruleset": None if p.set_id is None else str(p.set_id),
+                "licensing_set": None if p.licensing_set is None else str(p.licensing_set),
+                "sections": p.sections,
+                **({"province_except": list(p.province_except)} if p.province_except else {}),
+                **({"anadromous_rainbow": True} if p.steelhead_water else {}),
+                **({"steelhead": p.steelhead} if p.steelhead else {}),
+                "touches": []})
     # HOW SURE WE ARE THAT STEELHEAD ARE HERE, per water (`section_steelhead`, user ruling
     # 2026-10-01): "known" if any part is known, else "possible" if any part is; absent otherwise.
     for w in waters.values():
@@ -809,34 +811,21 @@ def read(bundle: Path) -> dict:
         if src:
             w["steelhead_source"] = src
     section_part: dict[int, list[tuple[str, int]]] = defaultdict(list)
-    # WHERE STEELHEAD RULES APPLY and THE HOME REGION, per part, from the per-section facts the
-    # bundle stores (`section_steelhead_rules`, `section_home`). `rules` is a fact of the rule set
-    # (the reach's `Presence.rules_apply`, stored and proved by the bundler), so every section of a
-    # part agrees; the build refuses a part whose sections do not.
-    part_rules: dict[tuple[str, int], set[bool]] = defaultdict(set)
-    part_home: dict[tuple[str, int], set[str]] = defaultdict(set)
-    for item_id, rs, ls, pe, sw, st, s, sr, hm in db.execute(
-            f"SELECT {_PART_COLS}, s.sid, EXISTS (SELECT 1 FROM _sr x WHERE x.sid = s.sid), "
-            f"(SELECT region FROM section_home h WHERE h.sid = s.sid) {_PART_SQL}"):
-        pi = part_ix[(item_id, rs, ls, pe, sw, st)]
-        section_part[s].append((item_id, pi))
-        part_rules[(item_id, pi)].add(bool(sr))
-        if hm:
-            part_home[(item_id, pi)].add(hm)
-    mixed = sorted(k for k, v in part_rules.items() if len(v) > 1)
-    if mixed:
-        raise SystemExit(f"export_ui_rules: {len(mixed)} part(s) whose sections disagree on whether "
-                         f"steelhead rules apply (e.g. {mixed[:3]}) — the stored `rules` is not a "
-                         f"fact of the rule set; rebuild the bundle")
-    # `steelhead_rules: false` ON EVERY KNOWN PART NO STEELHEAD RULE APPLIES TO (user ruling
-    # 2026-10-03) — the Okanagan River, Inkaneep and Vaseux creeks, the Fraser in Zone 7A — and on
-    # a known water none of whose parts carries them. Absent everywhere else. READ from the bundle
-    # (`add_steelhead_rules`), never decided here.
-    add_steelhead_rules(waters, {k: next(iter(v)) for k, v in part_rules.items()})
+    for item_id, sid_, pi in db.execute(
+            "SELECT i.item_id, ps.sid, ps.part_ix FROM part_section ps JOIN item i "
+            "ON i.ord = ps.ord ORDER BY i.item_id, ps.sid"):
+        section_part[sid_].append((item_id, pi))
+    # WHERE STEELHEAD RULES APPLY, on EVERY part with a rule set (decision DF4: `true` or `false`,
+    # never left for the reader to infer from absence), and on a known water none of whose parts
+    # carries them. READ from the bundle's `part.steelhead_rules`, never decided here.
+    add_steelhead_rules(waters, {(item_id, p.part_ix): p.steelhead_rules
+                                 for item_id, ps in bundle_parts.items() for p in ps})
     # THE HOME REGION of a part with straddling sections (`section_home`): the region(s) those
     # pieces take their zone rules from — "this piece takes Region 3's rules".
-    for (item_id, pi), regions in sorted(part_home.items()):
-        waters[item_id]["parts"][pi]["home_region"] = sorted(regions)
+    for item_id, ps in bundle_parts.items():
+        for p in ps:
+            if p.home_regions:
+                waters[item_id]["parts"][p.part_ix]["home_region"] = list(p.home_regions)
     touching: set[tuple[str, int, int]] = set()
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         on_b = dict(section_part.get(b, ()))
@@ -851,8 +840,10 @@ def read(bundle: Path) -> dict:
     # bundle's own `spans.compose_runs`. A lake (or wetland) part is its polygon: one run with no
     # ends. The sections stay here; only the runs leave.
     splits = read_splits(db)
+    # only the sections of a part are ever composed into runs (M10.3: not every section's span)
     span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
         "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
+        "JOIN part_section ps ON ps.sid = s.sid "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
     touch_of: dict[int, set[int]] = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
@@ -880,22 +871,7 @@ def read(bundle: Path) -> dict:
             "ON s.ord = i.ord JOIN tidal t ON t.sid = s.sid GROUP BY i.item_id"):
         waters[item_id]["tidal"] = {"sections": n, "entry": eid, "guide": TIDAL_GUIDE}
 
-    sections = {
-        "total": db.execute("SELECT COUNT(*) FROM (SELECT sid FROM section_ruleset UNION "
-                            "SELECT sid FROM section_licensing UNION "
-                            "SELECT sid FROM item_section)").fetchone()[0],
-        "with_a_ruleset": db.execute("SELECT COUNT(*) FROM section_ruleset").fetchone()[0],
-        "with_a_licensing_set": db.execute("SELECT COUNT(*) FROM section_licensing").fetchone()[0],
-        "on_a_named_water": db.execute("SELECT COUNT(DISTINCT sid) FROM item_section").fetchone()[0],
-        "outside_bc": db.execute("SELECT COUNT(*) FROM outside_bc").fetchone()[0],
-        "tidal": db.execute("SELECT COUNT(*) FROM tidal").fetchone()[0],
-        "province_except": dict(db.execute("SELECT area_kind, COUNT(*) FROM province_except "
-                                           "GROUP BY 1 ORDER BY 1").fetchall()),
-        "anadromous_rainbow": db.execute("SELECT COUNT(DISTINCT sid) FROM steelhead_water")
-                                .fetchone()[0],
-        "steelhead": {("known", "possible")[c - 1]: n for c, n in db.execute(
-            "SELECT code, COUNT(*) FROM section_steelhead GROUP BY 1 ORDER BY 1")},
-    }
+    sections = section_counts(db)
     db.close()
     splits = referenced_edges(splits, entries, rules, licensing, waters)
     # ---- the record duty an annual quota carries (`recorded_by` / `records_for`) ------------
@@ -1208,12 +1184,14 @@ WATER_PART_TEXT = {
                    "those straddling pieces take their zone rules from (a stream piece is held to "
                    "the region holding most of its length; a lake straddling a line is in both and "
                    "the most strict wins) — `section_home`, measured once by the atlas",
-    "steelhead_rules": "ONLY (false) on a KNOWN part no steelhead rule applies to — it does not "
-                       "carry the provincial steelhead set (the annual hatchery 10, the wild "
-                       "release, the record duty): the Okanagan River, Inkaneep and Vaseux "
-                       "creeks, the Fraser in Zone 7A, known by the curated list. SHOW: '"
-                       + STEELHEAD_NO_RULES + "' Absent everywhere else (steelhead rules apply on "
-                       "every \"possible\" part and every other known part)",
+    "steelhead_rules": "ON EVERY PART WITH A RULE SET (absent only where `ruleset` is null): true "
+                       "when the provincial steelhead set (the annual hatchery 10, the wild "
+                       "release, the record duty) applies there, false when it does not — the "
+                       "bundle's answer, never left to absence (DF4). On a KNOWN part, false is "
+                       "the Okanagan River, Inkaneep and Vaseux creeks, the Fraser in Zone 7A, "
+                       "known by the curated list: SHOW '" + STEELHEAD_NO_RULES + "' Every "
+                       "\"possible\" part is true; an unmarked part's false means steelhead are "
+                       "answered as rainbow trout there (RU-6) and says nothing to show",
     "steelhead": STEELHEAD_TEXT,
     "touches": TOUCHES_TEXT,
     "runs": "WHERE THE PART RUNS: its stretches, upstream to downstream — [{from, to, km_from, "
@@ -3992,25 +3970,18 @@ class _Cases:
         self.lic: dict = defaultdict(list)
         for s, e, r in db.execute("SELECT set_id, entry_id, record_id FROM licensing_set"):
             self.lic[str(s)].append(f"{e}#{r}")
-        # A CASE IS ANSWERED ON A SECTION OF ITS OWN WATER AND PART (E4): the first section of
-        # the case's water whose five-tuple — (ruleset, licensing_set, province_except,
-        # anadromous_rainbow, steelhead), the key `read()` makes a part of — is the part's. A
-        # section of the same rule set on ANOTHER water may differ in steelhead presence, and the
-        # `expect` would then describe a different water than `water.item_id` names.
+        # A CASE IS ANSWERED ON A SECTION OF ITS OWN WATER AND PART (E4): the part's lowest
+        # section (`part.rep_sid`, the bundle's parts — DATAFLOW P2). A section of the same rule
+        # set on ANOTHER water may differ in steelhead presence, and the `expect` would then
+        # describe a different water than `water.item_id` names.
+        from pipeline.deliver.bundle.derived import parts as _bundle_parts
         self.sid = {}
-        for item, rs, ls, pe, sw, st, sid in db.execute(
-                "SELECT i.item_id, r.set_id, l.set_id, "
-                "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p"
-                " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
-                "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
-                "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END "
-                " FROM section_steelhead h WHERE h.sid = s.sid), MIN(s.sid) "
-                "FROM item i JOIN item_section s ON s.ord = i.ord "
-                "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-                "LEFT JOIN section_licensing l ON l.sid = s.sid "
-                "GROUP BY 1, 2, 3, 4, 5, 6"):
-            self.sid[(item, None if rs is None else str(rs), None if ls is None else str(ls),
-                      pe, bool(sw), st)] = sid
+        for item, ps in _bundle_parts(db).items():
+            for p in ps:
+                self.sid[(item, None if p.set_id is None else str(p.set_id),
+                          None if p.licensing_set is None else str(p.licensing_set),
+                          ",".join(p.province_except) or None, p.steelhead_water,
+                          p.steelhead)] = p.rep_sid
         db.close()
         self.parts = [(it, p) for it, w in sorted(d["waters"].items()) for p in w["parts"]]
         self.first_part: dict = {}
@@ -4028,7 +3999,8 @@ class _Cases:
     def answer(self, item: str, part: dict, on, fish: str) -> list[dict]:
         sid = self.section(item, part)
         if sid is None:
-            return []
+            raise SystemExit(f"export_ui_rules: case on {item} part {part['ruleset']}/"
+                             f"{part['licensing_set']} — the bundle has no such part")
         return [{"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
                  **({"partly_lifted": True} if x.get("partly_lifted") else {})}
                 for x in self.RD.effective_rules(sid, on, fish, self.path)]
@@ -5699,16 +5671,18 @@ def steelhead_rules_apply(doc: dict, p: dict) -> bool:
 
 
 def add_steelhead_rules(waters: dict, applies: dict[tuple[str, int], bool]) -> None:
-    """`steelhead_rules: false` on every KNOWN part no steelhead rule applies to — `applies` is
-    the bundle's stored answer per (item, part) (`section_steelhead_rules`) — and on a known water
-    none of whose parts carries them. Absent everywhere else."""
+    """`steelhead_rules` on EVERY part with a rule set — `true` or `false`, the bundle's stored
+    answer per (item, part) (`part.steelhead_rules`, decision DF4: a reader never infers it from
+    absence) — and `steelhead_rules: false` on a known water none of whose parts carries them.
+    A part with no rule set (outside B.C.) carries none: no rule applies there at all."""
     for item_id, w in waters.items():
         any_rules = False
         for n, p in enumerate(w["parts"]):
-            apply = applies.get((item_id, n), False)
+            if p["ruleset"] is None:
+                continue
+            apply = applies[(item_id, n)]
             any_rules |= apply
-            if p.get("steelhead") == "known" and not apply:
-                p["steelhead_rules"] = False
+            p["steelhead_rules"] = bool(apply)
         if w.get("steelhead") == "known" and not any_rules:
             w["steelhead_rules"] = False
 
@@ -5854,8 +5828,8 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
     other and with the rules (user rulings 2026-10-01/02/03): a big rainbow is a steelhead
     (`anadromous_rainbow`) exactly on the KNOWN parts of a STREAM (the water's `kind`: a slough or
     canal is one) WHERE STEELHEAD RULES APPLY (`steelhead_rules_apply`) — known by the book or by
-    the curated list; `steelhead_rules: false` is on exactly the known parts where they do not, and
-    on a known water exactly when no part carries them; a "possible" part is a stream carrying a steelhead rule; a water's
+    the curated list; every part with a rule set says whether they apply (`steelhead_rules`, true
+    or false, DF4) and a known water says `false` exactly when no part carries them; a "possible" part is a stream carrying a steelhead rule; a water's
     `steelhead_source` is present exactly where a part is known, holds "regulations" wherever a
     steelhead row binds a part (with those rows in `steelhead_rows`); the water's roll-up is its
     parts' best."""
@@ -5892,8 +5866,9 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
             if st == "known" and stream and applies[n] and not p.get("anadromous_rainbow"):
                 out.append(f"{tag}: a known stream where steelhead rules apply and a big rainbow "
                            f"is not a steelhead")
-            if (st == "known" and not applies[n]) != (p.get("steelhead_rules") is False) \
-                    or p.get("steelhead_rules") not in (None, False):
+            # DF4: on EVERY part with a rule set, the shipped flag IS whether the rules apply
+            if (p.get("steelhead_rules") is not applies[n]) if p["ruleset"] is not None \
+                    else "steelhead_rules" in p:
                 out.append(f"{tag}: steelhead_rules {p.get('steelhead_rules')!r} on a "
                            f"{st or 'unmarked'} part where steelhead rules "
                            f"{'apply' if applies[n] else 'do not apply'}")

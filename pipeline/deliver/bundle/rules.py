@@ -1211,9 +1211,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         raise SystemExit(
             f"section_ruleset: {len(_unknown):,} bound sections are not in the handle table "
             f"(e.g. {_unknown[:3]}) — the reach run and section_handles.txt disagree")
-    db.executemany("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
-                   [(sid[k], v) for k, v in section_set.items()])
-    cov.filled("section_ruleset", len(section_set))
+    # `section_ruleset` is written below, once its RULE KEY is known (the steelhead facts).
+    set_of = {sid[k]: v for k, v in section_set.items()}
     db.executemany("INSERT INTO ruleset VALUES (?,?,?,?)",
                    ((i, e, r, s) for i, rows in enumerate(sets) for e, r, s in rows))
     cov.filled("ruleset", sum(len(s) for s in sets))
@@ -1249,6 +1248,31 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     from pipeline.deliver.bundle import licensing as _licensing
     _licensing.write(db, reaches, ces, cov, sid, registry)
 
+    # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
+    # IS A STEELHEAD (p.80, `steelhead_water`). Both from the reach run's `steelhead_presence`
+    # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
+    # of a steelhead row binds, and every water on the curated known-steelhead list (a presence
+    # indicator: it binds no rule); `possible` every other stream the provincial steelhead rules
+    # bind. The definition holds on the BOOK's flowing known sections only — never a lake, never
+    # "possible", never from the list. A flagged row the run placed nowhere would state the
+    # definition nowhere, so it stops the build; so does a run that predates the table, or
+    # disagrees with the corpus or the curated list.
+    code, anadromous, applies = write_steelhead_presence(db, reaches, ces, sid, cov, registry,
+                                                         set_of=set_of)
+    # THE RULE KEY OF EVERY SECTION (DATAFLOW P2, decision U2): (rule set, a rainbow over 50 cm
+    # is a steelhead here, the steelhead rules apply here) — decided here, where those facts are
+    # born, and stored on `section_ruleset`; the views are proved to reproduce it below.
+    from pipeline.deliver.bundle.derived import rule_keys
+    kind_of_section = dict(db.execute("SELECT s.sid, i.kind FROM item_section s JOIN item i "
+                                      "ON i.ord = s.ord"))
+    key_rows, key_of = rule_keys(set_of, anadromous, applies, kind_of_section)
+    db.executemany("INSERT INTO rule_key (key_ix, set_id, steelhead_water, steelhead_rules, kind, "
+                   "sections, rep_sid) VALUES (?,?,?,?,?,?,?)", key_rows)
+    cov.filled("rule_key", len(key_rows))
+    db.executemany("INSERT INTO section_ruleset (sid, set_id, key_ix) VALUES (?,?,?)",
+                   [(s_, v, key_of[s_]) for s_, v in sorted(set_of.items())])
+    cov.filled("section_ruleset", len(set_of))
+    prove_steelhead_presence(db, code, anadromous, applies)
     # THE PROOF THAT NOTHING BINDS OUTSIDE B.C., against the ROWS JUST WRITTEN — a reach run from
     # before the subtraction binds 181 such sections, and must not ship.
     bound_outside = {t: db.execute(f"SELECT COUNT(*) FROM outside_bc o JOIN {t} t "
@@ -1274,16 +1298,6 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"{foreign[:5]} ({len(foreign)}), licensing sets on {licensed} section(s). Tidal "
             f"water takes only its own row's note. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
-    # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
-    # IS A STEELHEAD (p.80, `steelhead_water`). Both from the reach run's `steelhead_presence`
-    # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
-    # of a steelhead row binds, and every water on the curated known-steelhead list (a presence
-    # indicator: it binds no rule); `possible` every other stream the provincial steelhead rules
-    # bind. The definition holds on the BOOK's flowing known sections only — never a lake, never
-    # "possible", never from the list. A flagged row the run placed nowhere would state the
-    # definition nowhere, so it stops the build; so does a run that predates the table, or
-    # disagrees with the corpus or the curated list.
-    write_steelhead_presence(db, reaches, ces, sid, cov, registry)
     # THE REGION A STRADDLING SECTION TAKES ITS ZONE RULES FROM (`section_home`): the atlas's own
     # `region_home.json` (`registry.regions.write_homes`), by handle — the fact that decided which
     # region's table the reach run bound here, so a reader can say "this piece takes Region 3's".
@@ -1310,7 +1324,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
           f"sharing {len(sets):,} distinct sets")
 
 
-def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
+def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None, *,
+                             set_of: dict[int, int]) -> tuple[dict, set, set]:
     """`steelhead_known`, `steelhead_set` and `steelhead_source` from the reach run's
     `steelhead_presence` (`pipeline.atlas.reach.steelhead`), checked against the corpus (every row
     flagged `anadromous_rainbow` was placed, and only steelhead rows were) and against itself: the
@@ -1389,7 +1404,6 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     # PER SECTION: every known stream, every steelhead-water section, and any known section with
     # no rule set. Every other section's code is its RULE SET's: one code (or none) per set; a set
     # whose sections disagree only because some are known keeps those known ones per section.
-    set_of = dict(db.execute("SELECT sid, set_id FROM section_ruleset"))
     loose = sorted(s for s, c in code.items() if c != 1 and s not in set_of)
     if loose:
         raise SystemExit(f"steelhead_presence: {len(loose)} section(s) with a code and no rule set "
@@ -1428,6 +1442,13 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None) -> None:
     src = sorted({(o, e) for s, es in source.items() for e in es for o in ord_of.get(s, ())})
     db.executemany("INSERT INTO steelhead_source (ord, entry_id) VALUES (?,?)", src)
     cov.filled("steelhead_source", len(src))
+    return code, anadromous, applies
+
+
+def prove_steelhead_presence(db, code: dict, anadromous: set, applies: set) -> None:
+    """The stored steelhead views (`section_steelhead`, `steelhead_water`,
+    `section_steelhead_rules`) against the reach run's answer they were written from — once
+    `section_ruleset` holds the sets the views join."""
     got = dict(db.execute("SELECT sid, code FROM section_steelhead"))
     if got != code:
         bad = sorted(set(got.items()) ^ set(code.items()))

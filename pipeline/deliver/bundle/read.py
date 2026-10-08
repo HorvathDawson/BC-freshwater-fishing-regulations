@@ -38,34 +38,47 @@ def rules(path: str = BUNDLE) -> List[dict]:
     it would read as a corpus in which nothing lifts anything, so it is refused."""
     db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
-        cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
-        if "exempts" not in cols:
-            raise SystemExit(f"read.rules: {path} has no `rule.exempts` column — rebuild the "
-                             f"bundle (`python -m pipeline.deliver.bundle`)")
-        names = dict(db.execute("SELECT entry_id, name FROM entry"))
-        out = []
-        for row in db.execute("SELECT * FROM rule"):
-            d = dict(zip(cols, row))
-            cond = json.loads(d.pop("conditions") or "{}")
-            if "exempts" in cond:
-                raise SystemExit(f"read.rules: {d['entry_id']}::{d['rule_id']} carries `exempts` "
-                                 f"in `conditions` as well as in its column")
-            for k in ("species", "species_except"):
-                d[k] = json.loads(d[k]) if d.get(k) else []
-            d.update(cond)
-            for col, name in (("when_", "when"), ("while_", "while"), ("exempts", "exempts")):
-                v = d.pop(col, None)
-                if v:
-                    d[name] = json.loads(v)
-            if d.pop("standing", 0):
-                d["standing"] = True
-            d["rule"], d["entry"] = d["rule_id"], d["entry_id"]
-            d["entry_name"] = names.get(d["entry_id"]) or ""
-            d.setdefault("extents", [])
-            out.append(d)
-        return out
+        return rules_from(db, path)
     finally:
         db.close()
+
+
+#: Columns a reader never sees on a rule dict: decided once at bundle time from the rule's own
+#: fields (`rule.closure_grade`, read through `rules.closure_grade` everywhere in Python).
+_DERIVED_COLUMNS = ("closure_grade",)
+
+
+def rules_from(db: sqlite3.Connection, where: str = "the bundle") -> List[dict]:
+    """`rules` on an open connection (the bundle builder reads its own rows back through this:
+    `derived.write`)."""
+    cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
+    if "exempts" not in cols:
+        raise SystemExit(f"read.rules: {where} has no `rule.exempts` column — rebuild the "
+                         f"bundle (`python -m pipeline.deliver.bundle`)")
+    names = dict(db.execute("SELECT entry_id, name FROM entry"))
+    out = []
+    for row in db.execute("SELECT * FROM rule"):
+        d = dict(zip(cols, row))
+        for c in _DERIVED_COLUMNS:
+            d.pop(c, None)
+        cond = json.loads(d.pop("conditions") or "{}")
+        if "exempts" in cond:
+            raise SystemExit(f"read.rules: {d['entry_id']}::{d['rule_id']} carries `exempts` "
+                             f"in `conditions` as well as in its column")
+        for k in ("species", "species_except"):
+            d[k] = json.loads(d[k]) if d.get(k) else []
+        d.update(cond)
+        for col, name in (("when_", "when"), ("while_", "while"), ("exempts", "exempts")):
+            v = d.pop(col, None)
+            if v:
+                d[name] = json.loads(v)
+        if d.pop("standing", 0):
+            d["standing"] = True
+        d["rule"], d["entry"] = d["rule_id"], d["entry_id"]
+        d["entry_name"] = names.get(d["entry_id"]) or ""
+        d.setdefault("extents", [])
+        out.append(d)
+    return out
 
 
 def rid(x: dict) -> str:

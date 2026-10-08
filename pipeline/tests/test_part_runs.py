@@ -22,6 +22,8 @@ from types import SimpleNamespace as NS
 
 import pytest
 
+from pipeline.tests.bundle_fixture import finish, section_sets
+
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.build import SCHEMA
 from pipeline.tools import export_ui_rules as X
@@ -141,8 +143,7 @@ def _bundle(tmp: Path, *, spans: bool = True) -> Path:
                    [(1, "gnis:1", "One River", "stream"), (2, "wbk:5", "Five Lake", "lake")])
     db.executemany("INSERT INTO item_section (ord, sid) VALUES (?,?)",
                    [(1, 1), (1, 2), (1, 3), (2, 4)])
-    db.executemany("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
-                   [(1, 7), (2, 8), (3, 7), (4, 9)])
+    section_sets(db, {1: 7, 2: 8, 3: 7, 4: 9})
     db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", [(1, 2), (2, 3)])
     if spans:
         db.executemany("INSERT INTO span_end (eid, token) VALUES (?,?)",
@@ -154,6 +155,7 @@ def _bundle(tmp: Path, *, spans: bool = True) -> Path:
         db.executemany("INSERT INTO split (split_id, name, kind, at) VALUES (?,?,?,?)",
                        [("one_river__bridge", "bridge", "point", '[["gnis:1", 1.2]]'),
                         ("one_river__falls", "falls", "point", '[["gnis:1", 3.4]]')])
+    finish(db)
     db.commit()
     db.close()
     return path

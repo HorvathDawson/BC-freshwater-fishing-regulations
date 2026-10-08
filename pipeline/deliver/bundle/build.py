@@ -88,6 +88,8 @@ def _connect(out: Path) -> sqlite3.Connection:
     # a diff means something.
     db.execute("PRAGMA page_size = 4096")
     db.execute("PRAGMA journal_mode = OFF")
+    # THE NEW TABLES' FOREIGN KEYS ARE ENFORCED (DATAFLOW P2: rule_key, section_ruleset, part)
+    db.execute("PRAGMA foreign_keys = ON")
     db.executescript(SCHEMA.read_text())
     return db
 
@@ -829,6 +831,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         _rules.write(db, _reaches,
                      Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
                      cov, build_dir=build_dir)
+        # THE DERIVED TABLES (DATAFLOW P2): rule_ix, rule.closure_grade, part, part_section — from
+        # the rows just written, proved against them.
+        from pipeline.deliver.bundle import derived as _derived
+        _derived.write(db, cov)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.

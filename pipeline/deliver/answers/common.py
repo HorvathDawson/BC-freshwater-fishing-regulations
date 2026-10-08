@@ -235,91 +235,49 @@ def rule_key(key: tuple) -> RuleKey:
 
 def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Optional[int]]]]:
     """(keys, parts): `keys` the distinct part tuples (`PART_KEY_FIELDS`), `parts` {item_id: [key
-    index per export part, in the export's order]}. A part with no rule set is `None` — and must be
-    wholly outside B.C. (the export's own `ruleset: null`), or the build stops.
+    index per export part, in the export's order]}. A part with no rule set is `None` (wholly
+    outside B.C.: the bundle refuses otherwise).
 
-    The export groups a water's sections by (ruleset, licensing_set, province_except,
-    steelhead_water, steelhead presence); the same grouping is read back here per part, to add the
-    one fact the export ships only in part: whether the steelhead rules apply (`steelhead_rules`,
-    which every section of a part shares — the export refuses a part whose sections disagree)."""
+    The parts are THE BUNDLE'S (`part`, DATAFLOW P2, `derived.parts`): this only pairs them with
+    the export's, refusing an export whose parts are not exactly the bundle's."""
+    from pipeline.deliver.bundle.derived import parts as bundle_parts
     db = connect(B.path)
     try:
-        db.execute("CREATE TEMP TABLE _st (sid INTEGER PRIMARY KEY, code INTEGER NOT NULL)")
-        db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")
-        db.execute("CREATE TEMP TABLE _sr (sid INTEGER PRIMARY KEY)")
-        db.execute("INSERT INTO _sr SELECT sid FROM section_steelhead_rules")
-        db.execute("CREATE TEMP TABLE _out (sid INTEGER PRIMARY KEY)")
-        db.execute("INSERT INTO _out SELECT DISTINCT sid FROM outside_bc")
-        db.execute("CREATE TEMP TABLE _td (sid INTEGER PRIMARY KEY)")
-        db.execute("INSERT INTO _td SELECT DISTINCT sid FROM tidal")
-        facts: Dict[tuple, dict] = {}
-        for item, rs, ls, pe, sw, st, sr, home, out, td, kind in db.execute(
-                "SELECT i.item_id, r.set_id, l.set_id, "
-                "(SELECT group_concat(k, ',') FROM (SELECT p.area_kind AS k FROM province_except p "
-                " WHERE p.sid = s.sid ORDER BY p.area_kind)), "
-                "EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
-                "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END FROM _st h "
-                " WHERE h.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _sr x WHERE x.sid = s.sid), "
-                "(SELECT region FROM section_home h WHERE h.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _out o WHERE o.sid = s.sid), "
-                "EXISTS (SELECT 1 FROM _td t WHERE t.sid = s.sid), i.kind "
-                "FROM item i JOIN item_section s ON s.ord = i.ord "
-                "LEFT JOIN section_ruleset r ON r.sid = s.sid "
-                "LEFT JOIN section_licensing l ON l.sid = s.sid"):
-            f = facts.setdefault((item, rs, ls, pe, bool(sw), st),
-                                 {"sr": set(), "home": set(), "out": set(), "tidal": set(),
-                                  "kind": set()})
-            f["sr"].add(bool(sr))
-            f["tidal"].add(bool(td))
-            f["kind"].add(kind)
-            f["out"].add(bool(out))
-            if home:
-                f["home"].add(home)
+        P = bundle_parts(db)
     finally:
         db.close()
-
     keys: List[tuple] = []
     index: Dict[tuple, int] = {}
     parts: Dict[str, List[Optional[int]]] = {}
     for item, w in data["waters"].items():
+        mine = P.get(item, [])
+        if len(mine) != len(w["parts"]):
+            raise AnswersError(f"answers: water {item} has {len(w['parts'])} export parts, the "
+                               f"bundle {len(mine)}")
         row: List[Optional[int]] = []
-        for pi, arr in enumerate(w["parts"]):
-            rs, ls = arr[0], arr[1]
+        for pi, (arr, p) in enumerate(zip(w["parts"], mine)):
             flags = arr[4] if len(arr) > 4 else {}
-            pe = ",".join(flags["province_except"]) if flags.get("province_except") else None
-            ident = (item, rs, ls, pe, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"))
-            f = facts.get(ident)
-            if f is None:
-                raise AnswersError(f"answers: water {item} part {pi} {ident[1:]} has no sections in "
-                                   f"the bundle")
-            if rs is None:
-                if f["out"] != {True}:
-                    raise AnswersError(f"answers: water {item} part {pi} has no rule set but is not "
-                                       f"wholly outside B.C.")
+            shipped = (arr[0], arr[1], tuple(flags.get("province_except") or ()),
+                       bool(flags.get("anadromous_rainbow")), flags.get("steelhead"),
+                       tuple(flags.get("home_region") or ()))
+            own = (None if p.set_id is None else int(p.set_id), p.licensing_set,
+                   p.province_except, p.steelhead_water, p.steelhead, p.home_regions)
+            if shipped != own:
+                raise AnswersError(f"answers: water {item} part {pi}: the export's {shipped} is "
+                                   f"not the bundle's {own}")
+            if p.set_id is None:
                 row.append(None)
                 continue
-            if len(f["sr"]) != 1:
-                raise AnswersError(f"answers: water {item} part {pi}: its sections disagree on "
-                                   f"whether the steelhead rules apply")
-            sr = next(iter(f["sr"]))
-            if flags.get("steelhead_rules") is False and sr:
-                raise AnswersError(f"answers: water {item} part {pi}: the export says steelhead "
-                                   f"rules do not apply, the bundle says they do")
-            home = tuple(sorted(f["home"]))
-            if home != tuple(flags.get("home_region") or ()):
-                raise AnswersError(f"answers: water {item} part {pi}: home_region {home} is not the "
-                                   f"export's {flags.get('home_region')}")
-            if len(f["tidal"]) != 1:
-                raise AnswersError(f"answers: water {item} part {pi}: its sections disagree on "
-                                   f"whether it is tidal water")
-            kind = w.get("kind")
-            if f["kind"] != {kind} or B.set_kind.get(rs) != kind:
-                raise AnswersError(f"answers: water {item} part {pi}: kind {kind!r} is not its "
-                                   f"sections' {sorted(map(str, f['kind']))} or its rule set's "
-                                   f"{B.set_kind.get(rs)!r}")
-            key = (rs, ls, bool(flags.get("anadromous_rainbow")), flags.get("steelhead"), sr,
-                   tuple(flags.get("province_except") or ()), home, kind, next(iter(f["tidal"])))
+            if flags.get("steelhead_rules") is not p.steelhead_rules:
+                raise AnswersError(f"answers: water {item} part {pi}: the export's "
+                                   f"steelhead_rules {flags.get('steelhead_rules')!r} is not the "
+                                   f"bundle's {p.steelhead_rules}")
+            if w.get("kind") != p.kind or B.set_kind.get(p.set_id) != p.kind:
+                raise AnswersError(f"answers: water {item} part {pi}: kind {w.get('kind')!r} is "
+                                   f"not its part's {p.kind!r} or its rule set's "
+                                   f"{B.set_kind.get(p.set_id)!r}")
+            key = (p.set_id, p.licensing_set, p.steelhead_water, p.steelhead, p.steelhead_rules,
+                   p.province_except, p.home_regions, p.kind, p.tidal)
             if key not in index:
                 index[key] = len(keys)
                 keys.append(key)

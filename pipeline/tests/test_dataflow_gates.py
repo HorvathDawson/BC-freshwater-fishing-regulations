@@ -192,10 +192,10 @@ def test_gate_2_goes_red_on_a_planted_spelling():
 PART_WRITERS = {"pipeline/deliver/bundle/build.py", "pipeline/deliver/bundle/derived.py",
                 "pipeline/deliver/bundle/licensing.py"}
 
+#: Counts sections per table (the export's `about.sections`): names both tables, groups nothing.
+PART_TALLIES = {("pipeline/tools/export_ui_rules.py", "section_counts")}
+
 PARTS_PENDING: dict[tuple[str, str], str] = {
-    ("pipeline/tools/export_ui_rules.py", "read"): "P2",
-    ("pipeline/tools/export_ui_rules.py", "_Cases.__init__"): "P2",
-    ("pipeline/deliver/answers/common.py", "part_keys"): "P2",
     ("pipeline/deliver/answers/licence.py", "section_keys"): "P6",
 }
 
@@ -221,7 +221,7 @@ def part_sql(sources: dict[str, str]) -> set[tuple[str, str]]:
 
 
 def test_gate_3_the_part_partition_is_written_once():
-    got = part_sql(_sources())
+    got = part_sql(_sources()) - PART_TALLIES
     assert got - set(PARTS_PENDING) == set(), "a new grouping of sections into parts"
     assert set(PARTS_PENDING) - got == set(), \
         "a PENDING part SQL is gone: take it off PARTS_PENDING (the list only shrinks)"

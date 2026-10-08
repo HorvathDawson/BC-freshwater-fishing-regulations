@@ -266,7 +266,40 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
                    -- outcome — like `standing`, a column because the client decides from it.
                    -- NULL = the rule holds on every section it binds.
                    undrawn_part TEXT,
+                   -- THE ONE CLOSURE PREDICATE, STORED (DATAFLOW P2): `rules.closure_grade` of the
+                   -- rule, written once by `derived.write` — 'full' (an unconditional "no
+                   -- fishing"), 'partial' (a closure with a condition, or held as a note), NULL
+                   -- (not a closure). Nothing downstream re-reads `take`/`may_target` for it.
+                   closure_grade TEXT CHECK (closure_grade IN ('full', 'partial')),
+                   CHECK (may_target IS NULL OR may_target IN (0, 1)),
+                   -- "may not fish for it" is a closure, which keeps nothing
+                   CHECK (may_target IS NULL OR may_target = 1 OR take = 0),
+                   CHECK (closure_grade IS NULL
+                          OR (type = 'retention_limit' AND take = 0 AND may_target = 0)),
                    PRIMARY KEY (entry_id, rule_id)) WITHOUT ROWID;
+
+-- THE RULE ORDER EVERY STAGE USES (DATAFLOW P2): a rule's index in the sorted
+-- `entry_id::rule_id` list — the export's `rules` array and every `RuleIx` of the verdicts and
+-- the answers. Written once (`derived.write`); `meta.rule_ids_sha256` names the order.
+CREATE TABLE rule_ix (ix INTEGER PRIMARY KEY CHECK (ix >= 0),
+                      entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
+                      UNIQUE (entry_id, rule_id));
+
+-- THE READER'S THREE INPUTS FOR A SECTION (DATAFLOW P2, the "rule key"): its rule set, whether a
+-- rainbow over 50 cm is a steelhead there, whether the steelhead rules apply there. Every
+-- section with one key gets one answer from `read.effective_rules_bound`, so the verdicts are
+-- worked out per key. Numbered in (set, steelhead_water, steelhead_rules) order. `kind` the water
+-- kind of the NAMED water carrying the set (NULL: only unnamed sections carry it); `rep_sid` the
+-- lowest section (a HANDLE: never leaves the bundle).
+CREATE TABLE rule_key (key_ix          INTEGER PRIMARY KEY CHECK (key_ix >= 0),
+                       set_id          INTEGER NOT NULL,
+                       steelhead_water INTEGER NOT NULL CHECK (steelhead_water IN (0, 1)),
+                       steelhead_rules INTEGER NOT NULL CHECK (steelhead_rules IN (0, 1)),
+                       kind            TEXT CHECK (kind IN ('lake', 'stream', 'wetland')),
+                       sections        INTEGER NOT NULL CHECK (sections > 0),
+                       rep_sid         INTEGER NOT NULL,
+                       UNIQUE (set_id, steelhead_water, steelhead_rules),
+                       CHECK (steelhead_water <= steelhead_rules));
 
 -- SAY IT ONCE AND POINT AT IT. The rules covering a section, as a SET the section names.
 --
@@ -291,8 +324,49 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
 -- NOTHING ABOUT THIS TOUCHES THE TILE. `mus` and `areas` ride on tile features because
 -- administrative geography exists whether or not anything is regulated; a rule-derived set
 -- does not, and the map is not where regulation knowledge lives.
+--
+-- `key_ix` IS THE SECTION'S RULE KEY (decision U2): computed once where the steelhead facts are
+-- born (`rules.write`, `derived.rule_keys`), read by the verdicts, the status index and the app.
 CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
-                              set_id INTEGER NOT NULL);
+                              set_id INTEGER NOT NULL,
+                              key_ix INTEGER NOT NULL REFERENCES rule_key(key_ix));
+
+-- THE PARTS OF EVERY NAMED WATER, decided once (DATAFLOW P2, Q16): every section of one water
+-- carrying the same rule set, licensing set, province exceptions, steelhead water and steelhead
+-- presence. `part_ix` IS the export's `waters[item].parts` index (the order it always shipped:
+-- rule set, null last; licensing set; no exception first; not steelhead water first; known,
+-- possible, none). Read by the export and the answers; nothing else groups sections into parts.
+--   set_id / key_ix   NULL together: every section is outside B.C.
+--   licensing_set     NULL: no placed licensing record binds it (a real answer)
+--   province_except   '' or a sorted, comma-joined subset of the families a province-wide
+--                     requirement stops at (`types.ProvinceExceptKind`)
+--   steelhead         section_steelhead's code: 1 known, 2 possible; NULL neither
+--   home_regions      '' or the sorted, comma-joined regions its straddling sections take
+--   rep_sid           the lowest section: a HANDLE, never leaves the bundle
+CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
+                   part_ix         INTEGER NOT NULL CHECK (part_ix >= 0),
+                   set_id          INTEGER,
+                   key_ix          INTEGER REFERENCES rule_key(key_ix),
+                   licensing_set   INTEGER,
+                   province_except TEXT NOT NULL CHECK (province_except IN
+                                     ('', 'national_parks', 'tidal', 'national_parks,tidal')),
+                   steelhead_water INTEGER NOT NULL CHECK (steelhead_water IN (0, 1)),
+                   steelhead       INTEGER CHECK (steelhead IN (1, 2)),
+                   steelhead_rules INTEGER NOT NULL CHECK (steelhead_rules IN (0, 1)),
+                   home_regions    TEXT NOT NULL,
+                   tidal           INTEGER NOT NULL CHECK (tidal IN (0, 1)),
+                   sections        INTEGER NOT NULL CHECK (sections > 0),
+                   rep_sid         INTEGER NOT NULL,
+                   PRIMARY KEY (ord, part_ix),
+                   UNIQUE (ord, set_id, licensing_set, province_except, steelhead_water,
+                           steelhead),
+                   CHECK ((set_id IS NULL) = (key_ix IS NULL)),
+                   CHECK (steelhead_water <= steelhead_rules)) WITHOUT ROWID;
+CREATE TABLE part_section (ord     INTEGER NOT NULL,
+                           sid     INTEGER NOT NULL,
+                           part_ix INTEGER NOT NULL,
+                           PRIMARY KEY (ord, sid),
+                           FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 
 -- WATER B.C. DOES NOT GOVERN. Every section outside the province — past the border (the atlas's
 -- `out_of_bc`) or in no region polygon (border slivers) — by handle. The reach builder subtracts
