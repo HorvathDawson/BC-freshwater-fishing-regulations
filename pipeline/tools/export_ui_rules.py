@@ -47,6 +47,7 @@ from pipeline.deliver.answers.common import TIDAL_NOTE
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.place_names import display_case
 from pipeline.deliver.bundle.rules import LIFT_KEYS, catch_and_release
+from pipeline.deliver.bundle.read import SPEAKER_STATES as RD_SPEAKERS
 from pipeline.regs.parsing import catalogue as C
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
 from pipeline.regs.parsing.entry_models import Extent, Op
@@ -3970,10 +3971,10 @@ class _Cases:
         self.lic: dict = defaultdict(list)
         for s, e, r in db.execute("SELECT set_id, entry_id, record_id FROM licensing_set"):
             self.lic[str(s)].append(f"{e}#{r}")
-        # A CASE IS ANSWERED ON A SECTION OF ITS OWN WATER AND PART (E4): the part's lowest
-        # section (`part.rep_sid`, the bundle's parts — DATAFLOW P2). A section of the same rule
-        # set on ANOTHER water may differ in steelhead presence, and the `expect` would then
-        # describe a different water than `water.item_id` names.
+        # A CASE IS ANSWERED ON ITS OWN WATER AND PART (E4): the part's RULE KEY (`part.key_ix`,
+        # the bundle's parts — DATAFLOW P2), whose stored verdict every one of its sections
+        # shares. A part of the same rule set on ANOTHER water may differ in steelhead presence,
+        # and the `expect` would then describe a different water than `water.item_id` names.
         from pipeline.deliver.bundle.derived import parts as _bundle_parts
         self.sid = {}
         for item, ps in _bundle_parts(db).items():
@@ -3981,7 +3982,8 @@ class _Cases:
                 self.sid[(item, None if p.set_id is None else str(p.set_id),
                           None if p.licensing_set is None else str(p.licensing_set),
                           ",".join(p.province_except) or None, p.steelhead_water,
-                          p.steelhead)] = p.rep_sid
+                          p.steelhead)] = p.key
+        self.store = verdicts_of(bundle)
         db.close()
         self.parts = [(it, p) for it, w in sorted(d["waters"].items()) for p in w["parts"]]
         self.first_part: dict = {}
@@ -3997,13 +3999,18 @@ class _Cases:
                              bool(part.get("anadromous_rainbow")), part.get("steelhead")))
 
     def answer(self, item: str, part: dict, on, fish: str) -> list[dict]:
-        sid = self.section(item, part)
-        if sid is None:
+        """The stored verdict for the part's rule key on the day (`verdicts_of`), as the reader
+        answered on any of its sections."""
+        ident = (item, part["ruleset"], part["licensing_set"],
+                 ",".join(part.get("province_except") or ()) or None,
+                 bool(part.get("anadromous_rainbow")), part.get("steelhead"))
+        if ident not in self.sid:
             raise SystemExit(f"export_ui_rules: case on {item} part {part['ruleset']}/"
                              f"{part['licensing_set']} — the bundle has no such part")
-        return [{"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
-                 **({"partly_lifted": True} if x.get("partly_lifted") else {})}
-                for x in self.RD.effective_rules(sid, on, fish, self.path)]
+        key = self.sid[ident]
+        if key is None:
+            return []           # a part wholly outside B.C.: no rule binds it (no rule set)
+        return answer_on(self.store, key, on, fish)
 
     def record(self, mech, item, part, on, fish, because, ans, licensing=False) -> dict:
         w = self.d["waters"][item]
@@ -5998,15 +6005,65 @@ QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
 
 _SCAN: dict = {}
 
+#: The verdict store each bundle is read through (`verdicts.sqlite` beside it unless `main` was
+#: handed another): every reader answer the export ships is LOOKED UP there (DATAFLOW P5).
+_STORES: dict = {}
+
+
+def verdicts_of(bundle: Path, path: Path | None = None):
+    """The bundle's verdicts (`pipeline.deliver.verdicts.store.VerdictStore`), opened once and
+    held to the bundle's digests; refused when absent (no fallback to the reader)."""
+    from pipeline.deliver.verdicts.store import VerdictStore
+    key = str(Path(bundle).resolve())
+    if path is not None or key not in _STORES:
+        _STORES[key] = VerdictStore.open(path or Path(bundle).with_name("verdicts.sqlite"), bundle)
+    return _STORES[key]
+
+
+def rule_keys_of(bundle: Path) -> dict[int, list[tuple[int, int, bool, bool, int, int]]]:
+    """{set_id: [(key_ix, set_id, steelhead water, steelhead rules, sections, lowest section)]},
+    each set's keys by their lowest section — the bundle's `rule_key`."""
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    try:
+        out: dict = defaultdict(list)
+        for k, s, sw, sr, n, rep_ in db.execute(
+                "SELECT key_ix, set_id, steelhead_water, steelhead_rules, sections, rep_sid "
+                "FROM rule_key ORDER BY set_id, rep_sid"):
+            out[s].append((k, s, bool(sw), bool(sr), n, rep_))
+        return dict(out)
+    finally:
+        db.close()
+
+
+def answer_on(store, key: int, on, fish: str, *, trace: bool = False) -> list[dict]:
+    """The reader's stored answer for a rule key on a day (`(month, day)`), origin not known:
+    `[{"id", "state", partly_lifted?, reason?, by?}]` by rule id — the speakers (`trace` adds the
+    losers), exactly what `read.effective_rules` returned for a section of the key."""
+    from pipeline.deliver import types as T
+    out = []
+    for r in store.on_day(key, CAL.day_of(on), fish, "none"):
+        st = r.state.value
+        if st not in RD_SPEAKERS and not trace:
+            continue
+        x = {"id": store.rule_ids[r.rule], "state": st}
+        if r.lifted_in_part_by:
+            x["partly_lifted"] = True
+        if r.reason is not None:
+            x["reason"], x["by"] = r.reason.value, store.rule_ids[r.by]
+        out.append(x)
+    return out
+
 
 def _closure_scan(bundle: Path) -> dict:
     """ONE SCAN FOR BOTH CHECKS: every water-row (`r…`) retention rule that is a dated outright
-    release or a keeping quota, on one section of each rule set it binds, on EVERY day that may
+    release or a keeping quota, on EVERY RULE KEY of each rule set it binds (DATAFLOW M8, decision
+    U4: it used to read one section per set, whatever its steelhead flags), on EVERY day that may
     matter — the first day of each of its date ranges and the first day of each zone full
     closure bound on the same set (a release Jan 1-Feb 28 against a closure from Feb 1 is seen
-    on Feb 1), wherever both are in force — for EACH fish it names that a closure there speaks
-    for. The reader answers once per (section, day, fish). Returns {"release": [...], "quota":
-    [...]}, one finding per rule (its first); the callers mark the known ones. A quota the
+    on Feb 1), wherever both are in force — for EACH fish it speaks for that a closure there
+    speaks for. The answers are the stored verdicts' (`verdicts_of`); the reader is not called.
+    Returns {"release": [...], "quota": [...]}, one finding per rule (its first: sets in order,
+    each set's keys by their lowest section); the callers mark the known ones. A quota the
     WATER'S OWN full closure silences (`read` reason `water_closure`, the DENETIAH ruling) is no
     finding: the row closes its own water, no zone closure hides an exemption there."""
     from pipeline.deliver.bundle import read as RD
@@ -6016,90 +6073,89 @@ def _closure_scan(bundle: Path) -> dict:
     if key in _SCAN:
         return _SCAN[key]
     R = RD._rules_of(str(bundle))
+    store = verdicts_of(bundle)
+    keys_of = rule_keys_of(bundle)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     try:
-        sid_of = {s: sid for s, sid in db.execute(
-            "SELECT set_id, MIN(sid) FROM section_ruleset GROUP BY set_id")}
         members: dict = defaultdict(list)
         for s, e, r in db.execute("SELECT set_id, entry_id, rule_id FROM ruleset"):
-            if (e, r) in R:
-                members[s].append((e, r))
+            if (e, r) not in R:
+                raise SystemExit(f"export_ui_rules: rule set {s} names {e}::{r}, not a rule")
+            members[s].append((e, r))
     finally:
         db.close()
 
     def starts(x: dict) -> set:
         return {(d["from_month"], d["from_day"]) for d in (x.get("when") or {}).get("dates") or []}
 
-    def fish_of(x: dict) -> list:
-        return [f for f in expand_species(list(x.get("species") or ["ALL_GAME_FISH"]))
-                if f != "CRA"]
+    def fish_of(x: dict, asked) -> list:
+        """The fish a rule speaks for, among those asked on the key: its named fish in the
+        order it names them, then every other game fish (a rule naming none, or an open subject
+        such as ALL_FIN_FISH, speaks for every game fish — `read.speaks_for`)."""
+        order = list(dict.fromkeys(expand_species(list(x.get("species") or [])) + list(C.GAME_FISH)))
+        return [f for f in order if f in asked and RD.speaks_for(x, f)]
 
     out: dict = {"release": [], "quota": []}
     seen: set = set()
     for s in sorted(members):
-        sid = sid_of.get(s)
-        if sid is None:
-            continue
         shut_here = [k for k in members[s] if str(k[0]).startswith("z")
                      and closure_grade(R[k]) == "full" and RD.base_region(k[0]) is not None
                      and not RD.not_yet_mapped(R[k])]
         if not shut_here:
             continue
-        cands = []
-        for k in sorted(members[s]):
-            x = R[k]
-            if k in seen or not str(k[0]).startswith("r") or RD.not_yet_mapped(x) \
-                    or closure_grade(x) is not None:
-                continue
-            if release_origins(x) and starts(x):
-                cands.append(("release", k))
-            elif yields_to_release(x):
-                cands.append(("quota", k))
-        if not cands:
-            continue
-        cache: dict = {}
-        for what, k in cands:
-            x = R[k]
-            days = starts(x) | {d for c in shut_here for d in (starts(R[c]) or {(1, 1)})}
-            if not starts(x):
-                days.add((1, 1))
-            hit = None
-            for on in sorted(days):
-                if RD.in_force(x.get("when"), on) != "yes":
+        for key_ix, *_ in keys_of.get(s, []):
+            asked = set(store.fish(key_ix))
+            cands = []
+            for k in sorted(members[s]):
+                x = R[k]
+                if k in seen or not str(k[0]).startswith("r") or RD.not_yet_mapped(x) \
+                        or closure_grade(x) is not None:
                     continue
-                shut_on = [c for c in shut_here if RD.in_force(R[c].get("when"), on) == "yes"]
-                if not shut_on:
-                    continue
-                for fish in fish_of(x):
-                    if not (RD.speaks_for(x, fish)
-                            and any(RD.speaks_for(R[c], fish) for c in shut_on)):
+                if release_origins(x) and starts(x):
+                    cands.append(("release", k))
+                elif yields_to_release(x):
+                    cands.append(("quota", k))
+            cache: dict = {}
+            for what, k in cands:
+                x = R[k]
+                days = starts(x) | {d for c in shut_here for d in (starts(R[c]) or {(1, 1)})}
+                if not starts(x):
+                    days.add((1, 1))
+                hit = None
+                for on in sorted(days):
+                    if RD.in_force(x.get("when"), on) != "yes":
                         continue
-                    if (on, fish) not in cache:
-                        # traced: a quota the WATER'S OWN closure silences (DENETIAH ruling,
-                        # 2026-10-06) is the row closing itself, not a zone closure hiding a
-                        # missed exemption — it counts as speaking here
-                        cache[(on, fish)] = {
-                            (y["entry"], y["rule"]): y for y in
-                            RD.effective_rules(sid, on, fish, str(bundle), trace=True)
-                            if y["state"] == "speaks" or y.get("reason") == "water_closure"}
-                    got = cache[(on, fish)]
-                    shut = [f"{e}::{r}" for (e, r), y in sorted(got.items())
-                            if str(e).startswith("z") and closure_grade(y) == "full"
-                            and RD.base_region(e) is not None]
-                    # a release that SPEAKS under the closure; a quota in force that does NOT
-                    if shut and ((k in got) if what == "release" else (k not in got)):
-                        hit = (on, fish, shut)
+                    shut_on = [c for c in shut_here if RD.in_force(R[c].get("when"), on) == "yes"]
+                    if not shut_on:
+                        continue
+                    for fish in fish_of(x, asked):
+                        if not any(RD.speaks_for(R[c], fish) for c in shut_on):
+                            continue
+                        if (on, fish) not in cache:
+                            # a quota the WATER'S OWN closure silences (DENETIAH ruling,
+                            # 2026-10-06) is the row closing itself, not a zone closure hiding a
+                            # missed exemption — it counts as speaking here
+                            cache[(on, fish)] = {
+                                tuple(y["id"].split("::", 1)): y
+                                for y in answer_on(store, key_ix, on, fish, trace=True)
+                                if y["state"] == "speaks" or y.get("reason") == "water_closure"}
+                        got = cache[(on, fish)]
+                        shut = [f"{e}::{r}" for (e, r) in sorted(got)
+                                if str(e).startswith("z") and closure_grade(R[(e, r)]) == "full"
+                                and RD.base_region(e) is not None]
+                        # a release that SPEAKS under the closure; a quota in force that does NOT
+                        if shut and ((k in got) if what == "release" else (k not in got)):
+                            hit = (on, fish, shut)
+                            break
+                    if hit:
                         break
                 if hit:
-                    break
-            if hit:
-                seen.add(k)
-                on, fish, shut = hit
-                # `section` is for re-asking the reader here; what SHIPS (`_known`) names the
-                # RULE SET instead: a section handle never leaves the bundle (AGENTS 5)
-                out[what].append({"key": k, "rule": f"{k[0]}::{k[1]}", "ruleset": str(s),
-                                  "section": sid,
-                                  "date": list(on), "fish": fish, "closures": shut})
+                    seen.add(k)
+                    on, fish, shut = hit
+                    # what SHIPS (`_known`) names the RULE SET, never a section (AGENTS 5)
+                    out[what].append({"key": k, "rule": f"{k[0]}::{k[1]}", "ruleset": str(s),
+                                      "rule_key": key_ix,
+                                      "date": list(on), "fish": fish, "closures": shut})
     _SCAN[key] = out
     return out
 
@@ -6164,19 +6220,13 @@ def closures_combine(bundle: Path) -> dict:
     from pipeline.deliver.bundle import read as RD
     from pipeline.deliver.bundle.rules import closure_grade
     R = RD._rules_of(str(bundle))
+    store = verdicts_of(bundle)
+    keys_of = rule_keys_of(bundle)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     try:
         bound: dict = defaultdict(list)
         for s, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset"):
             bound[s].append((e, r, via))
-        steel = {s for (s,) in db.execute("SELECT DISTINCT sid FROM steelhead_water")}
-        st_rules = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
-        # (set, steelhead water, steelhead rules) -> [sections, first section]: every section
-        # under one key gets the same answer (`effective_rules_bound`)
-        keys: dict = {}
-        for sid, s in db.execute("SELECT sid, set_id FROM section_ruleset ORDER BY sid"):
-            k = keys.setdefault((s, sid in steel, sid in st_rules), [0, sid])
-            k[0] += 1
         names = dict(db.execute("SELECT entry_id, name FROM entry"))
         verbatim = dict(db.execute("SELECT entry_id, verbatim FROM entry"))
     finally:
@@ -6218,30 +6268,22 @@ def closures_combine(bundle: Path) -> dict:
             cands[s] = got
 
     pairs: dict = {}
-    for (s, sh_water, sh_rules), (nsec, sid) in sorted(keys.items()):
+    every_key = sorted((s, sw, sr, k, n, rep_) for ks in keys_of.values()
+                       for k, s, sw, sr, n, rep_ in ks)
+    for s, sh_water, sh_rules, key_ix, nsec, sid in every_key:
         if s not in cands:
             continue
         rows = bound[s]
-        # THE DAY SEGMENTS: the reader's answer changes only where a date of a bound rule or of
-        # one of its lifts begins or ends, so one day per segment asks for all of it.
-        lists = [days(R[(e, r)]) for e, r, _ in rows if (e, r) in R]
-        lists += [days(y) for e, r, _ in rows if (e, r) in R
-                  for y in R[(e, r)].get("exempts") or [] if y.get("when")]
-        seg_of, segs = {}, {}
-        for d in sorted(CAL.MD):
-            sig = tuple(d in x for x in lists)
-            seg_of[d] = segs.setdefault(sig, len(segs))
-        first = {}
-        for d in sorted(CAL.MD):
-            first.setdefault(seg_of[d], d)
+        # THE READINGS ARE THE VERDICTS': a day's answer is its reading's (`reading_of`), stored
         answer: dict = {}
 
-        def speaks(seg, f):
-            if (seg, f) not in answer:
-                answer[(seg, f)] = {(y["entry"], y["rule"]) for y in RD.effective_rules_bound(
-                    rows, sh_water, CAL.MD[first[seg]], f, str(bundle),
-                    steelhead_rules_here=sh_rules) if y["state"] == "speaks"}
-            return answer[(seg, f)]
+        def speaks(d, f, key_ix=key_ix):
+            r = store.reading_of(key_ix, d)
+            if (r, f) not in answer:
+                answer[(r, f)] = {tuple(y["id"].split("::", 1))
+                                  for y in answer_on(store, key_ix, CAL.MD[d], f)
+                                  if y["state"] == "speaks"}
+            return answer[(r, f)]
 
         for k, z, common in cands[s]:
             dk, dz = days(R[k]), days(R[z])
@@ -6249,7 +6291,7 @@ def closures_combine(bundle: Path) -> dict:
             lifted: dict = defaultdict(set)     # fish -> days of the zone's own the reader lifts
             for f in sorted(common):
                 for d in sorted(dz - {CAL.LEAP}):
-                    if z in speaks(seg_of[d], f):
+                    if z in speaks(d, f):
                         if d not in dk:
                             holds[f].add(d)
                     else:
@@ -6527,7 +6569,7 @@ def quota_under_closure(bundle: Path) -> list[dict]:
 
 
 def _known(found: list[dict], known: dict) -> list[dict]:
-    return [{**{a: b for a, b in x.items() if a not in ("key", "section")},
+    return [{**{a: b for a, b in x.items() if a not in ("key", "rule_key")},
              **({"known": known[x["key"]]} if x["key"] in known else {})} for x in found]
 
 
@@ -6731,7 +6773,10 @@ def main(argv=None) -> int:
                     help=f"the guide file (default: {GUIDE_NAME} beside --out)")
     ap.add_argument("--pretty", action="store_true",
                     help="indent both files for a human (the shipped files are not indented)")
+    ap.add_argument("--verdicts", type=Path, default=None,
+                    help="the bundle's verdicts (default: verdicts.sqlite beside the bundle)")
     a = ap.parse_args(argv)
+    verdicts_of(a.bundle, a.verdicts)          # opened and held to the bundle's digests, once
     doc = build(a.bundle)
     bad = problems(doc)
     try:

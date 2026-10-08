@@ -279,18 +279,20 @@ def _section(db, ex: Example) -> int | None:
 def examples(bundle: Path | str) -> dict:
     """{id: example as shipped}: the declaration and the reader's answer (`expect`) on its section
     — `expect` is None where no section of the water carries the rules it names."""
-    from pipeline.deliver.bundle import read as RD
+    from pipeline.tools.export_ui_rules import answer_on, verdicts_of
+    store = verdicts_of(Path(bundle))
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     names = dict(db.execute("SELECT item_id, name FROM item"))
+
+    def key_of(sid: int) -> int:
+        return db.execute("SELECT key_ix FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()[0]
     out = {}
     try:
         for ex in EXAMPLES:
             sid = _section(db, ex)
             m, d = (int(x) for x in ex.date.split("-"))
-            expect = None if sid is None else [
-                {"id": f"{x['entry']}::{x['rule']}", "state": x["state"],
-                 **({"partly_lifted": True} if x.get("partly_lifted") else {})}
-                for x in RD.effective_rules(sid, (m, d), ex.fish, str(bundle))]
+            # THE STORED VERDICT of the section's rule key (DATAFLOW P5): the reader's answer
+            expect = None if sid is None else answer_on(store, key_of(sid), (m, d), ex.fish)
             out[ex.id] = {"cited_in": list(ex.cited_in),
                           "water": {"item_id": ex.water, "name": names.get(ex.water)},
                           **({"named_as": ex.named_as} if ex.named_as else {}),
