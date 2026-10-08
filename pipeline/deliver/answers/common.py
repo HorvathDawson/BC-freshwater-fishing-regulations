@@ -1,5 +1,5 @@
 """THE ONE KEYING MODULE of the answers layer: the bundle, the export pair it pairs with, the rule
-order, the keys, the calendar and the year's segments — and the words for fish and dates. Every
+order, the keys — and the words for fish and dates. Every
 section producer (`answers.py`'s ladder and answer, `gear.py`, `licence.py`, `display.py`,
 `rows.py`) reads its inputs through here; none opens the bundle or cuts a year on its own.
 
@@ -20,15 +20,10 @@ steelhead_rules, province_except, home_region) — the rule key plus what the ot
 Every section is keyed by the part key; each section's own `scope` says which of its fields its
 answers depend on.
 
-THE CALENDAR is the catalogue's leap calendar (`status_index.day_of` / `month_day`): Jan 1 = 1,
-Feb 29 = 60, Mar 1 = 61 in every year, Dec 31 = 366.
-
-THE SEGMENTS ARE THE READER'S SIGNATURE. A segment is a run of days on which every `when` a
-section reads holds the same (`read.in_force`: no / yes / part) — for the rules, every bound
-rule's `when` and every lift's `when` (`status_index.set_profile`'s memo key). Each `when` is
-turned into its 366-day vector ONCE (`when_vector`); a key's year is cut where any of its vectors
-changes (`segments`), and the file's segments are the union of every section's cuts
-(`segments_of`).
+THE CALENDAR AND THE SEGMENTS are the delivery's one calendar (`pipeline.deliver.calendar`): the
+leap calendar (Jan 1 = 1, Feb 29 = 60, Mar 1 = 61, Dec 31 = 366); a key's year cut where any `when`
+the reader reads changes (`calendar.rule_vectors` + `calendar.segments`); the file's segments the
+union of every section's cuts (`calendar.segments_of`).
 """
 from __future__ import annotations
 
@@ -43,28 +38,10 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.bundle import read
-
-DAYS = 366
-
+from pipeline.deliver.calendar import DAYS  # noqa: F401  (the answers' year)
 
 class AnswersError(RuntimeError):
     """A question the answers layer cannot answer: the build stops, naming it."""
-
-
-# --------------------------------------------------------------------------------------------
-# The calendar (the catalogue's leap calendar, `status_index`'s functions: one definition)
-# --------------------------------------------------------------------------------------------
-
-def month_day(day: int) -> Tuple[int, int]:
-    """1..366 -> (month, day) on the leap calendar (day 60 is Feb 29)."""
-    from pipeline.deliver.status_index import month_day as md
-    return md(day)
-
-
-def day_of(month: int, day: int) -> int:
-    """(month, day) -> 1..366 on the leap calendar."""
-    from pipeline.deliver.status_index import day_of as d
-    return d((month, day))
 
 
 # --------------------------------------------------------------------------------------------
@@ -348,88 +325,6 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
             row.append(index[key])
         parts[item] = row
     return keys, parts
-
-
-# --------------------------------------------------------------------------------------------
-# Segments
-# --------------------------------------------------------------------------------------------
-
-_CODE = {"no": 0, "yes": 1, "part": 2}
-
-
-@lru_cache(maxsize=None)
-def _vector(when_json: str) -> Tuple[int, ...]:
-    when = json.loads(when_json)
-    return tuple(_CODE[read.in_force(when, month_day(d))] for d in range(1, DAYS + 1))
-
-
-def when_vector(when: Optional[dict]) -> Tuple[int, ...]:
-    """A `when` as its 366 day codes (0 no, 1 yes, 2 part), on the catalogue's leap calendar."""
-    return _vector(json.dumps(when or None, sort_keys=True))
-
-
-@lru_cache(maxsize=None)
-def _changes(vec: Tuple[int, ...]) -> frozenset:
-    return frozenset(d for d in range(2, DAYS + 1) if vec[d - 1] != vec[d - 2])
-
-
-def rule_vectors(rules: Iterable[dict]) -> List[Tuple[int, ...]]:
-    """Every `when` the reader reads for these rules, in order: each rule's own and each of its
-    lifts'. Two days whose vectors all read alike get one answer from the reader."""
-    out = []
-    for x in rules:
-        out.append(when_vector(x.get("when")))
-    for x in rules:
-        for lift in x.get("exempts") or []:
-            if "when" in lift:
-                out.append(when_vector(lift.get("when")))
-    return out
-
-
-def segments(vectors: Sequence[Tuple[int, ...]]) -> Tuple[List[List[int]], List[int]]:
-    """The year cut where any vector changes: `runs` [[start_day, reading]] (contiguous, covering
-    1..366) and `readings` [first start day of each distinct reading], numbered in day order. A
-    reading recurs (both sides of a winter closure read alike) and is computed once."""
-    cuts = {1}
-    for v in vectors:
-        cuts |= _changes(v)
-    runs: List[List[int]] = []
-    seen: Dict[tuple, int] = {}
-    readings: List[int] = []
-    for d in sorted(cuts):
-        sig = tuple(v[d - 1] for v in vectors)
-        i = seen.get(sig)
-        if i is None:
-            i = seen[sig] = len(readings)
-            readings.append(d)
-        if not runs or runs[-1][1] != i:
-            runs.append([d, i])
-    return runs, readings
-
-
-def per_day(runs: Sequence[Sequence[int]]) -> List[int]:
-    """`segments`' runs as one reading index per day, 1..366."""
-    out: List[int] = []
-    for i, (d, r) in enumerate(runs):
-        end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
-        out += [r] * (end - d)
-    if len(out) != DAYS:
-        raise AnswersError("answers: runs must cover every day of the year")
-    return out
-
-
-def segments_of(signatures: Sequence) -> List[int]:
-    """The start days of the runs of equal signatures over days 1..366 (one signature per day):
-    how the file's segments are the UNION of every section's cuts. Day 1 always starts a segment:
-    a reading running across New Year is two segments (the last and the first), which share their
-    values — the file stores a value once however many segments point at it."""
-    if len(signatures) != DAYS:
-        raise AnswersError(f"answers: a signature per day must cover {DAYS} days")
-    starts = [1]
-    for d in range(2, DAYS + 1):
-        if signatures[d - 1] != signatures[d - 2]:
-            starts.append(d)
-    return starts
 
 
 # --------------------------------------------------------------------------------------------

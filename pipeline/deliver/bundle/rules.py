@@ -221,6 +221,18 @@ def release_origins(x: dict) -> frozenset[str] | None:
 #: only for some fish, some gear, some part or some shore — it is PARTIAL (`closure_grade`).
 CLOSURE_CONDITIONS = ("lengths", "origin", "while", "when_targeting", "within", "side")
 
+#: What `closure_grade` answers for a closure (None: not one), in wire order (`types.ClosureGrade`).
+CLOSURE_GRADES = ("full", "partial")
+
+
+def catch_and_release(x: dict) -> bool:
+    """THE OTHER READING OF `take: 0`: the fish may still be fished for, and every one goes back
+    ("Rainbow trout catch and release") — never a closure (`closure_grade`). With `closure_grade`,
+    the only reader of `may_target` downstream of the bundle (`test_one_data_flow` gate 2). Reads
+    a bundle rule or the export's flattened fields (no `type`: a retention statement)."""
+    return x.get("type", "retention_limit") == "retention_limit" and x.get("take") == 0 \
+        and bool(x.get("may_target"))
+
 
 def closure_grade(x: dict) -> str | None:
     """THE ONE CLOSURE PREDICATE: "full" for an unconditional "no fishing" (a `retention_limit`

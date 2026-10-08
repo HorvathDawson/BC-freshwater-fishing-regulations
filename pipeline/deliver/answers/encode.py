@@ -19,8 +19,9 @@ import hashlib
 from bisect import bisect_right
 from typing import Dict, List, Optional, Tuple
 
-from pipeline.deliver.answers.answers import (DAYS, ORIGINS, PART_KEY_FIELDS, RESERVED, STATUSES,
-                                              AnswersError, Model, day_of)
+from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED, STATUSES,
+                                              AnswersError, Model)
+from pipeline.deliver.calendar import DAYS, day_of
 from pipeline.deliver.answers.common import Interner
 from pipeline.deliver.bundle import read
 
@@ -553,7 +554,7 @@ def tap(wire: dict, data: dict, item: str, part: int, month: int, day: int,
     if k is None:
         return None
     key = wire["keys"][k]
-    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of(month, day))
+    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of((month, day)))
     out = {}
     for name, sec in wire["sections"].items():
         frame = CODECS[name].decode_frame(sec, sec["at"][k][s], data["rule_ids"], wire["fish"])

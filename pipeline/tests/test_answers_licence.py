@@ -128,7 +128,7 @@ def live():
 
 def test_the_key_decides_the_answer(live):
     """`requirements_in_force` asked at any section of a licence key gives that key's answer."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     path, db, C = live
     K = L.keys(db)
     rnd = random.Random(7)
@@ -152,7 +152,7 @@ def test_live_profiles_answer_as_the_book_says(live):
     path, db, C = live
     K = L.keys(db)
     ref = C.index.__getitem__
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     key = next(k for k in K if k.licensing_set is None and not k.province_except
                and not k.tidal)
     hh = L.holds(db, C, K[key][0], month_day(200))

@@ -35,7 +35,8 @@ from __future__ import annotations
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import AnswersError, Bundle, Interner, RuleKey, dumps, \
-    expand, month_day, rule_id, rule_vectors, segments
+    expand, rule_id
+from pipeline.deliver.calendar import month_day, rule_vectors, segments
 from pipeline.deliver.bundle import read
 
 GEAR_FAMILIES = ("gear_and_method", "conduct", "vessel")
@@ -643,7 +644,8 @@ def section_prepare(scope: RuleKey, ctx):
     water: all year the documented tidal state (`common.TIDAL_STATE`) — no provincial gear rule,
     never "angling not allowed here" (FIX D12)."""
     import json
-    from pipeline.deliver.answers.common import DAYS, TIDAL_SCOPE, TIDAL_STATE
+    from pipeline.deliver.answers.common import TIDAL_SCOPE, TIDAL_STATE
+    from pipeline.deliver.calendar import DAYS
     if scope == TIDAL_SCOPE:
         return [0] * DAYS, [dict(TIDAL_STATE)]
     B = ctx.B

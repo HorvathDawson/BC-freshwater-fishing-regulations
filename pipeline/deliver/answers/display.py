@@ -73,12 +73,6 @@ def _gt0(v) -> bool:
     return v is not None and not isinstance(v, bool) and isinstance(v, (int, float)) and v > 0
 
 
-def _no_target(x: dict) -> bool:
-    """The page's `may_target === false` (a bundle column reads 0, the export's JSON false)."""
-    v = x.get("may_target")
-    return v is not None and not v
-
-
 # --------------------------------------------------------------------------------------------
 # Per rule
 # --------------------------------------------------------------------------------------------
@@ -224,7 +218,7 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return y + "."
     if _js(x.get("while")):
         return None
-    if _no_target(x):
+    if closure_grade(x) is not None:                # the page's `may_target === false`
         return wrap("No fishing" if re.search(r"game fish|^fish", sp) else f"No fishing for {sp}")
     if _js(x.get("per_daily")):
         return wrap(f"Don’t carry more than {_num(x['per_daily'])} days’ worth of {sp}")
@@ -679,7 +673,7 @@ def closed_all_year(B, key) -> bool:
         return False
     covers = {k: frozenset(f for f in SI.GAME_FISH if read.speaks_for(every[k], f))
               for k in shut}
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     for d in range(1, 367):
         held = set()
         for k in shut:
@@ -768,7 +762,8 @@ def section_prepare(scope, ctx):
     `closed` (every game fish under a speaking full closure). On tidal water, all year,
     `{"status": "tidal", **common.TIDAL_STATE}`: no freshwater status at all (FIX D12)."""
     from pipeline.deliver import status_index as SI
-    from pipeline.deliver.answers.common import DAYS, TIDAL_SCOPE, TIDAL_STATE
+    from pipeline.deliver.answers.common import TIDAL_SCOPE, TIDAL_STATE
+    from pipeline.deliver.calendar import DAYS
     if scope == TIDAL_SCOPE:
         return [0] * DAYS, [{"status": "tidal", **TIDAL_STATE}]
     prof = SI.set_profile(ctx.sets.get(scope.set_id, []), scope.steelhead_water, ctx.bundle,

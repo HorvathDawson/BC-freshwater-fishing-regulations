@@ -280,6 +280,11 @@ BOOK_FAMILIES: dict[str, tuple[str, ...]] = {
 }
 #: Every fish a rule may name, in the book's order.
 BOOK_SPECIES: tuple[str, ...] = tuple(c for fs in BOOK_FAMILIES.values() for c in fs)
+#: THE GAME FISH (p.80's closed list minus crayfish, which are trapped, not angled; a fin-fish
+#: closure leaves them): every fish a "no fishing" must hold for before a water is called closed,
+#: and every fish the delivery's verdicts ask about on every rule key. Defined ONCE here (it was
+#: spelled five ways: DATAFLOW M1).
+GAME_FISH: tuple[str, ...] = tuple(c for c in BOOK_SPECIES if c != "CRA")
 
 #: THE SCIENTIFIC NAME OF EVERY FISH THE BOOK LISTS (and chinook, the one salmon it names), as
 #: the official B.C. species table prints it — for display only; no rule reads it. This is all

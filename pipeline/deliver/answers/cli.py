@@ -21,7 +21,8 @@ import sys
 from pathlib import Path
 
 from pipeline.deliver.answers import encode as E
-from pipeline.deliver.answers.answers import AnswersError, build, day_of, load_export
+from pipeline.deliver.answers.answers import AnswersError, build, load_export
+from pipeline.deliver.calendar import day_of
 
 
 def _write(wire: dict, out: Path) -> dict:
@@ -186,7 +187,7 @@ def page_view(wire: dict, data: dict, guide: dict, golden: Path) -> dict:
         pi = parts_by_pk[(item, pk)]
         k = wire["parts"][item][pi]
         key = wire["keys"][k]
-        s = E.segment_index(wire["segments"][key[E.SEG_SLOT]], day_of(md // 100, md % 100))
+        s = E.segment_index(wire["segments"][key[E.SEG_SLOT]], day_of((md // 100, md % 100)))
         sec = wire["sections"][name]
         ref = sec["at"][k][s]
         got = cache.get((name, ref))

@@ -90,10 +90,11 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import read
 from pipeline.deliver.bundle.rules import closure_grade
+from pipeline.deliver.calendar import DAYS, day_of, month_day
+from pipeline.regs.parsing.catalogue import GAME_FISH
 
 MAGIC = b"BCSI"
 VERSION = 2
-DAYS = 366
 
 BASE, OWN, CLOSED, TIDAL, OUTSIDE = 0, 1, 2, 3, 4
 CODE_NAMES = {BASE: "base", OWN: "own", CLOSED: "closed", TIDAL: "tidal", OUTSIDE: "outside"}
@@ -101,30 +102,6 @@ CODE_NAMES = {BASE: "base", OWN: "own", CLOSED: "closed", TIDAL: "tidal", OUTSID
 DEFAULT_OUT = GENERATED.bundle / "status_index.bin"
 
 
-def game_fish() -> Tuple[str, ...]:
-    """The book's closed list of freshwater game fish (p.80) — every fish a "no fishing" must
-    hold for before a section is called closed. Crayfish are on the list but are trapped, not
-    angled, and a fin-fish closure leaves them (`read.speaks_for`), so they are left out."""
-    from pipeline.regs.parsing.catalogue import BOOK_SPECIES
-    return tuple(f for f in BOOK_SPECIES if f != "CRA")
-
-
-GAME_FISH = game_fish()
-
-
-def day_of(on) -> int:
-    """`datetime.date` or `(month, day)` -> 1..366 on the catalogue's leap calendar."""
-    return read._day(on)
-
-
-def month_day(day: int) -> Tuple[int, int]:
-    """1..366 -> (month, day), the inverse of `day_of` (day 60 is Feb 29)."""
-    from pipeline.regs.parsing.catalogue import _LAST_DAY
-    m = 1
-    while day > _LAST_DAY[m]:
-        day -= _LAST_DAY[m]
-        m += 1
-    return m, day
 
 
 # --------------------------------------------------------------------------------------------

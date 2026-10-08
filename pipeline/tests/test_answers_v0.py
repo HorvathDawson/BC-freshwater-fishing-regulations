@@ -23,6 +23,7 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.deliver import calendar as CAL
 from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
@@ -79,6 +80,7 @@ def _r(eid, take=None, **kw):
          "extent_text": "here", **kw}
     if take is not None:
         x["take"] = take
+    x["_rank"] = R.source_of(x).rank          # as `read._rules_of` holds every rule
     return x
 
 
@@ -157,9 +159,9 @@ def test_segments_start_on_day_one_and_wrap_as_two():
     sig = ["winter"] * 59 + ["feb29"] + ["spring"] * 200 + ["winter"] * 106
     assert A.segments_of(sig) == [1, 60, 61, 261]
     assert E.segment_index([1, 60, 61, 261], 366) == 3
-    assert E.segment_index([1, 60, 61, 261], A.day_of(2, 29)) == 1
-    assert A.day_of(3, 1) == 61 and A.month_day(60) == (2, 29)
-    with pytest.raises(A.AnswersError):
+    assert E.segment_index([1, 60, 61, 261], CAL.day_of((2, 29))) == 1
+    assert CAL.day_of((3, 1)) == 61 and CAL.month_day(60) == (2, 29)
+    with pytest.raises(CAL.CalendarError):
         A.segments_of(sig[:-1])
     with pytest.raises(A.AnswersError):
         E.segment_index([1], 367)
@@ -271,7 +273,7 @@ def test_taps_equal_the_reader_on_real_sections(built):
                     continue
                 sid = _section_of(db, model.keys[k])
                 for m, d in [(1, 1), (2, 29), (5, 15), (7, 10), (9, 23), (12, 31)] + \
-                        [A.month_day(rng.randint(1, 366)) for _ in range(3)]:
+                        [CAL.month_day(rng.randint(1, 366)) for _ in range(3)]:
                     fishes = list(model.sections["ladder"][k][0])
                     for fish in rng.sample(fishes, min(4, len(fishes))):
                         for origin in A.ORIGINS:
@@ -312,6 +314,6 @@ def test_every_day_of_a_segment_answers_alike(built):
                 want = model.sections["ladder"][k][s][fish]["wild"]
                 for day in range(starts[s], starts[s + 1]):
                     got = A.ladder_verdict(R.effective_rules_bound(
-                        ctx.sets[set_id], sw, A.month_day(day), fish, BUNDLE,
+                        ctx.sets[set_id], sw, CAL.month_day(day), fish, BUNDLE,
                         steelhead_rules_here=sr, origin="wild", trace=True))
                     assert got == want, (k, day, fish)

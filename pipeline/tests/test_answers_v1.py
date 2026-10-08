@@ -24,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.deliver import calendar as CAL
 from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
@@ -127,7 +128,7 @@ def test_taps_equal_the_producers(built):
             lk = L.section_scope(key, B)
             prof = SI.set_profile(B.sets[rk.set_id], rk.steelhead_water, B.path, rk.steelhead_rules)
             for day in _days(wire, k, rng):
-                md = C.month_day(day)
+                md = CAL.month_day(day)
                 s = E.segment_index(model.segments[k], day)
                 g = G.gear_answer(B, rk, md, lawful, ref=lambda x: rix[C.rule_id(x)])
                 assert model.sections["gear"][k][s] == json.loads(json.dumps(g)), (key, day)
@@ -273,7 +274,7 @@ def test_a_clause_dropped_from_the_ladder_moves_the_number(built):
     k = wire["parts"][CHILLIWACK][1]
     key = model.keys[k]
     rk, kd = C.rule_key(key), C.key_dict(key)
-    s = E.segment_index(model.segments[k], C.day_of(7, 1))
+    s = E.segment_index(model.segments[k], CAL.day_of((7, 1)))
     ladder = copy.deepcopy(model.sections["ladder"][k][s])
     share = next(i for i in data["rule_ids"] if i.endswith("::trout_char_quota.r4")
                  and i.startswith("z2:"))

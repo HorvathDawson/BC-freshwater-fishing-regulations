@@ -28,8 +28,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Sequence, Tuple  # noqa: F401
 
-from pipeline.deliver.answers.common import Interner, connect, dumps, month_day, segments, \
-    when_vector
+from pipeline.deliver.answers.common import Interner, connect, dumps
+from pipeline.deliver.calendar import month_day, segments, when_vector
 from pipeline.deliver.bundle import read
 
 #: The profile dimensions, in the page's picker order. Index = mixed-radix over this order.

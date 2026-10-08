@@ -32,8 +32,11 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError, expand
+from pipeline.deliver.calendar import month_day
 from pipeline.deliver.answers.display import bands as rule_bands
 from pipeline.deliver.answers.display import kind_of
+from pipeline.deliver.bundle import read
+from pipeline.deliver.bundle.rules import catch_and_release, closure_grade
 
 INF = math.inf
 
@@ -118,8 +121,7 @@ class R:
         self.entry_id, self.rule_id = x["entry"], x["rule"]
         self.type, self.dimension = x.get("type"), x.get("dimension")
         self.k = kind_of(x)
-        base = x["_rank"]
-        self.rank = 1 if via == "trib" and base == 0 else base
+        self.rank = read.place(x, via)
         self.species = expand(x.get("species"))
         self.except_ = expand(x.get("species_except"))
         self.wins = common.when_dates(x.get("when"))
@@ -129,8 +131,8 @@ class R:
 
 
 def _closed_gate(r: R) -> bool:
-    v = r.f.get("may_target")
-    return r.k == "gate" and v is not None and not v
+    """A gate that closes (the one closure predicate, `rules.closure_grade`), not one that releases."""
+    return r.k == "gate" and closure_grade(r.f) is not None
 
 
 def _keepish(s: Optional[str]) -> bool:
@@ -574,11 +576,11 @@ def build_model(P: "Part") -> dict:
     for r in P.open_gates():
         sp = r.f.get("species") or []
         pr = all(c in PROTECTED_FISH for c in sp)
-        mt = r.f.get("may_target")
-        k = "open|" + ("PROT" if pr else ",".join(sp)) + ("false" if mt is not None and not mt
-                                                          else "undefined" if mt is None else "true")
+        shut = closure_grade(r.f) is not None           # the one closure predicate
+        k = "open|" + ("PROT" if pr else ",".join(sp)) + ("false" if shut else "true"
+                                                          if catch_and_release(r.f) else "undefined")
         if k not in rest:
-            rest[k] = {"kind": "closed" if (mt is not None and not mt) else "release", "win": r,
+            rest[k] = {"kind": "closed" if shut else "release", "win": r,
                        "members": [], "prot": [] if pr else None, "wins": []}
         x = rest[k]
         x["wins"].append(r)
@@ -1312,7 +1314,7 @@ def to_refs(x, ref):
 def section_derive(ladder_value: dict, scope, ctx, first_day: int) -> dict:
     """The card's rows for one part scope on one reading (the ladder's), rules by export index."""
     rk, kind, presence = scope
-    md = common.month_day(first_day)
+    md = month_day(first_day)
     P = Part(ctx.B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kind, presence,
              ladder_value, md, open_states(ctx, rk, md))
     return to_refs(json.loads(json.dumps(produce(P))), ctx.rule_index.__getitem__)

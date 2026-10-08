@@ -41,9 +41,10 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers import common
-from pipeline.deliver.answers.common import (DAYS, PART_KEY_FIELDS, AnswersError, RuleKey,  # noqa: F401
-                                             day_of, key_dict, load_export, month_day, per_day,
-                                             rule_vectors, segments, segments_of)
+from pipeline.deliver.answers.common import (PART_KEY_FIELDS, AnswersError, RuleKey,  # noqa: F401
+                                             key_dict, load_export)
+from pipeline.deliver.calendar import (DAYS, day_of, month_day, per_day,  # noqa: F401
+                                       rule_vectors, segments, segments_of)
 from pipeline.deliver.bundle import read
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
@@ -120,9 +121,10 @@ from pipeline.deliver.answers.display import kind_of  # noqa: E402
 
 
 def closes(x: dict) -> bool:
-    """A gate that may not be fished for (`may_target` false): a closure, not a release. The
-    bundle stores `may_target` as 0/1 (null when the book says nothing: not a closure)."""
-    return x.get("may_target") is not None and not x["may_target"]
+    """A gate that may not be fished for: a closure, not a release — the one closure predicate
+    (`rules.closure_grade`, AGENTS 56)."""
+    from pipeline.deliver.bundle.rules import closure_grade
+    return closure_grade(x) is not None
 
 
 def in_scope(x: dict, origin: str) -> bool:
@@ -137,8 +139,7 @@ def in_scope(x: dict, origin: str) -> bool:
 def rank_here(x: dict, via: str) -> int:
     """The rule's rung where it is bound (`read.source_of(...).rank`; a water row reaching the
     section by the tributary walk ranks 1, as the reader's `place` reads it)."""
-    r = read.source_of(x).rank
-    return 1 if via == "trib" and r == 0 else r
+    return read.place(x, via)
 
 
 def decide(verdict: dict, origin: str, rules: dict, via: dict, order: dict) -> list:

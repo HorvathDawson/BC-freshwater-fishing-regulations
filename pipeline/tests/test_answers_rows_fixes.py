@@ -24,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.deliver import calendar as CAL
 from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
@@ -59,7 +60,7 @@ def _rid(data, i):
 
 def _ks(model, item, part, md):
     k = model.parts[item][part]
-    return k, E.segment_index(model.segments[k], C.day_of(*md))
+    return k, E.segment_index(model.segments[k], CAL.day_of(md))
 
 
 def card(built, item, part, md, mutate=None, patch=None):

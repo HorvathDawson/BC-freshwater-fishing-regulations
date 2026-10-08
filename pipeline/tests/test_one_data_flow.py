@@ -54,18 +54,8 @@ def test_the_bundle_reads_no_curated_waters_file():
         assert "added_lakes" not in text.replace("added_lakes.geojson", ""), p.name
 
 
-def test_closure_is_decided_in_one_place():
-    """`take == 0 and may_target == 0` (or `not may_target`) is spelled once, in
-    `rules.closure_grade`; every other reader calls it."""
-    hits = []
-    for p, text in _sources(DELIVER, TOOLS).items():
-        for i, line in enumerate(text.splitlines(), 1):
-            if re.search(r"may_target\"\)\s*(==|!=|is)\s*0\b|not x\.get\(\"may_target\"\)", line):
-                hits.append(f"{p.relative_to(REPO_ROOT)}:{i}")
-    assert len(hits) == 1 and hits[0].startswith("pipeline/deliver/bundle/rules.py:"), hits
-    for p, text in _sources(DELIVER, TOOLS).items():
-        if p.name != "rules.py":
-            assert "def is_full_closure" not in text or "closure_grade(x) ==" in text, p.name
+# `rules.closure_grade` is the one closure predicate: an AST gate now (test_dataflow_gates.py,
+# gate 2, mutation-pinned) — the regex that stood here could not see three of the spellings (H2).
 
 
 def test_the_bundle_derives_neither_tidal_nor_outside_nor_homes_nor_stems_twice():

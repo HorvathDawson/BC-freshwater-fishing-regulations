@@ -175,7 +175,7 @@ def bundle():
 
 def test_the_gear_subset_reads_as_the_whole_set(bundle):
     """Handing the reader only the gear-relevant bindings changes no gear rule's state."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     from pipeline.deliver.bundle import read
     B = bundle
     keys = list(B.keys)[:: max(1, len(B.keys) // 40)]
@@ -219,7 +219,7 @@ def test_kootenay_lake_keeps_the_shore_line_count(bundle):
     reader no longer sets it against the province's line rule (`lines_per_angler` +
     `lines_per_angler@angler=alone_in_boat&water=lake`): both speak, the shore count stands and the
     boat's unlimited rods ride beside it as a circumstance."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     from pipeline.deliver.bundle import read
     B = bundle
     key = _key_of(B, "wbk:-20")                                  # Kootenay Lake — Main Body
@@ -241,7 +241,7 @@ def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
     before break-up", while ice fishing) used to share `conduct` with the province's "no gear in
     the water during a closure" and displace it on every Region 5 lake; now both speak, and the
     province's own ice-hut duty (two acts, one of them "warn others of an ice hole") too."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     from pipeline.deliver.bundle import read
     B = bundle
     closure = ("zp:further_prohibitions", "further_prohibitions.r1")
@@ -264,7 +264,7 @@ def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
 def test_lifts_are_the_readers(bundle):
     """The Quatse's dated bait ban lifts Region 1's all-year stream bait ban on the days its lift
     holds (G5 of the 2026-10-03 rulings); on the other days the zone's ban stands."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     from pipeline.deliver.bundle import read
     B = bundle
     lifter = next((k for k in B.rules if k[1] == "quatse_river.r4x"), None)
@@ -347,7 +347,7 @@ def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alon
     body, from shore the province's 1 line; in a boat unlimited rods (the row's clause, which takes
     the place of the province's "2 lines if alone in a boat on a lake" there); on every OTHER lake
     the province's 1 line with "alone in a boat: 2" beside it (Kamloops Lake)."""
-    from pipeline.deliver.answers.common import month_day
+    from pipeline.deliver.calendar import month_day
     B = bundle
     lawful = G.province_methods(B.rules.values())
     province = "zp:terminal_tackle::terminal_tackle.r1"

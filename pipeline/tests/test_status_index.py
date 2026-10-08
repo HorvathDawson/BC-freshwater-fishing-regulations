@@ -32,6 +32,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import GENERATED
+from pipeline.deliver import calendar as CAL
 from pipeline.deliver import status_index as SI
 from pipeline.deliver.bundle import read as R
 
@@ -71,10 +72,10 @@ def test_the_format_round_trips():
 
 
 def test_feb_29_is_day_60_in_every_year_and_march_1_is_61():
-    assert SI.day_of(dt.date(2024, 2, 29)) == 60
-    assert SI.day_of(dt.date(2025, 3, 1)) == 61 == SI.day_of(dt.date(2024, 3, 1))
-    assert SI.day_of(dt.date(2025, 12, 31)) == 366
-    assert all(SI.day_of(SI.month_day(d)) == d for d in range(1, 367))
+    assert CAL.day_of(dt.date(2024, 2, 29)) == 60
+    assert CAL.day_of(dt.date(2025, 3, 1)) == 61 == CAL.day_of(dt.date(2024, 3, 1))
+    assert CAL.day_of(dt.date(2025, 12, 31)) == 366
+    assert all(CAL.day_of(CAL.month_day(d)) == d for d in range(1, 367))
 
 
 def test_a_season_over_new_year_and_a_leap_day_read_back():
@@ -165,7 +166,7 @@ def _pairs(ix: SI.Index, n: int = 6000, seed: int = 20261001) -> list:
         d = 1
         for length, _ in SI.runs_of(ix.profiles[pi]):
             for x in (d, d + length - 1):
-                m, dd = SI.month_day(x)
+                m, dd = CAL.month_day(x)
                 out.append((sid, dt.date(2024, m, dd)))
             d += length
     # steelhead water is ~149,000 sections since its tributaries joined it (user ruling
@@ -244,7 +245,7 @@ def test_the_parity_check_catches_a_swapped_profile(built):
     sid, on = next((s, o) for s, o in pairs if built.code(s, o) == SI.CLOSED)
     pi = built.sections[sid]
     other = next(i for i, p in enumerate(built.profiles)
-                 if p[SI.day_of(on) - 1] != SI.CLOSED)
+                 if p[CAL.day_of(on) - 1] != SI.CLOSED)
     built.sections[sid] = other
     try:
         assert _mismatches(built, [(sid, on)])

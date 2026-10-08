@@ -42,6 +42,12 @@ from pathlib import Path
 #: The four kinds with section bindings. The other two are never placed.
 PLACED = ("designation", "requirement", "not_classified", "alternative")
 
+#: THE FAMILIES OF AREA WHERE A PROVINCE-WIDE REQUIREMENT STOPS (`province_except.area_kind`): the
+#: area family a province-wide record's extent subtracts (`outside_area_kind`), and tidal water,
+#: where every one stops (p.17). A closed list: a record naming another family is refused until
+#: it is added here (`types.ProvinceExceptKind` and the part table's CHECK are generated from it).
+PROVINCE_EXCEPT_KINDS = ("national_parks", "tidal")
+
 #: A DESIGNATION AND A NOT_CLASSIFIED ON THE SAME SECTION, known and acknowledged.
 #:
 #: Design validator 7: the build refuses any section both bind, because one of them is wrong and
@@ -291,6 +297,11 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
     kinds = sorted({str(ex.get("outside_area_kind")) for k, p in placed.items()
                     if p["placement"] == "province"
                     for ex in (records[k][1].extents or []) if ex.get("outside_area_kind")})
+    unknown = sorted(set(kinds) - set(PROVINCE_EXCEPT_KINDS))
+    if unknown:
+        raise SystemExit(f"licensing: a province-wide record subtracts the area family "
+                         f"{unknown} — not one of PROVINCE_EXCEPT_KINDS {PROVINCE_EXCEPT_KINDS}: "
+                         f"add it there (the part table's CHECK is generated from it)")
     except_rows: set[tuple[str, int]] = set()
     for kind in kinds:
         if registry is None:

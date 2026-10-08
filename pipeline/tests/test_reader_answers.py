@@ -183,7 +183,7 @@ def _keys(con):
     """Every rule key (set, steelhead water, steelhead rules) with its bindings, and one day per
     distinct reading of its year (every bound `when` and every lift's `when`, as the status
     index reads it)."""
-    from pipeline.deliver.status_index import month_day
+    from pipeline.deliver.calendar import month_day
     sets = defaultdict(list)
     for s, e, r, v in con.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset "
                                   "ORDER BY set_id, entry_id, rule_id"):

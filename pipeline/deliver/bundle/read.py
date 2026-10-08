@@ -224,10 +224,14 @@ def source_of(rule: dict) -> Source:
 
 
 def _day(on) -> int:
-    """`datetime.date` or `(month, day)` -> the catalogue's day index (1..366)."""
-    from pipeline.regs.parsing.catalogue import _day_index
-    m, d = (on.month, on.day) if hasattr(on, "month") else on
-    return _day_index(m, d)
+    """`datetime.date` or `(month, day)` -> the catalogue's day index (1..366): the delivery's one
+    calendar (`pipeline.deliver.calendar.day_of`)."""
+    from pipeline.deliver.calendar import day_of
+    return day_of(on)
+
+
+#: What `in_force` answers, in wire order (`types.InForce`: 0 no, 1 yes, 2 part).
+IN_FORCE = ("no", "yes", "part")
 
 
 @lru_cache(maxsize=None)
@@ -471,7 +475,8 @@ OWN_ROW_BEATS_INHERITED = True
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
-SPEAKER_STATES = frozenset({"speaks", "beside", "shown", "not_yet_mapped"})
+SPEAKERS = ("speaks", "beside", "shown", "not_yet_mapped")
+SPEAKER_STATES = frozenset(SPEAKERS)
 
 #: Why a rule that took part lost — one reason per rule, the step that removed it first.
 LOSS_REASONS = {
@@ -490,8 +495,27 @@ LOSS_REASONS = {
     "same_as_peer": "displaced",             # step 6: the other region's identical line (RU-8)
 }
 
+#: The states a loser takes (`LOSS_REASONS` values, in their first order): lifted, displaced, moot.
+LOSER_STATES = tuple(dict.fromkeys(LOSS_REASONS.values()))
+
 #: The origins a reader may ask about (`effective_rules(origin=…)`); None = not known.
 ASKABLE_ORIGINS = ("hatchery", "wild")
+
+#: How a rule reaches a section (`ruleset.via`): by its own extents, or by the tributary walk.
+VIAS = ("reach", "trib")
+
+
+def place(rule: dict, via: str) -> int:
+    """A rule's rung WHERE IT IS BOUND — `source_of(rule).rank`, with a water row reaching the
+    section by the tributary walk at the `inherited` rung (1): the ladder's place, as step 4 reads
+    it. The ONE spelling (DATAFLOW M1); every consumer that orders rules by place asks this."""
+    if via not in VIAS:
+        raise ValueError(f"read.place: via {via!r} is not one of {VIAS}")
+    r = rule["_rank"]                 # `_rules_of` works it out once per rule (`source_of`)
+    return 1 if via == "trib" and r == 0 else r
+
+
+_ladder_place = place
 
 
 def _rules_of(path: str) -> dict:
@@ -887,7 +911,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                                                same_statement, statement, yields_to_release)
 
     def place(k) -> int:
-        return 1 if here[k] == "trib" and every[k]["_rank"] == 0 else every[k]["_rank"]
+        return _ladder_place(every[k], here[k])
 
     def row_area(k) -> bool:
         """A WATER TABLE'S AREA ROW (`source_of`: Scope.area on an `r<n>:` entry — the CVWMA

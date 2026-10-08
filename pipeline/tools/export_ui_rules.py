@@ -42,9 +42,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from pipeline.common.curated import GENERATED
+from pipeline.deliver import calendar as CAL
+from pipeline.deliver.answers.common import TIDAL_NOTE
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.place_names import display_case
-from pipeline.deliver.bundle.rules import LIFT_KEYS
+from pipeline.deliver.bundle.rules import LIFT_KEYS, catch_and_release
 from pipeline.regs.parsing import catalogue as C
 from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
 from pipeline.regs.parsing.entry_models import Extent, Op
@@ -1022,14 +1024,10 @@ TOUCHES_TEXT = (
 
 #: WHAT A TIDAL WATER MEANS TO AN ANGLER — the page's words for `waters[item].tidal`, from the
 #: book's own note (p.17, Nitinat Lake).
-#: The first sentences are the answers layer's own (`answers.common.TIDAL_NOTE`, FIX D12: "tidal
-#: water — a different regulation system; see DFO regulations / the Fishing BC app"), pinned equal.
-TIDAL_GUIDE = (
-    "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not "
-    "apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal "
-    "(DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters "
-    "Sport Fishing Licence is required. Show this note at the top of the water, and never read its "
-    "sections as 'open under the general rules'.")
+#: The first sentences ARE the answers layer's own (`answers.common.TIDAL_NOTE`, FIX D12: "tidal
+#: water — a different regulation system; see DFO regulations / the Fishing BC app"), imported.
+TIDAL_GUIDE = TIDAL_NOTE + (" Show this note at the top of the water, and never read its "
+                            "sections as 'open under the general rules'.")
 
 #: How sure we are that steelhead are present (user ruling 2026-10-01) — on a part, and rolled up on
 #: the water.
@@ -3957,7 +3955,7 @@ def _leaves(x: dict) -> list[str]:
         out = set()
         for c in C.expand_species(list(codes or [])):
             if c == "ALL_FIN_FISH":
-                out |= set(C.BOOK_SPECIES) - {"CRA"}
+                out |= set(C.GAME_FISH)
             elif c in C.BOOK_SPECIES:
                 out.add(c)
         return out
@@ -4723,8 +4721,7 @@ def cases(d: dict, bundle: Path) -> dict:
 
     # two_regions_closure / two_regions_release: what displaced the other region's rule
     shut = _closure                                                   # the one predicate
-    released = lambda x: (x.get("take") == 0 and x.get("may_target")  # noqa: E731
-                          and not x.get("lengths"))
+    released = lambda x: catch_and_release(x) and not x.get("lengths")  # noqa: E731
     for mech, how in (("two_regions_closure", shut), ("two_regions_release", released)):
         found = None
         for s in K.sets:
@@ -4770,7 +4767,7 @@ def cases(d: dict, bundle: Path) -> dict:
                 continue
             for k2 in m:
                 b = R[k2]
-                if k2 != k1 and b.get("take") == 0 and b.get("may_target") \
+                if k2 != k1 and catch_and_release(b) \
                         and not b.get("lengths") and b.get("origin") \
                         and b["origin"] != a["origin"]:
                     fish = sorted(set(_leaves(a)) & set(_leaves(b)))
@@ -5636,7 +5633,7 @@ def is_wild_steelhead_release(x: dict) -> bool:
     after the hatchery quota" and the Region 6 stream closure are not."""
     f = x["fields"]
     return (x.get("type") == "retention_limit" and (f.get("species") or []) == ["ST"]
-            and f.get("take") == 0 and f.get("may_target") is True
+            and catch_and_release(f)
             and f.get("origin") in (None, "wild")
             and not any(f.get(k) for k in ("when", "lengths", "water", "record_retention",
                                            "within", "while", "when_targeting"))
@@ -6133,48 +6130,12 @@ def _closure_scan(bundle: Path) -> dict:
 
 
 _MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
-#: The catalogue's day index (1..366, Feb 29 is day 60) -> (month, day), for asking the reader.
-_MD = {C._day_index(m, d): (m, d) for m in range(1, 13) for d in range(1, C._LAST_DAY[m] + 1)}
-
-
-#: Feb 29: the book prints its dates for a year without one, so a note reads them over such a
-#: year ("Jan 1-Feb 28", never a stray "Feb 29" a 365-day date leaves out).
-_LEAP = C._day_index(2, 29)
-
-
-def _runs(days) -> list[list[int]]:
-    """A set of day indexes as `[[from_month, from_day, to_month, to_day], ...]` on a circular
-    year without Feb 29 (a run ending Dec 31 and one starting Jan 1 are one run: "Oct 1-May
-    31")."""
-    ds = sorted(set(days) - {_LEAP})
-    if not ds:
-        return []
-    step = lambda a, b: b == a + 1 or (a == _LEAP - 1 and b == _LEAP + 1)  # noqa: E731
-    runs, start = [], ds[0]
-    for prev, cur in zip(ds, ds[1:]):
-        if not step(prev, cur):
-            runs.append((start, prev))
-            start = cur
-    runs.append((start, ds[-1]))
-    if len(runs) > 1 and runs[0][0] == 1 and runs[-1][1] == len(_MD):
-        runs = [(runs[-1][0], runs[0][1])] + runs[1:-1]
-    return [[*_MD[a], *_MD[b]] for a, b in runs]
 
 
 def _runs_words(runs: list) -> str:
     return ", ".join(f"{_MONTHS[a - 1]} {b}" + ("" if (a, b) == (c, d) else
                                                  f"-{_MONTHS[c - 1]} {d}")
                      for a, b, c, d in runs) or "no day"
-
-
-def _run_days(runs: list) -> list[int]:
-    """`_runs` back to day indexes, in order (a wrapping run from its first day)."""
-    out = []
-    for a, b, c, d in runs:
-        i, j = C._day_index(a, b), C._day_index(c, d)
-        out += list(range(i, j + 1)) if i <= j else list(range(i, len(_MD) + 1)) + \
-            list(range(1, j + 1))
-    return [d for d in out if d != _LEAP]
 
 
 def _dates_words(x: dict) -> str:
@@ -6245,11 +6206,11 @@ def closures_combine(bundle: Path) -> dict:
         verbatim = dict(db.execute("SELECT entry_id, verbatim FROM entry"))
     finally:
         db.close()
-    game = [f for f in C.expand_species(["ALL_GAME_FISH"]) if f != "CRA"]
+    game = list(C.GAME_FISH)
 
     def days(x):
         got = RD._days_of(json.dumps((x.get("when") or {}).get("dates") or [], sort_keys=True))
-        return got if got is not None else frozenset(_MD)
+        return got if got is not None else frozenset(CAL.MD)
 
     def fish(x):
         return {f for f in game if RD.speaks_for(x, f)}
@@ -6292,18 +6253,18 @@ def closures_combine(bundle: Path) -> dict:
         lists += [days(y) for e, r, _ in rows if (e, r) in R
                   for y in R[(e, r)].get("exempts") or [] if y.get("when")]
         seg_of, segs = {}, {}
-        for d in sorted(_MD):
+        for d in sorted(CAL.MD):
             sig = tuple(d in x for x in lists)
             seg_of[d] = segs.setdefault(sig, len(segs))
         first = {}
-        for d in sorted(_MD):
+        for d in sorted(CAL.MD):
             first.setdefault(seg_of[d], d)
         answer: dict = {}
 
         def speaks(seg, f):
             if (seg, f) not in answer:
                 answer[(seg, f)] = {(y["entry"], y["rule"]) for y in RD.effective_rules_bound(
-                    rows, sh_water, _MD[first[seg]], f, str(bundle),
+                    rows, sh_water, CAL.MD[first[seg]], f, str(bundle),
                     steelhead_rules_here=sh_rules) if y["state"] == "speaks"}
             return answer[(seg, f)]
 
@@ -6312,7 +6273,7 @@ def closures_combine(bundle: Path) -> dict:
             holds: dict = defaultdict(set)      # fish -> days the zone speaks, the row closed not
             lifted: dict = defaultdict(set)     # fish -> days of the zone's own the reader lifts
             for f in sorted(common):
-                for d in sorted(dz - {_LEAP}):
+                for d in sorted(dz - {CAL.LEAP}):
                     if z in speaks(seg_of[d], f):
                         if d not in dk:
                             holds[f].add(d)
@@ -6370,10 +6331,10 @@ def closures_combine(bundle: Path) -> dict:
         for f, ds in p["holds"].items():
             if ds:
                 groups[frozenset(ds)].add(f)
-        zone_holds = [{"dates": _runs_words(_runs(ds)), "runs": _runs(ds), "fish": fish_list(fs)}
+        zone_holds = [{"dates": _runs_words(CAL.runs(ds)), "runs": CAL.runs(ds), "fish": fish_list(fs)}
                       for ds, fs in sorted(groups.items(),
                                            key=lambda g: (min(g[0]), sorted(g[1])))]
-        zone_lifted = [{"dates": _runs_words(_runs(ds)), "runs": _runs(ds), "fish": fish_list(fs),
+        zone_lifted = [{"dates": _runs_words(CAL.runs(ds)), "runs": CAL.runs(ds), "fish": fish_list(fs),
                         "by": sorted(q["by"]), "sections": q["sections"]}
                        for (ds, fs), q in sorted(p["lifted"].items(),
                                                  key=lambda g: (min(g[0][0]), sorted(g[0][1])))]
@@ -6454,7 +6415,7 @@ def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
     the row's "Open June 16-Apr 30" lifts the winter closure) fails here. The note names its
     example by key (`example`); the section is resolved here, from the bundle (`example_sid`)."""
     from pipeline.deliver.bundle import read as RD
-    game = [f for f in C.expand_species(["ALL_GAME_FISH"]) if f != "CRA"]
+    game = list(C.GAME_FISH)
     out = []
     for eid, e in sorted(entries.items()):
         for n in e["notes"]:
@@ -6469,8 +6430,8 @@ def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
                 sid = example_sid(n.get("example") or {}, bundle)
                 hit = sid is not None and any(
                     f"{y['entry']}::{y['rule']}" == z and y["state"] == "speaks"
-                    for d in _run_days(h["runs"]) for f in fs
-                    for y in RD.effective_rules(sid, _MD[d], f, str(bundle)))
+                    for d in CAL.run_days(h["runs"]) for f in fs
+                    for y in RD.effective_rules(sid, CAL.MD[d], f, str(bundle)))
                 if not hit:
                     out.append(f"{eid}: {n['row_rule']} — {z} does not speak on the example "
                                f"{n.get('example')} on any of {h['dates']} for {h['fish']}, "
