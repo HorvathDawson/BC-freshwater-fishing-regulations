@@ -65,7 +65,7 @@ export's own changes since the page was built.
 
 ## Page quirks to know when comparing
 
-- `TODAY` is fixed at Sep 23 (`923`). It decides only the word "today" against "on <date>" in the
+- v35's `TODAY` is fixed at Sep 23 (`923`); page v36 reads the viewer's clock (answers 2.2). It decides only the word "today" against "on <date>" in the
   status line and the Today chip; every answer reads `state.md`, which the harness sets.
 - Feb 29 does not exist (`DAYS` has 365 days): the date input reads it as Feb 28, and a rule window
   ending Feb 29 would make the ladder's segment breakpoint wrap to Jan 1 (`DAYS.indexOf(229) = -1`).

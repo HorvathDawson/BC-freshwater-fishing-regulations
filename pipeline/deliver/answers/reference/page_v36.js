@@ -22,11 +22,22 @@ const dayOf = md => LEAP0[Math.floor(md/100)-1] + md%100;
 const RANK = {'-1':{t:'Federal / parks',c:'--r-1'},'0':{t:'This water',c:'--r0'},'1':{t:'From downstream',c:'--r1'},'2':{t:'Named area',c:'--r2'},'3':{t:'Region',c:'--r3'},'4':{t:'Province',c:'--r4'}};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtMd = md => MON[Math.floor(md/100)-1] + ' ' + (md%100);
-const TODAY = 923;
+// TODAY is the viewer's own date (the browser clock), never a fixed demo day (user test 2026-10-08,
+// item 8). Feb 29 is answered as Feb 28 (the page's year has 365 days; the answers' Feb 29 = Feb 28).
+const NOW = new Date();
+const TODAY = (() => { const md = (NOW.getMonth() + 1) * 100 + NOW.getDate(); return md === 229 ? 228 : md; })();
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 const clean = s => String(s || '').replace(/\*+/g, '').replace(/\s+/g, ' ').trim();
 // a value the answers file should hold and does not: shown, never guessed
 const missing = what => `<div class="missing"><b>Missing from the answers file:</b> ${esc(what)}</div>`;
+/* ---------- "What does this mean?": the answers file's glossary (answers 2.2, generated from the data) ---------- */
+const GLOSS = new Map(((A.glossary || {}).terms || []).map(t => [t.id, t]));
+// a small ⓘ beside a term; nothing where the glossary has no such term
+const gi = id => GLOSS.has(id) ? `<button class="gl" type="button" data-gl="${id}" aria-label="What does “${esc(GLOSS.get(id).term)}” mean?" title="What does this mean?">ⓘ</button>` : '';
+// the region a row's region-wide limit comes from (its entry `z6:…` -> glossary term `region_6`)
+const regionGi = row => { const m = /^z(\d\w?):/.exec(row?.scope?.entry || ''); return m ? gi('region_' + m[1]) : ''; };
+function openGloss(id){ const t = GLOSS.get(id); if (!t) return;
+  openSheet(t.term, `What does this mean? · Book p.${t.pages.join(', p.')}`, `<p class="glsays">${esc(t.says)}</p>${t.example ? `<p class="glex"><b>For example:</b> ${esc(t.example)}</p>` : ''}<div class="lbl">In the book’s words</div><blockquote class="exact">${esc(t.quote)}</blockquote>`); }
 
 /* ---------- species (names only) ---------- */
 const FISH = D.species.fish, GROUPS = D.species.groups;
@@ -112,8 +123,8 @@ const segStarts = w => A.segments[w.key[9]];
 // MOMENTS (answers 2.1): where a weekday or hours rule makes a day read two ways, the day's start repeats,
 // one segment per moment ({weekdays, hours: null | {start, end, in}}); null where the part has none
 const momentsOf = w => w.key && w.key[10] != null ? A.segment_moments[w.key[10]].map(i => A.moments[i]) : null;
-// the page's year is the date box's (2026): a date's weekday
-const YEAR = 2026, WEEK = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+// the page's year is the viewer's (its weekdays: a weekday rule decides on the date's weekday)
+let YEAR = NOW.getFullYear(); const WEEK = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const weekdayOf = md => WEEK[(new Date(Date.UTC(YEAR, Math.floor(md/100) - 1, md % 100)).getUTCDay() + 6) % 7];
 // the day's segments: every segment sharing the start on or before it (one unless the part has moments)
 function daySegs(w, md){ const s = segStarts(w), d = dayOf(md); let i = 0; for (let j = 0; j < s.length; j++) if (s[j] <= d) i = j;
@@ -493,16 +504,24 @@ function runTxt(segs, md, tail){
   if (cur.then === 'keep') out += ` You can keep them from ${fmtMd(cur.next)}${nextYr(cur.next, md)}.`; else if (!segs.some(([st]) => st === 'keep')) out += ' No keeping at any time of year.';
   return out.trim();
 }
+// the closures that close the water on a day: of the decided `closing` (display frame), those closing the most game
+// fish — every one where a single closure does; a closure of one fish (white sturgeon) beside them closes nothing more
+function closersAt(w, md){ const st = settle(w, md).status; const cl = (st?.status === 'closed' ? st.closing : []) || [];
+  const top = Math.max(0, ...cl.map(([, fs]) => fs.length)), all = GAME.filter(S => cl.some(([, fs]) => fs.includes(S))).length;
+  return cl.filter(([, fs]) => fs.length === top || top < all && !cl.some(([, gs]) => gs.length > fs.length && fs.every(S => gs.includes(S)))).map(([ix]) => w.R(ix)); }
 function closedBanner(what){
   if (MODEL.status !== 'closed') return '';
   if (!MODEL.broad.length) return `<div class="banner"><div class="big">Closed</div>${missing('the closure that closes it (no closure in the ladder speaks for the game fish today)')}${mergedHtml()}</div>`;
   const b = MODEL.broad[0];
   // one closure can run straight into the next: list each one between today and the day it reopens (answers ladder per segment)
-  const chain = []; if (REOPEN){ let d = state.md, g = 0; while (d !== REOPEN && g++ < 366){ const r = settle(PLACE, d).broad[0]; if (r && !chain.includes(r)) chain.push(r); d = DAYS[(DAYS.indexOf(d) + 1) % 365]; } }
-  const list = chain.length > 1 ? chain : [b];
+  // the run shown ("Jul 4–Nov 15") is made of every closure that closes it: the answers' decided `closing` of each
+  // segment of the run, first day to last, merged across back-to-back segments (user test 2026-10-08, item 10)
   const run = REOPEN ? runOf(waterSegs(PLACE), state.md) : null;
+  const chain = []; if (run && !run.all){ let d = run.from, g = 0; while (g++ < 366){ closersAt(PLACE, d).forEach(r => { if (!chain.includes(r)) chain.push(r); }); if (d === run.until) break; d = DAYS[(DAYS.indexOf(d) + 1) % 365]; } }
+  // two rules printing the same closure (the same words, the same source) are one line
+  const list = (chain.length ? chain : [b]).filter((r, i, a) => a.findIndex(x => describe(x) === describe(r) && x.rank === r.rank) === i);
   return `<div class="banner"><div class="big">${REOPEN ? `Closed · opens again ${fmtMd(REOPEN)}` : 'Closed all year'}</div>
-    ${REOPEN ? `<p><b>No fishing for any game fish ${esc(rangeTxt(run.from, run.until))}.</b>${chain.length > 1 ? ` Together these closures cover it:` : ''}</p>` : ''}
+    ${REOPEN ? `<p><b>No fishing for any game fish ${esc(rangeTxt(run.from, run.until))}.</b>${list.length > 1 ? ` Together these closures cover it:` : ''}</p>` : ''}
     <ul class="closechain">${list.map(r => `<li>${esc(describe(r))}. <span class="muted small">${esc(RANK[String(r.rank)].t)}</span> <button class="srcbtn inline" type="button" data-rule="${esc(r.key)}">Source</button></li>`).join('')}</ul>
     ${REOPEN ? `<button class="golink" type="button" data-md="${REOPEN}">Opens again ${fmtMd(REOPEN)}. See the ${what || 'rules'} from then ›</button>` : ''}${mergedHtml()}</div>`;
 }
@@ -581,7 +600,7 @@ function possessionHtml(){
   const p = [...keys].map(k => PLACE.cands.find(r => r.key === k) || RULES[k]).filter(Boolean);
   if (!p.length) return '';
   const main = p.find(r => !(r.f.species || []).length) || p.slice().sort((a, b) => b.f.per_daily - a.f.per_daily)[0], ex = p.filter(r => r !== main && r.f.per_daily !== main.f.per_daily);
-  return `<div class="foot">Possession: up to ${main.f.per_daily} days’ worth of these limits${ex.length ? ` (${ex.map(r => `${r.f.per_daily} for ${lcNames(r.species, ' and ')}`).join('; ')})` : ''}. <button class="srcbtn inline" type="button" data-rule="${esc(main.key)}">Source</button></div>`;
+  return `<div class="foot">Possession ${gi('possession_quota')}: up to ${main.f.per_daily} days’ worth of these limits${ex.length ? ` (${ex.map(r => `${r.f.per_daily} for ${lcNames(r.species, ' and ')}`).join('; ')})` : ''}. <button class="srcbtn inline" type="button" data-rule="${esc(main.key)}">Source</button></div>`;
 }
 // whose count a pool is: answers rows[].scope {of: water | area | region | bc, entry, share, apart}
 const scopeOf = row => { const s = row?.scope; if (!s) return null; if (s.of === 'bc') return 'B.C.'; if (s.of === 'region' || s.of === 'area') return D.entries[s.entry]?.name || row.pool?.prov?.entry_name || (s.of === 'area' ? 'the area' : 'the region'); return null; };
@@ -622,7 +641,7 @@ function liftNoteHtml(row){ return (row.liftNotes || []).map(n => `<div class="f
 function valueHtml(row, big){
   if (row.kind === 'keep') return big ? `<div class="num">${row.daily}<small>${row.members.length > 1 ? 'a day, shared' : 'a day'}</small></div>` : `<span class="gv">${row.daily}<small> a day</small></span>`;
   if (row.kind === 'nolimit') return `<span class="pill nolimit">No limit</span>`;
-  return `<span class="pill ${row.kind}">${row.kind === 'closed' ? 'Closed' : 'Release'}</span>`;
+  return `<span class="pill ${row.kind}">${row.kind === 'closed' ? 'Closed' : 'Release'}</span>${gi(row.kind === 'closed' ? 'no_fishing_for' : 'catch_and_release')}`;
 }
 const narrowAll = row => !!row.narrow && row.members.every(S => (row.narrow.species || []).includes(S) && !(row.narrow.speciesExcept || []).includes(S));
 // fish names, a whole book group said by its name ("char" for Dolly Varden, lake trout and brook trout)
@@ -734,7 +753,7 @@ function rowSources(row){
 }
 function srcCard(r, roleTxt, won, extra){
   const rk = RANK[String(r.rank ?? r.baseRank ?? r.prov?.rank ?? 4)] || RANK['4'];
-  return `<div class="sc${won === false ? ' lost' : ''}"><span class="badge" style="background:var(${rk.c})">${rk.t}${r.via === 'trib' ? ' · via tributary' : ''}</span><div class="scq">“${esc(clean(r.verbatim))}”</div>
+  return `<div class="sc${won === false ? ' lost' : ''}"><span class="badge" style="background:var(${rk.c})">${rk.t}${r.via === 'trib' ? ' · via tributary' : ''}</span>${r.via === 'trib' || rk === RANK['1'] ? gi('tributaries') : ''}<div class="scq">“${esc(clean(r.verbatim))}”</div>
     <div class="muted small">${esc(r.prov?.who || r.prov?.entry_name || '')}</div>${roleTxt ? `<div class="scrole ${won ? 'won' : ''}">${esc(roleTxt)}</div>` : ''}${(r.notes || []).map(n => `<div class="note">⚑ ${esc(n)}</div>`).join('')}${extra || ''}</div>`;
 }
 const fieldsPre = f => `<details class="fraw"><summary>Fields</summary><pre class="gjson">${esc(JSON.stringify(f, null, 1))}</pre></details>`;
@@ -832,9 +851,9 @@ function groupBlock(row, rc){
   else if (!row.scope) facts.push(missing('whose count this limit is (rows scope)'));
   else if (nar0(row)){
     const wk = row.narrow.f.water, other = wk === 'stream' ? 'lakes' : 'streams', b = row.pool.f.take;
-    facts.push(`<p class="gline">${tot}Shared with every ${esc(s)} ${wk} you fish today.</p>`);
+    facts.push(`<p class="gline">${tot}${tot ? gi('daily_quota') + ' ' : ''}Shared with every ${esc(s)} ${regionGi(row)} ${wk} ${wk === 'stream' ? gi('stream') : ''} you fish today.</p>`);
     ex = `<ul class="exs"><li><span>Kept ${n} on another ${wk}?</span> <strong>Keep 0 here</strong></li><li class="sep"><span>Kept some at a ${other.replace(/s$/, '')}?</span> <strong>Those don’t count here, but stop at ${b} for the whole day</strong></li></ul>`;
-  } else if (s){ const lakeToo = !row.pool.f.water; facts.push(`<p class="gline">${tot}Shared with everywhere in ${esc(s)} you fish today${lakeToo ? ', lakes and streams alike' : ''}.</p>`);
+  } else if (s){ const lakeToo = !row.pool.f.water; facts.push(`<p class="gline">${tot}${tot ? gi('daily_quota') + ' ' : ''}Shared with everywhere in ${esc(s)} ${regionGi(row)} you fish today${lakeToo ? ', lakes and streams alike' : ''}.</p>`);
     if (row.kind === 'keep' && n > 1){ const k = n > 2 ? 2 : 1; ex = `<ul class="exs"><li><span>Kept ${k} elsewhere today?</span> <strong>Keep ${n - k} more here</strong></li></ul>`; } }
   // a water's own daily limit still counts the fish kept elsewhere today (answers rows fix F9)
   else facts.push(`<p class="gline">${tot}This ${PLACE.kind === 'stream' ? 'river' : 'lake'}’s own limit. Fish you kept elsewhere today count toward it too.${row.scope.apart ? ' These fish are counted apart from the region’s total: they don’t use it up.' : ''}</p>`);
@@ -842,20 +861,20 @@ function groupBlock(row, rc){
   if (ec && ec.all) facts.push(`<p class="gline warnline"><b>Really ${ec.sum} a day here.</b> ${esc(s || 'The region')} allows ${n}, but each kind below has its own smaller limit.</p>`);
   else if (ec && ec.capped_sum < n && ec.rb){ const big = (ec.shared_cap || []).map(c => `Every one you could keep is over ${c.over_cm} cm, and only ${c.take} fish over ${c.over_cm} cm ${c.take > 1 ? 'are' : 'is'} allowed.`).join(' ');
     const op = ec.open.length > 3 ? 'other trout or char' : groupedNames(ec.open, ' or ');
-    facts.push(`<p class="gline warnline"><b>Only ${ec.capped_sum} of the ${n} can be ${esc(groupedNames(ec.capped, ' or '))}.</b><span class="wsub">${esc(big)} The other ${n - ec.capped_sum} would have to be ${esc(op)}.</span></p>`); }
+    // a count several kinds share counts once for all of them (answers real_daily.shared_count, rows F11)
+    const shc = (ec.shared_count || []).map(c => `${cap(groupedNames(c.members, ', '))} share one limit of ${c.take}${row.narrow && row.narrow.f.take === c.take && row.narrow.f.water ? ` from ${row.narrow.f.water}s` : ''}.`).join(' ');
+    facts.push(`<p class="gline warnline"><b>Only ${ec.capped_sum} of the ${n} can be ${esc(groupedNames(ec.capped, ' or '))}.</b><span class="wsub">${esc([shc, big].filter(Boolean).join(' '))} The other ${n - ec.capped_sum} would have to be ${esc(op)}.</span></p>`); }
   const conds = [], oth = [];
   const org = rc.conds.find(c => c.c === 'origin' && !c.who);
   const H = org && /^Hatchery/.test(org.t);
-  if (org && VAR === 'B') conds.push(`<li>${ICON.fin}<div><b>${H ? 'Hatchery fish only' : 'Wild fish only'}</b> <span class="in">· release every ${H ? 'wild' : 'hatchery'} one</span> <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button></div></li>`);
-  if (org && VAR === 'C') conds.push(`<li><i class="ck">✓</i><div><b>${H ? 'Hatchery only' : 'Wild only'}</b><span class="in">, release ${H ? 'wild' : 'hatchery'} ones</span> <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button></div></li>`);
+  if (org && VAR === 'B') conds.push(`<li>${ICON.fin}<div><b>${H ? 'Hatchery fish only' : 'Wild fish only'}</b> <span class="in">· release every ${H ? 'wild' : 'hatchery'} one</span> <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button> ${gi('hatchery_wild')}</div></li>`);
+  if (org && VAR === 'C') conds.push(`<li><i class="ck">✓</i><div><b>${H ? 'Hatchery only' : 'Wild only'}</b><span class="in">, release ${H ? 'wild' : 'hatchery'} ones</span> <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button> ${gi('hatchery_wild')}</div></li>`);
   // which fish a general cap does not cover: the answers' `except`, else the fish whose answers give it no role
-  const exemptOf = c => { if (!['cap','outersize'].includes(c.c)) return [];
-    if (c.raw.except && c.raw.except.length) return c.raw.except;
-    if (!c.r || (c.raw.of && c.raw.of.length)) return [];
-    return [...new Set([...row.allMembers, ...row.groups.flatMap(g => g.members)])].filter(S => covers(c.r, S)).filter(S => { const rs = ['H', 'W'].map(o => MODEL.R[S]?.[o]).filter(r => r && KEEPISH(r.status)); return rs.length && rs.every(r => ['lifted', undefined].includes(r.roles.get(c.r.key)?.role) && !r.lines.some(l => l.r.key === c.r.key)); }); };
+  // the fish a general cap does not count: the answers' `except` (rows decision F12), nothing inferred here
+  const exemptOf = c => ['cap','outersize'].includes(c.c) ? (c.raw.except || []) : [];
   const seenT = new Set();
   rc.conds.filter(c => !c.who && c.c !== 'origin').forEach(c => { if (seenT.has(c.t)) return; seenT.add(c.t); const t = c.t; const p = condParts(t);
-    const exm = exemptOf(c); if (exm.length && !p.sub) p.sub = exm.length === 1 && exm[0] === 'RB' && rc.steelWater ? 'Not counting steelhead' : `Not counting ${lcNames(exm, ' or ')}`;
+    const exm = exemptOf(c); if (exm.length && !p.sub) p.sub = `Not counting ${lcNames(exm, ' or ')}`;
     if (p.sub === 'Steelhead don’t count') p.sub = 'Not counting steelhead';
     // on a steelhead river every rainbow over 50 cm is a steelhead, which has its own rule
     if (/^Not counting /.test(p.sub || '')) p.sub = p.sub.replace(/^Not counting (rainbow trout or steelhead|steelhead or rainbow trout)$/, 'Not counting steelhead').replace(/^Not counting (.+)$/, '$1 don’t count');
@@ -867,7 +886,7 @@ function groupBlock(row, rc){
   const apart = MODEL.rows.filter(r => r !== row && r.pool && row.pool && r.members.length && r.members.every(S => { const m = mainRes(MODEL.R[S]?.H, MODEL.R[S]?.W); return m && m.roles.get(row.pool.key)?.role === 'lifted'; }));
   apart.forEach(r => (VAR === 'B' ? conds : oth).push(`<li><span class="ic"></span><div><b>${esc(rowTitle(r))}: own limit of ${r.daily} a day</b><span class="sub">Not part of these ${n}. See its row below.</span></div></li>`));
   const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
-  return `<section class="gblock">${facts.join('')}${ex}${conds.length ? (VAR === 'B' ? `<ul class="gconds">${conds.join('')}</ul>` : `<div class="gfor"><div class="lbl">${VAR === 'C' ? 'For every kind' : 'Across all kinds'}</div><ul class="gconds v2">${conds.join('')}</ul></div>`) : ''}${oth.length ? `<div class="gfor">${conds.length ? '<div class="lbl">Also</div>' : ''}<ul class="gconds v2 oth">${oth.join('')}</ul></div>` : ''}${sp ? `<p class="gquiet">${esc(sp)}</p>` : ''}</section>`;
+  return `<section class="gblock">${facts.join('')}${ex}${conds.length ? (VAR === 'B' ? `<ul class="gconds">${conds.join('')}</ul>` : `<div class="gfor"><div class="lbl">${VAR === 'C' ? 'For every kind' : 'Across all kinds'}</div><ul class="gconds v2">${conds.join('')}</ul></div>`) : ''}${oth.length ? `<div class="gfor">${conds.length ? '<div class="lbl">Also</div>' : ''}<ul class="gconds v2 oth">${oth.join('')}</ul></div>` : ''}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }
 // the keep sentence: "Keep 1 of the 2 · 60 cm or longer · hatchery only"
 const sent = (num, of, segs, o) => { const sg = segs.filter(Boolean); return `<div class="sl">${o ? `<span class="o">${o}</span>` : ''}<span class="k">Keep${of && num >= of ? ' up to' : ''}</span> <b class="n">${num === Infinity ? 'any number' : num}</b>${of && of !== Infinity && num < of ? ` <span class="of">of your ${of}</span>` : ''}${sg.length ? `<span class="segs">${sg.map(x => `<span class="seg">${esc(x)}</span>`).join(' · ')}</span>` : ''}</div>`; };
@@ -950,7 +969,7 @@ function speciesBlock(row, rc, id){
       return ol.length ? `Keep up to ${nn(ol[0])}, ${rg(ol[0])}${itemOrigins(it).length === 2 ? `, ${lc(ol[0].o)} only` : ''}. Each one counts toward your ${N}` : `Each one counts toward your ${N}`; })() : null);
     return `<details class="sp2" data-dd="${id}${it.key}"${ddOpen(id + it.key)}><summary>${head}</summary><div class="minidec"><div class="lbl">How this was decided</div>${ladderHtml(ladRow, id, it.members, res2)}</div></details>`;
   }).join('');
-  return `<section class="sblock"><div class="lbl">Each kind${many ? ` <span class="lbl2">· every fish counts toward the ${n}</span>` : ''}${VAR === 'D' && gOrigin ? ` <button class="linkbtn lblbtn" type="button" data-howtell="1">Hatchery or wild? ›</button>` : ''}</div><div class="rail">${body}</div></section>`;
+  return `<section class="sblock"><div class="lbl">Each kind${many && items.every(it => it.x.against == null || it.x.against === n) ? ` <span class="lbl2">· every fish counts toward the ${n}</span>` : ''}${VAR === 'D' && gOrigin ? ` <button class="linkbtn lblbtn" type="button" data-howtell="1">Hatchery or wild? ›</button>` : ''}</div><div class="rail">${body}</div></section>`;
 }
 // "How this was decided": one short ladder per question, from B.C. down to this water
 const SAYS = { governs:'Daily limit', contains:'Daily limit', narrows:'Lower daily limit', also:'Also applies', floor:'Size', limit:'Extra cap', season:'Yearly limit', possession_cap:'Possession limit', duty:'Must do', possession:'Carry limit' };
@@ -1079,7 +1098,7 @@ function gearParts(){
   if (L) tags.push(`${countTxt('lines_per_angler', L.c)} line${L.c?.max > 1 ? 's' : ''}${L.also.map(e => ` (${countTxt('lines_per_angler', clauseOf(e.clause).c)} ${circTxt(e).replace('while ', '')})`).join('')}`);
   const HOOK = { single_barbless:'Single barbless hook', single:'Single hook', any_barbless:'Any barbless hook', trebles_and_barbs:'Trebles and barbs OK' };
   tags.push(HOOK[G.hook] || `(hook “${G.hook}”: no words for it)`);
-  tags.push(G.bait_ban ? 'No bait' : 'Some bait OK');
+  tags.push(G.bait_ban ? 'Bait ban' : 'Some bait OK');
   if (G.fly === 'artificial_fly_only') tags.push('Artificial fly only: floats and sinkers OK');
   if (G.fly === 'fly_fishing_only') tags.push('Fly fishing only: no float or sinker');
   const timed = G.timed.map(PLACE.R);
@@ -1094,11 +1113,11 @@ function gearParts(){
   const lureNo = el('lure:artificial_lure');
   line += lureNo?.s === 'ban' ? gRow('Lures', 'Artificial flies only', 'floats and sinkers may be on the line', lureNo.r, true) : gRow('Lures', 'Any lure or fly', '');
   line += (top('terminal_attachments_per_line') ? '' : row('flies_per_line')) + row('weight_per_line_kg') + row('hooks_per_line');
-  P.line = `<div class="gsec">${line}</div>`;
+  P.line = `<div class="gsec">${line}</div>${/single|barbless/.test(G.hook) ? `<p class="kitnote">${esc(HOOK[G.hook])} ${gi('single_barbless_hook')}</p>` : ''}`;
   P.baitBan = G.bait_ban;
   const WHY = { bait_ban:'bait ban', on_streams:'on streams', on_lakes:'on lakes', not_on_streams:'not on streams', not_on_lakes:'not on lakes', banned_roe_ok:'banned · roe is still OK', allowed:'allowed' };
   P.baitList = G.bait.map(b => ({ e:b.element, ok:b.ok }));
-  P.bait = `<div class="gsec">${P.baitBan ? '<p class="kitnote">Bait ban: no bait of any kind.</p>' : ''}<div class="baitgrid">${G.bait.map(b => {
+  P.bait = `<div class="gsec">${P.baitBan ? `<p class="kitnote">No natural bait of any kind while the ban runs. ${gi('bait_ban')}</p>` : ''}<div class="baitgrid">${G.bait.map(b => {
     const r = b.by ? PLACE.R(b.by[0]) : null, sub = b.by ? (b.why ? (WHY[b.why] || b.why) : '') : 'allowed';
     return `<button class="bait ${b.ok ? 'ok' : 'no'}" type="button" data-rule="${r ? esc(r.key) : ''}"><i>${b.ok ? '✓' : '✕'}</i><b>${ELEM[b.element] || b.element}</b><span>${esc([sub, b.carry_kg != null ? `carry up to ${b.carry_kg} kg` : ''].filter(Boolean).join(' · '))}</span>${(b.also_allowed || []).map(c => `<small>✓ dead fish ${esc(circTxt(c))}</small>`).join('')}</button>`; }).join('')}</div></div>`;
   // ways to fish: the answers' verdict per method against the province's lawful methods
@@ -1117,7 +1136,7 @@ function gearParts(){
     return { k:x.method, allow:true, r, info:[...new Set(bits)].join(' · ') };
   });
   P.waysNo = chips.filter(o => !o.allow);
-  P.ways = `<div class="gsec"><div class="lbl">Allowed</div><div class="wlist">${chips.filter(o => o.allow).map(o => `<button class="wrow" type="button" data-rule="${o.r ? esc(o.r.key) : ''}"><i class="${/not for game fish/.test(o.info || '') ? 'lim' : 'ok'}">${/not for game fish/.test(o.info || '') ? '!' : '✓'}</i><span><b>${esc(ELEM[o.k] || o.k)}${/not for game fish/.test(o.info || '') ? ' — not for trout or other game fish' : ''}</b>${o.info ? `<small>${esc(o.info)}</small>` : ''}</span></button>`).join('')}</div>${chips.some(o => !o.allow) ? `<div class="lbl">Not allowed</div><div class="wno">${chips.filter(o => !o.allow).map(o => `<button class="nochip" type="button" data-rule="${o.r ? esc(o.r.key) : ''}"><i>✕</i>${esc(cap(lc(ELEM[o.k] || o.k)))}</button>`).join('')}</div>` : ''}</div>`;
+  P.ways = `<div class="gsec"><div class="lbl">Allowed</div><div class="wlist">${chips.filter(o => o.allow).map(o => `<button class="wrow" type="button" data-rule="${o.r ? esc(o.r.key) : ''}"><i class="${/not for game fish/.test(o.info || '') ? 'lim' : 'ok'}">${/not for game fish/.test(o.info || '') ? '!' : '✓'}</i><span><b>${esc(ELEM[o.k] || o.k)}${/not for game fish/.test(o.info || '') ? ' — not for trout or other game fish' : ''}</b>${o.k === 'set_lining' ? ' ' + gi('set_line') : ''}${o.info ? `<small>${esc(o.info)}</small>` : ''}</span></button>`).join('')}</div>${chips.some(o => !o.allow) ? `<div class="lbl">Not allowed</div><div class="wno">${chips.filter(o => !o.allow).map(o => `<button class="nochip" type="button" data-rule="${o.r ? esc(o.r.key) : ''}"><i>✕</i>${esc(cap(lc(ELEM[o.k] || o.k)))}</button>`).join('')}</div>` : ''}</div>`;
   // handling rules by moment (answers conduct; the short phrases are the answers' static moments)
   const PHRASE = new Map(SEC.gear.moments.flatMap(([, acts]) => acts.map(([a, p]) => [a, p])));
   const moments = Object.entries(G.conduct);
@@ -1176,7 +1195,7 @@ function otherCard(ix){
   return `<div class="muted small">For ${esc(whoTxt(l.f.who))}${l.f.who_except ? ` (not ${esc(whoTxt(l.f.who_except))})` : ''}:</div><div class="lreq"><button class="lhead" type="button" data-lic="${esc(l.key)}"><span>${esc(l.label)}</span><span class="src">${srcOf(l)}</span></button>${paths.map(p => `<div class="lpath">${pathHtml(p)}</div>`).join('<div class="lor">or</div>')}</div>`;
 }
 function profileHtml(){
-  return `<div class="profile"><div class="lbl">Who is fishing?</div>${Object.entries(AXES).map(([a, opts]) => `<label class="psel"><span class="sr">${a}</span><select data-axis="${a}" id="who-${a}">${opts.map(([v, t]) => `<option value="${v}"${state.who[a] === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`).join('')}</div>`;
+  return `<div class="profile"><div class="lbl">Who is fishing? <span class="lblgl">Under 16 ${gi('under_16')} · Guided ${gi('guided')}</span></div>${Object.entries(AXES).map(([a, opts]) => `<label class="psel"><span class="sr">${a}</span><select data-axis="${a}" id="who-${a}">${opts.map(([v, t]) => `<option value="${v}"${state.who[a] === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`).join('')}</div>`;
 }
 function licParts(){
   const water = WATERS[state.wi], md = state.md;
@@ -1187,15 +1206,35 @@ function licParts(){
   if (!P) return { missing:true, buy:[], none:false, body: profileHtml() + missing('the answer for this angler profile') };
   let h = profileHtml();
   const des = (H.designations || []).map(LX);
-  if (des.length) h += des.map(d => `<div class="classbox"><b>${esc(d.period?.says || `Class ${d.f.classified} Classified Water`)}</b><span>Licence unit: ${esc(d.f.unit_name || d.f.unit)}${d.f.steelhead_stamp_during ? `. Steelhead Stamp needed ${esc(whenDates(d.f.steelhead_stamp_during.when).map(([a, b]) => rangeTxt(a, b)).join(', '))}, whatever you fish for${H.stamp_period ? ' (in force today)' : ''}` : ''}${d.stamp_waiver ? '. ' + d.stamp_waiver.says.replace(/\.$/, '') : d.f.steelhead_stamp_waived ? '. Steelhead Stamp not needed here unless you fish for steelhead' : ''}.</span> <button class="srcbtn inline" type="button" data-lic="${esc(d.key)}">Source</button></div>`).join('');
+  const stampDates = des.filter(d => d.f.steelhead_stamp_during).map(d => whenDates(d.f.steelhead_stamp_during.when).map(([a, b]) => rangeTxt(a, b)).join(', '))[0] || '';
+  if (des.length) h += des.map(d => `<div class="classbox"><b>${esc(d.period?.says || `Class ${d.f.classified} Classified Water`)} ${gi('classified_waters')}</b><span>Licence unit: ${esc(d.f.unit_name || d.f.unit)}${d.f.steelhead_stamp_during ? `. Steelhead Stamp needed ${esc(whenDates(d.f.steelhead_stamp_during.when).map(([a, b]) => rangeTxt(a, b)).join(', '))}, whatever you fish for${H.stamp_period ? ' (in force today)' : ''}; at any other time only to fish for steelhead` : ''}${d.stamp_waiver ? '. ' + d.stamp_waiver.says.replace(/\.$/, '') : d.f.steelhead_stamp_waived ? '. Steelhead Stamp not needed here unless you fish for steelhead' : ''}.</span> <button class="srcbtn inline" type="button" data-lic="${esc(d.key)}">Source</button></div>`).join('');
   if (H.contested) h += `<div class="flag"><b>?</b><span>Check: part of this water is also marked “not a Classified Water”.</span></div>`;
   (DWATERS[water.id]?.unresolved_licensing || []).map(LX).forEach(l => { h += `<div class="flag"><b>?</b><span>Check: “${esc(l.label)}” couldn’t be placed on the map (${esc(friendlyWhy(l.prov.why || l.f.review_reason || '') || 'the place isn’t clear')}).</span></div>`; });
   if (P.exempt) h += `<div class="scopenote wide">You’re exempt from: ${esc(P.exempt.from.map(DOC).join(', '))}. <button class="srcbtn inline" type="button" data-lic="${esc(LX(P.exempt.by[0]).key)}">Source</button></div>`;
   if (P.none_needed) h += `<div class="classbox"><b>No licence needed to fish here</b><span>${state.who.age === 'under_16' ? 'Anglers under 16 who live in B.C. don’t need a basic angling licence.' : P.exempt ? 'You’re exempt from the basic angling licence.' : 'No licence rule applies to this angler.'} The fishing rules and limits still apply.</span></div>`;
   const whenTxt = (w) => { const t = actTxt(w); const perSays = des.map(d => d.period?.says).filter(Boolean)[0];
-    return w.on === 'classified_period' && perSays ? `Needed while it’s classified: ${lc(perSays.replace(/^Classified \(Class (I+)\)/, 'Class $1'))}` : t === 'To fish here' ? 'Needed to fish at all' : t.startsWith('To fish for') ? 'Only if you ' + lc(t.replace(/^To /, '')) + ', even to release them' : t.startsWith('To keep') ? 'Only if you ' + lc(t.replace(/^To /, '')) : t; };
-  const buy = P.documents.map(b => ({ name:cap(DOC(b.doc)), when:whenTxt(b.when), base:b.base, price:priceTxt(b.prices || {}) }));
-  if (buy.length) h += `<div class="needs"><div class="lbl">You need</div><ul>${buy.map(b => `<li><b>${esc(b.name)}</b><span>${esc(b.when)}</span>${b.price ? `<span class="price">${esc(b.price)}</span>` : ''}</li>`).join('')}</ul>${buy.some(b => b.price) ? '<p class="pricenote">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</p>' : ''}</div>`;
+    return w.on === 'classified_period' && perSays ? `Needed while it’s classified: ${lc(perSays.replace(/^Classified \(Class (I+)\)/, 'Class $1'))}` : w.on === 'steelhead_period' ? `Needed to fish at all${stampDates ? ' ' + stampDates : ''}, whatever you fish for` : t === 'To fish here' ? 'Needed to fish at all' : t.startsWith('To fish for') ? 'Only if you ' + lc(t.replace(/^To /, '')) + ', even to release them' : t.startsWith('To keep') ? 'Only if you ' + lc(t.replace(/^To /, '')) : t; };
+  // the answers' documents: `when` the broadest need, `also_when` the narrower ones (licence L10), `or` another
+  // way to satisfy the same need (L9: "B.C. or Yukon licence", never both)
+  const alsoTxt = w => { const t = actTxt(w); return t.startsWith('To fish for') ? 'at any other time only if you ' + lc(t.replace(/^To /, '')) : lc(whenTxt(w)); };
+  const docGi = d => d === 'steelhead_stamp' ? gi('steelhead_stamp') : d === 'classified_waters_licence' ? gi('classified_waters') : /conservation surcharge/i.test(DOC(d)) ? gi('conservation_surcharge') : '';
+  const buy = P.documents.map(b => { const alts = (b.or || []).map(o => o.need.map(DOC).join(' + '));
+    return { name:cap([DOC(b.doc), ...alts].join(' or ')), docs:[b.doc], alts, when:[whenTxt(b.when), ...(b.also_when || []).map(alsoTxt)].join('; ') + (alts.length ? '. Either one does' : ''), base:b.base, price:priceTxt(b.prices || {}),
+      tile:[DOC(b.doc), ...alts].map(n => n.replace(/^basic angling licence$/i, alts.length ? 'B.C. licence' : 'Basic licence').replace(/^(.+?) angling licence$/i, '$1 licence')).join(' or ').replace(/^(\S+) licence or (\S+) licence$/, '$1 or $2 licence') }; });
+  // UNDER 16 (user test 2026-10-08, item 2): no document of their own, and a fishing requirement met by fishing
+  // with a licensed adult (`accompanied_by`) or as an adult (`as`): say so on top, in "You need" and on the tile
+  const youthReq = !P.documents.length && P.requirements.find(x => x.when.act === 'fishing' && x.paths.some(p => p.accompanied_by || p.as));
+  let youth = null;
+  if (youthReq){
+    const asP = youthReq.paths.find(p => p.as), acc = youthReq.paths.find(p => p.accompanied_by);
+    const adult = asP ? F.profiles[profileIx({ ...state.who, ...Object.fromEntries(Object.entries(asP.as).map(([k, v]) => [k, (Array.isArray(v) ? v : [v]).includes(state.who[k]) ? state.who[k] : (Array.isArray(v) ? v[0] : v)])) })] : null;
+    const adocs = (adult?.documents || []).filter(b => b.base).map(b => cap([DOC(b.doc), ...(b.or || []).map(o => o.need.map(DOC).join(' + '))].join(' or ')));
+    youth = { acc:!!acc, adocs, counts: acc?.quota === 'counts_to_companion' };
+    h += `<div class="classbox youth"><b>Under 16: no licence needed if you fish with a licensed adult ${gi('under_16')}</b><span>${acc ? `Fish with someone ${esc(whoTxt(acc.accompanied_by.who || {}))} who holds what this fishing needs${adocs.length ? ` (${esc(adocs.join(', '))})` : ''}.${youth.counts ? ' What you keep counts toward their limit.' : ''}` : ''}${asP ? ` Or buy ${adocs.length ? 'the ' + esc(adocs.join(' + ')) : 'what a 16+ angler needs'} yourself to have your own limit.` : ''}</span></div>`;
+    buy.push({ name:'Nothing, if you fish with a licensed adult (16 or older)', when: youth.counts ? 'What you keep counts toward their limit' : 'They must hold what this fishing needs', base:true, price:'', youth:true });
+    if (asP && adocs.length) buy.push({ name:adocs.join(' + '), when:'Or, for your own limit: what a 16+ angler buys', base:false, price:priceTxt(adult.documents.find(b => b.base)?.prices || {}), youth:true });
+  }
+  if (buy.length) h += `<div class="needs"><div class="lbl">You need</div><ul>${buy.map(b => `<li><b>${esc(b.name)} ${(b.docs || []).map(docGi).join('')}</b><span>${esc(b.when)}</span>${b.price ? `<span class="price">${esc(b.price)}</span>` : ''}</li>`).join('')}</ul>${buy.some(b => b.price) ? '<p class="pricenote">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</p>' : ''}</div>`;
   // the paper licence: the record duties that reach this water (answers display.waters part paper_licence)
   const paperReq = P.requirements.find(x => x.when.act === 'retaining_recorded');
   const paperRules = (PLACE.disp?.paper_licence || []).map(PLACE.R);
@@ -1213,7 +1252,7 @@ function licParts(){
   if ((P.guiding || []).length) h += `<details class="lostlist"><summary class="lbl">If you are guiding other anglers</summary>${P.guiding.map(otherCard).join('')}</details>`;
   if ((P.others || []).length) h += `<details class="lostlist"><summary class="lbl">Rules for other anglers (${P.others.length})</summary>${P.others.map(otherCard).join('')}</details>`;
   h += `<button class="srcbtn" type="button" data-licsrc="1">All licence sources</button>`;
-  return { buy, none:P.none_needed, body:h };
+  return { buy, none:P.none_needed, youth, body:h };
 }
 function openLic(key){ const l = LIC[key]; if (!l) return; openSheet('Licence source', l.prov.entry_name || '', srcCard({ ...l, prov:{ who:l.placement === 'province' ? 'Provincial · province-wide' : l.placement === 'on_designation' ? 'Wherever a classified designation is in force' : l.placement === 'not_placed' ? 'Not bound to a place' : l.prov.entry_name } , rank:l.placement === 'province' ? 4 : 0, notes:[l.f.review_reason && 'Curator still to settle: ' + l.f.review_reason, l.prov.uncertain && 'Unresolved: ' + l.prov.why].filter(Boolean) }, `${l.kind}: ${l.label}`, true, `<div class="muted small">${esc(key)} · placement: ${esc(l.placement)}</div>` + fieldsPre(l.f))); }
 function openLicAll(){
@@ -1242,9 +1281,9 @@ function renderKit(){
   if (G.missing){ el.innerHTML = h + missing(`the gear answer on ${fmtMd(state.md)} (gear frame for this part key and segment)`) + L.body; return; }
   const base = L.buy.filter(b => b.base), extra = L.buy.filter(b => !b.base);
   const tiles = {
-    licence: L.missing ? { v:'Missing', s:'no licence answer' } : { v: L.none ? 'None needed' : base.length ? base.map(b => b.name.replace(/^Basic angling licence$/i, 'Basic licence')).join(' + ') : 'Basic licence', s: extra.length ? '+ ' + shortDoc(extra[0].name) + (extra.length > 1 ? ` and ${extra.length - 1} more` : '') + ' if needed' : 'Nothing extra' },
+    licence: L.missing ? { v:'Missing', s:'no licence answer' } : L.youth ? { v: L.youth.acc ? 'None with a licensed adult' : 'An adult’s licence', s: L.youth.acc ? (L.youth.counts ? 'Under 16: fish count toward theirs' : 'Under 16') + (L.youth.adocs.length ? ' · or buy your own' : '') : 'Under 16' } : { v: L.none ? 'None needed' : base.length ? base.map(b => cap(shortDoc(b.tile || b.name))).join(' + ') : 'Basic licence', s: extra.length ? '+ ' + shortDoc(extra[0].name) + (extra.length > 1 ? ` and ${extra.length - 1} more` : '') + ' if needed' : 'Nothing extra' },
     line: { v: G.tags[1], s: [G.tags[0], ...G.tags.slice(3)].filter(Boolean).join(' · ') },
-    bait: { v: G.baitBan ? 'No bait' : 'Some bait OK', s: G.baitBan ? 'Bait ban' : (G.baitList || []).map(b => `${({ worms:'Worms', roe:'Roe', invertebrate:'Insects', fin_fish:'Fish parts' })[b.e] || b.e} ${b.ok ? '✓' : '✕'}`).join(' · '), html: !G.baitBan && (G.baitList || []).length ? (G.baitList || []).map(b => `<span class="bk ${b.ok ? 'ok' : 'no'}">${esc(({ worms:'Worms', roe:'Roe', invertebrate:'Insects', fin_fish:'Fish parts' })[b.e] || b.e)} <i>${b.ok ? '✓' : '✕'}</i></span>`).join('') : null },
+    bait: { v: G.baitBan ? 'Bait ban' : 'Some bait OK', s: G.baitBan ? 'Lures and flies only' : (G.baitList || []).map(b => `${({ worms:'Worms', roe:'Roe', invertebrate:'Insects', fin_fish:'Fish parts' })[b.e] || b.e} ${b.ok ? '✓' : '✕'}`).join(' · '), html: !G.baitBan && (G.baitList || []).length ? (G.baitList || []).map(b => `<span class="bk ${b.ok ? 'ok' : 'no'}">${esc(({ worms:'Worms', roe:'Roe', invertebrate:'Insects', fin_fish:'Fish parts' })[b.e] || b.e)} <i>${b.ok ? '✓' : '✕'}</i></span>`).join('') : null },
     ways: { v: G.waysNames[0] ? cap(lc(G.waysNames[0]).replace(/ \(rod and line\)/, '')) : 'None', s: G.waysNames.length > 1 ? 'Also ' + G.waysNames.slice(1).map(x => lc(x)).join(', ') : 'Nothing else' },
     boats: G.boats ? { v: G.boatFirst ? cap(G.boatFirst) : 'Rules apply', s: 'Tap for all boat rules' } : null,
     always: G.alwaysN ? { v: 'Handling fish', s: `${G.alwaysN} rules that apply everywhere` } : null,
@@ -1323,11 +1362,11 @@ function defaultPart(wi){
 }
 // date chips: the days the answers' segments start (where some rule's or lift's dates begin)
 function dateChips(){
-  if (PLACE.k == null) return `<button class="dchip now" data-md="${TODAY}" type="button">Today</button>`;
+  if (PLACE.k == null) return `<button class="dchip now" data-md="${TODAY}" data-today="1" type="button">Today</button>`;
   // a part whose year is never cut has no date to offer (as v35: no window, no chip)
   const s0 = [...new Set(segStarts(PLACE).map(mdOfDay))], s = s0.length === 1 ? [] : s0;
   const arr = s.filter(x => x !== 101 || s.length < 4).sort((a, b) => a - b).slice(0, 6);
-  return `<button class="dchip now" data-md="${TODAY}" type="button">Today</button>` + arr.map(md => `<button class="dchip" data-md="${md}" type="button">${fmtMd(md)}</button>`).join('');
+  return `<button class="dchip now" data-md="${TODAY}" data-today="1" type="button">Today</button>` + arr.map(md => `<button class="dchip" data-md="${md}" type="button">${fmtMd(md)}</button>`).join('');
 }
 function renderParts(){
   const water = WATERS[state.wi], el = document.getElementById('partrow');
@@ -1357,8 +1396,12 @@ WATERS.forEach((w, i) => { const b = document.createElement('button'); b.type = 
   b.innerHTML = `<b>${esc(w.name)}</b><span>${esc(w.kind)} · ${np > 1 ? np + ' parts' : 'one set of rules'}${cls ? ' · classified' : ''}${w.part_of ? ' · lake part' : ''}${A.parts[w.id]?.some(k => k != null && A.keys[k][8]) ? ' · tidal' : ''}</span>`;
   b.onclick = () => { state.wi = i; state.pi = defaultPart(i); [...wEl.children].forEach((c, j) => c.setAttribute('aria-pressed', j === i)); renderAll(); }; wEl.appendChild(b); });
 const dIn = document.getElementById('dateIn');
-function setMd(md){ state.md = md; dIn.value = `2026-${String(Math.floor(md/100)).padStart(2,'0')}-${String(md%100).padStart(2,'0')}`; renderAll(true); }
-dIn.onchange = () => { const [, m, d] = dIn.value.split('-').map(Number); if (m && d) setMd(m === 2 && d === 29 ? 228 : m*100 + d); };
+// the date box: every change, typed or picked, re-renders every view at once (banner, rows, gear, licence)
+const isoOf = (y, md) => `${y}-${String(Math.floor(md/100)).padStart(2,'0')}-${String(md%100).padStart(2,'0')}`;
+function setMd(md, y){ if (y) YEAR = y; state.md = md; const v = isoOf(YEAR, md); if (dIn.value !== v) dIn.value = v; renderAll(true); }
+const fromBox = () => { const [y, m, d] = dIn.value.split('-').map(Number); if (y && m && d && (state.md !== (m === 2 && d === 29 ? 228 : m*100 + d) || y !== YEAR)) setMd(m === 2 && d === 29 ? 228 : m*100 + d, y); };
+dIn.addEventListener('input', fromBox); dIn.addEventListener('change', fromBox);
+dIn.value = isoOf(YEAR, TODAY);
 function setTab(v){ state.tab = v; document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v)); document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v)); }
 document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) setTab(b.dataset.v); });
 document.addEventListener('change', e => {
@@ -1366,7 +1409,8 @@ document.addEventListener('change', e => {
   if (e.target.dataset.axis){ state.who[e.target.dataset.axis] = e.target.value; renderKit(); }
 });
 document.addEventListener('click', e => {
-  const md = e.target.closest('[data-md]'); if (md){ setMd(+md.dataset.md); return; }
+  const md = e.target.closest('[data-md]'); if (md){ setMd(+md.dataset.md, md.dataset.today ? NOW.getFullYear() : null); return; }
+  const gl = e.target.closest('[data-gl]'); if (gl){ e.stopPropagation(); openGloss(gl.dataset.gl); return; }
   const lic = e.target.closest('[data-lic]'); if (lic){ e.stopPropagation(); openLic(lic.dataset.lic); return; }
   if (e.target.closest('[data-licsrc]')){ openLicAll(); return; }
   if (e.target.closest('[data-gearsrc]')){ openGearAll(); return; }

@@ -420,7 +420,7 @@ def build(export_dir: Path, waters: list, inputs: dict):
                          "export": ans["about"]["export"], "sections": ans["about"]["sections"]},
                "fish": ans["fish"], "keys": keys, "segments": segments[0],
                "moments": ans["moments"], "segment_moments": segments[1], "parts": parts_map,
-               "sections": A}
+               "glossary": ans["glossary"], "sections": A}
     case_rules = {}
     for c in case_list:
         for i in [m[0] for m in c["members"]] + [int(r) for r in c["expect"]]:
