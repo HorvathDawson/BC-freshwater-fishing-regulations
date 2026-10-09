@@ -7,6 +7,8 @@ re-litigating them costs trust.
 Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-plan.md`
 (issues ①–㊸), `pipeline/docs/REACH-BUILDER.md`, `pipeline/docs/RESOLVER-HANDOFF.md`.
 
+**How the book is read — every user interpretation ruling — is `pipeline/docs/RULINGS.md`; it is the source of truth for interpretation and wins over any other note.**
+
 ---
 
 ## ⛔ Absolute
