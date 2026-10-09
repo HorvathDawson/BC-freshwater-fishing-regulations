@@ -259,28 +259,25 @@ Never cite a PDF page without writing "PDF p.".
 
 ## 15. Contradictions and tensions (⚡)
 
-- **C-1. Campbell tributaries (T6).** The user answered "every DIRECT tributary of the Campbell
-  River, Strathcona Dam to the sea". What was built (RR8) closes every tributary TREE, plus the
-  inflows of John Hart Lake and Campbell Lake. RR8 asked "if you meant strictly first-order
-  inflows, say so", and no answer is recorded. The ruling's wording and the code disagree.
+- **C-1. Campbell tributaries (T6): RESOLVED 2026-10-08.** The user ruled "ALL TRIBUTARIES": every
+  tributary tree from Strathcona Dam to the sea, Quinsam excepted. That is what RR8 builds.
 - **C-2. Tidal (K7 and K8).** K7 says tidal water carries no provincial rules or licences. The book
   (p.21) puts the Fraser below the Mission CPR bridge in tidal water. Yet K8 approves Region 2
   freshwater rules there "as built" until the tidal spec, which is ON HOLD. The four user testers
   hit this on the default Fraser part (TRIAGE item 1). The early memory note "not wanted:
   tidal-boundary rules (geometry handles)" also predates K7.
-- **C-3. Exact size bounds and the display (Q13).** Rows printing "40 cm or more" are `closed: true`,
-  so a 40 cm fish is denied. Their display still reads "none over 40 cm", which under Q13 says 40
-  cm is legal. This was kept for page parity (RR2), and the ruling and the words disagree at
-  exactly 40 cm.
+- **C-3. Exact size bounds and the display (Q13): ACCEPTED 2026-10-08.** "None over 40 cm" against a
+  closed "40 cm or more" band is an accepted ambiguity: the user says no one can measure a fish that
+  precisely. The display wording stays as it is.
 - **C-4. Stale ruling citation.**
   `test_zone_decisions.py::test_steelhead_over_50_are_not_in_the_trout_one_over_50` justifies
   Region 1's CHAR exclusion by the withdrawn 2026-09-28 "mentions char" ruling. The assertion still
   holds under C2: "All char" is a related retention rule. The comment cites a superseded ruling.
-- **C-5. A dated bait ban: replace or both hold?** L8 says a row's dated bait ban REPLACES the
-  zone's all-year ban. T4/RR3 says that when a row's own dated bait ban meets an INHERITED all-year
-  ban, both hold. Granby is the case: its own ban is Apr 1-Oct 31, and it inherits the Kettle's
-  ban. The two are consistent only because one is a zone ban and the other an inherited one. Nothing
-  in the book draws that line. Worth confirming.
+- **C-5. A dated bait ban vs an inherited one: RULED 2026-10-08, NOT YET ENFORCED.** The user ruled that
+  inherited rules behave like zone rules: any regulation under the water's own row replaces them. So
+  a row's dated bait ban REPLACES an inherited all-year ban, exactly as it replaces a zone ban (L8).
+  Granby: its own Apr 1-Oct 31 ban replaces the Kettle's inherited all-year ban. The code still holds
+  both, so this needs a fix.
 
 ## 16. Not enforced, or held only by curated data
 
