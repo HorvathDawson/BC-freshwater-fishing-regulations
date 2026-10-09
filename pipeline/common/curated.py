@@ -118,8 +118,11 @@ class Regulations(BaseModel):
     #: THE USER'S KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02) — rivers that are steelhead
     #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`.
     steelhead_waters: FilePath
+    #: THE BOOK'S TEXT, transcribed verbatim (`definitions.md` p.80, `water-specific-tables.md`
+    #: p.4, `licensing.md` pp.6-7, `region-*.md`): source text, read by the answers glossary.
+    reference: DirectoryPath
 
-    _abs = field_validator("overrides", "steelhead_waters", mode="before")(_absolute)
+    _abs = field_validator("overrides", "steelhead_waters", "reference", mode="before")(_absolute)
 
 
 class Domain(BaseModel):

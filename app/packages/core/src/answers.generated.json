@@ -1290,6 +1290,21 @@
     "DocumentNeed": {
      "additionalProperties": false,
      "properties": {
+      "also_when": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/When"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Also When"
+      },
       "base": {
        "title": "Base",
        "type": "boolean"
@@ -1297,6 +1312,21 @@
       "doc": {
        "title": "Doc",
        "type": "string"
+      },
+      "or": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/DocumentOr"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Or"
       },
       "prices": {
        "$ref": "#/$defs/Prices"
@@ -1312,6 +1342,46 @@
       "prices"
      ],
      "title": "DocumentNeed",
+     "type": "object"
+    },
+    "DocumentOr": {
+     "additionalProperties": false,
+     "description": "licence decision L9: another way to satisfy what the document is bought for.",
+     "properties": {
+      "alt": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Alt"
+      },
+      "need": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Need",
+       "type": "array"
+      },
+      "prices": {
+       "additionalProperties": {
+        "$ref": "#/$defs/Prices"
+       },
+       "title": "Prices",
+       "type": "object"
+      }
+     },
+     "required": [
+      "need",
+      "prices"
+     ],
+     "title": "DocumentOr",
      "type": "object"
     },
     "Exempt": {
@@ -4324,6 +4394,21 @@
        ],
        "title": "Shared Cap"
       },
+      "shared_count": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/SharedCount"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Shared Count"
+      },
       "sum": {
        "anyOf": [
         {
@@ -4698,6 +4783,31 @@
      ],
      "title": "SharedCap",
      "type": "object"
+    },
+    "SharedCount": {
+     "additionalProperties": false,
+     "description": "rows decision F11: a count limit several kinds share (\"1 trout from streams\"): together\nthey give at most `take`.",
+     "properties": {
+      "members": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 2,
+       "title": "Members",
+       "type": "array"
+      },
+      "take": {
+       "exclusiveMinimum": 0,
+       "title": "Take",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "take",
+      "members"
+     ],
+     "title": "SharedCount",
+     "type": "object"
     }
    },
    "additionalProperties": false,
@@ -4747,6 +4857,90 @@
     "steelhead_line"
    ],
    "title": "RowsFrame",
+   "type": "object"
+  },
+  "top.glossary": {
+   "$defs": {
+    "GlossaryTerm": {
+     "additionalProperties": false,
+     "description": "One piece of jargon the page shows, in plain words (`glossary.py`: generated from the data\nand the book's text, never written per water).",
+     "properties": {
+      "example": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Example"
+      },
+      "id": {
+       "pattern": "^[a-z0-9_]+$",
+       "title": "Id",
+       "type": "string"
+      },
+      "pages": {
+       "items": {
+        "exclusiveMinimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Pages",
+       "type": "array"
+      },
+      "quote": {
+       "title": "Quote",
+       "type": "string"
+      },
+      "says": {
+       "title": "Says",
+       "type": "string"
+      },
+      "source": {
+       "title": "Source",
+       "type": "string"
+      },
+      "term": {
+       "title": "Term",
+       "type": "string"
+      }
+     },
+     "required": [
+      "id",
+      "term",
+      "says",
+      "pages",
+      "quote",
+      "source"
+     ],
+     "title": "GlossaryTerm",
+     "type": "object"
+    }
+   },
+   "additionalProperties": false,
+   "properties": {
+    "terms": {
+     "items": {
+      "$ref": "#/$defs/GlossaryTerm"
+     },
+     "minItems": 1,
+     "title": "Terms",
+     "type": "array"
+    },
+    "version": {
+     "exclusiveMinimum": 0,
+     "title": "Version",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "version",
+    "terms"
+   ],
+   "title": "Glossary",
    "type": "object"
   },
   "top.moments": {

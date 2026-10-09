@@ -87,6 +87,16 @@ DECISIONS = [
     "L8 A document is BASE when the angler needs it to fish here at all (`doing.act` fishing), "
     "whether or not only while the water is classified (`when.on` says that): the Classified "
     "Waters Licence is base on a classified water, as the page's 'To fish here' group has it.",
+    "L9 (2.2, user ruling 2026-10-08) A requirement's paths are ALTERNATIVES: the first path that "
+    "buys something is the document to buy, every other one rides on it as `or` (with its own "
+    "`alt` record and prices) — never a second document. Teslin and the 14 other Yukon-border "
+    "waters: 'B.C. or Yukon licence', not both. An alternative holds only where every "
+    "requirement needing the document offers it.",
+    "L10 (2.2, user ruling 2026-10-08) A document needed by several requirements is needed when "
+    "the BROADEST holds (to fish at all > to fish for a kind > to keep one); the narrower whens "
+    "are `also_when`. Babine Sep 1-Oct 31: the Steelhead Stamp to fish at all (p.50 'Steelhead "
+    "Stamp mandatory', p.7 'even when fishing for species other than steelhead'); the rest of "
+    "the year only to fish for steelhead (p.7).",
 ]
 
 @dataclass(frozen=True, order=True)
@@ -216,6 +226,17 @@ def _alternatives_here(db, C: Corpus, sid: int) -> List[Tuple[str, dict]]:
                                                        "on_designation")]
 
 
+#: The acts, broadest first (decision L10): to fish at all, to fish for a kind, to keep one.
+_ACT_ORDER = ("fishing", "targeting", "retaining", "retaining_recorded", "guiding")
+
+
+def _breadth(w: dict) -> tuple:
+    """Broadest first (decision L10): the act, then a when with no period, no fish and no size
+    before one with them."""
+    return (_ACT_ORDER.index(w["act"]), "on" in w, bool(w.get("species")), bool(w.get("lengths")),
+            json.dumps(w, sort_keys=True))
+
+
 def _when(r: dict) -> dict:
     d = r.get("doing") or {"act": "fishing"}
     out = {"act": d.get("act", "fishing")}
@@ -323,10 +344,43 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
             fish_needs_any = True
         if displaced:
             continue                                         # decision L2
-        for q in out_paths:
-            for d in q.get("need") or []:
-                buy.setdefault(d, {"doc": d, "when": _when(r)})
-    docs = sorted(buy.values(), key=lambda b: b["when"]["act"] != "fishing")
+        # decision L9: the FIRST path that buys something is what to buy; every other path
+        # buying something is an ALTERNATIVE to it ("or a Yukon angling licence", Teslin), never
+        # a second document to buy
+        buying = [q for q in out_paths if q.get("need")]
+        if not buying or (out_paths and "need" in out_paths[0] and not out_paths[0]["need"]):
+            continue                    # nothing to buy, or the first way is already satisfied
+                                        # (every document it holds is freed: exempt)
+        first, rest = buying[0], buying[1:]
+        for d in first["need"]:
+            b = buy.setdefault(d, {"doc": d, "whens": [], "ors": []})
+            w = _when(r)
+            if w not in b["whens"]:
+                b["whens"].append(w)
+            b["ors"].append([{"need": list(q["need"]), **({"alt": q["alt"]} if "alt" in q else {})}
+                             for q in rest])
+    docs = []
+    for b in buy.values():
+        # decision L10: one document needed by several requirements is needed WHEN THE BROADEST
+        # of them holds (to fish at all, before to fish for a kind, before to keep one); the
+        # narrower ones ride along (`also_when`): Babine's Steelhead Stamp Sep 1-Oct 31 "whatever
+        # you fish for" (p.50; p.7 "even when fishing for species other than steelhead"), and at
+        # any time to fish for steelhead (p.7)
+        ws = sorted(b["whens"], key=_breadth)
+        e = {"doc": b["doc"], "when": ws[0]}
+        # a narrower when the broadest already covers (same act, every condition of the broadest
+        # in it too) says nothing more
+        more = [w for w in ws[1:] if not (w["act"] == ws[0]["act"] and
+                                          all(w.get(k) == v for k, v in ws[0].items()))]
+        if more:
+            e["also_when"] = more
+        # an alternative holds only where EVERY requirement needing the document offers it
+        alts = b["ors"][0] if all(o == b["ors"][0] for o in b["ors"]) else []
+        if alts:
+            e["or"] = [dict(a, prices={d: _prices(C, d, p, h["_desig"]) for d in a["need"]})
+                       for a in alts]
+        docs.append(e)
+    docs.sort(key=lambda b: (b["when"]["act"] != "fishing", "on" in b["when"]))
     for b in docs:
         b["base"] = b["when"]["act"] == "fishing"           # decision L8
         b["prices"] = _prices(C, b["doc"], p, h["_desig"])

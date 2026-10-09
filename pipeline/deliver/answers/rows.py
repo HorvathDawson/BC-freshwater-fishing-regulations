@@ -76,7 +76,9 @@ DECISIONS = [
     "item showed one range for fish with different ones (Anderson R., Jul: brook, brown and "
     "cutthroat 'keep 1 over 60 cm'; the book: up to 4, only 1 over 50).",
     "F1b A cap written for every fish of a row but rainbow trout, left out only because a "
-    "rainbow over 50 cm is a steelhead there, is general with `except: [RB]`.",
+    "rainbow over 50 cm is a steelhead there, is general — and counts that steelhead (amended "
+    "2026-10-08: it was `except: [RB]`, which the page read as 'steelhead don't count' under "
+    "Region 6's '1 over 50 cm (quota includes hatchery steelhead)', p.49).",
     "F2 origin2 (the other origin's own limit) also when only its keep RANGE differs (review A2: "
     "'No wild trout over 50 cm' on Chilliwack, Cultus, Harrison, … lakes), citing the release "
     "line that makes the difference; its condition names its fish (`who`).",
@@ -104,6 +106,18 @@ DECISIONS = [
     "F10 Fish asked about (R4) are the book's: the bundle holds no presence data for any fish but "
     "steelhead (stocking records are not presence), so the group wording stays (brown trout on "
     "Shuswap is named because the zone's trout row names it).",
+    "F11 A COUNT limit shared by several kinds gives them that many TOGETHER (user test "
+    "2026-10-08, Babine/Skeena): the real daily limit merges the kinds a count clause holds "
+    "(the row's stream or lake share, a clause `within` the pool) into one unit worth its take, "
+    "innermost first; `real_daily.shared_count` names the limits that bind. Region 6's '1 trout "
+    "from streams Jul 1-Oct 31' (p.49): 'Only 1 of the 5 can be brown, cutthroat, rainbow trout "
+    "or steelhead', not 3 (each kind's own 1, summed).",
+    "F12 Which fish a general size cap does NOT count is decided here (`conds[].except`), never "
+    "on the page (it was the page's `exemptOf`): a covered, kept fish whose answers give the cap "
+    "no role or line; never a rainbow on a steelhead water where the cap counts steelhead. "
+    "Steelhead leave a zone's trout/char size line only where the same table prints its own "
+    "steelhead quota for that size (`catalogue.steelhead_scope_problems`): Regions 1 and 2, not "
+    "3, 5, 6, 7 or 8.",
 ]
 
 
@@ -644,6 +658,37 @@ def _steel_carve(P: "Part", model: dict, l: dict, row: dict) -> bool:
     return bool(m) and any(x["t"] == "steel" for x in m["lines"]) and l["a"] >= 50
 
 
+def _not_counted(P: "Part", model: dict, row: dict, r: R) -> List[str]:
+    """Decision F12 (user test 2026-10-08; was the page's `exemptOf`): the fish of a row a general
+    size cap does NOT count — fish its rule covers that are kept here but whose answers give the
+    cap no role and no line (a lift took them out of it). A rainbow on a steelhead water is never
+    one where the cap counts steelhead: a rainbow over 50 cm IS a steelhead there (p.80), so it
+    is counted, as a steelhead (Region 6's "1 over 50 cm (quota includes hatchery steelhead)",
+    p.49). Where the cap leaves steelhead out (Region 2's "1 over 50 cm" beside its own "2
+    hatchery steelhead over 50 cm", p.21) the carve-out names them (`except: [ST]`)."""
+    R_ = model["R"]
+    seen: List[str] = []
+    for S in list(row["allMembers"]) + [S for g in row["groups"] for S in g["members"]]:
+        if S not in seen:
+            seen.append(S)
+    out = []
+    for S in seen:
+        if not _covers(r, S):
+            continue
+        rs = [x for x in ((R_.get(S) or {}).get("H"), (R_.get(S) or {}).get("W"))
+              if x and _keepish(x["status"])]
+        if not rs:
+            continue
+        if not all((x["roles"].get(r.key) or {}).get("role") in ("lifted", None)
+                   and not any(l["r"].key == r.key for l in x["lines"]) for x in rs):
+            continue
+        if S == "RB" and P.steelhead_water and _covers(r, "ST") \
+                and any(l["t"] == "steel" for x in rs for l in x["lines"]):
+            continue
+        out.append(S)
+    return out
+
+
 def _limit_take(l: dict):
     return l.get("take") if l.get("take") is not None else l["r"].f.get("take")
 
@@ -747,11 +792,14 @@ def row_conds(P: "Part", model: dict, row: dict) -> dict:
         if l["t"] in ("cap", "outersize"):
             e.update(a=l["a"], b=l["b"], take=l["take"])
         if l["t"] == "cap":
-            if w is not None and _steel_carve(P, model, l, row):     # decision F1b
+            if w is not None and _steel_carve(P, model, l, row):     # decision F1b (as amended)
                 w = None
-                e["except"] = ["RB"]
             e["of"] = w                         # the fish the cap is written for (page: "(…)")
             e["general"] = w is None and l["a"] > 0 and l["b"] == INF
+        if l["t"] in ("cap", "outersize") and w is None and not e.get("except"):
+            ex = _not_counted(P, model, row, l["r"])       # decision F12
+            if ex:
+                e["except"] = ex
         if l["t"] == "origin2":
             e.update(o=l["o"], daily=l["daily"], min=l["min"], max=l["max"])
             if w is not None:                   # decision F2: whose other origin it is
@@ -1012,13 +1060,69 @@ def eff_cap(P: "Part", model: dict, row: dict, rc: dict) -> Optional[dict]:
     general = [(c["a"], c["take"]) for c in rc["conds"]
                if c["c"] == "cap" and not c.get("who") and c.get("general")]
     cut, shared = _shared_caps(capped, general, P.steelhead_water)
-    total -= cut
+    # decision F11: a COUNT limit SHARED by several kinds ("1 trout from streams, Jul 1-Oct 31",
+    # "3 Dolly Varden and lake trout combined") gives them that many together, never that many
+    # each: the kinds it holds are worked as one unit (nested limits innermost first)
+    units, shared_n = _shared_counts(P, model, row, capped, n)
+    total = min(total - cut, sum(u["c"] for u in units))
     if not capped or (total >= n and not open_):
         return None
-    return {"n": n, "all": not open_, "sum": None if open_ else total, "capped_sum": total,
-            "rb": any("RB" in x["it"]["members"] for x in capped), "shared_cap": shared or None,
-            "capped": [S for x in capped for S in x["it"]["members"]],
-            "open": [S for x in open_ for S in x["it"]["members"]]}
+    out = {"n": n, "all": not open_, "sum": None if open_ else total, "capped_sum": total,
+           "rb": any("RB" in x["it"]["members"] for x in capped), "shared_cap": shared or None,
+           "capped": [S for x in capped for S in x["it"]["members"]],
+           "open": [S for x in open_ for S in x["it"]["members"]]}
+    if shared_n:
+        out["shared_count"] = shared_n
+    return out
+
+
+def _under(model: dict, S: str, L: R) -> bool:
+    """Does count limit `L` hold fish `S` on this reading: the fish's decided answer (the main
+    origin's, as the card reads it) is narrowed by it or limited by it — never where a lift took
+    the fish out of it."""
+    R_ = model["R"].get(S) or {}
+    m = main_res(R_.get("H"), R_.get("W"))
+    if not m or not _keepish(m["status"]):
+        return False
+    role = (m["roles"].get(L.key) or {}).get("role")
+    return m.get("narrow") is L or role in ("narrows", "limit")
+
+
+def _shared_counts(P: "Part", model: dict, row: dict, capped: List[dict], n) -> Tuple[list, list]:
+    """Decision F11 (user test 2026-10-08, Babine/Skeena): the units of a row's capped kinds under
+    every COUNT limit (a take, no size band) that holds more than one of them: the row's narrowing
+    clause (a stream or lake share) and every clause `within` the row's pool. A limit merges the
+    units it wholly holds into one, worth at most its take; limits holding fewer kinds go first,
+    so nested limits nest. Returns (units, the limits that bind [{take, members}])."""
+    units = [{"members": list(x["it"]["members"]), "c": x["c"]} for x in capped]
+    cands: List[R] = []
+    if row.get("narrow") is not None:
+        cands.append(row["narrow"])
+    pool = row.get("pool")
+    for r in P.cands:
+        if pool is not None and r.f.get("within") == pool.rule_id and r.entry_id == pool.entry_id \
+                and r not in cands:
+            cands.append(r)
+    held = []
+    for L in cands:
+        K = L.f.get("take")
+        if not isinstance(K, (int, float)) or K <= 0 or K >= n or L.f.get("lengths") \
+                or (L.f.get("period") or "daily") != "daily" or not P.in_dates(L):
+            continue
+        if L.f.get("water") and L.f["water"] != P.kind:
+            continue
+        ins = [u for u in units if u["members"] and all(_under(model, S, L) for S in u["members"])]
+        if len(ins) > 1:
+            held.append((len(ins), L, K))
+    binding = []
+    for _, L, K in sorted(held, key=lambda t: (t[0], t[1].key)):
+        ins = [u for u in units if all(_under(model, S, L) for S in u["members"])]
+        if len(ins) < 2 or sum(u["c"] for u in ins) <= K:
+            continue
+        merged = {"members": [S for u in ins for S in u["members"]], "c": K}
+        units = [u for u in units if u not in ins] + [merged]
+        binding.append({"take": K, "members": merged["members"]})
+    return units, binding
 
 
 # --------------------------------------------------------------------------------------------

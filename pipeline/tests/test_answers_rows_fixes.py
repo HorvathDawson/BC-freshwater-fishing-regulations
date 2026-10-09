@@ -124,7 +124,9 @@ def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
     assert sorted(dv["members"]) == ["DV", "LT"] and dv["bands"] == [[60, None, 1]] and dv["sub"] == 1
     assert item_of(row, "RB")["bands"] == [[0, 50, 4]]                 # F5c
     cap = next(c for c in row["conds"] if c["c"] == "cap")
-    assert cap["general"] and cap["of"] is None and cap["except"] == ["RB"]       # F1b
+    # F1b as amended (2.2, user ruling 2026-10-08): Region 3 prints no steelhead quota of its own,
+    # so its "1 over 50 cm" counts a rainbow over 50 cm — a steelhead here — and excepts no fish
+    assert cap["general"] and cap["of"] is None and "except" not in cap
     assert _rid(data, cap["r"]).endswith("trout_char_quota.r3")
     # MUTATION: without the bull/lake trout 60 cm minimum their range moves; brook trout's does not
     m = row_of(built, card(built, ANDERSON, 0, (7, 1), displace("z3:trout_char_quota::trout_char_quota.r4b")),

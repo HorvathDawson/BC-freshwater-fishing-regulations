@@ -120,6 +120,17 @@ SPEC = {
                            "inside). A key whose slot is null holds every segment at every "
                            "moment",
         "sections": "{name: section} — see `sections`",
+        "glossary": "{version, terms: [{id, term, says, example?, pages, quote, source}]} — the "
+                    "plain-language GLOSSARY (answers 2.2): every piece of jargon the page shows "
+                    "(classified waters, the regions, daily and possession quota, catch and "
+                    "release, single barbless hook, bait ban, tributaries, hatchery and wild, "
+                    "steelhead, the stamps, set lining, guided, under 16 …), GENERATED from the "
+                    "export's rules, licensing records and entries and the book's own text "
+                    "(`pipeline/deliver/answers/glossary.py`), never written per water. `says` the "
+                    "plain words, `example` a worked case from the data, `pages` the PRINTED book "
+                    "pages, `quote` the book's words verbatim, `source` what it was generated "
+                    "from. A term is linked by its `id` (regions: `region_<code>`, e.g. "
+                    "`region_4`, `region_7a`). Model: `schemas[\"top.glossary\"]`",
     },
     "sections": {
         "ladder": {
@@ -150,7 +161,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "3",
+            "version": "4",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -191,7 +202,10 @@ SPEC = {
                     "the number a fish with its own row counts toward here, \"unlimited\" for a "
                     "total with no number; absent on other items); `real_daily` {n, "
                     "all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, "
-                    "open} or null (5.7: \"Really {sum} a day here\" when `all`)",
+                    "open, shared_count?} or null (5.7: \"Really {sum} a day here\" when `all`; version 4, "
+                    "decision F11: `shared_count` [{take, members}] the count limits several kinds "
+                    "share — 1 trout from streams is 1 for brown, cutthroat, rainbow and steelhead "
+                    "TOGETHER; a cap's `except` (F12) is decided here, never on the page)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -221,7 +235,7 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "2",
+            "version": "3",
             "at": "[[frame index per segment] per key]",
             "frames": "[[holds, documents]] — indexes into `holds` and `documents`",
             "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
@@ -234,9 +248,17 @@ SPEC = {
                      "considered",
             "documents": "[[answer per profile]] — 60 indexes into `answers`, in `profiles` order",
             "answers": "[{tidal: true} on TIDAL water (no provincial document or requirement; "
-                       "the federal tidal licence is in `holds.tidal`) | {documents [{doc, when {act, species?, lengths?, on?}, base, prices}], "
+                       "the federal tidal licence is in `holds.tidal`) | {documents [{doc, when {act, species?, lengths?, on?}, base, prices, also_when?, "
+                       "or?}], "
                        "none_needed, requirements [{req, when, paths, displaced_by?, "
                        "presumes_freed?, presumes_by?, terms?}], exempt?, others?, guiding?}]",
+            "documents_v3": "version 3 (answers 2.2): a document's `when` is the BROADEST "
+                            "requirement needing it (to fish at all > to fish for a kind > to "
+                            "keep one), `also_when` the narrower ones (Babine's Steelhead Stamp: "
+                            "to fish at all Sep 1-Oct 31, else to fish for steelhead — decision "
+                            "L10); `or` [{need, alt?, prices}] the other ways to satisfy what it "
+                            "is bought for, never a second document to buy (Teslin: basic "
+                            "licence OR Yukon angling licence — decision L9)",
             "profiles": "[residency/age/guidance/status] — the 60 angler profiles; the index is "
                         "mixed radix over `profile_dims`",
             "profile_dims": "[[dimension, [value]]] — residency, age, guidance, status",
@@ -437,6 +459,9 @@ def encode(model: Model, data: dict) -> dict:
                      k["kind"], int(k["tidal"]), segs.add(list(starts)),
                      None if at is None else seg_moments.add([moments.add(m) for m in at])])
     validate_top("moments", moments.rows)
+    if model.glossary is None:
+        raise AnswersError("answers: the model has no glossary (answers 2.2)")
+    validate_top("glossary", model.glossary)
     # THE TYPES AT THE BOUNDARY (answers/2): every distinct value of every section, and its static
     # tables, against its model before anything is encoded
     from pipeline.deliver.answers.model import validate_section
@@ -476,6 +501,7 @@ def encode(model: Model, data: dict) -> dict:
         "moments": moments.rows,
         "segment_moments": seg_moments.rows,
         "parts": model.parts,
+        "glossary": model.glossary,
         "sections": sections,
     }
     gaps = spec_gaps(wire)
@@ -527,7 +553,7 @@ def decode(wire: dict, data: dict) -> Model:
              if k not in ("format", "export", "sections", "reserved", "counts")}
     return Model(about=about, keys=keys, parts=wire["parts"], segments=segments,
                  sections=sections, versions={n: s["version"] for n, s in wire["sections"].items()},
-                 statics=statics, moments=at)
+                 statics=statics, moments=at, glossary=wire.get("glossary"))
 
 
 def spec_gaps(wire: dict) -> List[str]:

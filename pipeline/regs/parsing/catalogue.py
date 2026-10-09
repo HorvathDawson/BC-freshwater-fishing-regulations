@@ -491,6 +491,47 @@ def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
                        f"species_except")
     return out
 
+_PRINTS_STEELHEAD = re.compile(r"\bsteelhead\b", re.I)
+
+
+def _size_key(r) -> tuple:
+    return tuple(sorted((b.min_cm, b.max_cm) for b in (r.lengths or [])))
+
+
+def steelhead_scope_problems(entry_id: str, rules) -> List[str]:
+    """STEELHEAD LEAVE A ZONE'S TROUT/CHAR SIZE LINE ONLY WHERE THE SAME TABLE PRINTS ITS OWN
+    STEELHEAD QUOTA FOR THAT SIZE (user ruling 2026-10-08, answers 2.2 item D). Region 2's "1 over
+    50 cm" stands beside its own "2 hatchery steelhead over 50 cm allowed" (p.21): steelhead are
+    counted there, not under the 1 — `species_except: [ST]`. Region 6 prints no steelhead quota of
+    its own ("1 over 50 cm (quota includes hatchery steelhead)", p.49): a hatchery steelhead IS one
+    of the 1 — no exclusion. A line that prints the word steelhead names them in and never excludes
+    them. Only a zone table's (`z…`) keeping size lines over the trout group are checked."""
+    if not entry_id.startswith("z"):
+        return []
+    own_st = [q for q in rules if list(q.species) == ["ST"] and q.lengths
+              and any((b.take or 0) > 0 for b in q.lengths) or (list(q.species) == ["ST"]
+              and q.lengths and (q.take or 0) > 0)]
+    out: List[str] = []
+    for r in rules:
+        if "TROUT_CHAR" not in r.species or not r.lengths or not ((r.take or 0) > 0):
+            continue
+        out_st = "ST" in r.species_except
+        if _PRINTS_STEELHEAD.search(r.verbatim or ""):
+            if out_st:
+                out.append(f"{r.rule_id}: prints 'steelhead', which names them in — never "
+                           f"species_except ST")
+            continue
+        sib = [q for q in own_st if q.rule_id != r.rule_id and q.within != r.rule_id
+               and r.within != q.rule_id and _size_key(q) == _size_key(r)]
+        if sib and not out_st:
+            out.append(f"{r.rule_id}: its table prints its own steelhead quota for this size "
+                       f"({sib[0].rule_id}) — steelhead are counted there: species_except [ST]")
+        elif not sib and out_st:
+            out.append(f"{r.rule_id}: its table prints no steelhead quota of its own for this size "
+                       f"— steelhead count under this line: drop ST from species_except")
+    return out
+
+
 #: SUBJECTS THE BOOK NAMES THAT ARE NOT GAME FISH, so no fish code lies under them. Each is a word
 #: the book prints in a rule, and each is OPEN — it has no member list, on purpose:
 #:
@@ -4745,6 +4786,14 @@ class CatalogueEntry(BaseModel):
         """"TROUT" INCLUDES CHAR UNLESS THE ROW MENTIONS CHAR (user ruling 2026-09-28) — see
         `trout_scope_problems`. The row is this entry: a water's row, or a zone table."""
         bad = trout_scope_problems(self.entry_id, self.regs_verbatim, self.rules)
+        if bad:
+            raise ValueError(f"{self.entry_id}: " + "; ".join(bad))
+        return self
+
+    @model_validator(mode="after")
+    def _steelhead_scope(self) -> "CatalogueEntry":
+        """See `steelhead_scope_problems` (user ruling 2026-10-08)."""
+        bad = steelhead_scope_problems(self.entry_id, self.rules)
         if bad:
             raise ValueError(f"{self.entry_id}: " + "; ".join(bad))
         return self

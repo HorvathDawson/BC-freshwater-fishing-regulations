@@ -215,10 +215,10 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.1: ladder 1, rows 3, gear 3, display 3 — cut by MOMENT (a weekday or hours
         # rule decides at its moments); display adds `closing` (gap G1)
         Section("ladder", 1, _ladder_scope, prepare=_ladder_prepare),
-        Section("rows", 3, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        Section("rows", 4, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         Section("gear", 3, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
-        Section("licence", 2, licence.section_scope, prepare=licence.section_prepare,
+        Section("licence", 3, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
         Section("display", 3, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static),
@@ -288,6 +288,8 @@ class Model:
     #: per key: None (every segment holds at every moment), or per segment its moment
     #: (`calendar.Moment.as_json`: weekdays, and hours with `in`) — answers 2.1
     moments: List[Optional[List[dict]]] = field(default_factory=list)
+    #: the plain-language glossary (answers 2.2, `glossary.build`): {version, terms}
+    glossary: Optional[dict] = None
 
 
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
@@ -396,10 +398,12 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
                 "read.effective_rules_bound, every requirement from read.requirements_in_force.",
         "bundle": data["about"]["bundle"],
     }
+    from pipeline.deliver.answers import glossary as _glossary
+    gl = _glossary.build(doc)
     log(f"answers: built in {time.time() - t0:.0f} s")
     return Model(about=about, keys=keys, parts=parts, segments=segs, sections=out,
                  versions={s.name: s.version for s in chosen}, statics=statics,
-                 moments=seg_moments)
+                 moments=seg_moments, glossary=gl)
 
 
 def moments_of_key(ctx: Context, key: tuple, roots, per_root, B) -> list:

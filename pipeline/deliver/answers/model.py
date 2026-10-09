@@ -341,6 +341,13 @@ class SharedCap(Model):
     over_cm: Cm
 
 
+class SharedCount(Model):
+    """rows decision F11: a count limit several kinds share ("1 trout from streams"): together
+    they give at most `take`."""
+    take: Positive
+    members: Tuple[Fish, ...] = Field(min_length=2)
+
+
 class RealDaily(Model):
     """5.7, "Really {sum} a day here": every kind of the row capped below the row's number."""
     n: Count
@@ -349,6 +356,7 @@ class RealDaily(Model):
     capped_sum: Count
     rb: StrictBool
     shared_cap: Optional[Tuple[SharedCap, ...]]       # None: no shared cap binds
+    shared_count: Optional[Tuple[SharedCount, ...]] = None   # None: no shared count limit binds
     capped: Tuple[Fish, ...]                          # the fish of the capped kinds
     open: Tuple[Fish, ...]                            # the fish of the kinds the row's number holds
 
@@ -543,11 +551,20 @@ class Prices(Model):
     eight_days: Optional[Tuple[Union[StrictInt, StrictFloat], ...]] = None
 
 
+class DocumentOr(Model):
+    """licence decision L9: another way to satisfy what the document is bought for."""
+    need: Tuple[StrictStr, ...] = Field(min_length=1)
+    alt: Optional[LicIx] = None                      # the alternative record that offers it
+    prices: Dict[StrictStr, Prices]
+
+
 class DocumentNeed(Model):
     doc: StrictStr
-    when: When
+    when: When                                       # the broadest requirement's (decision L10)
     base: StrictBool
     prices: Prices
+    also_when: Optional[Tuple[When, ...]] = None     # narrower requirements needing it too
+    or_: Optional[Tuple[DocumentOr, ...]] = Field(default=None, alias="or")
 
 
 class Accompanied(Model):
@@ -742,8 +759,37 @@ FRAMES: Dict[str, TypeAdapter] = {
     "licence": TypeAdapter(LicenceFrame),
     "display": TypeAdapter(DisplayFrame),
 }
-#: The top-level tables' models (not sections): `moments`.
-TOP: Dict[str, TypeAdapter] = {"moments": TypeAdapter(Tuple[Moment, ...])}
+# --------------------------------------------------------------------------------------------
+# The top level: the GLOSSARY (answers 2.2, user decision J)
+# --------------------------------------------------------------------------------------------
+
+class GlossaryTerm(Model):
+    """One piece of jargon the page shows, in plain words (`glossary.py`: generated from the data
+    and the book's text, never written per water)."""
+    id: Annotated[StrictStr, Field(pattern=r"^[a-z0-9_]+$")]
+    term: StrictStr
+    says: StrictStr                                   # the plain-language explanation
+    example: Optional[StrictStr] = None
+    pages: Tuple[Positive, ...] = Field(min_length=1)  # PRINTED book pages
+    quote: StrictStr                                  # the book's own words, verbatim
+    source: StrictStr                                 # the data it was generated from
+
+
+class Glossary(Model):
+    version: Positive
+    terms: Tuple[GlossaryTerm, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _unique(self):
+        ids = [t.id for t in self.terms]
+        if len(set(ids)) != len(ids):
+            raise ValueError("two glossary terms share an id")
+        return self
+
+
+#: The top-level tables' models (not sections): `moments`, `glossary`.
+TOP: Dict[str, TypeAdapter] = {"moments": TypeAdapter(Tuple[Moment, ...]),
+                               "glossary": TypeAdapter(Glossary)}
 
 STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "rules"): TypeAdapter(Tuple[RuleFacts, ...]),
