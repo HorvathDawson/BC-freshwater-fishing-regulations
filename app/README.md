@@ -1,7 +1,7 @@
 # canifishthis — app workspace
 
 Greenfield, mobile-first. Inherits **no code** from `webapp/` or `mobile/` at the repo
-root; those are prior art. Plan: [`pipeline/docs/13-build-plan.md`](../pipeline/docs/13-build-plan.md) §4.
+root; those are prior art. Plan: [`pipeline/docs/archive/13-build-plan.md`](../pipeline/docs/archive/13-build-plan.md) §4.
 
 ## Why the layers are shaped this way
 

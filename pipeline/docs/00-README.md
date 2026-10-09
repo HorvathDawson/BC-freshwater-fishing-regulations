@@ -1,6 +1,6 @@
 # Pipeline design docs
 
-**Read [`10-plan.md`](10-plan.md) then [`13-build-plan.md`](13-build-plan.md).**
+**Read [`10-plan.md`](archive/10-plan.md) then [`13-build-plan.md`](archive/13-build-plan.md).**
 
 `10` is where we are, how reaches resolve, the content schema, and every known issue with a proposed
 solution. It absorbs the old `06`, `09`, `15`, `16`, `17` and `18`.
@@ -13,20 +13,20 @@ in-season) versioned apart from the bundle, bathymetry, and ordered steps with a
 
 | Doc | What it is |
 |---|---|
-| **[10-plan](10-plan.md)** | **Status · resolution · schema · the 43 issues** (§4/§5/§7 superseded by 13) |
-| **[13-build-plan](13-build-plan.md)** | **Delivery: content store → web + mobile packagers · live feeds · ordered steps + acceptance criteria** |
+| **[10-plan](archive/10-plan.md)** | **Status · resolution · schema · the 43 issues** (§4/§5/§7 superseded by 13) |
+| **[13-build-plan](archive/13-build-plan.md)** | **Delivery: content store → web + mobile packagers · live feeds · ordered steps + acceptance criteria** |
 | [01-domain-model](01-domain-model.md) | Waters, reaches, regulations — the vocabulary |
 | [03-graph-design](03-graph-design.md) | Inverted graph, lakes as nodes, the two flow guards |
 | [04-section-split-design](04-section-split-design.md) | Sectionizer, anchor types, curated cuts |
 | [05-name-variations](05-name-variations.md) | Name tuples, variants, the display flag |
 | **[GOTCHAS](GOTCHAS.md)** | **Data that looks like a bug, a change or a duplicate, and is not** |
 | **[NEXT](NEXT.md)** | **Parked work with the thinking done — PMTiles, tributary walk, open bugs** |
-| **[REACH-BUILDER](REACH-BUILDER.md)** | **Structure sketch of the next thing to build** |
-| [RESOLVER-HANDOFF](RESOLVER-HANDOFF.md) | Everything found about `resolve_extent`, for whoever is in it |
-| [12-testing](12-testing.md) | Test strategy, spikes S1–S4, sanity gates |
+| **[REACH-BUILDER](archive/REACH-BUILDER.md)** | **Structure sketch of the next thing to build** |
+| [RESOLVER-HANDOFF](archive/RESOLVER-HANDOFF.md) | Everything found about `resolve_extent`, for whoever is in it |
+| [12-testing](archive/12-testing.md) | Test strategy, spikes S1–S4, sanity gates |
 | [15-live-data-flow](15-live-data-flow.md) | Gauges + stocking: bundle vs feed, who computes the percentile |
 | **[06-ui-data-contract](06-ui-data-contract.md)** | **What crosses into the client, and what it is never asked to work out** |
-| [05-table-generation](05-table-generation.md) | How a table was built from rules — **the code is removed; this is the reference to rebuild from** |
+| [05-table-generation](archive/05-table-generation.md) | How a table was built from rules — **the code is removed; this is the reference to rebuild from** |
 
 Numbering has gaps because superseded docs moved to `archive/`; the remaining numbers are unchanged
 so existing links still resolve.

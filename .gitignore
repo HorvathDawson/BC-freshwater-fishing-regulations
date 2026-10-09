@@ -63,3 +63,6 @@ scratch_*.json
 
 # curation-review frontend build output (vite build) — built locally, never committed
 curation-review/frontend/dist/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

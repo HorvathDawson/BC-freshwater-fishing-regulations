@@ -4,7 +4,7 @@ How a federal salmon page becomes a rule on a reach, and why it is built in two 
 only at the end.
 
 Read this with `pipeline/regs/dfo_salmon/README.md` (what each module does) and
-`pipeline/docs/HANDOFF-dfo-curation.md` (how to run a curation sitting).
+`pipeline/docs/archive/HANDOFF-dfo-curation.md` (how to run a curation sitting).
 
 ---
 

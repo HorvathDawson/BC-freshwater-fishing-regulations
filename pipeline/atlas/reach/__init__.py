@@ -17,7 +17,7 @@ It does NOT cut rivers: it only selects among sections the sectionizer already m
 The review app calls the same `classify` and the same tributary expander, so the bundle and
 the app can never disagree about what a rule covers.
 
-Design: `pipeline/docs/REACH-BUILDER.md`.
+Design: `pipeline/docs/archive/REACH-BUILDER.md`.
 """
 
 from pipeline.atlas.reach.models import (

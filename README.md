@@ -15,7 +15,7 @@ A Python pipeline processes BC's Freshwater Atlas (GeoBC) and provincial regulat
 The output gets uploaded to Cloudflare R2 and served through a small worker. The frontend is a React + MapLibre app that renders the tiles and lets you search/click any stream or lake to see its regulations.
 
 > **Note (2026-08): the layout below is v1**, which is live but archived under `archive/pipeline/`.
-> The active pipeline is the v2 *section* build — see [`pipeline/docs/10-plan.md`](pipeline/docs/10-plan.md)
+> The active pipeline is the v2 *section* build — see [`pipeline/docs/archive/10-plan.md`](pipeline/docs/archive/10-plan.md)
 > for what exists today and the plan to get v2 to the clients. `python -m pipeline` now runs the v2 build, not `--step all`.
 
 ## Project layout
@@ -88,7 +88,7 @@ Site runs at `http://localhost:5173`, data API at `http://localhost:8787`.
 
 ## Deploying
 
-Push to `staging` or `main` — Cloudflare's git integration deploys both workers automatically. Data uploads go through `scripts/seed-r2.sh`. See [DEPLOY.md](DEPLOY.md) for the full rundown.
+Push to `staging` or `main` — Cloudflare's git integration deploys both workers automatically. Data uploads go through `scripts/seed-r2.sh`. See [archive/DEPLOY.md](archive/DEPLOY.md) (v1) for the full rundown.
 
 ## License
 

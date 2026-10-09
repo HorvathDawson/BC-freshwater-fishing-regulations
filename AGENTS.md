@@ -4,8 +4,8 @@ Decisions already made and paid for. Each line exists because something broke or
 measured. **Read this before changing anything**; re-deriving these costs a day and
 re-litigating them costs trust.
 
-Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-plan.md`
-(issues ①–㊸), `pipeline/docs/REACH-BUILDER.md`, `pipeline/docs/RESOLVER-HANDOFF.md`.
+Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (delivery), `pipeline/docs/archive/10-plan.md`
+(issues ①–㊸), `pipeline/docs/archive/REACH-BUILDER.md`, `pipeline/docs/archive/RESOLVER-HANDOFF.md`.
 
 **How the book is read — every user interpretation ruling — is `pipeline/docs/RULINGS.md`; it is the source of truth for interpretation and wins over any other note.**
 
@@ -202,7 +202,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 
 37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
     Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
-    layer down, and the grep gate in `pipeline/docs/HANDOFF-curated-layout.md` §3.3 is what
+    layer down, and the grep gate in `pipeline/docs/archive/HANDOFF-curated-layout.md` §3.3 is what
     keeps it from creeping back.
 
 38. **Never regenerate a reviewed artifact to "check something".** Regenerating

@@ -41,7 +41,7 @@ MULTI-WATER BINDINGS ARE RECORDED BUT NOT YET CONSUMED. `wsc`/`wbk` on `StationM
 single, and widening them reaches `split_defs`, `nodes_for` and the shed walk. So a binding
 with several keys stores the first as the match and the rest in `also`, which nothing reads
 yet. That is deliberate: the curation is captured faithfully now, and the code does not
-pretend to act on it. See `pipeline/docs/HANDOFF-curated-layout.md` §8.
+pretend to act on it. See `pipeline/docs/archive/HANDOFF-curated-layout.md` §8.
 """
 
 from __future__ import annotations

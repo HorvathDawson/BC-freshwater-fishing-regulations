@@ -14,7 +14,7 @@ from __future__ import annotations
 from pipeline.atlas.reach.models import Diagnostic, Outcome, Reason, RuleBinding
 
 # --------------------------------------------------------------------------- #
-# Policy — the eight decisions from REACH-BUILDER.md §"open policy"
+# Policy — the eight decisions from pipeline/docs/archive/REACH-BUILDER.md §"open policy"
 # --------------------------------------------------------------------------- #
 
 #: NEVER auto-include an `unclassified` piece. Surface it; let a human decide.
