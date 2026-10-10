@@ -840,6 +840,16 @@
    "note": "reviewed against the map and the Water Office page",
    "reviewed": "2026-09-03"
   },
+  "08KG001": {
+   "verdict": "confirmed",
+   "station_name": "WEST ROAD RIVER NEAR CINEMA",
+   "matched": "West Road (Blackwater) River",
+   "wsc": [
+    "100-500560"
+   ],
+   "note": "user 2026-10-09: same river under its FWA double name; 24 m, area 12,390 km2 and kind agree (only the exact-name check failed)",
+   "reviewed": "2026-10-09"
+  },
   "08KG003": {
    "verdict": "confirmed",
    "station_name": "BAEZAEKO RIVER AT LOT 10262",
