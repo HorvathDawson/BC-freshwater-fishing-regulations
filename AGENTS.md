@@ -126,7 +126,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     neither was ever the shared source.
 22. **`packages/core` has zero React and zero platform imports.** `packages/ui` may import
     `react` but never `react-dom` or `react-native`. Enforced by
-    `tools/check-boundaries.mjs` — fix your code, never weaken the gate.
+    `app/tools/check-boundaries.mjs` — fix your code, never weaken the gate.
 23. **Status is rendered by ONE function in `core/`, never re-implemented per surface.**
     A coherence review counted **nine status surfaces across four vocabularies** in five
     parallel design decks — map line, tap card, search row, rule line, gauge strip, and more,
@@ -144,7 +144,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     DOM components in `apps/web/src/desktop/`.
 27. **One React version, workspace-wide**, pinned via `pnpm.overrides`. Two Reacts in one
     bundle is `Invalid hook call`, and it surfaces only at bundle time.
-28. **Map layers are only ever added by editing `packages/map/style/layers.source.json`**
+28. **Map layers are only ever added by editing `app/packages/map/style/layers.source.json`**
     then `pnpm style:build`. Colours reference tokens by name; literals are rejected. No app
     may import a map SDK — that is how the two apps start rendering different maps.
 29. **A categorical colour mode over an enum must colour every member**, and a continuous
@@ -176,7 +176,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     components used it, so every radio group, tab and disabled button in the app was
     invisible to a screen reader while looking correct, because the state was also carried
     by a background colour. `aria-checked` (role=radio) / `aria-selected` (role=tab) /
-    `aria-disabled` work on BOTH targets. `tools/check-platform.mjs` fails on the old
+    `aria-disabled` work on BOTH targets. `app/tools/check-platform.mjs` fails on the old
     spelling.
 
 ## Curated data, and the artifacts you must not regenerate casually
@@ -415,7 +415,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     and THE PARTS of every named water (`part`/`part_section`); `python -m pipeline.deliver
     verdicts` writes `verdicts.sqlite` beside it (the traced reader per rule key × reading × fish ×
     origin, typed and CHECKed, never shipped); the status index, the export and the answers
-    (answers/2, `answers/model.py`) LOOK ANSWERS UP there. `test_dataflow_gates.py` refuses a reader
+    (answers/2, `pipeline/deliver/answers/model.py`) LOOK ANSWERS UP there. `test_dataflow_gates.py` refuses a reader
     call, a `may_target` read, a part grouping or a calendar spelled anywhere else.
 57. **The 2026-10-03 rulings, as built (Phase 3).** Classified Waters: ONE UNIT PER SECTION — a
     walked section takes the designation of the FIRST classified water it flows into (the nearest
@@ -599,3 +599,18 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `closing` (the decided closing rules, gap G1, `verdicts.project.closing`). The export's tidal
     `guide` is angler words only; how to show it is in the field dictionary (B17,
     `test_moments.py::test_no_shipped_angler_text_carries_a_developer_instruction`).
+62. **Guardrails (P2, 2026-10-09).** ONE REBUILD COMMAND: `python -m pipeline build` (`pipeline/build.py`)
+    runs reach → deliver → tiles, each stage keyed by what it reads (atlas handles + registry, the corpus,
+    the curated tree, source stamps, its own code) and skipped when up to date; `--atlas` builds a side
+    atlas and stops after parity, `--promote` adopts it; runs are recorded in
+    `data/generated/build-manifest.json`; it ends with the STRICT vintage check
+    (`vintage.report(strict=True)`). NO SILENT SKIPS: a test reading generated or fetched data carries a
+    `needs_*` marker and FAILS when the data is missing (`pipeline/tests/conftest.py` `need`);
+    `test_no_silent_skips.py` refuses any skip outside its exact allowlist; CI deselects by marker. NO
+    MISSING-FILE FALLBACKS: a missing input raises, naming the file and the command that makes it (only a
+    writer about to create a region file passes `missing_ok`). TWO MORE DIGESTS: the reach run stamps
+    `entries_digest` (full corpus content, `io.corpus_digest`) and `registry_digest`
+    (`section_handles.registry_digest_for`); the bundle refuses a run made from another corpus or registry
+    (`rules.check_corpus`) and records both; the tile sidecar records the registry and the vintage check
+    compares registries. The gauge review queue is curated (`curated.gauges.candidates`); only ACTIVE
+    stations need a match decision (`check_curated`, user 2026-10-09).

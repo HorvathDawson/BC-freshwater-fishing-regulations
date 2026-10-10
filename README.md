@@ -1,95 +1,120 @@
 # Can I Fish This?
 
-**[canifishthis.ca](https://canifishthis.ca)** — A map-based tool for looking up freshwater fishing regulations in British Columbia.
+**[canifishthis.ca](https://canifishthis.ca)** — a map of British Columbia's freshwater fishing
+regulations: tap a stream or lake and see what applies there, today.
 
-BC's fishing regulations are scattered across PDFs, synopsis tables, and in-season notices. This project pulls all of that together into a searchable, clickable map so you can find what applies to the water you're actually standing next to.
+BC's rules are spread across the synopsis PDF, its zone and water tables, DFO in-season notices and
+licensing schedules. This project reads them once, binds every rule to the stretches of water it
+covers, and decides every answer ahead of time, so the app only looks answers up.
+
+> This branch (`redesign/stream-sections`) is **v2**. `main` still runs v1, which is archived here
+> under `archive/`. Nothing is merged to `main` until the feed crons are reworked
+> (see `pipeline/docs/` and the P3 note).
 
 ## How it works
 
-A Python pipeline processes BC's Freshwater Atlas (GeoBC) and provincial regulation data through several stages:
+```
+source data ─┐
+             ├─ atlas ──► reach ──► deliver ──────────────────────────────► tiles
+curated data ┘  graph,     every rule   bundle → verdicts → status index    PMTiles
+                sections,  bound to     → UI export → answers (answers/2)   (+ sidecar)
+                registry   sections
+```
 
-1. **Atlas** — Builds a graph of BC's stream network and waterbodies from the FWA GeoPackage
-2. **Tiles** — Exports the atlas geometry to PMTiles for efficient map rendering
-3. **Enrichment** — Matches regulation entries (extracted from synopsis PDFs via LLM) to atlas features, producing a searchable JSON index
+- **Atlas** (`pipeline/atlas/`): the stream network and lakes from the BC Freshwater Atlas, cut into
+  *sections* at the curated splits; a registry of named waters. Every artifact downstream keys
+  sections by the atlas's handle table, `section_handles.txt`.
+- **Reach** (`pipeline/atlas/reach/`): binds each rule of each catalogue entry to the sections it
+  covers (extents, tributary walks, areas). Deterministic.
+- **Deliver** (`pipeline/deliver/`): the SQLite bundle, then the reader's every answer
+  (`verdicts.sqlite`), the status index, the UI export and the answers file the app reads. The
+  app decides nothing.
+- **Tiles** (`pipeline/deliver/tiles/`): the map, with a sidecar recording which atlas and registry
+  it was cut from.
 
-The output gets uploaded to Cloudflare R2 and served through a small worker. The frontend is a React + MapLibre app that renders the tiles and lets you search/click any stream or lake to see its regulations.
+Each stage records digests of what it read (atlas handles, registry, corpus, reach run) and the
+next stage refuses a mismatched pair. The rulings on how the book is read are in
+[`pipeline/docs/RULINGS.md`](pipeline/docs/RULINGS.md); the rules for working in this repo are in
+[`AGENTS.md`](AGENTS.md).
 
-> **Note (2026-08): the layout below is v1**, which is live but archived under `archive/pipeline/`.
-> The active pipeline is the v2 *section* build — see [`pipeline/docs/archive/10-plan.md`](pipeline/docs/archive/10-plan.md)
-> for what exists today and the plan to get v2 to the clients. `python -m pipeline` now runs the v2 build, not `--step all`.
-
-## Project layout
+## Layout
 
 ```
-pipeline/           Python pipeline (atlas → tiles → enrichment)   [v1, archived]
-  atlas/            Stream network graph + waterbody geometry
-  tiles/            PMTiles export via tippecanoe
-  enrichment/       Regulation matching and index building
-  extraction/       Synopsis PDF extraction
-  parsing/          LLM-based regulation parsing
-  matching/         Feature name resolution + overrides
-  graph/            FWA network graph builder
-  deploy/           R2 upload sharding
-  tests/            pytest suite
-
-webapp/             React + TypeScript frontend (MapLibre, Vite)
-r2-worker/          Cloudflare Worker serving data from R2
-data/               Source GeoPackage + tidal boundary data
-scripts/            Dev server, R2 seeding, rclone setup
+pipeline/            Python pipeline
+  atlas/             graph, sections, registry, splits, reach builder
+  regs/              synopsis extraction, LLM parsing (human-run), catalogue model, DFO salmon
+  deliver/           bundle, verdicts, status index, export, answers, tiles
+  gauges/ runtiming/ stocking/ bathymetry/   live and supporting data
+  common/            paths (config.yaml → pipeline.common.curated), models, digests
+  build.py           the one rebuild command
+  tests/             pytest (markers: slow, needs_bundle, needs_atlas, …)
+app/                 pnpm workspace: core/ui/map packages, apps/web and apps/mobile (Expo)
+curation-review/     the curation tool (FastAPI backend + frontend) for reviewing entries
+data/
+  source/            fetched inputs (FWA GeoPackage, gauges, synopsis PDF, …)
+  curated/           human-owned decisions — never regenerable
+  generated/         everything the pipeline writes
+archive/             v1 (pipeline, webapp, worker, crons, deploy docs)
 ```
 
 ## Getting started
 
-Requires Python 3.11+, a conda env or venv, and [tippecanoe](https://github.com/felt/tippecanoe) installed.
+Python 3.13 (a `.venv`), and [tippecanoe](https://github.com/felt/tippecanoe) for tiles.
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv && .venv/bin/pip install -r requirements.txt
+python data/fetch_data.py                 # source data (~30 min the first time)
 ```
 
-### 1. Fetch source data
+The synopsis PDF goes at `data/source/fishing_synopsis.pdf`.
 
-After cloning, pull down BC's Freshwater Atlas and supporting GIS layers:
-
-```bash
-python data/fetch_data.py              # downloads everything (~30 min first time)
-python data/fetch_data.py --skip-ftp   # just the WFS layers, skip heavy FTP downloads
-```
-
-You also need the BC fishing synopsis PDF — drop it at `data/fishing_synopsis.pdf`.
-
-### 2. Extract and parse regulations
-
-Extract regulation rows from the synopsis PDF, then parse them with Claude Code (the parse is
-driven agentically; see `pipeline/regs/parsing/run_parse.sh`, run it yourself — it spends credits):
+### Regulations (only when the synopsis changes)
 
 ```bash
 python -m pipeline.regs.extraction.extract_synopsis   # PDF → synopsis rows
 bash pipeline/regs/parsing/run_parse.sh               # rows → data/curated/regulations/entries/catalogue/
 ```
 
-### 3. Run the pipeline
+The parse runs Claude and spends credits: **a person runs it**, never an agent.
+
+### Rebuild
 
 ```bash
-python -m pipeline --step all        # full run: atlas → tiles → enrich
-python -m pipeline --step tiles enrich  # skip atlas if only regs changed
-pytest pipeline/tests/ -q
+python -m pipeline build --dry-run        # the plan: each stage, its key, run or up to date
+python -m pipeline build                  # reach → deliver → tiles, whatever is out of date
+python -m pipeline build --atlas          # also build a side atlas (<build>_next) + parity report
+python -m pipeline build --promote        # promote <build>_next, then rebuild against it
+python -m pipeline build --force reach    # rerun a stage and everything after it
 ```
 
-Pipeline output lands in `data/generated/deploy/`.
+A stage reruns when anything it reads changed (curated data, source stamps, the corpus, its own
+code) or its outputs are missing. Each run is recorded in `data/generated/build-manifest.json`, and
+the run ends with a strict check that the tiles and the bundle come from one atlas and one
+registry. Peak memory is about 12 GB.
 
-## Running the webapp locally
+### Tests
 
 ```bash
-cd webapp && npm install
-node scripts/dev.mjs    # seeds local R2, starts worker + Vite dev server
+.venv/bin/python -m pytest -q             # the fast suite (slow tests deselected)
+.venv/bin/python -m pytest -q -m slow     # stage agreement and determinism
 ```
 
-Site runs at `http://localhost:5173`, data API at `http://localhost:8787`.
+A test that reads generated or fetched data carries a `needs_*` marker and **fails** when that
+data is missing, printing the command that makes it. CI runs the no-data tier by deselecting those
+markers (`.github/workflows/pipeline-ci.yml`).
 
-## Deploying
+### The app and the curation tool
 
-Push to `staging` or `main` — Cloudflare's git integration deploys both workers automatically. Data uploads go through `scripts/seed-r2.sh`. See [archive/DEPLOY.md](archive/DEPLOY.md) (v1) for the full rundown.
+```bash
+cd app && pnpm install && pnpm check      # what app CI runs
+pnpm tiles                                # serve the local tiles, bundle and feeds
+pnpm dev:web                              # the phone UI in a browser
+./scripts/dev-build.sh                    # refresh the gauge feeds (~1 min)
+curation-review/run.sh                    # the curation tool (see curation-review/README.md)
+```
 
 ## License
 
-This project is not affiliated with or endorsed by the BC government. Regulation data is sourced from publicly available provincial documents. Always verify regulations with official sources before fishing.
+Not affiliated with or endorsed by the Government of British Columbia. Regulation data is from
+publicly available provincial and federal documents. Always check the official sources before you
+fish.
