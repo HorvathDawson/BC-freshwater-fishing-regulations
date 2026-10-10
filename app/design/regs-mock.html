@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Regulations Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<!--
+  P4 design mock — Regulations + Gear & licence on the phone, in riffle's style.
+  Content: page v36 (pipeline/deliver/answers/reference/page_v36.html), read by driving the page in a
+  headless browser on 2026-10-10 and copying what it shows. Nothing here is a regulation of its own.
+  Fish pictures: app/apps/mobile/assets/fish (manifest.json). Map geometry: regs-mock/maps.js.
+  URL hash drives the state, so every screen can be linked or screenshotted:
+    #w=vedder&v=regs&part=0&d=1010&tile=licence&age=adult&theme=dark&skin=app&sheet=fish:EB
+-->
+<style>
+:root{
+  --page:#EFEFEC; --card:#FFFFFF; --wash:#F7F7F5; --tint:#EEEFEB;
+  --line:#E5E6E1; --line-2:#D3D5CF;
+  --ink:#15181C; --sub:#6C737A; --faint:#99A0A6;
+  --land:#F3F0EA; --osm-water:#9CC2D6; --osm-lake:#AED3E2; --osm-lake-edge:#8FB9CC;
+  --closed:#D81E1E; --limited:#C07200; --open:#0A8552; --unknown:#5F26E0; --quiet:#C3C8CD;
+  --accent:#5F26E0; --on-accent:#FFFFFF;
+  --lift:0 1px 2px rgba(21,24,28,.05), 0 10px 30px rgba(21,24,28,.07);
+  --r-box:16px; --r-card:13px; --r-chip:999px; --r-btn:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227;
+    --line:#252A2F; --line-2:#343B42;
+    --ink:#F0F2F0; --sub:#98A0A7; --faint:#6E767D;
+    --land:#15181B; --osm-water:#35576B; --osm-lake:#24404F; --osm-lake-edge:#3C6479;
+    --closed:#FF5340; --limited:#FFAE3D; --open:#2ADC8C; --unknown:#A97CFF; --quiet:#2F363D;
+    --accent:#A97CFF; --on-accent:#100A22;
+    --lift:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227;
+  --line:#252A2F; --line-2:#343B42;
+  --ink:#F0F2F0; --sub:#98A0A7; --faint:#6E767D;
+  --land:#15181B; --osm-water:#35576B; --osm-lake:#24404F; --osm-lake-edge:#3C6479;
+  --closed:#FF5340; --limited:#FFAE3D; --open:#2ADC8C; --unknown:#A97CFF; --quiet:#2F363D;
+  --accent:#A97CFF; --on-accent:#100A22;
+  --lift:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.5);
+}
+/* the app's current skin (ui-native theme.ts RADIUS = 0, TabBar: ink rule, uppercase, underscore) */
+:root[data-skin="app"]{ --r-box:0; --r-card:0; --r-chip:0; --r-btn:0;
+  --lift:4px 4px 0 color-mix(in srgb,var(--ink) 16%,transparent); }
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:Archivo,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.disp{font-family:"Bricolage Grotesque",Archivo,sans-serif}
+
+.wrap{max-width:1400px;margin:0 auto;padding:28px 44px 80px;
+  display:grid;grid-template-columns:392px minmax(0,1fr);gap:64px;align-items:start}
+@media (max-width:1080px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding:0}}
+.app{width:390px;height:844px;border:1px solid var(--line-2);border-radius:38px;background:var(--card);
+  position:sticky;top:28px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--lift)}
+:root[data-skin="app"] .app{border-radius:0;border:1.5px solid var(--ink)}
+@media (max-width:1080px){.app{position:relative;top:0;margin:0 auto;border:0;border-radius:0;box-shadow:none;
+  width:min(390px,100vw);height:min(844px,100svh)}
+  :root[data-skin="app"] .app{border:0}}
+
+/* status bar (phone chrome) */
+.sb{flex:0 0 auto;height:40px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.sb i{font-style:normal;letter-spacing:2px;font-size:11px}
+
+.body{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;background:var(--card)}
+.pane{position:absolute;inset:0;display:none;flex-direction:column;background:var(--card)}
+.pane.on{display:flex}
+
+/* ---- tabs (riffle .tabs) ---- */
+.tabs{flex:0 0 auto;display:flex;border-top:1px solid var(--line);padding:6px 6px 22px;background:var(--card)}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:9px 2px 6px;color:var(--faint);border-radius:12px}
+.tabs button svg{width:23px;height:23px;stroke-width:1.6;fill:none;stroke:currentColor;
+  stroke-linecap:round;stroke-linejoin:round}
+.tabs button em{font-style:normal;font-size:11px;font-weight:600;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--accent)}
+.tabs.water button em{font-size:11.5px}
+:root[data-skin="app"] .tabs{border-top:1.5px solid var(--ink)}
+:root[data-skin="app"] .tabs button{border-radius:0;color:var(--sub)}
+:root[data-skin="app"] .tabs button svg{stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter}
+:root[data-skin="app"] .tabs button em{font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase}
+:root[data-skin="app"] .tabs button[aria-selected="true"]{color:var(--ink)}
+:root[data-skin="app"] .tabs button::after{content:"";height:2.5px;width:22px;background:transparent;margin-top:1px}
+:root[data-skin="app"] .tabs button[aria-selected="true"]::after{background:var(--ink)}
+
+/* ---- map ---- */
+.mapwrap{position:absolute;inset:0;background:var(--land);overflow:hidden}
+.mapwrap svg{position:absolute;inset:0;width:100%;height:100%}
+.chip{border:1px solid var(--line-2);border-radius:var(--r-chip);background:var(--card);
+  box-shadow:var(--lift);padding:8px 14px;font-size:13.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.chip i{font-style:normal;font-size:9px;color:var(--faint)}
+.tl{position:absolute;left:14px;top:12px;display:flex;gap:8px}
+.tr{position:absolute;right:14px;top:12px;display:flex;flex-direction:column;gap:8px}
+.stack{display:flex;flex-direction:column;border:1px solid var(--line-2);border-radius:12px;
+  background:var(--card);overflow:hidden;box-shadow:var(--lift)}
+:root[data-skin="app"] .stack{border-radius:0}
+.stack span{width:36px;height:36px;font-size:17px;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.stack span+span{border-top:1px solid var(--line)}
+.coach{position:absolute;left:14px;right:14px;bottom:14px;background:var(--ink);color:var(--card);
+  border-radius:14px;padding:13px 16px;box-shadow:var(--lift);font-size:14px;font-weight:600}
+.coach span{display:block;font-size:12.5px;opacity:.72;font-weight:500;margin-top:3px}
+:root[data-skin="app"] .coach{border-radius:0}
+.peek{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line-2);
+  border-radius:22px 22px 0 0;box-shadow:var(--lift);padding:10px 16px 16px}
+:root[data-skin="app"] .peek{border-radius:0;border-top:1.5px solid var(--ink)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line-2);margin:0 auto 10px}
+.peek h2{margin:0;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:26px;font-weight:800;
+  letter-spacing:-.035em;line-height:1.05;display:flex;align-items:flex-start;gap:10px}
+.peek h2 button{margin-left:auto;font-family:Archivo,sans-serif;font-size:18px;color:var(--faint);padding:0 2px}
+.peek .cx{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.4}
+.peek .row{display:flex;gap:8px;margin-top:12px}
+.peek .row button{flex:1 1 auto;border:1px solid var(--line-2);border-radius:var(--r-btn);padding:12px 6px;
+  font-weight:700;font-size:13.5px;text-align:center;white-space:nowrap}
+.peek .row button.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-chip);padding:3px 10px;
+  font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:2px;display:block}
+
+/* ---- the shared top bar ---- */
+.reader{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.top{flex:0 0 auto;padding:4px 16px 10px;border-bottom:1px solid var(--line);background:var(--card);position:relative;z-index:2}
+:root[data-skin="app"] .top{border-bottom:1.5px solid var(--ink)}
+.tname{display:flex;align-items:baseline;gap:8px;min-width:0}
+.tname h1{margin:0;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:22px;font-weight:800;
+  letter-spacing:-.03em;line-height:1.1;min-width:0;text-wrap:balance}
+.top.condensed .tname h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tname span{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--faint)}
+.partbtn{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;border:1.5px solid var(--ink);
+  border-radius:var(--r-card);padding:9px 12px 10px;background:var(--card)}
+.partbtn.static{border-color:var(--line-2);cursor:default}
+.partbtn .pl{display:block;font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--sub)}
+.partbtn .pn{display:block;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:19px;font-weight:800;
+  letter-spacing:-.02em;line-height:1.12;margin-top:2px}
+.partbtn .chev{margin-left:auto;flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--tint);
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+:root[data-skin="app"] .partbtn .chev{border-radius:0}
+.daterow{display:flex;align-items:stretch;gap:6px;margin-top:8px}
+.daterow .step{width:44px;border:1px solid var(--line-2);border-radius:var(--r-btn);font-size:20px;font-weight:600;
+  color:var(--sub);display:flex;align-items:center;justify-content:center}
+.datebtn{flex:1;border:1px solid var(--line-2);border-radius:var(--r-btn);padding:8px 12px;display:flex;align-items:center;gap:8px}
+.datebtn b{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:17px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.datebtn em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+.datebtn i{margin-left:auto;font-style:normal;font-size:9px;color:var(--faint)}
+.ystrip{margin-top:10px}
+.ybar{position:relative;height:10px;border-radius:5px;display:flex;overflow:visible}
+.ybar i{display:block;height:100%}
+.ybar i:first-child{border-radius:5px 0 0 5px}.ybar i:last-of-type{border-radius:0 5px 5px 0}
+:root[data-skin="app"] .ybar i{border-radius:0 !important}
+.ybar .now{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:var(--card);
+  box-shadow:0 0 0 2px var(--ink);transform:translateX(-2px)}
+.ymon{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;font-weight:600;color:var(--faint);padding:0 1px}
+.ymon span.on{color:var(--ink);font-weight:800}
+.ykey{display:flex;gap:12px;margin-top:5px;font-size:11px;color:var(--sub);flex-wrap:wrap}
+.ykey span{display:flex;align-items:center;gap:5px}.ykey i{width:12px;height:7px;border-radius:2px;display:block}
+.top.condensed .tname h1{font-size:17px}
+.top.condensed .ykey,.top.condensed .ymon{display:none}
+.top.condensed .partbtn{padding:6px 10px 7px;margin-top:6px}
+.top.condensed .partbtn .pl{display:none}
+.top.condensed .daterow{margin-top:6px}
+
+/* ---- the two views and the swipe track ---- */
+.trackwrap{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
+.track{position:absolute;inset:0;display:flex;width:200%;transition:transform .24s cubic-bezier(.2,.75,.3,1);touch-action:pan-y}
+@media (prefers-reduced-motion:reduce){.track{transition:none}}
+.view{width:50%;height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding-bottom:28px}
+.swipehint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;pointer-events:none}
+.swipehint i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.swipehint i.on{background:var(--sub)}
+
+/* ---- verdict (riffle .verdict) ---- */
+.verdict{margin:14px 16px 0;border:1px solid var(--line-2);border-radius:var(--r-box);overflow:hidden}
+.verdict .band{padding:15px 16px 14px}
+.verdict .w{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-weight:800;font-size:31px;line-height:.98;
+  letter-spacing:-.04em;display:flex;align-items:center;gap:10px}
+.verdict .w i{width:12px;height:12px;border-radius:4px;flex:0 0 12px}
+.verdict .w small{font-family:Archivo,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;color:var(--sub);margin-left:2px}
+.verdict .w .soon{margin-left:auto;font-family:Archivo,sans-serif;font-size:12px;font-weight:700;letter-spacing:.04em;
+  border-radius:var(--r-chip);padding:4px 10px;border:1px solid currentColor}
+.verdict .d{margin-top:9px;font-size:14.5px;line-height:1.45}
+.verdict ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.verdict li{font-size:13.5px;line-height:1.4;display:flex;gap:8px;align-items:baseline}
+.verdict li .t{flex:1}
+.verdict .foot{border-top:1px solid var(--line);padding:9px 16px;background:var(--card);
+  font-size:10.5px;font-weight:600;letter-spacing:.09em;color:var(--sub);display:flex;gap:10px}
+.verdict .foot em{margin-left:auto;font-style:normal}
+.tier{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--sub);border:1px solid var(--line-2);
+  border-radius:var(--r-chip);padding:2px 7px;white-space:nowrap;flex:0 0 auto}
+.linkrow{display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:14px;margin-top:12px}
+
+/* ---- blocks ---- */
+.blk{padding:20px 16px 4px}
+.blk > h3{margin:0 0 11px;font-size:10.5px;font-weight:700;letter-spacing:.15em;color:var(--faint);display:flex;gap:10px;align-items:baseline}
+.blk > h3 em{margin-left:auto;font-style:normal}
+.caveat{margin:12px 16px 0;border:1.5px solid var(--limited);border-radius:var(--r-card);
+  background:color-mix(in srgb,var(--limited) 9%,var(--card));padding:12px 14px}
+.caveat .k{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:var(--limited)}
+.caveat .b{font-size:16px;font-weight:700;margin-top:6px;line-height:1.3}
+.caveat .s{font-size:13px;color:var(--sub);margin-top:3px}
+.caveat .s b{color:var(--ink)}
+
+.thumb{margin:12px 16px 0;border:1px solid var(--line-2);border-radius:var(--r-card);overflow:hidden;display:block;width:calc(100% - 32px);background:var(--land);position:relative}
+.thumb svg{display:block;width:100%;height:132px}
+.thumb .cap{position:absolute;left:10px;bottom:9px;background:var(--card);border:1px solid var(--line-2);
+  border-radius:var(--r-chip);padding:5px 11px;font-size:11.5px;font-weight:600;color:var(--sub);box-shadow:var(--lift)}
+.thumb .cap b{color:var(--ink)}
+.thumb .go{position:absolute;right:10px;bottom:9px;background:var(--card);border:1px solid var(--line-2);
+  border-radius:var(--r-chip);padding:5px 11px;font-size:11.5px;font-weight:700;color:var(--accent)}
+
+/* quota card */
+.qcard{margin:16px 16px 0;border:1px solid var(--line-2);border-radius:var(--r-box);overflow:hidden;background:var(--card)}
+.qhead{display:flex;gap:12px;padding:15px 16px 12px;align-items:flex-start;background:color-mix(in srgb,var(--open) 8%,var(--card))}
+.qhead h2{margin:0;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.qhead .sc{margin-top:7px}
+.qhead .num{margin-left:auto;text-align:right;flex:0 0 auto}
+.qhead .num b{display:block;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:44px;font-weight:800;line-height:.9;color:var(--open);letter-spacing:-.04em}
+.qhead .num span{font-size:12px;font-weight:600;color:var(--sub)}
+.qbody{padding:12px 16px 16px}
+.lead{font-size:15px;line-height:1.45;margin:0}
+.lead b{font-weight:700}
+.qa{margin-top:12px;border-radius:var(--r-btn);background:var(--wash);border:1px solid var(--line);overflow:hidden}
+.qa div{padding:10px 12px;font-size:13.5px;line-height:1.4;color:var(--sub)}
+.qa div+div{border-top:1px solid var(--line)}
+.qa b{display:block;color:var(--ink);font-size:14.5px;margin-top:2px}
+.subh{margin:16px 0 8px;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--faint)}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.checks li{display:flex;gap:10px;font-size:14.5px;line-height:1.4}
+.checks li > i{font-style:normal;color:var(--open);font-weight:800;flex:0 0 14px}
+.checks .tl2{color:var(--accent);font-weight:700;font-size:13.5px;white-space:nowrap}
+.note{font-size:13px;color:var(--sub);margin-top:10px;line-height:1.45}
+.kind{border-top:1px solid var(--line);padding:12px 0}
+.kind:first-of-type{border-top:0;padding-top:4px}
+.khd{display:flex;gap:10px;align-items:flex-start;width:100%}
+.khd .kn{font-size:16px;font-weight:700;line-height:1.3;flex:1}
+.khd .kv{text-align:right;flex:0 0 auto;font-size:13px;color:var(--sub);font-weight:600;line-height:1.1}
+.khd .kv b{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:26px;font-weight:800;color:var(--open);margin-left:3px}
+.khd .tog{width:26px;height:26px;border-radius:50%;border:1px solid var(--line-2);flex:0 0 26px;display:flex;
+  align-items:center;justify-content:center;font-size:12px;color:var(--sub);transition:transform .15s}
+:root[data-skin="app"] .khd .tog{border-radius:0}
+.kind.open .khd .tog{transform:rotate(180deg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chipx{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--sub)}
+.chipx.k{border-color:color-mix(in srgb,var(--open) 45%,var(--line-2));color:var(--ink)}
+.extras{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.extras li{font-size:13px;display:flex;gap:7px}
+.extras li::before{content:"•";color:var(--faint)}
+.ladder{display:none;margin-top:10px;border-left:2px solid var(--line-2);padding:2px 0 2px 12px}
+.kind.open .ladder{display:block}
+.ladder .ok{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder .ok::first-letter{color:var(--open)}
+.lg{margin-top:9px}
+.lg > b{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
+.li2{display:flex;gap:8px;align-items:baseline;margin-top:5px;font-size:13px;line-height:1.4}
+.li2 span{flex:1}
+.li2 em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--sub);border:1px solid var(--line-2);
+  border-radius:var(--r-chip);padding:1px 7px;white-space:nowrap}
+.li2.skip span{color:var(--faint);text-decoration:line-through}
+.pics{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 4px;overscroll-behavior-x:contain}
+.pics::-webkit-scrollbar{display:none}
+.pic{flex:0 0 132px;border:1px solid var(--line-2);border-radius:11px;overflow:hidden;background:var(--wash)}
+:root[data-skin="app"] .pic{border-radius:0}
+.pic img{display:block;width:100%;height:66px;object-fit:cover}
+.pic span{display:block;font-size:11.5px;font-weight:600;padding:6px 8px 7px;line-height:1.25}
+.pic.si span::after{content:"STAND-IN";display:block;font-size:9px;letter-spacing:.1em;color:var(--limited);font-weight:800;margin-top:2px}
+
+/* other fish (riffle .tbl) */
+.tbl{border:1px solid var(--line-2);border-radius:var(--r-box);overflow:hidden}
+.tbl button{display:flex;width:100%;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);font-size:15px}
+.tbl button:first-child{border-top:0}
+.tbl button span{flex:1;line-height:1.3}
+.tbl button b{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-weight:700;font-size:15.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl button i{font-style:normal;color:var(--faint);font-size:13px}
+.c-keep{color:var(--open)}.c-rel{color:var(--limited)}.c-closed{color:var(--closed)}
+.anyw p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--sub)}
+.fine{font-size:11px;line-height:1.5;color:var(--faint);padding:18px 16px 0}
+
+.gap{margin:14px 16px 0;border:1.5px dashed var(--line-2);border-radius:var(--r-card);padding:14px;font-size:13.5px;line-height:1.5;color:var(--sub)}
+.gap b{color:var(--ink)}
+.gap .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.gap .row button{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--accent)}
+
+/* ---- gear & licence ---- */
+.glance{margin:14px 16px 0;border:1.5px solid var(--ink);border-radius:var(--r-box);overflow:hidden}
+.glance .gh{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--wash)}
+.glance .gh b{font-size:10.5px;font-weight:800;letter-spacing:.14em}
+.glance .gh span{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--sub)}
+.glist{list-style:none;margin:0;padding:4px 0}
+.glist li{display:flex;align-items:flex-start;gap:11px;padding:8px 14px}
+.glist .m{flex:0 0 24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;margin-top:1px}
+:root[data-skin="app"] .glist .m{border-radius:0}
+.glist .m.y{background:color-mix(in srgb,var(--open) 16%,transparent);color:var(--open)}
+.glist .m.n{background:color-mix(in srgb,var(--closed) 14%,transparent);color:var(--closed)}
+.glist .m.p{background:color-mix(in srgb,var(--limited) 16%,transparent);color:var(--limited)}
+.glist .t{font-size:16px;font-weight:700;line-height:1.3}
+.glist .t small{display:block;font-size:12.5px;font-weight:500;color:var(--sub);margin-top:1px}
+.glist button{display:contents}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 16px 0}
+.ktile{border:1px solid var(--line-2);border-radius:var(--r-card);padding:10px 12px 11px;display:flex;flex-direction:column;gap:3px;min-height:92px}
+.ktile .kl{font-size:10px;font-weight:700;letter-spacing:.13em;color:var(--faint)}
+.ktile .kv{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:17px;font-weight:800;letter-spacing:-.015em;line-height:1.15}
+.ktile .ks{font-size:12px;color:var(--sub);line-height:1.35}
+.ktile .bk{display:inline-block;margin-right:6px;white-space:nowrap}
+.ktile .bk.no{color:var(--closed)}
+.ktile[aria-selected="true"]{border-color:var(--accent);background:var(--tint);box-shadow:inset 0 0 0 1px var(--accent)}
+.ktile.wide{grid-column:1 / -1;min-height:0}
+.kpane{margin:16px 16px 0}
+.khead{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:9px}
+.khead h3{margin:0;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.03em}
+.khead .nav{margin-left:auto;display:flex;gap:6px}
+.khead .nav button{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:5px 10px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+.who{margin-top:12px;border:1px solid var(--line-2);border-radius:var(--r-card);padding:12px}
+.who h4{margin:0 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--faint)}
+.seg{display:flex;gap:5px;background:var(--tint);border-radius:11px;padding:3px}
+:root[data-skin="app"] .seg{border-radius:0}
+.seg button{flex:1;border-radius:8px;padding:10px 4px;font-size:14px;font-weight:600;color:var(--sub);text-align:center}
+:root[data-skin="app"] .seg button{border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:800;box-shadow:0 1px 3px rgba(21,24,28,.12)}
+.more{margin-top:10px}
+.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.opts span{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:5px 10px;font-size:12px;font-weight:600;color:var(--sub)}
+.opts span.on{border-color:var(--accent);color:var(--accent);background:var(--tint)}
+.opts b{display:block;width:100%;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--faint);margin-top:4px}
+.need{margin-top:12px;border:1px solid var(--line-2);border-radius:var(--r-card);overflow:hidden}
+.need > b{display:block;padding:10px 12px 0;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--faint)}
+.doc{padding:10px 12px 11px;border-top:1px solid var(--line)}
+.need > b + .doc{border-top:0}
+.doc .n{font-size:15.5px;font-weight:700;line-height:1.3}
+.doc .w{font-size:13px;color:var(--sub);margin-top:2px}
+.doc .p{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11.5px;color:var(--sub);margin-top:4px}
+.doc.base .n::before{content:"✓ ";color:var(--open)}
+.doc.extra .n::before{content:"+ ";color:var(--limited)}
+.callout{margin-top:10px;border-radius:var(--r-btn);background:var(--wash);border:1px solid var(--line);padding:10px 12px;font-size:13.5px;line-height:1.45}
+.prices{font-size:11.5px;color:var(--faint);padding:8px 12px 11px;border-top:1px solid var(--line);line-height:1.45}
+details.fold{border-top:1px solid var(--line);margin-top:12px}
+details.fold:last-of-type{border-bottom:1px solid var(--line)}
+details.fold summary{cursor:pointer;list-style:none;padding:12px 0;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--sub);display:flex}
+details.fold summary::after{content:"▾";margin-left:auto;font-size:11px}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold + details.fold{margin-top:0}
+.src{padding:0 0 12px}
+.src h5{margin:6px 0 6px;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--faint)}
+.src p{margin:0 0 4px;font-size:13px;line-height:1.45}
+.src .tg{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--sub)}
+.grow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:11px 0;border-top:1px solid var(--line)}
+.grow:first-child{border-top:0}
+.grow .gl{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--faint);grid-column:1 / -1}
+.grow .gv{font-size:16px;font-weight:700;line-height:1.3}
+.grow .gs{font-size:12.5px;color:var(--sub);grid-column:1}
+.grow .tier{align-self:start;grid-row:2;grid-column:2}
+.blist{list-style:none;margin:6px 0 0;padding:0}
+.blist li{display:flex;gap:11px;padding:9px 0;border-top:1px solid var(--line);align-items:flex-start}
+.blist li:first-child{border-top:0}
+.blist .m{flex:0 0 22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+:root[data-skin="app"] .blist .m{border-radius:0}
+.blist .m.y{background:color-mix(in srgb,var(--open) 16%,transparent);color:var(--open)}
+.blist .m.n{background:color-mix(in srgb,var(--closed) 14%,transparent);color:var(--closed)}
+.blist .m.p{background:color-mix(in srgb,var(--limited) 16%,transparent);color:var(--limited)}
+.blist .t{font-size:15px;font-weight:600;line-height:1.3}
+.blist .t small{display:block;font-size:12.5px;font-weight:500;color:var(--sub);margin-top:2px;line-height:1.4}
+.duty{margin-top:12px;border:1.5px solid var(--closed);border-radius:var(--r-card);padding:12px 14px;
+  background:color-mix(in srgb,var(--closed) 7%,var(--card))}
+.duty .k{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:var(--closed)}
+.duty .b{font-size:17px;font-weight:700;margin-top:5px;line-height:1.3}
+.alw h5{margin:16px 0 4px;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--faint)}
+.alw ul{margin:0;padding:0;list-style:none}
+.alw li{font-size:14.5px;padding:7px 0;border-top:1px solid var(--line);line-height:1.35}
+.alw li:first-child{border-top:0}
+
+/* ---- sheets (riffle .sheetup) ---- */
+.scrim{position:absolute;inset:0;background:rgba(10,12,14,.34);display:none;z-index:20}
+.scrim.on{display:block}
+.sheetup{position:absolute;left:0;right:0;bottom:0;background:var(--card);z-index:21;
+  border-radius:22px 22px 0 0;border-top:1px solid var(--line-2);box-shadow:var(--lift);
+  transform:translateY(101%);transition:transform .22s cubic-bezier(.2,.75,.3,1);max-height:90%;overflow:auto;overscroll-behavior:contain}
+:root[data-skin="app"] .sheetup{border-radius:0;border-top:1.5px solid var(--ink)}
+.sheetup.on{transform:none}
+@media (prefers-reduced-motion:reduce){.sheetup{transition:none}}
+.suphead{display:flex;align-items:baseline;gap:10px;padding:18px 16px 4px;position:sticky;top:0;background:var(--card);z-index:1}
+.suphead h2{font-family:"Bricolage Grotesque",Archivo,sans-serif;margin:0;font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.suphead p{margin:3px 0 0;font-size:12.5px;color:var(--sub)}
+.suphead button{margin-left:auto;color:var(--accent);font-weight:700;font-size:15px;flex:0 0 auto}
+.sbody{padding:8px 16px 28px}
+.plist button{display:flex;width:100%;gap:12px;align-items:flex-start;padding:13px 2px;border-top:1px solid var(--line)}
+.plist button:first-child{border-top:0}
+.plist .pn{font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.2;flex:1}
+.plist .pn small{display:block;font-family:Archivo,sans-serif;font-size:12px;font-weight:500;color:var(--sub);margin-top:3px;letter-spacing:0}
+.plist .rad{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-2);flex:0 0 22px;margin-top:2px}
+.plist button[aria-pressed="true"] .rad{border:6px solid var(--accent)}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mgrid button{border:1px solid var(--line-2);border-radius:11px;padding:11px 2px;font-weight:600;font-size:13.5px;text-align:center}
+:root[data-skin="app"] .mgrid button{border-radius:0}
+.mgrid button[aria-pressed="true"]{border-color:var(--accent);background:var(--tint);color:var(--accent);font-weight:700}
+.days{display:flex;align-items:center;gap:12px;margin-top:10px;border:1px solid var(--line-2);border-radius:13px;padding:6px 12px}
+:root[data-skin="app"] .days{border-radius:0}
+.days button{font-size:19px;padding:4px 10px;border-radius:8px;color:var(--sub)}
+.days .d{flex:1;text-align:center;font-family:"Bricolage Grotesque",Archivo,sans-serif;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.sect h4{margin:14px 0 10px;font-size:10.5px;font-weight:700;letter-spacing:.15em;color:var(--faint)}
+.idfig{margin:10px 0 0;border:1px solid var(--line-2);border-radius:var(--r-card);overflow:hidden;background:var(--wash);position:relative}
+.idfig img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover}
+.idfig figcaption{padding:8px 11px 9px;font-size:13px;font-weight:600;border-top:1px solid var(--line);background:var(--card)}
+.idfig figcaption small{display:block;font-size:10.5px;font-weight:500;color:var(--faint);margin-top:2px}
+.idfig .stand{position:absolute;left:8px;top:8px;background:var(--limited);color:#fff;border-radius:var(--r-chip);
+  padding:4px 10px;font-size:10.5px;font-weight:800;letter-spacing:.06em}
+:root[data-theme="dark"] .idfig .stand{color:#1a1000}
+.tips{margin:12px 0 0;padding:0;list-style:none;counter-reset:t}
+.tips li{counter-increment:t;display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14.5px;line-height:1.4}
+.tips li:first-child{border-top:0}
+.tips li::before{content:counter(t);flex:0 0 22px;height:22px;border-radius:50%;background:var(--ink);color:var(--card);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.fishnav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.fishnav::-webkit-scrollbar{display:none}
+.fishnav button{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:5px 11px;font-size:12px;font-weight:600;color:var(--sub);white-space:nowrap}
+.fishnav button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:800}
+.srcc{border:1px solid var(--line-2);border-radius:var(--r-card);padding:11px 12px;margin-top:8px}
+.srcc q{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;line-height:1.55}
+.srcc .w{font-size:12px;color:var(--sub);margin-top:5px}
+.srcc .r{font-size:12.5px;font-weight:600;margin-top:3px}
+.srcc.off{opacity:.62}
+.fin svg{display:block;width:100%;height:auto}
+
+/* ---- poster ---- */
+.poster{padding-top:6px;max-width:640px}
+@media (max-width:1080px){.poster{padding:40px 20px 80px}}
+.poster h1{font-family:"Bricolage Grotesque",Archivo,sans-serif;margin:0 0 14px;font-size:clamp(38px,5vw,62px);font-weight:800;line-height:.95;letter-spacing:-.045em}
+.lede{font-size:17px;line-height:1.5;color:var(--sub);margin:0 0 26px;max-width:48ch}
+.lede b{color:var(--ink);font-weight:600}
+.ctl{border-top:1px solid var(--line-2);padding:16px 0}
+.ctl h3{margin:0 0 10px;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--faint)}
+.ctl .opts2{display:flex;flex-wrap:wrap;gap:8px}
+.ctl .opts2 button{border:1px solid var(--line-2);border-radius:var(--r-chip);padding:8px 14px;font-size:13.5px;font-weight:600;background:var(--card)}
+.ctl .opts2 button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--tint)}
+.say{border-top:1px solid var(--line-2);padding:18px 0}
+.say h3{margin:0 0 8px;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--faint)}
+.say p,.say li{font-size:15px;line-height:1.5;margin:0 0 8px}
+.say ol,.say ul{margin:0;padding-left:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="app" id="app">
+  <div class="sb"><span id="clock">9:41</span><i>●●● ▮</i></div>
+  <div class="body" id="body">
+    <!-- MAP pane -->
+    <div class="pane" id="pane-map">
+      <div class="mapwrap" id="mapwrap"></div>
+      <div class="tl"><button class="chip" id="mapdate"><span id="mapdatelbl">—</span><i>▼</i></button></div>
+      <div class="tr"><div class="stack"><span>+</span><span>−</span></div></div>
+      <div id="mapfoot"></div>
+    </div>
+    <!-- READER pane: Regulations + Gear & licence, one top bar -->
+    <div class="pane" id="pane-reader">
+      <div class="reader">
+        <div class="top" id="top"></div>
+        <div class="trackwrap">
+          <div class="track" id="track">
+            <div class="view" id="v-regs" role="tabpanel" aria-label="Regulations"></div>
+            <div class="view" id="v-gear" role="tabpanel" aria-label="Gear &amp; licence"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim" id="scrim"></div>
+    <div class="sheetup" id="sheet" role="dialog" aria-modal="true"></div>
+  </div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+</div>
+
+<div class="poster">
+  <h1>The water, on one thumb.</h1>
+  <p class="lede">P4 mock for approval. Open a water on the map and the four tabs become
+    <b>Map · Regulations · Gear &amp; licence</b>. Every regulation word here is page v36's, copied from the
+    page itself for three real waters. <b>Nothing is worked out in the mock.</b></p>
+  <div class="ctl"><h3>WATER</h3><div class="opts2" id="c-water"></div></div>
+  <div class="ctl"><h3>SCREEN</h3><div class="opts2" id="c-view"></div></div>
+  <div class="ctl"><h3>THEME</h3><div class="opts2" id="c-theme"></div></div>
+  <div class="ctl"><h3>SKIN</h3><div class="opts2" id="c-skin"></div>
+    <p class="lede" style="font-size:13.5px;margin:10px 0 0">Riffle is the target; the app's code has since gone square
+      (RADIUS 0, ink rules, uppercase underscored tabs). Flip to compare.</p></div>
+  <div class="say"><h3>WHAT IS CAPTURED</h3>
+    <ul>
+      <li><b>Vedder River</b> (2 parts): Jul 1 – Dec 31 on both parts; Jun 1 – 30 (closed) on the mouth part.</li>
+      <li><b>Kootenay Lake — Lower West Arm</b>: Oct 10 – 11 (weekend) and Oct 12 – 16 (weekdays) — kokanee change by weekday.</li>
+      <li><b>Cowichan River</b>: Sep 1 – Nov 15 on the mouth part (closed; opens Nov 16).</li>
+      <li>The open-days strip is right for every day of the year; other days say plainly they were not captured.</li>
+    </ul></div>
+  <div class="say"><h3>GESTURES</h3>
+    <p>Tabs are the primary way across. Swipe left / right on the content as a secondary gesture.
+      Tap the part, the date, ‹ ›, any kind (for “how this was decided”), any picture, any tile.</p></div>
+</div>
+</div>
+
+<script src="regs-mock/maps.js"></script>
+<script>
+"use strict";
+/* ======================================================================================
+   DATA — every string below is page v36's, read off the page on 2026-10-10.
+   ====================================================================================== */
+const FISHDIR = '../apps/mobile/assets/fish/';
+// app/apps/mobile/assets/fish/manifest.json (subset: what these waters show)
+const PICS = {
+  EB:[{f:'brook-trout.webp',c:'Brook trout',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'}],
+  GB:[{f:'brown-trout.webp',c:'Brown trout',cr:'Duane Raver / USFWS',s:'fws.gov'}],
+  CT:[{f:'coastal-cutthroat-trout.webp',c:'Coastal cutthroat trout',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'},
+      {f:'westslope-cutthroat-trout.webp',c:'Westslope cutthroat trout',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'}],
+  DV:[{f:'dolly-varden.webp',c:'Dolly Varden',cr:'WDFW',s:'eRegulations WA'},
+      {f:'bull-trout.webp',c:'Bull trout',cr:'Joel Sartore / National Geographic',s:'Commons'}],
+  LT:[{f:'lake-trout.webp',c:'Lake trout',cr:'Sherman F. Denton',s:'Commons'}],
+  RB:[{f:'rainbow-trout.webp',c:'Rainbow trout',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'}],
+  ST:[{f:'steelhead-ocean-phase.webp',c:'Steelhead',ph:'ocean phase',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'},
+      {f:'steelhead-spawning-phase.webp',c:'Steelhead',ph:'spawning phase',cr:'WDFW',s:'eRegulations WA'}],
+  KO:[{f:'kokanee.webp',c:'Kokanee',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'},
+      {f:'kokanee-spawning-phase.webp',c:'Kokanee',ph:'spawning phase',cr:'WDFW (sockeye male)',s:'eRegulations WA'}],
+  LW:[{f:'lake-whitefish.webp',c:'Lake whitefish',cr:'Sherman F. Denton',s:'Commons'}],
+  MW:[{f:'mountain-whitefish.webp',c:'Mountain whitefish',cr:'What To Fish',s:'whattofish.ca'}],
+  LMB:[{f:'largemouth-bass.webp',c:'Largemouth bass',cr:'Duane Raver / USFWS',s:'Commons'}],
+  SMB:[{f:'smallmouth-bass.webp',c:'Smallmouth bass',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'}],
+  BCB:[{f:'black-crappie.webp',c:'Black crappie',cr:'Duane Raver / USFWS',s:'fws.gov'}],
+  YP:[{f:'yellow-perch.webp',c:'Yellow perch',cr:'Freshwater Fisheries Society of BC',s:'GoFishBC'}],
+  BB:[{f:'burbot.webp',c:'Burbot',cr:'NY Forest, Fish and Game Commission',s:'Commons'}],
+  NP:[{f:'northern-pike.webp',c:'Northern pike',cr:'Timothy Knepp / USFWS',s:'fws.gov'}],
+  WP:[{f:'walleye.webp',c:'Walleye',cr:'Duane Raver / USFWS',s:'fws.gov'}],
+  WSG:[{f:'white-sturgeon.webp',c:'White sturgeon',cr:'Joseph Huët (Paris Museum)',s:'Commons'}],
+  GREEN_STURGEON:[{f:'green-sturgeon.webp',c:'Green sturgeon',cr:'Joel Sartore / National Geographic Photo Ark',s:'DFO sturgeon ID guide'}],
+  CULTUS_LAKE_SCULPIN:[{f:'coastrange-sculpin-cultus-pygmy-sculpin-stand-in.webp',c:'Coastrange sculpin',si:'Cultus pygmy sculpin',cr:'Jordan & Evermann (1900)',s:'Commons'}],
+  NOOKSACK_DACE:[{f:'longnose-dace-nooksack-dace-stand-in.webp',c:'Longnose dace',si:'Nooksack dace',cr:'Jordan & Evermann (1900)',s:'Commons'}],
+  SALISH_SUCKER:[{f:'longnose-sucker-salish-sucker-stand-in.webp',c:'Longnose sucker',si:'Salish sucker',cr:'Jordan & Evermann (1900)',s:'Commons'}],
+};
+// page v36: FISHART.SPECIES[*].tips and spName()
+const FISH = {
+  RB:{n:'Rainbow trout',tips:['Pink or red band along the side','Small black spots, mostly above the middle of the side','Rows of black spots on the tail']},
+  ST:{n:'Steelhead',tips:['A rainbow trout that went to sea: bright silver, 50 cm or longer','Faint spots, mostly on the back and tail','Hatchery steelhead are missing this small fin (the adipose fin)']},
+  CT:{n:'Cutthroat trout',tips:['Red or orange slash under the lower jaw (may be faint)','Large mouth, reaching well past the eye','Black spots all over, more toward the tail']},
+  GB:{n:'Brown trout',tips:['Black and red spots, many with pale halos','Tail with few or no spots','Orange-rimmed adipose fin']},
+  KO:{n:'Kokanee',tips:['No black spots on the sides','Dark blue back, bright silver sides','Long fin under the tail end (13 or more rays)']},
+  DV:{n:'Dolly Varden/bull trout',tips:['Pale pink or cream spots, smaller than the pupil','No worm-like markings on the back fin','White front edges on the lower fins','Bull trout: big, broad, flat head']},
+  LT:{n:'Lake trout',tips:['Pale spots all over a dark body, no red','Worm-like light markings on the back and back fin','Deeply forked tail']},
+  EB:{n:'Brook trout',tips:['Worm-like markings on the back and back fin','Red spots with blue halos','Orange lower fins with white front edges']},
+  LW:{n:'Lake whitefish',tips:['Large scales, silver sides','Small mouth under a blunt snout','Has an adipose fin; no spots']},
+  MW:{n:'Mountain whitefish',tips:['Large scales, silver sides','Small mouth under a blunt snout','Has an adipose fin; no spots']},
+  WSG:{n:'White sturgeon',tips:['Rows of bony plates, no scales','Barbels under a pointed snout','Upper lobe of the tail much longer']},
+  BB:{n:'Burbot',tips:['One barbel under the chin','Two back fins, the second very long','Long, eel-like mottled body']},
+  NP:{n:'Northern pike',tips:['Long, flat, duck-bill snout','Back fin set far back, near the tail','Rows of pale bean-shaped spots']},
+  WP:{n:'Walleye',tips:['Big, glassy eye','Spiny front back fin','White tip on the lower tail lobe','Sharp, fang-like teeth']},
+  YP:{n:'Yellow perch',tips:['Six to nine dark bars down the sides','Orange lower fins','Spiny front back fin; no fang-like teeth']},
+  BCB:{n:'Black crappie',tips:['Deep, flat body covered in black speckles','Large, rounded back and bottom fins','Mouth reaches the front of the eye']},
+  SMB:{n:'Smallmouth bass',tips:['Bronze-brown with faint vertical bars','Jaw reaches about the middle of the eye','Red or orange eye']},
+  LMB:{n:'Largemouth bass',tips:['Dark stripe along the side','Jaw reaches past the back of the eye','Front and back fins almost separate']},
+  GREEN_STURGEON:{n:'Green sturgeon',tips:[]},
+  CULTUS_LAKE_SCULPIN:{n:'Cultus Lake sculpin',tips:[]},
+  NOOKSACK_DACE:{n:'Nooksack dace',tips:[]},
+  SALISH_SUCKER:{n:'Salish sucker',tips:[]},
+};
+
+const POSS = ['Possession: twice the daily quota (fish at home don’t count).','Carry limit'];
+const ANYWHERE = ['No fishing: within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap',
+  'No fishing: within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated'];
+const ALWAYS = {
+  duty:'Any fish snagged — even by accident — must be released.',
+  groups:[['WHEN YOU RELEASE A FISH',['Gently, back in the water','Without harming it']],
+    ['WHEN YOU KEEP A FISH',['It stays kept: no swapping for a bigger one','Don’t waste it','Don’t hold it alive (no stringer or livewell)','Leave head, tail and fins on until home','No canning or filleting until home','Don’t freeze fish into one block: each must stay countable','Each fish must stay identifiable and measurable']],
+    ['CARRYING FISH',['Never more than your legal limit','Licence at hand while you travel with fish','Carrying someone else’s fish? Have their signed letter','Taking fish out of B.C.? Show the letter if asked','Given fish? Keep the signed letter until eaten']],
+    ['NEVER',['Sell, buy or trade your catch','Keep or move live fish or crayfish','Release aquarium fish','Put gear in the water during a closure','Interfere with a fur trap','Cross private, posted or reserve land without permission']]]
+};
+const PROT13 = ['Cultus Lake sculpin','Enos Lake stickleback','Green sturgeon','Misty Lake stickleback','Nooksack dace','Paxton Lake stickleback','Rocky Mountain sculpin','Salish sucker','Shorthead sculpin','Vananda Creek stickleback','Vancouver lamprey','Western brook lamprey (Morrison Creek population)','White sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)'];
+const PROT12 = PROT13.filter(x => x !== 'Green sturgeon');
+
+/* ---------- licence words shared by the waters (page v36 Licence tile) ---------- */
+const DOC = {
+  basic:{n:'Basic angling licence',w:'Needed to fish at all',p:'$41.15 a year · $11.43 a day · $22.86 for 8 days',base:1},
+  st:{n:'Steelhead Conservation Surcharge Stamp',w:'Only if you fish for steelhead, even to release them',p:'$28.57 a year'},
+  wsg:{n:'White Sturgeon Conservation Licence',w:'Only if you fish for white sturgeon, even to release them',p:'$28.57 a year · $9.14 a day · $17.14 for 8 days'},
+  salmon:{n:'Conservation Surcharge Stamp for salmon',w:'Only if you keep salmon',p:'$17.14 a year'},
+};
+const SRC_HERE = ['TO FISH HERE',[['Anglers 16 and over need a basic angling licence to fish.','Province','basic angling licence'],
+  ['Annual basic angling licence: at most 1 licence per licence year.','',''],
+  ['Anglers 16 and over: produce your angling licence and photo ID when an officer asks.','Province','Produce your angling licence and photo ID when an officer asks · Not needed if you are a status First Nations person living in B.C.']]];
+const SRC_SALMON = ['TO KEEP SALMON',[['Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee).','Province','Conservation Surcharge Stamp for salmon']]];
+const SRC_RECORD = ['WHEN YOU KEEP A FISH YOU MUST RECORD',[['Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system).','Province','Carry your paper licence · Not needed if you are a status First Nations person living in B.C.']]];
+const GUIDING = ['For every angler: You need an angling guide licence or an assistant angling guide licence to guide anglers.','Province','angling guide licence OR assistant angling guide licence'];
+const OTHERS = ['For under 16, canadian, other province or from outside Canada: Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or over who holds the licences and stamps this fishing requires (any fish you keep count toward your companion\'s limit), or hold what non-residents or non-resident aliens 16 and over must hold (you keep your own quota).','Province','Nothing to buy: you’re exempt — be with someone who is 16 or older and holds what this fishing needs (fish you keep count toward their limit) OR meet the rules as 16 or older, canadian, other province or from outside Canada'];
+const U16 = {tile:{v:'None needed',s:'Nothing extra'},head:'No licence needed to fish here',
+  body:'Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply.'};
+const WAYS_NO = ['Set lines','Spear or bow','Nets','Snagging','Chumming'];
+const ANGLING = ['Angling (rod and line)','with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook'];
+const TRAPS = ['Crayfish traps','release anything in the trap that isn’t a crayfish'];
+const LINE_COMMON = [['HOOK, LURE OR FLY PER LINE','1','one hook, or one lure, or one fly','Province']];
+const LURES_WEIGHT = [['LURES','Any lure or fly','',''],['WEIGHT ON THE LINE','up to 1 kg','not when the weight is a downrigger’s','Province']];
+
+/* ---------- one helper for the many "Region-wide n a day" rows ---------- */
+const regionWide = (reg, n, txt, fish) => ({word:`${n} a day`, cls:'keep', big:String(n), unit:'a day', scope:`REGION ${reg}-WIDE`,
+  say:`Shared with all of Region ${reg} today.`, fish,
+  ladder:{ok:`✓ ${n} a day here, for all of Region ${reg} together.`, g:[[`Region ${reg}`,[[txt,'Daily limit']]]], other:[[`Region ${reg}`,[POSS]]]}});
+
+/* ---------- VEDDER RIVER ---------- */
+const V_R2 = {
+  four:['Keep up to 4 trout and char a day, all kinds together.','Daily limit'],
+  wild:['In streams, release every wild trout and char.','Release'],
+  two:['In streams, keep up to 2 trout and char a day, all kinds together, hatchery only.','Lower daily limit'],
+  size30:['In streams, keep only trout and char 30 cm or longer, hatchery only.','Size'],
+  cap50:['Only 1 trout or char over 50 cm a day (not steelhead).','Extra cap'],
+};
+const vKinds = (p) => [
+  {n:'Brook, brown and cutthroat trout', verb:'Keep up to', v:2, chips:['30 cm or longer','hatchery only'], note:'Only 1 over 50 cm.',
+   ladder:{ok:'✓ Keep up to 2, 30 cm or longer. Only 1 over 50 cm. They count toward your 2.', g:[['Region 2',[V_R2.four,V_R2.wild,V_R2.two,V_R2.size30,V_R2.cap50]]]}},
+  {n:'Dolly Varden, bull trout and lake trout', verb:'Keep', v:1, of:'of your 2', chips:['60 cm or longer','hatchery only'], note:'All are over 50 cm: each one uses your 1 fish over 50 cm.',
+   ladder:{ok:'✓ Keep up to 1, 60 cm or longer. They count toward your 2.', g:[['Region 2',[V_R2.four,V_R2.wild,V_R2.two,V_R2.size30,['Keep only Dolly Varden, bull trout and lake trout 60 cm or longer.','Size'],V_R2.cap50,['Keep up to 1 Dolly Varden, bull trout or lake trout a day.','Extra cap']]]]}},
+  p === 0 ?
+  {n:'Rainbow trout', verb:'Keep up to', v:4, chips:['up to 50 cm','hatchery only'], note:'Rainbows over 50 cm count as steelhead.',
+   ladder:{ok:'✓ Keep up to 4, up to 50 cm, hatchery only. Each one counts toward your 4.', g:[['Region 2',[V_R2.wild,V_R2.four]],['Vedder River',[['Keep up to 4 rainbow trout a day, hatchery only, Jul 1–Apr 30.','Daily limit']]]]}} :
+  {n:'Rainbow trout', verb:'Keep up to', v:2, chips:['30–50 cm','hatchery only'], note:'Rainbows over 50 cm count as steelhead.',
+   ladder:{ok:'✓ Keep up to 2, 30–50 cm. They count toward your 2.', g:[['Region 2',[V_R2.four,V_R2.wild,V_R2.two,V_R2.size30]]]}},
+  {n:'Steelhead', verb:'Keep up to', v:2, chips:['over 50 cm','hatchery only'], note:'Under 50 cm, it’s a rainbow trout.',
+   extras:['10 a year','Record it on your licence','Stop fishing for the day after 2'],
+   ladder:{ok:'✓ Keep up to 2, over 50 cm. They count toward your 2.', g:[['All of B.C.',[['In streams, keep up to 10 steelhead a licence year.','Yearly limit'],['In streams, record each hatchery steelhead on your licence right away.','Record it']]],
+     ['Region 2',[V_R2.four,V_R2.wild,V_R2.two,V_R2.size30,['Only 2 hatchery steelhead over 50 cm a day.','Extra cap'],['Once you’ve kept your daily limit of hatchery steelhead, stop fishing this water for the rest of the day.','Stop fishing']]]]}},
+];
+const vTrout = (p) => ({
+  t:'Trout and char', scope:'ALL REGION 2 STREAMS', big:'2', unit:'a day',
+  lead:'<b>2 a day in total, all kinds together.</b> Shared with every Region 2 stream you fish today.',
+  qa:[['Kept 2 on another stream?','Keep 0 here'],['Kept some at a lake?','Those don’t count here, but stop at 4 for the whole day']],
+  every:[{h:'<b>Hatchery only</b>, release wild ones', tell:1},{h:'<b>Only 1 fish over 50 cm in total</b> (steelhead don’t count)'}],
+  note:'Steelhead are known to be in this water.',
+  kindsHead: p === 0 ? 'EACH KIND' : 'EACH KIND · EVERY FISH COUNTS TOWARD THE 2',
+  kinds: vKinds(p),
+  fish: p === 0 ? ['EB','GB','CT','DV','LT','ST'] : ['EB','GB','CT','DV','LT','RB','ST'],
+  src:{sub:'Vedder River · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.',
+   on:[['REGION','Trout/char: 4','Region 2 · region-wide','Sets the number'],['REGION','2 from streams (must be hatchery)','Region 2 · region-wide','Lowers the number'],
+     ['REGION','1 over 50 cm','Region 2 · region-wide','A limit inside the total · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout'],
+     ['REGION','Hatchery trout/char under 30 cm from streams','Region 2 · region-wide','Size limit'],['REGION','Possession quotas = 2 daily quotas','Region 2 · region-wide','Possession limit'],
+     ['REGION','Wild trout/char from streams','Region 2 · region-wide','Release every one'],
+     ['REGION','1 char (bull trout, Dolly Varden, or lake trout)','Region 2 · region-wide','A limit inside the total · for Dolly Varden/bull trout and lake trout'],
+     ['REGION','none under 60 cm','Region 2 · region-wide','Size limit · for Dolly Varden/bull trout and lake trout'],
+     ['REGION','2 hatchery steelhead over 50 cm allowed','Region 2 · region-wide','A limit inside the total · for steelhead'],
+     ['REGION','When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.','Region 2 · region-wide','Something you must do · for steelhead'],
+     ['PROVINCE','The annual province-wide quota for hatchery steelhead is 10.','Provincial · in Regions 1, 2, 3, 5 and 6','Yearly limit · for steelhead'],
+     ['PROVINCE','You must immediately record your retention of hatchery steelhead on your basic angling licence.','Provincial · in Regions 1, 2, 3, 5 and 6','Something you must do · for steelhead']],
+   off:[['REGION','1 over 50 cm (2 hatchery steelhead over 50 cm allowed)','Region 2 · region-wide','Beaten by “1 over 50 cm” · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout'],
+     ['REGION','All wild steelhead','Region 2 · region-wide','Says the same as “Wild trout/char from streams” · for steelhead'],
+     ['PROVINCE','Possession quota — no more than twice the daily quota unless otherwise specified.','Provincial · province-wide','Beaten by “Possession quotas = 2 daily quotas”'],
+     ['PROVINCE','All wild steelhead must be released.','Provincial · in Regions 1, 2, 3, 5 and 6','Beaten by “All wild steelhead” · for steelhead']]},
+});
+const vOther = [
+  ['Kokanee',{word:'release', cls:'rel', say:'You can fish for them, but release every one. No keeping at any time of year. The whole water is closed Jun 1–30.', fish:['KO'],
+    ladder:{ok:'✓ Release every one here.', g:[['Region 2',[['In streams, release every kokanee.','Release']]]], other:[['Region 2',[POSS]]], skip:[['Keep up to 5 kokanee a day.','Replaced by the Region 2 rule']]}}],
+  ['Whitefish', regionWide(2,15,'Keep up to 15 whitefish a day, all kinds together.',['LW','MW'])],
+  ['Bass', regionWide(2,20,'Keep up to 20 bass a day, all kinds together.',['LMB','SMB'])],
+  ['Black crappie', regionWide(2,20,'Keep up to 20 black crappie a day.',['BCB'])],
+  ['White sturgeon',{word:'release', cls:'rel', say:'You can fish for them, but release every one. No keeping at any time of year. The whole water is closed Jun 1–30.', fish:['WSG'],
+    ladder:{ok:'✓ Release every one here.', g:[['Vedder River',[['Release every white sturgeon.','Release']]]], other:[['Region 2',[POSS]]], skip:[['No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)','Replaced by this river’s rule']]}}],
+  ['Crayfish', regionWide(2,25,'Keep up to 25 crayfish a day.',[])],
+  ['Protected species',{word:'closed', cls:'closed', say:'Don’t fish for them. If one bites, carefully release it.', which:PROT13,
+    fish:['CULTUS_LAKE_SCULPIN','NOOKSACK_DACE','SALISH_SUCKER','GREEN_STURGEON'],
+    ladder:{ok:'✓ Closed here.', g:[['Federal law',[['No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin.','Closed']]]]}}],
+];
+const vGear = {
+  tiles:{licence:{v:'Basic licence',s:'+ steelhead stamp and 2 more if needed'}, line:{v:'Single barbless hook',s:'1 line'},
+    bait:{v:'Some bait OK',items:[['Worms',1],['Roe',1],['Insects',1],['Fish parts',0]]}, ways:{v:'Angling',s:'Also crayfish traps'},
+    always:{v:'Handling fish',s:'21 rules that apply everywhere'}},
+  glance:[['y','Basic licence','+ steelhead stamp: only if you fish for steelhead, even to release them'],['y','Single barbless hook · 1 line',''],
+    ['y','Bait: worms, roe, insects',''],['n','Fish or fish parts: banned','roe is still OK'],['n','Snagging','Any fish snagged — even by accident — must be released.']],
+  need:[DOC.basic,DOC.st,DOC.wsg,DOC.salmon],
+  record:'Keep an adult chinook or hatchery steelhead? <b>Carry your paper licence</b> (16 and over) and record it right away.',
+  where:[SRC_HERE,['TO FISH FOR STEELHEAD',[['Anglers 16 and over need a Steelhead Conservation Surcharge Stamp to fish for steelhead on streams (not on a Classified Water whose row says “Steelhead Stamp not required”, while it is in force).','This water','Steelhead Conservation Surcharge Stamp']]],
+    ['TO FISH FOR WHITE STURGEON',[['Anglers 16 and over need a White Sturgeon Conservation Licence to fish for white sturgeon.','This water','White Sturgeon Conservation Licence']]],SRC_SALMON,SRC_RECORD],
+  lines:[['LINES','1','','Province'],...LINE_COMMON,['HOOK POINTS','Single point only (no trebles)','on streams','Region'],['BARBS','Barbless only','on streams · pinch barbs flat or buy barbless','Region'],...LURES_WEIGHT],
+  bait:[['y','Worms','allowed'],['y','Roe (fish eggs)','allowed'],['y','Water insects and crayfish','on streams'],['n','Fish or fish parts','banned · roe is still OK']],
+  ways:{yes:[ANGLING,TRAPS], no:WAYS_NO},
+};
+const vClosedJun = {word:'CLOSED', when:'on Jun 15', soon:'Opens Jul 1', head:'Closed · opens again Jul 1',
+  d:'No fishing for any game fish Jun 1–30.', list:[['No fishing for any game fish, Jun 1–30.','This water']], reopen:[701,'Opens again Jul 1. See the rules from then ›']};
+
+/* ---------- KOOTENAY LAKE — LOWER WEST ARM ---------- */
+const K_LWA = 'Kootenay Lake — Lower West Arm';
+const kTrout = {
+  t:'Trout and char', scope:'THIS WATER', big:'2', unit:'a day',
+  lead:'<b>2 a day in total, all kinds together.</b> This lake’s own limit. Fish you kept elsewhere today count toward it too.',
+  every:[{h:'<b>Only 1 cutthroat trout or rainbow trout over 50 cm</b>'}], everyHead:'',
+  kindsHead:'EACH KIND · EVERY FISH COUNTS TOWARD THE 2',
+  kinds:[
+    {n:'Cutthroat and rainbow trout', verb:'Keep up to', v:2, chips:['any size','wild or hatchery'], note:'Only 1 over 50 cm.',
+     ladder:{ok:'✓ Keep up to 2, any size. Only 1 over 50 cm. They count toward your 2.', g:[['Region 4',[['Only 1 rainbow trout or cutthroat trout over 50 cm a day.','Extra cap']]],[K_LWA,[['Keep up to 2 trout and char a day, all kinds together.','Daily limit']]]]}},
+    {n:'Dolly Varden, bull trout', verb:'Keep', v:1, of:'of your 2', chips:['any size','wild or hatchery'],
+     ladder:{ok:'✓ Keep up to 1, any size. They count toward your 2.', g:[[K_LWA,[['Keep up to 2 trout and char a day, all kinds together.','Daily limit'],['Keep up to 1 Dolly Varden or bull trout a day.','Extra cap']]]]}},
+    {n:'Brook, brown and lake trout', verb:'Keep up to', v:2, chips:['any size','wild or hatchery']},
+  ],
+  fish:['EB','GB','CT','DV','LT','RB'],
+  src:{sub:'Kootenay Lake — Lower West Arm · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.',
+   on:[['THIS WATER','Trout/char daily quota = 2 (only 1 bull trout)','Region 4 · for this water (Kootenay Lake — Lower West Arm)','Sets the number'],
+     ['THIS WATER','only 1 bull trout','Region 4 · for this water (Kootenay Lake — Lower West Arm)','A limit inside the total · for Dolly Varden/bull trout'],
+     ['REGION','Possession quotas = 2 daily quotas (See tables for exceptions)','Region 4 · region-wide','Possession limit'],
+     ['REGION','1 rainbow trout or cutthroat trout over 50 cm','Region 4 · region-wide','A limit inside the total · for cutthroat trout and rainbow trout']],
+   off:[['REGION','Trout/char: 5','Region 4 · region-wide','Beaten by “Trout/char daily quota = 2 (only 1 bull trout)”'],
+     ['REGION','1 bull trout (Dolly Varden) of any size','Region 4 · region-wide','Beaten by “only 1 bull trout” · for Dolly Varden/bull trout'],
+     ['PROVINCE','Possession quota — no more than twice the daily quota unless otherwise specified.','Provincial · province-wide','Beaten by “Possession quotas = 2 daily quotas (See tables for exceptions)”']]},
+};
+const K_WEEKENDS = 'Jan 3–4 and Jan 10–11 and Jan 17–18 and Jan 24–25 and Jan 31–Feb 1 and Feb 7–8 and Feb 14–15 and Feb 21–22 and Feb 28–Mar 1 and Mar 7–8 and Mar 14–15 and Mar 21–22 and Mar 28–29 and Apr 4–5 and Apr 11–12 and Apr 18–19 and Apr 25–26 and May 2–3 and May 9–10 and May 16–17 and May 23–24 and May 30–31 and Jun 6–7 and Jun 13–14 and Jun 20–21 and Jun 27–28 and Jul 4–5 and Jul 11–12 and Jul 18–19 and Jul 25–26 and Aug 1–2 and Aug 8–9 and Aug 15–16 and Aug 22–23 and Aug 29–30 and Sep 5–6 and Sep 12–13 and Sep 19–20 and Sep 26–27 and Oct 3–4 and Oct 10–11 and Oct 17–18 and Oct 24–25 and Oct 31–Nov 1 and Nov 7–8 and Nov 14–15 and Nov 21–22 and Nov 28–29 and Dec 5–6 and Dec 12–13 and Dec 19–20 and Dec 26–27';
+const kOther = (weekend) => [
+  ['Kokanee', weekend ?
+    {word:'5 a day', cls:'keep', big:'5', unit:'a day', scope:'THIS WATER', fish:['KO'],
+     year:{say:'You can keep them until Oct 11. Then release only from Oct 12.', list:K_WEEKENDS},
+     ladder:{ok:'✓ 5 a day here.', g:[[K_LWA,[['Keep up to 5 kokanee a day.','Daily limit'],['Keep up to 5 kokanee a day.','Also applies']]]], other:[['Region 4',[POSS]]],
+       skip:[['Keep up to 15 kokanee a day.','Replaced by this lake’s rule'],['Only 5 kokanee over 30 cm a day.','Not needed here']]}} :
+    {word:'release', cls:'rel', fish:['KO'],
+     say:'You can fish for them, but release every one until Oct 16. You can keep them from Oct 17.', year:{list:K_WEEKENDS},
+     ladder:{ok:'✓ Release every one here.', g:[[K_LWA,[['Release every kokanee.','Release']]]], other:[['Region 4',[POSS]]],
+       skip:[['Keep up to 15 kokanee a day.','Replaced by this lake’s rule'],['Only 5 kokanee over 30 cm a day.','Replaced by this lake’s rule']]}}],
+  ['Whitefish', regionWide(4,15,'Keep up to 15 whitefish a day, all kinds together.',['LW','MW'])],
+  ['Bass',{word:'no limit', cls:'keep', big:'∞', unit:'No daily limit', fish:['LMB','SMB'],
+    ladder:{ok:'✓ No daily limit here.', g:[[K_LWA,[['No daily limit for bass.','Daily limit']]]], other:[['Region 4',[POSS]]],
+      skip:[['No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables','Replaced by this lake’s rule'],['No fishing for bass.','Replaced by this lake’s rule']]}}],
+  ['Yellow perch',{word:'no limit', cls:'keep', big:'∞', unit:'No daily limit', fish:['YP'],
+    ladder:{ok:'✓ No daily limit here.', g:[[K_LWA,[['No daily limit for yellow perch.','Daily limit']]]], other:[['Region 4',[POSS]]],
+      skip:[['No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables','Replaced by this lake’s rule'],['No fishing for yellow perch.','Replaced by this lake’s rule']]}}],
+  ['Burbot',{word:'release', cls:'rel', say:'You can fish for them, but release every one. No keeping at any time of year.', fish:['BB'],
+    ladder:{ok:'✓ Release every one here.', g:[[K_LWA,[['Release every burbot.','Release']]]], other:[['Region 4',[POSS]]], skip:[['Keep up to 2 burbot a day.','Replaced by this lake’s rule']]}}],
+  ['Northern pike and walleye',{word:'closed', cls:'closed', say:'Don’t fish for them. If one bites, carefully release it. All year.', fish:['NP','WP'],
+    ladder:{ok:'✓ Closed here.', g:[['Region 4',[['No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables','Closed']]]], other:[['Region 4',[POSS]]]}}],
+  ['White sturgeon',{word:'closed', cls:'closed', say:'Don’t fish for them. If one bites, carefully release it. All year.', fish:['WSG'],
+    ladder:{ok:'✓ Closed here.', g:[['Region 4',[['No fishing for white sturgeon.','Closed']]]], other:[['Region 4',[POSS]]]}}],
+  ['Crayfish', regionWide(4,25,'Keep up to 25 crayfish a day.',[])],
+  ['Protected species',{word:'closed', cls:'closed', say:'Don’t fish for them. If one bites, carefully release it.', which:PROT12,
+    fish:['CULTUS_LAKE_SCULPIN','NOOKSACK_DACE','SALISH_SUCKER'],
+    ladder:{ok:'✓ Closed here.', g:[['Federal law',[['No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).','Closed']]]]}}],
+];
+const kGear = {
+  tiles:{licence:{v:'Basic licence',s:'+ salmon stamp if needed'}, line:{v:'Trebles and barbs OK',s:'1 line (2 alone in a boat)'},
+    bait:{v:'Some bait OK',items:[['Worms',1],['Roe',1],['Insects',0],['Fish parts',0]]}, ways:{v:'Angling',s:'Also ice fishing, crayfish traps'},
+    always:{v:'Handling fish',s:'21 rules that apply everywhere'}},
+  glance:[['y','Basic licence','+ salmon stamp: only if you keep salmon'],['y','Trebles and barbs OK','1 line (2 while alone in a boat)'],
+    ['y','Bait: worms, roe',''],['n','Water insects and crayfish: not on lakes',''],['n','Fish or fish parts: banned','roe is still OK'],['n','Snagging','Any fish snagged — even by accident — must be released.']],
+  need:[DOC.basic,DOC.salmon],
+  record:'Keep an adult chinook? <b>Carry your paper licence</b> (16 and over) and record it right away.',
+  where:[SRC_HERE,SRC_SALMON,SRC_RECORD],
+  lines:[['LINES','1','2 while alone in a boat','Province'],...LINE_COMMON,['HOOK POINTS','Trebles allowed','any hook',''],['BARBS','Barbs allowed','',''],...LURES_WEIGHT],
+  bait:[['y','Worms','allowed'],['y','Roe (fish eggs)','allowed'],['n','Water insects and crayfish','not on lakes'],['n','Fish or fish parts','banned · roe is still OK']],
+  ways:{yes:[ANGLING,['Ice fishing','lines: 1 · hook, lure or fly per line: 1 · Remove your ice hut before breakup · Warn others of your ice hole'],TRAPS], no:WAYS_NO},
+};
+
+/* ---------- COWICHAN RIVER ---------- */
+const cClosed = {word:'CLOSED', when:'today', soon:'Opens Nov 16', head:'Closed · opens again Nov 16',
+  d:'No fishing for any game fish Jul 4–Nov 15. Together these closures cover it:',
+  list:[['No fishing for any game fish, Jul 4–14.','This water'],['No fishing for any game fish, Jul 15–Aug 31.','This water'],
+    ['No fishing for any game fish from streams, Jul 15–Aug 31.','Named area'],['No fishing for any game fish, Sep 1–Nov 15.','This water']],
+  reopen:[1116,'Opens again Nov 16. See the rules from then ›']};
+
+/* ---------- the waters ---------- */
+const WATERS = {
+  vedder:{name:'Vedder River', kind:'stream', region:'REGION 2', map:'vedder', status:'open',
+    parts:[{t:'From the mouth up to the Vedder Crossing Bridge', n:5, strip:[['k',151],['c',30],['k',184]]},
+           {t:'From the Vedder Crossing Bridge up to the orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)', n:1, strip:[['k',120],['c',61],['k',184]]}],
+    frames:[{p:0,a:701,b:1231,regs:{groups:[vTrout(0)],other:vOther},gear:vGear},
+            {p:0,a:601,b:630,closed:vClosedJun},
+            {p:1,a:701,b:1231,regs:{groups:[vTrout(1)],other:vOther},gear:vGear}],
+    caps:['Jul 1–Dec 31 (both parts)','Jun 1–30 (mouth part, closed)'], jump:[[1010,'Oct 10'],[615,'Jun 15']]},
+  klwa:{name:K_LWA, short:'Kootenay L. — Lower West Arm', kind:'lake', region:'REGION 4', map:'klwa', status:'open',
+    parts:[{t:'Whole lake · one set of rules', n:1, strip:[['k',365]], one:1}],
+    frames:[{p:0,a:1010,b:1011,whenTxt:'today (Sat)',regs:{times:[['Kokanee: release Mon–Fri; 5 a day Sat–Sun','today (Sat–Sun): 5 a day']],groups:[kTrout],other:kOther(true)},gear:kGear},
+            {p:0,a:1012,b:1016,whenTxt:'(Mon–Fri)',regs:{times:[['Kokanee: release Mon–Fri; 5 a day Sat–Sun','today (Mon–Fri): release']],groups:[kTrout],other:kOther(false)},gear:kGear}],
+    caps:['Oct 10–11 (Sat–Sun)','Oct 12–16 (Mon–Fri)'], jump:[[1010,'Sat Oct 10'],[1012,'Mon Oct 12']]},
+  cowichan:{name:'Cowichan River', kind:'stream', region:'REGION 1', map:'cowichan', status:'closed',
+    parts:[{t:'From the mouth up to the CNR Trestle', n:9, strip:[['k',184],['c',135],['k',46]]},
+           {t:'From the CNR Trestle up to the CNR Bridge', n:1},{t:'From the CNR Bridge up to the Greendale Trestle', n:1},
+           {t:'From the Greendale Trestle up to the Cowichan Lake outlet', n:2},{t:'Side channel (from the mouth up to a lake outlet)', n:1}],
+    frames:[{p:0,a:901,b:1115,closed:cClosed}],
+    caps:['Sep 1–Nov 15 (mouth part, closed)'], jump:[[1010,'Oct 10']]},
+};
+// Cowichan's region is not printed on the page's card; the foot shows what the page shows.
+WATERS.cowichan.region = '';
+
+/* ======================================================================================
+   STATE
+   ====================================================================================== */
+const TODAY = 1010, YEAR = 2026;
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DIM = [31,28,31,30,31,30,31,31,30,31,30,31];
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const S = {w:'vedder', v:'regs', part:0, d:TODAY, tile:'licence', age:'adult', sheet:'', open:'', theme:'', skin:'', scroll:0};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100);
+const wday = md => WD[new Date(YEAR, Math.floor(md/100)-1, md%100).getDay()];
+const doy = md => DIM.slice(0, Math.floor(md/100)-1).reduce((a,b)=>a+b,0) + md%100;
+const mdOf = n => { let m=0; while (n > DIM[m]) { n -= DIM[m]; m++; } return (m+1)*100+n; };
+const W = () => WATERS[S.w];
+const P = () => W().parts[S.part] || W().parts[0];
+function stripAt(part, md){ if (!part.strip) return null; let x = doy(md); for (const [s,n] of part.strip){ if (x <= n) return s; x -= n; } return null; }
+function frame(){ return W().frames.find(f => f.p === S.part && S.d >= f.a && S.d <= f.b) || null; }
+function nextOpen(part, md){ if (!part.strip) return null; for (let i=1;i<=365;i++){ const m = mdOf(((doy(md)-1+i)%365)+1); if (stripAt(part,m)==='k') return m; } return null; }
+const SC = {k:'--open', r:'--limited', c:'--closed'};
+
+/* ======================================================================================
+   ICONS (riffle stroke style)
+   ====================================================================================== */
+const ICON = {
+  map:'<path d="M2.5 5.5 8 3l7 2.5 5.5-2.5v15L15 20.5 8 18l-5.5 2.5Z"/><path d="M8 3v15"/><path d="M15 5.5v15"/>',
+  search:'<circle cx="10.5" cy="10.5" r="7"/><path d="M15.6 15.6 20.5 20.5"/>',
+  conditions:'<path d="M2.5 15c2.4 0 2.4-3 4.8-3s2.4 3 4.8 3 2.4-3 4.8-3 2.4 3 4.6 3"/><path d="M2.5 8.5c2.4 0 2.4-3 4.8-3s2.4 3 4.8 3 2.4-3 4.8-3 2.4 3 4.6 3"/>',
+  pins:'<path d="M11.5 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="11.5" cy="10" r="2.6"/>',
+  regs:'<path d="M5.5 2.5h8.5l3.5 3.5v14.5h-12Z"/><path d="M14 2.5V6h3.5"/><path d="M8.5 10.5h6M8.5 14h6M8.5 17.5h3.5"/>',
+  gear:'<path d="M14.5 2.5v11a4.5 4.5 0 0 1-9 0v-2.2"/><path d="M5.5 11.3 3.2 13.6"/><path d="M14.5 2.5h3"/>',
+};
+
+/* ======================================================================================
+   RENDER
+   ====================================================================================== */
+const $ = id => document.getElementById(id);
+function tint(v, a){ return `color-mix(in srgb, var(${v}) ${Math.round(a*100)}%, var(--card))`; }
+
+function renderTabs(){
+  const water = S.v !== 'map0';
+  const tabs = water ? [['map','Map','map'],['regs','Regulations','regs'],['gear','Gear & licence','gear']]
+                     : [['map0','Map','map'],['search','Search','search'],['conditions','Conditions','conditions'],['pins','Spots','pins']];
+  const el = $('tabs'); el.className = 'tabs' + (water ? ' water' : '');
+  el.innerHTML = tabs.map(([k,t,ic]) => `<button role="tab" data-tab="${k}" aria-selected="${S.v===k}"><svg viewBox="0 0 23 23" aria-hidden="true">${ICON[ic]}</svg><em>${esc(t)}</em></button>`).join('');
+  el.onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; const k = b.dataset.tab;
+    if (k === 'search' || k === 'conditions' || k === 'pins') { toast(`${t2(k)}: an existing screen, unchanged by this mock`); return; }
+    go({v:k, sheet:''}); };
+}
+const t2 = k => ({search:'Search',conditions:'Conditions',pins:'Spots'})[k];
+
+/* ---------- map svg ---------- */
+function mapSvg(which, opts){
+  const w = W(), M = (window.MAPS||{})[w.map]; if (!M) return '';
+  const g = M[which], Wd = which==='big'?390:358, Hd = which==='big'?740:132;
+  const st = stripAt(P(), S.d), col = st ? `var(${SC[st]})` : 'var(--sub)';
+  const big = which === 'big';
+  let s = `<svg viewBox="0 0 ${Wd} ${Hd}" preserveAspectRatio="xMidYMin slice" role="img" aria-label="Map of ${esc(w.name)}">`;
+  s += `<rect width="${Wd}" height="${Hd}" fill="var(--land)"/>`;
+  s += `<path d="${g.lakes}" fill="var(--osm-lake)" stroke="none" fill-rule="evenodd"/>`;
+  for (const [o,d] of Object.entries(g.streams)) s += `<path d="${d}" fill="none" stroke="var(--osm-water)" stroke-width="${(big?0.5:0.35)+o*(big?0.32:0.2)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const lake = w.kind === 'lake';
+  if (lake) s += `<path d="${g.target}" fill="${opts&&opts.dim?'var(--osm-lake)':tint('--osm-lake',1)}" stroke="var(--ink)" stroke-opacity=".35" stroke-width="1"/>`;
+  else s += `<path d="${g.target}" fill="none" stroke="var(--ink)" stroke-opacity="${opts&&opts.dim?0.25:0.35}" stroke-width="${big?3:2.4}" stroke-linecap="round"/>`;
+  if (!(opts&&opts.dim)) {
+    const pd = g.parts[String(S.part)] || '';
+    if (lake) s += `<path d="${pd}" fill="${col}" fill-opacity=".35" stroke="${col}" stroke-width="${big?2.2:1.6}"/>`;
+    else s += `<path d="${pd}" fill="none" stroke="${col}" stroke-width="${big?5:4}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  (g.marks||[]).forEach(m => { s += `<circle cx="${m.xy[0]}" cy="${m.xy[1]}" r="${big?4:3}" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>`
+    + (big ? `<text x="${m.xy[0]+(m.xy[0]>Wd-110?-8:8)}" y="${m.xy[1]-8}" text-anchor="${m.xy[0]>Wd-110?'end':'start'}" font-size="11.5" font-weight="700" fill="var(--sub)" font-family="Archivo,sans-serif">${esc(m.t)}</text>` : ''); });
+  return s + '</svg>';
+}
+
+/* ---------- MAP pane ---------- */
+function renderMap(){
+  const w = W(), st = stripAt(P(), S.d);
+  $('mapwrap').innerHTML = mapSvg('big', {dim: S.v === 'map0'});
+  $('mapdatelbl').textContent = S.d === TODAY ? `Today · ${fmt(S.d)}` : `${wday(S.d)} ${fmt(S.d)}`;
+  $('mapdate').onclick = () => openSheet('date');
+  if (S.v === 'map0') {
+    $('mapfoot').innerHTML = `<button class="coach" id="coachbtn" style="text-align:left">Tap a water<span>Try ${esc(w.name)} — it is outlined on the map.</span></button>`;
+    $('coachbtn').onclick = () => go({v:'map'});
+    $('mapwrap').onclick = () => go({v:'map'});
+    return;
+  }
+  $('mapwrap').onclick = null;
+  const word = st === 'k' ? 'OPEN' : st === 'c' ? 'CLOSED' : '—', col = st ? SC[st] : '--sub';
+  $('mapfoot').innerHTML = `<div class="peek"><div class="grab"></div>
+    <h2>${esc(w.name)}<button aria-label="Close the water" id="closew">✕</button></h2>
+    <div class="cx"><span class="pill" style="background:${tint(col,.14)};color:var(${col})"><i style="background:var(${col})"></i>${word}</span>
+      &nbsp;${esc(w.kind)} · ${P().one ? 'one set of rules' : esc(P().t)}</div>
+    <div class="row"><button class="pri" data-go="regs">Regulations</button><button data-go="gear">Gear &amp; licence</button><button data-cond="1">Conditions</button></div></div>`;
+  $('closew').onclick = () => go({v:'map0'});
+  $('mapfoot').onclick = e => { const b = e.target.closest('[data-go]'); if (b) go({v:b.dataset.go});
+    if (e.target.closest('[data-cond]')) toast('Conditions: the existing face, reached from the map — unchanged by this mock'); };
+}
+
+/* ---------- the shared top bar ---------- */
+function renderTop(){
+  const w = W(), p = P(), multi = w.parts.length > 1, st = stripAt(p, S.d);
+  let h = `<div class="tname"><h1>${esc(w.name)}</h1><span>${esc(w.kind.toUpperCase())}${w.region ? ' · ' + w.region : ''}</span></div>`;
+  h += multi ? `<button class="partbtn" id="partbtn" aria-haspopup="dialog"><span style="min-width:0"><span class="pl">PART ${S.part+1} OF ${w.parts.length} · ${p.n} SECTION${p.n>1?'S':''}</span><span class="pn">${esc(p.t)}</span></span><span class="chev" aria-hidden="true">▾</span></button>`
+             : `<div class="partbtn static"><span><span class="pl">${esc(w.kind === 'lake' ? 'THE WHOLE LAKE' : 'THE WHOLE WATER')}</span><span class="pn">One set of rules</span></span></div>`;
+  h += `<div class="daterow"><button class="step" data-step="-1" aria-label="Day before">‹</button>
+    <button class="datebtn" id="datebtn" aria-haspopup="dialog"><b>${wday(S.d)}, ${fmt(S.d)}</b>${S.d===TODAY?'<em>TODAY</em>':''}<i>▼</i></button>
+    <button class="step" data-step="1" aria-label="Day after">›</button></div>`;
+  if (p.strip) {
+    let bar = p.strip.map(([s,n]) => `<i style="flex:${n} 0 0;background:var(${SC[s]})"></i>`).join('');
+    const pct = ((doy(S.d)-0.5)/365*100).toFixed(2);
+    bar += `<span class="now" style="left:${pct}%"></span>`;
+    const mon = MON.map((m,i) => `<span class="${i===Math.floor(S.d/100)-1?'on':''}">${m[0]}</span>`).join('');
+    const keys = [...new Set(p.strip.map(x=>x[0]))];
+    const key = keys.map(k => `<span><i style="background:var(${SC[k]})"></i>${k==='k'?'open':k==='c'?'closed: no fishing for any game fish':'release only'}</span>`).join('');
+    h += `<div class="ystrip" role="img" aria-label="Open days through the year"><div class="ybar">${bar}</div><div class="ymon">${mon}</div><div class="ykey">${key}</div></div>`;
+  } else h += `<div class="ystrip"><div class="gap" style="margin:0;padding:8px 10px;font-size:12px">Open-days strip for this part: not captured in the mock.</div></div>`;
+  const top = $('top'); top.innerHTML = h;
+  top.classList.toggle('condensed', S.scroll > 40);
+  if ($('partbtn')) $('partbtn').onclick = () => openSheet('part');
+  $('datebtn').onclick = () => openSheet('date');
+  top.querySelectorAll('[data-step]').forEach(b => b.onclick = () => stepDay(+b.dataset.step));
+}
+function stepDay(n){ let x = doy(S.d) + n; if (x < 1) x = 365; if (x > 365) x = 1; go({d: mdOf(x)}); }
+
+/* ---------- pieces ---------- */
+function verdictHtml(){
+  const f = frame(), p = P(), st = stripAt(p, S.d);
+  if (f && f.closed) {
+    const c = f.closed;
+    return `<div class="verdict"><div class="band" style="background:${tint('--closed',.1)}">
+      <div class="w" style="color:var(--closed)"><i style="background:var(--closed)"></i>CLOSED<small>${S.d===TODAY?'today':'on '+esc(fmt(S.d))}</small><span class="soon" style="color:var(--open)">${esc(c.soon)}</span></div>
+      <div class="d">${esc(c.d)}</div>
+      <ul>${c.list.map(([t,tier]) => `<li><span class="t">${esc(t)}</span><span class="tier">${esc(tier.toUpperCase())}</span></li>`).join('')}</ul>
+      <button class="linkrow" data-date="${c.reopen[0]}">${esc(c.reopen[1])}</button></div>
+      <div class="foot">${esc(c.head.toUpperCase())}</div></div>`;
+  }
+  const word = st === 'k' ? 'OPEN' : st === 'c' ? 'CLOSED' : 'NOT CAPTURED', col = st ? SC[st] : '--sub';
+  const when = f && f.whenTxt ? f.whenTxt : (S.d===TODAY ? 'today' : 'on '+fmt(S.d));
+  const nx = st === 'c' ? nextOpen(p, S.d) : null;
+  return `<div class="verdict"><div class="band" style="background:${tint(col,.1)}">
+    <div class="w" style="color:var(${col})"><i style="background:var(${col})"></i>${word}<small>${esc(when)}</small>${nx?`<span class="soon" style="color:var(--open)">Opens ${fmt(nx)}</span>`:''}</div></div>
+    <div class="foot">${esc(W().kind.toUpperCase())} · ${p.n} SECTION${p.n>1?'S':''}${W().region?' · '+W().region:''}<em>${esc(fmt(S.d).toUpperCase())}</em></div></div>`;
+}
+function gapHtml(){
+  const w = W();
+  return `<div class="gap"><b>Not captured in this mock.</b> The mock carries page v36's answers for ${esc(w.caps.join('; '))}.
+    The app reads every day and every part from the answers store; the open-days strip above is right for the whole year.
+    <div class="row">${w.jump.map(([d,t]) => `<button data-date="${d}" data-part0="1">${esc(t)}</button>`).join('')}</div></div>`;
+}
+function ladderHtml(L){
+  if (!L) return '';
+  const grp = gs => (gs||[]).map(([who, items]) => `<div class="lg"><b>${esc(who)}</b>${items.map(([t,r]) => `<div class="li2"><span>${esc(t)}</span><em>${esc(r)}</em></div>`).join('')}</div>`).join('');
+  return `<div class="ok">${esc(L.ok)}</div>${grp(L.g)}`
+    + (L.other ? `<div class="subh" style="margin-top:12px">OTHER RULES</div>${grp(L.other)}` : '')
+    + (L.skip ? `<div class="subh" style="margin-top:12px">RULES THAT DON’T APPLY HERE (${L.skip.length})</div>${L.skip.map(([t,r]) => `<div class="li2 skip"><span>${esc(t)}</span><em>${esc(r)}</em></div>`).join('')}` : '');
+}
+function picsHtml(codes){
+  const items = codes.flatMap(c => (PICS[c]||[]).slice(0,1).map(p => ({c,p})));
+  if (!items.length) return '';
+  return `<div class="pics">${items.map(({c,p}) => `<button class="pic${p.si?' si':''}" data-fish="${c}"><img src="${FISHDIR+p.f}" alt="" loading="lazy"><span>${esc(FISH[c]?FISH[c].n:p.c)}</span></button>`).join('')}</div>`;
+}
+function groupHtml(G, gi){
+  let h = `<div class="qcard"><div class="qhead"><div><h2>${esc(G.t)}</h2><div class="sc"><span class="pill" style="background:${tint('--open',.14)};color:var(--open)">${esc(G.scope)}</span></div></div>
+    <div class="num"><b>${esc(G.big)}</b><span>${esc(G.unit)}</span></div></div><div class="qbody">`;
+  h += `<p class="lead">${G.lead}</p>`;
+  if (G.qa) h += `<div class="qa">${G.qa.map(([q,a]) => `<div>${esc(q)}<b>${esc(a)}</b></div>`).join('')}</div>`;
+  if (G.every && G.every.length) {
+    h += `<div class="subh">FOR EVERY KIND</div><ul class="checks">${G.every.map(e => `<li><i>✓</i><div>${e.h}${e.tell?` <button class="tl2" data-sheet="howtell">How to tell ›</button>`:''}</div></li>`).join('')}</ul>`;
+  }
+  if (G.note) h += `<div class="note">${esc(G.note)}</div>`;
+  h += `<div class="subh">${esc(G.kindsHead)}</div>`;
+  G.kinds.forEach((k, ki) => {
+    const id = `${gi}.${ki}`, open = S.open.split(',').includes(id);
+    h += `<div class="kind${open?' open':''}" data-kind="${id}"><button class="khd" ${k.ladder?`data-toggle="${id}" aria-expanded="${open}"`:''}>
+      <span class="kn">${esc(k.n)}</span><span class="kv">${esc(k.verb)}<b>${k.v}</b>${k.of?`<br><span style="font-size:11.5px">${esc(k.of)}</span>`:''}</span>
+      ${k.ladder?'<span class="tog" aria-hidden="true">▾</span>':''}</button>
+      <div class="chips">${k.chips.map(c => `<span class="chipx k">${esc(c)}</span>`).join('')}</div>
+      ${k.note?`<div class="note" style="margin-top:7px">${esc(k.note)}</div>`:''}
+      ${k.extras?`<ul class="extras">${k.extras.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`:''}
+      ${k.ladder?`<div class="ladder"><div class="subh" style="margin-top:2px">HOW THIS WAS DECIDED</div>${ladderHtml(k.ladder)}</div>`:''}</div>`;
+  });
+  h += `<div class="subh">WHAT THEY LOOK LIKE · ${G.fish.length} FISH</div>${picsHtml(G.fish)}`;
+  h += `<button class="linkrow" data-sheet="src:${gi}">See every regulation line ›</button></div></div>`;
+  return h;
+}
+function otherHtml(list){
+  return `<div class="blk"><h3>OTHER FISH<em>TAP FOR DETAIL</em></h3><div class="tbl">${list.map(([n,o],i) =>
+    `<button data-sheet="other:${i}"><span>${esc(n)}</span><b class="c-${o.cls}">${esc(o.word)}</b><i>›</i></button>`).join('')}</div></div>`;
+}
+
+/* ---------- REGULATIONS view ---------- */
+function renderRegs(){
+  const f = frame();
+  let h = verdictHtml();
+  if (f && f.regs && f.regs.times) h += f.regs.times.map(([b,s]) => `<div class="caveat"><div class="k">⚠ AT CERTAIN TIMES</div><div class="b">${esc(b)}</div><div class="s"><b>${esc(s)}</b></div></div>`).join('');
+  if (window.MAPS && window.MAPS[W().map]) h += `<button class="thumb" data-go="map" aria-label="Show this part on the map">${mapSvg('thumb')}<span class="cap"><b>This part</b> · ${P().n} section${P().n>1?'s':''}</span><span class="go">Map ›</span></button>`;
+  if (!f) h += gapHtml();
+  else if (f.regs) {
+    h += f.regs.groups.map(groupHtml).join('');
+    h += otherHtml(f.regs.other);
+    h += `<div class="blk anyw"><h3>ANYWHERE IN B.C.</h3>${ANYWHERE.map(t => `<p>${esc(t)}</p>`).join('')}<p>${esc(POSS[0])}</p></div>`;
+  }
+  h += `<div class="fine">Every answer is page v36's (answers/2, ${esc(fmt(S.d))}). Where the answers file has nothing, the app will say so — never work it out.</div>`;
+  $('v-regs').innerHTML = h;
+}
+
+/* ---------- GEAR & LICENCE view ---------- */
+const KIT = [['licence','Licence'],['line','Line & hooks'],['bait','Bait'],['ways','Ways to fish'],['boats','Boats'],['always','Always']];
+function renderGear(){
+  const f = frame();
+  let h = '';
+  if (!f) { h += verdictHtml() + gapHtml(); $('v-gear').innerHTML = h; return; }
+  if (f.closed) {
+    h += verdictHtml().replace(/<ul>[\s\S]*?<\/ul>/, '').replace(/<button class="linkrow"[\s\S]*?<\/button>/, '');
+    h += `<div class="glance"><div class="gh"><b>FOR THIS WATER ${S.d===TODAY?'TODAY':'ON '+esc(fmt(S.d).toUpperCase())}</b></div><ul class="glist"><li><span class="m n">✕</span><span class="t">No gear in the water<small>No gear may go in the water and no licence is needed while fishing is closed.</small></span></li></ul></div>`;
+    $('v-gear').innerHTML = h; return;
+  }
+  const G = f.gear, u16 = S.age === 'u16';
+  const glance = u16 ? [['y','No licence needed','under 16, living in B.C. — the rules and limits still apply'], ...G.glance.slice(1)] : G.glance;
+  h += `<div class="glance"><div class="gh"><b>FOR THIS WATER ${S.d===TODAY?'TODAY':'ON '+esc(fmt(S.d).toUpperCase())}</b><span>${u16?'under 16':'16 or older'}</span></div>
+    <ul class="glist">${glance.map(([m,t,s],i) => `<li data-tilejump="${i===0?'licence':i===1?'line':t==='Snagging'?'always':'bait'}"><span class="m ${m}">${m==='y'?'✓':m==='n'?'✕':'+'}</span><span class="t">${esc(t)}${s?`<small>${esc(s)}</small>`:''}</span></li>`).join('')}</ul></div>`;
+  const tiles = {...G.tiles}; if (u16) tiles.licence = U16.tile;
+  const tabs = KIT.filter(([k]) => tiles[k]);
+  if (!tiles[S.tile]) S.tile = 'licence';
+  h += `<div class="kgrid" role="tablist" aria-label="Gear and licence">${tabs.map(([k,t],i) => {
+    const T = tiles[k], wide = (i === tabs.length-1 && tabs.length % 2 === 1);
+    const s = T.items ? T.items.map(([n,ok]) => `<span class="bk${ok?'':' no'}">${esc(n)} ${ok?'✓':'✕'}</span>`).join('') : esc(T.s);
+    return `<button class="ktile${wide?' wide':''}" role="tab" aria-selected="${S.tile===k}" data-tile="${k}"><span class="kl">${esc(t.toUpperCase())}</span><b class="kv">${esc(T.v)}</b><span class="ks">${s}</span></button>`; }).join('')}</div>`;
+  const ti = tabs.findIndex(([k]) => k === S.tile), prev = tabs[ti-1], next = tabs[ti+1];
+  h += `<section class="kpane" role="tabpanel"><div class="khead"><h3>${esc(tabs[ti][1])}</h3><span class="nav">${prev?`<button data-tile="${prev[0]}">‹ ${esc(prev[1])}</button>`:''}${next?`<button data-tile="${next[0]}">${esc(next[1])} ›</button>`:''}</span></div>`;
+  h += ({licence:licencePane, line:linePane, bait:baitPane, ways:waysPane, always:alwaysPane})[S.tile](G) + '</section>';
+  h += `<div class="fine">Tiles and every line under them are page v36's “Gear &amp; licence” view for this water and day.</div>`;
+  $('v-gear').innerHTML = h;
+}
+function srcBlock(groups){ return groups.map(([hd, items]) => `<div class="src"><h5>${esc(hd)}</h5>${items.map(([t,tier,doc]) => `<p>${esc(t)}${tier?` <span class="tg">· ${esc(tier.toUpperCase())}</span>`:''}${doc?`<br><span class="tg" style="font-weight:600;letter-spacing:0">${esc(doc)}</span>`:''}</p>`).join('')}</div>`).join(''); }
+function licencePane(G){
+  const u16 = S.age === 'u16';
+  let h = `<div class="who"><h4>WHO IS FISHING?</h4><div class="seg" role="group" aria-label="Age">
+    <button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>
+    <details class="more"><summary>Not a B.C. resident? Guided? Status? ›</summary><div class="opts">
+      <b>RESIDENCY</b><span class="on">B.C. resident</span><span>Canadian, other province</span><span>From outside Canada</span>
+      <b>GUIDANCE</b><span class="on">Not guided</span><span>Guided</span>
+      <b>STATUS</b><span class="on">No status</span><span>Status First Nations, living in B.C.</span><span>Métis</span><span>Disabled</span><span>65 or older</span></div>
+      <p class="note">(Mock: only the age question changes the answer here.)</p></details></div>`;
+  if (u16) {
+    h += `<div class="need"><b>YOU NEED</b><div class="doc"><div class="n">${esc(U16.head)}</div><div class="w">${esc(U16.body)}</div></div></div>`;
+    h += `<details class="fold"><summary>IF YOU ARE GUIDING OTHER ANGLERS</summary><div class="src"><p>${esc(GUIDING[0])} <span class="tg">· PROVINCE</span><br><span class="tg" style="letter-spacing:0">${esc(GUIDING[2])}</span></p></div></details>`;
+    return h;
+  }
+  h += `<div class="need"><b>YOU NEED</b>${G.need.map(d => `<div class="doc ${d.base?'base':'extra'}"><div class="n">${esc(d.n)}</div><div class="w">${esc(d.w)}</div><div class="p">${esc(d.p)}</div></div>`).join('')}
+    <div class="prices">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</div></div>`;
+  h += `<div class="callout">${G.record}</div>`;
+  h += `<details class="fold"><summary>WHERE EACH ONE COMES FROM</summary>${srcBlock(G.where)}</details>`;
+  h += `<details class="fold"><summary>IF YOU ARE GUIDING OTHER ANGLERS</summary><div class="src"><p>${esc(GUIDING[0])} <span class="tg">· PROVINCE</span><br><span class="tg" style="letter-spacing:0">${esc(GUIDING[2])}</span></p></div></details>`;
+  h += `<details class="fold"><summary>RULES FOR OTHER ANGLERS (1)</summary><div class="src"><p>${esc(OTHERS[0])} <span class="tg">· PROVINCE</span><br><span class="tg" style="letter-spacing:0">${esc(OTHERS[2])}</span></p></div></details>`;
+  return h;
+}
+function linePane(G){
+  return `<div style="margin-top:4px">${G.lines.map(([l,v,s,t]) => `<div class="grow"><span class="gl">${esc(l)}</span><span class="gv">${esc(v)}</span>${t?`<span class="tier">${esc(t.toUpperCase())}</span>`:''}${s?`<span class="gs">${esc(s)}</span>`:''}</div>`).join('')}</div>`;
+}
+function baitPane(G){
+  return `<ul class="blist">${G.bait.map(([m,t,s]) => `<li><span class="m ${m}">${m==='y'?'✓':'✕'}</span><span class="t">${esc(t)}<small>${esc(s)}</small></span></li>`).join('')}</ul>`;
+}
+function waysPane(G){
+  return `<div class="subh">ALLOWED</div><ul class="blist">${G.ways.yes.map(([t,s]) => `<li><span class="m y">✓</span><span class="t">${esc(t)}<small>${esc(s)}</small></span></li>`).join('')}</ul>
+    <div class="subh">NOT ALLOWED</div><ul class="blist">${G.ways.no.map(t => `<li><span class="m n">✕</span><span class="t">${esc(t)}</span></li>`).join('')}</ul>`;
+}
+function alwaysPane(){
+  return `<div class="duty"><div class="k">WHEN YOU CATCH A FISH</div><div class="b">${esc(ALWAYS.duty)}</div></div>
+    <div class="alw">${ALWAYS.groups.map(([hd,items]) => `<h5>${esc(hd)}</h5><ul>${items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(k){ go({sheet:k}); }
+function renderSheet(){
+  const sh = $('sheet'), scrim = $('scrim');
+  if (!S.sheet) { sh.classList.remove('on'); scrim.classList.remove('on'); return; }
+  let title = '', sub = '', body = '';
+  const [kind, arg] = S.sheet.split(':');
+  const f = frame();
+  if (kind === 'part') {
+    title = `Which part of ${W().name}?`; sub = `${W().parts.length} choices`;
+    body = `<div class="plist">${W().parts.map((p,i) => { const st = stripAt(p, S.d);
+      return `<button data-pick="${i}" aria-pressed="${i===S.part}"><span class="rad"></span><span class="pn">${esc(p.t)}<small>${p.n} section${p.n>1?'s':''}${st?` · <b style="color:var(${SC[st]})">${st==='k'?'open':'closed'}</b> on ${esc(fmt(S.d))}`:''}</small></span></button>`; }).join('')}</div>`;
+  } else if (kind === 'date') {
+    title = 'Which day?'; sub = 'Every answer on both screens changes with it.';
+    const m = Math.floor(S.d/100);
+    body = `<div class="sect"><h4>MONTH</h4><div class="mgrid">${MON.map((x,i) => `<button data-mon="${i+1}" aria-pressed="${i+1===m}">${x}</button>`).join('')}</div>
+      <div class="days"><button data-dd="-1" aria-label="Day before">−</button><span class="d">${S.d%100}</span><button data-dd="1" aria-label="Day after">+</button></div>
+      <div class="opts2" style="display:flex;gap:8px;margin-top:12px"><button class="chip" data-date="${TODAY}" style="box-shadow:none">Today</button></div></div>`;
+  } else if (kind === 'howtell') {
+    title = 'Hatchery or wild?'; sub = 'The adipose fin';
+    body = `<div class="fin">${finSvg()}</div><p class="lead" style="margin-top:12px">Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.</p>`;
+  } else if (kind === 'fish') {
+    const list = (S.sheetList || [arg]); const c = arg;
+    title = FISH[c] ? FISH[c].n : c; sub = 'What to look for';
+    body = (list.length > 1 ? `<div class="fishnav">${list.map(x => `<button data-fish="${x}" aria-pressed="${x===c}">${esc(FISH[x]?FISH[x].n:x)}</button>`).join('')}</div>` : '') + fishCard(c);
+  } else if (kind === 'src' && f && f.regs) {
+    const G = f.regs.groups[+arg], s = G.src; title = G.t; sub = s.sub;
+    const card = ([tier,q,w,r],off) => `<div class="srcc${off?' off':''}"><span class="tier">${esc(tier)}</span><q style="margin-top:7px">“${esc(q)}”</q><div class="w">${esc(w)}</div><div class="r">${esc(r)}</div></div>`;
+    body = `<div class="subh">THESE DECIDE IT (${s.on.length})</div>${s.on.map(x => card(x)).join('')}<details class="fold"><summary>OVERRULED (${s.off.length})</summary>${s.off.map(x => card(x,1)).join('')}</details>`;
+  } else if (kind === 'other' && f && f.regs) {
+    const [n, o] = f.regs.other[+arg]; title = n;
+    sub = o.cls === 'keep' ? (o.scope || '') : o.cls === 'rel' ? 'Release' : 'Closed';
+    body = o.big ? `<div class="qhead" style="margin:0 -16px;padding:12px 16px"><div><span class="pill" style="background:${tint('--open',.14)};color:var(--open)">${esc(o.scope||'THIS WATER')}</span>${o.say?`<p class="lead" style="margin-top:10px">${esc(o.say)}</p>`:''}</div><div class="num"><b>${esc(o.big)}</b><span>${esc(o.unit)}</span></div></div>`
+      : `<div class="verdict" style="margin:4px 0 0"><div class="band" style="background:${tint(o.cls==='rel'?'--limited':'--closed',.1)}"><div class="w" style="font-size:24px;color:var(${o.cls==='rel'?'--limited':'--closed'})"><i style="background:var(${o.cls==='rel'?'--limited':'--closed'})"></i>${o.cls==='rel'?'↩ RELEASE':'⊘ CLOSED'}</div><div class="d">${esc(o.say)}</div></div></div>`;
+    if (o.year) body += `<div class="subh">THROUGH THE YEAR</div>${o.year.say?`<p class="lead">${esc(o.year.say)}</p>`:''}<details class="fold"><summary>KEEPING ALLOWED ONLY ON 52 WEEKENDS</summary><p class="note" style="margin:0 0 12px">Keeping allowed only ${esc(o.year.list)}</p></details>`;
+    if (o.which) body += `<div class="subh">WHICH FISH (${o.which.length})</div><p class="note" style="margin-top:0;color:var(--ink)">${o.which.map(esc).join(' · ')}</p>`;
+    if (o.fish && o.fish.length) body += `<div class="subh">${o.fish.length > 1 ? `WHAT THEY LOOK LIKE · ${o.fish.length} FISH` : 'WHAT IT LOOKS LIKE'}</div>${picsHtml(o.fish)}`;
+    body += `<div class="subh">HOW THIS WAS DECIDED</div><div class="ladder" style="display:block">${ladderHtml(o.ladder)}</div>`;
+  } else { S.sheet = ''; return renderSheet(); }
+  sh.innerHTML = `<div class="suphead"><div style="min-width:0"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div><button id="shdone">Done</button></div><div class="sbody">${body}</div>`;
+  sh.classList.add('on'); scrim.classList.add('on');
+  $('shdone').onclick = () => go({sheet:''}); scrim.onclick = () => go({sheet:''});
+}
+function fishCard(c){
+  const pics = PICS[c] || [], fi = FISH[c] || {tips:[]};
+  const fig = p => `<figure class="idfig">${p.si?'<span class="stand">STAND-IN: NOT THE ACTUAL SPECIES</span>':''}<img src="${FISHDIR+p.f}" alt="${esc(p.c)}">
+    <figcaption>${p.si?`${esc(p.c)}, shown for the ${esc(p.si)}`:esc(p.c + (p.ph ? ' · ' + p.ph : ''))}<small>Picture: ${esc(p.cr)} · ${esc(p.s)}</small></figcaption></figure>`;
+  let h = pics.length ? fig(pics[0]) : `<p class="note">No picture yet.</p>`;
+  if (fi.tips.length) h += `<div class="subh">WHAT TO LOOK FOR</div><ol class="tips">${fi.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`;
+  if (pics.length > 1) h += `<div class="subh">ALSO</div>` + pics.slice(1).map(fig).join('');
+  return h;
+}
+function finSvg(){
+  const fish = (scar) => `<path d="M14 40 C40 18 120 14 170 30 L196 16 L192 40 L196 64 L170 50 C120 66 40 62 14 40Z" fill="var(--tint)" stroke="var(--ink)" stroke-width="1.6"/>
+    <path d="M70 22 L84 8 L100 20" fill="var(--tint)" stroke="var(--ink)" stroke-width="1.6"/><circle cx="30" cy="36" r="2.4" fill="var(--ink)"/>
+    ${scar ? `<path d="M140 24 q6 -3 12 0" stroke="var(--closed)" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+           : `<path d="M140 25 Q146 13 154 24" fill="var(--open)" fill-opacity=".35" stroke="var(--open)" stroke-width="2"/>`}
+    <circle cx="147" cy="${scar?22:18}" r="13" fill="none" stroke="var(--accent)" stroke-dasharray="3 3"/>`;
+  return `<svg viewBox="0 0 420 108" role="img" aria-label="Wild: adipose fin there. Hatchery: clipped, a healed scar instead.">
+    <g transform="translate(0,6)">${fish(false)}</g><g transform="translate(212,6)">${fish(true)}</g>
+    <text x="100" y="102" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="Archivo,sans-serif">Wild · adipose fin there</text>
+    <text x="312" y="102" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="Archivo,sans-serif">Hatchery · a healed scar</text></svg>`;
+}
+
+/* ---------- toast ---------- */
+function toast(t){ let el = $('toast'); if (!el){ el = document.createElement('div'); el.id='toast';
+  el.style.cssText='position:absolute;left:16px;right:16px;bottom:96px;z-index:40;background:var(--ink);color:var(--card);padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:var(--lift)';
+  $('app').appendChild(el); } el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600); }
+
+/* ======================================================================================
+   STATE → SCREEN
+   ====================================================================================== */
+function go(patch){
+  const prevV = S.v;
+  if ('w' in patch && patch.w !== S.w) { patch.part = patch.part ?? 0; patch.open = ''; }
+  Object.assign(S, patch);
+  if ('v' in patch && patch.v !== prevV && (patch.v === 'regs' || patch.v === 'gear') && (prevV === 'regs' || prevV === 'gear')) { /* keep scroll per view */ }
+  render();
+}
+function render(){
+  document.documentElement.dataset.theme = S.theme || '';
+  if (!S.theme) delete document.documentElement.dataset.theme;
+  if (S.skin) document.documentElement.dataset.skin = S.skin; else delete document.documentElement.dataset.skin;
+  renderTabs();
+  const reader = S.v === 'regs' || S.v === 'gear';
+  $('pane-map').classList.toggle('on', !reader);
+  $('pane-reader').classList.toggle('on', reader);
+  if (reader) {
+    renderTop(); renderRegs(); renderGear();
+    $('track').style.transform = S.v === 'gear' ? 'translateX(-50%)' : 'translateX(0)';
+  } else renderMap();
+  renderSheet();
+  renderPoster();
+  const q = Object.entries({w:S.w, v:S.v, part:S.part, d:S.d, tile:S.tile, age:S.age, sheet:S.sheet, open:S.open, theme:S.theme, skin:S.skin})
+    .filter(([k,v]) => v !== '' && v != null).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+  history.replaceState(null, '', '#' + q);
+}
+function renderPoster(){
+  const opt = (id, list, cur, key) => { $(id).innerHTML = list.map(([v,t]) => `<button data-k="${key}" data-v="${v}" aria-pressed="${cur===v}">${esc(t)}</button>`).join(''); };
+  opt('c-water', [['vedder','Vedder River'],['klwa','Kootenay Lake — Lower West Arm'],['cowichan','Cowichan River (closed)']], S.w, 'w');
+  opt('c-view', [['map0','Map (no water)'],['map','Map · water open'],['regs','Regulations'],['gear','Gear & licence']], S.v, 'v');
+  opt('c-theme', [['','Auto'],['light','Light'],['dark','Dark']], S.theme, 'theme');
+  opt('c-skin', [['','Riffle'],['app','App (square)']], S.skin, 'skin');
+}
+
+/* ---------- events (delegated) ---------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const pk = t.closest('[data-k]'); if (pk) { const p = {[pk.dataset.k]: pk.dataset.v}; if (pk.dataset.k==='w') { p.d = TODAY; p.sheet=''; } go(p); return; }
+  const tg = t.closest('[data-toggle]'); if (tg) { const id = tg.dataset.toggle, set = new Set(S.open.split(',').filter(Boolean)); set.has(id) ? set.delete(id) : set.add(id); go({open:[...set].join(',')}); return; }
+  const fi = t.closest('[data-fish]'); if (fi) { const strip = fi.parentElement.querySelectorAll('[data-fish]'); S.sheetList = strip.length > 1 ? [...strip].map(x => x.dataset.fish) : (S.sheetList && S.sheet.startsWith('fish:') ? S.sheetList : null); go({sheet:'fish:'+fi.dataset.fish}); return; }
+  const shb = t.closest('[data-sheet]'); if (shb) { go({sheet:shb.dataset.sheet}); return; }
+  const dt = t.closest('[data-date]'); if (dt) { const p = {d:+dt.dataset.date, sheet:''}; if (dt.dataset.part0) p.part = 0; go(p); return; }
+  const pi = t.closest('[data-pick]'); if (pi) { go({part:+pi.dataset.pick, sheet:'', open:''}); return; }
+  const mo = t.closest('[data-mon]'); if (mo) { const m = +mo.dataset.mon; go({d: m*100 + Math.min(S.d%100, DIM[m-1])}); return; }
+  const dd = t.closest('[data-dd]'); if (dd) { const m = Math.floor(S.d/100); let d = S.d%100 + (+dd.dataset.dd); d = Math.max(1, Math.min(DIM[m-1], d)); go({d: m*100+d}); return; }
+  const ti = t.closest('[data-tile]'); if (ti) { go({tile:ti.dataset.tile}); return; }
+  const tj = t.closest('[data-tilejump]'); if (tj) { go({tile:tj.dataset.tilejump}); const k = document.querySelector('.kpane'); if (k) k.scrollIntoView({block:'start', behavior:'smooth'}); return; }
+  const ag = t.closest('[data-age]'); if (ag) { go({age:ag.dataset.age}); return; }
+  const gg = t.closest('.thumb[data-go]'); if (gg) { go({v:'map'}); return; }
+});
+['v-regs','v-gear'].forEach(id => $(id).addEventListener('scroll', e => {
+  const y = e.target.scrollTop, was = S.scroll > 40; S.scroll = y;
+  if ((y > 40) !== was) renderTop();
+}, {passive:true}));
+/* secondary gesture: a horizontal swipe on the content moves between the two views */
+(function(){
+  const tr = $('track'); let x0 = null, y0 = 0, dx = 0, horiz = null;
+  tr.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; y0 = e.clientY; dx = 0; horiz = null; });
+  tr.addEventListener('pointermove', e => {
+    if (x0 == null) return; dx = e.clientX - x0; const dy = e.clientY - y0;
+    if (horiz == null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) horiz = Math.abs(dx) > Math.abs(dy) * 1.4;
+    if (horiz) { const base = S.v === 'gear' ? -50 : 0; const pct = Math.max(-50, Math.min(0, base + dx / tr.offsetWidth * 100));
+      tr.style.transition = 'none'; tr.style.transform = `translateX(${pct}%)`; }
+  });
+  const end = () => { if (x0 == null) return; tr.style.transition = '';
+    if (horiz && Math.abs(dx) > 60) go({v: dx < 0 ? 'gear' : 'regs'}); else if (horiz) render();
+    x0 = null; horiz = null; };
+  tr.addEventListener('pointerup', end); tr.addEventListener('pointercancel', end); tr.addEventListener('pointerleave', end);
+})();
+
+/* ---------- boot from the hash ---------- */
+(function(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  for (const [k,v] of h) if (k in S) S[k] = (k === 'part' || k === 'd' || k === 'scroll') ? +v : v;
+  if (!WATERS[S.w]) S.w = 'vedder';
+  render();
+  const sc = +h.get('scroll') || 0;
+  if (sc) { const v = $(S.v === 'gear' ? 'v-gear' : 'v-regs'); v.scrollTop = sc; S.scroll = sc; renderTop(); }
+  const anchor = h.get('at'); if (anchor) { const el = document.querySelector(anchor); if (el) el.scrollIntoView({block:'start'}); }
+})();
+</script>
+</body>
+</html>
