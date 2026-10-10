@@ -230,7 +230,9 @@ def test_gate_3_goes_red_on_planted_part_sql():
 # 4 calendar
 # --------------------------------------------------------------------------------------------
 
-CALENDAR_OWNERS = {"pipeline/deliver/calendar.py", "pipeline/regs/parsing/catalogue.py"}
+#: The catalogue's calendar lives in its `dates` part; the `catalogue.py` facade re-exports it.
+CALENDAR_OWNERS = {"pipeline/deliver/calendar.py", "pipeline/regs/parsing/catalogue.py",
+                   "pipeline/regs/parsing/catalogue_parts/dates.py"}
 
 
 def calendar_uses(sources: dict[str, str]) -> set[tuple[str, str]]:
