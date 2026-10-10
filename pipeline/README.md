@@ -7,7 +7,7 @@ are what it runs, for when you need one alone.
 
 ```bash
 python -m pipeline build --dry-run        # each stage, its key, run or up to date
-python -m pipeline build                  # reach → deliver → tiles, whatever is out of date
+python -m pipeline build                  # reach → tiles → deliver, whatever is out of date
 python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity
 python -m pipeline build --promote        # adopt <build>_next, then rebuild against it
 ```

@@ -600,7 +600,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `guide` is angler words only; how to show it is in the field dictionary (B17,
     `test_moments.py::test_no_shipped_angler_text_carries_a_developer_instruction`).
 62. **Guardrails (P2, 2026-10-09).** ONE REBUILD COMMAND: `python -m pipeline build` (`pipeline/build.py`)
-    runs reach → deliver → tiles, each stage keyed by what it reads (atlas handles + registry, the corpus,
+    runs reach → tiles → deliver, each stage keyed by what it reads (atlas handles + registry, the corpus,
     the curated tree, source stamps, its own code) and skipped when up to date; `--atlas` builds a side
     atlas and stops after parity, `--promote` adopts it; runs are recorded in
     `data/generated/build-manifest.json`; it ends with the STRICT vintage check

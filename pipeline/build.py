@@ -1,4 +1,4 @@
-"""ONE REBUILD COMMAND (P2): curated + source data -> atlas -> reach -> deliver -> tiles.
+"""ONE REBUILD COMMAND (P2): curated + source data -> atlas -> reach -> tiles -> deliver.
 
     python -m pipeline build                    # preflight, then every stage that is out of date
     python -m pipeline build --dry-run          # the plan: each stage, its key, run or up to date
@@ -32,7 +32,9 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
-STAGES = ("reach", "deliver", "tiles")
+# TILES BEFORE DELIVER: tiles read only the atlas, and `pipeline.deliver all` ends with the vintage
+# check against the shipped tiles — after an atlas promote, deliver-then-tiles failed that check every time.
+STAGES = ("reach", "tiles", "deliver")
 WORKERS = 4
 
 # What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.

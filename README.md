@@ -81,7 +81,7 @@ The parse runs Claude and spends credits: **a person runs it**, never an agent.
 
 ```bash
 python -m pipeline build --dry-run        # the plan: each stage, its key, run or up to date
-python -m pipeline build                  # reach → deliver → tiles, whatever is out of date
+python -m pipeline build                  # reach → tiles → deliver, whatever is out of date
 python -m pipeline build --atlas          # also build a side atlas (<build>_next) + parity report
 python -m pipeline build --promote        # promote <build>_next, then rebuild against it
 python -m pipeline build --force reach    # rerun a stage and everything after it

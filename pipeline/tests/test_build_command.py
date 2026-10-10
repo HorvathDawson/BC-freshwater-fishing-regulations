@@ -42,15 +42,18 @@ def test_an_unchanged_world_is_up_to_date(world):
 def test_a_changed_input_reruns_its_stage_and_every_later_one(world):
     k, _o, seal = world
     seal()
+    k["tiles"]["in"] = "edited"
+    assert _runs() == ["tiles", "deliver"]
+    k["tiles"]["in"] = "tiles"
     k["deliver"]["in"] = "edited"
-    assert _runs() == ["deliver", "tiles"]
+    assert _runs() == ["deliver"]
 
 
 def test_a_missing_output_reruns_the_stage(world):
     _k, outs, seal = world
     seal()
-    outs["tiles"][0].unlink()
-    assert _runs() == ["tiles"]
+    outs["deliver"][0].unlink()
+    assert _runs() == ["deliver"]
 
 
 def test_force_reruns_from_that_stage(world):
