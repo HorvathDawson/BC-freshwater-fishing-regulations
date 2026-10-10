@@ -1563,6 +1563,16 @@
    "note": "reviewed against the map and the Water Office page",
    "reviewed": "2026-09-03"
   },
+  "08MH166": {
+   "verdict": "confirmed",
+   "station_name": "CEDAR CREEK ABOVE THE MOUTH",
+   "matched": "Blakeny Creek",
+   "wsc": [
+    "100-023788-438731"
+   ],
+   "note": "user 2026-10-09: checked on the map (handoff/GAUGES/08MH166_*.png) — the gauge sits ~20 m above the creek's mouth into Coquitlam Lake; FWA names it Blakeny Creek; 26 km2 drainage agrees",
+   "reviewed": "2026-10-09"
+  },
   "08NA004": {
    "verdict": "confirmed",
    "station_name": "COLUMBIA RIVER AT ATHALMER",
