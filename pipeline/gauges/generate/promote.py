@@ -174,7 +174,8 @@ def main() -> int:
         print("\n--dry-run: nothing written")
         return 0
 
-    cand_path = generated("gauges", "candidates.json")
+    from pipeline.common.curated import CURATED
+    cand_path = CURATED.gauges.candidates     # committed beside the matches (check_curated --ci)
     cand_path.write_text(json.dumps({
         "_about": "Generated matches NOT promoted: at least one independent check "
                   "disagreed. Evidence is attached so a reviewer can see which. "

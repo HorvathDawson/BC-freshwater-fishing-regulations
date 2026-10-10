@@ -142,6 +142,10 @@ class Domain(BaseModel):
     review: FilePath | None = None
     #: Gauges only: ECCC's stated water-body type, scraped once. An input to matching.
     waterbody_type: FilePath | None = None
+    #: Gauges only: the REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote
+    #: (an independent check disagreed), with their evidence. Written by promote beside `matches`
+    #: and committed with it, so `check_curated --ci` sees the queue in CI too.
+    candidates: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 

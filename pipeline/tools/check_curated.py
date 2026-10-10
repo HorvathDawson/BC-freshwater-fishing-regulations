@@ -65,6 +65,10 @@ class Artifact:
     #: forever and teach everyone to ignore it; only a station in NEITHER file is stale.
     candidates: Path | None = None
     candidate_ids: str = "stations.*"
+    #: Only roster rows with this field truthy NEED a decision (user, 2026-10-09: an inactive
+    #: gauge publishes no reading, so an unmatched one leaves no water without its gauge). The
+    #: rest are reported, never STALE.
+    roster_where: str | None = None
 
     def ids(self, path: Path, spec: str) -> set[str] | None:
         """Ids out of a file, or None if the file is not there at all.
@@ -109,7 +113,8 @@ ARTIFACTS = [
         regenerate="python -m pipeline.gauges.generate.match --build data/generated/atlas/full && python -m pipeline.gauges.generate.promote",
         roster_ids="station",
         frozen_ids="stations.*",
-        candidates=ROOT / "data" / "generated" / "gauges" / "candidates.json",
+        candidates=_C.gauges.candidates,
+        roster_where="active",
     ),
     Artifact(
         name="gauge water-body type",
@@ -160,8 +165,15 @@ def check(a: Artifact) -> tuple[str, str]:
     queued = (self_ids := a.ids(a.candidates, a.candidate_ids)
               if a.candidates else None) or set()
     new, gone = sorted(roster - frozen - queued), sorted(frozen - roster)
+    idle = []
+    if a.roster_where:
+        rows = json.loads(a.roster.read_text(encoding="utf-8"))
+        need = {r[a.roster_ids] for r in rows if r.get(a.roster_where)}
+        idle = [s for s in new if s not in need]
+        new = [s for s in new if s in need]
     if not new:
         bits = []
+        if idle: bits.append(f"{len(idle)} without a decision, none {a.roster_where}")
         if queued: bits.append(f"{len(queued & roster)} in the review queue")
         if gone: bits.append(f"{len(gone)} dropped from the roster")
         tail = ("; " + "; ".join(bits)) if bits else ""

@@ -111,3 +111,24 @@ class TestTheRealDeclarations:
             assert C.check(gauge)[0] == "fresh", (
                 "the gauge match is stale — run "
                 "`python -m pipeline.gauges.generate.match --build <a completed build>`")
+
+
+def test_only_active_stations_need_a_decision(tmp_path):
+    """User, 2026-10-09: an inactive gauge publishes no reading, so an unmatched one is reported,
+    never STALE; an unmatched ACTIVE gauge still fails."""
+    import dataclasses
+    rows = [{"station": "A", "active": True}, {"station": "B", "active": False}]
+    a = dataclasses.replace(_art(tmp_path, rows, {"stations": [{"station": "A"}]}),
+                            roster_where="active")
+    verdict, detail = C.check(a)
+    assert verdict == "fresh" and "1 without a decision, none active" in detail
+    a = dataclasses.replace(_art(tmp_path, rows, {"stations": [{"station": "B"}]}),
+                            roster_where="active")
+    assert C.check(a)[0] == "STALE"
+
+
+def test_the_gauge_queue_is_committed_curated_data():
+    """CI has no data/generated: the review queue lives beside the matches, in curated."""
+    gauge = next(a for a in C.ARTIFACTS if a.name == "gauge match")
+    assert gauge.candidates is not None and "curated" in gauge.candidates.parts
+    assert gauge.roster_where == "active"

@@ -141,6 +141,7 @@ curated:
     matches: "data/curated/gauges/matches.json"
     review: "data/curated/gauges/review.json"
     waterbody_type: "data/curated/gauges/waterbody_type.json"
+    candidates: "data/curated/gauges/candidates.json"   # the review queue `promote` writes beside matches
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     review: null
