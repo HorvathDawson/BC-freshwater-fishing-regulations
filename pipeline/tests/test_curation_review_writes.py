@@ -303,3 +303,90 @@ def test_every_cache_is_dropped_on_a_rebuild_or_declared_static(env):
     built = {f.__name__ for f in reuse._BUILD_CACHES}
     assert cached - built - static == set(), "a cache neither dropped on rebuild nor static"
     assert not (built & static)
+
+
+# --------------------------------------------------------------------------- #
+# A rename carries verified marks over; any other edit still makes them stale
+# --------------------------------------------------------------------------- #
+
+def _entry_binding(env, sid: str) -> tuple[str, str]:
+    """(region, entry_id) of the smallest catalogue entry binding `sid`."""
+    best = None
+    for p in _bound_in(env["cat"], sid):
+        for e in json.loads(p.read_text(encoding="utf-8"))["entries"]:
+            s = json.dumps(e)
+            if f'"{sid}"' in s and (best is None or len(s) < best[0]):
+                best = (len(s), p.stem.split("region-", 1)[1], e["entry_id"])
+    assert best, sid
+    return best[1], best[2]
+
+
+def _verify_state(env, eid: str) -> str:
+    return env["client"].get(f"/api/entries/{eid}").json()["verification"]["status"]
+
+
+@pytest.mark.needs_atlas
+def test_rename_carries_verified_marks_and_other_edits_still_stale_them(env):
+    c, sid, new = env["client"], _renameable(env), "renamed_for_test"
+    region, eid = _entry_binding(env, sid)
+    assert c.put(f"/api/entries/{eid}/verify", json={"state": "verified"}).status_code == 200
+    assert _verify_state(env, eid) == "verified"
+    side = env["tmp"] / "verification.json"
+    before_side = side.read_bytes()
+    n_snaps = len(_snapshots(env))
+    r = c.post(f"/api/splits/{sid}/rename", json={"new_id": new})
+    assert r.status_code == 200, r.text
+    assert eid in r.json()["carried_marks"]
+    assert _verify_state(env, eid) == "verified", "only the split id changed — the mark stands"
+    snap = _snapshots(env)[n_snaps]                 # the rename's ONE snapshot holds the sidecar
+    assert (snap / env["tmp"].name / "verification.json").read_bytes() == before_side
+    entry = c.get(f"/api/entries/{eid}").json()["entry"]
+    entry["scope_note"] = (entry.get("scope_note") or "") + " curator edit"
+    r = c.put(f"/api/entries/{eid}", json={"region": region, "entry": entry})
+    assert r.status_code == 200, r.text
+    assert _verify_state(env, eid) == "stale", "any other edit still makes the mark stale"
+
+
+@pytest.mark.needs_atlas
+def test_rename_rolls_the_carried_marks_back_too(env):
+    c, sid = env["client"], _renameable(env)
+    _, eid = _entry_binding(env, sid)
+    assert c.put(f"/api/entries/{eid}/verify", json={"state": "verified"}).status_code == 200
+    side = env["tmp"] / "verification.json"
+    before = {**_files(env), side: side.read_bytes()}
+    _fail_on_call(env, 3)
+    r = c.post(f"/api/splits/{sid}/rename", json={"new_id": "renamed_for_test"})
+    assert r.status_code == 422, r.text
+    assert {**_files(env), side: side.read_bytes()} == before
+
+
+# --------------------------------------------------------------------------- #
+# delete_split is refused while anything binds the split
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.needs_atlas
+def test_delete_of_a_bound_split_is_refused_listing_every_binder(env):
+    sid = _renameable(env)                           # bound by the catalogue AND a DFO file
+    before = _files(env)
+    r = env["client"].delete(f"/api/splits/{sid}")
+    assert r.status_code == 409, r.text
+    detail = r.json()["detail"]
+    refs = env["reuse"].split_refs(sid)
+    assert refs and all(f"{x['entry_id']} · {x['rule_id']}" in detail for x in refs)
+    assert any(d.startswith("dfo_salmon/") for d in detail), "the DFO binders are listed too"
+    assert _files(env) == before and _snapshots(env) == [], "nothing written, nothing backed up"
+
+
+@pytest.mark.needs_atlas
+def test_delete_of_an_unbound_split_writes_and_backs_up(env):
+    reuse = env["reuse"]
+    every = "".join(p.read_text(encoding="utf-8") for d in (env["cat"], env["dfo"])
+                    for p in d.glob("region-*.json"))
+    sid = next(s for s in _split_ids(env["splits"]) if f'"{s}"' not in every)
+    before = env["splits"].read_bytes()
+    r = env["client"].delete(f"/api/splits/{sid}")
+    assert r.status_code == 200, r.text
+    assert sid not in _split_ids(env["splits"])
+    snap, = _snapshots(env)
+    assert next(snap.rglob("splits.json")).read_bytes() == before
+    assert reuse.split_refs(sid) == []

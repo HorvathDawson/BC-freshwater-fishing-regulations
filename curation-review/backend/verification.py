@@ -61,10 +61,15 @@ def load(path: Path) -> dict[str, dict]:
     return data["entries"]
 
 
-def _write(path: Path, records: dict[str, dict]) -> None:
-    text = json.dumps({"version": 1, "entries": dict(sorted(records.items()))},
+def render(records: dict[str, dict]) -> str:
+    """The file's text for `records` — the one serialisation (a mark, and a split rename that
+    carries marks over inside its own commit)."""
+    return json.dumps({"version": 1, "entries": dict(sorted(records.items()))},
                       indent=1, ensure_ascii=False, sort_keys=True) + "\n"
-    writes.commit([(Path(path), text)], "verify")      # backed up first, like every app write
+
+
+def _write(path: Path, records: dict[str, dict]) -> None:
+    writes.commit([(Path(path), render(records))], "verify")   # backed up first, like every write
 
 
 def status_of(rec: dict | None, current_hash: str) -> str:

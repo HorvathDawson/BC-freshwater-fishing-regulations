@@ -169,6 +169,15 @@ export const api = {
 
   deleteSplit: async (splitId: string): Promise<SaveResult> => {
     const res = await fetch(`/api/splits/${encodeURIComponent(splitId)}`, { method: "DELETE" });
+    if (res.status === 409) {
+      // still bound: the backend lists every rule / DFO location naming the split
+      const p = await res.json().catch(() => ({}));
+      const d = (p && (p.detail ?? p.errors)) as unknown;
+      const err = new Error("split is still bound") as ValidationError;
+      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? "split is still bound")];
+      err.status = 409;
+      throw err;
+    }
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return (await res.json()) as SaveResult;
   },

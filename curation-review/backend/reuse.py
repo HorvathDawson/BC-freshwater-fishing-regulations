@@ -1590,9 +1590,35 @@ def save_split(split_id: str, patch: dict) -> dict:
         return {"ok": True, "errors": [], "split": target}
 
 
+def _dfo_split_refs(split_id: str) -> list[dict]:
+    """Every DFO salmon location / scope whose binding names this split id."""
+    out: list[dict] = []
+    for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        for key, idk in (("locations", "location_id"), ("scopes", "scope_id")):
+            for x in doc.get(key) or []:
+                if _swap_split(copy.deepcopy(x), split_id, split_id):
+                    out.append({"file": f"dfo_salmon/{path.name}", "kind": key[:-1],
+                                "id": x.get(idk) or x.get("id", ""),
+                                "name": x.get("water") or x.get("name", "")})
+    return out
+
+
 def delete_split(split_id: str) -> dict:
-    """Remove a split from splits.json (e.g. a duplicate/mis-anchored cut). Rebuild to apply."""
+    """Remove a split from splits.json (e.g. a duplicate/mis-anchored cut). Rebuild to apply.
+
+    REFUSED WHILE ANYTHING BINDS IT (user, 2026-10-09): a deleted split a rule still names leaves
+    that rule bound to nothing. The refusal (`status` 409) lists every catalogue entry/rule and
+    every DFO salmon location naming it; nothing is written or backed up."""
     with writes.LOCK:
+        refs, dfo = split_refs(split_id), _dfo_split_refs(split_id)
+        if refs or dfo:
+            return {"ok": False, "status": 409,
+                    "errors": [f"split '{split_id}' is still bound by {len(refs)} catalogue "
+                               f"rule(s) and {len(dfo)} DFO location(s) — unbind or rename first"]
+                    + [f"{r['entry_id']} · {r['rule_id']}" for r in refs]
+                    + [f"{d['file']} · {d['id']}" for d in dfo],
+                    "refs": refs, "dfo_refs": dfo}
         data = _load_splits()
         for wb in data.get("waterbodies", []):
             splits = wb.get("splits", [])
@@ -1730,12 +1756,28 @@ def rename_split(old_id: str, new_id: str) -> dict:
         changes: list[tuple[Path, str]] = [(SPLITS_JSON_PATH, _dump_splits(data))]
         refs = split_refs(old_id)                      # the preview's rows, for the report
 
+        marks = verification.load(VERIFICATION_PATH)
+        carried: list[str] = []
         try:
             for region in regions():                   # catalogue: read RAW, rewrite only split ids
                 path = ENTRIES_DIR / f"region-{region}.json"
                 entries = io.read_entryfile(path)
                 if sum(_swap_split(e, old_id, new_id) for e in entries.values()):
                     changes.append((path, _render_entryfile(path, region, entries.values())))
+                    # CARRY THE MARKS OVER (user, 2026-10-09): an entry whose ONLY change is the
+                    # renamed id keeps its mark — its hash is re-keyed to the renamed content.
+                    # Hashed as the queue hashes it (`load_region`); a mark already stale (its
+                    # hash is not the entry's now) stays stale.
+                    for eid, e in load_region(region).items():
+                        rec = marks.get(eid)
+                        if not rec or rec.get("hash") != verification.entry_hash(e):
+                            continue
+                        e2 = copy.deepcopy(e)
+                        if _swap_split(e2, old_id, new_id):
+                            marks[eid] = {**rec, "hash": verification.entry_hash(e2)}
+                            carried.append(eid)
+            if carried:
+                changes.append((VERIFICATION_PATH, verification.render(marks)))
             dfo: list[str] = []
             for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
                 doc = json.loads(path.read_text(encoding="utf-8"))
@@ -1752,7 +1794,7 @@ def rename_split(old_id: str, new_id: str) -> dict:
         except Exception as ex:  # noqa: BLE001 — commit restored what it had written
             return {"ok": False, "errors": [f"write failed, every file restored: {ex}"]}
     return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": refs, "failed_rules": [],
-            "updated_dfo_files": dfo, "files": [str(p) for p, _ in changes], "backup": str(snap)}
+            "updated_dfo_files": dfo, "carried_marks": carried, "files": [str(p) for p, _ in changes], "backup": str(snap)}
 
 
 def _label(rule: dict) -> str:

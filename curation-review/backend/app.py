@@ -239,7 +239,7 @@ def save_split(split_id: str, body: SplitPatch):
 def delete_split(split_id: str):
     res = reuse.delete_split(split_id)
     if not res["ok"]:
-        raise HTTPException(404, res["errors"])
+        raise HTTPException(res.get("status", 404), res["errors"])
     return res
 
 

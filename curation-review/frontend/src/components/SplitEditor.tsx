@@ -119,7 +119,8 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
       setMsg("deleted from splits.json — rebuild to apply");
       onChanged?.();
     } catch (e) {
-      setErrs([String((e as Error).message ?? e)]);
+      const ve = e as ValidationError;
+      setErrs(ve.errors ?? [String((e as Error).message ?? e)]);
     } finally { setBusy(false); }
   }
 
