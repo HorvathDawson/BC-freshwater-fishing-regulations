@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 
 from enum import Enum
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, Dict, List, Literal, Optional, Union
 
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
@@ -1146,6 +1146,19 @@ WHILE_MEANS = frozenset(m.value for m in Method)
 WHILE_DEVICES = frozenset({Slot.downrigger.value, Slot.light.value})
 WHILE_TOKENS = WHILE_MEANS | WHILE_DEVICES
 
+#: HOW A FISH WAS CAUGHT — what `caught` may name, with the words a reader says it in (user ruling
+#: Q38/G6, 2026-10-07). A condition on the FISH, never on the angler's means: "Any fish willfully or
+#: accidentally snagged must be released immediately" (p.8, p.80) binds a fish hooked anywhere but
+#: the mouth however it happened — an accidental snag happens WHILE ANGLING, so `while: snagging`
+#: (the angler's means) could not reach it. Each token's words: `as` the fish ("snagged"), `even`
+#: what the book adds ("even by accident").
+#: The words that print a snag (foul hook) in a rule's sentence (`_caught_is_a_fish_condition`).
+_SNAGGED = re.compile(r"\bsnag|\bfoul[- ]?hook", re.I)
+CAUGHT_HOW: Dict[str, Dict[str, str]] = {
+    "foul_hooked": {"as": "snagged", "even": "even by accident",
+                    "term": "snagged (foul-hooked: hooked anywhere but the mouth)"},
+}
+
 
 class AnglerState(str, Enum):
     alone_in_boat = "alone_in_boat"
@@ -1921,7 +1934,7 @@ def _all_species_is_game_fish(rule: "CatalogueRule") -> Optional[str]:
     # is the book's "any game fish … other than burbot" about what the set line takes, and a
     # closure — `may_target: false` — is not a release.)
     if list(rule.species) == ["ALL_GAME_FISH"] and rule.take == 0 and rule.may_target \
-            and not rule.while_ and "CRA" not in rule.species_except:
+            and not rule.while_ and not rule.caught and "CRA" not in rule.species_except:
         return ("a catch and release over every game fish releases GAME FISH and never crayfish — "
                 "add 'CRA' to species_except (crayfish may be kept; the zone's crayfish quota "
                 "stands)")
@@ -2773,6 +2786,25 @@ class CatalogueRule(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def _caught_is_a_fish_condition(self) -> "CatalogueRule":
+        for c in self.caught:
+            if c not in CAUGHT_HOW:
+                raise ValueError(f"caught: {c!r} is not a way a fish is caught ({sorted(CAUGHT_HOW)})")
+        # Only a retention statement is about a CAUGHT fish; every reader of `caught` (release,
+        # closure, statement, key) is a retention reader.
+        if self.caught and self.type is not RuleType.retention_limit:
+            raise ValueError(f"caught belongs to retention_limit, not {self.type.value}")
+        # THE SNAG DUTY IS NOT A MEANS (user ruling Q38): a take-0 retention rule printing a snag
+        # names how the fish was caught, `caught`, never `while: snagging` alone (which an
+        # accidental snag while angling never meets).
+        if self.type is RuleType.retention_limit and self.take == 0 and not self.caught \
+                and _SNAGGED.search(self.verbatim or ""):
+            raise ValueError("a release of a snagged (foul-hooked) fish binds the FISH, however it "
+                             "was hooked: `caught: [foul_hooked]`, not `while: [snagging]` "
+                             "(user ruling Q38)")
+        return self
+
+    @model_validator(mode="after")
     def _circumstances_are_real(self) -> "CatalogueRule":
         for w in self.while_:
             if w not in WHILE_TOKENS:
@@ -2854,6 +2886,16 @@ class CatalogueRule(BaseModel):
     #: axis: "dead fin fish when set lining" applied everywhere deleted the province-wide fin
     #: fish ban and a water's bait tile went from "banned" to "no rule at all".
     while_: List[str] = Field(default_factory=list, alias="while")
+
+    #: HOW THE FISH WAS CAUGHT, for a rule that binds only a fish caught that way — drawn from
+    #: `CAUGHT_HOW` (user ruling Q38/G6, 2026-10-07: "Any fish willfully or accidentally snagged must
+    #: be released immediately"). A condition on the FISH, like `origin`, never the angler's means
+    #: (`while`): the duty binds a fish snagged by accident while angling too. Like every condition it
+    #: narrows: a release with `caught` is NEVER an outright release (`rules.release_origins`), never
+    #: a closure (`rules.CLOSURE_CONDITIONS`), its own statement (`rules.statement`) and its own key
+    #: (`dimension` `…@caught=foul_hooked`) — so it never decides a quota for a fish hooked in the
+    #: mouth; it stands beside them, a duty for the snagged fish only.
+    caught: List[str] = Field(default_factory=list)
 
     #: ACTS — what you must and must not DO, kept apart from gear so a duty is never stored as a
     #: permission. "Set lines must be marked with angler's name, address, and telephone number"
@@ -3125,6 +3167,8 @@ class CatalogueRule(BaseModel):
             bits.append(f"water={self.water.value}")
         if self.while_:
             bits.append("while=" + "+".join(sorted(self.while_)))
+        if self.caught:
+            bits.append("caught=" + "+".join(sorted(self.caught)))
         if self.record_retention:
             bits.append("record")
         return ("@" + "&".join(bits)) if bits else ""
@@ -3787,6 +3831,8 @@ def _scope(r: CatalogueRule, taking: bool = True) -> list:
     for m in r.while_:
         bits.append("taken on a set line" if m == Method.set_lining.value
                     else f"taken by {m.replace('_', ' ')}")
+    for c in r.caught:
+        bits.append(f"if {CAUGHT_HOW[c]['as']}, {CAUGHT_HOW[c]['even']}")
     return bits
 
 

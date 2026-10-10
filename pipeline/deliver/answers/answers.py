@@ -215,12 +215,15 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.1: ladder 1, rows 3, gear 3, display 3 — cut by MOMENT (a weekday or hours
         # rule decides at its moments); display adds `closing` (gap G1)
         Section("ladder", 1, _ladder_scope, prepare=_ladder_prepare),
-        Section("rows", 4, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
-        Section("gear", 3, gear.section_scope, prepare=gear.section_prepare,
+        # answers 2.3: rows 5 (G4 `items[].ranges`), gear 4 (Q38 `caught`), licence 4 (G2
+        # `others`/`guiding` with their printed paths), display 4 (Z12 `unless_opened`, G3
+        # `rules[].subsets`, Q15/Q38 words in `rules[].plain`)
+        Section("rows", 5, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        Section("gear", 4, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
-        Section("licence", 3, licence.section_scope, prepare=licence.section_prepare,
+        Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
-        Section("display", 3, display.section_scope, prepare=display.section_prepare,
+        Section("display", 4, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static),
     )
 
@@ -388,6 +391,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
             m_count = len(pd) // DAYS
             out[s.name].append([vals[pd[(d - 1) * m_count + (m if m_count > 1 else 0)]]
                                 for d, m in picks])
+    # a static table may read the sections' values as built (display G3 reads the rows' frames)
+    ctx.cache["sections_out"] = out
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen
                if s.static is not None}
     about = {

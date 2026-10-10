@@ -278,6 +278,21 @@ def _prices(C: Corpus, doc: str, p: Dict[str, str], desig: Sequence[dict]) -> di
     return out
 
 
+def printed(r: dict, req: int) -> dict:
+    """GAP G2 (answers 2.3): ANOTHER angler's or a guide's requirement — not this angler's to meet,
+    so nothing is freed or bought — with HOW IT IS MET as the record prints it (`satisfied_by`,
+    each way an alternative: `need` the documents it holds, `accompanied_by`, `as`, `quota`), so
+    the page decides nothing: `{req, paths}`."""
+    paths = []
+    for x in r.get("satisfied_by") or []:
+        q: dict = {"need": list(x.get("hold") or [])}
+        for f in ("accompanied_by", "as", "quota"):
+            if x.get(f) is not None:
+                q[f] = x[f]
+        paths.append(q)
+    return {"req": req, "paths": paths}
+
+
 def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str, str],
               ref: Callable[[str], int]) -> dict:
     """What one angler needs on one key and day (consumer 7.7 steps 4.6-7)."""
@@ -298,10 +313,10 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
                                                       and who_match(r["who_except"], p))
         act = (r.get("doing") or {}).get("act", "fishing")
         if not is_mine:
-            others.append(ref(k))
+            others.append(printed(r, ref(k)))
             continue
         if act == "guiding":
-            guiding.append(ref(k))
+            guiding.append(printed(r, ref(k)))
             continue
         pres = r.get("presumes") or []
         presumes_freed = bool(pres) and all(d in freed for d in pres)

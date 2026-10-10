@@ -161,7 +161,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "4",
+            "version": "5",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -196,11 +196,14 @@ SPEC = {
                     "back | group | cap | subcap | outercap | outersize | origin2 | streamcap, "
                     "who?, …}; a cap with `except` is general but for those fish); `items` "
                     "[{members, bands [[from_cm, to_cm|null, number]], back, xref, sub, conds, "
-                    "against?, origins?}] (5.8: ONE item per kind, each fish in exactly one; the "
+                    "against?, origins?, ranges?}] (5.8: ONE item per kind, each fish in exactly one; the "
                     "keep range is the first band's from and the last's to, a band of 0 a slot "
                     "to release; `conds` indexes the row's `conds` about these fish; `against` "
                     "the number a fish with its own row counts toward here, \"unlimited\" for a "
-                    "total with no number; absent on other items); `real_daily` {n, "
+                    "total with no number; absent on other items; `ranges` (version 5, gap G4) on "
+                    "a cross-reference of SEVERAL fish: [[fish, from_cm, to_cm|null]] each fish's "
+                    "own keep range, a fish keeping none absent — `origins` is the one-fish "
+                    "form); `real_daily` {n, "
                     "all, sum, capped_sum, rb, shared_cap [{take, over_cm}] | null, capped, "
                     "open, shared_count?} or null (5.7: \"Really {sum} a day here\" when `all`; version 4, "
                     "decision F11: `shared_count` [{take, members}] the count limits several kinds "
@@ -212,7 +215,7 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "3",
+            "version": "4",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
@@ -222,7 +225,10 @@ SPEC = {
                       "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "
                       "why?, not_for?, for?, while?, conduct?, while_rules?, devices?}], conduct "
                       "{moment: [[act, [rule]]]}, vessel {active, timed}, timed, in_part, side, "
-                      "while_rules, overruled [{rule, state, reason, by}], decides, repeats}; a "
+                      "while_rules, caught, overruled [{rule, state, reason, by}], decides, repeats}; "
+                      "`caught` (version 4, user ruling Q38): the duties for a fish CAUGHT some "
+                      "way in force here — \"Any fish snagged — even by accident — must be "
+                      "released\" (`display.rules[].plain`), whatever the angler does; a "
                       "clause is [rule, clause index into the export rule's `gear`]",
             "province_methods": "[method] — the ways the province allows you to sport fish",
             "parent": "{member: wider member} — the element tree a clause may name",
@@ -235,7 +241,7 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "3",
+            "version": "4",
             "at": "[[frame index per segment] per key]",
             "frames": "[[holds, documents]] — indexes into `holds` and `documents`",
             "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
@@ -251,7 +257,11 @@ SPEC = {
                        "the federal tidal licence is in `holds.tidal`) | {documents [{doc, when {act, species?, lengths?, on?}, base, prices, also_when?, "
                        "or?}], "
                        "none_needed, requirements [{req, when, paths, displaced_by?, "
-                       "presumes_freed?, presumes_by?, terms?}], exempt?, others?, guiding?}]",
+                       "presumes_freed?, presumes_by?, terms?}], exempt?, others?, guiding?}] — "
+                       "`others` / `guiding` (version 4, gap G2) [{req, paths}]: another angler's "
+                       "or a guide's requirement with how it is met AS THE RECORD PRINTS IT "
+                       "(`satisfied_by`: each path `need` the documents it holds, "
+                       "`accompanied_by?`, `as?`, `quota?`; nothing freed, nothing to buy)",
             "documents_v3": "version 3 (answers 2.2): a document's `when` is the BROADEST "
                             "requirement needing it (to fish at all > to fish for a kind > to "
                             "keep one), `also_when` the narrower ones (Babine's Steelhead Stamp: "
@@ -267,9 +277,9 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "3",
+            "version": "4",
             "at": "[[frame index per segment] per key]",
-            "frames": "[{status, closing}] — `status` base | own | closed (the verdicts' "
+            "frames": "[{status, closing, unless_opened?}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
                       "speaking full closure) | tidal: on TIDAL water `{status: tidal, tidal: true, "
                       "note, see, licence}` all year (no freshwater status). `closing` (version 3, "
@@ -277,10 +287,20 @@ SPEC = {
                       "lifted, for some game fish at this segment, with the game fish it closes "
                       "(`verdicts.project.closing`) — the rules that close the water when status "
                       "is closed (every game fish is under one), or close those fish; decided, "
-                      "never to be re-derived from the ladder",
-            "rules": "[{kind, closure?, bands?, plain?}] — aligned with the export's `rules`: the "
-                     "page's 15-step kind, a gate that closes, size bands [[from_cm, to_cm|null, "
-                     "take|null]], the plain sentence (null: the page uses the label)",
+                      "never to be re-derived from the ladder. `unless_opened` (version 4, user ruling "
+                      "Z12/Q41): the closing rules printed \"unless opened\" whose proviso is the "
+                      "answer here (say `rules[].unless_opened`: \"Closed unless opened by Parks "
+                      "Canada — a national park fishing permit is required.\"); absent where a "
+                      "closure with no proviso closes the same fish (a national park RESERVE: "
+                      "plainly closed)",
+            "rules": "[{kind, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
+                     "the export's `rules`: the page's 15-step kind (`caught`: a duty for a fish "
+                     "caught some way, Q38), a gate that closes, size bands [[from_cm, to_cm|null, "
+                     "take|null]], the plain sentence (null: the page uses the label; every "
+                     "possession line carries the possession quota's exception, `display.POSSESSION_HOME`, Q15), `unless_opened` "
+                     "a closure's proviso in words (Z12), `subsets` (gap G3) [{fish, for, plain?}] "
+                     "the rule said for the fish subsets a row's or an item's ladder lists it for "
+                     "(`plain` null: no sentence, write `for` beside the label)",
             "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
                       "the export's parts ({order, label, runs, place, hint, km, closed_all_year, "
                       "paper_licence [rule]} | null outside B.C.); `picker` {choices [{parts "

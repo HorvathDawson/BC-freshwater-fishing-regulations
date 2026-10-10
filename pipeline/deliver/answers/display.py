@@ -37,7 +37,7 @@ from __future__ import annotations
 import json
 import math
 import re
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import (AnswersError, cap, clean, join, lc, range_txt, sp_name,
                                              when_dates)
@@ -99,6 +99,8 @@ def kind_of(x: dict) -> str:
         return "standing"
     if _js(x.get("while")):
         return "while"
+    if _js(x.get("caught")):
+        return "caught"
     if _js(x.get("per_daily")):
         return "possession"
     if _js(x.get("period")) and x.get("period") != "daily":
@@ -168,10 +170,67 @@ def written_name(x: dict, conj: str = " and ") -> str:
     return join([lc(sp_name(c)) for c in w], conj) if w else "fish"
 
 
+#: THE POSSESSION QUOTA'S EXCEPTION, in plain words — ONE source (user ruling Q15/Q39, 2026-10-07:
+#: "the possession quota … EXCEPT at place of ordinary residence", p.80, is part of the definition
+#: of EVERY possession quota). Every possession line the answers say carries it (`plain`).
+POSSESSION_HOME = "fish at home don’t count"
+
+#: A CLOSURE PRINTED "UNLESS OPENED" (user ruling Z12/Q41, 2026-10-07): a full closure carrying an
+#: advisory proviso (`condition_of`) that names who may open it, said in the user's accepted
+#: words, by the kind of area the closure holds in. A closure with a proviso and no words here is
+#: refused (no fallback).
+UNLESS_OPENED = {
+    "national_parks": "Closed unless opened by Parks Canada — a national park fishing permit is "
+                      "required.",
+}
+
+
+def caught_sentence(x: dict) -> str:
+    """A duty for a fish CAUGHT some way (`caught`, user ruling Q38/G6) in plain words: "Any fish
+    snagged — even by accident — must be released." Only a release (`take: 0`) is a shape the
+    book prints; anything else is refused."""
+    from pipeline.regs.parsing.catalogue import CAUGHT_HOW, OPEN_SUBJECTS
+    if x.get("type") != "retention_limit" or not _is(x.get("take"), 0) or x.get("lengths"):
+        raise AnswersError(f"display: {x.get('entry')}::{x.get('rule')} holds for a fish caught "
+                           f"{x.get('caught')} but is not a release: no words for it")
+    sp = list(x.get("species") or [])
+    fish = "fish" if (not sp or all(c in OPEN_SUBJECTS or c == "ALL_GAME_FISH" for c in sp)) \
+        else re.sub(r"^all ", "", written_name(x, " or "))
+    how = [CAUGHT_HOW[c] for c in x["caught"]]
+    return (f"Any {fish} {' or '.join(h['as'] for h in how)} — "
+            f"{', '.join(dict.fromkeys(h['even'] for h in how))} — must be released.")
+
+
+def unless_opened(x: dict, rules: dict) -> Optional[str]:
+    """The words of a closure printed "unless opened" (`UNLESS_OPENED`): a FULL closure whose entry
+    holds an advisory proviso of it (`condition_of`); None for any other rule."""
+    if closure_grade(x) != "full":
+        return None
+    e, r = x.get("entry"), x.get("rule")
+    if not any(k[0] == e and y.get("condition_of") == r and y.get("type") == "advisory"
+               for k, y in rules.items()):
+        return None
+    kinds = sorted({t.get("area_kind") for t in x.get("extents") or [] if t.get("area_kind")})
+    words = [UNLESS_OPENED[k] for k in kinds if k in UNLESS_OPENED]
+    if len(words) != 1:
+        raise AnswersError(f"display: {e}::{r} is a closure printed with a proviso, in areas "
+                           f"{kinds}: no words for it (`UNLESS_OPENED`)")
+    return words[0]
+
+
 _MANY = re.compile(r"^(trout|char|trout and char|game fish|fish|bass|whitefish|salmon)\b")
 
 
 def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
+    """`_plain`, and every possession limit with a number ends with its exception (user ruling
+    Q15/Q39: "fish at home don’t count" is part of every possession quota)."""
+    got = _plain(x, names)
+    if got is not None and kind_of(x) == "possession_cap":
+        got = f"{got[:-1]} ({POSSESSION_HOME})."
+    return got
+
+
+def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     """The rule as a plain sentence (`sayRule`, consumer 6.3); None where the page writes none.
 
     `names` replaces the rule's fish word when a role covers only some of a row's fish (the page
@@ -219,10 +278,16 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return y + "."
     if _js(x.get("while")):
         return None
+    if _js(x.get("caught")):
+        return caught_sentence(x)
     if closure_grade(x) is not None:                # the page's `may_target === false`
         return wrap("No fishing" if re.search(r"game fish|^fish", sp) else f"No fishing for {sp}")
     if _js(x.get("per_daily")):
-        return wrap(f"Don’t carry more than {_num(x['per_daily'])} days’ worth of {sp}")
+        # THE POSSESSION QUOTA (Q15): "twice the daily quota", and fish at home don't count
+        n = _num(x["per_daily"])
+        times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
+        of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
+        return wrap(f"Possession: {times}the daily quota{of} ({POSSESSION_HOME})")
     over = f" over {_num(mn['min_cm'])} cm" if mn else ""
     if _js(x.get("record_retention")):
         return wrap(f"Record each {org}{sp}{over} on your licence right away")
@@ -259,12 +324,16 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     return wrap(", ".join(bits))
 
 
-def rule_facts(x: dict) -> dict:
-    """{kind, closure?, bands?, plain?} for one rule — the per-rule display facts."""
+def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
+    """{kind, closure?, bands?, plain?, unless_opened?} for one rule — the per-rule display facts.
+    `rules` (the bundle's, by (entry, rule)) lets a closure find its proviso (`unless_opened`)."""
     k = kind_of(x)
     out: dict = {"kind": k}
     if is_closure_gate(x, k):
         out["closure"] = True
+        u = unless_opened(x, rules) if rules is not None else None
+        if u is not None:
+            out["unless_opened"] = u
     b = bands(x)
     if b:
         out["bands"] = b
@@ -679,7 +748,21 @@ def steelhead_line(presence: Optional[str], has_row: bool) -> Optional[str]:
 def build_rules(B) -> List[dict]:
     """The per-rule facts, in the export's `rules` order (`common.rule_index`)."""
     order = sorted(B.index, key=B.index.__getitem__)
-    return [rule_facts(B.rules[k]) for k in order]
+    return [rule_facts(B.rules[k], B.rules) for k in order]
+
+
+def unless_opened_here(closing: Dict[str, List[str]], words: Dict[str, Optional[str]],
+                       superior: Sequence[str] = ()) -> List[str]:
+    """Z12/Q41: of the closures that close the water at a segment (`closing`, {rule: [fish]}), those
+    whose "unless opened" proviso (`words`, `unless_opened`) is the answer here — every one, unless
+    a closure of the SAME (superior) authority printed with NO proviso closes every fish it closes
+    beside it: a national park RESERVE's own closure ("All fresh waters within Pacific Rim … are
+    closed to fishing") leaves the park closure's "unless opened by Parks Canada" unsaid, plainly
+    closed. A provincial closure beside it (Region 4's spring stream closure in Kootenay or Yoho)
+    does not: both are shown, each in its own words."""
+    plain_shut = [set(fs) for r, fs in closing.items() if not words.get(r) and r in superior]
+    return sorted(r for r, fs in closing.items()
+                  if words.get(r) and not any(set(fs) <= p for p in plain_shut))
 
 
 def closed_all_year(store, key_ix: int) -> bool:
@@ -787,10 +870,17 @@ def section_prepare(scope, ctx):
     for rd in st.readings(k):
         closing = project.closing(lambda f, r=rd.ix: st.rows(st.verdict_id(k, r, f, none)),
                                   st.grade)
-        by_reading.append({
-            "status": "closed" if rd.closed else floor,
-            "closing": [[ctx.rule_index[st.rule_ids[r]], fs] for r, fs in sorted(
-                closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])]})
+        v = {"status": "closed" if rd.closed else floor,
+             "closing": [[ctx.rule_index[st.rule_ids[r]], fs] for r, fs in sorted(
+                 closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])]}
+        # Z12/Q41: the closing rules printed "unless opened" whose proviso is the answer here
+        words = {st.rule_ids[r]: _unless_words(ctx, st.rule_ids[r]) for r in closing}
+        sup = [st.rule_ids[r] for r in closing
+               if ctx.by_id[st.rule_ids[r]].get("authority") == "superior"]
+        unless = unless_opened_here({st.rule_ids[r]: fs for r, fs in closing.items()}, words, sup)
+        if unless:
+            v["unless_opened"] = sorted(ctx.rule_index[r] for r in unless)
+        by_reading.append(v)
     values: List[dict] = []
     seen: Dict[str, int] = {}
     ix = []
@@ -803,6 +893,99 @@ def section_prepare(scope, ctx):
     return [ix[r] for r in slots(st, k)], values
 
 
+# --------------------------------------------------------------------------------------------
+# G3: a rule said for SOME of its fish (the page's `sayRule(r, names)` with its "for …")
+# --------------------------------------------------------------------------------------------
+
+#: The roles that DECIDE in a row's ladder (the page's `WINS`): a rule holding one of them for some
+#: fish is listed once, as that role, before any losing role it holds for others.
+WINS = ("also", "governs", "contains", "narrows", "limit", "floor", "season", "possession_cap",
+        "duty", "possession")
+
+
+def row_sources(frame: dict, row: dict) -> List[Tuple[int, List[str]]]:
+    """The rules a row's ladder lists, each with the fish it is listed for, in the row's order
+    (the page's `rowSources`): every (rule, role, by) any member's decided answer holds, hatchery
+    then wild, gathered per fish of `all_members`; a rule is listed ONCE, as its first deciding
+    entry (else its first), for that entry's fish."""
+    agg: Dict[tuple, List[str]] = {}
+    for S in row["all_members"]:
+        R = frame["fish"].get(S)
+        if not R:
+            continue
+        for res in (R.get("hatchery"), R.get("wild")):
+            for r, role, by in (res or {}).get("roles") or []:
+                fs = agg.setdefault((r, role, by), [])
+                if S not in fs:
+                    fs.append(S)
+    best: Dict[int, List[str]] = {}
+    for (r, role, _), fs in sorted(agg.items(), key=lambda p: p[0][1] not in WINS):
+        best.setdefault(r, fs)
+    return list(best.items())
+
+
+def subset_asks(frame: dict) -> set:
+    """Every (rule, fish subset) a row's or an item's ladder lists a rule for (the page's `forTxt`):
+    a rule listed for fewer fish than the row's, in the row's ladder; and in an item's ladder (that
+    row's, or the other row holding a cross-referenced item's fish) for the item's fish it holds,
+    when it is listed for fish outside the item and not for every one of them. A subset is its fish
+    sorted by code (the page finds it by set)."""
+    out = set()
+    rows = frame["rows"]
+    for row in rows:
+        n = len(row["all_members"])
+        for r, spp in row_sources(frame, row):
+            if 0 < len(spp) < n:
+                out.add((r, tuple(sorted(spp))))
+        for it in row.get("items") or []:
+            M = it["members"]
+            lads = [row] + [o for o in rows if o is not row and o.get("pool") is not None
+                            and all(S in o["members"] for S in M)][:1]
+            for lad in lads:
+                n = len(lad["all_members"])
+                for r, spp in row_sources(frame, lad):
+                    sub = tuple(S for S in spp if S in M)
+                    if sub and len(spp) < n and len(sub) < len(spp) and set(sub) != set(M):
+                        out.add((r, tuple(sorted(sub))))
+    return out
+
+
+def subset_says(x: dict, fish: Sequence[str]) -> dict:
+    """{fish, for, plain?}: the rule said for these of its fish (`plain(x, names)`, null where the
+    rule has no sentence), and the "for …" the page writes beside a rule with no sentence."""
+    from pipeline.deliver.answers.common import lc_names
+    names = lc_names(list(fish))
+    out = {"fish": list(fish), "for": f"for {names}"}
+    if plain(x) is not None:
+        got = plain(x, names)
+        if got is not None:
+            out["plain"] = got
+    return out
+
+
+def add_subsets(facts: List[dict], rules_in_order: List[dict], frames: Iterable[dict]) -> None:
+    """G3: each rule's sentences for the fish subsets the rows' ladders list it for, onto its facts
+    (`subsets`, sorted by fish)."""
+    asks: Dict[int, set] = {}
+    seen = set()
+    for f in frames:
+        s = json.dumps(f, sort_keys=True)
+        if s in seen:
+            continue
+        seen.add(s)
+        for r, sub in subset_asks(f):
+            asks.setdefault(r, set()).add(sub)
+    for r, subs in asks.items():
+        facts[r]["subsets"] = [subset_says(rules_in_order[r], sub) for sub in sorted(subs)]
+
+
+def _unless_words(ctx, rid: str) -> Optional[str]:
+    got = ctx.cache.setdefault("display_unless", {})
+    if rid not in got:
+        got[rid] = unless_opened(ctx.by_id[rid], ctx.B.rules)
+    return got[rid]
+
+
 def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
     """The facts that are not keyed by (part key, segment): per export rule (kind, closure, bands,
     plain sentence) and per named water (each export part's names and picker facts)."""
@@ -810,7 +993,13 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
     if doc is None:
         raise AnswersError("display: the statics need the decoded export (`Context.doc`)")
     lic_ix = {k: i for i, k in enumerate(data.get("licensing_ids") or [])}
-    return {"rules": build_rules(ctx.B),
+    rules = build_rules(ctx.B)
+    # G3: the rows' frames, as built (`answers.build` hands every section's values over)
+    rows = (ctx.cache.get("sections_out") or {}).get("rows")
+    if rows is not None:
+        order = sorted(ctx.B.index, key=ctx.B.index.__getitem__)
+        add_subsets(rules, [ctx.B.rules[k] for k in order], (v for per in rows for v in per))
+    return {"rules": rules,
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
                                     lic_ref=lic_ix.__getitem__, log=lambda *_: None,
                                     store=ctx.store)}

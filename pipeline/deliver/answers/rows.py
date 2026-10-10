@@ -199,7 +199,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
 
     def in_scope(r: R) -> bool:
         return ((r.type == "retention_limit" or r.k == "duty")
-                and r.k not in ("while", "exempt", "standing") and r.dimension != "lift"
+                and r.k not in ("while", "caught", "exempt", "standing") and r.dimension != "lift"
                 and (not r.f.get("origin") or r.f.get("origin") == o))
 
     for r in P.cands:
@@ -1212,7 +1212,7 @@ class Part:
         for r in self.cands:
             sp = r.f.get("species") or []
             if not (r.type == "retention_limit" and r.k == "gate" and sp and not r.f.get("while")
-                    and self.applies(r)):
+                    and not r.f.get("caught") and self.applies(r)):
                 continue
             if not all((c in OPEN_SUBJECTS and c != "ALL_FIN_FISH") or c in PROTECTED_FISH
                        for c in sp):
@@ -1377,6 +1377,14 @@ def produce(P: Part) -> dict:
                     io["origins"] = [{k: _num(v) if k in ("n", "lo", "hi") else v
                                       for k, v in x.items()}
                                      for x in origin_lines(P, model, it["members"][0])]
+                if xref and len(it["members"]) > 1:
+                    # gap G4 (answers 2.3): a cross-reference of several fish carries EACH fish's
+                    # keep range (`keep_range`, its own decided answer) — the page read it off the
+                    # fish's own row; [fish, from_cm, to_cm | null (no top)], fish that keep none
+                    # left out
+                    io["ranges"] = [[S, _num(r[0]), None if r[1] == INF else _num(r[1])]
+                                    for S in it["members"]
+                                    for r in [keep_range(P, model, [S])] if r is not None]
                 o["items"].append(io)
             ec = eff_cap(P, model, row, rc)
             o["real_daily"] = ec

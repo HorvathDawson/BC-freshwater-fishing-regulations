@@ -98,6 +98,34 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## answers/2.3 (2026-10-09) — the rulings round (Q38, Q39, Q41) and gaps G2–G4
+
+Same format string (`answers/2`); **rows 5, gear 4, licence 4, display 4** (ladder 1 unchanged). A
+reader that does not know these versions must refuse the file.
+
+* **A snagged fish (Q38 / RULINGS G6).** `zp:prohibited_methods.r3` is `caught: [foul_hooked]` (a
+  condition on the FISH, `catalogue.CAUGHT_HOW`), no longer `while: [snagging]`: never an outright
+  release, never a closure, its own key — it decides no quota for a fish hooked in the mouth.
+  `display.rules[r].kind` `caught`, `plain` "Any fish snagged — even by accident — must be
+  released."; every freshwater gear answer lists it in `caught` (gear 4), no longer in `while_rules`.
+* **The possession quota's exception (Q39 / RULINGS Q15).** Every possession line of
+  `display.rules[].plain` says it, in one wording (`display.POSSESSION_HOME`): "Possession: twice
+  the daily quota (fish at home don’t count)."; "Have no more than 1 Arctic grayling in possession
+  (fish at home don’t count)."
+* **National parks (Q41 / RULINGS Z12).** `display.rules[r].unless_opened` — a full closure printed
+  with a proviso (`condition_of`): "Closed unless opened by Parks Canada — a national park fishing
+  permit is required."; a display frame's `unless_opened` [rule] names the closing rules whose
+  proviso is the answer at that segment. A national park RESERVE (Pacific Rim, Gwaii Haanas, Gulf
+  Islands) is closed by its own rule with no proviso, so it carries none: plainly closed.
+* **G2 (licence 4).** `others` / `guiding` are [{req, paths}]: another angler's or a guide's
+  requirement with how it is met as the record prints it (`satisfied_by`: `need`, `accompanied_by?`,
+  `as?`, `quota?`).
+* **G3 (display 4).** `display.rules[r].subsets` [{fish, for, plain?}]: the rule said for each
+  subset of its fish a row's or an item's ladder lists it for (`display.subset_asks`, the page's
+  `rowSources`/`forTxt`); `plain` null where the rule has no sentence (write `for` beside its label).
+* **G4 (rows 5).** A cross-reference item of SEVERAL fish carries `ranges` [[fish, from_cm,
+  to_cm|null]], each fish's own keep range (`origins` stays the one-fish form).
+
 ## answers/2.2 (2026-10-08) — the user-test round
 
 Same format string (`answers/2`); **rows 4, licence 3**, a new top-level `glossary` (ladder 1, gear 3,

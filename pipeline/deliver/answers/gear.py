@@ -229,7 +229,7 @@ def _main(e: dict) -> bool:
 def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], *,
             timed: Sequence[Rule] = (), in_part: Sequence[Rule] = (),
             side: Sequence[Rule] = (), overruled: Sequence = (),
-            while_rules: Sequence[Rule] = ()) -> dict:
+            while_rules: Sequence[Rule] = (), caught: Sequence[Rule] = ()) -> dict:
     """The gear answer for one place and day, from the gear/conduct/vessel rules IN FORCE there
     (`active`, in the page's order: reach rules then walked ones, each by id). Rule references in
     the answer are the rules' `key`s; a clause is [key, clause index]."""
@@ -433,6 +433,9 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
     ans["in_part"] = [r.key for r in in_part]
     ans["side"] = [r.key for r in side]
     ans["while_rules"] = [r.key for r in while_rules]
+    # a duty for a fish CAUGHT some way, in force here (user ruling Q38/G6): "Any fish snagged —
+    # even by accident — must be released" — whatever the angler does, never a way to fish
+    ans["caught"] = [r.key for r in caught]
     ans["overruled"] = list(overruled)
     # every rule that decides something, and every rule in force that decides nothing here (its
     # clauses all beaten, or it repeats a closer rule): the page's "All gear sources"
@@ -451,8 +454,8 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
 # --------------------------------------------------------------------------------------------
 
 def gear_subset(B: Bundle, bound: Sequence[Tuple[str, str, str]]) -> List[Tuple[str, str, str]]:
-    """The bindings the gear answer reads: gear, conduct and vessel rules, rules with a `while`,
-    and every rule lifting one of them."""
+    """The bindings the gear answer reads: gear, conduct and vessel rules, rules with a `while` or
+    a `caught` (a duty for a fish caught some way), and every rule lifting one of them."""
     from pipeline.regs.parsing.catalogue import PROTECTED_FISH
     every = B.rules
     stray = [rule_id((e, r)) for e, r, _ in bound if (e, r) not in every]
@@ -464,7 +467,8 @@ def gear_subset(B: Bundle, bound: Sequence[Tuple[str, str, str]]) -> List[Tuple[
     protected = lambda x: bool(x.get("species")) and all(c in PROTECTED_FISH  # noqa: E731
                                                          for c in x["species"])
     want = {(e, r) for e, r, _ in bound if (e, r) in every and not protected(every[(e, r)])
-            and (every[(e, r)].get("family") in GEAR_FAMILIES or every[(e, r)].get("while"))}
+            and (every[(e, r)].get("family") in GEAR_FAMILIES or every[(e, r)].get("while")
+                 or every[(e, r)].get("caught"))}
     lifters = {(e, r) for e, r, _ in bound if (e, r) in every
                and any((l["entry_id"], l["rule_id"]) in want
                        for l in every[(e, r)].get("exempts") or [])}
@@ -501,7 +505,7 @@ def states(B: Bundle, bound: Sequence[Tuple[str, str, str]], md, store, key_ix: 
     for e, r, v in bound:
         k = (e, r)
         x = every[k]
-        if not (x.get("family") in GEAR_FAMILIES or x.get("while")):
+        if not (x.get("family") in GEAR_FAMILIES or x.get("while") or x.get("caught")):
             continue
         if read.in_force(x.get("when"), md, at) == "no" or x.get("dimension") == "lift":
             continue
@@ -542,7 +546,7 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
         x = every[k]
         parent = every.get((k[0], x["condition_of"])) if x.get("condition_of") else None
         return Rule(ref(k), read.place(x, via[k]), x, cond_methods(x, parent))
-    active, timed, in_part, side, wr, overruled = [], [], [], [], [], []
+    active, timed, in_part, side, wr, overruled, caught = [], [], [], [], [], [], []
     for k in order:
         x = every[k]
         if kind and x.get("water") and x["water"] != kind:
@@ -558,7 +562,8 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
             continue
         if x.get("family") not in GEAR_FAMILIES:
             if state == "speaks":
-                wr.append(mk(k))                # a `while` rule of the retention family
+                # a `caught` duty (Q38), else a `while` rule of the retention family
+                (caught if x.get("caught") else wr).append(mk(k))
             continue
         if state == "speaks":
             active.append(mk(k))
@@ -567,7 +572,7 @@ def gear_answer(B: Bundle, key: RuleKey, md, lawful: Sequence[str],
         elif state == "not_yet_mapped":
             in_part.append(mk(k))
     return resolve(active, kind, lawful, timed=timed, in_part=in_part, side=side,
-                   overruled=overruled, while_rules=wr)
+                   overruled=overruled, while_rules=wr, caught=caught)
 
 
 def gear_readings(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,

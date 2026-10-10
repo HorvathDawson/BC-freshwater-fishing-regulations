@@ -73,6 +73,23 @@
        ],
        "title": "Status",
        "type": "string"
+      },
+      "unless_opened": {
+       "anyOf": [
+        {
+         "items": {
+          "minimum": 0,
+          "type": "integer"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Unless Opened"
       }
      },
      "required": [
@@ -219,9 +236,111 @@
         "subcap",
         "gate",
         "pool",
-        "size"
+        "size",
+        "caught"
        ],
        "title": "Kind",
+       "type": "string"
+      },
+      "plain": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Plain"
+      },
+      "subsets": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/SubsetSay"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Subsets"
+      },
+      "unless_opened": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Unless Opened"
+      }
+     },
+     "required": [
+      "kind"
+     ],
+     "title": "RuleFacts",
+     "type": "object"
+    },
+    "SubsetSay": {
+     "additionalProperties": false,
+     "description": "gap G3 (answers 2.3): the rule said for SOME of its fish, as a row's or an item's ladder lists\nit (`display.subset_asks`): `plain` the sentence for those fish (None: the rule has none), `for`\nthe qualifier the page writes beside a rule with no sentence (\"for rainbow trout\").",
+     "properties": {
+      "fish": {
+       "items": {
+        "enum": [
+         "RB",
+         "ST",
+         "CT",
+         "GB",
+         "DV",
+         "LT",
+         "EB",
+         "LW",
+         "MW",
+         "LMB",
+         "SMB",
+         "KO",
+         "GR",
+         "BB",
+         "WSG",
+         "BCB",
+         "NP",
+         "YP",
+         "WP",
+         "GE",
+         "IN",
+         "CRA",
+         "CH",
+         "CULTUS_LAKE_SCULPIN",
+         "ENOS_LAKE_STICKLEBACK",
+         "MISTY_LAKE_STICKLEBACK",
+         "NOOKSACK_DACE",
+         "PAXTON_LAKE_STICKLEBACK",
+         "ROCKY_MOUNTAIN_SCULPIN",
+         "SHORTHEAD_SCULPIN",
+         "SALISH_SUCKER",
+         "VANANDA_CREEK_STICKLEBACK",
+         "VANCOUVER_LAMPREY",
+         "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+         "WHITE_STURGEON_PROTECTED_POPULATIONS",
+         "GREEN_STURGEON"
+        ],
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Fish",
+       "type": "array"
+      },
+      "for": {
+       "title": "For",
        "type": "string"
       },
       "plain": {
@@ -238,9 +357,10 @@
       }
      },
      "required": [
-      "kind"
+      "fish",
+      "for"
      ],
-     "title": "RuleFacts",
+     "title": "SubsetSay",
      "type": "object"
     }
    },
@@ -776,6 +896,14 @@
        "title": "Bait Ban",
        "type": "boolean"
       },
+      "caught": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Caught",
+       "type": "array"
+      },
       "circumstantial": {
        "items": {
         "$ref": "#/$defs/Circumstance"
@@ -980,6 +1108,7 @@
       "in_part",
       "side",
       "while_rules",
+      "caught",
       "overruled",
       "decides",
       "repeats"
@@ -1684,6 +1813,30 @@
      "title": "Prices",
      "type": "object"
     },
+    "PrintedRequirement": {
+     "additionalProperties": false,
+     "description": "gap G2 (answers 2.3): another angler's or a guide's requirement, with how it is met as the\nrecord prints it (`satisfied_by`; nothing freed, nothing to buy: it is not this angler's).",
+     "properties": {
+      "paths": {
+       "items": {
+        "$ref": "#/$defs/Path_"
+       },
+       "title": "Paths",
+       "type": "array"
+      },
+      "req": {
+       "minimum": 0,
+       "title": "Req",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "req",
+      "paths"
+     ],
+     "title": "PrintedRequirement",
+     "type": "object"
+    },
     "ProfileAnswer": {
      "additionalProperties": false,
      "properties": {
@@ -1709,8 +1862,7 @@
        "anyOf": [
         {
          "items": {
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/PrintedRequirement"
          },
          "type": "array"
         },
@@ -1729,8 +1881,7 @@
        "anyOf": [
         {
          "items": {
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/PrintedRequirement"
          },
          "type": "array"
         },
@@ -3867,6 +4018,89 @@
        ],
        "default": null,
        "title": "Origins"
+      },
+      "ranges": {
+       "anyOf": [
+        {
+         "items": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+           {
+            "enum": [
+             "RB",
+             "ST",
+             "CT",
+             "GB",
+             "DV",
+             "LT",
+             "EB",
+             "LW",
+             "MW",
+             "LMB",
+             "SMB",
+             "KO",
+             "GR",
+             "BB",
+             "WSG",
+             "BCB",
+             "NP",
+             "YP",
+             "WP",
+             "GE",
+             "IN",
+             "CRA",
+             "CH",
+             "CULTUS_LAKE_SCULPIN",
+             "ENOS_LAKE_STICKLEBACK",
+             "MISTY_LAKE_STICKLEBACK",
+             "NOOKSACK_DACE",
+             "PAXTON_LAKE_STICKLEBACK",
+             "ROCKY_MOUNTAIN_SCULPIN",
+             "SHORTHEAD_SCULPIN",
+             "SALISH_SUCKER",
+             "VANANDA_CREEK_STICKLEBACK",
+             "VANCOUVER_LAMPREY",
+             "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+             "WHITE_STURGEON_PROTECTED_POPULATIONS",
+             "GREEN_STURGEON"
+            ],
+            "type": "string"
+           },
+           {
+            "anyOf": [
+             {
+              "type": "integer"
+             },
+             {
+              "type": "number"
+             }
+            ]
+           },
+           {
+            "anyOf": [
+             {
+              "type": "integer"
+             },
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ]
+           }
+          ],
+          "type": "array"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Ranges"
       },
       "sub": {
        "anyOf": [

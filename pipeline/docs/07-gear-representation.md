@@ -202,6 +202,15 @@ whose CIRCUMSTANCE is not met is the same failure and gets the same answer.
 be inferred from the other fields present — the `over_cm` disease in a field nobody had examined.
 The assertion is `gear.method`; the circumstance is `while`.
 
+**HOW THE FISH WAS CAUGHT IS NOT A MEANS: `caught`** (user ruling Q38, 2026-10-07; field 2026-10-09).
+"Any fish willfully or accidentally snagged must be released immediately" binds a fish hooked
+anywhere but the mouth, however it happened — an accidental snag happens WHILE ANGLING, so
+`while: [snagging]` (the angler's means) never reached it. It is a condition on the FISH, like
+`origin`: `{type: retention_limit, species: [ALL_FIN_FISH], take: 0, may_target: true, caught:
+[foul_hooked]}` (`catalogue.CAUGHT_HOW`). Like every condition it narrows — never an outright release,
+never a closure, its own key (`daily@caught=foul_hooked`) — so it decides no quota for a fish hooked
+in the mouth. A take-0 sentence printing a snag that sets `while` alone is refused.
+
 **A "PROVIDED THAT" SENTENCE IS TWO RULES SHARING A VERBATIM.** One says the means is allowed; the
 other holds the condition under `while`, so the condition binds only while you are using the thing.
 This is the one-sentence-many-rules convention the corpus already runs on, not a new mechanism.

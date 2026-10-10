@@ -14,6 +14,8 @@ TWO KINDS OF CHECK.
 """
 from __future__ import annotations
 
+import re
+
 import gzip
 import json
 import os
@@ -71,8 +73,19 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
             # number "annual" and says "a day" of it
             possession += 1
             assert want["kind"] == "annual"
-            want = dict(want, kind="possession_cap", plain=want["plain"] and want["plain"].replace(" a day", " in possession")
-                        .replace("Keep up to", "Have no more than"))
+            want = dict(want, kind="possession_cap", plain=want["plain"] and (want["plain"].replace(
+                " a day", " in possession").replace("Keep up to", "Have no more than")[:-1]
+                + f" ({X.POSSESSION_HOME})."))
+        if x.get("per_daily") and want["plain"]:
+            # user ruling Q15/Q39 (answers 2.3): the possession quota says its exception, in the
+            # answers' one wording — the page said "Don’t carry more than N days’ worth of …"
+            m = re.match(r"^(.*?)Don’t carry more than (\d+) days’ worth of (.+?)(, [^,]*)?\.$",
+                         want["plain"])
+            assert m, want["plain"]
+            times = {"1": "", "2": "twice ", "3": "three times "}.get(m[2], f"{m[2]} times ")
+            of = "" if re.search(r"game fish|^fish", m[3]) else f" for {m[3]}"
+            want = dict(want, plain=f"{m[1]}Possession: {times}the daily quota{of} "
+                                    f"({X.POSSESSION_HOME}){m[4] or ''}.")
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]
@@ -198,7 +211,10 @@ def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
     for i, (k, x) in enumerate(doc["rules"].items()):
         flat = {**(x.get("fields") or {}), "type": x["type"], "family": x["family"],
                 "dimension": x.get("dimension")}
-        if X.rule_facts(flat) != facts[i]:
+        # the bundle side also knows a closure's proviso (Z12, its sibling rules) and the subsets
+        # the ladders ask for (G3, the rows' frames): neither is a field of the rule itself
+        mine = {f: v for f, v in facts[i].items() if f not in ("unless_opened", "subsets")}
+        if X.rule_facts(flat) != mine:
             bad.append((k, X.rule_facts(flat), facts[i]))
     assert not bad, bad[:3]
     assert X.build_rules(B) == facts                                    # deterministic

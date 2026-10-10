@@ -1468,6 +1468,11 @@ RULE_FIELD_TEXT = {
     "derived_from": "the rule id (same entry) whose sentence implies this one",
     "condition_of": "the rule id (same entry) this rule is the proviso of",
     "while": "the means of fishing during which the rule binds; absent = any",
+    "caught": "how the FISH was caught, for a rule that binds only a fish caught that way "
+              "(`foul_hooked`: snagged — hooked anywhere but the mouth, on purpose or by "
+              "accident, user ruling Q38); absent = any fish. A condition on the fish, never the "
+              "angler's means: a release with `caught` is never an outright release or a "
+              "closure, and never decides a quota for a fish hooked in the mouth",
     "conduct": "act tokens: what you must or must not do — see `gear.conduct`",
     "when": "when the rule binds — see `time`; absent = all year",
     "take": "how many you may keep",
@@ -4307,7 +4312,8 @@ def cases(d: dict, bundle: Path) -> dict:
         return t
 
     def full(x):
-        return not any(x.get(k) for k in ("origin", "lengths", "when_targeting", "while"))
+        return not any(x.get(k) for k in ("origin", "lengths", "when_targeting", "while",
+                                           "caught"))
 
     def lift_cases(mech, test, fish_of, check):
         finder = lifts(test)
@@ -5659,7 +5665,7 @@ def is_wild_steelhead_release(x: dict) -> bool:
             and catch_and_release(f)
             and f.get("origin") in (None, "wild")
             and not any(f.get(k) for k in ("when", "lengths", "water", "record_retention",
-                                           "within", "while", "when_targeting"))
+                                           "within", "while", "caught", "when_targeting"))
             and f.get("period") in (None, "daily"))
 
 

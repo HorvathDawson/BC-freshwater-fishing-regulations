@@ -707,8 +707,8 @@
      "species": [
       "ALL_FIN_FISH"
      ],
-     "while": [
-      "snagging"
+     "caught": [
+      "foul_hooked"
      ],
      "take": 0,
      "may_target": true,
@@ -717,8 +717,7 @@
        "op": "within",
        "area_kind": "region"
       }
-     ],
-     "review_reason": "User ruling Q38 (2026-10-07): the duty binds a fish snagged ACCIDENTALLY too (while angling), which `while: snagging` cannot reach. Dropping `while` would make this an outright release of every fin fish in B.C.; it waits for a fish-condition field (`caught: foul_hooked`) that scopes the release to the snagged fish. Until then the duty is carried by the verbatim only."
+     ]
     },
     {
      "rule_id": "prohibited_methods.r4",

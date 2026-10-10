@@ -1036,7 +1036,7 @@ class _Ask:
         for c in ("origin", "water"):
             if x.get(c) and x.get(c) != z.get(c):
                 return False
-        for c in ("while", "when_targeting"):
+        for c in ("while", "caught", "when_targeting"):
             if x.get(c) and set(x[c]) != set(z.get(c) or []):
                 return False
         return True
@@ -1227,7 +1227,7 @@ def _own_replacement(s: _Ask, k):
                 and not y.get("standing") and not y.get("exempts") \
                 and closure_grade(y) is None and speaks_for(y, s.fish) \
                 and all(not y.get(c) or y.get(c) == x.get(c)
-                        for c in ("when_targeting", "while", "origin", "water", "lengths",
+                        for c in ("when_targeting", "while", "caught", "origin", "water", "lengths",
                                   "side", "within", "condition_of")):
             return o
     return None
@@ -1432,7 +1432,7 @@ def _step4c_closures(s: _Ask) -> None:
 def _released_lengths(x: dict, top: float) -> list | None:
     # the class the rule releases outright: its take-0 bands, for every angler (no `while`,
     # no target, not a clause) — the origin it holds for is checked against the keeper's
-    if x.get("while") or x.get("when_targeting") or x.get("within"):
+    if x.get("while") or x.get("caught") or x.get("when_targeting") or x.get("within"):
         return None
     bands = [b for b in (x.get("lengths") or []) if b.get("take") == 0]
     return _spoken_lengths({"lengths": bands}, top) if bands else None

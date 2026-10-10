@@ -326,6 +326,9 @@ class Item(Model):
     conds: Tuple[Count, ...]
     against: Optional[Union[Positive, Literal["unlimited"]]] = None
     origins: Optional[Tuple[OriginLine, ...]] = None
+    #: gap G4 (answers 2.3): a cross-reference of SEVERAL fish, each fish's keep range
+    #: [fish, from_cm, to_cm | None (no top)] (its own decided answer); a fish keeping none is absent
+    ranges: Optional[Tuple[Tuple[FishLit, Cm, Optional[Cm]], ...]] = None
 
     @model_validator(mode="after")
     def _xref_fields(self):
@@ -333,6 +336,11 @@ class Item(Model):
             raise ValueError("`against` is set <=> the item is a cross-reference")
         if self.origins is not None and not (self.xref and len(self.members) == 1):
             raise ValueError("`origins` only on a one-fish cross-reference")
+        if self.ranges is not None:
+            if not (self.xref and len(self.members) > 1):
+                raise ValueError("`ranges` only on a cross-reference of several fish")
+            if not {f for f, _, _ in self.ranges} <= set(self.members):
+                raise ValueError("`ranges` names a fish that is not the item's")
         return self
 
 
@@ -514,6 +522,9 @@ class GearAnswer(Model):
     in_part: Tuple[RuleIx, ...]
     side: Tuple[RuleIx, ...]
     while_rules: Tuple[RuleIx, ...]
+    #: a duty for a fish CAUGHT some way in force here (`caught`, user ruling Q38, answers 2.3):
+    #: "Any fish snagged — even by accident — must be released" (`display.rules[].plain`)
+    caught: Tuple[RuleIx, ...]
     overruled: Tuple[Overruled, ...]
     decides: Tuple[RuleIx, ...]
     repeats: Tuple[RuleIx, ...]
@@ -596,13 +607,20 @@ class Exempt(Model):
     from_: Tuple[StrictStr, ...] = Field(alias="from")
 
 
+class PrintedRequirement(Model):
+    """gap G2 (answers 2.3): another angler's or a guide's requirement, with how it is met as the
+    record prints it (`satisfied_by`; nothing freed, nothing to buy: it is not this angler's)."""
+    req: LicIx
+    paths: Tuple[Path_, ...]
+
+
 class ProfileAnswer(Model):
     documents: Tuple[DocumentNeed, ...]
     none_needed: StrictBool
     requirements: Tuple[RequirementPath, ...]
     exempt: Optional[Exempt] = None
-    others: Optional[Tuple[LicIx, ...]] = None
-    guiding: Optional[Tuple[LicIx, ...]] = None
+    others: Optional[Tuple[PrintedRequirement, ...]] = None
+    guiding: Optional[Tuple[PrintedRequirement, ...]] = None
 
 
 class TidalProfile(Model):
@@ -650,11 +668,19 @@ class StatusFrame(Model):
     #: fish, with the game fish it closes (`verdicts.project.closing`); status `closed` <=> every
     #: game fish is under one of them
     closing: Tuple[Tuple[RuleIx, Tuple[FishLit, ...]], ...]
+    #: user ruling Z12/Q41 (answers 2.3): the closing rules printed "unless opened" whose proviso is
+    #: the answer here (`display.rules[].unless_opened`: "Closed unless opened by Parks Canada — a
+    #: national park fishing permit is required."); absent where none is (a national park
+    #: RESERVE's own closure says plainly closed)
+    unless_opened: Optional[Tuple[RuleIx, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _closing_closes(self):
         if any(not fs for _, fs in self.closing):
             raise ValueError("a closing rule closes at least one fish")
+        if self.unless_opened is not None and \
+                not set(self.unless_opened) <= {r for r, _ in self.closing}:
+            raise ValueError("an `unless_opened` rule is one of the closing rules")
         if self.status == "closed":
             shut = {f for _, fs in self.closing for f in fs}
             if not set(T.GAME_FISH) <= shut:
@@ -673,16 +699,31 @@ class TidalStatus(Model):
 DisplayFrame = Union[StatusFrame, TidalStatus]
 
 
+class SubsetSay(Model):
+    """gap G3 (answers 2.3): the rule said for SOME of its fish, as a row's or an item's ladder lists
+    it (`display.subset_asks`): `plain` the sentence for those fish (None: the rule has none), `for`
+    the qualifier the page writes beside a rule with no sentence ("for rainbow trout")."""
+    fish: Tuple[FishLit, ...] = Field(min_length=1)
+    for_: StrictStr = Field(alias="for")
+    plain: Optional[StrictStr] = None
+
+
 class RuleFacts(Model):
     kind: _enum(T.DisplayKind, "DisplayKind")
     closure: Optional[Literal[True]] = None          # set <=> a gate that closes
     bands: Optional[Tuple[Tuple[Cm, Optional[Cm], Optional[Count]], ...]] = None
     plain: Optional[StrictStr] = None                # None: the page shows the label
+    #: Z12/Q41: a closure printed "unless opened", in the user's accepted words
+    unless_opened: Optional[StrictStr] = None
+    #: G3: the rule said for the fish subsets the ladders list it for
+    subsets: Optional[Tuple[SubsetSay, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _closure_is_a_gate(self):
         if self.closure and self.kind != "gate":
             raise ValueError("`closure` marks a gate")
+        if self.unless_opened is not None and not self.closure:
+            raise ValueError("`unless_opened` marks a closure")
         return self
 
 

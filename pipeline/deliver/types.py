@@ -160,7 +160,10 @@ StatusCode = closed_enum("StatusCode", ("base", "own", "closed", "tidal", "outsi
 #: The page's 15-step rule kind (`display.kind_of`) plus `possession_cap` (rows F6).
 DisplayKind = closed_enum("DisplayKind", (
     "gear", "conduct", "vessel", "anglerclosure", "duty", "exempt", "standing", "while",
-    "possession", "annual", "possession_cap", "sizecap", "subcap", "gate", "pool", "size"))
+    "possession", "annual", "possession_cap", "sizecap", "subcap", "gate", "pool", "size",
+    # a duty for a fish CAUGHT some way (`caught`, user ruling Q38): "Any fish snagged — even by
+    # accident — must be released"; never a gate, never a quota (answers 2.3)
+    "caught"))
 
 #: The decided answer's status (`rows`), the card row's kind.
 DecidedStatus = closed_enum("DecidedStatus", ("keep", "no_limit", "release", "closed"))

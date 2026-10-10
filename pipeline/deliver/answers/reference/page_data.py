@@ -137,7 +137,7 @@ def _rule_refs_gear(g: dict, out: set):
             out.update(rs)
     out.update(g["vessel"]["active"])
     out.update(g["vessel"]["timed"])
-    for f in ("timed", "in_part", "side", "while_rules", "decides", "repeats"):
+    for f in ("timed", "in_part", "side", "while_rules", "caught", "decides", "repeats"):
         out.update(g[f])
     for o in g["overruled"]:
         out.add(o["rule"])
@@ -168,8 +168,8 @@ def _lic_refs(h: dict, answers: list, out: set):
             for p in r["paths"]:
                 if p.get("alt") is not None:
                     out.add(p["alt"])
-        for f in ("others", "guiding"):
-            out.update(a.get(f) or [])
+        for f in ("others", "guiding"):                 # G2: {req, paths} (answers 2.3)
+            out.update(o["req"] for o in a.get(f) or [])
         if a.get("exempt"):
             out.update(a["exempt"]["by"])
 

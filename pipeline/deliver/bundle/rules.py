@@ -204,7 +204,9 @@ def release_origins(x: dict) -> frozenset[str] | None:
 
     A bundle rule (`read.rules` shape) releases a fish outright when it is a `retention_limit`
     with `take: 0` that holds at every length (no `lengths`: "No wild trout over 50 cm" releases a
-    size class, and the 4 under it still stand), whatever the means (no `while`), whatever is
+    size class, and the 4 under it still stand), whatever the means (no `while`), however the fish
+    was caught (no `caught`: "any fish snagged must be released" releases only a snagged fish, user
+    ruling Q38 — read as outright it would silence every quota in B.C.), whatever is
     targeted (no `when_targeting`), and as a statement of its own (not a `within` clause, not a
     record-keeping duty). A closure is one. What it releases is its `origin`, or both.
 
@@ -212,15 +214,15 @@ def release_origins(x: dict) -> frozenset[str] | None:
     water row withholds, so the two cannot disagree on what "catch and release" is."""
     if x.get("type") != "retention_limit" or x.get("take") != 0:
         return None
-    if x.get("lengths") or x.get("while") or x.get("when_targeting") or x.get("within") \
-            or x.get("record_retention") or x.get("dimension") == "lift":
+    if x.get("lengths") or x.get("while") or x.get("caught") or x.get("when_targeting") \
+            or x.get("within") or x.get("record_retention") or x.get("dimension") == "lift":
         return None
     return frozenset({x["origin"]}) if x.get("origin") else ORIGINS
 
 
 #: What keeps a "no fishing" from being the whole answer: a closure carrying any of these holds
 #: only for some fish, some gear, some part or some shore — it is PARTIAL (`closure_grade`).
-CLOSURE_CONDITIONS = ("lengths", "origin", "while", "when_targeting", "within", "side")
+CLOSURE_CONDITIONS = ("lengths", "origin", "while", "caught", "when_targeting", "within", "side")
 
 #: What `closure_grade` answers for a closure (None: not one), in wire order (`types.ClosureGrade`).
 CLOSURE_GRADES = ("full", "partial")
@@ -287,7 +289,8 @@ def _leaves(codes) -> frozenset[str]:
 def statement(x: dict) -> tuple:
     """WHAT A QUOTA IS ABOUT, without its number: the fish (leaves, less `species_except`), its
     size bounds (each band's ends, and whether the band keeps none), its origin, its water kind,
-    the means it holds under (`while`), what must be targeted (`when_targeting`), and its clock.
+    the means it holds under (`while`), how the fish was caught (`caught`), what must be targeted
+    (`when_targeting`), and its clock.
 
     Two quotas with the same statement say the same thing with different numbers — Kokanee: 10 at
     a lake beside the region's Kokanee: 5 — and only then does the water's number replace the
@@ -307,7 +310,8 @@ def statement(x: dict) -> tuple:
     return (_leaves(sp) - _leaves(out),
             bands, x.get("origin"), x.get("water"),
             tuple(sorted(x.get("while") or [])), tuple(sorted(x.get("when_targeting") or [])),
-            x.get("period") or "daily", bool(x.get("record_retention")))
+            x.get("period") or "daily", bool(x.get("record_retention")),
+            tuple(sorted(x.get("caught") or [])))
 
 
 def same_statement(a: dict, b: dict) -> bool:
@@ -459,7 +463,7 @@ def _is_species_closure(r) -> bool:
     closed), and naming at least one fish (`named_leaves`) — "Bass: 0 quota, CLOSED TO FISHING",
     never "No fishing in any stream" (ALL_GAME_FISH names no fish)."""
     return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
-            and not r.while_ and not r.standing and r.authority != "superior"
+            and not r.while_ and not r.caught and not r.standing and r.authority != "superior"
             and bool(named_leaves(r)))
 
 
@@ -605,7 +609,7 @@ def is_blanket_closure(r) -> bool:
     return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
             and sp <= {"ALL_GAME_FISH", "ALL_FIN_FISH"} and not r.species_except
             and r.water is not None and r.when is not None and bool(r.when.dates)
-            and not r.while_ and not r.standing and r.authority != "superior")
+            and not r.while_ and not r.caught and not r.standing and r.authority != "superior")
 
 
 def blanket_closures(docs) -> dict[str, list[tuple[str, object]]]:
