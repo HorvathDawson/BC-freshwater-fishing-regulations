@@ -291,6 +291,49 @@ def part_keys(B: Bundle, data: dict) -> Tuple[List[tuple], Dict[str, List[Option
     return keys, parts
 
 
+def unnamed_keys(B: Bundle, keys: List[tuple], ups: Optional[Iterable[int]] = None
+                 ) -> Tuple[List[tuple], List[int], list]:
+    """THE UNNAMED WATER'S KEYS (answers 2.4, S1 — user ruling 2026-10-10: "unnamed or named but
+    unregulated waters should always show base regs/zone and any area they are in, tiered
+    properly"). `(keys, places, water_places)`: `keys` the named part keys (unchanged, so no named
+    key index moves) followed by ONE KEY PER UNNAMED PART of the bundle (`unnamed_part`, in `up`
+    order; only `ups` when given), `places` the place index of each appended key (aligned with the
+    appended keys: key `len(named) + i` is at `places[i]`), `water_places` the bundle's places
+    (`types.WaterPlace`, the place index is the list index).
+
+    An unnamed part's key is its PART_KEY_FIELDS exactly as a named part's — its kind is its
+    place's (`water_kind.kind_of`) — so every section's frames are its scope's, shared with every
+    named part reading the same scope (no per-section copy). Its rule set already holds the zone
+    base and every area row the sections lie in; nothing is added here."""
+    from pipeline.deliver.bundle.derived import unnamed_parts, water_places
+    db = connect(B.path)
+    try:
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'unnamed_part'").fetchone():
+            raise AnswersError(f"answers: {B.path} predates the unnamed water (S1: no "
+                               "`unnamed_part`) — rebuild it: python -m pipeline.deliver bundle")
+        U = unnamed_parts(db)
+        W = water_places(db)
+    finally:
+        db.close()
+    if ups is not None:
+        want = set(ups)
+        unknown = sorted(want - {u.up for u in U})
+        if unknown:
+            raise AnswersError(f"answers: no such unnamed part in the bundle: {unknown[:5]}")
+        U = [u for u in U if u.up in want]
+    out, places = list(keys), []
+    for u in U:
+        if B.key_ix.get(RuleKey(u.set_id, u.steelhead_water, u.steelhead_rules)) != u.key:
+            raise AnswersError(f"answers: unnamed part {u.up}'s rule key is not the bundle's")
+        if W[u.place].kind != u.kind:
+            raise AnswersError(f"answers: unnamed part {u.up} is a {u.kind}, its place a "
+                               f"{W[u.place].kind}")
+        out.append((u.set_id, u.licensing_set, u.steelhead_water, u.steelhead, u.steelhead_rules,
+                    u.province_except, u.home_regions, u.kind, u.tidal))
+        places.append(u.place)
+    return out, places, W
+
+
 # --------------------------------------------------------------------------------------------
 # Interning (format-2 style: a table of distinct values, referred to by index)
 # --------------------------------------------------------------------------------------------

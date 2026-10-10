@@ -24,6 +24,10 @@ def test_the_schema_checks_are_the_enums():
     assert f"province_except IN\n                                     ({v['province_except']})" in text
     assert f"kind            TEXT CHECK (kind IN ({v['kind']}))" in text
     assert f"closure_grade TEXT CHECK (closure_grade IN ({v['closure_grade']}))" in text
+    # the unnamed water (S1)
+    assert f"province_except TEXT NOT NULL CHECK (province_except IN\n" \
+           f"                                             ({v['province_except']}))" in text
+    assert f"kind     TEXT NOT NULL CHECK (kind IN ({v['kind']}))" in text
 
 
 def _db():

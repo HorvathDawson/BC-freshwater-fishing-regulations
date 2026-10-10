@@ -1738,8 +1738,8 @@ def requirements_in_force(db, section: int, on) -> dict:
     for streams (`water: stream` — the province's Classified Waters Licence,
     `zp:steelhead#steelhead_targeting`) does not hold on a lake or a wetland. A record that
     RESTATES another binds as that record (`as_bound`: its `who`, `satisfied_by` and `water` —
-    one obligation). The section's kind is its named water's (`item.kind`); a section in no named
-    water (a walked tributary) keeps it — the tributary walk walks streams only. Listed under
+    one obligation). The section's kind is `section_kind`: its named water's (`item.kind`), else its
+    unnamed place's (the atlas's node kind, S1); only a section with neither keeps it. Listed under
     `"wrong_water"`, `{entry_id#req_id: the water it is for}`, as `waived` lists the waived ones.
 
     A SUPERIOR AUTHORITY'S REQUIREMENT DISPLACES THE PROVINCIAL ONES (G5, adopted 2026-10-06): where
@@ -1871,10 +1871,16 @@ def considered_records(db, section: int, tidal: bool, excepted: set) -> list[str
 
 
 def section_kind(db, section: int) -> str | None:
-    """The kind of the named water a section is part of (`item.kind`: lake, stream, wetland), or
-    None for a section of no named water."""
+    """The WATER KIND of a section (lake, stream, wetland): the named water's (`item.kind`), else
+    its unnamed part's place's (`water_place.kind`: `reach.water_kind.kind_of`, the graph node's —
+    S1, user ruling 2026-10-10: "we definitely know this from the build"). None only for a section
+    with neither (outside B.C., or a hand-built bundle with no places)."""
     got = db.execute("SELECT i.kind FROM item_section s JOIN item i ON i.ord = s.ord "
                      "WHERE s.sid = ?", (section,)).fetchone()
+    if got:
+        return got[0]
+    got = db.execute("SELECT w.kind FROM section_ruleset r JOIN unnamed_part u ON u.up = r.up "
+                     "JOIN water_place w ON w.place = u.place WHERE r.sid = ?", (section,)).fetchone()
     return got[0] if got else None
 
 

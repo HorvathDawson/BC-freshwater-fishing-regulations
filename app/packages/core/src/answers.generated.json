@@ -5288,6 +5288,93 @@
     "$ref": "#/$defs/Moment"
    },
    "type": "array"
+  },
+  "top.places": {
+   "$defs": {
+    "Place": {
+     "additionalProperties": false,
+     "description": "Where unnamed water lies and what water it is (the bundle's `water_place`), with its name\nas the page shows it (`display.place_label`): \"Unnamed stream \u00b7 Region 2 / MU 2-8\".",
+     "properties": {
+      "kind": {
+       "enum": [
+        "lake",
+        "stream",
+        "wetland"
+       ],
+       "title": "Kind",
+       "type": "string"
+      },
+      "label": {
+       "title": "Label",
+       "type": "string"
+      },
+      "mus": {
+       "items": {
+        "pattern": "^[1-8]-\\d{1,2}$",
+        "type": "string"
+       },
+       "title": "Mus",
+       "type": "array"
+      },
+      "regions": {
+       "items": {
+        "enum": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7a",
+         "7b",
+         "8"
+        ],
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Regions",
+       "type": "array"
+      }
+     },
+     "required": [
+      "kind",
+      "regions",
+      "mus",
+      "label"
+     ],
+     "title": "Place",
+     "type": "object"
+    }
+   },
+   "items": {
+    "$ref": "#/$defs/Place"
+   },
+   "type": "array"
+  },
+  "top.unnamed": {
+   "additionalProperties": false,
+   "description": "The keys of the unnamed water: every key from `first` on is one UNNAMED PART (the bundle's\n`unnamed_part`), `places[i]` the place (index into `places`) of key `first + i`.",
+   "properties": {
+    "first": {
+     "minimum": 0,
+     "title": "First",
+     "type": "integer"
+    },
+    "places": {
+     "items": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "title": "Places",
+     "type": "array"
+    }
+   },
+   "required": [
+    "first",
+    "places"
+   ],
+   "title": "Unnamed",
+   "type": "object"
   }
  }
 }

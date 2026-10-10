@@ -838,6 +838,36 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
 
 
 # --------------------------------------------------------------------------------------------
+# The unnamed water's names (answers 2.4, S1)
+# --------------------------------------------------------------------------------------------
+
+#: How an unnamed answer is named: the water kind, then where it is (user, 2026-10-10: "Unnamed
+#: stream · Region N / MU m-n"). One template, here; the app shows the whole string (AGENTS 33).
+PLACE_TEMPLATE = "Unnamed {kind} · {regions}{mus}"
+
+
+def place_label(kind: str, regions: Sequence[str], mus: Sequence[str]) -> str:
+    """The name of an unnamed section's answer, from its place (the bundle's `water_place`):
+    "Unnamed stream · Region 2 / MU 2-8"; a lake on a region line "Unnamed lake · Regions 3 and 8 /
+    MUs 3-12 and 8-8"; with no MU (the atlas names none) "Unnamed lake · Region 7B". Regions are
+    the book's names (7a -> 7A); MUs in number order (4-6 before 4-18)."""
+    if not regions:
+        raise AnswersError(f"display: an unnamed {kind} in no region has no name")
+    rs = [r.upper() for r in regions]
+    where = ("Region " if len(rs) == 1 else "Regions ") + join(rs)
+    ms = sorted(mus, key=lambda u: tuple(int(x) for x in u.split("-")))
+    m = ("" if not ms else (" / MU " if len(ms) == 1 else " / MUs ") + join(ms))
+    return PLACE_TEMPLATE.format(kind=kind, regions=where, mus=m)
+
+
+def places_table(water_places) -> List[dict]:
+    """The answers' top-level `places`: per bundle place (`types.WaterPlace`, in place order) its
+    kind, regions, MUs and name."""
+    return [{"kind": w.kind, "regions": list(w.regions), "mus": list(w.mus),
+             "label": place_label(w.kind, w.regions, w.mus)} for w in water_places]
+
+
+# --------------------------------------------------------------------------------------------
 # The `display` section of the answers file
 # --------------------------------------------------------------------------------------------
 

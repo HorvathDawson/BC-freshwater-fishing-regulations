@@ -262,6 +262,52 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
     cov.filled("item_section", len(pairs))
 
 
+def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
+    """`{sid: (kind, regions, mus)}` for every section NO NAMED WATER OWNS (S1, `water_place`):
+
+      kind     `reach.water_kind.kind_of` — THE water kind of a section (the owner item's, else the
+               graph node's), the one every `feature_types` filter placed the rules by; for a
+               section no water owns, its node's: stream, lake or wetland
+      regions  the `area:region:*` items holding it, through `registry.regions.in_region` with
+               the atlas's home map attached (`attach_from`): a straddling stream piece is its home
+               region's, a straddling lake both regions' — the regions whose zone tables it takes
+      mus      the MUs the atlas graph says it touches (`StreamNode.mus`)
+
+    Read once, here, from the atlas the bundle is built from; `derived.write` groups and proves
+    them (a section in B.C. with no place, or a place in no region, stops the build)."""
+    from types import SimpleNamespace
+
+    from pipeline.atlas.reach.water_kind import kind_of
+    from pipeline.atlas.registry import regions as _regions
+    from pipeline.common.section_handles import read as _read_handles
+
+    ids, sid = _read_handles(build_dir)
+    registry = {i["id"]: SimpleNamespace(kind=i.get("kind"), section_ids=i.get("section_ids") or [])
+                for i in registry_items}
+    named = {s for i in registry_items if is_water(i) for s in i.get("section_ids") or []}
+    _regions.attach_from(build_dir, graph, registry)
+    regions_of: dict[str, list[str]] = {}
+    for iid in sorted(registry):
+        if iid.startswith(_regions.REGION_PREFIX):
+            r = iid[len(_regions.REGION_PREFIX):]
+            for s in _regions.in_region(graph, r, set(registry[iid].section_ids)):
+                regions_of.setdefault(s, []).append(r)
+    interned: dict[tuple, tuple] = {}
+    out: dict[int, tuple] = {}
+    for h in ids:
+        if h in named:
+            continue
+        node = graph.nodes.get(h)
+        if node is None:
+            raise SystemExit(f"water_place: section {h} is in the handle table but not the graph "
+                             f"— the atlas files are from different builds")
+        p = (kind_of(graph, registry, h), tuple(sorted(regions_of.get(h, ()))),
+             tuple(sorted(set(node.mus))))
+        out[sid[h]] = interned.setdefault(p, p)
+    print(f"     places: {len(out):,} unnamed sections, {len(interned):,} distinct places")
+    return out
+
+
 def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
                 cov: Coverage) -> None:
     """`item.area_ha`: how big each LAKE is, for ranking — the lake's size signal, as stream
@@ -782,6 +828,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         geoms = pickle.load(fh)
     _place_water(db, build_dir, places, registry_items, geoms, cov)
     _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov)
+    # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
+    # is loaded, and handed to the derived tables, which group the unnamed sections into parts
+    places = _water_places(build_dir, graph, registry_items)
     del graph, geoms, registry_items
     # The regulations. The reach builder resolved which water every rule covers; this only
     # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
@@ -836,7 +885,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # THE DERIVED TABLES (DATAFLOW P2): rule_ix, rule.closure_grade, part, part_section — from
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
-        _derived.write(db, cov)
+        _derived.write(db, cov, places=places)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.

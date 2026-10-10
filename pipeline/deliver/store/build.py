@@ -3,13 +3,15 @@
 Every table is a re-arrangement of what the inputs hold — nothing is decided here. The answers'
 interned tables become the frame families AS INTERNED (their indexes are the frame ids), the keys
 become `akey` rows, every section's `at` becomes `cell`, `display.waters` becomes the columnar
-`item` / `part` tables, and the bundle's part partition (`part_section`) gives `section_akey`.
+`item` / `part` tables, `places` the `place` table, and the bundle's partitions give `section_akey`:
+`part_section` every named section's, `section_ruleset.up` every other section's in B.C. (S1).
 
 THE BUILD REFUSES (StoreError) an answers file not paired with the export and the bundle (digests),
 an answers file not in the answers CLI's own serialisation (byte identity would be meaningless), a
-section or a display shape the store has not been taught, a bundle part whose facts are not its
-answers key's, a section two parts claim — and, last, a store that does not decode back to the
-answers bytes and the export subset (`decode`), which is never written.
+section or a display shape the store has not been taught, a bundle part (named or unnamed) whose
+facts are not its answers key's, a section two parts claim, a section in B.C. left with no key (0)
+or one outside B.C. given one — and, last, a store that does not decode back to the answers bytes
+and the export subset (`decode`), which is never written.
 """
 from __future__ import annotations
 
@@ -42,7 +44,7 @@ SECTION_STATIC = {("ladder", "reasons"), ("ladder", "reason_state"),
                   ("gear", "moments"), ("gear", "conduct_means"),
                   ("licence", "profiles"), ("licence", "profile_dims")}
 #: The answers' top-level keys held in tables; every other one is a `static` row.
-TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "sections")
+TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "places", "unnamed", "sections")
 TOP_STATIC = ("about", "spec", "schemas", "fish", "moments", "glossary")
 #: display.waters' shapes (the columnar `item` / `part` rows rebuild them in this key order).
 DISPLAY_WATER_KEYS = ("parts", "picker", "unresolved_licensing")
@@ -130,6 +132,38 @@ def bundle_problems(A: dict, bundle: sqlite3.Connection) -> List[str]:
     return out
 
 
+def unnamed_problems(A: dict, bundle: sqlite3.Connection) -> List[str]:
+    """Every way the answers' unnamed keys are not the bundle's unnamed parts (S1): key
+    `unnamed.first + up` must hold unnamed part `up`'s facts and place, for EVERY unnamed part (a
+    store keys every section in B.C., so an answers file built for a subset is refused), and the
+    answers' `places` must be the bundle's `water_place` rows."""
+    out = []
+    U = A["unnamed"]
+    rows = bundle.execute(
+        "SELECT up, set_id, licensing_set, province_except, steelhead_water, steelhead, "
+        "steelhead_rules, home_regions, tidal, place FROM unnamed_part ORDER BY up").fetchall()
+    if len(rows) != len(U["places"]):
+        out.append(f"the bundle has {len(rows)} unnamed parts, the answers {len(U['places'])} "
+                   "unnamed keys")
+        return out
+    kind = dict(bundle.execute("SELECT place, kind FROM water_place"))
+    for up, set_id, lset, pe, sw, st, sr, home, tidal, pl in rows:
+        k = U["first"] + up
+        key = A["keys"][k]
+        want = (key[0], key[1], key[2], STEELHEAD_CODE.get(key[3]), key[4], ",".join(key[5]),
+                ",".join(key[6]), key[7], key[8], U["places"][up])
+        got = (set_id, lset, sw, st, sr, pe, home, kind[pl], tidal, pl)
+        if want != got:
+            out.append(f"unnamed part {up}: bundle {got} != answers key {k} {want}")
+    places = [(p, k, r, m) for p, k, r, m in bundle.execute(
+        "SELECT place, kind, regions, mus FROM water_place ORDER BY place")]
+    mine = [(i, p["kind"], ",".join(p["regions"]), ",".join(p["mus"]))
+            for i, p in enumerate(A["places"])]
+    if places != mine:
+        out.append(f"the answers' places are not the bundle's ({len(mine)} vs {len(places)})")
+    return out
+
+
 def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str = "zdict",
           check: bool = True) -> dict:
     """Write the store to `out` (atomically) and return its counts."""
@@ -143,13 +177,16 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
     try:
         bmeta = dict(b.execute("SELECT k, v FROM meta"))
         check_pairing(A, E, G, bmeta)
-        problems = bundle_problems(A, b)
+        problems = bundle_problems(A, b) + unnamed_problems(A, b)
         if problems:
             raise StoreError(f"store: {len(problems)} bundle parts disagree with the answers: "
                              + "; ".join(problems[:10]))
         item_ord = {wid: o for o, wid in b.execute("SELECT ord, item_id FROM item")}
         part_section = b.execute("SELECT ord, sid, part_ix FROM part_section ORDER BY ord, sid"
                                  ).fetchall()
+        unnamed_section = b.execute("SELECT sid, up FROM section_ruleset WHERE up IS NOT NULL "
+                                    "ORDER BY sid").fetchall()
+        in_bc = [s for (s,) in b.execute("SELECT sid FROM section_ruleset ORDER BY sid")]
     finally:
         b.close()
 
@@ -157,7 +194,8 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_name(out.name + ".tmp")
     try:
-        counts = write_store(tmp, raw, A, sub, item_ord, part_section, blobs)
+        counts = write_store(tmp, raw, A, sub, item_ord, part_section, blobs,
+                             unnamed_section=unnamed_section, in_bc=in_bc)
         if check:
             from pipeline.deliver.store.decode import Store
             s = Store(tmp)
@@ -177,10 +215,13 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
 
 
 def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int],
-                part_section: list, codec: str = "zdict") -> dict:
+                part_section: list, codec: str = "zdict", *, unnamed_section=(),
+                in_bc: Optional[List[int]] = None) -> dict:
     """Write a store at `path` (replaced) from the decoded inputs — the answers wire `A` (and its
-    bytes `raw`), the export subset `sub`, the bundle's item ords and its `part_section` rows
-    (ord, sid, part_ix) — stamp its digest and compact it. No pairing or decode check: `build`."""
+    bytes `raw`), the export subset `sub`, the bundle's item ords, its `part_section` rows
+    (ord, sid, part_ix), its unnamed sections `(sid, up)` and every section in B.C. (`in_bc`: every
+    one must end with a key, and only those) — stamp its digest and compact it. No pairing or
+    decode check: `build`. `in_bc` None (a synthetic test) skips the every-section check."""
     if codec not in CODECS:
         raise StoreError(f"store: blob codec {codec!r} is not one of {CODECS}")
     path = Path(path)
@@ -188,7 +229,7 @@ def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, 
         path.unlink()
     con = sqlite3.connect(path)
     try:
-        counts = _write(con, raw, A, sub, item_ord, part_section, codec)
+        counts = _write(con, raw, A, sub, item_ord, part_section, codec, unnamed_section, in_bc)
         con.commit()
         con.execute("INSERT INTO meta VALUES ('store_digest', ?)", (store_digest(con),))
         con.commit()
@@ -199,7 +240,7 @@ def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, 
 
 
 def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_section: list,
-           codec: str) -> dict:
+           codec: str, unnamed_section=(), in_bc: Optional[List[int]] = None) -> dict:
     con.executescript("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")
     con.executescript(SCHEMA.read_text())
     S = _Strings()
@@ -233,6 +274,18 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
         con.execute("INSERT INTO seglist VALUES (?, ?)", (i, dumps_s(starts)))
     for i, ix in enumerate(A["segment_moments"]):
         con.execute("INSERT INTO segmom VALUES (?, ?)", (i, dumps_s(ix)))
+    # ---- the unnamed water's places (answers 2.4)
+    U = A["unnamed"]
+    if U["first"] + len(U["places"]) != len(A["keys"]):
+        raise StoreError(f"store: unnamed keys {U['first']} + {len(U['places'])} are not the "
+                         f"{len(A['keys'])} keys' tail")
+    for i, p in enumerate(A["places"]):
+        if list(p) != ["kind", "regions", "mus", "label"]:
+            raise StoreError(f"store: places[{i}] keys {list(p)} are not taught to the store")
+        con.execute("INSERT INTO place VALUES (?,?,?,?,?)",
+                    (i, S.add(p["kind"]), dumps_s(p["regions"]), dumps_s(p["mus"]),
+                     S.add(p["label"])))
+    place_of = {U["first"] + i: pl for i, pl in enumerate(U["places"])}
     nseg = []
     for k, row in enumerate(A["keys"]):
         if len(row) != KEY_LEN:
@@ -245,9 +298,9 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
                 raise StoreError(f"store: keys[{k}] {name} {v!r} is not an integer")
         n = len(A["segments"][seg])
         nseg.append(n)
-        con.execute("INSERT INTO akey VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        con.execute("INSERT INTO akey VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (k + 1, rs, ls, sw, STEELHEAD_CODE.get(st), sr, S.add(dumps_s(pe)),
-                     S.add(dumps_s(home)), S.add(kind), tidal, seg, mom, n))
+                     S.add(dumps_s(home)), S.add(kind), tidal, seg, mom, n, place_of.get(k)))
 
     # ---- cell: akey x segment -> frame per section
     secs = A["sections"]
@@ -350,6 +403,32 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
         off = 2 * (sid & (BLOCK - 1))
         blk[off:off + 2] = a.to_bytes(2, "little")
         named += 1
+    # ---- section_akey: every other section in B.C., its unnamed part's key (S1)
+    unnamed = 0
+    n_unnamed = len(U["places"])
+    for sid, up in unnamed_section:
+        if not 0 <= up < n_unnamed:
+            raise StoreError(f"store: section {sid} is in unnamed part {up}, which has no key")
+        a = U["first"] + up + 1
+        if a > 0xFFFF:
+            raise StoreError(f"store: akey {a} does not fit a u16")
+        if sid in owner:
+            raise StoreError(f"store: section {sid} is claimed by akeys {owner[sid]} and {a}")
+        owner[sid] = a
+        blk = blocks.setdefault(sid >> BLOCK_BITS, bytearray(2 * BLOCK))
+        off = 2 * (sid & (BLOCK - 1))
+        blk[off:off + 2] = a.to_bytes(2, "little")
+        unnamed += 1
+    # EVERY SECTION IN B.C. HAS AN ANSWER (S1): a 0 there, or a key outside, is refused
+    if in_bc is not None:
+        zero = [s_ for s_ in in_bc if s_ not in owner]
+        if zero:
+            raise StoreError(f"store: {len(zero)} section(s) in B.C. have no akey (e.g. "
+                             f"{zero[:5]}) — every section has an answer")
+        extra = sorted(set(owner) - set(in_bc))
+        if extra:
+            raise StoreError(f"store: {len(extra)} section(s) outside B.C. carry an akey (e.g. "
+                             f"{extra[:5]})")
     con.executemany("INSERT INTO section_akey VALUES (?, ?)",
                     [(i, bytes(blocks[i])) for i in sorted(blocks)])
 
@@ -400,7 +479,8 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
         "layout": dumps_s(layout),
     }
     counts = {"akeys": len(nseg), "cells": len(cells), "items": len(items), "parts": len(parts),
-              "named_sections": named, "section_blocks": len(blocks), "strings": len(S.ix),
+              "named_sections": named, "unnamed_sections": unnamed, "places": len(A["places"]),
+              "unnamed_keys": n_unnamed, "section_blocks": len(blocks), "strings": len(S.ix),
               "rules": len(rules), "licensing": len(lics), "entries": len(pending["entry"]),
               **{tbl: len(secs[n][k]) for (n, k), tbl in FAMILIES.items()}}
     meta["counts"] = dumps_s(counts)

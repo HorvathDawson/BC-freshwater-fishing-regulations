@@ -1,6 +1,6 @@
-"""THE REGS STORE (S0): `regs.sqlite` decodes back to the answers file BYTE FOR BYTE and to the export
-subset it carries by value; every section handle a named part covers holds that part's akey; an
-altered row is refused.
+"""THE REGS STORE (S0, S1): `regs.sqlite` decodes back to the answers file BYTE FOR BYTE and to the
+export subset it carries by value; every section handle a named part covers holds that part's akey,
+every other section in B.C. its unnamed part's (S1: never 0 inside B.C.); an altered row is refused.
 
 The synthetic tests need no data (a hand-made answers wire + export subset). The data tests build a
 store from the live set (`UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point them at a side build) into
@@ -37,28 +37,34 @@ def _wire() -> dict:
                   "sections": {}, "reserved": {}, "counts": {}},
         "spec": {"a": "b"}, "schemas": {"s": {}}, "fish": ["RB", "ST"],
         "keys": [[1, None, 0, "known", 1, [], ["1"], "stream", 0, 0, None],
-                 [2, 3, 0, None, 0, ["tidal"], [], "lake", 1, 1, 0]],
+                 [2, 3, 0, None, 0, ["tidal"], [], "lake", 1, 1, 0],
+                 [1, None, 0, None, 0, [], [], "wetland", 0, 0, None]],          # unnamed
         "segments": [[1], [1, 1, 200]],
         "moments": [{"weekdays": ["Monday"], "hours": None},
                     {"weekdays": ["Tuesday"], "hours": None}],
         "segment_moments": [[0, 1, 0]],
         "parts": {"w:a": [0, None], "w:b": [1], "w:c": []},
+        "places": [{"kind": "stream", "regions": ["2"], "mus": ["2-8"],
+                    "label": "Unnamed stream · Region 2 / MU 2-8"},
+                   {"kind": "wetland", "regions": ["3", "8"], "mus": [],
+                    "label": "Unnamed wetland · Regions 3 and 8"}],
+        "unnamed": {"first": 2, "places": [1]},
         "glossary": {"version": 1, "terms": [{"id": "t", "says": "ü — “quoted”"}]},
         "sections": {
-            "ladder": {"version": 1, "at": [[1], [0, 1, 0]], "reasons": ["moot"],
+            "ladder": {"version": 1, "at": [[1], [0, 1, 0], [0]], "reasons": ["moot"],
                        "reason_state": ["moot"], "verdicts": [[[0], [], [], [], [], []],
                                                               [[], [1], [], [], [], [[0, 0, 1]]]],
                        "frames": [[0, [[0, 1]]], [1, [[0, 0, 1, 0], [1, 0]]]]},
-            "rows": {"version": 5, "at": [[0], [0, 1, 1]], "decided": [{"status": "keep", "daily": 2}],
+            "rows": {"version": 5, "at": [[0], [0, 1, 1], [0]], "decided": [{"status": "keep", "daily": 2}],
                      "rows": [{"kind": "keep", "km": 0.1}],
                      "frames": [[["RB"], {"RB": [0, None]}, [0], None], [[], {}, [], "known_no_rules"]]},
-            "gear": {"version": 4, "at": [[0], [1, 1, 1]], "frames": [{"counts": {}}, {"tidal": True}],
+            "gear": {"version": 4, "at": [[0], [1, 1, 1], [0]], "frames": [{"counts": {}}, {"tidal": True}],
                      "province_methods": ["angling"], "parent": {}, "methods": [], "moments": [],
                      "conduct_means": {}},
-            "licence": {"version": 4, "at": [[0], [0, 0, 0]], "holds": [{"holds": [0]}],
+            "licence": {"version": 4, "at": [[0], [0, 0, 0], [0]], "holds": [{"holds": [0]}],
                         "answers": [{"documents": []}], "documents": [[0, 0]], "frames": [[0, 0]],
                         "profiles": ["a", "b"], "profile_dims": [["age", ["a", "b"]]]},
-            "display": {"version": 4, "at": [[0], [0, 0, 1]],
+            "display": {"version": 4, "at": [[0], [0, 0, 1], [0]],
                         "frames": [{"status": "base", "closing": []}, {"status": "closed", "closing": [[0, ["RB"]]]}],
                         "rules": [{"kind": "gear"}, {"kind": "quota", "plain": "Keep 2"}],
                         "waters": {"w:a": {"parts": [{"order": 0, "label": "From the mouth",
@@ -106,9 +112,12 @@ def _subset() -> dict:
 
 
 #: (bundle item ord, sid, part_ix): w:a part 0 two sections (one in the next block), part 1 outside
-#: B.C. (no key), w:b one section.
+#: B.C. (no key), w:b one section. Unnamed (S1): sections 13 and 2*BLOCK + 5 in unnamed part 0
+#: (answers key 2); every section in B.C.: all but 11.
 ITEM_ORD = {"w:a": 5, "w:b": 9, "w:c": 11}
 PART_SECTION = [(5, 10, 0), (5, BLOCK + 1, 0), (5, 11, 1), (9, 12, 0)]
+UNNAMED_SECTION = [(13, 0), (2 * BLOCK + 5, 0)]
+IN_BC = sorted([10, BLOCK + 1, 12, 13, 2 * BLOCK + 5])
 
 
 @pytest.fixture(params=CODECS)
@@ -116,7 +125,8 @@ def synthetic(tmp_path, request):
     A, sub = _wire(), _subset()
     raw = answers_file_bytes(A)
     p = tmp_path / f"regs.{request.param}.sqlite"
-    write_store(p, raw, A, sub, ITEM_ORD, PART_SECTION, request.param)
+    write_store(p, raw, A, sub, ITEM_ORD, PART_SECTION, request.param,
+                unnamed_section=UNNAMED_SECTION, in_bc=IN_BC)
     return p, raw, A, sub
 
 
@@ -127,10 +137,44 @@ def test_a_synthetic_store_round_trips_exactly(synthetic):
         assert s.answers() == A
         assert s.answers_bytes() == raw
         assert s.export_subset() == sub
-        assert s.section_akeys() == {10: 1, BLOCK + 1: 1, 12: 2}
+        assert s.section_akeys() == {10: 1, BLOCK + 1: 1, 12: 2, 13: 3, 2 * BLOCK + 5: 3}
         assert s.akey_of(11) == 0 and s.akey_of(BLOCK * 7) == 0
+        # the unnamed part's akey names its place, whole; a named part's akey has none
+        assert s.label_of(3) == "Unnamed wetland · Regions 3 and 8"
+        assert s.label_of(1) is None
     finally:
         s.close()
+
+
+def test_the_store_refuses_a_section_in_bc_with_no_akey(tmp_path):
+    """S1: every section in B.C. has an answer — a 0 there is refused (here: section 14 carries a
+    rule set, but no part, named or unnamed, covers it)."""
+    A = _wire()
+    with pytest.raises(StoreError, match="in B.C. have no akey"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, unnamed_section=UNNAMED_SECTION, in_bc=IN_BC + [14])
+
+
+def test_the_store_refuses_an_akey_outside_bc(tmp_path):
+    A = _wire()
+    with pytest.raises(StoreError, match="outside B.C. carry an akey"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, unnamed_section=UNNAMED_SECTION,
+                    in_bc=[x for x in IN_BC if x != 13])
+
+
+def test_the_store_refuses_an_unnamed_section_a_named_part_claims(tmp_path):
+    A = _wire()
+    with pytest.raises(StoreError, match="claimed by akeys"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, unnamed_section=UNNAMED_SECTION + [(12, 0)], in_bc=IN_BC)
+
+
+def test_the_store_refuses_an_unnamed_part_with_no_key(tmp_path):
+    A = _wire()
+    with pytest.raises(StoreError, match="which has no key"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, unnamed_section=[(13, 1)], in_bc=IN_BC)
 
 
 def test_a_synthetic_store_has_no_dangling_reference(synthetic):
@@ -240,12 +284,36 @@ def test_every_named_section_holds_the_akey_of_the_part_covering_it(live):
             k = A["parts"][ords[o]][pix]
             want[sid] = 0 if k is None else k + 1
         got = s.section_akeys()
-        assert {h: a for h, a in want.items() if a} == got
+        assert {h: a for h, a in want.items() if a} == {h: got[h] for h in want if h in got}
+        assert not [h for h, a in want.items() if not a and h in got]     # outside B.C.: 0
         assert all(s.akey_of(h) == a for h, a in list(want.items())[::97])
         # the store's own part rows say the same
         part_akey = {(o, i): a or 0 for o, i, a in s.con.execute("SELECT item_ord, part_ix, akey FROM part")}
         for o, sid, pix in b.execute("SELECT ord, sid, part_ix FROM part_section"):
             assert got.get(sid, 0) == part_akey[(o, pix)]
+    finally:
+        s.close()
+        b.close()
+
+
+@pytest.mark.needs_bundle
+def test_every_section_in_bc_has_a_nonzero_akey_and_none_outside(live):
+    """S1: a tapped section anywhere in B.C. has an answer — its named part's akey, or its unnamed
+    part's (named by its place); outside B.C. 0."""
+    out, _raw, A, *_ = live
+    b = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    s = Store(out)
+    try:
+        got = s.section_akeys()
+        in_bc = {sid for (sid,) in b.execute("SELECT sid FROM section_ruleset")}
+        outside = {sid for (sid,) in b.execute("SELECT sid FROM outside_bc")}
+        assert set(got) == in_bc and not (set(got) & outside) and len(in_bc) > 1_000_000
+        first = A["unnamed"]["first"]
+        up_of = dict(b.execute("SELECT sid, up FROM section_ruleset WHERE up IS NOT NULL"))
+        assert all(got[sid] == first + up + 1 for sid, up in up_of.items())
+        for sid in list(up_of)[::50021]:
+            label = s.label_of(got[sid])
+            assert label is not None and label.startswith("Unnamed ")
     finally:
         s.close()
         b.close()
@@ -295,8 +363,13 @@ def test_the_live_store_schema_invariants(live):
         assert con.execute("SELECT count(*) FROM akey").fetchone()[0] == len(A["keys"])
         assert con.execute("SELECT count(*) FROM akey a WHERE nseg <> (SELECT count(*) FROM cell c "
                            "WHERE c.akey = a.akey)").fetchone()[0] == 0
-        assert con.execute("SELECT count(*) FROM akey WHERE akey NOT IN (SELECT akey FROM part "
-                           "WHERE akey IS NOT NULL)").fetchone()[0] == 0
+        # every named akey is a part's; every other one an unnamed part's, named by its place (S1)
+        assert con.execute("SELECT count(*) FROM akey WHERE place IS NULL AND akey NOT IN "
+                           "(SELECT akey FROM part WHERE akey IS NOT NULL)").fetchone()[0] == 0
+        assert con.execute("SELECT count(*) FROM akey WHERE place IS NOT NULL").fetchone()[0] == \
+            len(A["unnamed"]["places"])
+        assert con.execute("SELECT count(*) FROM akey a JOIN place p ON p.place = a.place "
+                           "WHERE a.kind != p.kind").fetchone()[0] == 0
         # every family holds exactly the answers' interned table, ids 0..n-1
         for (name, key), tbl in FAMILIES.items():
             n, lo, hi = con.execute(f"SELECT count(*), min(id), max(id) FROM {tbl}").fetchone()

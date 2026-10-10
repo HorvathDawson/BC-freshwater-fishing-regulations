@@ -29,4 +29,5 @@ from pipeline.common.curated import GENERATED
 #: The store's canonical path: beside the bundle it is cut from (like `status_index.bin`).
 OUT = GENERATED.bundle / "regs.sqlite"
 
-FORMAT = "regs-store/1"
+#: 2 (S1): `place`, `akey.place`, and every section in B.C. keyed (`section_akey`).
+FORMAT = "regs-store/2"

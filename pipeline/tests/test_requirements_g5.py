@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
-from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 JUL_1 = (7, 1)
@@ -117,17 +117,28 @@ def test_a_stream_requirement_does_not_hold_on_a_lake(db, copy_db):
 
 
 @pytest.mark.needs_bundle
-def test_a_section_of_no_named_water_keeps_a_kind_scoped_requirement(db):
-    """A walked tributary is in no named water: its kind is unknown, and the stream-only
-    steelhead stamp placed there holds (the walk walks streams only)."""
+def test_a_section_of_no_named_water_is_read_by_its_own_kind(db, copy_db):
+    """A walked tributary is in no named water, but its kind is KNOWN (S1, user ruling 2026-10-10:
+    "we definitely know this from the build"): its unnamed place's, the graph node's — a stream, so
+    the stream-only steelhead stamp placed there holds. MUTATION: call its place a lake and the
+    same requirement goes to `wrong_water` (the G5 step reads the section's kind, never "unknown"
+    for a section in B.C.)."""
     sid = db.execute("SELECT r.sid FROM requirement_section r WHERE r.entry_id = 'zp:steelhead' "
                      "AND r.req_id = 'steelhead_targeting' AND NOT EXISTS (SELECT 1 FROM "
                      "item_section x WHERE x.sid = r.sid) ORDER BY r.sid LIMIT 1").fetchone()
     if sid is None:
         pytest.fail("pinned: no unnamed section carries the stream stamp in this bundle")
-    assert R.section_kind(db, sid[0]) is None
+    if not db.execute("SELECT COUNT(*) FROM water_place").fetchone()[0]:
+        predates("the bundle predates S1 (no water_place): an unnamed section has no kind")
+    assert R.section_kind(db, sid[0]) == "stream"
     got = R.requirements_in_force(db, sid[0], (11, 1))
     assert "zp:steelhead#steelhead_targeting" in got["holds"] and got["wrong_water"] == {}
+    copy_db.execute("UPDATE unnamed_part SET place = (SELECT MIN(place) FROM water_place WHERE "
+                    "kind = 'lake') WHERE up = (SELECT up FROM section_ruleset WHERE sid = ?)", sid)
+    assert R.section_kind(copy_db, sid[0]) == "lake"
+    got = R.requirements_in_force(copy_db, sid[0], (11, 1))
+    assert "zp:steelhead#steelhead_targeting" not in got["holds"]
+    assert got["wrong_water"] == {"zp:steelhead#steelhead_targeting": "stream"}
 
 
 @pytest.mark.needs_bundle

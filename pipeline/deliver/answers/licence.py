@@ -76,8 +76,10 @@ DECISIONS = [
     "L3 A steelhead-only requirement on a lake is NOT dropped (AGENTS 54: a book-known lake "
     "carries the stamp); the page drops it. The stream-only one says `water: stream` and drops "
     "by kind.",
-    "L4 A key of unknown water kind (no named water: walked tributaries) keeps a kind-scoped "
-    "requirement — the tributary walk walks streams only (AGENTS 15; `read.requirements_in_force`).",
+    "L4 A key of unknown water kind keeps a kind-scoped requirement (`read.requirements_in_force`). "
+    "Since answers 2.4 (S1) every section in B.C. has a kind — an unnamed section its place's "
+    "(`water_kind.kind_of`, the graph node's) — so no key reaches this; it remains for a "
+    "hand-built bundle with no places.",
     "L5 Métis is its own status (60 profiles): no record names it, so it answers as 'none' today.",
     "L6 Prices are numbers per document for the profile's residency: the annual price written for "
     "this angler first (65+, disabled), each day price, each 8-day price; a term's `classified` "
@@ -485,10 +487,12 @@ def section_scope(key: tuple, B) -> LicenceKey:
 
 def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
     """The LOWEST section of each wanted licence key (every section of a key answers alike): the
-    lowest `rep_sid` of the bundle's parts carrying it (`part`, DATAFLOW P6 — no scan of the
-    sections), read once in the build's parent and handed to the workers."""
+    lowest `rep_sid` of the bundle's NAMED parts carrying it (`part`, DATAFLOW P6 — no scan of the
+    sections), else — for a key only the unnamed water has (S1) — of its unnamed parts
+    (`unnamed_part`): a key a named part has keeps the named part's section, so no named answer
+    moves. Read once in the build's parent and handed to the workers."""
     from pipeline.deliver.answers.common import AnswersError
-    from pipeline.deliver.bundle.derived import parts
+    from pipeline.deliver.bundle.derived import parts, unnamed_parts
     wanted = set(wanted)
     db = connect(path)
     try:
@@ -501,6 +505,13 @@ def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
                 k = part_licence_key(p, sleepy)
                 if k in wanted and (k not in out or p.rep_sid < out[k]):
                     out[k] = p.rep_sid
+        loose: Dict[LicenceKey, int] = {}
+        if wanted - set(out):
+            for p in unnamed_parts(db):
+                k = part_licence_key(p, sleepy)
+                if k in wanted and k not in out and (k not in loose or p.rep_sid < loose[k]):
+                    loose[k] = p.rep_sid
+        out.update(loose)
     finally:
         db.close()
     missing = sorted(wanted - set(out), key=lambda k: json.dumps(k.as_list()))

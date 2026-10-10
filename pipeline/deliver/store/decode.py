@@ -65,14 +65,28 @@ class Store:
         layout = json.loads(self.meta["layout"])
         keys = []
         nseg = []
-        for (a, rs, ls, sw, st, sr, pe, home, kind, tidal, seg, mom, n) in self.con.execute(
-                "SELECT * FROM akey ORDER BY akey"):
+        key_places: List[int] = []
+        first: Optional[int] = None
+        for (a, rs, ls, sw, st, sr, pe, home, kind, tidal, seg, mom, n, pl) in self.con.execute(
+                "SELECT akey, ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, "
+                "province_except, home_region, kind, tidal, seg, mom, nseg, place FROM akey "
+                "ORDER BY akey"):
             if a != len(keys) + 1:
                 raise StoreError(f"store: akey {a} is out of sequence")
+            if pl is None and first is not None:
+                raise StoreError(f"store: akey {a} is a named key after the unnamed ones")
+            if pl is not None:
+                first = len(keys) if first is None else first
+                key_places.append(pl)
             keys.append([rs, ls, sw, STEELHEAD_NAME.get(st) if st is not None else None, sr,
                          json.loads(self.s(pe)), json.loads(self.s(home)), self.s(kind), tidal,
                          seg, mom])
             nseg.append(n)
+        unnamed = {"first": len(keys) if first is None else first, "places": key_places}
+        places = [{"kind": self.s(k), "regions": json.loads(r), "mus": json.loads(m),
+                   "label": self.s(lb)} for _, k, r, m, lb in
+                  self.con.execute("SELECT place, kind, regions, mus, label FROM place "
+                                   "ORDER BY place")]
         at: Dict[str, List[list]] = {name: [[] for _ in keys] for name in SECTIONS}
         for row in self.con.execute(
                 f"SELECT akey, s, {', '.join(SECTIONS)} FROM cell ORDER BY akey, s"):
@@ -135,6 +149,10 @@ class Store:
                           self.con.execute("SELECT mom, ix FROM segmom ORDER BY mom")]
             elif k == "parts":
                 out[k] = parts
+            elif k == "places":
+                out[k] = places
+            elif k == "unnamed":
+                out[k] = unnamed
             elif k == "sections":
                 out[k] = sections
             else:
@@ -195,8 +213,15 @@ class Store:
         return sub
 
     # ---- section handles
+    def label_of(self, akey: int) -> Optional[str]:
+        """The name of an unnamed part's akey ("Unnamed stream · Region 2 / MU 2-8"); None for a
+        named part's (its name is its water's and its part label)."""
+        row = self.con.execute("SELECT p.label FROM akey a JOIN place p ON p.place = a.place "
+                               "WHERE a.akey = ?", (akey,)).fetchone()
+        return None if row is None else self.s(row[0])
+
     def akey_of(self, handle: int) -> int:
-        """The akey of a section handle (0: no key yet)."""
+        """The akey of a section handle (0: outside B.C.)."""
         row = self.con.execute("SELECT b FROM section_akey WHERE block = ?",
                                (handle >> BLOCK_BITS,)).fetchone()
         if row is None:

@@ -15,6 +15,8 @@ registry's, stated here once. An unknown value raises (`Enum(value)`); nothing d
 """
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 from enum import StrEnum
 from itertools import combinations
@@ -267,6 +269,71 @@ class Part:
                              f"steelhead rules")
         if self.sections < 1:
             raise ValueError(f"Part {self.item_id}#{self.part_ix}: no sections")
+
+
+#: A wildlife management unit as the atlas spells it ("2-8", "7-12").
+_MU = re.compile(r"^[1-8]-\d{1,2}$")
+
+
+@dataclass(frozen=True, slots=True)
+class WaterPlace:
+    """Where unnamed sections lie and what water they are (the bundle's `water_place`, S1): the
+    water kind (`reach.water_kind.kind_of`), the regions whose zone tables they take, the MUs they
+    touch. The name of an unnamed answer (`answers.display.place_label`)."""
+    place: int
+    kind: str                               # WaterKind value
+    regions: Tuple[str, ...]                # sorted Region values; never empty
+    mus: Tuple[str, ...]                    # sorted MU codes; () = the atlas names none
+    sections: int
+
+    def __post_init__(self):
+        WaterKind(self.kind)
+        if not self.regions:
+            raise ValueError(f"WaterPlace {self.place}: no region")
+        for r in self.regions:
+            Region(r)
+        for m in self.mus:
+            if not _MU.match(m):
+                raise ValueError(f"WaterPlace {self.place}: MU {m!r} is not an MU code")
+        if list(self.regions) != sorted(set(self.regions)) or list(self.mus) != sorted(set(self.mus)):
+            raise ValueError(f"WaterPlace {self.place}: regions / MUs not sorted and unique")
+        if self.sections < 1:
+            raise ValueError(f"WaterPlace {self.place}: no sections")
+
+
+@dataclass(frozen=True, slots=True)
+class UnnamedPart:
+    """Every unnamed section in B.C. carrying the same answer-relevant facts and the same place
+    (the bundle's `unnamed_part`, S1): keyed like a named part, plus its place."""
+    up: int
+    set_id: int
+    key: int                                # the rule key (`rule_key.key_ix`)
+    licensing_set: Optional[int]
+    province_except: Tuple[str, ...]
+    steelhead_water: bool
+    steelhead: Optional[str]
+    steelhead_rules: bool
+    home_regions: Tuple[str, ...]           # () or the one home region of a straddling stream
+    kind: str                               # its place's WaterKind value
+    tidal: bool
+    place: int                              # `water_place.place`
+    sections: int
+    rep_sid: int                            # the lowest section: a HANDLE, never leaves the bundle
+
+    def __post_init__(self):
+        for k in self.province_except:
+            ProvinceExceptKind(k)
+        if list(self.province_except) != sorted(self.province_except):
+            raise ValueError(f"UnnamedPart {self.up}: province_except not sorted")
+        if self.steelhead is not None:
+            SteelheadPresence(self.steelhead)
+        for r in self.home_regions:
+            Region(r)
+        WaterKind(self.kind)
+        if self.steelhead_water and not self.steelhead_rules:
+            raise ValueError(f"UnnamedPart {self.up}: steelhead water without the steelhead rules")
+        if self.sections < 1:
+            raise ValueError(f"UnnamedPart {self.up}: no sections")
 
 
 @dataclass(frozen=True, slots=True)

@@ -288,8 +288,10 @@ CREATE TABLE rule_ix (ix INTEGER PRIMARY KEY CHECK (ix >= 0),
 -- THE READER'S THREE INPUTS FOR A SECTION (DATAFLOW P2, the "rule key"): its rule set, whether a
 -- rainbow over 50 cm is a steelhead there, whether the steelhead rules apply there. Every
 -- section with one key gets one answer from `read.effective_rules_bound`, so the verdicts are
--- worked out per key. Numbered in (set, steelhead_water, steelhead_rules) order. `kind` the water
--- kind of the NAMED water carrying the set (NULL: only unnamed sections carry it); `rep_sid` the
+-- worked out per key. Numbered in (set, steelhead_water, steelhead_rules) order. `kind` THE WATER
+-- KIND OF EVERY SECTION carrying the key: the named water's (`rules.write`), and for a key only
+-- unnamed sections carry, their place's (`water_place.kind`, filled by `derived.write`, S1) — one
+-- per key, or the build stops; NULL only in a hand-built bundle with no places. `rep_sid` the
 -- lowest section (a HANDLE: never leaves the bundle).
 CREATE TABLE rule_key (key_ix          INTEGER PRIMARY KEY CHECK (key_ix >= 0),
                        set_id          INTEGER NOT NULL,
@@ -327,9 +329,12 @@ CREATE TABLE rule_key (key_ix          INTEGER PRIMARY KEY CHECK (key_ix >= 0),
 --
 -- `key_ix` IS THE SECTION'S RULE KEY (decision U2): computed once where the steelhead facts are
 -- born (`rules.write`, `derived.rule_keys`), read by the verdicts, the status index and the app.
+-- `up` IS THE UNNAMED PART of a section no named water owns (S1, `unnamed_part` below), NULL on
+-- every named section: written by `derived.write`, which proves (up IS NULL) = (sid is named).
 CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
                               set_id INTEGER NOT NULL,
-                              key_ix INTEGER NOT NULL REFERENCES rule_key(key_ix));
+                              key_ix INTEGER NOT NULL REFERENCES rule_key(key_ix),
+                              up     INTEGER REFERENCES unnamed_part(up));
 
 -- THE PARTS OF EVERY NAMED WATER, decided once (DATAFLOW P2, Q16): every section of one water
 -- carrying the same rule set, licensing set, province exceptions, steelhead water and steelhead
@@ -367,6 +372,58 @@ CREATE TABLE part_section (ord     INTEGER NOT NULL,
                            part_ix INTEGER NOT NULL,
                            PRIMARY KEY (ord, sid),
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
+
+-- EVERY SECTION HAS AN ANSWER (S1, user ruling 2026-10-10: "unnamed or named but unregulated
+-- waters should always show base regs/zone and any area they are in, tiered properly"). A section
+-- inside B.C. that no named water owns (1.89 M of 1.96 M) is answered like a part: its rule set
+-- already holds the zone base and every area row it lies in, so what it lacks is a KEY and a NAME.
+--
+-- `water_place` IS WHERE SUCH A SECTION IS AND WHAT WATER IT IS, decided by the atlas and read here
+-- once (`build._water_places`, handed to `derived.write`):
+--   kind     THE WATER KIND, `reach.water_kind.kind_of` — the owner item's kind, else the graph
+--            node's (stream | lake | wetland). For an unnamed section that is the node's: "we
+--            definitely know this from the build, so if unnamed and it comes from streams it is
+--            a stream" (user, 2026-10-10). The kind every regulation already read when it placed
+--            (`feature_types`), now also the answer's.
+--   regions  the regions whose zone tables it takes, sorted, comma-joined (`types.Region`): the
+--            registry's `area:region:*` membership through `registry.regions.in_region` (a stream
+--            piece straddling a line is its home region's, a lake is in both) — never empty.
+--   mus      the wildlife management units the section touches (the atlas graph's `mus`), sorted,
+--            comma-joined; '' only where the graph names none.
+-- An exception to "mus ride on the tile" (top of this file): here the MU is not geometry but the
+-- NAME of an unnamed answer ("Unnamed stream · Region 2 / MU 2-8", `answers.display.place_label`),
+-- which the pipeline resolves so the app never computes it.
+--
+-- `unnamed_part` IS THE PART OF THE UNNAMED WATER: every unnamed section in B.C. carrying the same
+-- facts a named part is keyed by (rule set, licensing set, province exceptions, steelhead water and
+-- presence — whence the steelhead rules and the rule key —, home region, tidal water) AND the same
+-- place. Numbered in that order (null licensing set last, no steelhead code last). The answers make
+-- one key per row, after the named parts' (`common.unnamed_keys`); the regs store gives every such
+-- section that key (`section_akey`). `rep_sid` the lowest section (a HANDLE: never leaves the bundle).
+-- Grouped HERE and nowhere else (`test_dataflow_gates` gate 3), proved by `derived.prove`.
+CREATE TABLE water_place (place    INTEGER PRIMARY KEY CHECK (place >= 0),
+                          kind     TEXT NOT NULL CHECK (kind IN ('lake', 'stream', 'wetland')),
+                          regions  TEXT NOT NULL CHECK (regions <> ''),
+                          mus      TEXT NOT NULL,
+                          sections INTEGER NOT NULL CHECK (sections > 0),
+                          UNIQUE (kind, regions, mus));
+CREATE TABLE unnamed_part (up              INTEGER PRIMARY KEY CHECK (up >= 0),
+                           set_id          INTEGER NOT NULL,
+                           key_ix          INTEGER NOT NULL REFERENCES rule_key(key_ix),
+                           licensing_set   INTEGER,
+                           province_except TEXT NOT NULL CHECK (province_except IN
+                                             ('', 'national_parks', 'tidal', 'national_parks,tidal')),
+                           steelhead_water INTEGER NOT NULL CHECK (steelhead_water IN (0, 1)),
+                           steelhead       INTEGER CHECK (steelhead IN (1, 2)),
+                           steelhead_rules INTEGER NOT NULL CHECK (steelhead_rules IN (0, 1)),
+                           home_regions    TEXT NOT NULL,
+                           tidal           INTEGER NOT NULL CHECK (tidal IN (0, 1)),
+                           place           INTEGER NOT NULL REFERENCES water_place(place),
+                           sections        INTEGER NOT NULL CHECK (sections > 0),
+                           rep_sid         INTEGER NOT NULL,
+                           UNIQUE (set_id, licensing_set, province_except, steelhead_water,
+                                   steelhead, home_regions, tidal, place),
+                           CHECK (steelhead_water <= steelhead_rules));
 
 -- WATER B.C. DOES NOT GOVERN. Every section outside the province — past the border (the atlas's
 -- `out_of_bc`) or in no region polygon (border slivers) — by handle. The reach builder subtracts

@@ -14,6 +14,12 @@
                    water and steelhead presence — in the export's order, so `part_ix` IS the
                    export's `waters[item].parts` index. The export and the answers read this
                    table; nothing else groups sections into parts (gate 3)
+  water_place      THE UNNAMED WATER (S1, user ruling 2026-10-10: every section has an answer):
+  unnamed_part     where each section no named water owns lies and what water it is (kind,
+  section_ruleset.up   regions, MUs — the atlas's, handed in by the bundle build), and its PART:
+                   every unnamed section in B.C. carrying the same facts a named part is keyed
+                   by and the same place. The answers make one key per unnamed part; nothing
+                   else groups unnamed sections (gate 3)
 
 Every table is held to SQL CHECK / UNIQUE / FOREIGN KEY constraints (schema.sql; the build runs
 `PRAGMA foreign_keys = ON`), and `prove` refuses a build whose rows break a fact the constraints
@@ -89,8 +95,17 @@ def rule_keys(section_set: Dict[int, int], anadromous: Iterable[int], applies: I
 # rule_ix, rule.closure_grade, part, part_section
 # --------------------------------------------------------------------------------------------
 
-def write(db: sqlite3.Connection, cov) -> None:
-    """Write `rule_ix`, `rule.closure_grade`, `part` and `part_section`, and prove them."""
+#: One unnamed section's place as the bundle build hands it over: (kind, regions, mus) — the water
+#: kind (`reach.water_kind.kind_of`), the sorted regions it takes zone tables from, the sorted MUs
+#: it touches.
+Place = Tuple[str, Tuple[str, ...], Tuple[str, ...]]
+
+
+def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None) -> None:
+    """Write `rule_ix`, `rule.closure_grade`, `part` and `part_section` — and, given `places` (the
+    atlas's place of every section no named water owns, by handle: the bundle build always gives
+    it), `water_place`, `unnamed_part` and `section_ruleset.up` — and prove them. A hand-built
+    bundle with no atlas (the tests' fixtures) passes no places and gets no unnamed parts."""
     from pipeline.deliver.bundle.read import rules_from
     from pipeline.deliver.bundle.rules import closure_grade
 
@@ -119,7 +134,36 @@ def write(db: sqlite3.Connection, cov) -> None:
                    [(r[0], s, r[1]) for r in rows for s in r[13]])
     cov.filled("part", len(rows))
     cov.filled("part_section", sum(len(r[13]) for r in rows))
-    prove(db)
+
+    # ---- water_place / unnamed_part / section_ruleset.up (S1) --------------------------
+    if places is not None:
+        place_rows, part_rows_, up_of = unnamed_rows(db, places)
+        db.executemany("INSERT INTO water_place (place, kind, regions, mus, sections) "
+                       "VALUES (?,?,?,?,?)", place_rows)
+        db.executemany(
+            "INSERT INTO unnamed_part (up, set_id, key_ix, licensing_set, province_except, "
+            "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, place, sections, "
+            "rep_sid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", part_rows_)
+        db.executemany("UPDATE section_ruleset SET up = ? WHERE sid = ?",
+                       ((u, s) for s, u in sorted(up_of.items())))
+        # THE KIND OF EVERY RULE KEY (S1): a key only unnamed sections carry (138 on 2026-10-10)
+        # takes their place's kind; one kind per key, named and unnamed alike, or the build stops
+        kinds: Dict[int, set] = defaultdict(set)
+        for k, kind in db.execute("SELECT u.key_ix, w.kind FROM unnamed_part u JOIN water_place w "
+                                  "ON w.place = u.place"):
+            kinds[k].add(kind)
+        for k, kind in db.execute("SELECT key_ix, kind FROM rule_key WHERE kind IS NOT NULL"):
+            kinds[k].add(kind)
+        mixed = sorted(k for k, v in kinds.items() if len(v) > 1)
+        if mixed:
+            raise DerivedError(f"rule_key: {len(mixed)} key(s) carry sections of two water kinds "
+                               f"(e.g. key {mixed[0]}: {sorted(kinds[mixed[0]])}) — a key needs one")
+        filled = [(next(iter(v)), k) for k, v in sorted(kinds.items())]
+        db.executemany("UPDATE rule_key SET kind = ? WHERE key_ix = ? AND kind IS NULL", filled)
+        cov.filled("water_place", len(place_rows))
+        cov.filled("unnamed_part", len(part_rows_))
+        cov.filled("section_ruleset.up", len(up_of))
+    prove(db, unnamed=places is not None)
 
 
 def part_rows(db: sqlite3.Connection) -> List[tuple]:
@@ -181,8 +225,80 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     return out
 
 
-def prove(db: sqlite3.Connection) -> None:
-    """The derived tables against the rows they came from — refused, naming the first failure."""
+def unnamed_rows(db: sqlite3.Connection, places: Dict[int, Place]
+                 ) -> Tuple[List[tuple], List[tuple], Dict[int, int]]:
+    """`(water_place rows, unnamed_part rows, {sid: up})` for every section in B.C. (it carries a
+    rule set) that no named water owns. `places` must name every such section; a place with no
+    region, an unknown kind or region is refused. Grouped by (rule set, licensing set, province
+    exceptions, steelhead water, steelhead presence, home region, tidal water, place) — the named
+    part's facts and the place — and numbered in that order; the facts a group must share (the
+    steelhead rules apply, the rule key) are read per section and refused when they differ."""
+    named = {s for (s,) in db.execute("SELECT sid FROM item_section")}
+    rset, key_of = {}, {}
+    for sid, set_id, k in db.execute("SELECT sid, set_id, key_ix FROM section_ruleset"):
+        if sid not in named:
+            rset[sid], key_of[sid] = set_id, k
+    lset = dict(db.execute("SELECT sid, set_id FROM section_licensing"))
+    pe: Dict[int, List[str]] = defaultdict(list)
+    for kind, sid in db.execute("SELECT area_kind, sid FROM province_except ORDER BY area_kind"):
+        pe[sid].append(T.ProvinceExceptKind(kind).value)
+    sw = {s for (s,) in db.execute("SELECT sid FROM steelhead_water")}
+    st = dict(db.execute("SELECT sid, code FROM section_steelhead"))
+    sr = {s for (s,) in db.execute("SELECT sid FROM section_steelhead_rules")}
+    home = dict(db.execute("SELECT sid, region FROM section_home"))
+    tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
+
+    missing = sorted(s for s in rset if s not in places)
+    if missing:
+        raise DerivedError(f"water_place: {len(missing)} unnamed section(s) in B.C. have no place "
+                           f"(e.g. {missing[:3]}) — every section needs a kind and a region")
+    count: Dict[Place, int] = defaultdict(int)
+    for sid in rset:
+        count[places[sid]] += 1
+    place_ix = {p: i for i, p in enumerate(sorted(count))}
+    for p, i in place_ix.items():
+        try:                                    # the type's checks: kind, regions (never none), MUs
+            T.WaterPlace(place=i, kind=p[0], regions=p[1], mus=p[2], sections=count[p])
+        except ValueError as e:
+            raise DerivedError(f"water_place: {e} (a {p[0]} in regions {p[1]}, MUs {p[2]})")
+    place_rows = [(place_ix[p], p[0], ",".join(p[1]), ",".join(p[2]), count[p])
+                  for p in sorted(count)]
+
+    groups: Dict[tuple, List[int]] = defaultdict(list)
+    for sid in sorted(rset):
+        groups[(rset[sid], lset.get(sid), ",".join(pe.get(sid, ())), sid in sw, st.get(sid),
+                home.get(sid), sid in tidal, place_ix[places[sid]])].append(sid)
+
+    def order(g):
+        rs, ls, p, w, s, h, td, pl = g
+        return (rs, ls is None, ls or 0, p != "", p, w, s is None, s or 0, h is None, h or "",
+                td, pl)
+
+    part_rows_: List[tuple] = []
+    up_of: Dict[int, int] = {}
+    for up, g in enumerate(sorted(groups, key=order)):
+        rs, ls, p, w, s, h, td, pl = g
+        sids = groups[g]
+        rules_apply = {x in sr for x in sids}
+        keys = {key_of[x] for x in sids}
+        if len(rules_apply) != 1:
+            raise DerivedError(f"unnamed_part {up}: its sections disagree on whether the steelhead "
+                               f"rules apply")
+        if len(keys) != 1:
+            raise DerivedError(f"unnamed_part {up}: its sections carry {len(keys)} rule keys")
+        part_rows_.append((up, rs, next(iter(keys)), ls, p, int(w), s,
+                           int(next(iter(rules_apply))), T.Region(h).value if h else "", int(td),
+                           pl, len(sids), min(sids)))
+        for x in sids:
+            up_of[x] = up
+    return place_rows, part_rows_, up_of
+
+
+def prove(db: sqlite3.Connection, unnamed: Optional[bool] = None) -> None:
+    """The derived tables against the rows they came from — refused, naming the first failure.
+    `unnamed` True: the unnamed parts were written (the bundle build), so every section in B.C. must
+    be in exactly one part, named or unnamed; False: none may be (a fixture with no places); None
+    (a built bundle read back): True exactly when it holds unnamed parts."""
     bad = db.execute("PRAGMA foreign_key_check").fetchall()
     if bad:
         raise DerivedError(f"derived: foreign keys broken (e.g. {bad[:3]})")
@@ -207,6 +323,44 @@ def prove(db: sqlite3.Connection) -> None:
         raise DerivedError("rule_ix: not in sorted `entry_id::rule_id` order")
     if db.execute("SELECT COUNT(*) FROM rule").fetchone()[0] != len(ids):
         raise DerivedError("rule_ix: does not hold every rule once")
+    # THE UNNAMED PARTS (S1): every section in B.C. is named XOR in an unnamed part, and an
+    # unnamed part's facts are its sections'
+    named_up = db.execute("SELECT COUNT(*) FROM section_ruleset r JOIN item_section s "
+                          "ON s.sid = r.sid WHERE r.up IS NOT NULL").fetchone()[0]
+    if named_up:
+        raise DerivedError(f"unnamed_part: {named_up} named section(s) carry an unnamed part")
+    if unnamed is None:
+        unnamed = bool(db.execute("SELECT COUNT(*) FROM unnamed_part").fetchone()[0])
+    if not unnamed:
+        if db.execute("SELECT COUNT(*) FROM unnamed_part").fetchone()[0]:
+            raise DerivedError("unnamed_part: rows written without the places they come from")
+        return
+    loose = db.execute("SELECT COUNT(*) FROM section_ruleset r WHERE r.up IS NULL AND NOT EXISTS "
+                       "(SELECT 1 FROM item_section s WHERE s.sid = r.sid)").fetchone()[0]
+    if loose:
+        raise DerivedError(f"unnamed_part: {loose} unnamed section(s) in B.C. are in no part — "
+                           f"every section has an answer")
+    kindless = db.execute("SELECT COUNT(*) FROM rule_key WHERE kind IS NULL").fetchone()[0]
+    if kindless:
+        raise DerivedError(f"rule_key: {kindless} key(s) have no water kind — every section has one")
+    wrong = db.execute(
+        "SELECT r.sid FROM section_ruleset r JOIN unnamed_part u ON u.up = r.up "
+        "LEFT JOIN section_licensing l ON l.sid = r.sid "
+        "WHERE u.set_id != r.set_id OR u.key_ix != r.key_ix OR NOT (u.licensing_set IS l.set_id) "
+        "OR u.tidal != (r.sid IN (SELECT sid FROM tidal)) LIMIT 3").fetchall()
+    if wrong:
+        raise DerivedError(f"unnamed_part: section(s) {wrong} carry facts their part does not")
+    n = db.execute("SELECT (SELECT COUNT(*) FROM section_ruleset WHERE up IS NOT NULL), "
+                   "(SELECT COALESCE(SUM(sections), 0) FROM unnamed_part), "
+                   "(SELECT COALESCE(SUM(sections), 0) FROM water_place)").fetchone()
+    if not n[0] == n[1] == n[2]:
+        raise DerivedError(f"unnamed_part: {n[0]} sections, {n[1]} counted by the parts, {n[2]} by "
+                           f"the places")
+    bad = db.execute("SELECT w.place FROM water_place w WHERE w.sections != (SELECT "
+                     "COALESCE(SUM(u.sections), 0) FROM unnamed_part u WHERE u.place = w.place) "
+                     "LIMIT 3").fetchall()
+    if bad:
+        raise DerivedError(f"water_place: place(s) {bad} count sections their parts do not")
 
 
 # --------------------------------------------------------------------------------------------
@@ -229,6 +383,31 @@ def parts(db: sqlite3.Connection) -> Dict[str, List[T.Part]]:
             home_regions=tuple(home.split(",")) if home else (), kind=kind, tidal=bool(td),
             sections=n, rep_sid=rep))
     return dict(out)
+
+
+def water_places(db: sqlite3.Connection) -> List[T.WaterPlace]:
+    """Every place of the unnamed water, in `place` order (`types.WaterPlace`)."""
+    return [T.WaterPlace(place=p, kind=k, regions=tuple(r.split(",")),
+                         mus=tuple(m.split(",")) if m else (), sections=n)
+            for p, k, r, m, n in db.execute("SELECT place, kind, regions, mus, sections FROM "
+                                            "water_place ORDER BY place")]
+
+
+def unnamed_parts(db: sqlite3.Connection) -> List[T.UnnamedPart]:
+    """Every part of the unnamed water, in `up` order (`types.UnnamedPart`), with its place's kind.
+    Empty for a bundle written without places (a test fixture)."""
+    names = {c: n for c, n in read_steelhead_codes()}
+    return [T.UnnamedPart(
+        up=up, set_id=s, key=k, licensing_set=ls,
+        province_except=tuple(pe.split(",")) if pe else (), steelhead_water=bool(sw),
+        steelhead=None if st is None else names[st], steelhead_rules=bool(sr),
+        home_regions=(home,) if home else (), kind=kind, tidal=bool(td), place=pl, sections=n,
+        rep_sid=rep)
+        for (up, s, k, ls, pe, sw, st, sr, home, td, pl, n, rep, kind) in db.execute(
+            "SELECT u.up, u.set_id, u.key_ix, u.licensing_set, u.province_except, "
+            "u.steelhead_water, u.steelhead, u.steelhead_rules, u.home_regions, u.tidal, u.place, "
+            "u.sections, u.rep_sid, w.kind FROM unnamed_part u JOIN water_place w "
+            "ON w.place = u.place ORDER BY u.up")]
 
 
 def read_steelhead_codes() -> List[Tuple[int, str]]:

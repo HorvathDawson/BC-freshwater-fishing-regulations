@@ -829,9 +829,36 @@ class Glossary(Model):
         return self
 
 
-#: The top-level tables' models (not sections): `moments`, `glossary`.
+# --------------------------------------------------------------------------------------------
+# The top level: THE UNNAMED WATER (answers 2.4, S1 — every section has an answer)
+# --------------------------------------------------------------------------------------------
+
+WaterKindLit = _enum(T.WaterKind, "WaterKind")
+RegionLit = _enum(T.Region, "Region")
+MuCode = Annotated[StrictStr, Field(pattern=r"^[1-8]-\d{1,2}$")]
+
+
+class Place(Model):
+    """Where unnamed water lies and what water it is (the bundle's `water_place`), with its name
+    as the page shows it (`display.place_label`): "Unnamed stream · Region 2 / MU 2-8"."""
+    kind: WaterKindLit
+    regions: Tuple[RegionLit, ...] = Field(min_length=1)
+    mus: Tuple[MuCode, ...]                          # () only where the atlas names none
+    label: StrictStr
+
+
+class Unnamed(Model):
+    """The keys of the unnamed water: every key from `first` on is one UNNAMED PART (the bundle's
+    `unnamed_part`), `places[i]` the place (index into `places`) of key `first + i`."""
+    first: Count
+    places: Tuple[Count, ...]
+
+
+#: The top-level tables' models (not sections): `moments`, `glossary`, `places`, `unnamed`.
 TOP: Dict[str, TypeAdapter] = {"moments": TypeAdapter(Tuple[Moment, ...]),
-                               "glossary": TypeAdapter(Glossary)}
+                               "glossary": TypeAdapter(Glossary),
+                               "places": TypeAdapter(Tuple[Place, ...]),
+                               "unnamed": TypeAdapter(Unnamed)}
 
 STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "rules"): TypeAdapter(Tuple[RuleFacts, ...]),
