@@ -17258,6 +17258,36 @@
    },
    "trust": "auto"
   },
+  "08KG001": {
+   "station": "08KG001",
+   "station_name": "WEST ROAD RIVER NEAR CINEMA",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 23.7,
+   "reason": null,
+   "lon": -122.89180755615234,
+   "lat": 53.306419372558594,
+   "wbk": [],
+   "wsc": [
+    "100-500560"
+   ],
+   "also": [],
+   "name": "West Road (Blackwater) River",
+   "blk": "356364550",
+   "evidence": {
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": 23.7,
+    "area_km2": 12390.0,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "reviewed",
+   "note": "user 2026-10-09: same river under its FWA double name; 24 m, area 12,390 km2 and kind agree (only the exact-name check failed)",
+   "reviewed": "2026-10-09"
+  },
   "08KG003": {
    "station": "08KG003",
    "station_name": "BAEZAEKO RIVER AT LOT 10262",
@@ -36320,6 +36350,36 @@
     "kind_agrees": true
    },
    "trust": "auto"
+  },
+  "08MH166": {
+   "station": "08MH166",
+   "station_name": "CEDAR CREEK ABOVE THE MOUTH",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 18.4,
+   "reason": null,
+   "lon": -122.77684783935548,
+   "lat": 49.38098907470703,
+   "wbk": [],
+   "wsc": [
+    "100-023788-438731"
+   ],
+   "also": [],
+   "name": "Blakeny Creek",
+   "blk": "356337017",
+   "evidence": {
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": 18.4,
+    "area_km2": 26.450000762939453,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "reviewed",
+   "note": "user 2026-10-09: checked on the map (handoff/GAUGES/08MH166_*.png) \u2014 the gauge sits ~20 m above the creek's mouth into Coquitlam Lake; FWA names it Blakeny Creek; 26 km2 drainage agrees",
+   "reviewed": "2026-10-09"
   },
   "08MH167": {
    "station": "08MH167",
