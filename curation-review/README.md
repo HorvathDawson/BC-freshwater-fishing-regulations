@@ -19,9 +19,9 @@ The build it serves is `GENERATED.build()` (`data/generated/atlas/full`); `reuse
 rebuild button both read it, so repointing the app at another build is a config edit, not a code
 change.
 
-⚠️ **The in-app rebuild button overwrites the build it is serving.** It deletes and rewrites
-`graph.gpkg`, so the map is broken for the several minutes that takes. To verify a build
-before adopting it, build to a staging directory and swap.
+The in-app rebuild button builds a side atlas (`<build>_next`) and never touches the build it is
+serving; **Promote** (`POST /api/rebuild/promote`) makes it the served build by rename, keeping the
+old one as `<build>.prev`. The app's caches drop themselves when the served files change.
 
 ---
 
@@ -93,6 +93,26 @@ then writes through `pipeline.regs.parsing.io.write_entryfile` — atomic, every
 written back exactly as it was, and the whole file validated as written. A field the model does not
 know is refused (422), not dropped. The one exception is each rule's `label`, which the backend
 stamps on what it serves and removes again on save.
+
+**Every write goes through `backend/writes.py`** (entry saves, split edit/delete/rename, the
+verification sidecar):
+
+- **Backed up first.** Each target is copied, byte for byte, into a snapshot
+  `data/generated/regs/entries_backup/curation-review/<UTC stamp>-<action>/<dir>/<file>` (the same
+  root `reparse_candidates --backup-dir` uses; `CURATION_BACKUP_DIR` overrides it). The newest 500
+  snapshots are kept (`CURATION_BACKUP_KEEP`); older ones are pruned. To undo a save, copy the
+  file back from its snapshot.
+- **All or nothing.** Every new file is computed and validated before anything is written; if a
+  later write fails, the files already written are restored. A split **rename** rewrites
+  splits.json, every catalogue extent and every DFO salmon location binding the id in one commit,
+  and is refused for an id named in pipeline code (`CNR_BRIDGE` and three others).
+- **Splits are validated by the pipeline's own loader** (`_flatten_waterbodies` +
+  `SplitDef.from_dict`); a split the build would skip is refused (422) with the model's reason.
+
+**Caches follow the build.** Before every `/api/` request the backend stats the served build's
+files and the bundle (`reuse.ensure_fresh`); if any changed (a promote, or a rebuild from a
+terminal) every build-derived cache is dropped. The place-namer is keyed on splits.json, so an
+edited split label shows on the next request.
 
 ## API
 

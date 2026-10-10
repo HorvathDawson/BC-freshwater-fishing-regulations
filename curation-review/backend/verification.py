@@ -25,7 +25,7 @@ import json
 import os
 from pathlib import Path
 
-from pipeline.regs.parsing import io
+import writes
 
 #: what a reviewer may set; `unverified` clears the record
 STATES = ("verified", "flagged", "unverified")
@@ -64,7 +64,7 @@ def load(path: Path) -> dict[str, dict]:
 def _write(path: Path, records: dict[str, dict]) -> None:
     text = json.dumps({"version": 1, "entries": dict(sorted(records.items()))},
                       indent=1, ensure_ascii=False, sort_keys=True) + "\n"
-    io.atomic_write(Path(path), text)
+    writes.commit([(Path(path), text)], "verify")      # backed up first, like every app write
 
 
 def status_of(rec: dict | None, current_hash: str) -> str:

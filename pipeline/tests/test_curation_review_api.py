@@ -47,9 +47,11 @@ def env(request, tmp_path_factory):
     mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
     # the reviewer's marks go beside the copy, never beside the real catalogue
     mp.setenv("CURATION_VERIFICATION", str(tmp / "verification.json"))
+    # every save backs its file up first (`writes.py`) — into a temp dir, never data/generated
+    mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "model_api", "rebuild", "verification", "answer",
-                "synopsis_pages"):
+                "synopsis_pages", "writes"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402

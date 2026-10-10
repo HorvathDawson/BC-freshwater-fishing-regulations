@@ -26,6 +26,16 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def _fresh_caches(request, call_next):
+    """Before every API request: if the served build or the bundle changed on disk (a promote, or a
+    rebuild run from a terminal), drop the caches read from it (`reuse.ensure_fresh`) — a stale
+    registry or graph is never served. A few `stat`s; the big loads happen lazily after."""
+    if request.url.path.startswith("/api/"):
+        reuse.ensure_fresh()
+    return await call_next(request)
+
+
 @app.get("/api/regions")
 def get_regions():
     out = []

@@ -15,9 +15,11 @@ entry whose file copy differs from the one it last wrote, and reports it.
 
 from __future__ import annotations
 
+import copy
 import json
 import math
 import os
+import shutil
 import tempfile
 import threading
 from functools import lru_cache
@@ -32,6 +34,7 @@ from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
 import answer
 import model_api
 import verification
+import writes
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
@@ -59,7 +62,14 @@ GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
 WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
-SPLITS_JSON_PATH = CURATED.waters.splits                 # THE hand-curated split source (editable here)
+#: THE hand-curated split source (editable here). `CURATION_SPLITS_JSON` points it at a copy (tests).
+SPLITS_JSON_PATH = (Path(os.environ["CURATION_SPLITS_JSON"]) if os.environ.get("CURATION_SPLITS_JSON")
+                    else CURATED.waters.splits)
+#: The DFO salmon entry files — their locations bind curated split ids too, so a split rename
+#: rewrites them. `CURATION_DFO_ENTRIES_DIR` points it at a copy (tests).
+DFO_ENTRIES_DIR = (Path(os.environ["CURATION_DFO_ENTRIES_DIR"])
+                   if os.environ.get("CURATION_DFO_ENTRIES_DIR")
+                   else CURATED.regulations.entries.dfo_salmon)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
 #: The reviewer's marks (verified / flagged), a sidecar beside the catalogue — never in an entry.
 VERIFICATION_PATH = verification.path_for(ENTRIES_DIR)
@@ -94,14 +104,20 @@ def _registry() -> dict:
     return load_registry(REGISTRY_PATH)
 
 
-@lru_cache(maxsize=1)
 def _place_namer():
     """The bundle's own place-namer over the registry this app serves — so a label names a rule's
-    place (a cut-point's curated label, an area's name) exactly as the bundle's label does."""
-    from pipeline.common.curated import CURATED
+    place (a cut-point's curated label, an area's name) exactly as the bundle's label does.
+
+    KEYED ON splits.json's stamp: it carries every split's label, and a split edited in this app
+    (or by hand) must name itself by its new label on the next request, not after a restart."""
+    return _place_namer_for(_stamp((SPLITS_JSON_PATH,)))
+
+
+@lru_cache(maxsize=1)
+def _place_namer_for(_key: tuple):
     from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
     return PlaceNamer(_registry(), split_labels(json.loads(
-        CURATED.waters.splits.read_text(encoding="utf-8"))), area_names(Path(REGISTRY_PATH).parent))
+        SPLITS_JSON_PATH.read_text(encoding="utf-8"))), area_names(Path(REGISTRY_PATH).parent))
 
 
 @lru_cache(maxsize=1)
@@ -154,17 +170,57 @@ def split_meta(split_id: str) -> dict:
 
 
 def invalidate_caches() -> None:
-    """Drop cached graph-derived data so the next request reads freshly-rebuilt artifacts
-    (registry.json, splits.resolved.json, graph.gpkg split_points, graph.pkl). Call after a graph
-    rebuild. item_geojson reads graph.gpkg fresh on every call, so it needs no clearing; the species
-    list and row-image index come from static source, not the build, so they are left warm.
+    """Drop EVERY cache derived from the served build (and the bundle), so the next request reads
+    the artifacts on disk now. Called after a promote (`rebuild.promote`), and by `ensure_fresh`
+    whenever the build's files change under the app — a rebuild run outside it, from a terminal.
+    The species list, row-image index, projection and FWA lake outlines come from static source, not
+    the build, so they are left warm.
 
     `_graph` MUST be in here: a rebuild renumbers the piece nodes (`{blk}:{measure}`), so a reach
     resolved against the pre-rebuild graph names sections the new registry no longer has — the reach
-    silently comes back empty or wrong, with nothing on screen to say the graph is stale."""
-    for fn in (_registry, _indices, _splits_meta, _split_points_attrs,
-               _blk_to_item, _tributary_items, item_tributaries, _graph):
+    silently comes back empty or wrong, with nothing on screen to say the graph is stale. So must
+    `_geoms` and `_blk_index` (keyed by those same node ids) — they were missing, and a promoted
+    build drew its splits from the old geometry."""
+    for fn in _BUILD_CACHES:
         fn.cache_clear()
+    answer.bundle_meta.cache_clear()
+
+
+#: The served build's files every build-derived cache is read from. Their (mtime, size) is the
+#: build's stamp: a promote renames a new directory into place, so every one of them changes.
+_BUILD_FILES = (REGISTRY_PATH, SPLITS_RESOLVED_PATH, GRAPH_PKL_PATH, GEOMS_PKL_PATH,
+                WBK_POLYS_PKL_PATH, _BUILD / "region_home.json")
+
+
+def _stamp(paths) -> tuple:
+    out = []
+    for p in paths:
+        try:
+            st = Path(p).stat()
+            out.append((str(p), st.st_mtime_ns, st.st_size))
+        except FileNotFoundError:
+            out.append((str(p), None, None))
+    return tuple(out)
+
+
+_SEEN: dict[str, tuple] = {}
+
+
+def ensure_fresh() -> bool:
+    """Drop the build-derived caches if the served build (or the bundle) changed on disk since
+    they were last checked. Cheap — a handful of `stat`s — and run before every API request
+    (app.py middleware), so a cache can never outlive the files it was read from, whoever rebuilt
+    them. Returns whether anything was dropped."""
+    from pipeline.deliver.bundle import read as _R
+    now = {"build": _stamp(_BUILD_FILES), "bundle": _stamp((_R.BUNDLE,))}
+    with _LOAD_LOCK:
+        changed = [k for k, v in now.items() if k in _SEEN and _SEEN[k] != v]
+        _SEEN.update(now)
+        if "build" in changed:
+            invalidate_caches()
+        elif "bundle" in changed:
+            answer.bundle_meta.cache_clear()
+    return bool(changed)
 
 
 def _ident(e: dict) -> dict:
@@ -902,7 +958,8 @@ def mark_entry(entry_id: str, state: str, note: str = "") -> dict:
     if found is None:
         raise KeyError(entry_id)
     _, e = found
-    rec = verification.mark(VERIFICATION_PATH, entry_id, e, state, note)
+    with writes.LOCK:                                  # load + write the sidecar as one step
+        rec = verification.mark(VERIFICATION_PATH, entry_id, e, state, note)
     return {"entry_id": entry_id, "record": rec,
             "status": verification.status_of(rec or None, verification.entry_hash(e))}
 
@@ -1458,10 +1515,44 @@ def _load_splits() -> dict:
     return json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8"))
 
 
-def _write_splits(data: dict) -> None:
-    # match the file's existing format (1-space indent, real UTF-8) so a 1-split edit is a 1-split diff,
-    # not a whole-file reformat (ensure_ascii=True would escape every → / — / “ ” and churn the file)
-    _atomic_write(SPLITS_JSON_PATH, json.dumps(data, indent=1, ensure_ascii=False))
+def _dump_splits(data: dict) -> str:
+    # match the file's existing format (1-space indent, real UTF-8, trailing newline) so a 1-split
+    # edit is a 1-split diff, not a whole-file reformat (ensure_ascii=True would escape every → / —
+    # / “ ” and churn the file; the missing newline used to churn its last line on every save)
+    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
+
+
+def split_errors(data: dict, touched: set[str]) -> list[str]:
+    """What THE PIPELINE'S split loader would make of `data` (`pipeline.atlas.splits.splits`:
+    `_flatten_waterbodies` + `SplitDef.from_dict`, the path `load_split_defs` takes at build).
+
+    The file-level faults the loader RAISES on (wrong shape, a split with no resolvable target,
+    a duplicate id) are checked over the whole file. A split `SplitDef.from_dict` refuses, the
+    loader only logs and SKIPS — the cut silently vanishes from the next build — so the app
+    refuses it here, for the splits this write `touched` (an untouched bad split is the build's
+    warning to report, not a reason to block an unrelated edit)."""
+    from pipeline.atlas.splits.splits import _flatten_waterbodies
+    from pipeline.common.models import SplitDef
+    if not isinstance(data, dict) or not isinstance(data.get("waterbodies"), list):
+        return ['splits.json must be the by-waterbody shape {"waterbodies": [...]}']
+    errs: list[str] = []
+    try:
+        flat, untargeted = _flatten_waterbodies(data)
+    except Exception as ex:  # noqa: BLE001 — a malformed waterbody / applies_to
+        return [f"splits.json: {ex}"]
+    errs += [f"split {sid!r} ({wb}): no resolvable target — its waterbody's applies_to is null "
+             f"and it has no applies_to of its own" for wb, sid in untargeted]
+    for d in flat:
+        if d["id"] in touched:
+            try:
+                SplitDef.from_dict(d)
+            except Exception as ex:  # noqa: BLE001 — ValueError/KeyError/TypeError from the model
+                errs.append(f"split {d['id']!r}: {ex}")
+    ids = [d["id"] for d in flat]
+    dupes = sorted({i for i in ids if ids.count(i) > 1})
+    if dupes:
+        errs.append(f"duplicate split ids: {dupes}")
+    return errs
 
 
 def get_split(split_id: str) -> dict | None:
@@ -1475,7 +1566,9 @@ def get_split(split_id: str) -> dict | None:
 
 def save_split(split_id: str, patch: dict) -> dict:
     """Apply a patch (label / note / kind / anchor) to a split in splits.json and write it back.
-    Returns {ok, errors, split}. A graph rebuild is required for the change to take effect."""
+    The patched file is validated by the pipeline's own split loader (`split_errors`) first; an
+    invalid split is refused and nothing is written. Returns {ok, errors, split}. A graph rebuild
+    is required for the change to take effect."""
     if not isinstance(patch, dict):
         return {"ok": False, "errors": ["patch must be an object"]}
     bad = [k for k in patch if k not in _SPLIT_EDITABLE]
@@ -1483,26 +1576,34 @@ def save_split(split_id: str, patch: dict) -> dict:
         return {"ok": False, "errors": [f"not editable: {bad}; allowed: {sorted(_SPLIT_EDITABLE)}"]}
     if "anchor" in patch and not (isinstance(patch["anchor"], dict) and patch["anchor"].get("type")):
         return {"ok": False, "errors": ["anchor must be an object with a 'type'"]}
-    data = _load_splits()
-    for wb in data.get("waterbodies", []):
-        for sp in wb.get("splits", []):
-            if sp.get("id") == split_id:
-                sp.update(patch)
-                _write_splits(data)
-                return {"ok": True, "errors": [], "split": sp}
-    return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
+    with writes.LOCK:
+        data = _load_splits()
+        target = next((sp for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])
+                       if sp.get("id") == split_id), None)
+        if target is None:
+            return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
+        target.update(copy.deepcopy(patch))
+        errs = split_errors(data, {split_id})
+        if errs:
+            return {"ok": False, "errors": errs}
+        writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "save-split")
+        return {"ok": True, "errors": [], "split": target}
 
 
 def delete_split(split_id: str) -> dict:
     """Remove a split from splits.json (e.g. a duplicate/mis-anchored cut). Rebuild to apply."""
-    data = _load_splits()
-    for wb in data.get("waterbodies", []):
-        splits = wb.get("splits", [])
-        for i, sp in enumerate(splits):
-            if sp.get("id") == split_id:
-                del splits[i]
-                _write_splits(data)
-                return {"ok": True, "errors": []}
+    with writes.LOCK:
+        data = _load_splits()
+        for wb in data.get("waterbodies", []):
+            splits = wb.get("splits", [])
+            for i, sp in enumerate(splits):
+                if sp.get("id") == split_id:
+                    del splits[i]
+                    errs = split_errors(data, set())
+                    if errs:
+                        return {"ok": False, "errors": errs}
+                    writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "delete-split")
+                    return {"ok": True, "errors": []}
     return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
 
 
@@ -1533,45 +1634,125 @@ def split_refs(split_id: str) -> list[dict]:
     return out
 
 
+def _swap_split(obj, old_id: str, new_id: str) -> int:
+    """Rewrite `old_id` -> `new_id` in every `splits` list anywhere under `obj` (in place); return
+    how many it rewrote. Generic on purpose: an extent is an extent wherever the model nests it
+    (entry scope, rules, licensing, tributary excludes; a DFO location's binding)."""
+    n = 0
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == "splits" and isinstance(v, list) and all(isinstance(s, str) for s in v):
+                if old_id in v:
+                    n += v.count(old_id)
+                    obj[k] = [new_id if s == old_id else s for s in v]
+            else:
+                n += _swap_split(v, old_id, new_id)
+    elif isinstance(obj, list):
+        for v in obj:
+            n += _swap_split(v, old_id, new_id)
+    return n
+
+
+def _render_entryfile(path: Path, region: str, entries) -> str:
+    """The text `io.write_entryfile` would write to `path` — produced by running it on a staged
+    copy, so the pipeline's own writer orders, serialises and VALIDATES the file (raising on an
+    invalid one) without the real file being touched."""
+    with tempfile.TemporaryDirectory() as td:
+        staged = Path(td) / Path(path).name
+        if Path(path).exists():
+            shutil.copy2(path, staged)
+        io.write_entryfile(staged, region, entries)
+        return staged.read_text(encoding="utf-8")
+
+
+def _render_dfo(slug: str, doc: dict) -> str:
+    """A DFO entry file's text, as `dfo_salmon.entries.save` writes it — validated by reading it
+    back through `entries.load` and requiring the round trip to give the same document."""
+    from pipeline.regs.dfo_salmon import entries as D
+    text = json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
+    with tempfile.TemporaryDirectory() as td:
+        (Path(td) / f"region-{slug}.json").write_text(text, encoding="utf-8")
+        back = D.load(slug, Path(td)).to_dict()
+    if json.loads(json.dumps(back)) != json.loads(text):
+        raise ValueError(f"DFO region-{slug}.json does not round-trip through entries.load")
+    return text
+
+
+def _split_in_code(split_id: str) -> list[str]:
+    """Pipeline source files that name this split id literally (e.g. the DFO B(i)/B(ii) divide,
+    `CNR_BRIDGE`). A rename cannot rewrite code, so it is refused while any does."""
+    hits = []
+    for p in sorted((_ROOT / "pipeline").rglob("*.py")):
+        if "tests" in p.parts:
+            continue
+        try:
+            if f'"{split_id}"' in p.read_text(encoding="utf-8"):
+                hits.append(str(p.relative_to(_ROOT)))
+        except (OSError, UnicodeDecodeError):
+            continue
+    return hits
+
+
 def rename_split(old_id: str, new_id: str) -> dict:
-    """Rename a split id in splits.json AND rewrite every rule extent that binds it (in the catalogue
-    region files). Union validation means the new id is bindable immediately; a rebuild reconciles
-    the graph."""
+    """Rename a split id in splits.json AND rewrite every extent that binds it — the catalogue
+    region files and the DFO salmon entry files — ALL OR NOTHING.
+
+    Every new file is computed and validated first (splits.json by the pipeline's split loader,
+    each region file by `io.write_entryfile` on a staged copy, each DFO file by a round trip
+    through its loader); only then is anything written, through `writes.commit`, which backs every
+    target up and restores the ones already written if a later write fails. So a failure can no
+    longer leave rules bound to an id splits.json no longer has. Union validation means the new id
+    is bindable immediately; a rebuild reconciles the graph."""
     import re as _re
     new_id = (new_id or "").strip()
     if not _re.fullmatch(r"[a-z0-9_]+", new_id):
         return {"ok": False, "errors": ["new id must be lowercase letters, digits, underscores"]}
-    data = _load_splits()
-    all_ids = {sp.get("id") for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])}
-    if new_id in all_ids:
-        return {"ok": False, "errors": [f"id '{new_id}' already exists in splits.json"]}
-    renamed = False
-    for wb in data.get("waterbodies", []):
-        for sp in wb.get("splits", []):
-            if sp.get("id") == old_id:
-                sp["id"] = new_id
-                renamed = True
-    if not renamed:
-        return {"ok": False, "errors": [f"split '{old_id}' not found in splits.json"]}
-    _write_splits(data)
+    in_code = _split_in_code(old_id)
+    if in_code:
+        return {"ok": False, "errors": [f"split '{old_id}' is named in pipeline code ({', '.join(in_code)}) "
+                                        f"— rename it there by hand, with this, in one change"]}
+    with writes.LOCK:
+        data = _load_splits()
+        all_ids = {sp.get("id") for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])}
+        if new_id in all_ids:
+            return {"ok": False, "errors": [f"id '{new_id}' already exists in splits.json"]}
+        renamed = False
+        for wb in data.get("waterbodies", []):
+            for sp in wb.get("splits", []):
+                if sp.get("id") == old_id:
+                    sp["id"] = new_id
+                    renamed = True
+        if not renamed:
+            return {"ok": False, "errors": [f"split '{old_id}' not found in splits.json"]}
+        errs = split_errors(data, {new_id})
+        if errs:
+            return {"ok": False, "errors": errs}
+        changes: list[tuple[Path, str]] = [(SPLITS_JSON_PATH, _dump_splits(data))]
+        refs = split_refs(old_id)                      # the preview's rows, for the report
 
-    # cascade: rewrite rules that bind old_id -> new_id, and save each affected entry
-    updated: list[dict] = []
-    failed: list[dict] = []
-    refs = split_refs(old_id)
-    for region, eid in dict.fromkeys((r["region"], r["entry_id"]) for r in refs):
-        e = load_region(region).get(eid)
-        if not e:
-            continue
-        for _part, _label_, exts in _extent_lists(e):
-            for ex in exts:
-                if old_id in (ex.get("splits") or []):
-                    ex["splits"] = [new_id if s == old_id else s for s in ex["splits"]]
-        res = save_entry(region, e)
-        for ref in (r for r in refs if r["entry_id"] == eid):
-            (updated if res["ok"] else failed).append(
-                {**ref, **({} if res["ok"] else {"error": res["errors"]})})
-    return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": updated, "failed_rules": failed}
+        try:
+            for region in regions():                   # catalogue: read RAW, rewrite only split ids
+                path = ENTRIES_DIR / f"region-{region}.json"
+                entries = io.read_entryfile(path)
+                if sum(_swap_split(e, old_id, new_id) for e in entries.values()):
+                    changes.append((path, _render_entryfile(path, region, entries.values())))
+            dfo: list[str] = []
+            for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                n = _swap_split(doc.get("locations") or [], old_id, new_id)
+                n += _swap_split(doc.get("scopes") or [], old_id, new_id)
+                if n:
+                    slug = path.stem.split("region-", 1)[1]
+                    changes.append((path, _render_dfo(slug, doc)))
+                    dfo.append(path.name)
+        except Exception as ex:  # noqa: BLE001 — nothing has been written yet
+            return {"ok": False, "errors": [f"refused, nothing written: {ex}"]}
+        try:
+            snap = writes.commit(changes, "rename-split")
+        except Exception as ex:  # noqa: BLE001 — commit restored what it had written
+            return {"ok": False, "errors": [f"write failed, every file restored: {ex}"]}
+    return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": refs, "failed_rules": [],
+            "updated_dfo_files": dfo, "files": [str(p) for p, _ in changes], "backup": str(snap)}
 
 
 def _label(rule: dict) -> str:
@@ -1607,9 +1788,6 @@ def _check_splits(entry_dict: dict, allowed: set[str]) -> list[dict]:
         if isinstance(x, dict):
             visit(x.get("extents"), ["licensing", j, "extents"])
     return errs
-
-
-_atomic_write = io.atomic_write                          # shared helper (io is the single home)
 
 
 def _referenced_item_ids(entry_dict: dict) -> set[str]:
@@ -1676,8 +1854,10 @@ def check_entry(entry_dict: dict, region: str | None = None) -> dict:
 
 def save_entry(region: str, entry_dict: dict) -> dict:
     """Validate an edited entry (`check_entry`) and write it back to its region file, the single
-    source of truth, through `io.write_entryfile` — every other entry in the file is written back
-    exactly as it was read, and the whole file is validated as written. Returns `{ok, errors}`.
+    source of truth. The file's new text is produced by `io.write_entryfile` on a staged copy —
+    every other entry in the file is written back exactly as it was read, and the whole file is
+    validated as written — then committed through `writes.commit`, which backs the file up first.
+    Returns `{ok, errors}`.
 
     There is no confirm/lock — a catalogue entry has no such field; a re-parse leaves an entry
     edited here alone (see the module doc)."""
@@ -1686,10 +1866,18 @@ def save_entry(region: str, entry_dict: dict) -> dict:
         return {"ok": False, "errors": res["errors"]}
     entry, _ = model_api.check(model_api.strip_served(entry_dict))
     path = ENTRIES_DIR / f"region-{region}.json"
-    existing: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))
-    existing[entry.entry_id] = entry
-    try:
-        io.write_entryfile(path, region, existing.values())
-    except Exception as ex:  # noqa: BLE001
-        return {"ok": False, "errors": [{"path": "", "msg": f"file: {ex}"}]}
+    with writes.LOCK:
+        existing: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))
+        existing[entry.entry_id] = entry
+        try:
+            text = _render_entryfile(path, region, existing.values())
+            writes.commit([(path, text)], "save-entry")
+        except Exception as ex:  # noqa: BLE001
+            return {"ok": False, "errors": [{"path": "", "msg": f"file: {ex}"}]}
     return {"ok": True, "errors": []}
+
+
+#: Every cache read from the served build — what `invalidate_caches` drops.
+_BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
+                 _blk_to_item, _tributary_items, item_tributaries, _graph, _geoms, _wbk_polys,
+                 _blk_index)
