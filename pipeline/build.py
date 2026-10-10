@@ -30,6 +30,7 @@ import time
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
+from pipeline.deliver.store import OUT as STORE_OUT
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
 # TILES BEFORE DELIVER: tiles read only the atlas, and `pipeline.deliver all` ends with the vintage
@@ -129,7 +130,7 @@ def outputs(build_dir: Path) -> dict[str, list[Path]]:
     reach = GENERATED.reaches / build_dir.name
     return {"reach": [reach / "report.json", reach / "rule_section.jsonl"],
             "deliver": [GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "verdicts.sqlite",
-                        GENERATED.bundle / "status_index.bin"],
+                        GENERATED.bundle / "status_index.bin", STORE_OUT],
             "tiles": [GENERATED.tiles / "atlas.pmtiles", GENERATED.tiles / "atlas.meta.json"]}
 
 

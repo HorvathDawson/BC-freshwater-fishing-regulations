@@ -5,13 +5,16 @@
     python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
     python -m pipeline.deliver answers [--bundle FILE] [--export-dir DIR] [--out FILE]
     python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
+    python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
 (`pipeline.deliver.bundle`, `pipeline.deliver.status_index`, `pipeline.tools.export_ui_rules`),
-and each still runs alone — iterating on the export rebuilds only the export. What this adds is
+and each still runs alone — iterating on the export rebuilds only the export. The REGS STORE
+(`regs.sqlite`, `pipeline.deliver.store`) is the last step: the answers and the export words as
+SQLite, built from the files beside it and proved to decode back to them byte for byte. What this adds is
 the CHAIN: `all` writes them all into one directory from one bundle, and every step reads its input from the previous step's
 output and nothing else, so the index and the export are cut from the bundle bytes beside them.
 The vintage line (`pipeline.common.vintage`) and the two digests every artifact carries
@@ -91,13 +94,20 @@ def main(argv=None) -> int:
     an.add_argument("--out", type=Path, default=None,
                     help="default: ui-rules-answers.json in the export's directory")
     an.add_argument("--workers", type=int, default=4)
+    st = sub.add_parser("store", help="the regs store (regs.sqlite) from the answers + export pair")
+    st.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    st.add_argument("--export-dir", type=Path, default=None,
+                    help="the export pair's and the answers' directory (default: the canonical export's)")
+    st.add_argument("--out", type=Path, default=None,
+                    help="default: pipeline.deliver.store.OUT (regs.sqlite beside the bundle)")
+    st.add_argument("--blobs", default="zdict", choices=("json", "deflate", "zdict"))
     al = sub.add_parser("all", help="bundle, then the index and the export from THAT bundle")
     al.add_argument("--build", type=Path, default=None)
     al.add_argument("--reaches", type=Path, default=None)
     al.add_argument("--entries", type=Path, default=None)
     al.add_argument("--out-dir", type=Path, default=None,
-                    help="write bundle.sqlite, status_index.bin, ui-rules-export.json and "
-                         "ui-rules-guide.json here "
+                    help="write bundle.sqlite, status_index.bin, ui-rules-export.json, "
+                         "ui-rules-guide.json, ui-rules-answers.json and regs.sqlite here "
                          "(default: the canonical paths)")
     a = ap.parse_args(argv)
     if a.step in (None, "all"):
@@ -121,6 +131,9 @@ def main(argv=None) -> int:
         export_out = (d / "ui-rules-export.json") if d else _EXPORT_OUT
         _step(["export", "--bundle", str(bundle), "--out", str(export_out)])
         _step(["answers", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
+        from pipeline.deliver.store import OUT as _STORE_OUT
+        _step(["store", "--bundle", str(bundle), "--export-dir", str(export_out.parent),
+               "--out", str((d / "regs.sqlite") if d else _STORE_OUT)])
         from pipeline.common.vintage import report
         ok, msg = report(GENERATED.tiles, bundle)
         print(msg)
@@ -140,6 +153,15 @@ def main(argv=None) -> int:
                            "--out", str(out), "--workers", str(a.workers)])
         if rc:
             raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
+    elif a.step == "store":
+        from pipeline.deliver.store import OUT as _STORE_OUT
+        from pipeline.deliver.store.__main__ import main as store_main
+        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        exp = a.export_dir or _EXPORT_OUT.parent
+        out = a.out or _STORE_OUT
+        if store_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
+                       "--out", str(out), "--blobs", a.blobs]):
+            raise SystemExit(f"pipeline.deliver: the store was refused — {out} was not written")
     elif a.step == "export":
         from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
         _export(a.bundle, a.out or _EXPORT_OUT)
