@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from typing import FrozenSet, List
@@ -861,7 +861,10 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     words (`steelhead_rules: false`); this is the one definition the status index and every
     client reader follow.
 
-    `origin`, `trace` and `at` (the moment): see `effective_rules`."""
+    `origin`, `trace` and `at` (the moment): see `effective_rules`.
+
+    The steps of `effective_rules`' docstring run in order, one function each, over one `_Ask`
+    (the question and every set the steps share); every removal goes through `_Ask.lose`."""
     _leaf_fish(fish)
     if origin is not None and origin not in ASKABLE_ORIGINS:
         raise ValueError(f"effective_rules: origin {origin!r} — ask "
@@ -870,44 +873,307 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         fish, steelhead_here = "RB", False
     steelhead_here = bool(steelhead_here) and fish == "RB"
     orig = _rules_of(path)
-    every = orig
-    here = {(e, r): via for e, r, via in bound if (e, r) in every}
+    s = _Ask(orig=orig, every=orig, here={(e, r): via for e, r, via in bound if (e, r) in orig},
+             fish=fish, on=on, at=at, origin=origin, by_naming=by_naming)
+    _step0_steelhead_sizes(s, steelhead_here)
+    _step1_in_force(s)
+    _step3_lifts(s)
+    _step3b_own_row_replaces(s)
+    _step2_about_this_fish(s)
+    _step4_competition(s)
+    _step4a_water_dates_on_a_water_kind(s)
+    _step4b_zone_release(s)
+    _step4c_closures(s)
+    _step4d_size_release(s)
+    _step5_water_release(s)
+    _step5b_moot_size_clause(s)
+    _step6_two_regions(s)
+    return _answer(s, trace)
+
+
+@dataclass(eq=False, slots=True)
+class _Ask:
+    """ONE QUESTION TO THE LADDER (`effective_rules_bound`): one ruleset, one fish, one day (and
+    moment, and origin) — and every set its steps hand on to the next. The predicates the steps
+    share are its methods; a step's own helpers sit beside the step."""
+    orig: dict                # every rule of the bundle by (entry, rule), as stored
+    every: dict               # the same, each read over the rainbow's sizes where step 0 says so
+    here: dict                # (entry, rule) -> via ("reach" / "trib"): the section's ruleset
+    fish: str
+    on: object
+    at: object
+    origin: str | None
+    by_naming: bool
     # WHY EACH LOSER LOST (gap G1): rule -> (reason, the rule that beat it), kept on every call —
-    # the steps below remove rules only through `lose`, so the trace is the same code path as the
+    # the steps remove rules only through `lose`, so the trace is the same code path as the
     # answer; `trace` only decides whether the losers are returned.
-    why: dict = {}
-    partly_by: dict = {}
+    why: dict = field(default_factory=dict)
+    partly_by: dict = field(default_factory=dict)
+    no_rainbow: set = field(default_factory=set)      # step 0: speaks for no rainbow here
+    top: float = float("inf")                          # step 0: the longest fish asked about
+    state: dict = field(default_factory=dict)          # step 1: in_force, "yes" / "part" / "no"
+    undrawn: set = field(default_factory=set)          # `not_yet_mapped` rules
+    live: set = field(default_factory=set)             # step 1: in force at all
+    lifted: set = field(default_factory=set)           # step 3
+    partly: set = field(default_factory=set)           # step 3: lifted in part
+    replaced: set = field(default_factory=set)         # step 3b
+    cand: set = field(default_factory=set)             # step 2: about this fish, not lifted
+    keyed: dict = field(default_factory=dict)          # step 4: competitors by (type, dimension)
+    out_: set = field(default_factory=set)             # the answer, as the steps leave it
+    overridden: set = field(default_factory=set)       # zone rules a surviving water row's own dates overrode
+    rel: dict = field(default_factory=dict)            # step 5: releaser -> the origins it releases
+
+    def lose(self, k, reason: str, by) -> None:
+        """Take `k` out of the answer: `reason` (`LOSS_REASONS`) and `by`, the rule that beat it —
+        the first removal is the one recorded."""
+        self.out_.discard(k)
+        self.why.setdefault(k, (reason, by))
+
+    def competes(self, k) -> bool:
+        x = self.every[k]
+        return self.state[k] == "yes" and not x.get("standing") \
+            and x.get("family") != "information" and k not in self.undrawn
+
+    def closure(self, k) -> bool:
+        # any closure, conditioned or not (`rules.closure_grade`): it speaks for every fish it
+        # covers, and the condition travels with it
+        from pipeline.deliver.bundle.rules import closure_grade
+        return closure_grade(self.every[k]) is not None
+
+    def order(self, k) -> tuple:
+        x = self.every[k]
+        rank = x["_rank"]
+        if self.here[k] == "trib" and rank == 0:
+            rank = 1
+        # A `within` clause is named at its PARENT's level: "Trout/char: 5, but not more than 1
+        # bull trout" is a trout/char quota with a sub-limit, not a bull trout rule — read as one,
+        # it would reopen bull trout at a water printing "Trout/char catch and release".
+        parent = self.every.get((k[0], x["within"])) if x.get("within") else None
+        named = 0 if (not self.by_naming or self.closure(k)
+                      or names_fish(parent or x, self.fish)) else 1
+        return (0 if rank < 0 else 1, named, rank)
+
+    def family(self, k) -> tuple:
+        x = self.every[k]
+        return (k[0], x.get("within") or x.get("condition_of") or k[1])
+
+    def place(self, k) -> int:
+        return _ladder_place(self.every[k], self.here[k])
+
+    def row_area(self, k) -> bool:
+        """A WATER TABLE'S AREA ROW (`source_of`: Scope.area on an `r<n>:` entry — the CVWMA
+        waters, Bowron Lake Park waters, the Liard River watershed). It ranks as an area, so a
+        named water's own row beats it by place; against the ZONE it is still a row of the water
+        tables, and the water-vs-zone rulings below read it as one (`water_side`)."""
+        return str(k[0]).startswith("r") and self.every[k]["_rank"] == 2
+
+    def water_side(self, k) -> bool:
+        """Written for this water (or reaching it by the walk), or a water table's area row."""
+        return 0 <= self.place(k) <= 1 or self.row_area(k)
+
+    def zone_side(self, k) -> bool:
+        """A zone, area or provincial table's rule — not a water table's row."""
+        return self.place(k) >= 2 and not self.row_area(k)
+
+    def water_and_zone(self, o, k) -> bool:
+        """Two quotas that both let the fish be kept, one written for this water (or reaching it
+        by the walk), the other a zone, area or provincial one — never a superior authority's."""
+        from pipeline.deliver.bundle.rules import yields_to_release
+        return bool(yields_to_release(self.every[o]) and yields_to_release(self.every[k])
+                    and ((self.water_side(o) and self.zone_side(k))
+                         or (self.water_side(k) and self.zone_side(o))))
+
+    def dated_zone_release(self, k) -> bool:
+        """A zone, area or provincial rule keeping NONE of the fish (take 0: a release, or a
+        closure) on printed dates — Region 3's "you must release … Lake trout from Oct 15-Jan 31"."""
+        x = self.every[k]
+        return self.zone_side(k) and x.get("type") == "retention_limit" and x.get("take") == 0 \
+            and bool((x.get("when") or {}).get("dates"))
+
+    def exact_same(self, o, k) -> bool:
+        """The water's rule says EXACTLY what the dated zone rule says — the same fish, sizes,
+        origin, water kind, means and target (`rules.statement`) on the same dates."""
+        from pipeline.deliver.bundle.rules import same_statement
+        every = self.every
+        return same_statement(every[o], every[k]) and \
+            (every[o].get("when") or {}).get("dates") == every[k]["when"]["dates"]
+
+    def dated_zone_retention(self, k) -> bool:
+        """A zone, area or provincial retention rule on printed dates that states a NUMBER for
+        the fish — a release (take 0) or a quota — and is no closure: Region 6's "Lake trout from
+        Fraser and Skeena Watersheds, Sept 15-Nov 30" (must release)."""
+        x = self.every[k]
+        return self.zone_side(k) and x.get("type") == "retention_limit" and not self.closure(k) \
+            and (x.get("take") is not None or bool(x.get("unlimited"))) \
+            and not x.get("record_retention") and bool((x.get("when") or {}).get("dates"))
+
+    def water_dates_override(self, o, k) -> bool:
+        """A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone rule for that
+        fish, on the days both hold (user ruling 2026-09-28). Cheslatta and Murray lakes print
+        "Lake trout catch and release, Sept 15-Oct 31" and "quotas = 3" (Nov 1-Sept 14); Region
+        6 prints "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" (release). On Nov
+        1-30 both are in force and the lake's 3 replaces the region's release; on Sept 15-Oct 31
+        the lake's own release speaks. The overlap needs no arithmetic: both rules are in force on
+        the day asked, or this is never asked.
+
+        Only COMPATIBLE rules: `o` is written for this water (or reaches it by the walk) and
+        states a number for the fish (a quota or a release — not a size clause, a duty, a lift)
+        on dates of its OWN; `k` is a dated zone retention rule stating a number
+        (`dated_zone_retention` — never a CLOSURE: a blanket spring closure still closes); and
+        both are about THE SAME FISH OR SUBJECT — the water row names this fish, or the two
+        state the same set of fish (`rules.statement`). The water rule must hold for every fish
+        the zone rule does: no narrower origin, water kind, means or target. A water row with no
+        dates of its own leaves the dated zone release speaking (Shuswap, `beats`)."""
+        from pipeline.deliver.bundle.rules import statement
+        x, z = self.every[o], self.every[k]
+        if not (self.water_side(o) and x.get("type") == "retention_limit"
+                and (x.get("take") is not None or x.get("unlimited"))
+                and not x.get("within") and not x.get("record_retention")
+                and bool((x.get("when") or {}).get("dates")) and self.dated_zone_retention(k)):
+            return False
+        if not (names_fish(x, self.fish) or statement(x)[0] == statement(z)[0]):
+            return False
+        for c in ("origin", "water"):
+            if x.get(c) and x.get(c) != z.get(c):
+                return False
+        for c in ("while", "when_targeting"):
+            if x.get(c) and set(x[c]) != set(z.get(c) or []):
+                return False
+        return True
+
+    def zone_line_restated(self, o, k) -> bool:
+        """A ZONE TABLE'S LINE ABOUT ONE WATER, SAID AGAIN BY THAT WATER'S ROW (UI consumer's report,
+        2026-10-03). Region 3 prints "Annual catch quota for Shuswap Lake: … Char-Lake trout and
+        Bull trout (Dolly Varden): 5 over 60 cm" (p.28) and the Shuswap row "Char daily quota = 1
+        (none under 60 cm), annual quota = 5" (p.32): one limit, printed twice. The zone line names
+        the lake (an item extent), so it ranks as the water's own and neither displaced the other —
+        the page showed the annual 5 twice. When a zone table's (`z<region>:`) keeping quota and
+        the water row's (`r…`) are the SAME STATEMENT (`rules.same_statement`), the row's speaks,
+        as a water's number replaces the zone's (`water_and_zone`)."""
+        from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+        return (str(o[0]).startswith("r") and base_region(k[0]) is not None
+                and self.water_side(o) and self.water_side(k)
+                and bool(yields_to_release(self.every[o])) and bool(yields_to_release(self.every[k]))
+                and same_statement(self.every[o], self.every[k]))
+
+    def beats(self, o, k) -> bool:
+        """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
+
+        Between a WATER quota and a ZONE quota that both keep fish (user rulings 2026-09-26):
+          THE SAME STATEMENT (`rules.same_statement`: the same fish or group, size bounds,
+            origin, water kind, means, target and clock) — the WATER's number replaces the
+            zone's, larger or smaller: never the smaller of the two, and never undone by naming
+            (Tranquille Lake's "kokanee daily quota = 10" replaces Region 3's "Kokanee: 5");
+          DIFFERENT STATEMENTS sit beside each other — both speak (the Dean's "Steelhead: 1"
+            counts toward Region 5's "Trout/char: 5"). A water row printing a LARGER number for a
+            fish than the zone's aggregate is a different statement: it takes the fish out of the
+            aggregate by LIFTING the zone's quota for that fish (`exempts`, step 3 — Kootenay
+            Lake's "rainbow trout daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5"
+            for rainbow), never by this comparison.
+        A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S QUOTA (user ruling
+        2026-09-28): a water rule that lets the fish be kept displaces a zone rule keeping none of
+        it on printed dates only when it is the EXACT same statement on the same dates
+        (`exact_same`). Shuswap Lake's "Char daily quota = 1" names lake trout, and by naming and
+        place it silenced Region 3's "Lake trout from Oct 15-Jan 31" release — the stricter rule,
+        and no override of it. A lift the row prints, or a derived lift of a closure that sends
+        the reader to the tables, still removes it (step 3).
+        A WATER ROW WITH DATES OF ITS OWN FOR THE FISH overrides a dated zone release or quota
+        for it on the days both hold (user ruling 2026-09-28, `water_dates_override`): Cheslatta
+        Lake's "Lake trout daily and possession quotas = 3" (Nov 1-Sept 14) replaces Region 6's
+        "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30.
+        Everything else: the better rung (`order`) displaces.
+
+        A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, N-5): "Rainbow trout
+        over 50 cm catch and release" never displaces a rule that speaks about smaller fish."""
+        from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+        every = self.every
+        if not covers(every[o], every[k], self.top):
+            return False
+        if self.water_dates_override(o, k):
+            return True
+        if self.water_and_zone(o, k):
+            return self.water_side(o) and same_statement(every[o], every[k])
+        if self.water_side(o) and yields_to_release(every[o]) and self.dated_zone_release(k):
+            return self.exact_same(o, k)
+        if self.zone_line_restated(o, k):
+            return True
+        if self.own_over_inherited(o, k):
+            return True
+        if self.own_over_inherited(k, o):
+            return False
+        return self.order(o) < self.order(k)
+
+    def own_over_inherited(self, o, k) -> bool:
+        """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (user ruling Q5, `OWN_ROW_BEATS_INHERITED`):
+        `o` is written for this water (bound here by its own place, not the walk) and `k` reaches
+        it only by the tributary walk, and neither is a closure (an inherited closure is lifted,
+        never out-ranked; an own closure already beats every keeper by the ladder)."""
+        return OWN_ROW_BEATS_INHERITED and self.place(o) == 0 and self.here[k] == "trib" \
+            and self.every[k]["_rank"] == 0 and not self.closure(o) and not self.closure(k)
+
+    def base(self, k) -> str | None:
+        """The region whose OWN table (`z<region>:`, not the province's) wrote the rule."""
+        return base_region(k[0]) if self.every[k]["_rank"] >= 2 else None
+
+    def peers(self, o, k) -> bool:
+        """Two regions' zone rules on one section — a lake straddling their line (step 6)."""
+        a, b = self.base(o), self.base(k)
+        return a is not None and b is not None and a != b
+
+    def clock(self, k) -> str:
+        # the rule's clock alone: "daily/size" (sizes with no count) and "daily" are one clock
+        return _base_dimension(self.every[k]).split("/", 1)[0]
+
+    def said(self, k) -> str:
+        if k in self.undrawn:
+            return "not_yet_mapped"
+        return "speaks" if self.competes(k) else "beside" if self.state[k] == "part" else "shown"
+
+
+def _step0_steelhead_sizes(s: _Ask, steelhead_here: bool) -> None:
     # 0. WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.80), a rainbow rule speaks only for rainbow
     #    of 50 cm or less: each rule is read over that range (`as_rainbow`), and one that speaks
     #    only of rainbow over 50 cm ("1 over 50 cm") speaks for no rainbow here — the fish is a
     #    steelhead, asked about as "ST".
-    no_rainbow: set = set()
     # the lengths a rule may speak about here (`covers`): every rainbow is 50 cm or less where a
     # larger one is a steelhead
-    top = float(_steelhead_min_cm()) if steelhead_here else float("inf")
+    s.top = float(_steelhead_min_cm()) if steelhead_here else float("inf")
     if steelhead_here:
-        every = dict(orig)
-        for k in here:
-            if speaks_for(orig[k], fish):
+        orig = s.orig
+        s.every = every = dict(orig)
+        for k in s.here:
+            if speaks_for(orig[k], s.fish):
                 v = as_rainbow(orig[k])
                 if v is None:
-                    no_rainbow.add(k)
+                    s.no_rainbow.add(k)
                 else:
                     every[k] = v
-    state = {k: in_force(every[k].get("when"), on, at) for k in here}
+
+
+def _step1_in_force(s: _Ask) -> None:
+    """1. IN FORCE ON THE DAY (and moment), the half of the channel, the undrawn parts, and the
+    rules dormant under their closure."""
+    every, here = s.every, s.here
+    state = s.state = {k: in_force(every[k].get("when"), s.on, s.at) for k in here}
     # ONE HALF OF THE CHANNEL (`side`: Kitimat River's "No Fishing on the west half of river …"):
     # the rule holds on part of the section's width, so, like a rule holding some hours, it is
     # shown BESIDE the rules the other half answers to and displaces none (user ruling 2026-09-28).
     for k in here:
         if every[k].get("side") and state[k] == "yes":
             state[k] = "part"
-    undrawn = {k for k in here if not_yet_mapped(every[k])}
+    undrawn = s.undrawn = {k for k in here if not_yet_mapped(every[k])}
     for k in here:                                          # 1. dormant under its closure
         sw = every[k].get("suspended_while")
         if sw and state.get((k[0], sw)) == "yes" and (k[0], sw) not in undrawn:
             state[k] = "no"
-    live = {k for k, s in state.items() if s != "no"}
-    lifted, partly = set(), set()
+    s.live = {k for k, st in state.items() if st != "no"}
+
+
+def _step3_lifts(s: _Ask) -> None:
+    """3. LIFTS (see `effective_rules`)."""
+    every, state, live, undrawn = s.every, s.state, s.live, s.undrawn
+    fish, origin, on, at = s.fish, s.origin, s.on, s.at
+    lifted, partly, partly_by, why = s.lifted, s.partly, s.partly_by, s.why
     for k in sorted(live):                                   # 3. lifts
         if state[k] != "yes" or k in undrawn:
             continue
@@ -940,228 +1206,58 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                 partly.add(t)
                 partly_by.setdefault(t, []).append(k)
 
-    from pipeline.deliver.bundle.rules import (ORIGINS, closure_grade, release_origins,
-                                               same_statement, statement, yields_to_release)
 
-    # 3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (user ruling C-5,
-    #     `OWN_ROW_REPLACES_INHERITED`): an inherited rule (a water row reaching the section by the
-    #     tributary walk) gives way, ON EVERY DAY, to a rule of the water's own row of the same type
-    #     and dimension that speaks for the fish at least as widely — whether or not the own rule
-    #     is in force today. Not a quota (Q5 decides those on the days both hold, step 4) and not
-    #     a closure (an inherited closure is lifted, never replaced).
-    def own_replacement(k):
-        x = every[k]
-        if here[k] != "trib" or x["_rank"] != 0 or x.get("type") == "retention_limit" \
-                or x.get("dimension") == "lift" or closure_grade(x) is not None:
-            return None
-        for o in sorted(here):
-            y = every[o]
-            if here[o] == "reach" and y["_rank"] == 0 and o not in undrawn \
-                    and (y.get("type"), y.get("dimension")) == (x.get("type"), x.get("dimension")) \
-                    and not y.get("standing") and not y.get("exempts") \
-                    and closure_grade(y) is None and speaks_for(y, fish) \
-                    and all(not y.get(c) or y.get(c) == x.get(c)
-                            for c in ("when_targeting", "while", "origin", "water", "lengths",
-                                      "side", "within", "condition_of")):
-                return o
+# 3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (user ruling C-5,
+#     `OWN_ROW_REPLACES_INHERITED`): an inherited rule (a water row reaching the section by the
+#     tributary walk) gives way, ON EVERY DAY, to a rule of the water's own row of the same type
+#     and dimension that speaks for the fish at least as widely — whether or not the own rule
+#     is in force today. Not a quota (Q5 decides those on the days both hold, step 4) and not
+#     a closure (an inherited closure is lifted, never replaced).
+def _own_replacement(s: _Ask, k):
+    from pipeline.deliver.bundle.rules import closure_grade
+    every, here = s.every, s.here
+    x = every[k]
+    if here[k] != "trib" or x["_rank"] != 0 or x.get("type") == "retention_limit" \
+            or x.get("dimension") == "lift" or closure_grade(x) is not None:
         return None
+    for o in sorted(here):
+        y = every[o]
+        if here[o] == "reach" and y["_rank"] == 0 and o not in s.undrawn \
+                and (y.get("type"), y.get("dimension")) == (x.get("type"), x.get("dimension")) \
+                and not y.get("standing") and not y.get("exempts") \
+                and closure_grade(y) is None and speaks_for(y, s.fish) \
+                and all(not y.get(c) or y.get(c) == x.get(c)
+                        for c in ("when_targeting", "while", "origin", "water", "lengths",
+                                  "side", "within", "condition_of")):
+            return o
+    return None
 
-    replaced = set()
+
+def _step3b_own_row_replaces(s: _Ask) -> None:
+    """3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (`_own_replacement`)."""
     if OWN_ROW_REPLACES_INHERITED:
-        for k in sorted(live - lifted):
-            o = own_replacement(k)
+        for k in sorted(s.live - s.lifted):
+            o = _own_replacement(s, k)
             if o is not None:
-                replaced.add(k)
-                why.setdefault(k, ("own_row", o))
-    cand = {k for k in live - lifted - no_rainbow - replaced
-            if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
+                s.replaced.add(k)
+                s.why.setdefault(k, ("own_row", o))
 
-    def competes(k) -> bool:
-        x = every[k]
-        return state[k] == "yes" and not x.get("standing") and x.get("family") != "information" \
-            and k not in undrawn
 
-    def closure(k) -> bool:
-        # any closure, conditioned or not (`rules.closure_grade`): it speaks for every fish it
-        # covers, and the condition travels with it
-        return closure_grade(every[k]) is not None
-
-    def order(k) -> tuple:
-        x = every[k]
-        rank = x["_rank"]
-        if here[k] == "trib" and rank == 0:
-            rank = 1
-        # A `within` clause is named at its PARENT's level: "Trout/char: 5, but not more than 1
-        # bull trout" is a trout/char quota with a sub-limit, not a bull trout rule — read as one,
-        # it would reopen bull trout at a water printing "Trout/char catch and release".
-        parent = every.get((k[0], x["within"])) if x.get("within") else None
-        named = 0 if (not by_naming or closure(k) or names_fish(parent or x, fish)) else 1
-        return (0 if rank < 0 else 1, named, rank)
-
-    def family(k) -> tuple:
-        x = every[k]
-        return (k[0], x.get("within") or x.get("condition_of") or k[1])
-
-    keyed: dict = {}
-    for k in cand:
-        if competes(k):
+def _step2_about_this_fish(s: _Ask) -> None:
+    """2. ABOUT THIS FISH (`speaks_for`): the candidates — in force, not lifted, not replaced
+    (3b), not a rainbow rule for the steelhead's sizes (0), not a lift-only rule — and, of them,
+    the competitors keyed on `(type, dimension)` for step 4."""
+    every, fish = s.every, s.fish
+    s.cand = {k for k in s.live - s.lifted - s.no_rainbow - s.replaced
+              if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
+    keyed = s.keyed
+    for k in s.cand:
+        if s.competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
 
-    def place(k) -> int:
-        return _ladder_place(every[k], here[k])
 
-    def row_area(k) -> bool:
-        """A WATER TABLE'S AREA ROW (`source_of`: Scope.area on an `r<n>:` entry — the CVWMA
-        waters, Bowron Lake Park waters, the Liard River watershed). It ranks as an area, so a
-        named water's own row beats it by place; against the ZONE it is still a row of the water
-        tables, and the water-vs-zone rulings below read it as one (`water_side`)."""
-        return str(k[0]).startswith("r") and every[k]["_rank"] == 2
-
-    def water_side(k) -> bool:
-        """Written for this water (or reaching it by the walk), or a water table's area row."""
-        return 0 <= place(k) <= 1 or row_area(k)
-
-    def zone_side(k) -> bool:
-        """A zone, area or provincial table's rule — not a water table's row."""
-        return place(k) >= 2 and not row_area(k)
-
-    def water_and_zone(o, k) -> bool:
-        """Two quotas that both let the fish be kept, one written for this water (or reaching it
-        by the walk), the other a zone, area or provincial one — never a superior authority's."""
-        return bool(yields_to_release(every[o]) and yields_to_release(every[k])
-                    and ((water_side(o) and zone_side(k)) or (water_side(k) and zone_side(o))))
-
-    def dated_zone_release(k) -> bool:
-        """A zone, area or provincial rule keeping NONE of the fish (take 0: a release, or a
-        closure) on printed dates — Region 3's "you must release … Lake trout from Oct 15-Jan 31"."""
-        x = every[k]
-        return zone_side(k) and x.get("type") == "retention_limit" and x.get("take") == 0 \
-            and bool((x.get("when") or {}).get("dates"))
-
-    def exact_same(o, k) -> bool:
-        """The water's rule says EXACTLY what the dated zone rule says — the same fish, sizes,
-        origin, water kind, means and target (`rules.statement`) on the same dates."""
-        return same_statement(every[o], every[k]) and \
-            (every[o].get("when") or {}).get("dates") == every[k]["when"]["dates"]
-
-    def dated_zone_retention(k) -> bool:
-        """A zone, area or provincial retention rule on printed dates that states a NUMBER for
-        the fish — a release (take 0) or a quota — and is no closure: Region 6's "Lake trout from
-        Fraser and Skeena Watersheds, Sept 15-Nov 30" (must release)."""
-        x = every[k]
-        return zone_side(k) and x.get("type") == "retention_limit" and not closure(k) \
-            and (x.get("take") is not None or bool(x.get("unlimited"))) \
-            and not x.get("record_retention") and bool((x.get("when") or {}).get("dates"))
-
-    def water_dates_override(o, k) -> bool:
-        """A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone rule for that
-        fish, on the days both hold (user ruling 2026-09-28). Cheslatta and Murray lakes print
-        "Lake trout catch and release, Sept 15-Oct 31" and "quotas = 3" (Nov 1-Sept 14); Region
-        6 prints "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" (release). On Nov
-        1-30 both are in force and the lake's 3 replaces the region's release; on Sept 15-Oct 31
-        the lake's own release speaks. The overlap needs no arithmetic: both rules are in force on
-        the day asked, or this is never asked.
-
-        Only COMPATIBLE rules: `o` is written for this water (or reaches it by the walk) and
-        states a number for the fish (a quota or a release — not a size clause, a duty, a lift)
-        on dates of its OWN; `k` is a dated zone retention rule stating a number
-        (`dated_zone_retention` — never a CLOSURE: a blanket spring closure still closes); and
-        both are about THE SAME FISH OR SUBJECT — the water row names this fish, or the two
-        state the same set of fish (`rules.statement`). The water rule must hold for every fish
-        the zone rule does: no narrower origin, water kind, means or target. A water row with no
-        dates of its own leaves the dated zone release speaking (Shuswap, `beats`)."""
-        x, z = every[o], every[k]
-        if not (water_side(o) and x.get("type") == "retention_limit"
-                and (x.get("take") is not None or x.get("unlimited"))
-                and not x.get("within") and not x.get("record_retention")
-                and bool((x.get("when") or {}).get("dates")) and dated_zone_retention(k)):
-            return False
-        if not (names_fish(x, fish) or statement(x)[0] == statement(z)[0]):
-            return False
-        for c in ("origin", "water"):
-            if x.get(c) and x.get(c) != z.get(c):
-                return False
-        for c in ("while", "when_targeting"):
-            if x.get(c) and set(x[c]) != set(z.get(c) or []):
-                return False
-        return True
-
-    def zone_line_restated(o, k) -> bool:
-        """A ZONE TABLE'S LINE ABOUT ONE WATER, SAID AGAIN BY THAT WATER'S ROW (UI consumer's report,
-        2026-10-03). Region 3 prints "Annual catch quota for Shuswap Lake: … Char-Lake trout and
-        Bull trout (Dolly Varden): 5 over 60 cm" (p.28) and the Shuswap row "Char daily quota = 1
-        (none under 60 cm), annual quota = 5" (p.32): one limit, printed twice. The zone line names
-        the lake (an item extent), so it ranks as the water's own and neither displaced the other —
-        the page showed the annual 5 twice. When a zone table's (`z<region>:`) keeping quota and
-        the water row's (`r…`) are the SAME STATEMENT (`rules.same_statement`), the row's speaks,
-        as a water's number replaces the zone's (`water_and_zone`)."""
-        return (str(o[0]).startswith("r") and base_region(k[0]) is not None
-                and water_side(o) and water_side(k)
-                and bool(yields_to_release(every[o])) and bool(yields_to_release(every[k]))
-                and same_statement(every[o], every[k]))
-
-    def beats(o, k) -> bool:
-        """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
-
-        Between a WATER quota and a ZONE quota that both keep fish (user rulings 2026-09-26):
-          THE SAME STATEMENT (`rules.same_statement`: the same fish or group, size bounds,
-            origin, water kind, means, target and clock) — the WATER's number replaces the
-            zone's, larger or smaller: never the smaller of the two, and never undone by naming
-            (Tranquille Lake's "kokanee daily quota = 10" replaces Region 3's "Kokanee: 5");
-          DIFFERENT STATEMENTS sit beside each other — both speak (the Dean's "Steelhead: 1"
-            counts toward Region 5's "Trout/char: 5"). A water row printing a LARGER number for a
-            fish than the zone's aggregate is a different statement: it takes the fish out of the
-            aggregate by LIFTING the zone's quota for that fish (`exempts`, step 3 — Kootenay
-            Lake's "rainbow trout daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5"
-            for rainbow), never by this comparison.
-        A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S QUOTA (user ruling
-        2026-09-28): a water rule that lets the fish be kept displaces a zone rule keeping none of
-        it on printed dates only when it is the EXACT same statement on the same dates
-        (`exact_same`). Shuswap Lake's "Char daily quota = 1" names lake trout, and by naming and
-        place it silenced Region 3's "Lake trout from Oct 15-Jan 31" release — the stricter rule,
-        and no override of it. A lift the row prints, or a derived lift of a closure that sends
-        the reader to the tables, still removes it (step 3).
-        A WATER ROW WITH DATES OF ITS OWN FOR THE FISH overrides a dated zone release or quota
-        for it on the days both hold (user ruling 2026-09-28, `water_dates_override`): Cheslatta
-        Lake's "Lake trout daily and possession quotas = 3" (Nov 1-Sept 14) replaces Region 6's
-        "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30.
-        Everything else: the better rung (`order`) displaces.
-
-        A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, N-5): "Rainbow trout
-        over 50 cm catch and release" never displaces a rule that speaks about smaller fish."""
-        if not covers(every[o], every[k], top):
-            return False
-        if water_dates_override(o, k):
-            return True
-        if water_and_zone(o, k):
-            return water_side(o) and same_statement(every[o], every[k])
-        if water_side(o) and yields_to_release(every[o]) and dated_zone_release(k):
-            return exact_same(o, k)
-        if zone_line_restated(o, k):
-            return True
-        if own_over_inherited(o, k):
-            return True
-        if own_over_inherited(k, o):
-            return False
-        return order(o) < order(k)
-
-    def own_over_inherited(o, k) -> bool:
-        """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (user ruling Q5, `OWN_ROW_BEATS_INHERITED`):
-        `o` is written for this water (bound here by its own place, not the walk) and `k` reaches
-        it only by the tributary walk, and neither is a closure (an inherited closure is lifted,
-        never out-ranked; an own closure already beats every keeper by the ladder)."""
-        return OWN_ROW_BEATS_INHERITED and place(o) == 0 and here[k] == "trib" \
-            and every[k]["_rank"] == 0 and not closure(o) and not closure(k)
-
-    def base(k) -> str | None:
-        """The region whose OWN table (`z<region>:`, not the province's) wrote the rule."""
-        return base_region(k[0]) if every[k]["_rank"] >= 2 else None
-
-    def peers(o, k) -> bool:
-        """Two regions' zone rules on one section — a lake straddling their line (step 6)."""
-        a, b = base(o), base(k)
-        return a is not None and b is not None and a != b
-
+def _step4_competition(s: _Ask) -> None:
+    """4. COMPETITION, on `(type, dimension)` (see `effective_rules`; `_Ask.beats`)."""
     # A DISPLACED RULE DISPLACES NOTHING (SP-4, 2026-09-29). At Cheslatta Lake on Nov 15 Region
     # 6's lake trout release (Sept 15-Nov 30) names the fish and so beats the region's "Trout/char:
     # 5" and "3 Dolly Varden/bull trout and/or lake trout"; the lake's own dated "quotas = 3"
@@ -1171,16 +1267,9 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     # rules nothing beats stand; whatever a standing rule beats is out; a rule every one of whose
     # beaters is out stands; repeat until nothing moves. (A cycle of rules beating each other —
     # none in the corpus — falls back to "beaten by any rule still undecided".)
-    out_ = set(cand)
-    overridden: set = set()          # zone rules a surviving water row's own dates overrode
-
-    def lose(k, reason: str, by) -> None:
-        """Take `k` out of the answer: `reason` (`LOSS_REASONS`) and `by`, the rule that beat it —
-        the first removal is the one recorded."""
-        out_.discard(k)
-        why.setdefault(k, (reason, by))
-
-    for group in keyed.values():
+    s.out_ = set(s.cand)
+    family, peers, beats, closure = s.family, s.peers, s.beats, s.closure
+    for group in s.keyed.values():
         beaters = {k: [o for o in group if o != k and family(o) != family(k)
                        and not peers(o, k) and beats(o, k)]
                    for k in group if not closure(k)}
@@ -1200,11 +1289,13 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
         falls |= {k for k in group if k not in stands}        # a cycle: the old reading
         for k in sorted(falls):
             won = sorted(o for o in beaters[k] if o in stands) or sorted(beaters[k])
-            lose(k, "water_dates" if water_dates_override(won[0], k)
-                 else "own_row" if own_over_inherited(won[0], k) else "ladder", won[0])
-        overridden |= {k for k in falls
-                       if any(o in stands and water_dates_override(o, k) for o in beaters[k])}
+            s.lose(k, "water_dates" if s.water_dates_override(won[0], k)
+                   else "own_row" if s.own_over_inherited(won[0], k) else "ladder", won[0])
+        s.overridden |= {k for k in falls
+                         if any(o in stands and s.water_dates_override(o, k) for o in beaters[k])}
 
+
+def _step4a_water_dates_on_a_water_kind(s: _Ask) -> None:
     # 4a. A WATER ROW'S OWN DATES OVERRIDE A ZONE RELEASE LIMITED TO A KIND OF WATER (user ruling
     #     2026-09-29). "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries `water:
     #     stream`, part of its dimension (`daily@water=stream`), so it never met a stream row's own
@@ -1213,17 +1304,20 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     dates for the fish overrides such a release on the days both hold, exactly as it does a
     #     dated zone release with no water kind. The overridden release then displaces nothing
     #     (step 4b) and releases nothing (step 5).
+    every, out_, top = s.every, s.out_, s.top
     for k in sorted(out_):
-        if not (competes(k) and zone_side(k) and released_on_water(every[k])):
+        if not (s.competes(k) and s.zone_side(k) and released_on_water(every[k])):
             continue
-        won = [o for o in sorted(cand)
-               if o in out_ and competes(o) and o != k
+        won = [o for o in sorted(s.cand)
+               if o in out_ and s.competes(o) and o != k
                and _base_dimension(every[o]) == _base_dimension(every[k])
-               and covers(every[o], every[k], top) and water_dates_override(o, k)]
+               and covers(every[o], every[k], top) and s.water_dates_override(o, k)]
         if won:
-            lose(k, "water_dates", won[0])
-            overridden.add(k)
+            s.lose(k, "water_dates", won[0])
+            s.overridden.add(k)
 
+
+def _step4b_zone_release(s: _Ask) -> None:
     # 4b. A ZONE RELEASE LIMITED TO A KIND OF WATER, ON THAT WATER (ZS-2, 2026-09-29). Region 3's
     #     "Lake trout from Oct 15-Jan 31" (no `water`) meets "Trout/char: 5" and its clauses in
     #     step 4 and displaces them; "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries
@@ -1247,15 +1341,9 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     fish is released then). Only an UNCONDITIONED release reaches this far:
     #     `release_origins` is None for a `while` / `when_targeting` release (pinned by
     #     test_a_conditioned_zone_release_leaves_its_tables_quotas).
-    def on_its_water(x: dict) -> bool:
-        """A rule printed for a kind of water is bound here only on that kind (every extent
-        draws it: `feature_types: [water]`), or it carries no water kind at all."""
-        water = x.get("water")
-        if not water:
-            return True
-        exts = x.get("extents") or []
-        return bool(exts) and all(list(e.get("feature_types") or []) == [water] for e in exts)
-
+    from pipeline.deliver.bundle.rules import closure_grade, release_origins, yields_to_release
+    every, out_ = s.every, s.out_
+    competes, place, base, family = s.competes, s.place, s.base, s.family
     for k in sorted(out_):
         if not (competes(k) and place(k) >= 2 and base(k) is not None):
             continue
@@ -1276,8 +1364,25 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                              _base_dimension(every[k]),
                              f"{_base_dimension(every[k])}@water={every[o].get('water')}")) \
                     and _base_dimension(every[o]) == _base_dimension(every[k]):
-                lose(o, "zone_release", k)
+                s.lose(o, "zone_release", k)
 
+
+def _on_its_water(x: dict) -> bool:
+    """A rule printed for a kind of water is bound here only on that kind (every extent
+    draws it: `feature_types: [water]`), or it carries no water kind at all."""
+    water = x.get("water")
+    if not water:
+        return True
+    exts = x.get("extents") or []
+    return bool(exts) and all(list(e.get("feature_types") or []) == [water] for e in exts)
+
+
+def _own_water_closure(s: _Ask, k) -> bool:
+    return WATER_CLOSURE_DOMINANT and str(k[0]).startswith("r") and s.place(k) == 0 \
+        and not s.row_area(k)
+
+
+def _step4c_closures(s: _Ask) -> None:
     # 4c. A CLOSURE SPEAKS FOR EVERY FISH IT COVERS AS IF IT NAMED IT, WHATEVER ITS KEY (RU-7,
     #     2026-10-04). Step 4 lets a closure displace the keeping rules of its own key; a blanket
     #     stream closure carries `water: stream` (`daily@water=stream`) and so never met the
@@ -1303,27 +1408,37 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     LIFTERS (a rule that exempts it in part — an origin, a target — speaks beside it; one
     #     that lifts it outright has already removed it in step 3). A zone closure keeps RU-7's
     #     reach (by the ladder, its own base dimension).
-    def own_water_closure(k) -> bool:
-        return WATER_CLOSURE_DOMINANT and str(k[0]).startswith("r") and place(k) == 0 \
-            and not row_area(k)
-
+    from pipeline.deliver.bundle.rules import closure_grade, yields_to_release
+    every, out_, top = s.every, s.out_, s.top
+    competes, family, order, peers = s.competes, s.family, s.order, s.peers
     for k in sorted(out_):
         x = every[k]
-        if not (competes(k) and closure_grade(x) == "full" and on_its_water(x)):
+        if not (competes(k) and closure_grade(x) == "full" and _on_its_water(x)):
             continue
-        own = own_water_closure(k)
-        lifters = {o for o in here
+        own = _own_water_closure(s, k)
+        lifters = {o for o in s.here
                    if any((t["entry_id"], t["rule_id"]) == k for t in every[o].get("exempts") or [])}
         for o in sorted(out_):
             if o == k or not competes(o) or family(o) == family(k) \
                     or not yields_to_release(every[o]) or not covers(x, every[o], top):
                 continue
             if own and order(o)[0] == 1 and o not in lifters:
-                lose(o, "water_closure", k)
+                s.lose(o, "water_closure", k)
             elif not peers(o, k) and _base_dimension(every[o]) == _base_dimension(x) \
                     and order(k) < order(o):
-                lose(o, "closure", k)
+                s.lose(o, "closure", k)
 
+
+def _released_lengths(x: dict, top: float) -> list | None:
+    # the class the rule releases outright: its take-0 bands, for every angler (no `while`,
+    # no target, not a clause) — the origin it holds for is checked against the keeper's
+    if x.get("while") or x.get("when_targeting") or x.get("within"):
+        return None
+    bands = [b for b in (x.get("lengths") or []) if b.get("take") == 0]
+    return _spoken_lengths({"lengths": bands}, top) if bands else None
+
+
+def _step4d_size_release(s: _Ask) -> None:
     # 4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE FOR THE SAME SIZES (RU-5,
     #     2026-10-04). Lakelse Lake's "Rainbow trout (none over 50 cm)" is sizes with no count
     #     (`daily/size`); Region 6's "no more than 1 over 50 cm" is a count (`daily`), so the two
@@ -1332,33 +1447,69 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     RELEASING a size class (a band with take 0) displaces a zone-side keeping rule of the
     #     same base dimension whose spoken lengths lie wholly inside the released class. The
     #     zone's "5 per day" (every length) stays: the 5 still counts the rainbow under 50 cm.
-    def released_lengths(x: dict) -> list | None:
-        # the class the rule releases outright: its take-0 bands, for every angler (no `while`,
-        # no target, not a clause) — the origin it holds for is checked against the keeper's
-        if x.get("while") or x.get("when_targeting") or x.get("within"):
-            return None
-        bands = [b for b in (x.get("lengths") or []) if b.get("take") == 0]
-        return _spoken_lengths({"lengths": bands}, top) if bands else None
-
-    def clock(k) -> str:
-        # the rule's clock alone: "daily/size" (sizes with no count) and "daily" are one clock
-        return _base_dimension(every[k]).split("/", 1)[0]
-
+    from pipeline.deliver.bundle.rules import ORIGINS, yields_to_release
+    every, out_, top = s.every, s.out_, s.top
+    competes, family, clock = s.competes, s.family, s.clock
     for o in sorted(out_):
-        freed_lengths = released_lengths(every[o]) if competes(o) and water_side(o) \
+        freed_lengths = _released_lengths(every[o], top) if competes(o) and s.water_side(o) \
             and every[o].get("type") == "retention_limit" else None
         if not freed_lengths:
             continue
         freed_origins = frozenset({every[o]["origin"]}) if every[o].get("origin") else ORIGINS
         for k in sorted(out_):
             keeps = yields_to_release(every[k])
-            spoken = _spoken_lengths(every[k], top) if competes(k) and zone_side(k) \
-                and keeps and keeps <= freed_origins and not closure(k) \
+            spoken = _spoken_lengths(every[k], top) if competes(k) and s.zone_side(k) \
+                and keeps and keeps <= freed_origins and not s.closure(k) \
                 and family(o) != family(k) and clock(k) == clock(o) else None
             if spoken and all(any(lo >= x and hi <= y for x, y in freed_lengths)
                               for lo, hi in spoken):
-                lose(k, "size_release", o)
+                s.lose(k, "size_release", o)
 
+
+def _beaten_by(s: _Ask, k) -> list:
+    every = s.every
+    g = s.keyed.get((every[k]["type"], every[k]["dimension"]), [])
+    return [o for o in g if s.order(o) < s.order(k) and s.family(o) != s.family(k)
+            and not s.peers(o, k)]
+
+
+def _same_row_dated_release(s: _Ask, k) -> bool:
+    """A DATED OUTRIGHT RELEASE OF THE SAME ROW DISPLACES THE ROW'S OWN UNDATED QUOTA FOR
+    THE FISH ON ITS DATES (RU-3, 2026-10-04). The Thompson below Kamloops Lake prints "Trout
+    and char — 2 per day" and, for its CNR stretch, "trout/char catch and release … May
+    1-31"; Adams Lake "Lake trout — release all, Oct 15-Jan 31" beside "bull trout and lake
+    trout — 1 per day". Two rules of one row rank alike (same place, same naming), so step 4
+    tied them and the page said "2 per day" and "release all" at once in the one month the
+    row singles out. The dated release is the row's own exception to its general number: on
+    its dates the number is silent, as a water's release silences the zone's. Only this
+    shape — the release DATED, the quota UNDATED, both the row's own (`water_side`), another
+    family — never the reverse (an undated release beside a dated keeping window is a window
+    the row prints to OPEN the fish, and both stand as printed).
+
+    ITS REAL REACH (review F4): `rel` holds every rule `release_origins` reads as a release,
+    and a CLOSURE (take 0, may not fish) is one — so a row's DATED CLOSURE silences the row's
+    own undated quota on its dates too (Quatse r1 over r2, the Region 7 lakes' winter
+    closures over their quotas, Kitimat's Mar 16-May 31 over its hatchery 2). That is the
+    book: on those dates the water is closed to the fish. 356 answers over every key."""
+    return _same_row_releaser(s, k) is not None
+
+
+def _same_row_releaser(s: _Ask, k):
+    """The dated release or closure of `k`'s own row that silences it (`_same_row_dated_release`),
+    or None."""
+    from pipeline.deliver.bundle.rules import yields_to_release
+    every, rel = s.every, s.rel
+    x = every[k]
+    if (x.get("when") or {}).get("dates") or not (x.get("take") or x.get("unlimited")):
+        return None                       # a size clause is its own subject (Koocanusa)
+    return next((o for o in sorted(rel)
+                 if o != k and o[0] == k[0] and s.water_side(o) and s.family(o) != s.family(k)
+                 and bool((every[o].get("when") or {}).get("dates"))
+                 and _base_dimension(every[o]) == _base_dimension(x)
+                 and yields_to_release(x) <= rel[o]), None)
+
+
+def _step5_water_release(s: _Ask) -> None:
     # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
     #    keys on (type, dimension), and a zone quota's conditions are part of its dimension, so
     #    Coquihalla's "Trout/char (including steelhead) catch and release" never met Region 2's
@@ -1381,20 +1532,17 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #    release displaced by a superior authority that lets the fish be kept stays displaced and
     #    releases nothing here (one displaced by a superior CLOSURE — a national park — still
     #    releases: nothing the region keeps survives either).
-    def beaten_by(k) -> list:
-        g = keyed.get((every[k]["type"], every[k]["dimension"]), [])
-        return [o for o in g if order(o) < order(k) and family(o) != family(k)
-                and not peers(o, k)]
-
-    rel = {}
-    for k in cand:
+    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
+    every, out_, why, rel = s.every, s.out_, s.why, s.rel
+    competes, water_side, zone_side = s.competes, s.water_side, s.zone_side
+    for k in s.cand:
         o = release_origins(every[k]) if competes(k) else None
         # A release a water row's own dates overrode releases nothing here (SP-12): it is not in
         # force at this water on this day, whatever step 4's naming said about it. Nor does an
         # INHERITED release the water's own row beat (Q5): the own row answers for the fish here.
-        if not o or k in overridden or (k not in out_ and why.get(k, ("",))[0] == "own_row"):
+        if not o or k in s.overridden or (k not in out_ and why.get(k, ("",))[0] == "own_row"):
             continue
-        by = beaten_by(k)
+        by = _beaten_by(s, k)
         if any(every[b]["_rank"] < 0 and yields_to_release(every[b]) for b in by):
             continue
         rel[k] = o
@@ -1405,49 +1553,19 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     water_rel = frozenset().union(*[o for k, o in rel.items() if water_side(k)])
     released = frozenset().union(*rel.values())
 
-    def same_row_dated_release(k) -> bool:
-        """A DATED OUTRIGHT RELEASE OF THE SAME ROW DISPLACES THE ROW'S OWN UNDATED QUOTA FOR
-        THE FISH ON ITS DATES (RU-3, 2026-10-04). The Thompson below Kamloops Lake prints "Trout
-        and char — 2 per day" and, for its CNR stretch, "trout/char catch and release … May
-        1-31"; Adams Lake "Lake trout — release all, Oct 15-Jan 31" beside "bull trout and lake
-        trout — 1 per day". Two rules of one row rank alike (same place, same naming), so step 4
-        tied them and the page said "2 per day" and "release all" at once in the one month the
-        row singles out. The dated release is the row's own exception to its general number: on
-        its dates the number is silent, as a water's release silences the zone's. Only this
-        shape — the release DATED, the quota UNDATED, both the row's own (`water_side`), another
-        family — never the reverse (an undated release beside a dated keeping window is a window
-        the row prints to OPEN the fish, and both stand as printed).
-
-        ITS REAL REACH (review F4): `rel` holds every rule `release_origins` reads as a release,
-        and a CLOSURE (take 0, may not fish) is one — so a row's DATED CLOSURE silences the row's
-        own undated quota on its dates too (Quatse r1 over r2, the Region 7 lakes' winter
-        closures over their quotas, Kitimat's Mar 16-May 31 over its hatchery 2). That is the
-        book: on those dates the water is closed to the fish. 356 answers over every key."""
-        return same_row_releaser(k) is not None
-
-    def same_row_releaser(k):
-        """The dated release or closure of `k`'s own row that silences it (`same_row_dated_release`),
-        or None."""
-        x = every[k]
-        if (x.get("when") or {}).get("dates") or not (x.get("take") or x.get("unlimited")):
-            return None                       # a size clause is its own subject (Koocanusa)
-        return next((o for o in sorted(rel)
-                     if o != k and o[0] == k[0] and water_side(o) and family(o) != family(k)
-                     and bool((every[o].get("when") or {}).get("dates"))
-                     and _base_dimension(every[o]) == _base_dimension(x)
-                     and yields_to_release(x) <= rel[o]), None)
-
     if water_rel:
         for k in sorted(out_):
             keeps = yields_to_release(every[k])
             if not (keeps and competes(k) and keeps <= released and keeps & water_rel):
                 continue
             if zone_side(k):
-                lose(k, "water_release",
-                     next(o for o in sorted(rel) if water_side(o) and rel[o] & keeps))
-            elif water_side(k) and same_row_dated_release(k):
-                lose(k, "same_row_release", same_row_releaser(k))
+                s.lose(k, "water_release",
+                       next(o for o in sorted(rel) if water_side(o) and rel[o] & keeps))
+            elif water_side(k) and _same_row_dated_release(s, k):
+                s.lose(k, "same_row_release", _same_row_releaser(s, k))
 
+
+def _step5b_moot_size_clause(s: _Ask) -> None:
     # 5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH IS NOT SHOWN (user
     #     ruling 2026-10-05, CLEAN round, option A — what the consumer's front end already does). A
     #     clause stating only sizes ("none under 60 cm", `daily/size`) is its own dimension, so
@@ -1463,11 +1581,14 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #     untouched: a closure is still a closure (no gear in the water), a release still a release.
     #     The clause has nothing left to say today: it is not in the answer, and a traced answer
     #     returns it as "moot" ("doesn't matter today"), `by` the release.
+    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
+    every, out_, top = s.every, s.out_, s.top
+    competes, family, clock = s.competes, s.family, s.clock
     moot_by = [o for o in out_ if competes(o) and release_origins(every[o])] \
         if MOOT_SIZE_CLAUSE_HIDDEN else []
     for k in sorted(out_):
         x = every[k]
-        if not (competes(k) and zone_side(k) and x.get("type") == "retention_limit"
+        if not (competes(k) and s.zone_side(k) and x.get("type") == "retention_limit"
                 and x.get("take") is None and not x.get("unlimited") and x.get("lengths")):
             continue
         keeps = yields_to_release(x)
@@ -1475,8 +1596,10 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                if o != k and family(o) != family(k) and keeps <= release_origins(every[o])
                and covers(every[o], x, top) and clock(o) == clock(k)] if keeps else []
         if won:
-            lose(k, "moot_size_clause", won[0])
+            s.lose(k, "moot_size_clause", won[0])
 
+
+def _step6_two_regions(s: _Ask) -> None:
     # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake drawn across
     #    a region line binds both regions' zone rules (`registry.regions.in_region`) — Ahbau Lake
     #    (51 % Region 5, 49 % Zone 7A), Mara Lake (61 % Region 3, 39 % Region 8). Neither table
@@ -1488,13 +1611,15 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     #      higher — "Kokanee: 5" over "Kokanee: 10".
     #    Quotas stating different things sit beside each other (the stricter binds by itself), and
     #    gear and method rules are never displaced here: both regions' restrictions apply.
-    mine = [k for k in out_ if competes(k) and base(k) is not None]
+    from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+    every, out_, base, peers = s.every, s.out_, s.base, s.peers
+    mine = [k for k in out_ if s.competes(k) and base(k) is not None]
     if len({base(k) for k in mine}) > 1:
         gone = {k for k in mine
                 if any(peers(o, k) and stricter(every[o], every[k]) for o in mine)}
         for k in sorted(gone):
-            lose(k, "stricter_region", next(o for o in sorted(mine)
-                                            if peers(o, k) and stricter(every[o], every[k])))
+            s.lose(k, "stricter_region", next(o for o in sorted(mine)
+                                              if peers(o, k) and stricter(every[o], every[k])))
         # TWO REGIONS' IDENTICAL STATEMENTS ARE ONE (RU-8, 2026-10-04): Ahbau Lake (Regions 5
         # and 7A) printed "Trout and char — 5 per day" and "1 over 50 cm" twice, once per table.
         # Of two peers that are the same statement with the same number, one is shown — the
@@ -1510,12 +1635,12 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
                         and same_statement(every[o], every[k]) \
                         and every[o].get("take") == every[k].get("take") \
                         and bool(every[o].get("unlimited")) == bool(every[k].get("unlimited")):
-                    lose(k, "same_as_peer", o)
+                    s.lose(k, "same_as_peer", o)
 
-    def said(k) -> str:
-        if k in undrawn:
-            return "not_yet_mapped"
-        return "speaks" if competes(k) else "beside" if state[k] == "part" else "shown"
+
+def _answer(s: _Ask, trace: bool) -> List[dict]:
+    """The answer: every rule left in, with its state; with `trace`, every loser too."""
+    every, orig, partly, partly_by = s.every, s.orig, s.partly, s.partly_by
 
     def name(k) -> str:
         return f"{k[0]}::{k[1]}"
@@ -1523,19 +1648,19 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     def body(k) -> dict:
         return {a: b for a, b in orig[k].items() if a != "_rank"}
 
-    answer = [(name(k), dict(body(k), state=said(k),
+    answer = [(name(k), dict(body(k), state=s.said(k),
                              **({"partly_lifted": True} if k in partly else {}),
                              **({"lifted_in_part_by": sorted(name(o) for o in partly_by[k])}
                                 if trace and k in partly_by else {})))
-              for k in out_]
+              for k in s.out_]
     if trace:
         # THE LOSERS (gap G1): every rule that took part — in force, about this fish, not a
         # lift-only rule, not a rainbow rule for the steelhead's sizes (step 0: about another
         # fish) — and is not in the answer, with the step that removed it and the rule that won.
-        took_part = {k for k in live - no_rainbow
-                     if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
-        for k in took_part - out_:
-            reason, by = why[k]
+        took_part = {k for k in s.live - s.no_rainbow
+                     if speaks_for(every[k], s.fish) and every[k].get("dimension") != "lift"}
+        for k in took_part - s.out_:
+            reason, by = s.why[k]
             answer.append((name(k), dict(body(k), state=LOSS_REASONS[reason], reason=reason,
                                          by=name(by))))
     return [x for _, x in sorted(answer, key=lambda p: p[0])]
