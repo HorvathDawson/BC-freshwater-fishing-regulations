@@ -260,3 +260,15 @@ def test_built_every_cross_reference_of_several_fish_carries_their_ranges():
     for it in items:
         assert it.get("ranges") is not None
         assert all(f in it["members"] for f, _, _ in it["ranges"])
+
+
+def test_one_fish_of_several_kinds_is_or_and_more_is_and():
+    """User 2026-10-10: a quota of 1 across several kinds keeps ANY ONE of them ("or"); more than
+    one reads "and … all kinds together" — for a subset sentence (G3) as for the rule's own."""
+    from pipeline.deliver.answers.display import _plain
+    names = "cutthroat trout, brown trout and rainbow trout"
+    x = {"type": "retention_limit", "species": ["CT", "RB"], "take": 1, "period": "daily"}
+    assert _plain(x, names) == "Keep up to 1 cutthroat trout, brown trout or rainbow trout a day."
+    x["take"] = 4
+    assert _plain(x, names) == ("Keep up to 4 cutthroat trout, brown trout and rainbow trout a day, "
+                                "all kinds together.")

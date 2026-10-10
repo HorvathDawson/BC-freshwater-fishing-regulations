@@ -306,7 +306,12 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     sp += ex_txt
     bits = []
     if take is not None:
-        fish = nm(" or ") + ex_txt if _is(take, 1) and not names else sp
+        # ONE fish of several kinds is "or" (any one of them), for a subset too (user 2026-10-10:
+        # "Keep up to 1 cutthroat trout, brown trout or rainbow trout a day"); more than one is "and"
+        if _is(take, 1):
+            fish = (re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")) + ex_txt
+        else:
+            fish = sp
         bits.append(f"{'Have no more than' if per != ' a day' else 'Keep up to'} {_num(take)} {fish}{per}"
                     f"{', all kinds together' if many and _gt0(take) and take > 1 else ''}")
     else:
