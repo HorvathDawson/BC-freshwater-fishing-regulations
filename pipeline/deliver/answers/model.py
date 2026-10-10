@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, Stri
     TypeAdapter, model_validator
 
 from pipeline.deliver import types as T
+from pipeline.deliver.calendar import WEEKDAYS
 
 
 class Model(BaseModel):
@@ -761,7 +762,7 @@ class WaterFacts(Model):
 # The top level: a segment's MOMENT (answers 2.1)
 # --------------------------------------------------------------------------------------------
 
-WeekdayLit = Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+WeekdayLit = Literal[WEEKDAYS]                     # THE CALENDAR SPEC's names, Monday first
 
 
 class ClockTime(Model):

@@ -5783,7 +5783,7 @@ def _closure_scan(bundle: Path) -> dict:
     return out
 
 
-_MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+_MONTHS = CAL.MONTHS
 
 
 def _runs_words(runs: list) -> str:

@@ -24,7 +24,8 @@ The pairing is refused unless the three files carry the same `about.bundle`, the
 Usage (no credits; nothing calls the claude CLI):
   python -m pipeline.deliver.answers.reference.page_data --out DIR          # DIR/{data,answers,cases}.json
   python -m pipeline.deliver.answers.reference.page_data --html PAGE.html   # rewrite the page's blocks
-                                                                            # and its script (page_v36.js)
+                                                                            # and its script (calendar.generated.js
+                                                                            # + page_v36.js)
 """
 from __future__ import annotations
 
@@ -41,6 +42,8 @@ from pipeline.tools.export_codec import expand
 HERE = Path(__file__).resolve().parent
 EXPORT_DIR = convert.MAIN_TREE / "data/generated/regs"
 JS = HERE / "page_v36.js"
+#: THE CALENDAR SPEC's page copy (`python -m pipeline.tools.emit_calendar`), inlined ahead of `JS`.
+CALENDAR_JS = HERE / "calendar.generated.js"
 
 #: The waters the page offers: v35's 28 (page order; Kootenay Lake's Lower West Arm among them), then
 #: the ones added for the v36 review (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal).
@@ -439,14 +442,15 @@ def _block(name: str, obj) -> str:
 
 
 def write_html(page: Path, data: dict, answers: dict, cases: dict) -> None:
-    """Rewrite the page's three JSON blocks and its script (from page_v36.js), in place."""
+    """Rewrite the page's three JSON blocks and its script (calendar.generated.js, then page_v36.js),
+    in place."""
     html = page.read_text()
     for name, obj in (("data", data), ("answers", answers), ("cases", cases)):
         pat = re.compile(r'<script type="application/json" id="%s">.*?</script>' % name, re.S)
         if not pat.search(html):
             raise SystemExit(f"{page}: no #{name} block")
         html = pat.sub(lambda _m: _block(name, obj), html, count=1)
-    js = JS.read_text()
+    js = CALENDAR_JS.read_text() + JS.read_text()
     pat = re.compile(r"(<script>\n)(.*?)(\n</script>\n\n</body>)", re.S)
     if not pat.search(html):
         raise SystemExit(f"{page}: no page script block")

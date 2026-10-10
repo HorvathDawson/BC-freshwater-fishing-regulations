@@ -13,11 +13,14 @@ const PAIR_ERR = A.about.format !== 'answers/2' ? `answers format is ${A.about.f
   : JSON.stringify(A.about.bundle) !== JSON.stringify(D.about.bundle) ? 'the answers file and the export come from different bundles'
   : JSON.stringify(A.about.bundle) !== JSON.stringify(CASES.about.bundle) ? 'the answers file and the guide come from different bundles' : '';
 const SEC = A.sections, DRULES = SEC.display.rules, DWATERS = SEC.display.waters;
-const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DIM = [31,28,31,30,31,30,31,31,30,31,30,31];
+// THE CALENDAR SPEC (pipeline/common/calendar_spec.py): `CALENDAR` is calendar.generated.js, which
+// page_data.write_html inlines ahead of this script — the page types no calendar table of its own.
+const MON = CALENDAR.months;
+// the page's year is the book's printed year (no Feb 29)
+const DIM = CALENDAR.common_year_last_day;
 const DAYS = []; DIM.forEach((n,m)=>{for(let d=1;d<=n;d++)DAYS.push((m+1)*100+d);});
 // the answers' calendar: day 1..366 on the leap calendar (Feb 29 = 60, Mar 1 = 61 in every year)
-const LEAP0 = [0,31,60,91,121,152,182,213,244,274,305,335];
+const LEAP0 = CALENDAR.days_before;
 const dayOf = md => LEAP0[Math.floor(md/100)-1] + md%100;
 const RANK = {'-1':{t:'Federal / parks',c:'--r-1'},'0':{t:'This water',c:'--r0'},'1':{t:'From downstream',c:'--r1'},'2':{t:'Named area',c:'--r2'},'3':{t:'Region',c:'--r3'},'4':{t:'Province',c:'--r4'}};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -124,7 +127,7 @@ const segStarts = w => A.segments[w.key[9]];
 // one segment per moment ({weekdays, hours: null | {start, end, in}}); null where the part has none
 const momentsOf = w => w.key && w.key[10] != null ? A.segment_moments[w.key[10]].map(i => A.moments[i]) : null;
 // the page's year is the viewer's (its weekdays: a weekday rule decides on the date's weekday)
-let YEAR = NOW.getFullYear(); const WEEK = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let YEAR = NOW.getFullYear(); const WEEK = CALENDAR.weekdays;
 const weekdayOf = md => WEEK[(new Date(Date.UTC(YEAR, Math.floor(md/100) - 1, md % 100)).getUTCDay() + 6) % 7];
 // the day's segments: every segment sharing the start on or before it (one unless the part has moments)
 function daySegs(w, md){ const s = segStarts(w), d = dayOf(md); let i = 0; for (let j = 0; j < s.length; j++) if (s[j] <= d) i = j;

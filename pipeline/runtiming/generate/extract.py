@@ -12,6 +12,7 @@ import math
 import re
 from pathlib import Path
 
+from pipeline.common import calendar_spec as SPEC
 from pipeline.runtiming.runs import Run, derive_form, derive_label, write_runs
 
 RATINGS = ["Not Applicable", "Low", "Medium-Low", "Medium", "Medium-High", "High"]
@@ -90,8 +91,8 @@ def _dates(daily: list[float]) -> tuple[str, tuple[str, str]]:
     Circular because winter steelhead run December into April: a straight calendar mean
     puts them in July, and a straight percentile walk reports a span of 300 days.
     """
-    md = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    md = SPEC.COMMON_YEAR_LAST_DAY        # the 365-day circle: a common year (THE CALENDAR SPEC)
+    mn = SPEC.MONTHS
 
     def fmt(d0):
         d = int(round(d0)) % 365

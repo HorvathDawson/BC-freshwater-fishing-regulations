@@ -39,6 +39,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.bundle import read
 from pipeline.deliver.calendar import DAYS  # noqa: F401  (the answers' year)
+from pipeline.deliver.calendar import MONTHS
 
 class AnswersError(RuntimeError):
     """A question the answers layer cannot answer: the build stops, naming it."""
@@ -400,7 +401,7 @@ def lc_names(codes: Sequence[str], conj: str = " and ") -> str:
     return join([lc(sp_name(c)) for c in codes], conj)
 
 
-MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+MON = MONTHS
 
 
 def when_dates(when: Optional[dict]) -> List[Tuple[int, int]]:

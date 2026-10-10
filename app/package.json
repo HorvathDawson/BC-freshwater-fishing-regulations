@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run fixture && pnpm run gauge-policy && pnpm run deps && pnpm run typecheck && pnpm run test",
+    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run fixture && pnpm run gauge-policy && pnpm run calendar && pnpm run deps && pnpm run typecheck && pnpm run test",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
@@ -21,7 +21,8 @@
     "tiles": "node tools/serve-tiles.mjs",
     "fixture": "node tools/build-fixture.mjs && git diff --exit-code packages/data/dev",
     "fixture:build": "node tools/build-fixture.mjs",
-    "gauge-policy": "cd .. && .venv/bin/python -m pipeline.tools.emit_gauge_policy --check"
+    "gauge-policy": "cd .. && .venv/bin/python -m pipeline.tools.emit_gauge_policy --check",
+    "calendar": "cd .. && .venv/bin/python -m pipeline.tools.emit_calendar --check"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

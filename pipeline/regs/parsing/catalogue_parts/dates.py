@@ -12,15 +12,17 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from pipeline.common import calendar_spec as SPEC
+
 from .vocab import _Terse
 
 
-#: Month name -> number, and the last day of each. February is 29 ON PURPOSE: the book says
-#: "February", which includes the 29th in the years it exists, and 28 would quietly shorten it.
-_MONTHS = {m: i + 1 for i, m in enumerate(
-    ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
-_LAST_DAY = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30,
-             7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+#: Month name -> number, and the last day of each, from THE CALENDAR SPEC
+#: (`pipeline.common.calendar_spec`, the one source every language's copy is generated from).
+#: February is 29 ON PURPOSE: the book says "February", which includes the 29th in the years it
+#: exists, and 28 would quietly shorten it.
+_MONTHS = {m.lower(): i + 1 for i, m in enumerate(SPEC.MONTHS)}
+_LAST_DAY = {m: n for m, n in enumerate(SPEC.LAST_DAY, start=1)}
 
 
 def parse_clock(text: str) -> Optional["Clock"]:
@@ -96,7 +98,7 @@ def _month(name: str) -> Optional[int]:
 
 
 def _day_index(month: int, day: int) -> int:
-    return sum(_LAST_DAY[m] for m in range(1, month)) + day
+    return SPEC.day_index(month, day)
 
 
 def range_days(r: "DateRange") -> List[int]:
@@ -110,7 +112,9 @@ def range_days(r: "DateRange") -> List[int]:
     a, b = _day_index(r.from_month, r.from_day), _day_index(r.to_month, r.to_day)
     if (r.to_month, r.to_day) == (2, 28):
         b += 1
-    return list(range(a, b + 1)) if a <= b else list(range(a, 367)) + list(range(1, b + 1))
+    if a <= b:
+        return list(range(a, b + 1))
+    return list(range(a, SPEC.DAYS + 1)) + list(range(1, b + 1))
 
 
 def complement(ranges: List["DateRange"]) -> List["DateRange"]:
@@ -123,7 +127,7 @@ def complement(ranges: List["DateRange"]) -> List["DateRange"]:
     covered = set()
     for r in ranges:
         covered.update(range_days(r))
-    total = sum(_LAST_DAY.values())
+    total = SPEC.DAYS
     free = [d for d in range(1, total + 1) if d not in covered]
     if not free:
         return []
@@ -140,11 +144,7 @@ def complement(ranges: List["DateRange"]) -> List["DateRange"]:
 
 
 def _md(idx: int):
-    for m in range(1, 13):
-        if idx <= _LAST_DAY[m]:
-            return m, idx
-        idx -= _LAST_DAY[m]
-    raise ValueError(idx)
+    return SPEC.month_day(idx)
 
 
 class Solar(str, Enum):
@@ -211,8 +211,8 @@ class DateRange(BaseModel):
         return self
 
     def words(self) -> str:
-        nm = {v: k.capitalize() for k, v in _MONTHS.items()}
-        return f"{nm[self.from_month]} {self.from_day}-{nm[self.to_month]} {self.to_day}"
+        nm = SPEC.MONTHS
+        return f"{nm[self.from_month - 1]} {self.from_day}-{nm[self.to_month - 1]} {self.to_day}"
 
 
 class Hours(BaseModel):

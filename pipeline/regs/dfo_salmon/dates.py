@@ -16,13 +16,16 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from pipeline.common import calendar_spec as SPEC
+
 _MONTHS = {
     "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
     "apr": 4, "april": 4, "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
     "aug": 8, "august": 8, "sep": 9, "sept": 9, "september": 9,
     "oct": 10, "october": 10, "nov": 11, "november": 11, "dec": 12, "december": 12,
 }
-_MAX_DAY = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+#: The last day of each month on the leap calendar (THE CALENDAR SPEC).
+_MAX_DAY = dict(enumerate(SPEC.LAST_DAY, start=1))
 
 _SEP = re.compile(r"\s*(?:-|–|—|to|through|thru|until)\s*", re.IGNORECASE)
 _DATE = re.compile(r"^([A-Za-z]+)\.?\s+(\d{1,2})$")

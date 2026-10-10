@@ -8,7 +8,11 @@ a new spelling can walk past (finding H2: three closure spellings walked past th
               writer that ships the field
   3 parts     no SQL naming `province_except` beside `section_ruleset` outside the bundle builder:
               the part partition is written once, by the bundle (`part`)
-  4 calendar  `_day_index` / `_LAST_DAY` are read in `deliver/calendar.py` and the catalogue only
+  4 calendar  ONE CALENDAR SPEC (`pipeline/common/calendar_spec.py`): its tables (months, month
+              lengths, days before each month, weekdays) are spelled there and nowhere else — not
+              in Python, not in the app's TypeScript, not in the reference page's JS, whose copies
+              are GENERATED (`python -m pipeline.tools.emit_calendar`); `_day_index` / `_LAST_DAY`
+              are read in `deliver/calendar.py` and the catalogue only
 
 Each gate is MUTATION-PINNED: a violation planted in a copy of the sources turns it red.
 
@@ -231,8 +235,10 @@ def test_gate_3_goes_red_on_planted_part_sql():
 # --------------------------------------------------------------------------------------------
 
 #: The catalogue's calendar lives in its `dates` part; the `catalogue.py` facade re-exports it.
+#: All three read THE CALENDAR SPEC, which is the only module that spells a calendar table.
+CALENDAR_SPEC = "pipeline/common/calendar_spec.py"
 CALENDAR_OWNERS = {"pipeline/deliver/calendar.py", "pipeline/regs/parsing/catalogue.py",
-                   "pipeline/regs/parsing/catalogue_parts/dates.py"}
+                   "pipeline/regs/parsing/catalogue_parts/dates.py", CALENDAR_SPEC}
 
 
 def calendar_uses(sources: dict[str, str]) -> set[tuple[str, str]]:
@@ -261,6 +267,115 @@ def test_gate_4_goes_red_on_a_planted_calendar():
     src["pipeline/tools/export_ui_rules.py"] += (
         "\n\ndef planted(m, d):\n    return C._day_index(m, d)\n")
     assert ("pipeline/tools/export_ui_rules.py", "planted") in calendar_uses(src)
+
+
+def _calendar_tables() -> list[tuple]:
+    """The spec's tables, each as the tuple a hand-written copy would spell (names lower-cased)."""
+    from pipeline.common import calendar_spec as S
+    return [tuple(m.lower() for m in S.MONTHS), S.LAST_DAY, S.COMMON_YEAR_LAST_DAY, S.DAYS_BEFORE,
+            tuple(w.lower() for w in S.WEEKDAYS)]
+
+
+def calendar_tables_py(sources: dict[str, str]) -> set[tuple[str, str]]:
+    """(module, qualname) of every calendar TABLE spelled outside the spec: a list / tuple / set
+    literal, a dict's values or keys, or a string's words equal to the months, the month lengths
+    (leap or book year), the days before each month or the weekdays."""
+    tables = set(_calendar_tables())
+
+    def norm(xs):
+        if all(isinstance(x, ast.Constant) for x in xs):
+            return tuple(x.value.lower() if isinstance(x.value, str) else x.value for x in xs)
+        return None
+    out: set = set()
+    for path, text in sources.items():
+        if path == CALENDAR_SPEC:
+            continue
+
+        def on(node, where, unit, path=path):
+            got = []
+            if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+                got.append(norm(node.elts))
+            elif isinstance(node, ast.Dict):
+                got += [norm(node.values), norm([k for k in node.keys if k is not None])]
+            elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                got.append(tuple(node.value.lower().split()))
+            if any(g in tables for g in got if g):
+                out.add((path, where))
+        _visit(text, on)
+    return out
+
+
+#: Hand-written TypeScript / JS the gate reads: the app's sources and tools, and the reference
+#: page's scripts. GENERATED files are the copies the spec writes, and page_v35.js is pinned by
+#: sha256 in `test_answers_reference.py` (a frozen exhibit, never edited).
+CALENDAR_JS_EXEMPT = {"pipeline/deliver/answers/reference/page_v35.js"}
+
+
+def _js_sources() -> dict[str, str]:
+    roots = [REPO_ROOT / "app" / "packages", REPO_ROOT / "app" / "apps", REPO_ROOT / "app" / "tools",
+             PIPELINE / "deliver" / "answers" / "reference"]
+    out = {}
+    for root in roots:
+        for p in sorted(root.rglob("*")):
+            if p.suffix not in (".ts", ".tsx", ".js", ".mjs") or ".generated." in p.name:
+                continue
+            if {"node_modules", "dist", ".expo", "build"} & set(p.relative_to(REPO_ROOT).parts):
+                continue
+            rel = str(p.relative_to(REPO_ROOT))
+            if rel not in CALENDAR_JS_EXEMPT:
+                out[rel] = p.read_text(encoding="utf-8")
+    return out
+
+
+def calendar_tables_js(sources: dict[str, str]) -> set[tuple[str, int]]:
+    """(file, line) of every calendar table spelled in TypeScript / JS: an array literal whose
+    items are the months, a month-length table, the days before each month or the weekdays."""
+    import re
+    tables = set(_calendar_tables())
+    out: set = set()
+    for path, text in sources.items():
+        for m in re.finditer(r"\[([^\[\]]{20,400})\]", text):
+            items = [x.strip() for x in m.group(1).split(",") if x.strip()]
+            vals = tuple(int(x) if x.isdigit() else x.strip("'\"`").lower() for x in items)
+            if vals in tables:
+                out.add((path, text.count("\n", 0, m.start()) + 1))
+    return out
+
+
+def test_gate_4_one_calendar_spec():
+    """The spec's tables are spelled ONCE: every other copy is read from it or generated."""
+    assert calendar_tables_py(_sources()) == set()
+    assert calendar_tables_js(_js_sources()) == set()
+
+
+@pytest.mark.parametrize("path,planted", [
+    ("pipeline/deliver/answers/common.py",
+     '\n\nDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")\n'),
+    ("pipeline/tools/export_ui_rules.py",
+     '\n\nMONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()\n'),
+    ("pipeline/deliver/status_index.py",
+     "\n\nLAST = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, "
+     "11: 30, 12: 31}\n"),
+])
+def test_gate_4_goes_red_on_a_planted_python_table(path, planted):
+    src = dict(_sources())
+    src[path] += planted
+    assert (path, "<module>") in calendar_tables_py(src)
+
+
+@pytest.mark.parametrize("path,planted", [
+    ("app/packages/core/src/statusIndex.ts",
+     "\nconst BEFORE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];\n"),
+    ("pipeline/deliver/answers/reference/page_v36.js",
+     "\nconst DIM2 = [31,28,31,30,31,30,31,31,30,31,30,31];\n"),
+    ("pipeline/deliver/answers/reference/page_v36.js",
+     "\nconst W = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];\n"),
+])
+def test_gate_4_goes_red_on_a_planted_js_table(path, planted):
+    src = dict(_js_sources())
+    assert path in src
+    src[path] += planted
+    assert any(p == path for p, _ in calendar_tables_js(src))
 
 
 # --------------------------------------------------------------------------------------------

@@ -21,6 +21,7 @@
  * two bundles from one atlas and two reach runs share handles and differ in rules, and the
  * decoder refuses an index whose reach digest is not the bundle's when the caller holds one.
  */
+import { CALENDAR_DAYS, DAYS_BEFORE_MONTH } from "./calendar.generated";
 import type { SectionKey } from "./section";
 
 /** What the file can say about a section on a day. `tidal` and `outside` are not statuses. */
@@ -31,18 +32,18 @@ export const STATUS_CODES: readonly StatusCode[] = ["base", "own", "closed", "ti
 
 const MAGIC = [0x42, 0x43, 0x53, 0x49]; // "BCSI"
 const VERSION = 2;
-const DAYS = 366;
-/** Days before each month on the catalogue's leap calendar (Feb always has 29). */
-const BEFORE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+/** The leap calendar's days and the days before each month: THE CALENDAR SPEC, generated from
+ *  `pipeline/common/calendar_spec.py` (`python -m pipeline.tools.emit_calendar`), never typed here. */
+const DAYS = CALENDAR_DAYS;
 
 /**
- * A date's day on the catalogue's calendar (`catalogue._day_index`): 1..366, Feb 29 is 60 and
+ * A date's day on the catalogue's calendar (`calendar_spec.day_index`): 1..366, Feb 29 is 60 and
  * Mar 1 is 61 IN EVERY YEAR, so a printed "Mar 1" is the same day whether or not the year is a
  * leap year. Read in the date's LOCAL calendar — the regulations are dated where the water is.
  */
 export function dayOfYear(on: Date | { month: number; day: number }): number {
   const [m, d] = on instanceof Date ? [on.getMonth() + 1, on.getDate()] : [on.month, on.day];
-  return BEFORE[m - 1]! + d;
+  return DAYS_BEFORE_MONTH[m - 1]! + d;
 }
 
 export interface StatusIndex {

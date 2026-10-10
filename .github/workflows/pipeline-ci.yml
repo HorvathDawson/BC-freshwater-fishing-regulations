@@ -17,10 +17,12 @@ name: pipeline
 on:
   push:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", ".github/workflows/pipeline-ci.yml"]
+            "requirements.txt", ".github/workflows/pipeline-ci.yml",
+            "app/packages/core/src/calendar.generated.*"]
   pull_request:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", ".github/workflows/pipeline-ci.yml"]
+            "requirements.txt", ".github/workflows/pipeline-ci.yml",
+            "app/packages/core/src/calendar.generated.*"]
   workflow_dispatch:
 
 concurrency:
@@ -65,6 +67,12 @@ jobs:
       # page; the generator re-runs and fails on any drift (AGENTS 40, DATAFLOW P7).
       - name: Generated answers/2 schema and types are current
         run: python -m pipeline.deliver.answers.model --check
+
+      # THE CALENDAR SPEC (pipeline/common/calendar_spec.py) is the one calendar: the app's
+      # TypeScript/JSON and the reference page's JS are generated from it. This re-runs the
+      # generator and fails if a committed copy is stale or was edited by hand (AGENTS 40).
+      - name: Generated calendar is current
+        run: python -m pipeline.tools.emit_calendar --check
 
       # The no-data tier. A test that reads generated or fetched data (bundle, atlas, reach run,
       # tiles, the gpkg, the DFO cache) carries a needs_* marker and FAILS without it — it never

@@ -1,10 +1,12 @@
 """THE CALENDAR — the one definition of a day, a year's cuts and a run of days (DATAFLOW §1.3 C).
 
 Every stage of the delivery (the verdicts, the status index, the export, the answers) imports this
-module; none spells a calendar of its own (`test_one_data_flow.py` gate 4: `_day_index` and
-`_LAST_DAY` are read here and in the catalogue, nowhere else).
+module; none spells a calendar of its own. The constants and the day arithmetic are THE CALENDAR
+SPEC (`pipeline.common.calendar_spec`), which the catalogue's `dates` part reads too and from which
+the app's and the reference page's copies are generated (`python -m pipeline.tools.emit_calendar`);
+`test_dataflow_gates.py` gate 4 refuses a calendar spelled anywhere else.
 
-  Day        1..366 on the catalogue's LEAP calendar (`catalogue._day_index`): Jan 1 = 1, Feb 29 =
+  Day        1..366 on the LEAP calendar (`calendar_spec.day_index`): Jan 1 = 1, Feb 29 =
              60, Mar 1 = 61 in EVERY year, Dec 31 = 366. The only date unit between stages.
   MonthDay   (month, day) — used only to ASK the reader (`read.in_force` takes one) and to write
              words. MMDD integers are display-word internals and never cross a boundary.
@@ -21,10 +23,10 @@ import json
 from functools import lru_cache
 from typing import Iterable, List, NamedTuple, NewType, Optional, Sequence, Tuple
 
-from pipeline.regs.parsing.catalogue import _LAST_DAY, _day_index
+from pipeline.common import calendar_spec as SPEC
 
-#: The days of the leap calendar.
-DAYS = 366
+#: The days of the leap calendar (THE CALENDAR SPEC, `pipeline.common.calendar_spec`).
+DAYS = SPEC.DAYS
 
 Day = NewType("Day", int)
 MonthDay = Tuple[int, int]
@@ -37,26 +39,26 @@ class CalendarError(ValueError):
 def day_of(on) -> Day:
     """`datetime.date` or `(month, day)` -> 1..366 on the catalogue's leap calendar."""
     m, d = (on.month, on.day) if hasattr(on, "month") else on
-    return Day(_day_index(m, d))
+    return Day(SPEC.day_index(m, d))
 
 
 def month_day(day: int) -> MonthDay:
     """1..366 -> (month, day), the inverse of `day_of` (day 60 is Feb 29)."""
     if not 1 <= day <= DAYS:
         raise CalendarError(f"calendar: day {day} is not 1..{DAYS}")
-    m = 1
-    while day > _LAST_DAY[m]:
-        day -= _LAST_DAY[m]
-        m += 1
-    return m, day
+    return SPEC.month_day(day)
 
 
 #: Every day of the year as (month, day), by day index (1..366).
-MD: dict = {_day_index(m, d): (m, d) for m in range(1, 13) for d in range(1, _LAST_DAY[m] + 1)}
+MD: dict = {SPEC.day_index(m, d): (m, d)
+            for m, n in enumerate(SPEC.LAST_DAY, start=1) for d in range(1, n + 1)}
 
 #: Feb 29. The book prints its dates for a year without one: a note reads a set of days over such
 #: a year (`runs`), never naming a stray "Feb 29".
-LEAP: Day = Day(_day_index(2, 29))
+LEAP: Day = Day(SPEC.LEAP_DAY)
+
+#: The months as the book abbreviates them ("Jan" .. "Dec"), for words.
+MONTHS = SPEC.MONTHS
 
 
 # --------------------------------------------------------------------------------------------
@@ -83,7 +85,7 @@ def _in_force_code() -> dict:
 # different windows is refused — none exists) cuts the day in two. A key with no such rule has
 # one moment, `ALWAYS`, and reads exactly as before.
 
-WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+WEEKDAYS = SPEC.WEEKDAYS
 ALL_WEEK = (1 << len(WEEKDAYS)) - 1
 
 
@@ -316,7 +318,7 @@ def run_days(rs: list) -> List[int]:
     """`runs` back to day indexes, in order (a wrapping run from its first day), Feb 29 left out."""
     out: List[int] = []
     for a, b, c, d in rs:
-        i, j = _day_index(a, b), _day_index(c, d)
+        i, j = SPEC.day_index(a, b), SPEC.day_index(c, d)
         out += list(range(i, j + 1)) if i <= j else list(range(i, len(MD) + 1)) + \
             list(range(1, j + 1))
     return [d for d in out if d != LEAP]
