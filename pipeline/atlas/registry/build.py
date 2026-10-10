@@ -218,7 +218,9 @@ def pinned_by_override(overrides_path=None) -> dict[str, str]:
         # The same default `reach.covered.make_matcher` resolves; "__default__" is that function's
         # sentinel, not a path, and `load_overrides` would read it as a missing file and return [].
         from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
-        overrides_path = DEFAULT_OVERRIDES if DEFAULT_OVERRIDES.exists() else None
+        overrides_path = DEFAULT_OVERRIDES          # curated: a missing file raises (P2)
+        if not overrides_path.exists():
+            raise FileNotFoundError(f"{overrides_path} not found")
     out: dict[str, str] = {}
     for e in load_overrides(overrides_path):
         nm = ((e.get("criteria") or {}).get("name_verbatim") or "").strip()

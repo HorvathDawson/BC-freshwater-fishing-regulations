@@ -12,6 +12,7 @@ closure gate marker), not the outside ones, and the inside pieces get the "withi
         OOS (out-scope): (40,20)  ▶ (40,80)              inside, but a DIFFERENT WSC (not a Pitt trib)
 """
 
+import pytest
 from shapely.geometry import LineString, box
 
 from pipeline.atlas.graph import cutting
@@ -157,6 +158,7 @@ def test_deterministic_across_two_builds():
     assert {n: ga.nodes[n].in_areas for n in ga.nodes} == {n: gb.nodes[n].in_areas for n in gb.nodes}
 
 
+@pytest.mark.needs_source
 class TestCuratedClosureZones:
     """Hand-drawn admin polygons — a closure a regulation states as an AREA, not a reach.
 
@@ -168,7 +170,9 @@ class TestCuratedClosureZones:
 
     @staticmethod
     def _def():
-        from pipeline.atlas.splits.area_splits import load_area_split_defs
+        from pipeline.atlas.splits.area_splits import _GPKG, load_area_split_defs
+        from pipeline.tests.conftest import GPKG_HINT, need
+        need(None, "source", _GPKG, GPKG_HINT)     # the rings are clipped to the B.C. outline (wmu)
         d = [a for a in load_area_split_defs() if a["id"] == "sign_zones"]
         assert d, "areas.json defines no `sign_zones`"
         return d[0]
@@ -352,17 +356,17 @@ class TestOfferedIsNotApplied:
     happen.
     """
 
+    @pytest.mark.needs_atlas
     def test_an_unnamed_pruned_stream_offers_a_cut_that_lands_nowhere(self):
         """blk 360244272 — an unnamed 1.7 km stream inside the Kispiox sign zone. It has a
         chain and no graph nodes, because the leaf prune removed it."""
         from pathlib import Path
-        import pytest
         from pipeline.common.curated import GENERATED
         from pipeline.common.io.serialize import read_artifact
 
+        from pipeline.tests.conftest import ATLAS_HINT, need
         build = Path(GENERATED.build())
-        if not (build / "graph.pkl").exists():
-            pytest.skip("no built atlas on this machine")
+        need(None, "atlas", build / "graph.pkl", ATLAS_HINT)
         g = read_artifact(build / "graph.pkl")
         live = {n.blk for n in g.nodes.values()}
         assert "360244272" not in live, (

@@ -23,6 +23,7 @@ from pipeline.tests.bundle_fixture import finish, section_sets
 
 from pipeline.deliver.bundle.build import SCHEMA, touching_pairs
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -156,17 +157,20 @@ def test_a_bundle_without_the_table_is_refused(tmp_path):
 # The corpus
 # ---------------------------------------------------------------------------------------------
 @pytest.fixture(scope="module")
-def db():
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
 
 
 @pytest.fixture(scope="module")
-def waters():
+def waters(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.read(BUNDLE)["waters"]
 
 
+@pytest.mark.needs_bundle
 def test_every_written_pair_is_two_sections_of_one_water(db):
     n = db.execute("SELECT COUNT(*) FROM section_touch").fetchone()[0]
     assert n > 10_000, "the build wrote no adjacency"
@@ -177,6 +181,7 @@ def test_every_written_pair_is_two_sections_of_one_water(db):
     ).fetchone()[0] == 0
 
 
+@pytest.mark.needs_bundle
 def test_touches_is_symmetric_irreflexive_and_in_range_on_every_water(waters):
     for item, w in waters.items():
         for i, p in enumerate(w["parts"]):
@@ -186,6 +191,7 @@ def test_touches_is_symmetric_irreflexive_and_in_range_on_every_water(waters):
                 assert 0 <= j < len(w["parts"]) and i in w["parts"][j]["touches"], item
 
 
+@pytest.mark.needs_bundle
 def test_touches_is_what_the_bundle_rows_say(waters, db):
     """Recomputed from `section_touch` and the per-section sets in SQL, independently of the
     export's own join."""
@@ -210,6 +216,7 @@ def test_touches_is_what_the_bundle_rows_say(waters, db):
         assert got == want.get(item, set()), item
 
 
+@pytest.mark.needs_bundle
 def test_the_touch_check_catches_a_one_sided_self_or_stray_touch(waters):
     """Mutation pin for `X.touch_problems` (which `X.dangling`, and so `problems`, runs): each
     breakage must go red on a real water, and the real water must be clean."""

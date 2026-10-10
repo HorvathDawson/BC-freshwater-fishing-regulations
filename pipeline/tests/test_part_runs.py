@@ -27,6 +27,7 @@ from pipeline.tests.bundle_fixture import finish, section_sets
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.build import SCHEMA
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -195,14 +196,16 @@ def test_a_bundle_without_the_span_table_is_refused(tmp_path):
 # The corpus
 # ---------------------------------------------------------------------------------------------
 @pytest.fixture(scope="module")
-def db():
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
 
 
 @pytest.fixture(scope="module")
-def doc():
+def doc(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
@@ -210,6 +213,7 @@ def _runs(doc, item):
     return [(p["ruleset"], p["runs"]) for p in doc["waters"][item]["parts"]]
 
 
+@pytest.mark.needs_bundle
 def test_every_stream_section_has_a_span_and_nothing_else_does(db):
     n = db.execute("SELECT COUNT(*) FROM item_section s JOIN item i ON i.ord = s.ord "
                    "WHERE i.kind = 'stream'").fetchone()[0]
@@ -220,6 +224,7 @@ def test_every_stream_section_has_a_span_and_nothing_else_does(db):
         "JOIN item i ON i.ord = s.ord WHERE s.sid = p.sid AND i.kind = 'stream')").fetchone()[0] == 0
 
 
+@pytest.mark.needs_bundle
 def test_runs_cover_exactly_the_part_s_sections(doc, db):
     """Recomputed from the bundle rows: each part's sections (the export's own grouping key, in
     SQL) are partitioned by its runs — every section in exactly one run — and the shipped runs are
@@ -267,6 +272,7 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
     assert checked > 10_000
 
 
+@pytest.mark.needs_bundle
 def test_every_end_is_a_cut_or_an_end_the_file_names(doc):
     # runs follow the SHAPE of the sections: a stream's stretches have ends, its polygon-only
     # parts (a slough drawn only as polygons) are one polygon run with none
@@ -278,6 +284,7 @@ def test_every_end_is_a_cut_or_an_end_the_file_names(doc):
     assert len(named) > 1_000
 
 
+@pytest.mark.needs_bundle
 def test_runs_go_upstream_to_downstream_and_km_never_climbs(doc):
     assert X.run_problems(doc) == []
     for w in doc["waters"].values():
@@ -289,6 +296,7 @@ def test_runs_go_upstream_to_downstream_and_km_never_climbs(doc):
                     assert r["km_from"] >= r["km_to"]
 
 
+@pytest.mark.needs_bundle
 def test_a_part_of_several_stretches_has_several_runs(doc):
     several = [p for w in doc["waters"].values() for p in w["parts"] if len(p["runs"]) > 1]
     assert len(several) > 1_000
@@ -297,6 +305,7 @@ def test_a_part_of_several_stretches_has_several_runs(doc):
     assert sorted(len(r) for r in bull.values()) == [2, 3]
 
 
+@pytest.mark.needs_bundle
 def test_a_lake_part_is_its_polygon(doc):
     lakes = [(w, p) for w in doc["waters"].values() if w["kind"] != "stream" for p in w["parts"]]
     assert lakes
@@ -305,11 +314,13 @@ def test_a_lake_part_is_its_polygon(doc):
                               "polygon": w["name"] if w.get("part_of") else "whole"}]
 
 
+@pytest.mark.needs_bundle
 def test_no_run_carries_a_section(doc):
     keys = {k for w in doc["waters"].values() for p in w["parts"] for r in p["runs"] for k in r}
     assert keys <= {"from", "to", "km_from", "km_to", "branch", "polygon"}
 
 
+@pytest.mark.needs_bundle
 def test_the_splits_table_names_every_cut_once(doc):
     S = doc["splits"]
     assert len(S) > 3_000
@@ -324,6 +335,7 @@ def test_the_splits_table_names_every_cut_once(doc):
 
 
 # ---- the four waters the UI builder named ----------------------------------------------------
+@pytest.mark.needs_bundle
 def test_chilliwack_closed_above_the_slesse_signs(doc):
     slesse = "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
     assert doc["splits"][slesse]["water_id"] == "gnis:8634"
@@ -352,6 +364,7 @@ def test_chilliwack_closed_above_the_slesse_signs(doc):
     assert below and below[0][0]["to"] == "chilliwack_vedder_rivers__tamihi_rapids_bridge"
 
 
+@pytest.mark.needs_bundle
 def test_bull_river_rest_is_the_river_outside_its_release_reaches(doc):
     parts = dict(_runs(doc, "gnis:10583"))
     ends = {rs: [(r["from"], r["to"]) for r in runs] for rs, runs in parts.items()}
@@ -365,6 +378,7 @@ def test_bull_river_rest_is_the_river_outside_its_release_reaches(doc):
                      ("bull_river__tie_mill_dam", "mouth")]]
 
 
+@pytest.mark.needs_bundle
 def test_thompson_between_the_cnr_bridges(doc):
     a, b = "thompson_river__cnr_bridge", "thompson_river__cnr_bridge_2"
     between = [runs for _, runs in _runs(doc, "gnis:39492")
@@ -377,6 +391,7 @@ def test_thompson_between_the_cnr_bridges(doc):
         ("lake_outlet:wbk:329563838", a), (b, "thompson_river__boundary_signs")]
 
 
+@pytest.mark.needs_bundle
 def test_elk_release_reaches_alternate_down_the_river(doc):
     parts = dict(_runs(doc, "gnis:16880"))
     many = sorted((runs for runs in parts.values() if len(runs) > 1), key=len)
@@ -388,6 +403,7 @@ def test_elk_release_reaches_alternate_down_the_river(doc):
 
 
 # ---- mutation: the run checks go red --------------------------------------------------------
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("name,mutate,expect", [
     ("invented end", lambda p: p["runs"][0].update({"from": "nowhere__at_all"}), "no cut or end"),
     ("lake that is no water", lambda p: p["runs"][0].update({"to": "lake_inlet:wbk:0"}),
@@ -453,6 +469,7 @@ def _designations(doc):
     return {i: x for i, x in doc["licensing"].items() if x["kind"] == "designation"}
 
 
+@pytest.mark.needs_bundle
 def test_every_designation_says_its_period(doc):
     D = _designations(doc)
     assert len(D) == 74
@@ -465,6 +482,7 @@ def test_every_designation_says_its_period(doc):
     assert len(kinds["dates"]) == 74 - len(WHEN_OPEN) - len(ALL_YEAR)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("rid", WHEN_OPEN)
 def test_when_open_reads_whenever_the_water_is_open(doc, rid):
     x = doc["licensing"][rid]
@@ -473,6 +491,7 @@ def test_when_open_reads_whenever_the_water_is_open(doc, rid):
                            "says": "Classified (Class II) whenever this water is open"}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("rid", sorted(ALL_YEAR))
 def test_all_year_reads_all_year(doc, rid):
     x = doc["licensing"][rid]
@@ -480,6 +499,7 @@ def test_all_year_reads_all_year(doc, rid):
     assert x["period"] == {"kind": "all_year", "says": f"Class {ALL_YEAR[rid]} all year"}
 
 
+@pytest.mark.needs_bundle
 def test_a_dated_period_is_its_own_when(doc):
     for i, x in _designations(doc).items():
         if x["period"]["kind"] == "dates":
@@ -509,6 +529,7 @@ def test_a_period_that_cannot_be_read_is_refused(fields, verbatim, match):
         X.designation_period("r9:x#x", fields, verbatim, {"when": "Sep 1-Apr 30"})
 
 
+@pytest.mark.needs_bundle
 def test_the_period_check_catches_a_dropped_or_flipped_period(doc):
     rid = "r4:bull_river@4-22#bull_river"
     for mutate in (lambda x: x.pop("period"),

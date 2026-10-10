@@ -18,12 +18,14 @@ import pytest
 from pipeline.deliver.bundle import read as RD
 from pipeline.tools import export_ui_rules as X
 from pipeline.tools import guide_examples as G
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
 
 @pytest.fixture(scope="module")
-def doc() -> dict:
+def doc(request) -> dict:
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
@@ -32,6 +34,7 @@ def shipped(doc) -> dict:
     return doc["guide"]["examples"]
 
 
+@pytest.mark.needs_bundle
 def test_every_declared_example_is_shipped_and_agrees_with_the_reader(doc, shipped):
     assert set(shipped) == {e.id for e in G.EXAMPLES}
     assert len(shipped) == len(G.EXAMPLES) >= 57
@@ -39,6 +42,7 @@ def test_every_declared_example_is_shipped_and_agrees_with_the_reader(doc, shipp
     assert X.guide_example_problems(doc) == []
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("ex", G.EXAMPLES, ids=lambda e: e.id)
 def test_each_example_reasked(ex):
     """Independent of the export: the reader, asked on the example's section, says what the
@@ -73,6 +77,7 @@ def test_each_example_reasked(ex):
         assert got.get(r) == s, (r, got.get(r))
 
 
+@pytest.mark.needs_bundle
 def test_each_example_is_cited_where_the_prose_names_it(doc):
     """No stale example: the text it cites names its water (or the name the prose uses)."""
     texts = dict(G._texts(doc["guide"]))
@@ -91,6 +96,7 @@ def _declared(shipped, i, **change) -> dict:
     return s
 
 
+@pytest.mark.needs_bundle
 def test_mutation_the_thompsons_2_in_june_is_refused(shipped):
     """Prose said 'in June the 2' speaks; June is inside Region 3's spring stream closure."""
     x = shipped["thompson_cnr_june_spring_closure"]
@@ -100,6 +106,7 @@ def test_mutation_the_thompsons_2_in_june_is_refused(shipped):
     assert two not in {a["id"] for a in x["expect"]}
 
 
+@pytest.mark.needs_bundle
 def test_mutation_kakwas_2_outranking_the_zones_5_is_refused(shipped):
     """Prose said the lake's 2 outranks the zone's 'Trout/char: 5' by place; both speak."""
     five = G.Z7B + ".r1"
@@ -108,6 +115,7 @@ def test_mutation_kakwas_2_outranking_the_zones_5_is_refused(shipped):
     assert any(five in p and "not silent" in p for p in G.example_problems(bad))
 
 
+@pytest.mark.needs_bundle
 def test_mutation_denetiahs_own_bull_trout_rule_does_not_exist():
     """Prose said Denetiah Creek's own bull trout rule beats the Liard watershed row; the creek's
     row prints only 'No Fishing' (Jul 1-15), and outside it the Liard row's quota speaks."""
@@ -117,6 +125,7 @@ def test_mutation_denetiahs_own_bull_trout_rule_does_not_exist():
     assert own == [], own
 
 
+@pytest.mark.needs_bundle
 def test_mutation_prose_naming_an_unchecked_water_is_refused(doc):
     g = copy.deepcopy(doc["guide"])
     g["ladder"]["who_speaks"] += " Bridge Lake's 'Lake trout daily quota = 1' speaks."

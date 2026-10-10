@@ -286,6 +286,16 @@ def test_a_run_from_before_licensing_is_refused(tmp_path):
 RULE_V = "Trout daily quota = 2"
 
 
+def _report(run: Path, entries: Path, body: dict) -> None:
+    """The run's report.json, stamped with the corpus it was made from (P2: `entries_digest`) —
+    taken from the entries on disk NOW, as a re-run after an edit would."""
+    from pipeline.regs.parsing.io import corpus_digest, read_entryfile
+    es: dict = {}
+    for f in sorted(entries.glob("region-*.json")):
+        es.update(read_entryfile(f))
+    (run / "report.json").write_text(json.dumps(dict(body, entries_digest=corpus_digest(es))))
+
+
 def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     entries = tmp / "entries"
     entries.mkdir()
@@ -310,7 +320,7 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     # `s:3` past the border (in no region polygon) — the bundle READS these, it derives neither
     (run / "tidal.jsonl").write_text("")
     (run / "outside_bc.jsonl").write_text(json.dumps({"section_id": "s:3"}) + "\n")
-    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {},
+    _report(run, entries, ({"steelhead": {"by_entry": {},
                                                                "list_fingerprint": _LIST}}))
     build = tmp / "atlas"
     build.mkdir()
@@ -333,6 +343,10 @@ def _atlas(build: Path, *, inside=("s:1", "s:2"), out_of_bc=()):
     (build / "registry.json").write_text(json.dumps({"items": items}))
     (build / "splits.resolved.json").write_text("[]")       # no cuts, so no cut has a book name
     (build / "region_home.json").write_text("{}")            # no section straddles a region line
+    con = sqlite3.connect(build / "area_catalog.gpkg")      # no named areas (P2: required file)
+    con.execute("CREATE TABLE areas (area_id TEXT, name TEXT)")
+    con.commit()
+    con.close()
     g = StreamGraph(nodes={s: StreamNode(node_id=s, kind=NodeKind.stream,
                                          out_of_bc=s in out_of_bc)
                            for s in ("s:1", "s:2", "s:3")})
@@ -581,7 +595,7 @@ def test_a_run_made_with_another_curated_list_is_refused(tmp_path):
     """The run records the fingerprint of the curated list it was given; a bundle over a run made
     with another list (or before the list changed) stops."""
     db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
-    (run / "report.json").write_text(json.dumps({"steelhead": {"by_entry": {},
+    _report(run, entries, ({"steelhead": {"by_entry": {},
                                                                "list_fingerprint": "0" * 16}}))
     with pytest.raises(SystemExit, match="curated known-steelhead list"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
@@ -602,6 +616,8 @@ def test_a_flagged_row_the_run_never_placed_is_refused(tmp_path):
     doc = json.loads(f.read_text())
     doc["entries"][0]["anadromous_rainbow"] = True
     f.write_text(json.dumps(doc))
+    # a run made FROM this corpus (its digest) whose presence pass placed nothing
+    _report(run, entries, {"steelhead": {"by_entry": {}, "list_fingerprint": _LIST}})
     with pytest.raises(SystemExit, match="reach run and the corpus disagree"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
 
@@ -612,7 +628,7 @@ def test_known_streams_are_steelhead_water_and_possible_are_not(tmp_path):
     doc = json.loads(f.read_text())
     doc["entries"][0]["anadromous_rainbow"] = True
     f.write_text(json.dumps(doc))
-    (run / "report.json").write_text(json.dumps(
+    _report(run, entries, (
         {"steelhead": {"by_entry": {"r1:x@1-1": {"sections": 1}}, "list_fingerprint": _LIST}}))
     (run / "steelhead_presence.jsonl").write_text(json.dumps(
         {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "regulations": True,
@@ -649,7 +665,7 @@ def test_anadromous_where_no_steelhead_rule_applies_is_refused(tmp_path):
     doc = json.loads(f.read_text())
     doc["entries"][0]["anadromous_rainbow"] = True
     f.write_text(json.dumps(doc))
-    (run / "report.json").write_text(json.dumps({"steelhead": {
+    _report(run, entries, ({"steelhead": {
         "by_entry": {"r1:x@1-1": {"sections": 1}}, "list_fingerprint": _LIST}}))
     (run / "steelhead_presence.jsonl").write_text(json.dumps(
         {"section_id": "s:2", "steelhead": "known", "entry_id": "r1:x@1-1", "regulations": True,

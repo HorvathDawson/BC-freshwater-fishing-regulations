@@ -22,6 +22,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.answers import display as X
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 FIXTURE = Path(__file__).parent / "fixtures" / "answers_page_v35.json.gz"
 
@@ -156,8 +157,7 @@ def test_steelhead_line_codes():
 def _bundle():
     from pipeline.deliver.answers import common
     p = common.bundle_path()
-    if not Path(p).exists():
-        pytest.skip(f"no bundle at {p}")
+    need(None, "bundle", p, BUNDLE_HINT)
     return common.load(p)
 
 
@@ -166,13 +166,12 @@ def _export(B):
     from pipeline.tools import export_codec
     regs = Path(os.environ.get("ANSWERS_EXPORT_DIR") or os.environ.get("UI_EXPORT_DIR")
                 or Path(B.path).parents[1] / "regs")
-    if not (regs / "ui-rules-export.json").exists():
-        pytest.skip(f"no export at {regs}")
+    need(None, "bundle", regs / "ui-rules-export.json", EXPORT_HINT)
     data, guide = common.load_export(regs)
     try:
         common.check_export(B, data, guide)
     except common.AnswersError as e:
-        pytest.skip(str(e))
+        pytest.fail(f"the export at {regs} is not this bundle's pair: {e} — {EXPORT_HINT}")
     return data, guide, export_codec.expand(data, guide)
 
 
@@ -183,11 +182,13 @@ def live():
     return B, doc, data
 
 
+@pytest.mark.needs_bundle
 def test_rule_order_is_the_exports(live):
     B, doc, _ = live
     assert [f"{e}::{r}" for e, r in sorted(B.index, key=B.index.__getitem__)] == list(doc["rules"])
 
 
+@pytest.mark.needs_bundle
 def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
     """The facts are computed from the bundle; the page reads the export's fields. They must give
     the same kind, bands and sentence for every rule."""
@@ -203,6 +204,7 @@ def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
     assert X.build_rules(B) == facts                                    # deterministic
 
 
+@pytest.mark.needs_bundle
 def test_every_export_part_has_one_key_and_closed_all_year_is_the_status_index(live):
     from pipeline.deliver import status_index as SI
     from pipeline.deliver.answers import common

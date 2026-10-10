@@ -1060,14 +1060,31 @@ def intern_sets(rows) -> tuple[dict[str, int], list[list[tuple[str, str, str]]]]
     return section_set, sets
 
 
+def check_corpus(reaches: Path, entries: dict[str, dict]) -> str:
+    """The corpus digest of `entries` (`io.corpus_digest`), refusing a reach run that states
+    another — or none (it predates the stamp). A run made from another corpus binds rules the
+    bundle would label from different text: an edited extent, date or species with unchanged ids
+    used to pass, because only the id sets were compared (P2)."""
+    from pipeline.regs.parsing.io import corpus_digest
+    ran = json.loads((Path(reaches) / "report.json").read_text(encoding="utf-8")) \
+        .get("entries_digest")
+    now = corpus_digest(entries)
+    if ran != now:
+        raise SystemExit(
+            f"the reach run at {reaches} was made from corpus "
+            f"{ran or '(none stated: the run predates the entries digest)'}, not the entries on "
+            f"disk ({now}) — re-run the reach builder:\n"
+            f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
+    return now
+
+
 def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
           build_dir: Path | None = None) -> None:
     """Write `entry`, `rule`, `section_ruleset`, `ruleset`, and every licensing table."""
     sections_file = reaches / "rule_section.jsonl"
-    if not sections_file.exists():
-        for t in ("entry", "rule", "section_ruleset", "ruleset"):
-            cov.skip(t, f"no reach run at {reaches}")
-        return
+    if not sections_file.exists():          # P2: a skip here rendered every water open
+        raise SystemExit(f"no rule_section.jsonl in the reach run at {reaches} — re-run "
+                         "pipeline.atlas.reach.cli")
 
     # THE 88, FIRST. A rule nobody could place must never render as "no rules here" — it can
     # only ever raise "unknown" — so the flag has to be on the rule row itself, and it is
@@ -1104,6 +1121,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             for e in read_entryfile(path, registry, require_entries=True).values():
                 # Read through the model, so a key from a retired shape is refused, not read.
                 docs.append((e, CatalogueEntry.model_validate(e)))
+    # THE SAME CORPUS THE REACH RUN WAS MADE FROM (P2): its full content, not only its ids.
+    db.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('entries_digest', ?)",
+               (check_corpus(reaches, {e["entry_id"]: e for e, _ in docs}),))
     # What an exemption may name: zone entries by slug, and every entry's rule ids.
     zones: dict[str, list[str]] = {}
     rules_of: dict[str, dict] = {}

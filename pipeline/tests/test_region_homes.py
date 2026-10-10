@@ -24,6 +24,7 @@ import pytest
 from pipeline.atlas.reach import extent
 from pipeline.atlas.registry import regions
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, predates
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 MARA = "wbk:329518146"
@@ -78,12 +79,11 @@ def test_a_regional_row_is_still_limited_by_the_polygons_it_touches():
 
 # --------------------------------------------------------------------------- the bundle
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if not con.execute("select 1 from sqlite_master where name = 'steelhead_water'").fetchone():
-        pytest.skip(f"{BUNDLE} predates the region homes — point UI_EXPORT_BUNDLE at a side build")
+        predates(f"{BUNDLE} predates the region homes — point UI_EXPORT_BUNDLE at a side build")
     yield con
     con.close()
 
@@ -104,6 +104,7 @@ def _lake_sid(db, item: str) -> int:
     return sid
 
 
+@pytest.mark.needs_bundle
 def test_mara_lake_takes_both_regions_bases_and_keeps_region_8s_row(db):
     """Mara Lake is 61 % Region 3 by area and printed under Shuswap Lake (Region 3, p.31); the book
     also prints it in Region 8 (p.70): "See Shuswap Lake in Region 3 / No powered boats south of the
@@ -119,12 +120,15 @@ def test_mara_lake_takes_both_regions_bases_and_keeps_region_8s_row(db):
         assert MARA not in json.dumps(json.loads(ext or "{}").get("extents") or [])
 
 
+@pytest.mark.needs_bundle
 def test_ahbau_lake_takes_region_5_and_zone_7a_bases(db):
     got = _bound(db, AHBAU)
     assert ("z5:trout_char_quota", "trout_char_quota.r1") in got
     assert ("z7a:trout_char_quota", "trout_char_quota.r1") in got
 
 
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 def test_only_lakes_carry_two_regions_standing_tables(db):
     """Before R2: 41 rule sets (214 sections) carried two regions' region-wide rules, lakes and
     stream pieces alike. R2 gave every one a single home; the second half of the ruling puts the
@@ -151,13 +155,12 @@ def test_only_lakes_carry_two_regions_standing_tables(db):
 def _handles() -> dict[int, str]:
     from pipeline.common.curated import GENERATED
     b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    p = b / "section_handles.txt"
-    if not p.exists():
-        pytest.skip("no section handles")
+    p = need(None, "atlas", b / "section_handles.txt", ATLAS_HINT)
     with p.open() as f:
         return {i: line.rstrip("\n") for i, line in enumerate(f, 1)}
 
 
+@pytest.mark.needs_bundle
 def test_ahbau_and_mara_the_most_strict_applies(db):
     """Mara: Region 8 closes bass ("Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)",
     p.68); Region 3 closes it too — the closures speak and nothing keeps a bass. Ahbau: both
@@ -352,6 +355,7 @@ def test_every_blanket_closure_in_the_corpus_says_its_kind():
     assert len(got) == 11
 
 
+@pytest.mark.needs_bundle
 def test_the_nechako_and_west_road_lift_region_6s_spring_closure_not_its_winter_one(db):
     """In the bundle: the rows' printed spring exemptions name Region 6's Fraser-watershed spring
     closure as `equivalent`, and no Skeena/Nass winter closure — which by dates they did."""
@@ -364,6 +368,8 @@ def test_the_nechako_and_west_road_lift_region_6s_spring_closure_not_its_winter_
         assert not any(e == "z6:skeena_nass_winter_closure" for e, _ in lifted), eid
 
 
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 def test_west_road_7a_mainstem_piece_takes_zone_7as_table_and_its_own_row(db):
     """356364550:15264 is 54 % Zone 7A by length: it takes Zone 7A's spring closure, and the
     Region 5 row (p.47) binds it, lifting that closure ("the regional spring closure does not add
@@ -383,6 +389,8 @@ def test_west_road_7a_mainstem_piece_takes_zone_7as_table_and_its_own_row(db):
     assert "z7a:spring_stream_closure::spring_stream_closure.r1" not in got
 
 
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item,entry,regs", [
     ("gnis:26104", "r5:west_road_blackwater_river@5-12+5-13", ("6", "7a")),
     ("gnis:3273", "r5:klinaklini_river@5-6", ("1",)),
@@ -412,11 +420,11 @@ def atlas():
     from pipeline.atlas.registry import load_registry
     from pipeline.common.curated import GENERATED
     b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    if not (b / "registry.json").exists():
-        pytest.skip("no built atlas")
+    need(None, "atlas", b / "registry.json", ATLAS_HINT)
     return b, load_registry(str(b / "registry.json"))
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_every_straddler_has_a_measured_home_and_mara_is_region_3s(atlas):
     b, reg = atlas

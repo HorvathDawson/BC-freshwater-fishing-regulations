@@ -18,6 +18,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as corpus
 from pipeline.deliver.bundle.read import Authority, Scope, source_of
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 REGION_5 = [{"op": "within", "area_id": "area:region:5"}]
 
@@ -85,20 +86,24 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)
 
 
 @pytest.fixture(scope="module")
-def rules():
+def rules(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return corpus.rules(str(BUNDLE))
 
 
+@pytest.mark.needs_bundle
 def test_every_rule_in_the_corpus_has_a_source(rules):
     for x in rules:
         source_of(x)
 
 
+@pytest.mark.needs_bundle
 def test_the_corpus_carries_no_entry_extents(rules):
     """The corpus hands `source_of` each rule's own extents and nothing of its entry's."""
     assert rules and not any("entry_extents" in x for x in rules)
 
 
+@pytest.mark.needs_bundle
 def test_zone_rules_that_state_their_region_are_region_scoped_placed_or_not(rules):
     """A region table's rule states its region itself, so it stays in that region's table
     without inheriting it — whether or not the reach builder placed it. (The carve-out rules
@@ -114,6 +119,7 @@ def test_zone_rules_that_state_their_region_are_region_scoped_placed_or_not(rule
             assert source_of(y).scope is Scope.region, corpus.rid(y)
 
 
+@pytest.mark.needs_bundle
 def test_corpus_carries_the_lifts(rules):
     """`exempts` is a column now; the corpus decodes it, never leaves it as text."""
     lifts = [x for x in rules if x.get("exempts")]

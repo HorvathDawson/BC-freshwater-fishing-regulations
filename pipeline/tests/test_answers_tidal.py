@@ -20,6 +20,7 @@ from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.bundle import read as R
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
@@ -28,11 +29,11 @@ NITINAT, CHILLIWACK = "wbk:329504244", "gnis:8634"
 
 
 def _built(**patch):
-    if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
-        pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
+    need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, _guide = C.load_export(EXPORT_DIR)
     if NITINAT not in data["waters"]:
-        pytest.skip("Nitinat Lake is not in this export")
+        pytest.fail(f"pinned water Nitinat Lake ({NITINAT}) is not in this export")
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=(NITINAT, CHILLIWACK), log=lambda *_: None)
     return data, json.loads(json.dumps(E.encode(model, data)))
 
@@ -49,6 +50,7 @@ def test_the_export_and_the_answers_say_the_same_words():
         assert words in C.TIDAL_NOTE
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("on", [(1, 15), (7, 15), (12, 31)])
 def test_nitinat_lake_is_a_documented_tidal_state_all_year(built, on):
     data, wire = built
@@ -69,6 +71,7 @@ def test_nitinat_lake_is_a_documented_tidal_state_all_year(built, on):
     assert t["rows"]["rows"] == []
 
 
+@pytest.mark.needs_bundle
 def test_a_freshwater_part_is_never_tidal(built):
     data, wire = built
     for i, _p in enumerate(wire["parts"][CHILLIWACK]):
@@ -78,6 +81,7 @@ def test_a_freshwater_part_is_never_tidal(built):
         assert t["display"]["status"] in ("base", "own", "closed") and "tidal" not in t["gear"]
 
 
+@pytest.mark.needs_bundle
 def test_mutation_without_the_tidal_scope_the_old_empty_answers_return(monkeypatch):
     """With `is_tidal` read as False everywhere the gear frame is the computed one again —
     every method 'not allowed here'."""
@@ -88,6 +92,7 @@ def test_mutation_without_the_tidal_scope_the_old_empty_answers_return(monkeypat
     assert {w["why"] for w in t["gear"]["ways"]} >= {"not_allowed_here"}
 
 
+@pytest.mark.needs_bundle
 def test_mutation_the_licence_half_returns_to_no_licence_needed(monkeypatch):
     """With `licence.TIDAL_IS_DOCUMENTED` off the licence frame is the computed one again: every
     profile "none needed" and the provincial fields beside it — the defect the documented state

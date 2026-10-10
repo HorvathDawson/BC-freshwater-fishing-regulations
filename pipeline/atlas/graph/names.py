@@ -90,8 +90,8 @@ def _display_case(name: str) -> str:
 
 
 def load_name_variants(path) -> list[dict]:
-    p = Path(path)
-    return json.loads(p.read_text()) if p.exists() else []
+    p = Path(path)                          # curated: a missing file raises (AGENTS 37, P2)
+    return json.loads(p.read_text())
 
 
 _REACH_MIN_OVERLAP_M = 1.0   # a reach must overlap a section by more than this to name it (proximity)

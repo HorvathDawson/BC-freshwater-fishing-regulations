@@ -5,7 +5,6 @@ tiny straight mainstem X on the y=0 axis over measures 0..300 so a resolved meas
 x-coordinate of the cut.
 """
 
-import os
 
 import pytest
 from shapely.geometry import LineString, box
@@ -16,9 +15,17 @@ from pipeline.atlas.splits.anchors import resolve_split_defs
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.common.models import AnchorType, SplitAnchor, SplitDef
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
-_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
+_needs_data = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """A test marked `needs_source` FAILS without the gpkg, naming the command that fetches it."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", _DATA, GPKG_HINT)
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, wbk="", gnis_name=""):

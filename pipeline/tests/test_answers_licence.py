@@ -12,11 +12,11 @@
 from __future__ import annotations
 
 import random
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.answers import licence as L
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 P = {d: v[0] for d, v in L.PROFILE_DIMS}          # resident, 16+, not guided, no status
 
@@ -116,11 +116,10 @@ def test_an_alternative_is_another_path():
 # --------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def live():
+def live(request):
     from pipeline.deliver.answers import common
     p = common.bundle_path()
-    if not Path(p).exists():
-        pytest.skip(f"no bundle at {p}")
+    need(request, "bundle", p, BUNDLE_HINT)
     db = common.connect(p)
     yield p, db, L.corpus(db)
     db.close()
@@ -138,6 +137,7 @@ def _keys(db) -> dict:
     return {k: sorted(v) for k, v in out.items()}
 
 
+@pytest.mark.needs_bundle
 def test_the_key_decides_the_answer(live):
     """`requirements_in_force` asked at a section of any part with one licence key gives that
     key's answer."""
@@ -158,6 +158,7 @@ def test_the_key_decides_the_answer(live):
     assert checked > 500
 
 
+@pytest.mark.needs_bundle
 def test_live_profiles_answer_as_the_book_says(live):
     """Basic licence for a resident 16+ (p.5), none for a resident under 16, an accompanied path
     for a non-resident under 16, nothing for a status First Nations person living in B.C.
@@ -183,6 +184,7 @@ def test_live_profiles_answer_as_the_book_says(live):
     assert first["none_needed"] and not first["documents"]
 
 
+@pytest.mark.needs_bundle
 def test_key_years_are_deterministic(live):
     path, db, C = live
     K = _keys(db)

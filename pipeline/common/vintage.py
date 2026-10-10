@@ -49,11 +49,35 @@ def bundle_vintage(bundle: Path) -> str | None:
         return None
 
 
-def report(tiles_dir: Path, bundle: Path) -> tuple[bool, str]:
+def registry_vintages(tiles_dir: Path, bundle: Path) -> tuple[str | None, str | None]:
+    """The registry digests (P2) the tile sidecar and the bundle record — None where absent."""
+    t = b = None
+    p = Path(tiles_dir) / "atlas.meta.json"
+    if p.exists():
+        try:
+            t = json.loads(p.read_text(encoding="utf-8")).get("registry") or None
+        except (OSError, ValueError):
+            t = None
+    if Path(bundle).exists():
+        try:
+            db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+            try:
+                row = db.execute("SELECT v FROM meta WHERE k = 'registry_digest'").fetchone()
+            finally:
+                db.close()
+            b = (row[0] or None) if row else None
+        except sqlite3.Error:
+            b = None
+    return t, b
+
+
+def report(tiles_dir: Path, bundle: Path, *, strict: bool = False) -> tuple[bool, str]:
     """`(ok, message)` for the pair that would actually ship.
 
     `ok` is True only when BOTH artifacts exist and agree, or when one of them has not been
-    built at all — a checkout that has not produced both is not a mismatch.
+    built at all — a checkout that has not produced both is not a mismatch. `strict` (P2: the
+    rebuild command's last stage, where both were just built) refuses that too: a missing
+    artifact, or a pair where neither records a digest, is a failure, never "not checked".
 
     ONE DIGEST AND NOT THE OTHER IS A MISMATCH, not an absence. That is the shape the real
     failure took: the tiles were rebuilt carrying handles while the shipped bundle still
@@ -64,10 +88,10 @@ def report(tiles_dir: Path, bundle: Path) -> tuple[bool, str]:
     tp, bp = Path(tiles_dir) / "atlas.pmtiles", Path(bundle)
     if not tp.exists() or not bp.exists():
         missing = tp if not tp.exists() else bp
-        return True, f"  vintage: not checked — {missing} has not been built"
+        return not strict, f"  vintage: not checked — {missing} has not been built"
     t, b = tile_vintage(tiles_dir), bundle_vintage(bundle)
     if t is None and b is None:
-        return True, "  vintage: not checked — neither artifact records a handle digest"
+        return not strict, "  vintage: not checked — neither artifact records a handle digest"
     if t is None or b is None:
         stale = "tiles" if t is None else "bundle"
         return False, (
@@ -77,7 +101,18 @@ def report(tiles_dir: Path, bundle: Path) -> tuple[bool, str]:
             f"      One of these keys sections by an integer handle and the other by a\n"
             f"      string. Rebuild the older one.")
     if t == b:
-        return True, f"  vintage: tiles and bundle agree ({t})"
+        # THE REGISTRY TOO (P2): one handle table, but names and kinds from another registry
+        # still label and draw the wrong water.
+        rt, rb = registry_vintages(tiles_dir, bundle)
+        if rt and rb and rt != rb:
+            return False, (
+                f"  ⚠️  VINTAGE MISMATCH — one handle table ({t}), two registries\n"
+                f"        tiles  registry {rt}\n        bundle registry {rb}\n"
+                f"      Rebuild whichever is older against the atlas's current registry.json.")
+        if strict and not (rt and rb):
+            return False, (f"  vintage: handles agree ({t}) but the registry is not recorded by "
+                           f"{'the tiles' if not rt else 'the bundle'} — rebuild it")
+        return True, f"  vintage: tiles and bundle agree ({t}, registry {rt or rb or 'unrecorded'})"
     return False, (
         f"  ⚠️  VINTAGE MISMATCH — these two must not ship together\n"
         f"        tiles  {Path(tiles_dir) / 'atlas.pmtiles'}  {t}\n"

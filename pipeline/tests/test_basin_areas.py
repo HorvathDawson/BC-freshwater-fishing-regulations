@@ -18,6 +18,7 @@ from pipeline.atlas.registry.basins import (BASIN_NAMES, basin_code, basin_membe
                                            in_basin)
 from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.graph import FlowEdge
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 
 class _Reg:
@@ -207,12 +208,14 @@ def test_what_a_rows_scope_cannot_place_is_reported(monkeypatch):
 # ------------------------------------------------------------------ against the atlas (slow)
 
 @pytest.mark.slow
+@pytest.mark.needs_atlas
 def test_every_named_basin_is_its_rivers_code_and_a_minted_basin_matches_the_graph():
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.registry.basins import BASIN_RIVERS
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     build = GENERATED.require_build()
+    need(None, "atlas", build / "graph.pkl", ATLAS_HINT)
     reg = load_registry(str(build / "registry.json"))
     g = read_artifact(str(build / "graph.pkl"))
     for code, river in BASIN_RIVERS.items():

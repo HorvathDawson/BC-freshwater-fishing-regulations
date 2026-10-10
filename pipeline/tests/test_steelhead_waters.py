@@ -31,6 +31,7 @@ from pipeline.atlas.reach.models import Outcome, Reason
 from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.registry import RegistryItem
 from pipeline.regs.parsing.catalogue import CatalogueEntry
+from pipeline.tests.conftest import need
 
 
 def _node(nid, kind=NodeKind.stream):
@@ -386,6 +387,7 @@ def test_the_curated_file_loads_and_is_documented():
     assert len(SH.load_list()) == len(doc["waters"]) > 600
 
 
+@pytest.mark.needs_atlas
 def test_the_curated_list_is_the_generated_list_it_says_it_is():
     """The curated copy records the fingerprint of the generated list it was copied from, and that
     fingerprint is its own `waters`. When the generator's last output is on disk, it must be that
@@ -394,9 +396,8 @@ def test_the_curated_list_is_the_generated_list_it_says_it_is():
     doc = SH.load_document()
     assert doc.generated is not None, "the curated list does not say which generated list it is"
     assert SH.fingerprint(doc.waters) == doc.generated.fingerprint
-    gen = Path(__file__).resolve().parents[2] / doc.generated.source
-    if not gen.exists():
-        pytest.skip(f"the generator's output {gen} is not on disk")
+    gen = need(None, "atlas", Path(__file__).resolve().parents[2] / doc.generated.source,
+               "python -m pipeline.regs.steelhead.known_waters (reads the atlas and the reach run)")
     out = json.loads(gen.read_text(encoding="utf-8"))
     assert SH.fingerprint(out["waters"]) == doc.generated.fingerprint, (
         f"{gen} is not the list data/curated/regulations/steelhead_waters.json was copied from — "

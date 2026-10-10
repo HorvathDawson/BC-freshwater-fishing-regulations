@@ -28,6 +28,7 @@ from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.enums import BoundaryKind
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.sections import SectionBoundary
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 S, L = NodeKind.stream, NodeKind.lake
 
@@ -257,13 +258,12 @@ def test_the_named_lake_rule_can_be_switched_off(sumallo, monkeypatch):
 # `ATLAS_BUILD` points these at a side build; the default is the promoted one.
 
 @pytest.fixture(scope="module")
-def real():
+def real(request):
     from pipeline.atlas.registry import load_registry
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    if not (b / "graph.pkl").exists():
-        pytest.skip("no built graph")
+    need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     return read_artifact(str(b / "graph.pkl")), load_registry(str(b / "registry.json"))
 
 
@@ -292,6 +292,7 @@ def _group(g, sid, river="100"):
     return None if c == river else int(c[len(river) + 1:].split("-")[0])
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_williams_lake_river_cuts_the_region_5_sturgeon_rules(real, corpus):
     """z5 White Sturgeon: r1 CLOSED upstream of the WLR, r2 CATCH AND RELEASE downstream of and
@@ -320,6 +321,7 @@ def test_williams_lake_river_cuts_the_region_5_sturgeon_rules(real, corpus):
     assert len(basin - r1 - r2) < 0.005 * len(basin)
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_sturgeon_licence_is_mission_to_and_including_the_wlr(real, corpus):
     g, reg = real
@@ -335,6 +337,7 @@ def test_the_sturgeon_licence_is_mission_to_and_including_the_wlr(real, corpus):
     assert "Quesnel Lake" not in names
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_skeena_above_cedarvale_is_streams_without_the_mainstem(real, corpus):
     g, reg = real
@@ -344,6 +347,7 @@ def test_the_skeena_above_cedarvale_is_streams_without_the_mainstem(real, corpus
     assert all((_group(g, s, "400") or 10**7) > 326_256 for s in got), "Insect Creek and below out"
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_lake_mid_reach_gains_the_book_does_not_support_are_gone(real, corpus):
     """Rows whose water ends at a lake the FWA name runs through (checked against the book, p53
@@ -372,6 +376,7 @@ def test_lake_mid_reach_gains_the_book_does_not_support_are_gone(real, corpus):
     assert not tat & {g.edges[i].from_node for i in g.up_adj.get("lake:329514788", [])}
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_sumallo_binds_cedar_lake_and_ferguson_above_it(real, corpus):
     g, reg = real

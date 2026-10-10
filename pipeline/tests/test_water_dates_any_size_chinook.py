@@ -27,6 +27,7 @@ import pytest
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as RM
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 CAT = Path("data/curated/regulations/entries/catalogue")
@@ -157,12 +158,12 @@ def _sid(db, eid, rid):
                       "r.via = 'reach'", (eid, rid)).fetchone()[0]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,lake", [("r6:cheslatta_lake@6-4", "cheslatta_lake"),
                                       ("r6:murray_lake@6-4", "murray_lake")])
 def test_cheslatta_and_murray_on_the_built_bundle(eid, lake):
     """On the built bundle, where Region 6's lake trout release is bound on the lake."""
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sid = _sid(db, eid, f"{lake}.r2")
     zone = "z6:trout_char_quota::trout_char_quota.r8"
@@ -223,9 +224,9 @@ def test_prints_any_size_reads_the_book_s_words():
                                       "quota = 2"))
 
 
+@pytest.mark.needs_bundle
 def test_the_built_bundle_cautions_exactly_the_four_any_size_rows():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     got = {}
     for e, r, v, ex in db.execute("select entry_id, rule_id, verbatim, exempts from rule "
@@ -233,7 +234,7 @@ def test_the_built_bundle_cautions_exactly_the_four_any_size_rows():
         if any(x.get("caution") for x in json.loads(ex)):
             got[f"{e}::{r}"] = v
     if len(got) > 4:
-        pytest.skip(f"{BUNDLE} predates the (any size) ruling — point UI_EXPORT_BUNDLE at one")
+        predates(f"{BUNDLE} predates the (any size) ruling — point UI_EXPORT_BUNDLE at one")
     assert sorted(k.split("::")[1] for k in got) == [
         "duncan_river.r4", "kootenay_lake_main_body.r4", "lardeau_river.r4", "quesnel_lake.r3"]
     assert all("(any size)" in v for v in got.values())

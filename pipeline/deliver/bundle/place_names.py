@@ -396,12 +396,12 @@ class PlaceNamer:
 
 def area_names(build_dir) -> dict[str, str]:
     """{area id: name} from a build's `area_catalog.gpkg` — the names the atlas gave its areas.
-    Read as plain SQLite (no geometry). A build without the catalogue names no area."""
+    Read as plain SQLite (no geometry). A build without the catalogue is an error (P2)."""
     import sqlite3
     from pathlib import Path
     p = Path(build_dir) / "area_catalog.gpkg"
     if not p.exists():
-        return {}
+        raise FileNotFoundError(f"{p} not found — an atlas build writes it")
     con = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
     try:
         return {a: n for a, n in con.execute("select area_id, name from areas") if a and n}

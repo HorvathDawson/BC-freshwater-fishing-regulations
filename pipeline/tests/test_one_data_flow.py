@@ -27,6 +27,7 @@ import pytest
 
 from pipeline.common.curated import GENERATED, REPO_ROOT
 from pipeline.deliver.bundle.rules import CLOSURE_CONDITIONS, closure_grade
+from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, REACH_HINT
 
 BUNDLE_DIR = REPO_ROOT / "pipeline" / "deliver" / "bundle"
 DELIVER = REPO_ROOT / "pipeline" / "deliver"
@@ -295,17 +296,19 @@ def test_promote_refuses_an_unfinished_candidate(tmp_path):
 
 def _built():
     bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-    if not bundle.exists():
-        pytest.skip(f"no bundle at {bundle}")
+    need(None, "bundle", bundle, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     meta = dict(db.execute("SELECT k, v FROM meta"))
     build = Path(meta["build"])
     run = Path(os.environ.get("UI_EXPORT_REACHES") or GENERATED.reaches / meta["reach_run"])
-    if not (run / "tidal.jsonl").exists() or not (build / "region_home.json").exists():
-        pytest.skip(f"{bundle} predates the persisted facts (run {run}, atlas {build})")
+    need(None, "atlas", build / "region_home.json", ATLAS_HINT)
+    need(None, "reach_run", run / "tidal.jsonl", REACH_HINT)
     return db, build, run
 
 
+@pytest.mark.needs_reach_run
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_bundle_carries_exactly_the_runs_tidal_and_outside_sections():
     from pipeline.atlas.reach.io import read_table
@@ -318,6 +321,9 @@ def test_the_bundle_carries_exactly_the_runs_tidal_and_outside_sections():
     assert {s for (s,) in db.execute("SELECT sid FROM outside_bc")} == out and out
 
 
+@pytest.mark.needs_reach_run
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_bundle_carries_exactly_the_atlas_region_homes():
     from pipeline.atlas.registry.regions import read_homes
@@ -328,6 +334,9 @@ def test_the_bundle_carries_exactly_the_atlas_region_homes():
     assert set(db.execute("SELECT sid, region FROM section_home")) == want and want
 
 
+@pytest.mark.needs_reach_run
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_steelhead_rules_in_the_bundle_reproduce_the_run():
     from pipeline.atlas.reach.io import STEELHEAD_TABLE, read_table

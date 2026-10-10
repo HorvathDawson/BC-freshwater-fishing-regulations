@@ -16,12 +16,12 @@ from __future__ import annotations
 import os
 import sqlite3
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny as _tiny_one
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 
@@ -40,9 +40,8 @@ def _tiny(tmp_path, rules, via=None):
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).is_file():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -65,6 +64,7 @@ def _said(sid, on, fish, **kw) -> dict:
 
 
 # ============================================================================== DENETIAH
+@pytest.mark.needs_bundle
 def test_denetiah_creek_its_own_closure_is_all_that_speaks_for_bull_trout(db, monkeypatch):
     """Denetiah Creek, Jul 5, bull trout: the creek's 'No fishing, Jul 1-15' and the Liard River
     watershed row's 'Dolly Varden/bull trout — 1 in possession (30-50 cm only)' (an AREA row of
@@ -83,6 +83,7 @@ def test_denetiah_creek_its_own_closure_is_all_that_speaks_for_bull_trout(db, mo
     assert set(then) - set(now) == {f"{LIARD}.r3"}, "the possession 1 and nothing else"
 
 
+@pytest.mark.needs_bundle
 def test_denetiah_creek_outside_its_dates_the_liard_row_speaks(db):
     """Jul 20: the creek's closure is not in force — the Liard row's 1 a day and 1 in possession
     speak again (the ruling holds on the closure's dates only)."""
@@ -91,6 +92,7 @@ def test_denetiah_creek_outside_its_dates_the_liard_row_speaks(db):
     assert now[f"{LIARD}.r2"]["state"] == "speaks" and now[f"{LIARD}.r3"]["state"] == "speaks"
 
 
+@pytest.mark.needs_bundle
 def test_the_trace_names_the_closure_as_the_winner(db):
     """The possession 1 is returned, traced, as displaced by the creek's closure."""
     got = _said(_sid(db, "gnis:39298", DENETIAH), (7, 5), "DV", trace=True)
@@ -99,6 +101,7 @@ def test_the_trace_names_the_closure_as_the_winner(db):
     assert got[f"{LIARD}.r3"]["by"] == DENETIAH
 
 
+@pytest.mark.needs_bundle
 def test_a_region_7_lakes_winter_closure_silences_its_own_possession_limit(db, monkeypatch):
     """Cunningham Lake, Dec 1, lake trout: the row's 'No fishing, Nov 1-Apr 30' and its own 'Lake
     trout — 2 in possession' (possession, another key from the closure's daily) both spoke.
@@ -246,6 +249,7 @@ def _sweep(db, pick):
     return calls, losers
 
 
+@pytest.mark.needs_bundle
 def test_traced_speakers_are_the_untraced_answer_on_a_sample_of_keys(db):
     """Every 50th rule key (and Denetiah's and the Kitimat's), every reading, every fish: the
     speakers of a traced answer are the untraced answer, every loser has a reason and a `by`
@@ -257,6 +261,7 @@ def test_traced_speakers_are_the_untraced_answer_on_a_sample_of_keys(db):
     assert calls > 1000 and losers > 1000, (calls, losers)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_traced_speakers_are_the_untraced_answer_on_every_key(db):
     """All rule keys × readings × fish (145,843 calls on the 2026-10-06 bundle; every loser
@@ -279,6 +284,7 @@ def test_trace_off_is_the_answer_unchanged(tmp_path):
     assert [(x["rule"], x["reason"], x["by"]) for x in lost] == [("q.r1", "ladder", "r9:w::w.r1")]
 
 
+@pytest.mark.needs_bundle
 def test_a_lifted_rule_and_a_moot_clause_are_traced(db):
     """Kootenay Lake, Jul 1, rainbow: Region 4's 5 is LIFTED by the lake's 10 (`by` the lifter);
     Bonaparte Lake, Nov 1, lake trout: Region 3's 'none under 60 cm' is MOOT under its release."""
@@ -295,6 +301,7 @@ def test_a_lifted_rule_and_a_moot_clause_are_traced(db):
 
 
 # ============================================================================== PER ORIGIN
+@pytest.mark.needs_bundle
 def test_kitimat_hatchery_rainbow_lifts_region_6_outright(db):
     """Kitimat River, Jul 1, rainbow. The row's 'hatchery rainbow trout quota = 5' lifts Region
     6's '1 trout from streams July 1-Oct 31' and 'Trout under 30 cm from any stream' for HATCHERY
@@ -316,6 +323,7 @@ def test_kitimat_hatchery_rainbow_lifts_region_6_outright(db):
         {("lifted", f"{KITIMAT}.r4")}
 
 
+@pytest.mark.needs_bundle
 def test_hirsch_creek_hatchery_steelhead_by_the_walk(db):
     """Hirsch Creek, a Kitimat tributary the row reaches by the walk, Jul 1, steelhead: the row's
     'hatchery steelhead quota = 2' lifts Region 6's '1 over 50 cm' and '1 trout from streams' for a hatchery
@@ -368,6 +376,7 @@ def _chilliwack_above_signs(db):
     return out
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("fish", ["RB", "CT", "DV"])
 def test_a_closure_on_part_of_a_water_dominates_like_a_whole_water_closure(db, fish, monkeypatch):
     """C10: the Chilliwack's 'No fishing upstream of the boundary signs below Slesse Creek' is an

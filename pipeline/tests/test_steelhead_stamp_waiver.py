@@ -25,6 +25,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -39,9 +40,8 @@ JUL_1, NOV_15 = (7, 1), (11, 15)
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     c = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield c
     c.close()
@@ -65,6 +65,7 @@ def _stamps(got: dict) -> set[str]:
     return {k for k in got["holds"] if k in (STAMP, STAMP_TWIN)}
 
 
+@pytest.mark.needs_bundle
 def test_the_chilko_row_waives_every_stamp(db):
     rec = json.loads(db.execute("SELECT record FROM designation WHERE entry_id = ? AND "
                                 "designation_id = ?", tuple(CHILKO.split("#"))).fetchone()[0])
@@ -77,6 +78,7 @@ def test_the_chilko_row_waives_every_stamp(db):
         assert got["waived_where"] == "steelhead_stamp_waived", k
 
 
+@pytest.mark.needs_bundle
 def test_upstream_of_brittany_creek_on_jul_1_no_stamp_but_the_licence_and_the_rules(db):
     """Jul 1, upstream of Brittany Creek: no steelhead stamp is required (the provincial stamp is
     placed there and LIFTED by the waiver); the Classified Waters Licence IS required; and wild
@@ -101,6 +103,7 @@ def test_upstream_of_brittany_creek_on_jul_1_no_stamp_but_the_licence_and_the_ru
         assert any(x.get("take") == 0 for x in st), (sid, [x["rule"] for x in st])
 
 
+@pytest.mark.needs_bundle
 def test_upstream_of_brittany_creek_on_nov_15_the_provincial_stamp_is_required(db):
     """Outside the waiver's dates (June 11-Oct 31) the designation is not in force, so nothing
     lifts the provincial stamp — and the Classified Waters Licence is not required either."""
@@ -117,6 +120,7 @@ def test_upstream_of_brittany_creek_on_nov_15_the_provincial_stamp_is_required(d
     assert _stamps(R.requirements_in_force(db, sid, (11, 1)))
 
 
+@pytest.mark.needs_bundle
 def test_below_brittany_creek_is_unaffected(db):
     """The Chilko below Brittany Creek carries no designation: the provincial stamp holds on Jul 1
     as everywhere on a steelhead-region stream, and no Classified Waters Licence is required."""
@@ -129,6 +133,7 @@ def test_below_brittany_creek_is_unaffected(db):
         assert CWL not in got["holds"]
 
 
+@pytest.mark.needs_bundle
 def test_a_conditional_waiver_does_not_lift_the_provincial_stamp(db):
     """Skeena River 2: "Steelhead Stamp not mandatory … unless fishing for steelhead" lifts only
     the classified-water stamp; whoever fishes for steelhead needs the provincial stamp."""
@@ -149,6 +154,7 @@ def copy_db(db):
     c.close()
 
 
+@pytest.mark.needs_bundle
 def test_the_lift_needs_both_the_consent_and_an_outright_waiver(db, copy_db):
     """MUTATION: drop the requirement's `waived_where`, or make the Chilko's waiver conditional
     ("unless fishing for steelhead"), and the provincial stamp holds upstream on Jul 1 again — the
@@ -178,12 +184,11 @@ def test_the_lift_needs_both_the_consent_and_an_outright_waiver(db, copy_db):
     c2.close()
 
 
-def test_the_export_says_where_and_when_the_stamp_is_not_required():
+@pytest.mark.needs_bundle
+def test_the_export_says_where_and_when_the_stamp_is_not_required(request):
     """The export's designation carries `stamp_waiver`: outright, the requirements it lifts, and
     the sentence naming the reach and the dates per the row; the guide explains it."""
-    out = Path(os.environ.get("UI_EXPORT_JSON") or "")
-    if not out.is_file():
-        pytest.skip("UI_EXPORT_JSON not set")
+    out = need(request, "bundle", os.environ.get("UI_EXPORT_JSON") or X.OUT, EXPORT_HINT)
     # the shipped pair (data + `ui-rules-guide.json` beside it), decoded (`export_codec`)
     doc = X.load(out)
     w = doc["licensing"][CHILKO]["stamp_waiver"]

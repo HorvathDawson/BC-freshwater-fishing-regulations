@@ -13,12 +13,16 @@ import pytest
 
 from pipeline.common.curated import CURATED
 from pipeline.regs.parsing.catalogue import CatalogueFile, RuleType, label
+from pipeline.tests.conftest import need, ROWS_HINT
 
 DIR = CURATED.regulations.entries.catalogue
 
 
 def _files() -> list[Path]:
-    return sorted(DIR.glob("region-*.json")) if DIR.exists() else []
+    """The curated catalogue is tracked: an empty glob is a broken checkout, never a skip."""
+    got = sorted(DIR.glob("region-*.json"))
+    assert got, f"no catalogue files in {DIR} (tracked in git)"
+    return got
 
 
 def _entries():
@@ -43,14 +47,12 @@ def _authored_entries():
             yield p, e
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_every_file_validates():
     """Including chain of custody: each rule's verbatim inside its entry's regs_verbatim."""
     for p in _files():
         CatalogueFile.model_validate(json.loads(p.read_text(encoding="utf-8")))
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_entry_ids_are_unique_across_every_file():
     seen: dict[str, Path] = {}
     for p, e in _entries():
@@ -58,7 +60,6 @@ def test_entry_ids_are_unique_across_every_file():
         seen[e.entry_id] = p
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_every_rule_generates_a_label():
     """A label that comes back empty is a rule the reader never sees."""
     for p, e in _entries():
@@ -67,7 +68,6 @@ def test_every_rule_generates_a_label():
             assert got and got.strip(), f"{p.name}: {e.entry_id}::{r.rule_id} generates nothing"
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_a_within_names_a_rule_that_exists_in_the_same_entry():
     """A sub-limit whose parent is missing cannot be checked against it, and `take <= parent take`
     is the only arithmetic guard the model has."""
@@ -80,7 +80,6 @@ def test_a_within_names_a_rule_that_exists_in_the_same_entry():
                     f"this entry")
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_a_sub_limit_never_exceeds_its_parent():
     """`z8:brook_trout` is the exception that proves it: 20 > 4 means it is NOT a sub-limit of the
     stream quota, it REPLACES it for brook trout. Anything still nested must fit inside."""
@@ -95,7 +94,6 @@ def test_a_sub_limit_never_exceeds_its_parent():
                         f"{parent.take} — a sub-limit cannot exceed what it sits in")
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_a_review_reason_is_long_enough_to_act_on():
     """`needs_review` was removed: it was exactly `bool(review_reason)`. The reason itself is now
     the flag, which makes an EMPTY-but-present reason the only way left to say "review this" and
@@ -107,7 +105,6 @@ def test_a_review_reason_is_long_enough_to_act_on():
                     f"{p.name}: {e.entry_id}::{r.rule_id} asks for review with no usable reason")
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_an_unbound_rule_is_flagged():
     """A rule that reaches no water must say so. A rule may carry its own extents — a row often
     binds its rules to different reaches — so the entry having none is only a problem for the rules
@@ -158,7 +155,6 @@ def _reference_corpus() -> str:
                           for p in sorted(ref.glob("*.md"))))
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_every_verbatim_appears_in_the_reference_transcriptions():
     """THE GUARD THAT WAS MISSING.
 
@@ -172,8 +168,7 @@ def test_every_verbatim_appears_in_the_reference_transcriptions():
     connective words are the author's; the substantive clause still has to be found.
     """
     corpus = _reference_corpus()
-    if not corpus:
-        pytest.skip("no reference transcriptions on disk")
+    assert corpus, "no reference transcriptions on disk (tracked in git)"
     missing: list[str] = []
     for p, e in _authored_entries():
         for r in e.rules:
@@ -187,7 +182,6 @@ def test_every_verbatim_appears_in_the_reference_transcriptions():
         + "\n  ".join(missing[:12]))
 
 
-@pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_a_rule_quotes_its_OWN_region_not_another():
     """CROSS-REGION CONTAMINATION.
 
@@ -201,8 +195,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
     chapter legitimately restates provincial text.
     """
     ref = CURATED.regulations.entries.catalogue.parent.parent / "reference"
-    if not ref.exists():
-        pytest.skip("no reference transcriptions on disk")
+    assert ref.exists(), f"no reference transcriptions at {ref} (tracked in git)"
 
     def blob(*names: str) -> str:
         out = []
@@ -228,6 +221,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
         f"{len(strays)} rule(s) quote another region's chapter:\n  " + "\n  ".join(strays[:12]))
 
 
+@pytest.mark.needs_source
 def test_every_entry_names_a_row_the_synopsis_actually_prints():
     """`entry_id` is the join between a synopsis row and its stored entry, so an id that is not a
     row names a water the book never printed.
@@ -248,12 +242,10 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
     class _M:
         def __init__(self, water): self.water = water
 
-    try:
-        rows = list(load_synopsis_rows())
-    except Exception:                                    # noqa: BLE001
-        pytest.skip("synopsis rows not available")
-    if not rows:
-        pytest.skip("no synopsis rows on disk")
+    from pipeline.common.curated import GENERATED
+    need(None, "source", GENERATED.regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
+    rows = list(load_synopsis_rows())
+    assert rows, "the synopsis rows file holds no rows"
     real = {_row_entry_id(r, _M(r["water"])) for r in rows}
 
     phantom = [e.entry_id for _, e in _entries()

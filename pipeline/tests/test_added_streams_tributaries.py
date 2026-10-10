@@ -7,11 +7,10 @@ fids, add the synthetic fids, wire the connectors), those minted streams must sh
 
 This walks the SAME build path `pipeline/atlas/build.py` uses (load fids -> apply added streams ->
 build graph -> attach connectors), scoped to a Brunette/Still Creek bbox so it stays a few seconds.
-Skipped without the gpkg. See pipeline/atlas/waters/added_streams.
+Marked `needs_source`: FAILS without the gpkg. See pipeline/atlas/waters/added_streams.
 """
 
 import json
-import os
 
 import pytest
 
@@ -21,9 +20,17 @@ from pipeline.atlas.graph.graph import ancestors, build_section_geometries, buil
 from pipeline.atlas.graph.names import resolve_names
 from pipeline.atlas.waters.added_streams.build_dataset import to_graph_inputs
 from pipeline.atlas.waters.added_streams.ingest import attach_connectors
+from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = b._DEFAULT_GPKG
-_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
+_needs_data = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """A test marked `needs_source` FAILS without the gpkg, naming the command that fetches it."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", _DATA, GPKG_HINT)
 
 # Distinctive municipal creeks we minted for the Burnaby/Deer Lake cluster; each must resolve as a
 # tributary (transitive ancestor) of the Brunette. Named, non-fragment streams -> stable to assert.

@@ -7,13 +7,13 @@ from __future__ import annotations
 import importlib
 import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import derived
 from pipeline.tests.bundle_fixture import finish, section_sets
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 SCHEMA = importlib.import_module("pipeline.deliver.bundle.build").SCHEMA
 
@@ -117,12 +117,14 @@ _OLD_PART_SQL = (
 
 
 @pytest.mark.slow
+@pytest.mark.needs_bundle
 def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+    bundle = need(None, "bundle", os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite",
+                  BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     db.execute("PRAGMA temp_store = MEMORY")
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'part'").fetchone():
-        pytest.skip(f"{bundle} predates the part table")
+        predates(f"{bundle} predates the part table")
     # the views materialised, as the export did (correlated per row they cost a scan each)
     db.execute("CREATE TEMP TABLE _st (sid INTEGER PRIMARY KEY, code INTEGER NOT NULL)")
     db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")

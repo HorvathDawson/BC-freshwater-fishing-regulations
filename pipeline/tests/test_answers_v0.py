@@ -28,6 +28,7 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
@@ -91,9 +92,9 @@ def test_segments_start_on_day_one_and_wrap_as_two():
 # --------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def built():
-    if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
-        pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
+def built(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, guide = A.load_export(EXPORT_DIR)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, sections=["ladder", "rows"],
                     log=lambda *_: None)
@@ -101,6 +102,7 @@ def built():
     return data, guide, model, json.loads(json.dumps(wire))
 
 
+@pytest.mark.needs_bundle
 def test_round_trip(built):
     data, _, model, wire = built
     assert E.decode(wire, data) == model
@@ -109,6 +111,7 @@ def test_round_trip(built):
     assert E.spec_gaps(wire) == []
 
 
+@pytest.mark.needs_bundle
 def test_integer_refs_resolve(built):
     data, _, _, wire = built
     nR, nF = len(data["rule_ids"]), len(wire["fish"])
@@ -138,6 +141,7 @@ def test_integer_refs_resolve(built):
         assert rule(d["win"]) and (d["narrow"] is None or rule(d["narrow"]))
 
 
+@pytest.mark.needs_bundle
 def test_the_digest_stamp(built):
     data, guide, _, wire = built
     assert wire["about"]["bundle"] == data["about"]["bundle"] == guide["about"]["bundle"]
@@ -154,6 +158,7 @@ def test_the_digest_stamp(built):
         E.decode(wire, shifted)
 
 
+@pytest.mark.needs_bundle
 def test_a_pair_from_another_bundle_is_refused(built):
     data, guide, _, _ = built
     bad = copy.deepcopy(data)
@@ -177,6 +182,7 @@ def _section_of(db, key: tuple) -> int:
     return sid
 
 
+@pytest.mark.needs_bundle
 def test_taps_equal_the_reader_on_real_sections(built):
     data, _, model, wire = built
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
@@ -204,6 +210,7 @@ def test_taps_equal_the_reader_on_real_sections(built):
     assert checked > 300
 
 
+@pytest.mark.needs_bundle
 def test_denetiah_closure_is_the_answer(built):
     data, _, _, wire = built
     got = E.tap(wire, data, "gnis:39298", 0, 7, 10, "DV", "wild")
@@ -217,6 +224,7 @@ def test_denetiah_closure_is_the_answer(built):
     assert all(got["ladder"][k][3] == "r7:denetiah_creek@7-52::denetiah_creek.r1" for k in liard)
 
 
+@pytest.mark.needs_bundle
 def test_every_day_of_a_segment_answers_alike(built):
     """The segmentation (member and lift `when` readings) changes no answer: every day of every
     segment of the Chilliwack's keys, for two fish, reads what the segment's value says."""

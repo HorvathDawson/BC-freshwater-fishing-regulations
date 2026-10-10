@@ -217,8 +217,7 @@ def test_burnaby_trust_source_matches_raw_everywhere():
     from pipeline.atlas.waters.added_streams.clean import clean_source
     feats = [f for f in clean_source("burnaby")
              if not str(f.get("properties", {}).get("ftype", "")).lower().startswith("unconfirmed")]
-    if not feats:
-        pytest.skip("burnaby source data not available")
+    assert feats, "burnaby source data (data/source/municipal, tracked in git) yielded no features"
 
     class _Zero:
         def elevation(self, lon, lat):

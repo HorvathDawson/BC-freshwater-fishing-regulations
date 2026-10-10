@@ -45,7 +45,9 @@ def make_matcher(registry, overrides_path="__default__"):
     the returned function rather than rebuilding per entry.
     """
     if overrides_path == "__default__":
-        overrides_path = DEFAULT_OVERRIDES if DEFAULT_OVERRIDES.exists() else None
+        overrides_path = DEFAULT_OVERRIDES          # curated: a missing file raises (P2)
+        if not overrides_path.exists():
+            raise FileNotFoundError(f"{overrides_path} not found")
     overrides = load_overrides(overrides_path)
     name_index = build_name_index(registry)
     id_index = build_id_index(registry)

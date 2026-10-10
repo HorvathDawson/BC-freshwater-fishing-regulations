@@ -118,9 +118,10 @@ def _write_sidecar(build_dir: Path, out_dir: Path) -> None:
     """
     import json
 
-    from pipeline.common.section_handles import digest_for
+    from pipeline.common.section_handles import digest_for, registry_digest_for
 
-    meta = {"section_handles": digest_for(build_dir), "build": build_dir.name}
+    meta = {"section_handles": digest_for(build_dir), "build": build_dir.name,
+            "registry": registry_digest_for(build_dir)}     # P2: names and kinds too
     p = out_dir / "atlas.meta.json"
     p.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     print(f"{p}  {meta}")

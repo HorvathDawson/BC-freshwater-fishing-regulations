@@ -182,7 +182,7 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
     kept: list[str] = []
     for region, entries in sorted(by_region.items()):
         path = out_dir / f"region-{region}.json"
-        merged: dict[str, object] = dict(io.read_entryfile(path))   # file order, dicts as-is
+        merged: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))   # file order; may create it
         n = 0
         for e in entries:
             on_disk = merged.get(e.entry_id)

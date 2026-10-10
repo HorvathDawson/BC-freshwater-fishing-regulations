@@ -16,6 +16,7 @@ from pipeline.atlas.graph.blk_chains import FidRow
 from pipeline.atlas.graph.graph import _assign_owners, _lake_name_pairs
 from pipeline.atlas.waters.added_lakes import ingest
 from pipeline.common.curated import CURATED, GENERATED
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -141,6 +142,7 @@ def test_the_polygon_cuts_the_stream_it_covers():
     assert lake_fids == {f"lake:{lakes[0]['wbk']}": [through]}
 
 
+@pytest.mark.needs_atlas
 def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     """Treston Lake carries the FWA tuple 'TRESTON LAKE  REDSAND LAKE', which LOOKS like it has
     swallowed Redsand's name. It has not: a name indexes under its whole normalised string, so
@@ -154,9 +156,7 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     from pipeline.regs.matching.matcher import _norm, build_name_index
     from pipeline.atlas.registry import load_registry
 
-    reg = GENERATED.build() / "registry.json"
-    if not reg.exists():
-        pytest.skip("no built registry")
+    reg = need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     TRESTON = "wbk:329241963"
     idx = build_name_index(load_registry(reg))
     assert TRESTON in (idx.get(_norm("TRESTON LAKE  REDSAND LAKE")) or []), \

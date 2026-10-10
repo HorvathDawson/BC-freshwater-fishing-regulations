@@ -15,6 +15,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 FEB29 = C._day_index(2, 29)
 
@@ -56,9 +57,9 @@ def test_complement_of_a_range_to_feb_28_starts_mar_1():
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 
 
-def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+@pytest.mark.needs_bundle
+def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     try:
         sid = db.execute("SELECT MIN(s.sid) FROM section_ruleset s JOIN ruleset r ON "
@@ -67,7 +68,7 @@ def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29():
     finally:
         db.close()
     if sid is None:
-        pytest.skip("no Nicola River row in this bundle")
+        pytest.fail("pinned rule r3:nicola_river@3-13::nicola_river.r3 binds nothing in this bundle")
     speaks = lambda md: {R.rid(x) for x in R.effective_rules(sid, md, "RB", str(BUNDLE))  # noqa
                          if x["state"] == "speaks"}
     feb29 = speaks((2, 29))

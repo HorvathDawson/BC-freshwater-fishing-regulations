@@ -6,15 +6,22 @@ A fast, single-bbox slice of pipeline.hack.audit_splits over the Bella Coola / A
 """
 
 import json
-import os
 
 import pytest
 from pyproj import Transformer
 from shapely.geometry import Point
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
-_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
+_needs_data = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """A test marked `needs_source` FAILS without the gpkg, naming the command that fetches it."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", _DATA, GPKG_HINT)
 
 # split_id -> max acceptable distance (m) from its curated _coord (offset-accounted).
 # Confluences/points on-channel resolve to ~0; a generous cap catches wrong-channel regressions.

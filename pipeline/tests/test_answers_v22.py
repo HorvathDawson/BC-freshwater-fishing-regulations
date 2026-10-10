@@ -20,6 +20,7 @@ from pipeline.deliver.answers import glossary as G
 from pipeline.deliver.answers.common import AnswersError, load_export
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
@@ -33,6 +34,8 @@ YUKON_RECORDS = 7
 
 @lru_cache(maxsize=1)
 def _files():
+    need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    need(None, "bundle", EXPORT_DIR / "ui-rules-answers.json", EXPORT_HINT)
     data, guide = load_export(EXPORT_DIR)
     wire = json.loads((EXPORT_DIR / "ui-rules-answers.json").read_text())
     return data, guide, wire
@@ -61,6 +64,7 @@ def _profile(name: str) -> int:
 # B — a count limit shared by several kinds (rows F11)
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item", [BABINE, SKEENA])
 def test_b_region_6_stream_trout_cap_is_one_for_all_trout_kinds_together(item):
     """p.49: '1 trout from streams July 1-Oct 31'. Sep 20 (lake trout released then): only 1 of the
@@ -73,6 +77,7 @@ def test_b_region_6_stream_trout_cap_is_one_for_all_trout_kinds_together(item):
     assert sorted(rd["shared_count"][0]["members"]) == ["CT", "GB", "RB", "ST"]
 
 
+@pytest.mark.needs_bundle
 def test_b_outside_the_shared_cap_dates_no_shared_count():
     """Dec 1: the stream trout cap is out of season (Jul 1-Oct 31); trout are released anyway
     (Nov 1-Jun 30), so no brown/cutthroat/rainbow line sums at all."""
@@ -95,6 +100,7 @@ def _general_caps(t):
             if c["c"] == "cap" and c.get("general")]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item", [BABINE, SKEENA])
 def test_d_region_6_one_over_50_counts_hatchery_steelhead(item):
     """p.49 '1 over 50 cm (quota includes hatchery steelhead)': the general cap leaves no fish out
@@ -103,6 +109,7 @@ def test_d_region_6_one_over_50_counts_hatchery_steelhead(item):
     assert caps and all(not c.get("except") for c in caps if c["a"] == 50)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("part", [0, 1])
 def test_d_region_2_one_over_50_leaves_steelhead_to_their_own_line(part):
     """p.21 '1 over 50 cm (2 hatchery steelhead over 50 cm allowed)': on the Vedder the general cap
@@ -159,6 +166,7 @@ def test_d_the_page_decides_no_exemption():
 # E — the Vedder Canal is a stream
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_e_the_vedder_canal_is_the_vedder_river_a_stream_and_no_lake_rule_binds_it():
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     assert db.execute("SELECT item_id FROM item_alias WHERE alias = ?", (VEDDER_CANAL,)).fetchone() \
@@ -185,6 +193,7 @@ def test_e_the_vedder_canal_is_the_vedder_river_a_stream_and_no_lake_rule_binds_
 # C, F — licence documents (licence L9, L10)
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_c_teslin_basic_or_yukon_never_both():
     p = _tap(TESLIN, 0, 7, 1)["licence"]["profiles"][_profile(RESIDENT)]
     docs = {d["doc"]: d for d in p["documents"]}
@@ -192,6 +201,7 @@ def test_c_teslin_basic_or_yukon_never_both():
     assert [o["need"] for o in docs["basic_licence"]["or"]] == [["yukon_angling_licence"]]
 
 
+@pytest.mark.needs_bundle
 def test_c_no_profile_anywhere_buys_the_yukon_licence_as_a_second_document():
     _, _, wire = _files()
     L = wire["sections"]["licence"]
@@ -204,6 +214,7 @@ def test_c_no_profile_anywhere_buys_the_yukon_licence_as_a_second_document():
     assert len(alts) == YUKON_RECORDS
 
 
+@pytest.mark.needs_bundle
 def test_f_babine_stamp_is_for_any_fishing_in_its_period_and_for_steelhead_otherwise():
     """p.50 'Steelhead Stamp mandatory Sept 1-Oct 31'; p.7 'even when fishing for species other
     than steelhead'; p.7/p.6 the stamp to fish for steelhead anywhere, at any time."""
@@ -222,6 +233,7 @@ def test_f_babine_stamp_is_for_any_fishing_in_its_period_and_for_steelhead_other
 # J — the glossary
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_j_the_glossary_ships_typed_and_covers_the_pages_jargon():
     _, _, wire = _files()
     from pipeline.deliver.answers.model import validate_top
@@ -239,6 +251,7 @@ def test_j_the_glossary_ships_typed_and_covers_the_pages_jargon():
     assert reg4["term"] == "Region 4 – Kootenay" and reg4["pages"][0] == 34
 
 
+@pytest.mark.needs_bundle
 def test_j_terms_are_generated_from_the_data():
     """The possession example follows the rules' multiplier (MUTATION: 3 daily quotas -> 'three')."""
     data, guide, _ = _files()

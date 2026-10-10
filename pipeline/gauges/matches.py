@@ -92,7 +92,8 @@ def write_match(matches: list[StationMatch], path: Path | None = None) -> Path:
 
 
 def read_match(path: Path | None = None) -> list[StationMatch]:
-    """The frozen match, or an empty list if it has never been generated.
+    """The frozen match. A missing file is an ERROR (P2, no missing-file fallbacks): read as empty,
+    it built a bundle with no gauge tables that looked healthy.
 
     TWO SHAPES, one meaning. A promoted file keys rows by station and carries `trust` and
     `evidence` alongside; the pre-promotion file was a bare list. Both parse to the same
@@ -105,7 +106,8 @@ def read_match(path: Path | None = None) -> list[StationMatch]:
     """
     path = path or MATCH_FILE
     if not path.exists():
-        return []
+        raise FileNotFoundError(f"no gauge matches at {path} — generate them: "
+                                "python -m pipeline.gauges.generate.match --build <a completed build>")
     blob = json.loads(path.read_text(encoding="utf-8")).get("stations", [])
     rows = list(blob.values()) if isinstance(blob, dict) else blob
     known = {f.name for f in fields(StationMatch)}

@@ -275,9 +275,9 @@ def _lake_areas(db: sqlite3.Connection, build_dir: Path, registry_items: list[di
     it is next to a lake. One value per lake item (a lake part's is its own polygon's); NULL for
     every other kind. Measured: 7,742 lakes, Williston 172,669 ha, median 17 ha."""
     poly_path = build_dir / "waterbody_polys.pkl"
-    if not poly_path.exists():
-        cov.skip("item.area_ha", f"no {poly_path.name} in this build")
-        return
+    if not poly_path.exists():                  # P2: no missing-file fallbacks
+        raise SystemExit(f"item.area_ha: no {poly_path.name} in {build_dir} — an atlas build "
+                         "writes it; without it every lake ranks as a pond")
     import pickle
     with poly_path.open("rb") as fh:
         polys = pickle.load(fh)
@@ -367,9 +367,8 @@ def _in_bc(boundary: Path):
 def _places(db: sqlite3.Connection, places_json: Path, boundary: Path,
             cov: Coverage) -> list[dict]:
     """The gazetteer: what a person types when they mean "near here"."""
-    if not places_json.exists():
-        cov.skip("place", f"{places_json.name} not fetched")
-        return []
+    if not places_json.exists():                # `build` already refuses this; P2: never a skip
+        raise SystemExit(f"place: {places_json} not fetched — python data/fetch_data.py")
     # NOT re-clipped here. `data/fetch_data.py` clips to the province when it writes the
     # gazetteer, so the file on disk is already only BC. Filtering in both places means two
     # answers to "is this in British Columbia" and one of them eventually goes stale.
@@ -398,9 +397,8 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
     Works in BC Albers, where a metre is a metre. Doing this in degrees is the classic way
     to get a radius that is 40% wrong at the top of the province.
     """
-    if not places or geoms is None:
-        cov.skip("place_water", "needs geometries.pkl and a gazetteer")
-        return
+    if not places or geoms is None:             # P2: no missing-file fallbacks
+        raise SystemExit("place_water: needs geometries.pkl and a non-empty gazetteer")
 
     import geopandas as gpd
     from shapely.geometry import Point
@@ -423,8 +421,7 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
 
     keys = [s for s in owner if s in geoms]
     if not keys:
-        cov.skip("place_water", "no named section has geometry in this build")
-        return
+        raise SystemExit("place_water: no named section has geometry in this build")
     tree = STRtree([geoms[s] for s in keys])
     # Read the handles back rather than passing them across half the module: `item` is
     # already written by the time this runs, and one source for `ord` cannot drift.
@@ -473,15 +470,11 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     gauge's shed by definition.
     """
     stations_path = data_dir / "bc_hydrometric_stations.json"
-    if not stations_path.exists():
-        cov.skip("section_gauge", f"no {stations_path.name} "
-                                  "(data/fetch_data.py --layers hydrometric_stations)")
-        cov.skip("section_down", "needs section_gauge")
-        return
+    if not stations_path.exists():              # P2: no missing-file fallbacks
+        raise SystemExit(f"section_gauge: no {stations_path.name} "
+                         "(data/fetch_data.py --layers hydrometric_stations)")
     if graph is None:
-        cov.skip("section_gauge", "no graph.pkl in this build")
-        cov.skip("section_down", "needs section_gauge")
-        return
+        raise SystemExit("section_gauge: no graph.pkl in this build")
 
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.generate.match import nodes_for, read_match, summarise
@@ -501,12 +494,10 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # and which water it is on, and `nodes_for` projects that coordinate onto THIS graph,
     # taking the section that begins at the gauge and runs upstream. Node ids move when the
     # sectionizer cuts differently; a published coordinate does not.
-    matches = read_match()
+    matches = read_match()                  # a missing file raises (P2: no missing-file fallbacks)
     if not matches:
-        cov.skip("section_gauge", "no pipeline/gauge_match.json — run "
-                                  "`python -m pipeline.gauges.generate.match --build <build>`")
-        cov.skip("section_down", "needs section_gauge")
-        return
+        raise SystemExit("section_gauge: the gauge match file holds no stations — run "
+                         "`python -m pipeline.gauges.generate.match --build <build>`")
 
     if geoms is None:
         raise SystemExit("section_gauge: no geometries.pkl in this build — stations cannot be "
@@ -611,10 +602,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         db.executemany("INSERT INTO gauge_stats VALUES (?,?,?,?,?,?)", srows)
         cov.filled("gauge_stats", len(srows))
         print(f"     envelope: HYDAT {clim.get('release')}")
-    else:
-        cov.skip("gauge_clim", f"no {clim_path.name} — "
-                               "run pipeline.gauges.feed.climatology (needs HYDAT)")
-        cov.skip("gauge_stats", "same file as gauge_clim")
+    else:                                       # P2: no missing-file fallbacks
+        raise SystemExit(f"gauge_clim: no {clim_path} — "
+                         "run pipeline.gauges.feed.climatology (needs HYDAT)")
 
     # THE DONOR PANELS, AFTER `gauge_stats` BECAUSE THEY READ IT. Built earlier, the record
     # lengths came back empty and every panel was silently skipped — the only symptom was a
@@ -640,12 +630,13 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
             # the whole record, so today it cannot.
             regulated = {r[0] for r in hy.execute(
                 "SELECT DISTINCT STATION_NUMBER FROM STN_REGULATION WHERE REGULATED=1")}
-    else:
-        print("     panels: no HYDAT — cannot screen regulated donors, skipping")
+    else:                                       # P2: no missing-file fallbacks
+        raise SystemExit(f"section_panel: no {hydat} — cannot screen regulated donors "
+                         "(python data/fetch_data.py --layers hydat)")
 
-    if not years_by_station or not hydat.exists():
-        cov.skip("section_panel", "no gauge_stats — needs clim.json for record lengths")
-        cov.skip("panel_member", "needs section_panel")
+    if not years_by_station:
+        raise SystemExit("section_panel: gauge_stats is empty — clim.json carries no record "
+                         "lengths")
     else:
         model = _area_model(Path(SOURCE) / "bc_fisheries_data.gpkg")
         # REGULATED STATIONS ARE PASSED THROUGH, NOT FILTERED OUT HERE.
@@ -709,11 +700,11 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
                   f"a gauge in them "
                   f"({100*len(_basins)/max(len(_frame),1):.0f}% of the province)")
         else:
-            cov.skip("basin_member", "no watershed groups resolved to a station")
+            raise SystemExit("basin_member: no watershed groups resolved to a station")
     except Exception as _exc:                                   # noqa: BLE001
-        # A missing groups layer is a skip, never a failure — the rest of the bundle is
-        # still correct and the field simply does not draw.
-        cov.skip("basin_member", f"not built: {_exc}")
+        # P2 (no missing-file fallbacks): a missing groups layer used to be a skip, and the
+        # bundle built "fine" with no basins. It stops the build now, naming the cause.
+        raise SystemExit(f"basin_member: not built: {_exc}") from _exc
 
     down = downstream_map(graph, (l.section_id for l in links))
     db.executemany("INSERT INTO section_down (sid, down_sid) VALUES (?,?)",
@@ -779,17 +770,16 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     _items(db, build_dir, registry_items, cov)
     _lake_areas(db, build_dir, registry_items, cov)
     graph_path, geom_path = build_dir / "graph.pkl", build_dir / "geometries.pkl"
-    graph = None
-    if graph_path.exists():
-        with graph_path.open("rb") as fh:
-            graph = pickle.load(fh)
+    for _p in (graph_path, geom_path):          # P2: the atlas's own files are required
+        if not _p.exists():
+            raise FileNotFoundError(f"{_p} not found — an atlas build writes it")
+    with graph_path.open("rb") as fh:
+        graph = pickle.load(fh)
     _section_touch(db, build_dir, graph, cov)
     places =_places(db, data_dir / "bc_places.json",
                      data_dir / "bc_boundary.geojson", cov)
-    geoms = None
-    if geom_path.exists():
-        with geom_path.open("rb") as fh:
-            geoms = pickle.load(fh)
+    with geom_path.open("rb") as fh:
+        geoms = pickle.load(fh)
     _place_water(db, build_dir, places, registry_items, geoms, cov)
     _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov)
     del graph, geoms, registry_items
@@ -824,6 +814,18 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             f"    python -m pipeline.atlas.reach.cli --build {build_dir} --out "
             f"{GENERATED.reaches / build_dir.name}")
     else:
+        # THE SAME REGISTRY THE REACH RUN READ (P2): handles pair section numbers; the registry
+        # digest pairs the items' names and kinds, which `pipeline.atlas.sidecars` can rewrite
+        # without touching a handle.
+        from pipeline.common.section_handles import registry_digest_for
+        _registry_digest = registry_digest_for(build_dir)
+        _ran_reg = json.loads((Path(_reaches) / "report.json").read_text()).get("registry_digest")
+        if _ran_reg != _registry_digest:
+            raise SystemExit(
+                f"the reach run at {_reaches} was made against registry "
+                f"{_ran_reg or '(none stated: the run predates the registry digest)'}, not "
+                f"{build_dir}'s ({_registry_digest}) — re-run the reach builder:\n"
+                f"    python -m pipeline.atlas.reach.cli --build {build_dir} --out {_reaches}")
         print(f"     rules: reading {_reaches}")
         # `entries` names a side copy of the entry sources, for a side build against a reach run
         # made from that copy (`reach.cli --entries`); the two must be the same corpus, and
@@ -886,6 +888,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # publishes this digest in its sidecar. If the two differ, a lookup does not miss —
         # it HITS THE WRONG SECTION, so the app must refuse to colour rather than proceed.
         ("section_handles", _handles_digest),
+        # THE REGISTRY THE TILES MUST ALSO CARRY (P2): names and kinds, not only handles.
+        ("registry_digest", _registry_digest),
         # THE TWO KEYS THE CLIENT ACTUALLY READS, and neither was written.
         #
         # `source.ts` asks for `version` and `valid_until`; this table held `schema`,

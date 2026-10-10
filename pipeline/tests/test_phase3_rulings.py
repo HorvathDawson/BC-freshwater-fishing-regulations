@@ -15,18 +15,18 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if not con.execute("select count(*) from rule where entry_id = 'r3:nicola_river@3-13' and "
                        "rule_id = 'nicola_river.r3x'").fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the Phase 3 corpus — point UI_EXPORT_BUNDLE at a side build")
+        predates(f"{BUNDLE} predates the Phase 3 corpus — point UI_EXPORT_BUNDLE at a side build")
     yield con
     con.close()
 
@@ -58,6 +58,7 @@ def units(db) -> dict[tuple[str, str], str]:
     return out
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_no_section_carries_two_classified_waters_units(db, units):
     """RU-13: 10,227 sections carried two units (Bulkley+Morice 2,817, Bulkley+Suskwa 1,704 …);
@@ -76,6 +77,7 @@ def test_no_section_carries_two_classified_waters_units(db, units):
                                                 for d in ("zymoetz_river_a", "zymoetz_river_b")}
 
 
+@pytest.mark.needs_bundle
 def test_gosnell_creek_and_the_endako_are_not_classified(db):
     """LI-2: a tributary with its own row and no designation — Gosnell Creek (under the Morice
     and the Bulkley), the Endako (under the Stellako's [Includes Tributaries]) — carries none."""
@@ -85,6 +87,7 @@ def test_gosnell_creek_and_the_endako_are_not_classified(db):
         assert not any(_designations_of(db, s) for s in sids), name
 
 
+@pytest.mark.needs_bundle
 def test_the_nanika_is_the_morices_not_the_bulkleys(db):
     """RU-13: the Nanika, above Morice Lake, flows into the Morice first — the Morice's unit,
     handed on from the Bulkley's walk (the Morice's own walk stops at its lake)."""
@@ -94,6 +97,7 @@ def test_the_nanika_is_the_morices_not_the_bulkleys(db):
     assert got == {("r6:morice_river@6-9", "morice_river")}
 
 
+@pytest.mark.needs_bundle
 def test_the_nass_closure_takes_the_meziadin_to_its_lake_and_no_further(db):
     """RU-14: `nass_river.r2` binds the Meziadin River below Meziadin Lake and none of the
     creeks feeding the lake (Hanna, Tintina, Strohn — 1,178 sections before)."""
@@ -112,6 +116,7 @@ def test_the_nass_closure_takes_the_meziadin_to_its_lake_and_no_further(db):
     assert n < 100, n
 
 
+@pytest.mark.needs_bundle
 def test_kennedy_lake_is_outside_pacific_rim(db):
     """User ruling 2026-10-03: Kennedy Lake (wbk:329083511, 65 km²) is outside the park. It is
     not closed by the park's rule, not a `province_except` section (the provincial licence is

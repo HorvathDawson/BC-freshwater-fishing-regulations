@@ -27,18 +27,19 @@ import pytest
 
 from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 REAL = CURATED.regulations.entries.catalogue
 
-pytestmark = pytest.mark.skipif(
-    not (GENERATED.build() / "registry.json").exists(),
-    reason="needs the built registry the review app serves (data/generated/atlas/full)")
+#: the review app serves the built registry (data/generated/atlas/full)
+pytestmark = pytest.mark.needs_atlas
 
 
 @pytest.fixture(scope="module")
-def env(tmp_path_factory):
+def env(request, tmp_path_factory):
+    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     tmp = tmp_path_factory.mktemp("catalogue")
     for p in sorted(REAL.glob("region-*.json")):
         shutil.copy2(p, tmp / p.name)
@@ -206,7 +207,7 @@ def _extents_of(e):
 def test_put_unchanged_keeps_the_newer_fields(env, field, has):
     eid = _smallest_with(env, has)
     if eid is None:
-        pytest.skip(f"the corpus carries no entry with {field}")
+        pytest.fail(f"the curated corpus carries no entry with {field}, so this proves nothing")
     d = _get(env, eid)
     path = _file_of(env, eid)
     before_bytes = path.read_bytes()
@@ -732,17 +733,17 @@ def test_loaders_keep_cache_clear(env):
 # What an angler is told: the live bundle, through read.effective_rules
 # --------------------------------------------------------------------------- #
 
-def _bundle_or_skip():
+def _the_bundle():
     from pipeline.deliver.bundle import read as R
-    if not Path(R.BUNDLE).exists():
-        pytest.skip("needs the built bundle (data/generated/bundle/bundle.sqlite)")
+    need(None, "bundle", R.BUNDLE, BUNDLE_HINT)
 
 
 DEAN = "r5:dean_river@5-9"
 
 
+@pytest.mark.needs_bundle
 def test_bundle_copy_of_an_entry(env):
-    _bundle_or_skip()
+    _the_bundle()
     b = env["client"].get(f"/api/entries/{DEAN}/bundle").json()
     assert b["in_bundle"] is True
     served = {r["rule_id"]: r["label"] for r in _get(env, DEAN)["entry"]["rules"]}
@@ -751,8 +752,9 @@ def test_bundle_copy_of_an_entry(env):
     assert all(x["n_sections"] >= 0 and "waters" in x for x in b["licensing"])
 
 
+@pytest.mark.needs_bundle
 def test_answer_for_one_piece_one_day_one_fish(env):
-    _bundle_or_skip()
+    _the_bundle()
     from pipeline.deliver.bundle import read as R
     waters = env["client"].get(f"/api/entries/{DEAN}/answer/waters").json()
     dean = next(w for w in waters if w["name"] == "Dean River")
@@ -773,8 +775,9 @@ def test_answer_for_one_piece_one_day_one_fish(env):
     assert r.status_code == 422 and "YYYY-MM-DD" in r.text
 
 
+@pytest.mark.needs_bundle
 def test_tidal_water_says_so(env):
-    _bundle_or_skip()
+    _the_bundle()
     waters = env["client"].get("/api/entries/r1:nitinat_lake@1-3/answer/waters").json()
     sid = waters[0]["pieces"][0]["sid"]
     got = env["client"].get("/api/answer", params={"sid": sid, "date": "2026-07-01",
@@ -788,8 +791,7 @@ def test_tidal_water_says_so(env):
 
 def test_printed_pages_map_to_pdf_pages(env):
     sp = sys.modules.get("synopsis_pages") or __import__("synopsis_pages")
-    if not sp.PDF_PATH.exists():
-        pytest.skip("needs data/source/fishing_synopsis.pdf")
+    assert sp.PDF_PATH.exists(), f"{sp.PDF_PATH} is tracked in git and missing"
     m = {int(k): v for k, v in env["client"].get("/api/synopsis/pages").json().items()}
     # printed = PDF - 2 up to printed 40, PDF - 6 after the unnumbered centre gloss
     assert (m[14], m[35], m[40]) == (16, 37, 42)

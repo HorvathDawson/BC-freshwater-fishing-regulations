@@ -30,6 +30,7 @@ from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
@@ -42,13 +43,13 @@ WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRAN
 
 
 @pytest.fixture(scope="module")
-def built():
-    if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
-        pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
+def built(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, _ = C.load_export(EXPORT_DIR)
     missing = [w for w in WATERS if w not in data["waters"]]
     if missing:
-        pytest.skip(f"not in this export: {missing}")
+        pytest.fail(f"pinned waters missing from this export: {missing}")
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, sections=["rows"],
                     log=lambda *_: None)
     return data, model, C.load(BUNDLE)
@@ -112,6 +113,7 @@ def displace(*tails, fish=None, origins=("none", "hatchery", "wild")):
 # F1 one item per kind
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
     data = built[0]
     row = row_of(built, card(built, ANDERSON, 0, (7, 1)), "z3:trout_char_quota::trout_char_quota.r1")
@@ -139,6 +141,7 @@ def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
 # F2 the wild size limit
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_chilliwack_lake_no_wild_trout_over_50(built):
     data = built[0]
     row = row_of(built, card(built, CHILLIWACK_L, 0, (7, 15)), "z2:trout_char_quota::trout_char_quota.r1")
@@ -159,6 +162,7 @@ def test_chilliwack_lake_no_wild_trout_over_50(built):
 # F3 fish sets, not counts
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_kitimat_february_cutthroat_and_brown_go_back(built, monkeypatch):
     data = built[0]
     t = card(built, KITIMAT, 1, (2, 15))
@@ -180,6 +184,7 @@ def test_kitimat_february_cutthroat_and_brown_go_back(built, monkeypatch):
 # F4 / F5c / F7 Vedder hatchery rainbow
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
     t = card(built, VEDDER, 1, (1, 15))
     row = row_of(built, t, "z2:trout_char_quota::trout_char_quota.r1")
@@ -199,6 +204,7 @@ def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
     assert item_of(m, "RB")["against"] == 2
 
 
+@pytest.mark.needs_bundle
 def test_tranquille_rainbow_counted_apart_mayer_lake_an_area(built):
     t = card(built, TRANQUILLE, 0, (6, 15))
     rb = row_of(built, t, "tranquille_lake.r1")
@@ -211,6 +217,7 @@ def test_tranquille_rainbow_counted_apart_mayer_lake_an_area(built):
 # F5a slots, F6 possession
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_teslin_slots_and_possession(built):
     data = built[0]
     t = card(built, TESLIN, 0, (6, 15))
@@ -252,6 +259,7 @@ def test_a_possession_limit_is_not_a_day_or_a_year():
 # F5b the zone's outer size cap, F5d every shared cap
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_thompson_below_kamloops_lake_zone_1_over_50(built):
     row = row_of(built, card(built, THOMPSON, 0, (8, 15)), "thompson_river_downstream_of_kamloops_lake.r2")
     assert item_of(row, "CT")["bands"] == [[35, 50, 2], [50, None, 1]]
@@ -261,6 +269,7 @@ def test_thompson_below_kamloops_lake_zone_1_over_50(built):
     assert item_of(m, "CT")["bands"] == [[35, None, 2]]
 
 
+@pytest.mark.needs_bundle
 def test_region8_every_shared_cap_counts(built):
     """Region 8 streams: 4 a day, only 1 over 50 cm AND only 2 over 30 cm — both general caps of
     the real card reach the real daily limit (the page reads only the first). No shipped card has

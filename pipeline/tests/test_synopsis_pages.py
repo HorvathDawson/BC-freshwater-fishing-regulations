@@ -20,8 +20,11 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOGUE = ROOT / "data" / "curated" / "regulations" / "entries" / "catalogue"
 MOCK = ROOT / "app" / "design" / "regs-v3.html"
 
-pytestmark = pytest.mark.skipif(not SP.default_pdf().exists(),
-                                reason="needs data/source/fishing_synopsis.pdf")
+# The synopsis PDF is tracked in git: a missing PDF fails (`test_the_pdf_is_there`), never skips.
+
+
+def test_the_pdf_is_there():
+    assert SP.default_pdf().exists(), f"{SP.default_pdf()} is tracked in git and missing"
 
 
 def _norm(s: str) -> str:

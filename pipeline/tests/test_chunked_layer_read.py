@@ -16,15 +16,22 @@ These pin all three against the real gpkg, on small layers so they stay cheap.
 
 from __future__ import annotations
 
-import os
 
 import pytest
 
 from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
-_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
+_needs_data = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """A test marked `needs_source` FAILS without the gpkg, naming the command that fetches it."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", _DATA, GPKG_HINT)
 
 
 def _frames_equal(whole, chunks) -> tuple[bool, str]:

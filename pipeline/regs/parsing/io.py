@@ -99,12 +99,11 @@ def skipped_sources() -> list[str]:
 
 
 def _holds_entries(d: Path) -> bool:
+    # An unreadable or corrupt region file RAISES (P2): swallowed, it silently stopped the
+    # directory being an entry source.
     for p in sorted(d.glob("region-*.json")):
-        try:
-            if json.loads(p.read_text(encoding="utf-8")).get("entries"):
-                return True
-        except (OSError, ValueError):
-            continue
+        if json.loads(p.read_text(encoding="utf-8")).get("entries"):
+            return True
     return False
 
 
@@ -287,8 +286,10 @@ def read_review_findings(work_dir: Path,
 # Region files (catalogue entries)
 # --------------------------------------------------------------------------- #
 
-def read_entryfile(path: Path, registry=None, *, require_entries: bool = False) -> dict[str, dict]:
-    """One region file -> {entry_id: entry_dict}. Missing file -> {}.
+def read_entryfile(path: Path, registry=None, *, require_entries: bool = False,
+                   missing_ok: bool = False) -> dict[str, dict]:
+    """One region file -> {entry_id: entry_dict}. A missing file is an ERROR (P2, no missing-file
+    fallbacks) unless `missing_ok` — only a WRITER about to create the file passes it.
 
     THE CORPUS' ONE READ POINT FOR ITEM IDS. Given a `registry`, every id that names an item the
     registry ABSORBED (`pipeline.atlas.registry.flowing`: a river's polygon folded into its river)
@@ -301,7 +302,9 @@ def read_entryfile(path: Path, registry=None, *, require_entries: bool = False) 
     `require_entries`: a region file in an entry SOURCE must carry `entries` — reading
     `data.get("entries", [])` skipped a defective file in silence (the bundle's rule)."""
     if not Path(path).exists():
-        return {}
+        if missing_ok:
+            return {}
+        raise FileNotFoundError(f"no region file at {path}")
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if require_entries and "entries" not in data:
         raise SystemExit(f"{path}: a region file in an entry source has no `entries`")
@@ -310,6 +313,18 @@ def read_entryfile(path: Path, registry=None, *, require_entries: bool = False) 
         from pipeline.atlas.registry.flowing import canonical_ids
         out = {eid: canonical_ids(e, registry) for eid, e in out.items()}
     return out
+
+
+def corpus_digest(entries: dict[str, dict]) -> str:
+    """THE CORPUS A REACH RUN WAS MADE FROM, as a digest (P2): SHA-256 (first 16 hex) over every
+    entry's full content, in entry-id order, as read through `read_entryfile` (absorbed ids
+    mapped). The reach run stamps it in `report.json`; the bundle recomputes it over the entries
+    it reads and refuses a run made from another corpus — a changed extent, date or species with
+    unchanged ids used to pass, because only the id sets were compared."""
+    import hashlib
+    rows = [entries[k] for k in sorted(entries)]
+    return hashlib.sha256(json.dumps(rows, sort_keys=True, separators=(",", ":"),
+                                     ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
 def read_entries_dir(dir_: Path | None = None, registry=None) -> dict[str, dict]:
@@ -403,7 +418,7 @@ def write_entryfile(path: Path, region: str, entries: Iterable) -> None:
     from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
     path = Path(path)
     rows = [dump_entry(e) if isinstance(e, CatalogueEntry) else e for e in entries]
-    on_disk = list(read_entryfile(path))
+    on_disk = list(read_entryfile(path, missing_ok=True))      # a writer may create the file
     if on_disk == sorted(on_disk):
         rows.sort(key=lambda e: e.get("entry_id", ""))
     doc = {"region": region, "entries": rows}

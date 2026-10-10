@@ -41,6 +41,7 @@ import pytest
 
 from pipeline.regs.parsing import catalogue as C
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -338,7 +339,8 @@ def test_a_steelhead_row_in_region_4_would_make_it_qualify(raw):
 
 # ----------------------------------------------------------------------------- the bundle
 @pytest.fixture(scope="module")
-def db():
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -414,6 +416,7 @@ def _book_lakes(db) -> set[str]:
         "WHERE i.kind = 'lake' AND h.entry_id != 'curated list'")} & _real_lakes(db)
 
 
+@pytest.mark.needs_bundle
 def test_a_lake_carries_a_steelhead_rule_only_when_a_steelhead_row_binds_it(db):
     """A provincial or zone steelhead rule — the wild release included — or the stamp is on a lake
     only where the lake's OWN row is a steelhead row (Khartoum, Lois; not Tenas, FIX D13), and no other (a slough or
@@ -443,6 +446,7 @@ LAKE_SET = {"zp:steelhead::steelhead.r1b", "zp:steelhead::steelhead.r2b",
             "zp:steelhead::steelhead.r4b", "z2:trout_char_quota::trout_char_quota.r7b"}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,own", [(KHARTOUM, "r2:khartoum_lake@2-12::khartoum_lake.r5"),
                                          (LOIS, "r2:lois_lake@2-12::lois_lake.r4")])
 def test_khartoum_and_lois_get_the_provincial_set(db, item_id, own):
@@ -469,6 +473,7 @@ def test_khartoum_and_lois_get_the_provincial_set(db, item_id, own):
         assert not db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone()
 
 
+@pytest.mark.needs_bundle
 def test_a_stream_in_a_qualifying_region_gets_them(db):
     """Capilano River (Region 2) carries all three provincial steelhead rules and the stamp."""
     secs = _sections(db, "gnis:5922")
@@ -481,6 +486,7 @@ def test_a_stream_in_a_qualifying_region_gets_them(db):
 QUALIFYING_ZONES = tuple(f"z{n}:" for n in QUALIFYING)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name", [("gnis:16880", "Elk River"),          # Region 4
                                           ("gnis:26324", "Similkameen River")])  # Region 8 (+2)
 def test_a_stream_in_a_region_whose_tables_do_not_name_steelhead_does_not(db, item_id, name):
@@ -514,6 +520,7 @@ def _steelhead_water(db, sid) -> bool:
     return db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone() is not None
 
 
+@pytest.mark.needs_bundle
 def test_the_thompson_below_kamloops_lake_is_the_book_s_steelhead_water(db):
     """The Thompson row names steelhead (Class II, Steelhead Stamp mandatory) for its own stretch,
     downstream of Kamloops Lake: every section its rules bind is known AND steelhead water. Above
@@ -530,6 +537,7 @@ def test_the_thompson_below_kamloops_lake_is_the_book_s_steelhead_water(db):
     assert sw == set(_sections(db, "gnis:39492"))
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name", [("gnis:39400", "Nicola River"),
                                           ("gnis:38393", "Bonaparte River"),
                                           ("gnis:30592", "Deadman River")])
@@ -547,6 +555,7 @@ def test_a_tributary_of_the_thompson_is_known_only_by_the_list(db, item_id, name
         assert _steelhead_water(db, sid), name
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name", [("gnis:27764", "Williams Lake River"),  # Region 5
                                           ("gnis:21205", "San Jose River")])      # Region 5
 def test_an_interior_cariboo_stream_is_possible(db, item_id, name):
@@ -567,6 +576,7 @@ WAIVER_ROWS = {"r5:chilko_river@5-5": "gnis:13741",
                "r6:stellako_river@6-4+7-12": "gnis:7836", "r7:stellako_river@7-12": "gnis:7836"}
 
 
+@pytest.mark.needs_bundle
 def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
     """"(Steelhead Stamp not required)" prints steelhead (user ruling 2026-10-02): the Chilko,
     Horsefly, West Road and both Stellako rows are steelhead rows. Every section their rules bind is
@@ -591,6 +601,7 @@ def test_the_stamp_waiver_rows_are_steelhead_rows(raw, db):
     assert all(_steelhead_water(db, s) for s in got["known"])
 
 
+@pytest.mark.needs_bundle
 def test_the_stellako_in_zone_7a_carries_the_set_by_its_waiver_row(db):
     """The Stellako's Zone 7A pieces lie past the steelhead regions; the waiver rows bind them, so
     they carry the provincial set through the twins and the stamp twin, and are steelhead water.
@@ -612,6 +623,7 @@ def test_the_stellako_in_zone_7a_carries_the_set_by_its_waiver_row(db):
         assert not any(k.startswith("zp:steelhead#") for k in got["holds"]), got
 
 
+@pytest.mark.needs_bundle
 def test_a_region_4_stream_and_a_lake_are_absent(db):
     """The Elk River (Region 4) and Stave Lake (Region 2) carry no steelhead attribute."""
     assert set(_presence(db, "gnis:16880")) == {None}
@@ -621,6 +633,7 @@ def test_a_region_4_stream_and_a_lake_are_absent(db):
 OKANAGAN, INKANEEP = "gnis:32069", "gnis:10228"
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id", [OKANAGAN, INKANEEP, "gnis:29653"])     # + Vaseux Creek
 def test_a_listed_river_outside_the_steelhead_regions_is_known_with_no_steelhead_rule(db, item_id):
     """THE CURATED LIST (user rulings 2026-10-02, 2026-10-03): the Okanagan River, Inkaneep and
@@ -653,6 +666,7 @@ def test_a_listed_river_outside_the_steelhead_regions_is_known_with_no_steelhead
 COWICHAN = "gnis:12227"
 
 
+@pytest.mark.needs_bundle
 def test_the_list_changes_answers_only_through_steelhead_water(db, tmp_path):
     """MUTATION ON THE BUNDLE, the Cowichan River (Region 1; known only by the curated list, where
     steelhead rules apply): the list's ONE effect on `effective_rules` is `steelhead_water`. (1)
@@ -708,6 +722,7 @@ def test_the_list_changes_answers_only_through_steelhead_water(db, tmp_path):
     assert answers(marked, ink) != answers(BUNDLE, ink)
 
 
+@pytest.mark.needs_bundle
 def test_anadromous_rainbow_is_exactly_known_stream_where_steelhead_rules_apply(db, raw):
     """A big rainbow is a steelhead EXACTLY on KNOWN ∧ STREAM (the registry's kind: a slough or canal
     is one — the Vedder Canal) ∧ STEELHEAD RULES APPLY (the section carries every rule of the
@@ -743,6 +758,7 @@ def test_anadromous_rainbow_is_exactly_known_stream_where_steelhead_rules_apply(
     assert possible <= apply
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name", [("gnis:14707", "Pennask Creek"),     # Region 8
                                           ("gnis:9237", "Brenda Creek")])      # Region 8
 def test_the_walk_is_gone_past_the_steelhead_regions(db, item_id, name):
@@ -850,6 +866,7 @@ def doc() -> dict:
     return X.build(BUNDLE)
 
 
+@pytest.mark.needs_bundle
 def test_the_export_shows_no_steelhead_rule_on_a_lake(doc):
     assert X.steelhead_lake_problems(doc) == []
     # the two lakes whose rows print "steelhead" keep their own steelhead rule
@@ -874,6 +891,7 @@ def _bad(doc):
     return bad
 
 
+@pytest.mark.needs_bundle
 def test_the_export_knows_the_wild_releases(doc):
     """The wild releases (province and zones) are the steelhead rules `is_wild_steelhead_release`
     passes; the hatchery quotas, the annual 10, the record duty, stop-after-quota and the Region 6
@@ -889,6 +907,7 @@ def test_the_export_knows_the_wild_releases(doc):
             doc["rules"][i]), i
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("rid", ["zp:steelhead::steelhead.r2",                 # the wild release
                                  "z1:trout_quota::trout_quota.r5",             # a zone release
                                  "zp:steelhead::steelhead.r1", "zp:steelhead::steelhead.r4",
@@ -905,6 +924,7 @@ def test_the_export_check_refuses_a_steelhead_rule_on_a_lake(doc, rid):
     assert any(p.startswith(f"steelhead rule {rid} shows on") and item in p for p in got), got
 
 
+@pytest.mark.needs_bundle
 def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
     """On Lois Lake: Lois Lake's own steelhead rule and the wild releases; Region 2's "2 hatchery
     steelhead" put there is refused, and so is Lois without the provincial wild release."""
@@ -926,6 +946,7 @@ def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
                for p in X.steelhead_set_problems(bad))
 
 
+@pytest.mark.needs_bundle
 def test_the_export_check_refuses_a_province_wide_stamp(doc):
     bad = {k: doc[k] for k in ("rules", "entries", "waters", "rulesets", "licensing_sets")}
     bad["licensing"] = copy.deepcopy(doc["licensing"])
@@ -935,6 +956,7 @@ def test_the_export_check_refuses_a_province_wide_stamp(doc):
     assert json.dumps(doc["licensing"][STAMP]["placement"]) == '"sections"'
 
 
+@pytest.mark.needs_bundle
 def test_the_export_carries_steelhead_per_part_and_water(doc):
     """`waters[].parts[].steelhead`, the water's roll-up and why (`steelhead_source`): the Thompson
     known (the book below Kamloops Lake, the curated list above); Nicola known by the list alone (no
@@ -978,6 +1000,7 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     assert got["known"] > 0 and got["possible"] > 0
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("mutate,expect", [
     (lambda w: w["gnis:27764"]["parts"][0].update(anadromous_rainbow=True),
      "anadromous_rainbow on a possible stream"),
@@ -1036,6 +1059,7 @@ def test_every_stream_row_naming_steelhead_is_steelhead_water(raw):
     assert "r5:dean_river@5-9" in flagged
 
 
+@pytest.mark.needs_bundle
 def test_no_lake_is_steelhead_water(db):
     """`steelhead_water` holds STREAM sections only — a stream's polygon among them: the Vedder
     Canal's (its river is the flagged Chilliwack/Vedder row's water), the listed sloughs' and the
@@ -1058,6 +1082,7 @@ def test_no_lake_is_steelhead_water(db):
                         for s in dean)
 
 
+@pytest.mark.needs_bundle
 def test_a_big_rainbow_on_kitimat_is_a_steelhead(db):
     """Kitimat: "Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5" speaks for a
     rainbow; "Hatchery steelhead (>50 cm) daily quota = 2" for the fish over 50 cm — asked as ST."""
@@ -1086,6 +1111,7 @@ def test_the_flag_test_catches_a_flagged_lake(raw):
 
 
 # ------------------------------------------------------------ a lake answers to no steelhead rule
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name,over50", [
     ("wbk:329385412", "Morice Lake", "z6:trout_char_quota::trout_char_quota.r2"),    # Region 6
     ("wbk:329291805", "Stave Lake", "z2:trout_char_quota::trout_char_quota.r2"),     # Region 2
@@ -1281,11 +1307,13 @@ def test_the_provincial_set_is_four_members_and_the_rows_are_read_from_the_corpu
     assert {e for e, x in raw.items() if SH.steelhead_row(x) and x.get("rules")} == rows
 
 
+@pytest.mark.needs_bundle
 def test_every_steelhead_row_s_water_carries_the_provincial_set(raw, classes, sets):
     """FORWARD and REVERSE over every section of the bundle."""
     assert province_set_problems(*_inputs(raw, classes, sets)) == []
 
 
+@pytest.mark.needs_bundle
 def test_tenas_lake_is_not_steelhead_water_by_another_rows_closure(db, raw):
     """FIX D13 (user ruling 2026-10-06): a lake is steelhead water only where its OWN row prints
     steelhead. Tenas Lake is bound by the Atnarko row's "No Fishing upstream of Tweedsmuir
@@ -1346,6 +1374,7 @@ def _mutated(raw, classes, sets, fn):
     return province_set_problems(cl, rules, recs, members, rows, own_lakes)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("name", [
     "khartoum loses the annual 10", "lois loses the lake stamp", "capilano loses the record duty",
     "a steelhead stream loses the stamp", "stave lake gains the annual 10",
@@ -1431,6 +1460,7 @@ def test_the_set_check_catches_a_mutation(raw, classes, sets, name):
     assert _mutated(raw, classes, sets, fns[name])
 
 
+@pytest.mark.needs_bundle
 def test_a_row_outside_the_regions_naming_steelhead_needs_the_set(raw, classes, sets):
     """No exemption any more (user ruling 2026-10-02: known waters carry the set wherever they are):
     a Region 4 stream whose row named steelhead must be known and carry the whole provincial set —
@@ -1451,6 +1481,7 @@ def _export_bad(doc):
     return bad
 
 
+@pytest.mark.needs_bundle
 def test_the_export_carries_the_provincial_set_on_every_steelhead_row_s_water(doc):
     assert X.steelhead_set_problems(doc) == []
     for item in (KHARTOUM, LOIS):
@@ -1461,6 +1492,7 @@ def test_the_export_carries_the_provincial_set_on_every_steelhead_row_s_water(do
         assert f"zp:steelhead#{STAMP_TWIN}" in recs
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item,where,drop,expect", [
     (LOIS, "ruleset", "zp:steelhead::steelhead.r1b", "annual hatchery quota"),
     (KHARTOUM, "licensing_set", f"zp:steelhead#{STAMP_TWIN}", "stamp"),
@@ -1480,6 +1512,7 @@ def test_the_export_set_check_catches_a_missing_member(doc, item, where, drop, e
     assert any(item in g and expect in g for g in got), got
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item,where,add,expect", [
     ("gnis:16880", "ruleset", "zp:steelhead::steelhead.r1", "no stream of the steelhead regions"),
     ("wbk:329291805", "licensing_set", STAMP, "not known steelhead water"),     # Stave Lake
@@ -1498,6 +1531,7 @@ def test_the_export_set_check_catches_the_set_where_it_must_not_be(doc, item, wh
         add in g and item in g for g in got), got
 
 
+@pytest.mark.needs_bundle
 def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
     """`guide.cases`: a known steelhead stream (a row's own water), a possible one, a lake of a
     steelhead region with no steelhead rule, and Khartoum or Lois — each with its `steelhead` and
@@ -1555,6 +1589,7 @@ def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
         assert got[m]["what_to_show"] and m in doc["guide"]["cases"]["mechanisms"]
 
 
+@pytest.mark.needs_bundle
 def test_steelhead_rules_false_is_exactly_the_known_parts_no_steelhead_rule_applies_to(doc):
     """`steelhead_rules: false` (user ruling 2026-10-03) is on EVERY known part that does not carry
     the provincial steelhead rules (`steelhead_rules_apply`) and on no other part; a water carries it

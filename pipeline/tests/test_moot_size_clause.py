@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny as _tiny_one
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 
 def _tiny(tmp_path, rules):
@@ -39,9 +39,8 @@ RESERVE = ("zp:superior_closures", "superior_closures.r3")  # "prohibited in Eco
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).is_file():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -72,6 +71,7 @@ def _both_ways(monkeypatch, sid, on, fish):
     return now, then
 
 
+@pytest.mark.needs_bundle
 def test_bonaparte_lake_nov_1_lake_trout(db, monkeypatch):
     """Region 3's 'Lake trout from Oct 15-Jan 31' (a zone release, no water kind) speaks; its
     'none under 60 cm' is not shown. Off: the clause speaks beside it (the reader before)."""
@@ -81,6 +81,7 @@ def test_bonaparte_lake_nov_1_lake_trout(db, monkeypatch):
     assert set(then) - set(now) == {R4B}, "the clause and nothing else"
 
 
+@pytest.mark.needs_bundle
 def test_eleven_mile_creek_aug_1_bull_trout(db, monkeypatch):
     """A zone release LIMITED TO STREAMS ('Bull trout (Dolly Varden) from streams, Aug 1-Oct 31')."""
     now, then = _both_ways(monkeypatch, _sid(db, ELEVEN_MILE), (8, 1), "DV")
@@ -88,6 +89,7 @@ def test_eleven_mile_creek_aug_1_bull_trout(db, monkeypatch):
     assert R4B in then and set(then) - set(now) == {R4B}
 
 
+@pytest.mark.needs_bundle
 def test_eleven_mile_creek_may_1_lake_trout_under_the_spring_closure(db, monkeypatch):
     """A zone CLOSURE: the spring stream closure stays a closure (may not fish for it), and the
     clause is not shown under it."""
@@ -98,6 +100,7 @@ def test_eleven_mile_creek_may_1_lake_trout_under_the_spring_closure(db, monkeyp
     assert R4B not in now and set(then) - set(now) == {R4B}
 
 
+@pytest.mark.needs_bundle
 def test_a_superior_closure_hides_the_zone_clause(db, monkeypatch):
     """The Peace River inside the Clayhurst Ecological Reserve (Zone 7B), Jan 1, lake trout:
     'Fishing is prohibited in Ecological Reserves' is a superior closure; Zone 7B's 'none under
@@ -109,6 +112,7 @@ def test_a_superior_closure_hides_the_zone_clause(db, monkeypatch):
     assert set(then) - set(now) == {z7b}
 
 
+@pytest.mark.needs_bundle
 def test_a_water_release_still_hides_it_as_before(db, monkeypatch):
     """Griffin Lake's own 'Lake trout and bull trout catch and release' (step 5) — unchanged."""
     now, then = _both_ways(monkeypatch, _sid(db, "wbk:329518152"), (11, 1), "LT")

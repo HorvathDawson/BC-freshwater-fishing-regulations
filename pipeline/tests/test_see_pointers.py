@@ -16,13 +16,15 @@ import copy
 import json
 import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, See, see_relation
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or ""
+from pipeline.deliver.bundle import read as _R
+
+BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or _R.BUNDLE
 
 
 @pytest.fixture(scope="module")
@@ -140,16 +142,16 @@ def test_a_region_5_copy_of_a_region_6_lake_binds_nothing(corpus):
 
 # --------------------------------------------------------------------------- the bundle
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE or not Path(BUNDLE).exists():
-        pytest.skip("set UI_EXPORT_BUNDLE to a bundle built from this corpus")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if "see" not in {r[1] for r in con.execute("PRAGMA table_info(entry)")}:
-        pytest.skip(f"{BUNDLE} predates `entry.see`")
+        predates(f"{BUNDLE} predates `entry.see`")
     yield con
     con.close()
 
 
+@pytest.mark.needs_bundle
 def test_the_bundle_carries_the_pointer_and_no_rule_for_it(db):
     see = json.loads(db.execute("select see from entry where entry_id = ?",
                                 ("r2:marshall_creek@2-4",)).fetchone()[0])
@@ -163,6 +165,7 @@ def test_the_bundle_carries_the_pointer_and_no_rule_for_it(db):
             assert x["relation"] in ("alias", "twin", "see")
 
 
+@pytest.mark.needs_bundle
 def test_lonzo_creeks_rules_reach_marshall_creek(db):
     """"MARSHALL" CREEK and LONZO ("Marshall") CREEK are one water (gnis:1860): Lonzo's rules
     cover every section of it, so the pointer needs no rule of its own."""
@@ -206,6 +209,7 @@ def test_mara_lake_takes_region_3s_base(corpus):
     assert corpus["r8:mara_lake@8-26"].rules and corpus["r8:mara_lake@8-26"].see
 
 
+@pytest.mark.needs_bundle
 def test_mara_lake_carries_both_regions_bases_in_the_bundle(db):
     """Mara Lake straddles the Region 3 / Region 8 line (61/39 by area) and is never cut: it takes
     BOTH regions' zone rules, the most strict applying (user ruling 2026-09-25, second half) — and
@@ -225,6 +229,7 @@ def test_mara_lake_carries_both_regions_bases_in_the_bundle(db):
         assert "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26" in rows
 
 
+@pytest.mark.needs_bundle
 def test_a_region_6_lake_printed_in_region_5_takes_region_6s_base(db):
     """Chipmunk Lake (MU 6-1) is printed in both tables; only Region 6's row and Region 6's base
     bind it."""

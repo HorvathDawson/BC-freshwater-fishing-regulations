@@ -24,6 +24,7 @@ import pytest
 
 from pipeline.deliver import calendar as CAL
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
@@ -86,11 +87,11 @@ def test_in_force_at_a_moment_decides_and_without_one_stands_beside():
 # --------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def store():
+def store(request):
     from pipeline.deliver.verdicts.store import VerdictStore
     v = BUNDLE.with_name("verdicts.sqlite")
-    if not BUNDLE.is_file() or not v.is_file():
-        pytest.skip("no bundle / verdicts (UI_EXPORT_BUNDLE)")
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", v, BUNDLE_HINT)
     return VerdictStore.open(v, BUNDLE)
 
 
@@ -111,6 +112,7 @@ def _states(store, key, day, fish, moment):
             for x in store.on_day(key, day, fish, "none", moment)}
 
 
+@pytest.mark.needs_bundle
 def test_the_lower_west_arm_keeps_5_kokanee_at_weekends_and_releases_them_on_weekdays(store):
     (key,) = _keys_holding(store, f"{LWA}.r3")
     ms = store.moments(key)
@@ -125,6 +127,7 @@ def test_the_lower_west_arm_keeps_5_kokanee_at_weekends_and_releases_them_on_wee
         store.on_day(key, jul_4, "KO", "none")                # a moment must be named
 
 
+@pytest.mark.needs_bundle
 def test_a_night_closure_closes_its_hours_never_the_day(store):
     from pipeline.deliver import status_index as SI
     keys = _keys_holding(store, FRASER_NIGHT)
@@ -143,6 +146,7 @@ def test_a_night_closure_closes_its_hours_never_the_day(store):
         assert prof == SI.moment_profiles(store, key)[0]      # the day is the day's
 
 
+@pytest.mark.needs_bundle
 def test_exactly_the_keys_holding_a_weekday_or_hours_rule_have_moments(store):
     import sqlite3
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
@@ -164,13 +168,13 @@ def test_exactly_the_keys_holding_a_weekday_or_hours_rule_have_moments(store):
 # --------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def shipped():
+def shipped(request):
     a, e = EXPORT_DIR / "ui-rules-answers.json", EXPORT_DIR / "ui-rules-export.json"
-    if not a.is_file() or not e.is_file():
-        pytest.skip("no answers file (ANSWERS_EXPORT_DIR)")
+    need(request, "bundle", a, EXPORT_HINT)
+    need(request, "bundle", e, EXPORT_HINT)
     wire = json.loads(a.read_text())
     if "moments" not in wire:
-        pytest.skip("an answers file from before 2.1")
+        predates(f"{a} is an answers file from before 2.1 — {EXPORT_HINT}")
     return wire, json.loads(e.read_text())
 
 
@@ -179,6 +183,7 @@ def _decided(t, fish):
     return {o: (d["status"], d["daily"]) for o, d in h.items()}
 
 
+@pytest.mark.needs_bundle
 def test_the_card_answers_the_weekday_asked(shipped):
     from pipeline.deliver.answers import encode as E
     wire, data = shipped
@@ -190,6 +195,7 @@ def test_the_card_answers_the_weekday_asked(shipped):
         E.tap(wire, data, LWA_ITEM, 0, 7, 4)                  # the weekday must be named
 
 
+@pytest.mark.needs_bundle
 def test_display_closing_is_the_closed_predicate(shipped):
     from pipeline.deliver.types import GAME_FISH
     wire, _ = shipped
@@ -230,6 +236,7 @@ def _angler_texts(data: dict, wire: dict):
                         yield f"{item}.{k}", p[k]
 
 
+@pytest.mark.needs_bundle
 def test_no_shipped_angler_text_carries_a_developer_instruction(shipped):
     wire, data = shipped
     from pipeline.tools.export_codec import expand

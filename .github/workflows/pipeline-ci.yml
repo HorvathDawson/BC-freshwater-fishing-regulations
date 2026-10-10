@@ -66,8 +66,13 @@ jobs:
       - name: Generated answers/2 schema and types are current
         run: python -m pipeline.deliver.answers.model --check
 
+      # The no-data tier. A test that reads generated or fetched data (bundle, atlas, reach run,
+      # tiles, the gpkg, the DFO cache) carries a needs_* marker and FAILS without it — it never
+      # skips (pipeline/tests/conftest.py, test_no_silent_skips.py). A runner has none of that
+      # data, so those tiers are deselected here by marker; `-m` replaces pytest.ini's
+      # `-m "not slow"`, so slow is deselected again explicitly.
       - name: Tests
-        run: python -m pytest -q
+        run: python -m pytest -q -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
 
       # NO HARDCODED PATH MAY BYPASS THE CONFIG. Everything curated, and everything
       # fetched, is reached through `pipeline.common.curated`.

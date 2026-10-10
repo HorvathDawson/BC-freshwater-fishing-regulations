@@ -165,7 +165,9 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     ul_write, ul_close = _writer(out_dir, ul_spec)
     # The waterbody outlines, to sanity-check each route against the lake it crosses.
     wb_path = build_dir / "waterbody_polys.pkl"
-    wb_polys = pickle.load(wb_path.open("rb")) if wb_path.exists() else {}
+    if not wb_path.exists():                # P2: no missing-file fallbacks
+        raise FileNotFoundError(f"{wb_path} not found — an atlas build writes it")
+    wb_polys = pickle.load(wb_path.open("rb"))
     dropped_routes = 0
     dropped_outside = 0
     for sec, g in geoms.items():

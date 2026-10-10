@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 Z3, Z4 = "z3:trout_char_quota", "z4:trout_char_quota"
@@ -28,9 +29,8 @@ ANDERSON, ANDREEN, CAHILTY = "gnis:10017", "gnis:10035", "wbk:-6"     # R3 creek
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -62,6 +62,7 @@ def _andreen(db):
     return {f: _quotas(sid, (1, 15), f) for f in ("RB", "DV", "EB")}, _quotas(sid, (7, 15), "RB")
 
 
+@pytest.mark.needs_bundle
 def test_anderson_creek_bull_trout_on_sep_15_is_release_only(db):
     """R3, a zone-only stream. Sep 15: the stream release speaks ALONE for bull trout — "Trout/
     char: 5", "4 from streams", "1 over 50 cm" and "1 bull trout or lake trout" are displaced
@@ -78,6 +79,7 @@ def test_anderson_creek_bull_trout_on_sep_15_is_release_only(db):
     assert {k for k in lt if k.startswith(Z3)} == {f"{Z3}::trout_char_quota.r7"}
 
 
+@pytest.mark.needs_bundle
 def test_andreen_creek_trout_and_char_on_jan_15_are_release_only(db):
     """R4, a zone-only stream. Jan 15 is inside "in streams from Nov 1-Mar 31": for a rainbow,
     a bull trout and a brook trout the release speaks alone — "Trout/char: 5", "1 rainbow or
@@ -92,6 +94,7 @@ def test_andreen_creek_trout_and_char_on_jan_15_are_release_only(db):
     assert f"{Z4W}::trout_char_winter_release.r1" not in jul
 
 
+@pytest.mark.needs_bundle
 def test_a_lake_keeps_its_quotas_when_the_stream_release_is_in_force(db):
     """Cahilty Lake (R3), Sep 15: the stream release does not bind a lake, so the region's
     quotas for bull trout all speak there."""
@@ -102,6 +105,7 @@ def test_a_lake_keeps_its_quotas_when_the_stream_release_is_in_force(db):
             f"{Z3}::trout_char_quota.r4", f"{Z3}::trout_char_quota.r4b"} <= got
 
 
+@pytest.mark.needs_bundle
 def test_the_step_is_what_displaces_them(db, monkeypatch):
     """Mutation: with `released_on_water` answering None (the reader before ZS-2), the quotas
     speak beside the stream releases again and both bundle cases fail."""

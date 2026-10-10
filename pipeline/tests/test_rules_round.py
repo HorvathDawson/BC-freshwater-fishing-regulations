@@ -16,6 +16,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 ROOT = Path(__file__).resolve().parents[2]
 CAT = ROOT / "data/curated/regulations/entries/catalogue"
@@ -41,9 +42,8 @@ def _walks(region: str, entry_id: str, rule_id: str) -> bool:
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not os.path.isfile(BUNDLE):
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -181,15 +181,17 @@ def _granby_upper(db) -> int:
     got = [s for s in _sections(db, "gnis:18775", GRANBY, "granby_river.r3")
            if s in _sections(db, "gnis:18775", KETTLE_T, "kettle_river_s_tributaries.r2", "trib")]
     if not got:
-        pytest.skip("the bundle has no Granby section above Burrell Creek walked by Kettle's tributaries")
+        pytest.fail("pinned: the bundle has no Granby section above Burrell Creek walked by Kettle's tributaries")
     return got[0]
 
 
+@pytest.mark.needs_bundle
 def test_q5_the_kettle_walk_still_reaches_granby(db):
     """No exclusion (user): Granby River's sections carry Kettle River's tributaries' rules."""
     assert _sections(db, "gnis:18775", KETTLE_T, "kettle_river_s_tributaries.r1", "trib")
 
 
+@pytest.mark.needs_bundle
 def test_q5_own_row_beats_the_inherited_release(db):
     """Upper Granby, Jun 20, rainbow: its own 'trout/char daily quota = 1' speaks; the inherited
     'Rainbow trout catch and release' (naming the fish) is displaced by the own row. MUTATION:
@@ -208,6 +210,7 @@ def test_q5_own_row_beats_the_inherited_release(db):
         R.OWN_ROW_BEATS_INHERITED = old
 
 
+@pytest.mark.needs_bundle
 def test_q5_an_inherited_closure_still_closes(db):
     """Aug 1 (inside 'No Fishing Jul 25-Sept 15' of Kettle River's tributaries): the inherited
     closure speaks and the own quota is silent — an own row never out-ranks a closure."""
@@ -220,6 +223,7 @@ def test_q5_an_inherited_closure_still_closes(db):
 # ---------------------------------------------------------------------------------------------
 # C-5 — the own row's dated bait ban REPLACES the inherited all-year ban (as it does a zone's, L8)
 # ---------------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_c5_granbys_dated_bait_ban_replaces_the_inherited_all_year_ban(db):
     """Upper Granby (own 'bait ban Apr 1-Oct 31'; Kettle River's tributaries' all-year 'bait ban'
     by the walk). Nov 15: no bait ban — the inherited one is displaced by the own row, and the
@@ -245,6 +249,7 @@ def test_c5_granbys_dated_bait_ban_replaces_the_inherited_all_year_ban(db):
         R.OWN_ROW_REPLACES_INHERITED = old
 
 
+@pytest.mark.needs_bundle
 def test_c5_an_inherited_closure_is_not_replaced_by_the_own_row(db):
     """The step never touches a closure (L20: closures combine): Kettle River's tributaries'
     'No Fishing Jul 25-Sept 15' still closes upper Granby on Aug 1 with the step on."""

@@ -106,6 +106,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import GENERATED
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 HG_MUS = {"6-12", "6-13"}
 HG_QUOTA = {"z1:hg_quota"}
@@ -121,12 +122,11 @@ R1_BAIT, HG_BAIT = "z1:bait_ban_streams", "z1:hg_bait_ban_streams"
 def _region1_waters():
     # `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
     bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-    if not bundle.exists():
-        pytest.skip("no bundle built")
+    need(None, "bundle", bundle, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
                       "AND name='ruleset'").fetchone():
-        pytest.skip("bundle predates the ruleset tables")
+        predates(f"{bundle} predates the ruleset tables")
     got: dict[str, set[str]] = collections.defaultdict(set)
     names, kinds = {}, {}
     for iid, name, kind, eid in db.execute(
@@ -143,6 +143,7 @@ def _region1_waters():
     return got, names, kinds, mus
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_haida_gwaii_takes_its_own_quotas_and_not_region_1s():
     """The defect, stated as the corpus: on Haida Gwaii the book prints one quota table and
@@ -157,6 +158,7 @@ def test_haida_gwaii_takes_its_own_quotas_and_not_region_1s():
     assert not missing, f"Haida Gwaii waters with no Haida Gwaii quota table: {missing}"
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_island_keeps_region_1s_quotas_and_never_haida_gwaiis():
     """The other half: an exclusion that over-reaches is as wrong as one that under-reaches."""
@@ -169,6 +171,7 @@ def test_the_island_keeps_region_1s_quotas_and_never_haida_gwaiis():
     assert not lost, f"Region 1 waters that lost the region's quotas: {lost}"
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_rules_written_for_both_reach_both():
     """The barbless-hook rule is written for every stream of Region 1 AND Haida Gwaii.
@@ -182,6 +185,7 @@ def test_the_rules_written_for_both_reach_both():
             f"{sorted(BOTH - got[iid])}")
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_each_side_of_the_strait_gets_its_own_bait_ban_and_only_that():
     """Region 1's stream bait ban excludes Haida Gwaii (settled 2026-09-24): a Haida Gwaii stream

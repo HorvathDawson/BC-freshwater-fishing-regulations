@@ -35,6 +35,7 @@ from pipeline.common.curated import GENERATED
 from pipeline.deliver import calendar as CAL
 from pipeline.deliver import status_index as SI
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 
@@ -131,9 +132,8 @@ def test_a_closure_must_be_unconditional_and_speak():
 
 # --------------------------------------------------------------------------- slow: the shipped data
 @pytest.fixture(scope="module")
-def built():
-    if not Path(BUNDLE).exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+def built(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     given = os.environ.get("STATUS_INDEX")
     if given:
         return SI.Index(Path(given).read_bytes())
@@ -189,6 +189,7 @@ def _mismatches(ix: SI.Index, pairs) -> list:
             if ix.code(sid, on) != (want := SI.status_by_reader(sid, on, BUNDLE))]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_index_agrees_with_effective_rules_on_6000_section_days(built):
     pairs = _pairs(built)
@@ -201,6 +202,7 @@ def test_the_index_agrees_with_effective_rules_on_6000_section_days(built):
     assert {SI.BASE, SI.OWN, SI.CLOSED, SI.TIDAL, SI.OUTSIDE} <= seen
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_an_absent_section_is_truly_base(built):
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
@@ -226,6 +228,7 @@ def test_an_absent_section_is_truly_base(built):
         assert SI.status_by_reader(sid, (12, 31), BUNDLE) == SI.BASE
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_vintage_is_the_bundles_and_the_tiles(built):
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
@@ -239,6 +242,7 @@ def test_the_vintage_is_the_bundles_and_the_tiles(built):
         assert json.loads(sidecar.read_text())["section_handles"] == built.handles
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_parity_check_catches_a_swapped_profile(built):
     """Mutation: the check above is not one that cannot fail."""
@@ -254,6 +258,7 @@ def test_the_parity_check_catches_a_swapped_profile(built):
         built.sections[sid] = pi
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_parity_check_catches_one_flipped_stored_verdict(built, tmp_path):
     """Mutation (DATAFLOW G1): the index is a projection of the verdicts, so a stored verdict

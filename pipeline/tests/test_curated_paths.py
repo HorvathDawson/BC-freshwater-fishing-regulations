@@ -17,6 +17,7 @@ import pytest
 from pydantic import ValidationError
 
 from pipeline.common import curated as C
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 
 @pytest.fixture(scope="module")
@@ -166,14 +167,14 @@ class TestGeneratedTree:
         with pytest.raises(FileNotFoundError, match="pipeline.atlas.build"):
             gen.require_build("a-build-that-was-never-made")
 
+    @pytest.mark.needs_atlas
     def test_default_registry_path_points_at_a_real_build(self):
         # It used to return `output/pipeline/graph/registry.json` — a directory that never
         # existed — and was the declared default of seven parser tools.
         from pipeline.atlas.registry import default_registry_path
-        try:
-            p = default_registry_path()
-        except FileNotFoundError:
-            pytest.skip("no full build present")
+        from pipeline.common.curated import GENERATED
+        need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+        p = default_registry_path()
         assert p.name == "registry.json" and p.parent.is_dir()
 
 

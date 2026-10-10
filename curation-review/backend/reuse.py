@@ -1686,7 +1686,7 @@ def save_entry(region: str, entry_dict: dict) -> dict:
         return {"ok": False, "errors": res["errors"]}
     entry, _ = model_api.check(model_api.strip_served(entry_dict))
     path = ENTRIES_DIR / f"region-{region}.json"
-    existing: dict[str, object] = dict(io.read_entryfile(path))
+    existing: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))
     existing[entry.entry_id] = entry
     try:
         io.write_entryfile(path, region, existing.values())

@@ -22,6 +22,7 @@ import sqlite3
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 UPPER = "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35"
@@ -53,9 +54,8 @@ def test_the_lower_west_arm_kokanee_cap_holds_on_its_harvest_days():
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not os.path.isfile(BUNDLE):
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -71,6 +71,7 @@ def _kootenay_sections(db) -> dict[int, float]:
     return out
 
 
+@pytest.mark.needs_bundle
 def test_the_upper_row_binds_nothing_below_koocanusa(db):
     """No section of the Kootenay River below the Koocanusa cut (the Creston reach, Kootenay Lake's
     outflow, below Corra Linn) carries the upper row's bait ban or winter catch and release; every
@@ -95,11 +96,12 @@ def test_the_upper_row_binds_nothing_below_koocanusa(db):
                                                 (s,)).fetchone())
 
 
+@pytest.mark.needs_bundle
 def test_lower_west_arm_kokanee_5_never_speaks_as_an_all_week_quota(db):
     sid = db.execute("SELECT MIN(s.sid) FROM item i JOIN item_section s ON s.ord = i.ord "
                      "WHERE i.item_id = 'wbk:-22'").fetchone()[0]
     if sid is None:
-        pytest.skip("no Lower West Arm in this bundle")
+        pytest.fail("pinned water wbk:-22 (Lower West Arm) is not in this bundle")
     for day in ((4, 2), (7, 15), (11, 20)):
         got = {R.rid(x): x["state"] for x in R.effective_rules(sid, day, "KO", BUNDLE)}
         assert got.get(f"{LOWER_ARM}::kootenay_lake_lower_west_arm.r5") == "beside", got
@@ -153,6 +155,7 @@ def _entry_rules_on(db, sid, entry):
         "WHERE sr.sid = ? AND r.entry_id = ?", (sid, entry))}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("item, entry, lake", [
     ("gnis:22702", PAUL, "wbk:329320869"),          # Paul Lake
     ("gnis:15333", HARRISON, "wbk:329177884"),      # Harrison Lake
@@ -173,6 +176,7 @@ def test_a_row_downstream_of_a_lake_binds_nothing_above_it(db, item, entry, lake
     assert all(len(_entry_rules_on(db, s, entry)) == 3 for s in below)
 
 
+@pytest.mark.needs_bundle
 def test_the_fraser_row_binds_nothing_below_mission(db):
     """The Fraser's mainstem below the CPR Bridge at Mission (walked down from the split by
     measure) carries none of the row's r1 (dead fin fish for sturgeon), r5 (no fishing for

@@ -23,14 +23,17 @@ from pipeline.regs.dfo_salmon.parse import (
 )
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.regs.dfo_salmon.typed import decode
+from pipeline.tests.conftest import need, ATLAS_HINT, DFO_CACHE_HINT
+
+#: the scraped DFO feed (data/generated/regs/dfo_salmon/{rules,typed}) — fetched, not in git
+DFO_FEED_HINT = "python -m pipeline.regs.dfo_salmon.fetch && python -m pipeline.regs.dfo_salmon.feed"
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dfo_salmon"
 
 
 def _load(region) -> str:
     p = FIXTURES / f"region{region}-eng.html"
-    if not p.exists():
-        pytest.skip(f"fixture missing: {p}")
+    assert p.exists(), f"tracked fixture missing: {p}"
     return p.read_text(encoding="utf-8")
 
 
@@ -465,8 +468,7 @@ HISTORY_CACHE = Path("cache/dfo_salmon/history")
 
 def _load_historical(stem: str) -> str:
     p = FIXTURES / f"{stem}.html"
-    if not p.exists():
-        pytest.skip(f"fixture missing: {p}")
+    assert p.exists(), f"tracked fixture missing: {p}"
     return p.read_text(encoding="utf-8", errors="replace")
 
 
@@ -535,13 +537,14 @@ def test_region_baseline_is_stable_across_the_decade():
 
 
 @pytest.mark.slow
+@pytest.mark.needs_cache
 def test_every_cached_historical_snapshot_parses():
     """Opportunistic sweep of the full history cache when one has been built."""
     from pipeline.regs.dfo_salmon.untangle import untangle, verify
 
-    files = sorted(HISTORY_CACHE.glob("region*_*.html")) if HISTORY_CACHE.exists() else []
-    if len(files) < 2:
-        pytest.skip("no history cache; run pipeline.regs.dfo_salmon.churn to build one")
+    need(None, "cache", HISTORY_CACHE, DFO_CACHE_HINT)
+    files = sorted(HISTORY_CACHE.glob("region*_*.html"))
+    assert len(files) >= 2, f"{HISTORY_CACHE} holds {len(files)} snapshot(s) — {DFO_CACHE_HINT}"
     for f in files:
         slug = f.name.split("_")[0].replace("region", "")
         parsed = parse_region(f.read_text(encoding="utf-8", errors="replace"), slug)
@@ -1084,15 +1087,14 @@ def test_a_cell_spanning_the_rule_columns_is_a_note_not_a_rule():
     assert not any(w.name == "Tlell River" for w in untangle(parsed).waters)
 
 
+@pytest.mark.needs_cache
 def test_unmarked_continuation_rows_are_right_aligned():
     """The 2025-03 Region 5a page gives Quesnel Lake all five columns but no
     `rowspan`, so the Chinook and Coho rows below carry only (species, dates, limits).
     Left-aligned, "Chinook" becomes a waterbody."""
     from pipeline.regs.dfo_salmon.untangle import untangle
 
-    hist = HISTORY_CACHE / "region5a_20250320090549.html"
-    if not hist.exists():
-        pytest.skip("history cache not built")
+    hist = need(None, "cache", HISTORY_CACHE / "region5a_20250320090549.html", DFO_CACHE_HINT)
     u = untangle(parse_region(hist.read_text(encoding="utf-8", errors="replace"), "5a"))
     names = {w.name for w in u.waters}
     assert names == {"Quesnel Lake", "Quesnel River"}
@@ -1429,6 +1431,7 @@ def test_the_ladder_is_ordered_most_faithful_first():
 
 
 @pytest.mark.slow
+@pytest.mark.needs_atlas
 def test_match_report_against_the_real_registry():
     """Needs data/generated/atlas/full/registry.json. Guards the two failure modes that matter:
     an ambiguous name must never be 'resolved' by a less faithful rung, and a fuzzy
@@ -1436,8 +1439,7 @@ def test_match_report_against_the_real_registry():
     from pipeline.regs.dfo_salmon.entries import load
     from pipeline.regs.dfo_salmon.match import REGISTRY, propose
 
-    if not REGISTRY.exists():
-        pytest.skip("registry not built")
+    need(None, "atlas", REGISTRY, ATLAS_HINT)
     from pipeline.regs.matching.matcher import build_id_index, build_name_index, load_overrides
     from pipeline.atlas.registry.io import load_registry
 
@@ -1904,6 +1906,7 @@ def test_no_override_uses_skip_any_more():
         "variant_of should have been resolved to direct ids"
 
 
+@pytest.mark.needs_atlas
 def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     """`not_found` is a PLACEHOLDER, so it must block matching. The name usually does
     resolve — just to the wrong water: "REDFERN LAKE" in MU 5-15 finds the MU 7-42
@@ -1913,7 +1916,7 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry(GENERATED.build() / "registry.json")
+    reg = load_registry(need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT))
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
 
@@ -1924,13 +1927,14 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     assert r.item_id is None
 
 
+@pytest.mark.needs_atlas
 def test_a_renamed_water_links_instead_of_being_refused():
     from pipeline.regs.matching.matcher import (build_id_index, build_name_index,
                                            build_override_index, load_overrides, match_row)
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry(GENERATED.build() / "registry.json")
+    reg = load_registry(need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT))
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
     for name, region, item in [("ISHKHEENICKH RIVER", "REGION 6", "gnis:4069"),
@@ -2202,13 +2206,14 @@ def test_to_be_determined_is_a_state_not_a_parse_failure():
     assert "determined" in rule.review_reason
 
 
+@pytest.mark.needs_source
 def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
     """All 438 rows convert, and every rule's verbatim is a span of its own row — the check
     that caught an invented sub-limit on the synopsis corpus's first sample."""
     from pipeline.regs.dfo_salmon.typed import row_text, to_rules
     from pipeline.regs.parsing.catalogue import squash
 
-    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    rules_dir = need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     rows = made = 0
     for path in sorted(rules_dir.glob("region-*.json")):
         for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):
@@ -2223,11 +2228,12 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
     assert made > rows, "a bundled row states more than one rule"
 
 
+@pytest.mark.needs_source
 def test_the_feed_revalidates_from_disk():
     """What is on disk is what the catalogue model accepts — not merely what we wrote."""
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
-    feed_dir = Path(GENERATED.regs.dfo_salmon) / "typed"
+    feed_dir = need(None, "source", Path(GENERATED.regs.dfo_salmon) / "typed", DFO_FEED_HINT)
     total = 0
     for path in sorted(feed_dir.glob("region-*.json")):
         for loc in json.loads(path.read_text(encoding="utf-8"))["locators"]:
@@ -2237,6 +2243,7 @@ def test_the_feed_revalidates_from_disk():
     assert total == 517, f"expected the 517 typed rules on disk, got {total}"
 
 
+@pytest.mark.needs_source
 def test_the_feed_takes_no_curated_input():
     """Rules are a feed and locators are curated: they meet at read time, never in one file.
     A feed that read curated state could not be rebuilt without it — and, worse, a scheduled
@@ -2247,17 +2254,19 @@ def test_the_feed_takes_no_curated_input():
     assert "CURATED" not in body, "the feed must not read curated data to be written"
 
     from pipeline.regs.dfo_salmon.feed import build
-    scraped = json.loads((Path(GENERATED.regs.dfo_salmon) / "rules" / "region-1.json")
-                         .read_text(encoding="utf-8"))
+    scraped = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules" / "region-1.json",
+                              DFO_FEED_HINT).read_text(encoding="utf-8"))
     assert build(scraped)["locators"], "the feed builds from the scrape alone"
 
 
+@pytest.mark.needs_source
 def test_no_scraped_rule_lands_on_a_locator_nobody_curated():
     """The join. Every fingerprint the page publishes must resolve to a curated record, or the
     rules on it reach no geometry and vanish — the DFO twin of the 137 provincial rules that
     bound nowhere."""
     from pipeline.regs.dfo_salmon.feed import resolve
 
+    need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     for slug in ("1", "6"):
         rep = resolve(slug)
         assert not rep["unbound"], \
@@ -2344,16 +2353,18 @@ def test_a_row_that_states_a_size_always_binds_it():
     assert not missed, f"a size the decode cannot read: {missed}"
 
 
+@pytest.mark.needs_source
 def test_the_feed_is_deterministic():
     """A scheduled run rebuilds this every time. If the same page produced a different feed, every
     run would look like a change and the review queue would be noise."""
     from pipeline.regs.dfo_salmon.feed import build
 
-    scraped = json.loads((Path(GENERATED.regs.dfo_salmon) / "rules" / "region-6.json")
-                         .read_text(encoding="utf-8"))
+    scraped = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules" / "region-6.json",
+                              DFO_FEED_HINT).read_text(encoding="utf-8"))
     assert json.dumps(build(scraped), sort_keys=True) == json.dumps(build(scraped), sort_keys=True)
 
 
+@pytest.mark.needs_source
 def test_the_skeena_cascade_resolves_through_the_join():
     """**The case the whole split has to survive.** Region 6 is the only cascade: eight lettered
     bands where a broad default is progressively narrowed, and read flat it says the opposite of
@@ -2368,8 +2379,8 @@ def test_the_skeena_cascade_resolves_through_the_join():
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
     ef = E.load("6")
-    feed = json.loads((Path(GENERATED.regs.dfo_salmon) / "typed" / "region-6.json")
-                      .read_text(encoding="utf-8"))
+    feed = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "typed" / "region-6.json",
+                           DFO_FEED_HINT).read_text(encoding="utf-8"))
     by_fp = {l["fingerprint"]: l for l in feed["locators"]}
 
     def rules_for(loc):
@@ -2399,6 +2410,7 @@ def test_the_skeena_cascade_resolves_through_the_join():
     assert water.precedence > band.precedence > region.precedence
 
 
+@pytest.mark.needs_cache
 def test_every_archived_wording_is_still_a_known_locator():
     """**A locator is never lost.** These pages list openings, so a reach leaves when its fishery
     closes and returns later — the Kispiox River Resort reach has cycled out and back four times.
@@ -2414,9 +2426,8 @@ def test_every_archived_wording_is_still_a_known_locator():
     from pipeline.regs.dfo_salmon.parse import parse_region
     from pipeline.regs.dfo_salmon.untangle import untangle
 
-    hist = sorted(Path("cache/dfo_salmon/history").glob("*.html"))
-    if not hist:
-        pytest.skip("no history cache on this machine")
+    hist = sorted(need(None, "cache", HISTORY_CACHE, DFO_CACHE_HINT).glob("*.html"))
+    assert hist, f"{HISTORY_CACHE} holds no snapshots — {DFO_CACHE_HINT}"
 
     unknown, checked = [], 0
     for path in hist:
@@ -2437,6 +2448,7 @@ def test_every_archived_wording_is_still_a_known_locator():
         f"NEW locator needing rebinding: {unknown[:5]}")
 
 
+@pytest.mark.needs_cache
 def test_no_water_name_in_the_archives_is_unknown():
     """The same guarantee at the name level: a water DFO published under an older name must still
     resolve, or its rules land on a locator nobody has bound."""
@@ -2445,9 +2457,8 @@ def test_no_water_name_in_the_archives_is_unknown():
     from pipeline.regs.dfo_salmon.parse import parse_region
     from pipeline.regs.dfo_salmon.untangle import untangle
 
-    hist = sorted(Path("cache/dfo_salmon/history").glob("*.html"))
-    if not hist:
-        pytest.skip("no history cache on this machine")
+    hist = sorted(need(None, "cache", HISTORY_CACHE, DFO_CACHE_HINT).glob("*.html"))
+    assert hist, f"{HISTORY_CACHE} holds no snapshots — {DFO_CACHE_HINT}"
 
     missing = []
     for path in hist:
@@ -2493,6 +2504,7 @@ def test_bind_whole_never_binds_a_locator_that_names_a_place():
         assert not again, f"region {slug}: bind_whole is not idempotent, rewrote {again}"
 
 
+@pytest.mark.needs_atlas
 def test_the_queue_hides_no_unbound_locator():
     """A parsed op may SORT a locator; it may never remove one. The old `SKIP_OPS` filter dropped
     123 unbound locators carrying 253 rules before a human ever saw them, including every scope the
@@ -2501,6 +2513,7 @@ def test_the_queue_hides_no_unbound_locator():
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
     from pipeline.regs.dfo_salmon.splitwork import _registry, waters
 
+    need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     queued = {r["loc"] for w in waters(_registry()) for r in w["locators"]}
     missing = []
     for slug in [s for s in ALL_SLUGS if not PAGES[s].is_stub]:
@@ -2515,6 +2528,7 @@ def test_the_queue_hides_no_unbound_locator():
     assert not missing, f"unbound locators the queue never shows: {missing[:5]}"
 
 
+@pytest.mark.needs_atlas
 def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     """**The walk passes lakes; it does not collect them** (user ruling 2026-09-24).
 
@@ -2534,9 +2548,7 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     from pipeline.atlas.reach.build import build_reach
     from pipeline.regs.dfo_salmon.splitwork import _registry
 
-    graph_path = Path(GENERATED.build()) / "graph.pkl"
-    if not graph_path.exists():
-        pytest.skip("no built atlas on this machine")
+    graph_path = need(None, "atlas", Path(GENERATED.build()) / "graph.pkl", ATLAS_HINT)
     reg = _registry()
     g = read_artifact(graph_path)
 
@@ -2578,6 +2590,7 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
 
 
 @pytest.mark.slow
+@pytest.mark.needs_atlas
 def test_the_region_6_cascade_tiles_its_region():
     """**The completeness check for the whole cascade.**
 
@@ -2604,8 +2617,7 @@ def test_the_region_6_cascade_tiles_its_region():
     from pipeline.regs.dfo_salmon import entries as E
 
     build = Path(GENERATED.build())
-    if not (build / "graph.pkl").exists():
-        pytest.skip("no built atlas on this machine")
+    need(None, "atlas", build / "graph.pkl", ATLAS_HINT)
     reg = load_registry(build / "registry.json")
     g = read_artifact(build / "graph.pkl")
 

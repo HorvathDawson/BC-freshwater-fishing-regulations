@@ -30,6 +30,15 @@ igraph
 attrs
 orjson
 
+# Models and validation (pipeline.common.curated, catalogue, answers model)
+pydantic>=2
+
+# PDF page rendering (synopsis row images, curation-review)
+pypdfium2
+
+# Vector tiles (pipeline.deliver.tiles)
+mapbox-vector-tile
+
 # Configuration
 pyyaml
 python-dotenv
@@ -38,6 +47,13 @@ python-dotenv
 boto3
 
 # AI/LLM API
+
+# HTTP (feeds, gauges)
+requests
+
+# Curation-review API (pipeline/tests/test_curation_review_api.py; TestClient needs httpx)
+fastapi
+httpx
 
 # HTTP (browser-impersonating client for in-season scraper)
 curl_cffi

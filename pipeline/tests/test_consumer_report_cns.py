@@ -27,6 +27,7 @@ from pipeline.deliver.bundle.place_names import _between, cut_name
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.io import read_all_entries
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
@@ -42,18 +43,16 @@ def corpus() -> dict:
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     c = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield c
     c.close()
 
 
 @pytest.fixture(scope="module")
-def doc():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+def doc(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
@@ -79,12 +78,14 @@ def test_the_shuswap_annual_quota_is_one_statement(corpus, row, zone):
     assert "EB" not in C.expand_species(list(w.species))
 
 
+@pytest.mark.needs_bundle
 def test_the_shuswap_char_record_duty_still_links(doc):
     R_ = doc["rules"]
     for q in (f"{SHUSWAP}::shuswap_lake.r10", "z3:shuswap_annual::shuswap_annual.r2"):
         assert R_[q]["recorded_by"] == "zp:shuswap_char_stamp::shuswap_char_stamp.r1", q
 
 
+@pytest.mark.needs_bundle
 def test_one_annual_char_quota_speaks_at_shuswap(db):
     """For a lake trout at Shuswap Lake the annual 5 is said once: the row's displaces the zone's."""
     sid = db.execute("SELECT s.sid FROM item i JOIN item_section s ON s.ord = i.ord "
@@ -150,6 +151,7 @@ def test_mutation_a_protected_list_must_be_the_rows_own():
             species=["NOOKSACK_DACE", "SALISH_SUCKER", "RB"]))
 
 
+@pytest.mark.needs_bundle
 def test_the_export_lists_the_protected_fish(doc):
     assert set(doc["species"]["protected"]) == set(C.PROTECTED_FISH)
     assert X.protected_problems(doc) == []
@@ -191,6 +193,7 @@ def test_mutation_a_new_record_duty_reaches_the_paper_licence(corpus):
     assert [w for w, _ in got] == ["adult chinook", "burbot"]
 
 
+@pytest.mark.needs_bundle
 def test_the_export_paper_licence_names_every_record_rule(doc):
     assert X.paper_licence_problems(doc) == []
     x = doc["licensing"]["zp:licence_administration#carry_paper_licence"]
@@ -204,6 +207,7 @@ def test_the_export_paper_licence_names_every_record_rule(doc):
 # ---------------------------------------------------------------------------------------------
 # 4. Bait
 # ---------------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_guide_says_what_a_bait_ban_covers(doc):
     b = doc["guide"]["gear"]["bait"]
     assert "worms" in b["book"]["bait"]["text"] and b["book"]["bait"]["page"] == 8
@@ -244,6 +248,7 @@ def test_mutation_a_class_must_be_sold_to_whom_it_prices(bad, why):
                                        "verbatim": "T $1", **bad})
 
 
+@pytest.mark.needs_bundle
 def test_the_export_lists_the_classes(doc):
     c = doc["guide"]["licensing"]["classes"]
     assert len(c["classes"]) == 16 and "change" in c["fees"]
@@ -258,6 +263,7 @@ def _sid(db, item):
                       "WHERE i.item_id = ? LIMIT 1", (item,)).fetchone()[0]
 
 
+@pytest.mark.needs_bundle
 def test_the_permit_is_a_part_of_kootenay_lake_and_whole_on_duck_lake(db):
     main = R.requirements_in_force(db, _sid(db, KOOTENAY_MAIN), (7, 1))
     assert PERMIT not in main["holds"] and PERMIT_PART not in main["holds"]
@@ -274,6 +280,7 @@ def test_mutation_an_undrawn_part_needs_a_water():
                                       "verbatim": "a permit is required"})
 
 
+@pytest.mark.needs_bundle
 def test_the_export_marks_the_permit_part(doc):
     x = doc["licensing"][PERMIT_PART]
     assert x["not_yet_mapped"]["part"].startswith("only the south end")
@@ -301,6 +308,7 @@ def test_two_things_at_one_place_say_the_place_once():
                               "Hatchery outfall")
 
 
+@pytest.mark.needs_bundle
 def test_no_split_name_is_two_parts(db):
     names = dict(db.execute("SELECT split_id, name FROM split"))
     # a "<place> — <marker>" label is said "<marker> at <place>"; only a lake part's own name

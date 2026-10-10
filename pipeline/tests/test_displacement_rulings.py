@@ -25,6 +25,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny
+from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 
@@ -199,12 +200,11 @@ def test_a_water_row_with_no_dates_leaves_the_stream_release(tmp_path):
 
 # ------------------------------------------------------------------------ on the built bundle
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if not con.execute("select count(*) from rule where rule_id = 'fulton_river.r1b'").fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the 2026-09-29 corpus — point UI_EXPORT_BUNDLE at it")
+        predates(f"{BUNDLE} predates the 2026-09-29 corpus — point UI_EXPORT_BUNDLE at it")
     yield con
     con.close()
 
@@ -222,6 +222,7 @@ def _says(sid, on, fish) -> set:
             if x["state"] == "speaks" and x["type"] == "retention_limit"}
 
 
+@pytest.mark.needs_bundle
 def test_lakelse_and_chilko_keep_their_quotas_for_rainbow(db):
     lk = "r6:lakelse_lake@6-11"
     got = _says(_sid(db, lk, "lakelse_lake.r1"), (7, 15), "RB")
@@ -231,6 +232,7 @@ def test_lakelse_and_chilko_keep_their_quotas_for_rainbow(db):
     assert {f"{ck}::chilko_lake.r1", f"{ck}::chilko_lake.r2"} <= got
 
 
+@pytest.mark.needs_bundle
 def test_duck_lake_answers_to_its_own_row_not_the_cvwmas(db):
     duck = "r4:duck_lake_permit_required_see_note_on_page_34@4-6"
     cv = "r4:creston_valley_wildlife_management_area_cvwma_waters@4-6"
@@ -242,6 +244,7 @@ def test_duck_lake_answers_to_its_own_row_not_the_cvwmas(db):
     assert not any(x.startswith(cv) for x in _says(sid, (7, 15), "LMB") | _says(sid, (7, 15), "YP"))
 
 
+@pytest.mark.needs_bundle
 def test_cheslatta_keeps_region_6s_quotas_on_nov_1_to_30(db):
     ch = "r6:cheslatta_lake@6-4"
     got = _says(_sid(db, ch, "cheslatta_lake.r2"), (11, 15), "LT")
@@ -250,6 +253,7 @@ def test_cheslatta_keeps_region_6s_quotas_on_nov_1_to_30(db):
     assert q + "r8" not in got
 
 
+@pytest.mark.needs_bundle
 def test_michel_creeks_own_dated_release_replaces_region_4s_stream_release(db):
     mc = "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23"
     got = _says(_sid(db, mc, "michel_creek_upper.r2"), (1, 15), "RB")
@@ -257,6 +261,7 @@ def test_michel_creeks_own_dated_release_replaces_region_4s_stream_release(db):
     assert "z4:trout_char_winter_release::trout_char_winter_release.r1" not in got
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,on", [
     ("r5:chilcotin_river@5-12+5-13+5-14", "chilcotin_river.r2x", (6, 20)),
     ("r5:chilko_river@5-5", "chilko_river.r1x", (6, 20)),
@@ -273,6 +278,7 @@ def test_region_5_listed_streams_are_out_of_the_spring_closure(db, eid, rid, on)
     assert "z5:spring_stream_closure::spring_stream_closure.r1" not in _says(sid, on, "RB")
 
 
+@pytest.mark.needs_bundle
 def test_fulton_river_is_open_june_16_to_april_30(db):
     """p.51 "Open June 16-Apr 30 each year" lifts the Skeena winter closure (N-3); the row's own
     May 1-June 15 closure still closes it."""
@@ -283,6 +289,7 @@ def test_fulton_river_is_open_june_16_to_april_30(db):
     assert f"{f}::fulton_river.r1" in _says(sid, (6, 1), "RB")
 
 
+@pytest.mark.needs_bundle
 def test_thompson_rivers_additional_opening_in_may(db):
     """p.32 "Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge
     upstream of Bonaparte River, May 1-31" (LS-6): the row's Oct 1-May 31 closure and Region 3's
@@ -295,6 +302,7 @@ def test_thompson_rivers_additional_opening_in_may(db):
     assert f"{t}::thompson_river_downstream_of_kamloops_lake.r3" in got
 
 
+@pytest.mark.needs_bundle
 def test_bella_coolas_spring_exception_replaces_the_rivers_quota(db):
     """p.43: "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and
     release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31
@@ -310,7 +318,7 @@ def test_bella_coolas_spring_exception_replaces_the_rivers_quota(db):
 @pytest.fixture(scope="module")
 def db18(db):
     if not db.execute("select count(*) from rule where rule_id = 'nicola_river.r3x'").fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the 2026-09-30 rulings (Nahatlatch, Beaver Creek)")
+        predates(f"{BUNDLE} predates the 2026-09-30 rulings (Nahatlatch, Beaver Creek)")
     return db
 
 
@@ -319,6 +327,7 @@ Z3_SPRING = "z3:spring_stream_closure::spring_stream_closure.r1"
 Z5_SPRING = "z5:spring_stream_closure::spring_stream_closure.r1"
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("on,closed_by", [
     ((6, 15), {Z3_SPRING}),                                         # closed to June 30
     ((5, 15), {Z3_SPRING, f"{NAHATLATCH}::nahatlatch_river.r2"}),   # both
@@ -343,6 +352,7 @@ def test_nahatlatch_below_the_lake_is_closed_to_june_30(db18, on, closed_by):
         assert f"{NAHATLATCH}::nahatlatch_river.r3" in got
 
 
+@pytest.mark.needs_bundle
 def test_beaver_creek_is_under_region_5s_spring_closure(db18):
     """BEAVER CREEK chain of lakes (p.43) is about the lakes ("No Fishing for bass"); the creek is
     not a listed stream, so Region 5's spring closure holds on it (user ruling 2026-09-30).
@@ -353,6 +363,7 @@ def test_beaver_creek_is_under_region_5s_spring_closure(db18):
     assert Z5_SPRING in _says(_sid(db18, b, "beaver_creek_chain_of_lakes.r1"), (6, 15), "RB")
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid", [
     ("r5:beaver_lake@5-2", "beaver_lake.r1"), ("r5:chambers_lake@5-2", "chambers_lake.r1"),
     ("r5:robert_lake@5-2", "robert_lake.r1"), ("r5:rye_lake@5-2", "rye_lake.r1"),
@@ -362,6 +373,7 @@ def test_the_beaver_creek_chain_lakes_keep_their_bass_closure(db18, eid, rid):
     assert f"{eid}::{rid}" in got
 
 
+@pytest.mark.needs_bundle
 def test_daily_and_possession_rows_carry_both(db):
     """N-8: "daily and possession quotas = N" is two rules."""
     for eid, rid in [("r6:murray_lake@6-4", "murray_lake.r2p"),
@@ -373,6 +385,7 @@ def test_daily_and_possession_rows_carry_both(db):
         assert got and got[0].startswith("possession"), (eid, rid)
 
 
+@pytest.mark.needs_bundle
 def test_kitimat_no_longer_restates_the_provincial_quota(db):
     k = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
     assert not db.execute("select 1 from rule where entry_id = ? and rule_id = 'kitimat_river.r6'",
@@ -381,6 +394,7 @@ def test_kitimat_no_longer_restates_the_provincial_quota(db):
     assert any("zp:steelhead" in (s.get("entry_ids") or []) for s in see)
 
 
+@pytest.mark.needs_bundle
 def test_lower_coal_creek_is_not_classified(db):
     """The Elk River's tributary designations reach lower Coal Creek only by the walk; Coal
     Creek's own row says 'Part described is NOT a Classified Water'. MUTATION: removing
@@ -410,6 +424,7 @@ def test_a_waters_own_not_classified_beats_a_walked_designation():
     assert got == {"a": {nc}, "b": {walked}, "c": {nc, named}}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,off,on", [
     ("r1:somass_river@1-7", "somass_river.r2", (1, 15), (7, 1)),
     ("r1:sproat_river@1-7", "sproat_river.r2", (1, 15), (7, 1)),

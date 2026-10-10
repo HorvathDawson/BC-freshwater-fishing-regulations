@@ -6,10 +6,9 @@ mainstem stays one node across a confluence; lakes become their own node and spl
 WSC-descendant edge filter (S1) and the EDGE_TYPE=2300 barrier (S2), both applied at build time.
 
 The two real-data regression cases (Chehalis/Harrison, Kootenay/Columbia) build a small extract
-from the gpkg and assert the leaks are stopped; they skip when the data file is absent.
+from the gpkg and assert the leaks are stopped; they carry `needs_source` and FAIL without it.
 """
 
-import os
 
 import pytest
 from shapely.geometry import LineString
@@ -18,9 +17,17 @@ from pipeline.atlas.graph import cutting
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.atlas.graph.graph import ancestors, build_stream_graph
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
-_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
+_needs_data = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """A test marked `needs_source` FAILS without the gpkg, naming the command that fetches it."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", _DATA, GPKG_HINT)
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, gnis_name="", wbk="", edge_type="1000"):

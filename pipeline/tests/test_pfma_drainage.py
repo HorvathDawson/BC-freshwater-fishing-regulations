@@ -1,7 +1,7 @@
 """PFMA drainage (pipeline/atlas/splits/pfma_drainage.py) — against the real layers.
 
-Needs the fetched `pfma_areas` layer and the FWA `streams` layer, so most of these skip where
-those are absent rather than failing a clean checkout.
+Most need the fetched `pfma_areas` layer and the FWA `streams` layer: they carry `needs_source`
+(the no-data tier deselects them) and FAIL where those are absent.
 """
 
 import sqlite3
@@ -11,6 +11,7 @@ import pytest
 
 from project_config import get_config
 from pipeline.atlas.splits import pfma_drainage as pd_
+from pipeline.tests.conftest import need, GPKG_HINT, ATLAS_HINT
 
 
 def _has(layer: str) -> bool:
@@ -22,10 +23,18 @@ def _has(layer: str) -> bool:
         return False
 
 
-needs_layers = pytest.mark.skipif(
-    not (_has(pd_.LAYER) and _has("streams")),
-    reason=f"needs the {pd_.LAYER} and streams layers "
-           f"(fetch: python -m data.fetch_data --layers pfma_areas)")
+needs_layers = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_layers(request):
+    """A test marked `needs_source` FAILS without the layers, naming the command that fetches them."""
+    if request.node.get_closest_marker("needs_source"):
+        need(request, "source", get_config().fwa_data_gpkg, GPKG_HINT)
+        if not (_has(pd_.LAYER) and _has("streams")):
+            pytest.fail(f"missing source: the {pd_.LAYER} and streams layers in "
+                        f"{get_config().fwa_data_gpkg} — make it with: "
+                        f"python -m data.fetch_data --layers pfma_areas", pytrace=False)
 
 
 def test_basin_is_a_prefix_of_the_watershed_code():
@@ -155,6 +164,7 @@ def test_the_basin_count_is_in_range():
 
 
 @needs_layers
+@pytest.mark.needs_atlas
 def test_the_prefix_agrees_with_the_tributary_walk():
     """**The cross-validation the design rests on.** If a basin really is a prefix, the sections
     `build_reach` reaches by walking the Skeena's tributaries must all carry `400`. Measured:
@@ -166,9 +176,7 @@ def test_the_prefix_agrees_with_the_tributary_walk():
     from pipeline.atlas.reach.build import build_reach
     from pipeline.regs.dfo_salmon.splitwork import _registry
 
-    graph_path = Path(GENERATED.build()) / "graph.pkl"
-    if not graph_path.exists():
-        pytest.skip("no built atlas on this machine")
+    graph_path = need(None, "atlas", Path(GENERATED.build()) / "graph.pkl", ATLAS_HINT)
     reg, g = _registry(), read_artifact(graph_path)
 
     entry = {"entry_id": "t", "matched": [], "includes_tributaries": True}

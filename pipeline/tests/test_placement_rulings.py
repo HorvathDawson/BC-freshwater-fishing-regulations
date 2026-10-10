@@ -26,6 +26,7 @@ from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.enums import BoundaryKind
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.sections import SectionBoundary
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 S, L = NodeKind.stream, NodeKind.lake
 
@@ -279,14 +280,13 @@ def test_every_glyph_row_walks(corpus):
 
 # ================================================================ real data (slow)
 @pytest.fixture(scope="module")
-def real():
+def real(request):
     from pipeline.atlas.reach import position
     from pipeline.atlas.registry import load_registry
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    if not (b / "graph.pkl").exists():
-        pytest.skip("no built graph")
+    need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     g = read_artifact(str(b / "graph.pkl"))
     position.attach(g, b)
     return g, load_registry(str(b / "registry.json"))
@@ -308,6 +308,7 @@ def _bind_real(real, corpus, eid, rid, licensing=False):
     return set(b.sections), d
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_bulkley_closure_stays_out_of_the_morice(real, corpus):
     g, reg = real
@@ -317,6 +318,7 @@ def test_the_bulkley_closure_stays_out_of_the_morice(real, corpus):
     assert {g.nodes[s].display_name for s in got} >= {"Bulkley River"}
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_duncan_closure_stays_out_of_the_lardeau(real, corpus):
     g, reg = real
@@ -324,6 +326,7 @@ def test_the_duncan_closure_stays_out_of_the_lardeau(real, corpus):
     assert not got & set(reg["gnis:16359"].section_ids)
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_bannon_creek_has_no_row_so_it_takes_both_chemainus_closures(real, corpus):
     """User ruling 2026-09-30: a joining water with no row goes with the cut on BOTH sides."""
@@ -334,6 +337,7 @@ def test_bannon_creek_has_no_row_so_it_takes_both_chemainus_closures(real, corpu
         assert banon <= got, rid
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_limonite_creek_inherits_both_zymoetz_designations_and_the_iltasyuko_none(real, corpus):
     g, reg = real
@@ -346,6 +350,7 @@ def test_limonite_creek_inherits_both_zymoetz_designations_and_the_iltasyuko_non
     assert not got & set(reg["gnis:5467"].section_ids)
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_harris_creek_takes_hemmingsen_creek_in(real, corpus):
     g, reg = real
@@ -353,6 +358,7 @@ def test_harris_creek_takes_hemmingsen_creek_in(real, corpus):
     assert set(reg["gnis:20701"].section_ids) & got
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_skeena_river_2_is_the_mainstem_stretch(real, corpus):
     g, _ = real
@@ -362,6 +368,7 @@ def test_skeena_river_2_is_the_mainstem_stretch(real, corpus):
     assert 50_000 < main < 65_000
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_region_5_sturgeon_lakes_all_placed(real, corpus):
     from pipeline.atlas.registry.basins import node_basin_code
@@ -374,6 +381,7 @@ def test_region_5_sturgeon_lakes_all_placed(real, corpus):
     assert lakes and not lakes - r1 - r2 and not r1 & r2
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_kootenay_class_ii_stops_at_kootenay_national_park(real, corpus):
     g, reg = real

@@ -27,7 +27,7 @@ if str(_BACKEND) not in sys.path:
 
 from pipeline.atlas.reach import extent as resolve
 
-reuse = pytest.importorskip("reuse", reason="curation-review backend not importable")
+import reuse  # noqa: E402  — curation-review/backend is in-repo code (on sys.path above)
 
 MAIN = "100"          # the mainstem blue line
 CUT = 1000.0          # the one curated cut on it

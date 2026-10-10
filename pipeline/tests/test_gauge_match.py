@@ -131,9 +131,11 @@ class TestTheArtifact:
         got = json.loads(p.read_text())["stations"]
         assert [r["station"] for r in got] == ["08AA001", "08ZZ999"]
 
-    def test_missing_is_empty_rather_than_an_error(self, tmp_path):
-        # A checkout that has never run the matcher builds without gauge tables and says so.
-        assert M.read_match(tmp_path / "nope.json") == []
+    def test_missing_is_an_error(self, tmp_path):
+        # P2 (no missing-file fallbacks): read as empty, a missing file built a bundle with no
+        # gauge tables that looked healthy. It now stops, naming the command that makes it.
+        with pytest.raises(FileNotFoundError, match="pipeline.gauges.generate.match"):
+            M.read_match(tmp_path / "nope.json")
 
     def test_tolerates_fields_it_does_not_know(self, tmp_path):
         # The artifact is committed and read by two consumers; a new review field must not

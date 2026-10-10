@@ -93,3 +93,44 @@ def test_readers_return_none_rather_than_raising(tmp_path: Path):
     (tmp_path / "junk.sqlite").write_bytes(b"definitely not sqlite")
     assert bundle_vintage(tmp_path / "junk.sqlite") is None
     assert bundle_vintage(tmp_path / "absent.sqlite") is None
+
+
+def test_strict_refuses_an_unbuilt_artifact_and_a_pair_without_digests(tmp_path: Path):
+    """P2: the rebuild command's last stage has just built both, so "not checked" is a failure."""
+    tiles, bundle = tmp_path / "tiles", tmp_path / "bundle.sqlite"
+    tiles.mkdir()
+    assert report(tiles, bundle)[0] is True
+    assert report(tiles, bundle, strict=True)[0] is False
+    (tiles / "atlas.pmtiles").write_bytes(b"x")
+    sqlite3.connect(bundle).execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    assert report(tiles, bundle)[0] is True
+    assert report(tiles, bundle, strict=True)[0] is False
+
+
+def _pair(tmp_path: Path, tiles_meta: dict, bundle_meta: dict):
+    tiles, bundle = tmp_path / "tiles", tmp_path / "bundle.sqlite"
+    tiles.mkdir()
+    (tiles / "atlas.pmtiles").write_bytes(b"x")
+    (tiles / "atlas.meta.json").write_text(json.dumps(tiles_meta))
+    db = sqlite3.connect(bundle)
+    db.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    db.executemany("INSERT INTO meta VALUES (?, ?)", list(bundle_meta.items()))
+    db.commit()
+    db.close()
+    return tiles, bundle
+
+
+def test_one_handle_table_two_registries_is_a_mismatch(tmp_path: Path):
+    """P2: the registry pairs names and kinds; a sidecar rewrite leaves the handles alone."""
+    tiles, bundle = _pair(tmp_path, {"section_handles": "a" * 16, "registry": "1" * 16},
+                          {"section_handles": "a" * 16, "registry_digest": "2" * 16})
+    ok, msg = report(tiles, bundle)
+    assert not ok and "two registries" in msg
+
+
+def test_matching_registries_pass_and_strict_wants_both(tmp_path: Path):
+    tiles, bundle = _pair(tmp_path, {"section_handles": "a" * 16, "registry": "1" * 16},
+                          {"section_handles": "a" * 16, "registry_digest": "1" * 16})
+    assert report(tiles, bundle, strict=True)[0]
+    (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "a" * 16}))
+    assert report(tiles, bundle)[0] and not report(tiles, bundle, strict=True)[0]

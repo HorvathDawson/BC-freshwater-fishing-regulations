@@ -426,8 +426,7 @@ def _corpus():
 @pytest.fixture(scope="module")
 def corpus():
     es = _corpus()
-    if not es:
-        pytest.skip("no catalogue on disk")
+    assert es, f"no catalogue in {DIR} (tracked in git)"
     return {e.entry_id: e for e in es}
 
 

@@ -97,7 +97,9 @@ def main() -> int:
                       f"{p.detail[:80]}")
 
     if args.out:
-        counts = write_run(args.out, result, entries)
+        from pipeline.common.section_handles import registry_digest_for
+        counts = write_run(args.out, result, entries,
+                           stamps={"registry_digest": registry_digest_for(build)})
         print(f"\nwrote {args.out}: " + " · ".join(f"{k} {v:,}" for k, v in counts.items()))
 
     if args.against:

@@ -130,3 +130,17 @@ def digest(path: Path) -> str:
 
 def digest_for(build_dir: Path) -> str:
     return digest(Path(build_dir) / FILENAME)
+
+
+def registry_digest_for(build_dir: Path) -> str:
+    """THE REGISTRY'S CONTENT, as a digest (P2): SHA-256 (first 16 hex) over every item of the
+    atlas's `registry.json` — id, name, kind, sections, aliases, `part_of`, everything — in id
+    order, as canonical JSON. The handle digest pairs section NUMBERS; the tiles and the bundle
+    also read the registry's names and kinds, and `pipeline.atlas.sidecars` can rewrite the
+    registry without touching a handle. The reach run and the tile sidecar stamp this; the bundle
+    refuses a reach run made against another registry and records its own for the vintage check."""
+    import json
+    items = json.loads((Path(build_dir) / "registry.json").read_text(encoding="utf-8"))["items"]
+    items = sorted(items, key=lambda i: str(i.get("id")))
+    return hashlib.sha256(json.dumps(items, sort_keys=True, separators=(",", ":"),
+                                     ensure_ascii=False).encode("utf-8")).hexdigest()[:16]

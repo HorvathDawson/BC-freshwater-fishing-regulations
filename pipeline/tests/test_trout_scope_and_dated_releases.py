@@ -28,6 +28,7 @@ import pytest
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as RM
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 
@@ -219,17 +220,17 @@ def test_region_6s_winter_stream_release_no_longer_takes_char(tmp_path):
     assert _states(path, "RB", (12, 1)) == {"q.r1": "speaks", "q.r7": "speaks"}
 
 
+@pytest.mark.needs_bundle
 def test_the_book_answers_on_real_sections():
     """On the built bundle: Amor Lake answers a rainbow with its own 2 and a Dolly Varden with
     Region 1's char release; Region 6's winter stream release speaks for a rainbow, not a brook
     trout."""
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sp = db.execute("select species_except from rule where entry_id='z1:trout_quota' and "
                     "rule_id='trout_quota.r1'").fetchone()
     if not sp or "CHAR" not in (sp[0] or ""):
-        pytest.skip(f"{BUNDLE} predates the 2026-09-28 rulings — point UI_EXPORT_BUNDLE at one")
+        predates(f"{BUNDLE} predates the 2026-09-28 rulings — point UI_EXPORT_BUNDLE at one")
     sid = lambda eid, rid: db.execute(  # noqa: E731
         "select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
         "where r.entry_id = ? and r.rule_id = ? and r.via = 'reach'", (eid, rid)).fetchone()[0]
@@ -291,9 +292,9 @@ def test_a_blanket_spring_closure_still_closes_a_river_with_a_trout_quota(tmp_pa
     assert _states(path, "RB", (7, 1)) == {"river.r1": "speaks"}
 
 
+@pytest.mark.needs_bundle
 def test_shuswap_lake_trout_are_released_oct_15_to_jan_31():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     eid = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
     sid = db.execute("select min(sr.sid) from ruleset r join section_ruleset sr on "

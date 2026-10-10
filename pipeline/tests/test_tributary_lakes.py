@@ -36,6 +36,7 @@ import pytest
 
 from pipeline.atlas.graph.tributaries import code_runs, expand, tributaries_of_reach
 from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 L = NodeKind.lake
 
@@ -268,13 +269,12 @@ def test_a_lakes_main_outlet_is_never_a_run(dewar):
 # `ATLAS_BUILD` points these at a side build; the default is the promoted one.
 
 @pytest.fixture(scope="module")
-def real():
+def real(request):
     from pipeline.atlas.registry import load_registry
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    if not (b / "graph.pkl").exists():
-        pytest.skip("no built graph")
+    need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     return read_artifact(str(b / "graph.pkl")), load_registry(str(b / "registry.json"))
 
 
@@ -292,6 +292,7 @@ def _online_lakes(g, reach):
     return out
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_iskut_lake_chain_inflows_are_tributaries(real):
     """Tatogga, Eddontenajon and Kinaskan lie on the Iskut's line; the item leaves them out. Every
@@ -316,6 +317,7 @@ def test_iskut_lake_chain_inflows_are_tributaries(real):
     assert todagin, "Todagin Creek joins Tatogga Lake"
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_williams_lake_inflows_are_tributaries_of_the_williams_lake_river(real):
     """The WLR's item runs on above Williams Lake, so the lake is mid-reach: the San Jose River
@@ -328,6 +330,7 @@ def test_williams_lake_inflows_are_tributaries_of_the_williams_lake_river(real):
     assert "lake:329494714" not in got
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_walk_does_not_climb_the_fraser_from_a_reservoir_mid_reach(real):
     """The mid-reach rule does not undo the reservoir chain: Kinbasket's tributaries still do not
@@ -337,6 +340,7 @@ def test_the_walk_does_not_climb_the_fraser_from_a_reservoir_mid_reach(real):
     assert not kin & set(reg["gnis:37414"].section_ids)
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_dewar_lake_channel_follows_its_code(real):
     """The secondary channel (blk 355993608) and pond 329586535 go with Dewar Lake's code — the

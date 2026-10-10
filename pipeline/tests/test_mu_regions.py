@@ -20,16 +20,16 @@ import pytest
 pytest.importorskip("geopandas")
 
 from pipeline.atlas.splits.area_splits import _GPKG, mu_region_table  # noqa: E402
+from pipeline.tests.conftest import ATLAS_HINT, GPKG_HINT, need  # noqa: E402
 
 
 @pytest.fixture(scope="module")
-def table() -> dict[str, str]:
-    import pathlib
-    if not pathlib.Path(_GPKG).exists():
-        pytest.skip("source geopackage not on disk")
+def table(request) -> dict[str, str]:
+    need(request, "source", _GPKG, GPKG_HINT)
     return mu_region_table()
 
 
+@pytest.mark.needs_source
 @pytest.mark.slow
 def test_every_management_unit_has_exactly_one_region(table):
     """A unit belongs to one region: administration is a partition, not an overlap."""
@@ -38,6 +38,7 @@ def test_every_management_unit_has_exactly_one_region(table):
     assert sorted(set(table.values())) == ["1", "2", "3", "4", "5", "6", "7A", "7B", "8"]
 
 
+@pytest.mark.needs_source
 @pytest.mark.slow
 def test_haida_gwaii_is_region_1(table):
     """The whole defect in two assertions. 7A and 7B are kept apart in the same breath —
@@ -49,7 +50,9 @@ def test_haida_gwaii_is_region_1(table):
     assert table["7-12"] == "7A" and table["7-33"] == "7B"
 
 
+@pytest.mark.needs_source
 @pytest.mark.slow
+@pytest.mark.needs_atlas
 def test_the_table_never_contradicts_the_region_polygons():
     """THE TABLE IS NOT WHERE A SECTION'S REGION COMES FROM, and this is the guard on both.
 
@@ -70,12 +73,9 @@ def test_the_table_never_contradicts_the_region_polygons():
     from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
 
-    if not pathlib.Path(_GPKG).exists():
-        pytest.skip("source geopackage not on disk")
-    graph_path = (GENERATED.atlas.builds / GENERATED.atlas.default_build
-                  / "graph.pkl")
-    if not graph_path.exists():
-        pytest.skip("no atlas build on disk")
+    need(None, "source", _GPKG, GPKG_HINT)
+    graph_path = need(None, "atlas", GENERATED.atlas.builds / GENERATED.atlas.default_build
+                      / "graph.pkl", ATLAS_HINT)
 
     tbl = mu_region_table()
     graph = read_artifact(str(graph_path))

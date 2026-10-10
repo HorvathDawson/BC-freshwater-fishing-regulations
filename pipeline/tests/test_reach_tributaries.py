@@ -33,6 +33,7 @@ from pipeline.atlas.graph.tributaries import (
     _breaks_strahler, _mouths_at_lower_bound, expand, tributaries_of_reach,
 )
 from pipeline.common.curated import GENERATED
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 
 def _n(nid, *, order=1, blk=None, barrier=False, kind=NodeKind.stream, lower=None):
@@ -451,17 +452,17 @@ def test_the_whole_chain_as_one_reach_takes_every_side_tributary(chain):
 # --------------------------------------------------------------------------- #
 
 @pytest.fixture(scope="module")
-def real():
+def real(request):
     import sys
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    if not (GENERATED.build() / "graph.pkl").exists():
-        pytest.skip("no built graph")
+    need(request, "atlas", GENERATED.build() / "graph.pkl", ATLAS_HINT)
     sys.path.insert(0, str(root / "curation-review/backend"))
     import reuse
     return reuse._graph(), reuse._registry()
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_two_guards_never_contradict_on_real_data(real):
     """Every edge the order guard blocks must be one the watershed code is SILENT on
@@ -485,6 +486,7 @@ def test_the_two_guards_never_contradict_on_real_data(real):
     assert contradictions == 0, f"{contradictions} edges where the guards disagree"
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_kootenay_does_not_gain_moyie_or_yahk(real):
     """Doc 10 ③: the watershed-code prefix shortcut over-includes the Kootenay by 3,205 km
@@ -496,6 +498,7 @@ def test_kootenay_does_not_gain_moyie_or_yahk(real):
     assert "Yahk River" not in names
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_mclennan_creek_does_not_absorb_the_fraser(real):
     """A small floodplain creek must not inherit 20.6% of BC."""
@@ -505,6 +508,7 @@ def test_mclennan_creek_does_not_absorb_the_fraser(real):
     assert "Fraser River" not in {g.nodes[s].display_name for s in tribs if g.nodes.get(s)}
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_fraser_keeps_its_own_large_catchment(real):
     """The guards must be narrow: the Fraser legitimately drains a fifth of the province,
@@ -519,6 +523,7 @@ def test_the_fraser_keeps_its_own_large_catchment(real):
     assert len(tributaries_of_reach(g, set(reg["gnis:39325"].section_ids))) > 300_000
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_lake_koocanusa_does_not_swallow_the_kootenay(real):
     """A lake fed and drained by the same river must not inherit that river's catchment."""
@@ -529,6 +534,7 @@ def test_lake_koocanusa_does_not_swallow_the_kootenay(real):
 
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_op_only_decides_the_REACH_the_trib_rule_is_the_same(real):
     """`whole` / `upstream_of` / `downstream_of` / `between` do not each need their own
@@ -558,6 +564,7 @@ def test_the_op_only_decides_the_REACH_the_trib_rule_is_the_same(real):
 
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(real):
     """The invariant the walk is built on, checked independently of any primitive.
@@ -598,6 +605,7 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
         assert not unreachable, f"{sid}: returned unreachable {sorted(unreachable)[:3]}"
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_the_reservoir_chain_walks_stop_at_the_next_dam(real):
     """Lower Arrow's tributaries contained every section of Upper Arrow's, Lake Revelstoke's
@@ -698,6 +706,7 @@ def test_a_bigger_river_still_cannot_be_a_tributary_of_a_creek(dester):
     assert tributaries_of_reach(g, {"creek"}) == frozenset()
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_dester_lake_and_upper_meldrum_creek_are_in_the_fraser_walk(real):
     """The real case: Meldrum Creek (blk 380887762) drains Dester Lake (lake:329370943, order 4)

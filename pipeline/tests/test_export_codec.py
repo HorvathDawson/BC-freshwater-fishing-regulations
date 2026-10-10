@@ -25,6 +25,7 @@ import pytest
 
 from pipeline.tools import export_codec as K
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -297,7 +298,8 @@ def test_the_dictionary_words_decode_the_hand_made_model():
 # The real model
 # ---------------------------------------------------------------------------------------------
 @pytest.fixture(scope="module")
-def doc() -> dict:
+def doc(request) -> dict:
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
@@ -307,18 +309,21 @@ def pair(doc):
     return _through_json(data), _through_json(guide)
 
 
+@pytest.mark.needs_bundle
 def test_the_shipped_pair_decodes_to_the_model(doc, pair):
     """LOSSLESS: what a reader parses decodes to exactly the model every check proves."""
     assert K.expand(*pair) == doc
     assert X.problems(K.expand(*pair)) == []
 
 
+@pytest.mark.needs_bundle
 def test_the_dictionary_words_decode_the_real_pair(doc, pair):
     """F2: the prose in `field_dictionary.encoding` is enough to decode — a decoder written from
     it alone gives exactly what `export_codec.expand` gives, and the model."""
     assert _decode_from_the_dictionary(*pair) == K.expand(*pair) == doc
 
 
+@pytest.mark.needs_bundle
 def test_the_real_sets_need_the_via_in_their_key(doc):
     """MEASURED (CLEAN round): on the ids alone, rule sets that differ only in a member's `via`
     collide; with the `via` every key is unique — so the recipe keeps it. MUTATION: the ids-only
@@ -332,6 +337,7 @@ def test_the_real_sets_need_the_via_in_their_key(doc):
     assert len(set(ids_only)) < len(ids_only), "the ids alone no longer collide — recheck the recipe"
 
 
+@pytest.mark.needs_bundle
 def test_the_wire_checks_pass_and_cover_every_key(pair):
     data, guide = pair
     assert K.wire_problems(data, guide) == []
@@ -370,6 +376,7 @@ def _mutated(pair, how):
     return data, guide
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("how", [
     "ruleset member out of range", "base out of range", "base member out of range",
     "licensing member out of range", "part ruleset out of range",
@@ -394,6 +401,7 @@ def _keys(o):
 HANDLE_KEYS = {"sid", "section", "section_id", "dense_id", "example_section"}
 
 
+@pytest.mark.needs_bundle
 def test_no_section_handle_ships_in_either_file(pair):
     """AGENTS 5: neither file names a section — not as a key, not in the `about` lists (which
     name the rule set a finding was made on), not in the guide's closure notes (which name a
@@ -411,6 +419,7 @@ def test_no_section_handle_ships_in_either_file(pair):
                for n in notes if n["kind"] == "row_closure")
 
 
+@pytest.mark.needs_bundle
 def test_only_named_lake_edges_ship(doc):
     """21,636 lake edges are in the bundle's `split` table; only the ones an extent, a run or
     `same_place_as` names ship, and every one an extent names does (E2's check, `dangling`)."""
@@ -422,12 +431,14 @@ def test_only_named_lake_edges_ship(doc):
     assert not [k for k in named if k not in doc["splits"]]
 
 
+@pytest.mark.needs_bundle
 def test_the_files_on_disk_are_the_bundles_pair(doc):
     """The canonical files are DERIVED from the shipped bundle and must be its pair, byte for
     byte (`python -m pipeline.deliver export` rewrites them). Skipped only where there is nothing
-    to compare (no export written, or the suite pointed at a side bundle); a stale pair fails."""
-    if BUNDLE != X.BUNDLE or not X.OUT.is_file():
-        pytest.skip("no shipped export, or a side bundle")
+    to compare (the suite pointed at a side bundle); no export written, or a stale pair, fails."""
+    if BUNDLE != X.BUNDLE:
+        pytest.skip("the suite points at a side bundle; the shipped export is another bundle's")
+    need(None, "bundle", X.OUT, EXPORT_HINT)
     g = X.guide_path(X.OUT)
     assert g.is_file(), f"{X.OUT} has no {g.name} beside it"
     shipped = json.loads(X.OUT.read_text(encoding="utf-8"))

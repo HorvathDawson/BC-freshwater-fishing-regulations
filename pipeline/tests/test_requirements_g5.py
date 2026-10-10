@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 JUL_1 = (7, 1)
@@ -37,9 +38,8 @@ GUIDE = "zp:conduct#angling_guide_licence"
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     c = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield c
     c.close()
@@ -57,7 +57,7 @@ def _sid(db, item_id: str) -> int:
     got = db.execute("SELECT MIN(s.sid) FROM item i JOIN item_section s ON s.ord = i.ord "
                      "WHERE i.item_id = ?", (item_id,)).fetchone()[0]
     if got is None:
-        pytest.skip(f"{item_id} is not in this bundle")
+        pytest.fail(f"pinned water {item_id} is not in this bundle")
     return got
 
 
@@ -75,19 +75,21 @@ def _edit(c, key: str, **fields) -> None:
               (json.dumps(rec), e, r))
 
 
+@pytest.mark.needs_bundle
 def test_the_answer_has_every_key(db):
     got = R.requirements_in_force(db, _sid(db, KHARTOUM_LAKE), JUL_1)
     assert set(got) == {"holds", "waived", "not_yet_mapped", "also_printed", "wrong_water",
                         "displaced", "considered"}
 
 
+@pytest.mark.needs_bundle
 def test_designations_in_force_is_public_and_the_waiver_reads_it(db):
     assert not hasattr(R, "_designations_in_force")
     sids = [s for (s,) in db.execute(
         "SELECT sid FROM designation_section WHERE entry_id = 'r5:chilko_river@5-5' "
         "AND designation_id = 'chilko_river' ORDER BY sid LIMIT 1")]
     if not sids:
-        pytest.skip("no Chilko designation in this bundle")
+        pytest.fail("pinned designation r5:chilko_river@5-5::chilko_river is not in this bundle")
     got = R.designations_in_force(db, sids[0], JUL_1)
     assert [f"{d['entry_id']}#{d['id']}" for d in got] == ["r5:chilko_river@5-5#chilko_river"]
     assert R.stamp_waived_here(db, sids[0], JUL_1) == ["r5:chilko_river@5-5#chilko_river"]
@@ -97,6 +99,7 @@ def test_designations_in_force_is_public_and_the_waiver_reads_it(db):
 # The other kind of water
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_a_stream_requirement_does_not_hold_on_a_lake(db, copy_db):
     """MUTATION: Khartoum Lake carries the provincial steelhead stamp (`steelhead_targeting_known`,
     no water kind). Print it for streams and it no longer holds on the lake — it is listed under
@@ -113,6 +116,7 @@ def test_a_stream_requirement_does_not_hold_on_a_lake(db, copy_db):
     assert STAMP_KNOWN in got["holds"] and got["wrong_water"] == {}
 
 
+@pytest.mark.needs_bundle
 def test_a_section_of_no_named_water_keeps_a_kind_scoped_requirement(db):
     """A walked tributary is in no named water: its kind is unknown, and the stream-only
     steelhead stamp placed there holds (the walk walks streams only)."""
@@ -120,12 +124,13 @@ def test_a_section_of_no_named_water_keeps_a_kind_scoped_requirement(db):
                      "AND r.req_id = 'steelhead_targeting' AND NOT EXISTS (SELECT 1 FROM "
                      "item_section x WHERE x.sid = r.sid) ORDER BY r.sid LIMIT 1").fetchone()
     if sid is None:
-        pytest.skip("no unnamed section carries the stream stamp")
+        pytest.fail("pinned: no unnamed section carries the stream stamp in this bundle")
     assert R.section_kind(db, sid[0]) is None
     got = R.requirements_in_force(db, sid[0], (11, 1))
     assert "zp:steelhead#steelhead_targeting" in got["holds"] and got["wrong_water"] == {}
 
 
+@pytest.mark.needs_bundle
 def test_a_restatement_binds_as_the_record_it_restates(db, copy_db):
     """MUTATION, through `restates`: on Shuswap Lake the row's char stamp restates the province's
     (one obligation, folded into it). Unplace the province's record and the row's holds alone,
@@ -153,6 +158,7 @@ def test_a_restatement_binds_as_the_record_it_restates(db, copy_db):
 # A superior authority
 # --------------------------------------------------------------------------------------------
 
+@pytest.mark.needs_bundle
 def test_a_national_park_permit_displaces_the_provincial_requirements(db, copy_db):
     """On the Amiskwi River (Yoho) the park's permit holds and the angling guide licence,
     which would otherwise hold, is displaced by it. MUTATION: take away the permit's
@@ -171,6 +177,7 @@ def test_a_national_park_permit_displaces_the_provincial_requirements(db, copy_d
     assert got["displaced"] == {} and GUIDE in got["holds"]
 
 
+@pytest.mark.needs_bundle
 def test_the_licence_answer_reads_the_readers_g5(db):
     """licence.py holds no G5 logic of its own: its `holds` is the reader's, in order, and the
     displaced requirement is shown (a row) but sells nothing."""

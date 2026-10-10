@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import GENERATED, REPO_ROOT
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT, TILES_HINT
 
 PIPELINE = REPO_ROOT / "pipeline"
 #: The modules allowed to ask whether a NAME flows: the registry pass that decides the kind, the
@@ -51,13 +52,12 @@ def test_flows_is_decided_in_the_registry_only():
 
 def _bundle() -> Path:
     b = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-    if not b.exists():
-        pytest.skip(f"no bundle at {b}")
+    need(None, "bundle", b, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{b}?mode=ro", uri=True)
     cols = {r[1] for r in db.execute("PRAGMA table_info(section_span)")}
     db.close()
     if "shape" not in cols:
-        pytest.skip(f"{b} predates the one water kind (no section_span.shape)")
+        predates(f"{b} predates the one water kind (no section_span.shape)")
     return b
 
 
@@ -99,8 +99,7 @@ def doc(db):
 
 def _tiles() -> Path:
     d = Path(os.environ.get("UI_EXPORT_TILES") or GENERATED.tiles / "layers")
-    if not (d / "lake.geojsonl").exists():
-        pytest.skip(f"no tile layers at {d}")
+    need(None, "tiles", d / "lake.geojsonl", TILES_HINT)
     return d
 
 
@@ -135,6 +134,8 @@ def _owner(db) -> dict[int, tuple[str, str]]:
         "SELECT i.item_id, i.kind, s.sid FROM item i JOIN item_section s ON s.ord = i.ord")}
 
 
+@pytest.mark.needs_tiles
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_one_water_kind(db, registry, graph, handles, doc, tiles):
     """For EVERY section: the bundle owner's `item.kind` == the reach's `kind_of` == the export's
@@ -170,6 +171,7 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
     assert routed and routed <= set(tiles["stream"]), "a stream's polygon draws its route as stream"
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_flowing_polygons_belong_to_their_water(registry):
     """The merge, pinned on the province (MUTATION: any change to `registry.flowing`'s rules)."""
@@ -197,6 +199,7 @@ def test_flowing_polygons_belong_to_their_water(registry):
     assert sum(len(v.aliases) for v in water.values()) == 116
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_no_item_has_a_lake_boundary_on_its_own_section_and_no_section_is_owned_twice(registry):
     own: dict[str, str] = {}
@@ -213,6 +216,8 @@ def test_no_item_has_a_lake_boundary_on_its_own_section_and_no_section_is_owned_
     assert bad == [] and twice == []
 
 
+@pytest.mark.needs_tiles
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_a_split_lake_parent_owns_nothing(db, registry, handles, doc, tiles):
     """Kootenay, Williston, Shannon: no section in the registry or the bundle, listed in the export
@@ -231,6 +236,7 @@ def test_a_split_lake_parent_owns_nothing(db, registry, handles, doc, tiles):
     assert "Kootenay Lake — Main Body" in {doc["waters"][c]["name"] for c in doc["waters"]["wbk:328974235"]["divided_into"]}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_a_river_polygon_is_inside_its_reach(db, handles):
     """The Stellako's wide reach carries the row's rules its line carries; East Gribbell's six
@@ -250,6 +256,7 @@ def test_a_river_polygon_is_inside_its_reach(db, handles):
     assert any(r.startswith("r6:rancheria_river") for r in rules_on(handles["lake:328979188"]))
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_run_through_own_polygon_is_one_run(doc):
     """The Stellako's part holding its polygon is one run across it, with no `lake_*` end naming
@@ -269,6 +276,7 @@ def test_run_through_own_polygon_is_one_run(doc):
         {"from": None, "to": None, "km_from": None, "km_to": None, "polygon": "whole"}]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_absorbed_id_resolves_once(db, doc):
     """No bundle row names an absorbed id; `item_alias` holds every one; the export's `absorbed`
@@ -285,6 +293,8 @@ def test_absorbed_id_resolves_once(db, doc):
     assert doc["about"]["unresolved_references"] == []
 
 
+@pytest.mark.needs_tiles
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
     """A stream's polygon route is in the `stream` layer no later than the stem pieces beside it
@@ -307,6 +317,7 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
     assert late == [], late[:10]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_placement_moves_only_on_folded_sections(db):
     """Against the shipped bundle of the SAME atlas (handle digest): rule and licensing sets differ

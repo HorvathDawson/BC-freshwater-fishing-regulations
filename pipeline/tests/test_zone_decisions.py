@@ -17,6 +17,7 @@ import pytest
 
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.catalogue import CatalogueRule, label, label_parts
+from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
 
 @pytest.fixture(scope="module")
@@ -397,14 +398,13 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or "data/generated/bundle/bundl
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(str(BUNDLE))
     have = con.execute("select count(*) from rule where entry_id='z7b:trout_char_quota' "
                        "and rule_id='trout_char_quota.r10'").fetchone()[0]
     if not have:
-        pytest.skip(f"{BUNDLE} predates the zone decisions — point UI_EXPORT_BUNDLE at a side build")
+        predates(f"{BUNDLE} predates the zone decisions — point UI_EXPORT_BUNDLE at a side build")
     return con
 
 
@@ -414,6 +414,7 @@ def _sections(db, eid, rid) -> set:
         "where r.entry_id = ? and r.rule_id = ?", (eid, rid))}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_set_lining_ban_binds_the_province(db):
     ban = _sections(db, "zp:set_lining", "set_lining.r1b")
@@ -421,6 +422,7 @@ def test_set_lining_ban_binds_the_province(db):
     assert lift < ban and len(ban) > 1_900_000
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_zone_b_bull_trout_placement(db):
     zone = _sections(db, "z7b:trout_char_quota", "trout_char_quota.r10")
@@ -429,6 +431,7 @@ def test_zone_b_bull_trout_placement(db):
     assert len(zone) > 300_000 and liard < zone
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_bowron_park_waters_are_bound_and_bowron_lake_is_not(db):
     got = _sections(db, "r5:bowron_lake_park_waters_other_than_bowron_lake@5-16",
@@ -439,6 +442,7 @@ def test_bowron_park_waters_are_bound_and_bowron_lake_is_not(db):
     assert got and not (got & lake)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_provincial_licences_do_not_bind_inside_national_parks(db, corpus):
     """Placed `province` (no rows), minus the national parks, which the bundle lists once — and
@@ -468,6 +472,7 @@ def test_a_province_wide_record_minus_a_family_is_still_province_wide():
                                   "outside_area": "area:national_parks:x"}])
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_a_water_quota_never_sits_under_a_smaller_conditioned_zone_count(db, corpus):
     """Decision 1 keyed a rule's conditions (`water`, `origin`), so a water's plain quota no

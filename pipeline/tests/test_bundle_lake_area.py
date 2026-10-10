@@ -1,7 +1,7 @@
 """`item.area_ha` — a lake's size for ranking, from the tile's own polygon (2026-09-30).
 
-Against the built bundle (`UI_EXPORT_BUNDLE`, else the shipped one); skips on a bundle that predates
-the column. The unit half builds the column from a two-lake fixture."""
+Against the built bundle (`UI_EXPORT_BUNDLE`, else the shipped one); FAILS on a bundle that predates
+the column (`predates`). The unit half builds the column from a two-lake fixture."""
 from __future__ import annotations
 
 import json
@@ -16,6 +16,7 @@ from shapely.geometry import box
 import importlib
 B = importlib.import_module("pipeline.deliver.bundle.build")
 from pipeline.deliver.bundle.read import BUNDLE as SHIPPED
+from pipeline.tests.conftest import BUNDLE_HINT, need, predates
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or SHIPPED)
 
@@ -57,21 +58,22 @@ def test_a_lake_s_area_is_its_polygon_in_whole_hectares(tmp_path):
     assert got == {"wbk:1": 200, "wbk:2": 0, "gnis:3": None, "wbk:4": None}   # 2 km² = 200 ha; a pond reads 0
 
 
-def test_mutation_without_the_polygons_nothing_is_invented(tmp_path):
+def test_mutation_without_the_polygons_the_build_stops(tmp_path):
+    """P2 (no missing-file fallbacks): no polygons used to skip `item.area_ha` and rank every
+    lake like a pond; the build now stops, naming the file, and invents nothing."""
     db, reg = _fixture(tmp_path)
     (tmp_path / "waterbody_polys.pkl").unlink()
-    cov = _Cov()
-    B._lake_areas(db, tmp_path, json.loads(reg.read_text())["items"], cov)
+    with pytest.raises(SystemExit, match="no waterbody_polys.pkl"):
+        B._lake_areas(db, tmp_path, json.loads(reg.read_text())["items"], _Cov())
     assert all(a is None for (a,) in db.execute("SELECT area_ha FROM item"))
-    assert "no waterbody_polys.pkl" in cov.got["item.area_ha"]
 
 
-def test_the_built_bundle_carries_lake_area():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+@pytest.mark.needs_bundle
+def test_the_built_bundle_carries_lake_area(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if "area_ha" not in {r[1] for r in db.execute("PRAGMA table_info(item)")}:
-        pytest.skip(f"{BUNDLE} predates item.area_ha — point UI_EXPORT_BUNDLE at a side build")
+        predates(f"{BUNDLE} predates item.area_ha — point UI_EXPORT_BUNDLE at a side build")
     kinds = dict(db.execute("SELECT kind, count(area_ha) FROM item GROUP BY kind"))
     assert kinds.get("stream", 0) == 0 and kinds["lake"] > 7000
     (kam,) = db.execute("SELECT area_ha FROM item WHERE name = 'Kamloops Lake'").fetchone()

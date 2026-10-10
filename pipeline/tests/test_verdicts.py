@@ -23,17 +23,17 @@ from pipeline.deliver.calendar import month_day
 from pipeline.deliver.verdicts import build as VB
 from pipeline.deliver.verdicts.check import check
 from pipeline.deliver.verdicts.store import VerdictStore, VerdictsError
+from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
 VERDICTS = Path(os.environ.get("UI_EXPORT_VERDICTS") or BUNDLE.with_name("verdicts.sqlite"))
 
 
 def _bundle():
-    if not BUNDLE.exists():
-        pytest.skip(f"no bundle at {BUNDLE}")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule_key'").fetchone():
-        pytest.skip(f"{BUNDLE} predates the rule_key table (DATAFLOW P2)")
+        predates(f"{BUNDLE} predates the rule_key table (DATAFLOW P2)")
     return db
 
 
@@ -84,6 +84,7 @@ def _mutated(src: Path, tmp: Path, sql: str) -> sqlite3.Connection:
     return db
 
 
+@pytest.mark.needs_bundle
 def test_a_small_build_checks_and_opens(small):
     out, pick = small
     db = sqlite3.connect(out)
@@ -95,6 +96,7 @@ def test_a_small_build_checks_and_opens(small):
     assert all(isinstance(r, T.VerdictRow) for r in v)
 
 
+@pytest.mark.needs_bundle
 def test_check_goes_red_on_a_dropped_frame_an_orphan_by_and_a_flipped_closed(small, tmp_path):
     out, _ = small
     db = _mutated(out, tmp_path, "DELETE FROM frame WHERE (key_ix, reading, fish, origin) IN "
@@ -108,6 +110,7 @@ def test_check_goes_red_on_a_dropped_frame_an_orphan_by_and_a_flipped_closed(sma
     assert any("closed" in p for p in check(db, str(BUNDLE), all_keys=False))
 
 
+@pytest.mark.needs_bundle
 def test_open_refuses_another_bundle_and_a_moved_enum(small, tmp_path):
     out, _ = small
     db = _mutated(out, tmp_path, "UPDATE meta SET v = 'ffffffffffffffff' WHERE k = 'reach_digest'")
@@ -120,6 +123,7 @@ def test_open_refuses_another_bundle_and_a_moved_enum(small, tmp_path):
         VerdictStore.open(tmp_path / "m.sqlite", BUNDLE)
 
 
+@pytest.mark.needs_bundle
 def test_two_builds_give_the_same_verdicts(small, tmp_path):
     out, pick = small
     again = tmp_path / "again.sqlite"
@@ -141,11 +145,11 @@ def _dump(path: Path) -> list:
 
 def _full():
     _bundle()
-    if not VERDICTS.exists():
-        pytest.skip(f"no verdicts at {VERDICTS}")
+    need(None, "bundle", VERDICTS, BUNDLE_HINT)
     return VerdictStore.open(VERDICTS, BUNDLE)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_every_stored_frame_is_a_fresh_reader_call():
     """Every key, one sampled reading and three sampled fish each, all three origins: the stored
@@ -173,6 +177,7 @@ def test_every_stored_frame_is_a_fresh_reader_call():
     assert n > 10_000
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_the_origin_shortcut_equals_full_asks_on_every_key():
     """Where `read.origin_matters` is false, hatchery and wild were not asked: asking them on every

@@ -22,6 +22,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import pytest
+from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, GPKG_HINT
 
 pytestmark = pytest.mark.slow
 
@@ -39,16 +40,14 @@ def _bundle() -> Path:
 @lru_cache(maxsize=1)
 def _graph():
     from pipeline.common.io.serialize import read_artifact
-    p = _atlas() / "graph.pkl"
-    if not p.exists():
-        pytest.skip("no atlas graph")
+    p = need(None, "atlas", _atlas() / "graph.pkl", ATLAS_HINT)
     return read_artifact(str(p))
 
 
 @lru_cache(maxsize=1)
 def _geoms():
     from pipeline.common.io.serialize import read_artifact
-    return read_artifact(str(_atlas() / "geometries.pkl"))
+    return read_artifact(str(need(None, "atlas", _atlas() / "geometries.pkl", ATLAS_HINT)))
 
 
 @lru_cache(maxsize=1)
@@ -56,7 +55,7 @@ def _inner():
     """The exact B.C. outline, 1 m in."""
     from pipeline.atlas.splits.bc_boundary import load_outline
     from project_config import get_config
-    return load_outline(get_config().fwa_data_gpkg).buffer(-1.0)
+    return load_outline(need(None, "source", get_config().fwa_data_gpkg, GPKG_HINT)).buffer(-1.0)
 
 
 def _pieces(blk: str):
@@ -70,6 +69,7 @@ def _ids(b) -> set[str]:
     return set() if b is None else {str(b.boundary_id), *map(str, b.aliases or ())}
 
 
+@pytest.mark.needs_atlas
 def test_no_cut_left_a_sliver():
     """THE GATE, re-asked of the finished graph: no stream piece under `SLIVER_M` has a CUT at
     either end (a `split:` boundary). FWA's own short pieces lie between natural ends (a mouth, a
@@ -85,6 +85,9 @@ def test_no_cut_left_a_sliver():
     assert bad == [], f"{len(bad)} sliver(s) at a cut, e.g. {bad[:5]}"
 
 
+@pytest.mark.needs_source
+@pytest.mark.needs_bundle
+@pytest.mark.needs_atlas
 def test_no_strip_inside_bc_reads_as_outside():
     """An outside-B.C. section whose line lies more than 1 m inside the exact outline was the
     region/outline mismatch (270 in the live atlas) or a zero-length piece in no region (7). The
@@ -92,8 +95,8 @@ def test_no_strip_inside_bc_reads_as_outside():
     past its geometry — Saxon and McKercher creeks on Vancouver Island) are a separate, pre-existing
     rule and are listed apart."""
     from pipeline.common.section_handles import read as read_handles
-    if not _bundle().exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", _bundle(), BUNDLE_HINT)
+    need(None, "atlas", _atlas() / "section_handles.txt", ATLAS_HINT)
     _, handles = read_handles(_atlas())
     node_of = {s: n for n, s in handles.items()}
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
@@ -116,14 +119,16 @@ def test_no_strip_inside_bc_reads_as_outside():
     assert bad == [], f"{len(bad)} strip(s) inside B.C. read as outside, e.g. {bad[:8]}"
 
 
+@pytest.mark.needs_source
+@pytest.mark.needs_atlas
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("name", ["Fishtrap Creek", "Pepin Creek", "Bertrand Creek", "Sumas River",
                                   "Cottonwood River", "Ahbau Creek", "West Road (Blackwater) River"])
 def test_named_waters_that_had_strips_read_as_outside(name):
     """Waters that shipped a stretch inside B.C. as "outside B.C.": every part of them inside the
     outline now has a region. Read off the bundle's sections of the named item."""
     from pipeline.common.section_handles import read as read_handles
-    if not _bundle().exists():
-        pytest.skip("no bundle")
+    need(None, "bundle", _bundle(), BUNDLE_HINT)
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
     try:
         sids = {r[0] for r in db.execute(
@@ -150,6 +155,7 @@ GRAZES = [  # (blk, measure range of the piece the reserve's closure used to cov
 ]
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.parametrize("blk,rng,reserve", GRAZES)
 def test_a_stream_grazing_a_reserve_is_not_in_it(blk, rng, reserve):
     """Each of these touched the reserve by a few metres, and the overlap test put the whole piece
@@ -163,6 +169,7 @@ def test_a_stream_grazing_a_reserve_is_not_in_it(blk, rng, reserve):
     assert any(n.down_m >= rng[0] - 5.0 for n in _pieces(blk)), "the old piece's range is still drawn"
 
 
+@pytest.mark.needs_atlas
 def test_ospika_river_is_not_widened():
     """The Ospika's mouth lies 1.9 m inside the Ospika Cones reserve's edge. Cut there, it left a
     1.9 m sliver; merged (the rejected repair), it handed the reserve's closure to the 329 m piece
@@ -175,6 +182,7 @@ def test_ospika_river_is_not_widened():
     assert all(n.up_m - n.down_m >= 5.0 for n in ps)
 
 
+@pytest.mark.needs_atlas
 def test_a_real_dip_into_a_reserve_is_cut_on_entry_and_exit():
     """Trematon Creek crosses into Lasqueti Island Ecological Reserve for 80 m and out again —
     longer than the reserve's 50 m crossing zone, so it is two cuts, and the stretch between them,
@@ -189,6 +197,7 @@ def test_a_real_dip_into_a_reserve_is_cut_on_entry_and_exit():
     assert 50.0 <= n.up_m - n.down_m <= 120.0, (n.down_m, n.up_m)
 
 
+@pytest.mark.needs_atlas
 def test_border_and_region_line_are_one_cut():
     """Where a river leaves B.C. through a region's edge the two are one geometry, so one boundary
     carries both names with the border canonical (`bc_border` token)."""
@@ -205,6 +214,7 @@ def test_border_and_region_line_are_one_cut():
     assert border_only and both, (border_only, both)
 
 
+@pytest.mark.needs_atlas
 def test_two_builds_of_identical_inputs_are_identical():
     """DETERMINISM (BOUND round, 2026-10-06): `ATLAS_BUILD_TWIN` names a second build of the same
     code and inputs (run under another PYTHONHASHSEED). Every artifact a reader consumes must be
@@ -254,6 +264,7 @@ def _member_runs(name: str, area: str):
     return runs
 
 
+@pytest.mark.needs_atlas
 def test_krajina_creek_is_inside_from_its_entry():
     """Vladimir J. Krajina (Port Chanal) ER on 360832863: enters at 207 m, out 413-493 m (80 m, a
     straddle), in again. One member run starting at 207 m."""
@@ -265,6 +276,7 @@ def test_krajina_creek_is_inside_from_its_entry():
     assert gaps == [], "the 80 m out is straddle, inside"
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.parametrize("name", ["Kicking Horse River", "Beaverfoot River"])
 def test_yoho_straddlers_are_one_inside_run(name):
     """The Kicking Horse (longest run out 135 m) and the Beaverfoot (968 m) wander along Yoho's
@@ -275,6 +287,7 @@ def test_yoho_straddlers_are_one_inside_run(name):
     assert all(v == 1 for v in per_blk.values()), runs
 
 
+@pytest.mark.needs_atlas
 @pytest.mark.parametrize("name,area", [
     ("Canyon Creek", "area:ecological_reserves:burnt_cabin_bog_ecological_reserve"),
     ("Carmanah Creek", "area:national_parks:pacific_rim_national_park_reserve_of_canada"),

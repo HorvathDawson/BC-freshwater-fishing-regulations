@@ -101,11 +101,7 @@ def test_the_trust_bands_agree_across_the_language_boundary():
 
     from pipeline.gauges.consume.shed import TRUST_BANDS
 
-    core = Path(__file__).resolve().parents[2] / "app/packages/core/src"
-    if not core.exists():                       # the pipeline may be checked out alone
-        import pytest
-
-        pytest.skip("app/ not present")
+    core = Path(__file__).resolve().parents[2] / "app/packages/core/src"   # tracked: app/ is in git
 
     flow = (core / "flow.ts").read_text(encoding="utf-8")
     assert "gauge-policy.generated" in flow, (

@@ -24,6 +24,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as rules_mod
+from pipeline.tests.conftest import need, BUNDLE_HINT, predates as _predates
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 
@@ -42,14 +43,12 @@ Z6_MAINSTEMS = "z6:steelhead_stream_closure::steelhead_stream_closure.r2"
 
 def predates(con) -> None:
     """A bundle without the 2026-10-05 decisions FAILS the decision tests — the canonical gate
-    and a side build alike — unless `UI_EXPORT_ALLOW_PREDATING=1` asks for the old skip."""
+    and a side build alike — unless `UI_EXPORT_ALLOW_PREDATING=1` asks for the old skip (the
+    model now lives in `pipeline/tests/conftest.py::predates`, shared by every vintage gate)."""
     if con.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
                    (STEIN, "stein_river.r1x")).fetchone()[0]:
-        msg = (f"{BUNDLE} predates the 2026-10-05 lift decisions — rebuild it "
-               f"(`python -m pipeline.deliver`) or point UI_EXPORT_BUNDLE at one that has them")
-        if os.environ.get("UI_EXPORT_ALLOW_PREDATING") == "1":
-            pytest.skip(msg)
-        pytest.fail(msg)
+        _predates(f"{BUNDLE} predates the 2026-10-05 lift decisions — rebuild it "
+                  f"(`python -m pipeline.deliver`) or point UI_EXPORT_BUNDLE at one that has them")
 
 
 def test_a_predating_bundle_fails_the_gate_unless_asked_to_skip(monkeypatch):
@@ -67,9 +66,8 @@ def test_a_predating_bundle_fails_the_gate_unless_asked_to_skip(monkeypatch):
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).exists():
-        pytest.fail(f"no bundle at {BUNDLE}")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     predates(con)
     yield con
@@ -108,6 +106,7 @@ def _bound(db, sid) -> set:
 
 
 # ---- 1. Stein: no printed basis, closed to Jun 30 -----------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_stein_is_closed_on_june_15_by_region_3s_spring_closure(db):
     """The p.28 line naming the Stein is a steelhead closure list, not a spring-closure exception
     (user decision 2026-10-05): the row's "No Fishing Jan 1-May 31" and Region 3's Jan 1-June 30
@@ -121,6 +120,7 @@ def test_the_stein_is_closed_on_june_15_by_region_3s_spring_closure(db):
 
 
 # ---- 2. Nahatlatch below the lake: both closures, closed to Jun 30 -----------------------------
+@pytest.mark.needs_bundle
 def test_the_nahatlatch_below_its_lake_is_closed_on_june_15(db):
     """"No Fishing Jan 1-May 31" below the lake and Region 3's Jan 1-June 30 both hold (user
     decision 2026-10-05). MUTATION: restoring `nahatlatch_river.r2x` opens June."""
@@ -132,6 +132,7 @@ def test_the_nahatlatch_below_its_lake_is_closed_on_june_15(db):
 
 
 # ---- 3. Nicola: trout catch and release Jan 1-Feb 28 only --------------------------------------
+@pytest.mark.needs_bundle
 def test_the_nicola_below_its_lake_is_trout_catch_and_release_on_jan_15_whitefish_closed(db):
     """The row prints "Trout catch and release downstream of Nicola Lake, Jan 1-Feb 28": the lift
     is for trout, on those dates (rule (b)). A mountain whitefish stays under Region 3's spring
@@ -201,6 +202,7 @@ def _equivalents(db, eid, rid) -> set:
     return {f"{x['entry_id']}::{x['rule_id']}" for x in got if x.get("equivalent")}
 
 
+@pytest.mark.needs_bundle
 def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
     """On the bundle: the Fraser's and the Canim's carried lifts are gone; West Road keeps its
     Region 6 / Zone 7A ones; the Similkameen's no longer reaches its Region 3 tributaries (Q3)."""
@@ -248,6 +250,7 @@ def _west_road(db):
     return main, tribs
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("zone", [Z5_SPRING, Z6_FRASER, Z7A_SPRING])
 def test_west_roads_tributaries_are_closed_on_june_20_and_its_mainstem_is_open(db, zone):
     """"No Fishing in mainstem (only) Nov 1-June 14; tributaries subject to spring closure"
@@ -266,6 +269,7 @@ def test_west_roads_tributaries_are_closed_on_june_20_and_its_mainstem_is_open(d
 
 
 # ---- 7. G4: Region 6's steelhead closure, the five mainstems exempt ---------------------------
+@pytest.mark.needs_bundle
 def test_the_skeena_mainstem_is_open_for_steelhead_on_may_20_and_a_tributary_is_closed(db):
     """"No fishing: in all rivers and streams for steelhead, May 15-June 15. Exemptions include
     mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku" (p.49). On a Skeena mainstem
@@ -305,6 +309,7 @@ DUCK = "r4:duck_lake_permit_required_see_note_on_page_34@4-6"
 Z4_SPRING = "z4:spring_stream_closure::spring_stream_closure.r1"
 
 
+@pytest.mark.needs_bundle
 def test_duck_lakes_creeks_are_closed_to_bass_on_may_20_and_the_lake_is_catch_and_release(db):
     """"bass catch and release, May 15-June 15" (Incl. Tribs) does not lift Region 4's stream
     closure Apr 1-Jun 14 (user decision 2026-10-05, round 2): on EVERY one of the creek sections

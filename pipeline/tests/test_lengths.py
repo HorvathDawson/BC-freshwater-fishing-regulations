@@ -10,12 +10,14 @@ import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueRule, LengthBand
 from pipeline.deliver.bundle import read as corpus
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 #: `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
 _BUNDLE = str(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)
 
 
 def rules():
+    need(None, "bundle", _BUNDLE, BUNDLE_HINT)
     return corpus.rules(_BUNDLE)
 
 
@@ -52,6 +54,7 @@ def test_the_fields_lengths_replaced_are_refused(old):
 # ---------------------------------------------------------------------------------------
 # Each reading of "over", on the rule that proved it
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_a_ceiling_on_the_whole_allowance_grants_below_and_denies_above():
     """"Trout/char daily and possession quotas = 2 (none over 50 cm)". Lumped in with `annual`
     as "not daily" it once granted the 2 to exactly the fish the sentence forbids."""
@@ -60,6 +63,7 @@ def test_a_ceiling_on_the_whole_allowance_grants_below_and_denies_above():
     assert keep(_bands(x), 60, x["take"]) == 0
 
 
+@pytest.mark.needs_bundle
 def test_a_floor_is_absolute_even_inside_a_clause():
     """"no more than 1 char (none under 60 cm)" forbids a 50 cm char outright rather than
     handing it back to the parent quota."""
@@ -69,12 +73,14 @@ def test_a_floor_is_absolute_even_inside_a_clause():
     assert keep(_bands(x), 70, x["take"]) == 1
 
 
+@pytest.mark.needs_bundle
 def test_the_shared_endpoint_is_granted_not_denied():
     """"only 1 bull trout - none under 60 cm": a fish of exactly 60 cm is the granted one."""
     x = _rule("spruce_lake.r2", "r3:spruce_lake")
     assert keep(_bands(x), 60, x["take"]) == 1
 
 
+@pytest.mark.needs_bundle
 def test_a_hole_carrying_a_number_gives_it_to_the_piece_above_only():
     """"only 1 over 100 cm, none between 70 cm and 100 cm" under a parent quota: the 1 is for the
     big ones, the hole keeps none, and a 50 cm pike is the parent's business — capping it at 1
@@ -104,6 +110,7 @@ def test_a_size_on_a_licence_names_the_fish_and_sets_no_number():
     assert [b.model_dump(exclude_none=True) for b in x.doing.lengths] == [{"min_cm": 50}]
 
 
+@pytest.mark.needs_bundle
 def test_an_annual_quota_counts_a_size_class_and_forbids_nothing_beneath_it():
     """"Rainbow trout: 5 over 50 cm" is five big ones per licence year and says NOTHING about a
     30 cm rainbow, which the daily quota governs. A floor here is an invented annual ban."""
@@ -124,6 +131,7 @@ def test_a_range_that_holds_no_fish_or_every_fish_is_refused(kw):
 # ---------------------------------------------------------------------------------------
 # And it is actually on the data
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_corpus_carries_no_trace_of_the_fields_lengths_replaced():
     """`over_cm`, `under_cm` and `band` are gone from the model, the entries AND the bundle —
     checked on what a reader actually gets, not on what the model would accept."""
@@ -132,6 +140,7 @@ def test_the_corpus_carries_no_trace_of_the_fields_lengths_replaced():
     assert not left, f"{len(left)} rules still carry a field lengths replaced"
 
 
+@pytest.mark.needs_bundle
 def test_only_a_rule_about_fish_of_a_size_carries_lengths_and_every_band_is_real():
     rs = [x for x in rules() if x.get("lengths")]
     assert rs, "no rule carries lengths — the join or the bundle has dropped them"
@@ -144,6 +153,7 @@ def test_only_a_rule_about_fish_of_a_size_carries_lengths_and_every_band_is_real
             assert b.min_cm is not None or b.max_cm is not None
 
 
+@pytest.mark.needs_bundle
 def test_the_four_rules_whose_band_was_backwards_read_as_windows():
     """Coquitlam, Gwillim, Lower Blue and Williston Zone B were flagged as holes when the
     sentence is a window, which permits exactly the fish the rule protects."""

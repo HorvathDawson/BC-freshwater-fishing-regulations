@@ -25,6 +25,7 @@ import pytest
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.place_names import display_case, is_shouting
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -167,14 +168,17 @@ def test_distance_words(m, words):
 # The corpus
 # ---------------------------------------------------------------------------------------------
 @pytest.fixture(scope="module")
-def doc():
+def doc(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
+@pytest.mark.needs_bundle
 def test_the_corpus_names_pass(doc):
     assert X.name_problems(doc) == []
 
 
+@pytest.mark.needs_bundle
 def test_within_each_water_split_names_are_unique(doc):
     """Read from the output, independently of `name_problems`: a name stands at ONE place of a
     water (one cut may stand at two — Adams Lake's inlet and outlet); a second id at that place
@@ -195,6 +199,7 @@ def test_within_each_water_split_names_are_unique(doc):
             assert sid == first or doc["splits"][sid]["same_place_as"] == first, (w, name, sid)
 
 
+@pytest.mark.needs_bundle
 def test_no_confluence_is_named_after_its_own_water(doc):
     S, W = doc["splits"], doc["waters"]
     bad = [(sid, x["name"], w) for sid, x in S.items() if x["kind"] == "confluence"
@@ -227,6 +232,7 @@ def official_name_problems(splits: dict) -> list[str]:
     return out
 
 
+@pytest.mark.needs_bundle
 def test_official_name_check_sees_each_mistake(doc):
     """Mutations of the shipped splits, each refused: an OSM-id area losing its source spelling, a
     re-cased area whose official_name is the shown name, an area name still carrying its id, and an
@@ -246,6 +252,7 @@ def test_official_name_check_sees_each_mistake(doc):
         assert official_name_problems(m), k
 
 
+@pytest.mark.needs_bundle
 def test_no_displayed_name_is_all_capitals(doc):
     shown = ([w["name"] for w in doc["waters"].values()]
              + [e["name"] for e in doc["entries"].values() if e["name"]]
@@ -263,12 +270,14 @@ def test_no_displayed_name_is_all_capitals(doc):
 
 
 # ---- the four the UI builder named ----------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_thompson_cnr_bridges(doc):
     S = doc["splits"]
     assert S["thompson_river__cnr_bridge"]["name"] == "CNR bridge below Deadman River"
     assert S["thompson_river__cnr_bridge_2"]["name"] == "CNR bridge above Bonaparte River"
 
 
+@pytest.mark.needs_bundle
 def test_peace_halfway_keeps_its_offsets(doc):
     S = doc["splits"]
     got = {sid: (S[sid]["name"], S[sid]["km"], S[sid].get("same_place_as")) for sid in (
@@ -292,12 +301,14 @@ def test_peace_halfway_keeps_its_offsets(doc):
     assert kms[3] == kms[2]
 
 
+@pytest.mark.needs_bundle
 def test_gold_river_cut_is_a_side_channel_not_the_gold(doc):
     x = doc["splits"]["length:354154308:48965"]
     assert x["water_id"] == "gnis:17593" and doc["waters"]["gnis:17593"]["name"] == "Gold River"
     assert x["name"].startswith("side channel ") and "Gold River" not in x["name"]
 
 
+@pytest.mark.needs_bundle
 def test_clayhurst_is_title_case_with_its_official_name(doc):
     x = doc["splits"]["area:CLAYHURST ECOLOGICAL RESERVE"]
     assert x["name"] == "Clayhurst Ecological Reserve boundary"
@@ -316,6 +327,7 @@ def _rename(sid, name):
     return lambda d: d["splits"][sid].update(name=name)
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("label,mutate,expect", [
     ("repeat a name on the Thompson",
      _rename("thompson_river__cnr_bridge_2", "CNR bridge below Deadman River"), "2 places"),
@@ -354,6 +366,7 @@ def test_area_display_drops_the_osm_id_and_restores_cut_off_words():
     assert area_display("MACKAY CREEK") == "Mackay Creek"
 
 
+@pytest.mark.needs_bundle
 def test_no_split_name_shows_an_osm_id_or_a_cut_off_word(doc):
     import re
     bad = [(k, v["name"]) for k, v in doc["splits"].items()

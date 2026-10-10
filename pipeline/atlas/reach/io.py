@@ -47,8 +47,10 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
             f.write("\n")
 
 
-def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
-    """Write the rule tables, the licensing tables and report.json. Returns row counts per table."""
+def write_run(out_dir: str | Path, result, entries=None, *,
+              stamps: dict | None = None) -> dict[str, int]:
+    """Write the rule tables, the licensing tables and report.json. Returns row counts per table.
+    `stamps`: further digests for report.json (the CLI's `registry_digest`, P2)."""
     out = Path(out_dir)
 
     # rule_section — the bindings. One row per (rule, section) so it joins cleanly.
@@ -136,6 +138,10 @@ def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
     report["steelhead_digest"] = _table_digest(tables[STEELHEAD_TABLE])
     report["tidal_digest"] = _table_digest(tables[TIDAL_TABLE])
     report["outside_digest"] = _table_digest(tables[OUTSIDE_TABLE])
+    if isinstance(entries, dict):           # the corpus the run was made from (P2)
+        from pipeline.regs.parsing.io import corpus_digest
+        report["entries_digest"] = corpus_digest(entries)
+    report.update(stamps or {})
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {k: len(v) for k, v in tables.items()}

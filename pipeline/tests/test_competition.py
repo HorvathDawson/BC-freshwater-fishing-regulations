@@ -22,6 +22,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 DAILY = ("retention_limit", "daily")
@@ -151,13 +152,12 @@ def test_a_closure_is_never_displaced_and_a_part_day_rule_stands_beside(tmp_path
 
 # --------------------------------------------------------------------------- the bundle
 @pytest.fixture(scope="module")
-def db():
-    if not Path(BUNDLE).exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     if not con.execute("select count(*) from rule where entry_id=? and rule_id=?",
                        (ZB, "trout_char_quota.r10")).fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the zone decisions — point UI_EXPORT_BUNDLE at a side build")
+        predates(f"{BUNDLE} predates the zone decisions — point UI_EXPORT_BUNDLE at a side build")
     yield con
     con.close()
 
@@ -189,6 +189,7 @@ def _speaks_any(sid, on, fish) -> set:
             if x["state"] == "speaks" and x["type"] == "retention_limit"}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid", [KAKWA, CECILIA])
 def test_kakwa_and_cecilia_bull_trout_are_released_other_trout_keep_the_lakes_two(db, eid):
     """The lake prints "Trout/char daily quota = 2 (none under 40 cm)"; Zone B prints bull trout
@@ -211,6 +212,7 @@ def test_kakwa_and_cecilia_bull_trout_are_released_other_trout_keep_the_lakes_tw
     assert f"{eid}::{slug}.r1" in _speaks(sid, (12, 1), "DV")
 
 
+@pytest.mark.needs_bundle
 def test_zone_b_bull_trout_release_speaks_only_for_bull_trout(db):
     """Off every water row and outside the Peace: "Bull trout … release" (r10) takes bull trout
     from "Trout/char: 5" and nothing else — the 5 (and its clauses) still speak for the rest."""
@@ -224,6 +226,7 @@ def test_zone_b_bull_trout_release_speaks_only_for_bull_trout(db):
                                           f"{ZB}::trout_char_quota.r4"}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,out_of_season", [
     (WILLISTON, "williston_lake_zone_b.r4", {f"{ZB}::trout_char_quota.r9"}),
     (LIARD, "liard_river_watershed.r2", {f"{LIARD}::liard_river_watershed.r1"}),
@@ -251,6 +254,7 @@ def test_a_water_row_naming_bull_trout_beats_the_zone(db, eid, rid, out_of_seaso
     assert _speaks(sid, (9, 1), "DV") == out_of_season
 
 
+@pytest.mark.needs_bundle
 def test_a_within_clause_is_named_at_its_parents_level(db):
     """Region 4's "Trout/char: 5, but not more than … 1 bull trout" is a trout/char quota. Read
     as a bull trout rule it would outrank Quinn Creek's "Trout/char catch and release" for bull
@@ -261,6 +265,7 @@ def test_a_within_clause_is_named_at_its_parents_level(db):
     assert not {k for k in got if k.startswith("z4:trout_char_quota::")}
 
 
+@pytest.mark.needs_bundle
 def test_a_lift_for_one_fish_lifts_the_rule_for_that_fish_only(db):
     """Duncan River: "exempt from regional Nov 1-Mar 31 bull trout catch and release" lifts
     Region 4's winter trout/char release for BULL TROUT; a rainbow on Dec 1 is still released."""
@@ -271,6 +276,7 @@ def test_a_lift_for_one_fish_lifts_the_rule_for_that_fish_only(db):
     assert rel not in _speaks(sid, (12, 1), "DV", stream)
 
 
+@pytest.mark.needs_bundle
 def test_tchesinkut_february_and_july_are_the_regions(db):
     """"Lake trout catch and release EXCEPT during months of February and July (when regional
     quotas apply)". In February the region's quota speaks WHOLE — the 5, its "1 over 50 cm" and
@@ -284,6 +290,7 @@ def test_tchesinkut_february_and_july_are_the_regions(db):
     assert _speaks(sid, (8, 1), "LT") == {f"{TCHES}::tchesinkut_lake.r1"}
 
 
+@pytest.mark.needs_bundle
 def test_koocanusa_bull_trout_are_released_nov_to_mar_only(db):
     """"Bull trout catch and release Nov 1-Mar 31; no bull trout under 75 cm when open". In
     force, the release names bull trout on the water and speaks; from Apr 1 the region's quota
@@ -322,12 +329,14 @@ def test_a_water_closure_silences_a_zone_quota_that_names_the_fish(tmp_path):
     assert [x["rule"] for x in R.effective_rules(1, (7, 1), "BB", path)] == ["q.r1"]
 
 
+@pytest.mark.needs_bundle
 def test_clearwater_lake_is_closed_to_burbot_in_winter(db):
     sid = _sid(db, "r7:clearwater_lake@7-31", "clearwater_lake.r2")
     assert _speaks(sid, (11, 15), "BB") == {"r7:clearwater_lake@7-31::clearwater_lake.r1"}
     assert _speaks(sid, (7, 1), "BB") == {"r7:clearwater_lake@7-31::clearwater_lake.r2"}
 
 
+@pytest.mark.needs_bundle
 def test_a_catch_and_release_row_lifts_the_zone_quotas_that_name_a_fish(db):
     """Pine River: "Catch and release all fish upstream of the Hasler Road Bridge". The zone's
     "Burbot: 5" and "Arctic grayling: 2" name their fish and would outrank the row for them; the
@@ -337,6 +346,7 @@ def test_a_catch_and_release_row_lifts_the_zone_quotas_that_name_a_fish(db):
         assert _speaks(sid, (7, 1), fish) == {"r7:pine_river@7-32::pine_river.r1"}, fish
 
 
+@pytest.mark.needs_bundle
 def test_the_guide_states_the_ruling(db):
     from pipeline.tools import export_ui_rules as X
     g = X.build(Path(BUNDLE))["guide"]["ladder"]
@@ -369,6 +379,7 @@ def _sets(db):
 DAYS = [(m, d) for m in range(1, 13) for d in (1, 15)]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_no_zone_rule_naming_a_fish_reopens_what_a_water_row_withheld(db):
     """THE NAMING RULING'S ONE HAZARD. A zone rule that names a fish outranks a water rule that
@@ -523,6 +534,7 @@ def test_the_release_guard_is_what_silences_them(tmp_path, monkeypatch):
     assert {"q.r3", "q.r4", "s.r1"} <= _speak(path, "ST")
 
 
+@pytest.mark.needs_bundle
 def test_coquihalla_releases_every_trout_and_steelhead_below_the_tunnels_in_winter(db):
     """p.22: "Trout/char (including steelhead) catch and release, bait ban, downstream of the
     southern entrance to the lower most railway tunnel, Nov 1-Mar 31". Region 2's "2 hatchery
@@ -540,6 +552,7 @@ def test_coquihalla_releases_every_trout_and_steelhead_below_the_tunnels_in_wint
                                              "trout_char_quota.r8", "steelhead.r1")}, (fish, got)
 
 
+@pytest.mark.needs_bundle
 def test_chilliwack_releases_every_cutthroat_in_may(db):
     """p.22, Chilliwack/Vedder downstream of Vedder Crossing, (a) May 1-31: "hatchery cutthroat
     catch and release". With the zone's release of wild trout/char from streams, every cutthroat is
@@ -661,6 +674,7 @@ def test_the_sit_beside_rule_is_what_keeps_the_zone_speaking(tmp_path):
         rules_mod.same_statement = real
 
 
+@pytest.mark.needs_bundle
 def test_kitimat_dodd_and_morris_quotas_sit_beside_the_regions(db):
     """The reviewer's pairs: Kitimat's "Hatchery steelhead … daily quota = 2" beside Region 6's
     "Trout/char: 5"; Dodd Lake's "Wild trout/char daily quota = 2" beside Region 2's 4; Morris
@@ -676,6 +690,7 @@ def test_kitimat_dodd_and_morris_quotas_sit_beside_the_regions(db):
 
 
 # G. A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH.
+@pytest.mark.needs_bundle
 def test_a_water_row_naming_the_closed_fish_lifts_the_closure(db):
     """Okanagan River prints "bass daily quota = 8" under Region 8's "Bass: 0 quota, CLOSED TO
     FISHING (see tables for exceptions)" — the row is the exception. The lift is in the data
@@ -692,6 +707,7 @@ def test_a_water_row_naming_the_closed_fish_lifts_the_closure(db):
     assert lift and lift[0]["basis"] == "names_the_fish" and lift[0]["entry_id"] == "z8:species_quotas"
 
 
+@pytest.mark.needs_bundle
 def test_a_group_row_never_reopens_a_named_closure(db):
     """West Road's tributaries print "Trout daily quota = 1": "trout" names no steelhead, so Region
     6's "No fishing: in all rivers and streams for steelhead, May 15 – June 15" stands there."""
@@ -742,6 +758,7 @@ def test_named_lifts_need_both_rules_to_name_the_fish():
 
 
 # H. REGION 8's BROOK TROUT FROM STREAMS ARE COUNTED APART FROM THE TROUT/CHAR QUOTA.
+@pytest.mark.needs_bundle
 def test_region_8_brook_trout_from_streams_are_counted_apart(db):
     """p.68: "Trout/char: 5, but not more than … 4 from streams … And you may retain: 20 brook trout
     from streams". On a stream a brook trout answers to its 20 only; on a lake (where the 20 does
@@ -769,6 +786,7 @@ def test_as_rainbow_reads_a_rule_over_rainbow_of_50_cm_or_less():
         {"lengths": [{"max_cm": 30, "take": 0}]}
 
 
+@pytest.mark.needs_bundle
 def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     """Chilliwack/Vedder downstream of Vedder Crossing. May: "hatchery rainbow trout catch and
     release (50 cm or less)" releases every hatchery rainbow there (every rainbow is 50 cm or less),
@@ -795,6 +813,7 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     assert f"{tc}::trout_char_quota.r2" in _kept(other, (7, 15), "RB")
 
 
+@pytest.mark.needs_bundle
 def test_the_guide_states_the_rulings_of_the_second_round(db):
     from pipeline.tools import export_ui_rules as X
     g = X.build(Path(BUNDLE))["guide"]
@@ -847,6 +866,7 @@ def test_a_larger_water_number_for_a_fish_replaces_the_zones_for_that_fish(tmp_p
     assert _speak(_larger_case(tmp_path / "wide", {}), "DV", (7, 1)) == set()
 
 
+@pytest.mark.needs_bundle
 def test_kootenay_lake_rainbow_10_replaces_region_4s_5(db):
     """p.37: KOOTENAY LAKE — MAIN BODY, "rainbow trout daily quota = 10 (any size)". On the real
     bundle a rainbow there answers to the 10 alone — Region 4's "Trout/char: 5" and its "1 rainbow
@@ -863,6 +883,7 @@ def test_kootenay_lake_rainbow_10_replaces_region_4s_5(db):
     assert f"{Z4}::trout_char_quota.r1" in _kept(sid, (7, 1), "DV")
 
 
+@pytest.mark.needs_bundle
 def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(db):
     """Lois Lake (p.24): "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery
     rainbow trout = 6 / Rainbow trout/hatchery steelhead quota = 6 in the aggregate". The 6 is a
@@ -887,6 +908,7 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
     assert {f"{Z2}::trout_char_quota.r1", f"{Z2}::trout_char_quota.r2"} <= _kept(sid, (7, 1), "CT")
 
 
+@pytest.mark.needs_bundle
 def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
     """Jewel Lake (p.70) "Brook trout daily quota = 20" replaces Region 8's "Trout/char: 5" for
     brook trout AND its "1 over 50 cm", though it prints no "(any size)" (user ruling
@@ -910,6 +932,7 @@ def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
                 "not say"}
 
 
+@pytest.mark.needs_bundle
 def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
     """p.80: "all regulations that apply to trout (as a group) also apply to char unless char are
     specifically excluded". Bootjack Lake's "Trout daily quota = 8" is a trout/char quota: it
@@ -925,6 +948,7 @@ def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
     assert f"{Z5}::trout_char_quota.r5" in _kept(sid, (7, 1), "LT")
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,zone", [
     ("r6:atlin_lake@6-25+6-27", "atlin_lake.r1", "z6"),
     ("r6:bennett_lake@6-28", "bennett_lake.r1", "z6"),
@@ -970,6 +994,7 @@ def _outnumbers_parent(rules, z, n) -> bool:
     return p is not None and n > p
 
 
+@pytest.mark.needs_bundle
 def test_every_larger_water_number_for_a_fish_is_handled(db):
     """THE GUARD for ruling 1, on the real bundle: no water quota that prints a larger number for
     a fish than a zone quota still speaks beside it — except where the lift holds for one origin
@@ -1048,6 +1073,7 @@ def test_the_same_statement_the_waters_number_wins_larger_or_smaller(tmp_path):
     assert _speak(small, "KO", (7, 1)) == {"w.r1"}                  # smaller: the water's 2
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,zone_rule,fish", [
     ("r3:tranquille_lake@3-29", "tranquille_lake.r2", "z3:species_quotas::species_quotas.r4", "KO"),
     ("r6:teslin_lake@6-25", "teslin_lake.r4", "z6:species_quotas::species_quotas.r1", "GR"),
@@ -1060,6 +1086,7 @@ def test_a_larger_same_statement_at_a_real_water_wins(db, eid, rid, zone_rule, f
     assert f"{eid}::{rid}" in got and zone_rule not in got, got
 
 
+@pytest.mark.needs_bundle
 def test_the_dean_still_sits_beside_region_5(db):
     """RULING 3. The Dean's "Trout/char daily quota = 1 (none under 35 cm)" is not Region 5's
     "Trout/char: 5" (a size bound): both speak, the 1 counting toward the 5. MUTATION: with
@@ -1077,6 +1104,7 @@ def test_the_dean_still_sits_beside_region_5(db):
         rules_mod.same_statement = real
 
 
+@pytest.mark.needs_bundle
 def test_the_guide_states_rulings_1_to_3(db):
     from pipeline.tools import export_ui_rules as X
     lad = X.build(Path(BUNDLE))["guide"]["ladder"]
@@ -1166,6 +1194,7 @@ def test_a_lift_for_some_fish_leaves_the_closure_standing_partly_lifted(tmp_path
         assert "c.r1" in got and got["c.r1"].get("partly_lifted"), term
 
 
+@pytest.mark.needs_bundle
 def test_kitimat_steelhead_closure_stands_for_wild_and_hatchery(db):
     """p.49 + p.51: Region 6's steelhead stream closure (May 15 – June 15) prints its own exemption
     list, and the Kitimat is not on it. On the Kitimat mainstem and its tributaries, May 20, the
@@ -1189,6 +1218,7 @@ def test_kitimat_steelhead_closure_stands_for_wild_and_hatchery(db):
         assert close is not None and not close.get("partly_lifted"), via
 
 
+@pytest.mark.needs_bundle
 def test_every_derived_lift_is_region_8s_bass_or_perch(db):
     """After the fix, the derived lifts are Region 8's "(see tables for exceptions)" closures
     only — bass (species_quotas.r1) and yellow perch (species_quotas.r9)."""
@@ -1281,6 +1311,7 @@ def test_every_lift_of_a_region_size_clause_carries_the_caution():
     assert not rules_mod.overrides_size_clause("z8:q", by, "z8:q", size)
 
 
+@pytest.mark.needs_bundle
 def test_every_restored_size_clause_lift_is_in_the_bundle_with_its_caution(db):
     """The 18 lifts R8 removed are back (Ross, Lois, Khartoum, Tranquille, the seven Region 5
     'Trout daily quota = 8' lakes, the six Zone A brook trout lakes, Jewel), and every lift of a
@@ -1321,6 +1352,7 @@ def test_every_restored_size_clause_lift_is_in_the_bundle_with_its_caution(db):
 KITIMAT = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
 
 
+@pytest.mark.needs_bundle
 def test_kitimat_closes_every_tributary_mar16_may31_and_only_hatchery_fish_are_lifted(db):
     """p.57 (printed 51), KITIMAT RIVER [Incl. Tribs]: "No Fishing in tributaries and upstream of
     Hwy 37 bridge, Mar 16-May 31" — EVERY tributary (r2b, by the walk) and the mainstem above the
@@ -1349,6 +1381,7 @@ def test_kitimat_closes_every_tributary_mar16_may31_and_only_hatchery_fish_are_l
     assert got[z6]["state"] == "speaks" and got[z6].get("partly_lifted")
 
 
+@pytest.mark.needs_bundle
 def test_the_kootenay_lake_annual_20_is_stated_once(db):
     """Region 4's 'Annual Quotas' line (p.34) and the Main Body row (p.37) print the same
     rainbow 20 a licence year on the same water. The region's copy is gone and its entry points
@@ -1541,7 +1574,7 @@ Z3_SPRING = "z3:spring_stream_closure::spring_stream_closure.r1"
 def _p3(db):
     if not db.execute("select count(*) from rule where entry_id = ? and rule_id = ?",
                       ("r3:nicola_river@3-13", "nicola_river.r3x")).fetchone()[0]:
-        pytest.skip(f"{BUNDLE} predates the Phase 3 corpus (Nicola lift) — point UI_EXPORT_BUNDLE "
+        predates(f"{BUNDLE} predates the Phase 3 corpus (Nicola lift) — point UI_EXPORT_BUNDLE "
                     f"at a side build")
 
 
@@ -1549,6 +1582,7 @@ def _p3(db):
 # it is closed Jan 1-Jun 30 now, pinned in test_lift_decisions.py.
 
 
+@pytest.mark.needs_bundle
 def test_the_nicola_below_the_lake_is_catch_and_release_jan_feb_not_closed(db):
     """RU-2 (user ruling 2026-10-03, narrowed to trout 2026-10-05): downstream of Nicola Lake the
     row's "Trout catch and release, Jan 1-Feb 28" lifts the spring closure on those dates for
@@ -1568,6 +1602,7 @@ def test_the_nicola_below_the_lake_is_catch_and_release_jan_feb_not_closed(db):
     assert "r3:nicola_river@3-13::nicola_river.r1" in _speaks_any(above, (1, 15), "RB")
 
 
+@pytest.mark.needs_bundle
 def test_the_thompsons_may_release_speaks_alone_over_its_2_per_day(db):
     """RU-3 on the CNR stretch: May 15 the release; Jul 15 the 2 beside Region 3's 5."""
     _p3(db)
@@ -1578,6 +1613,7 @@ def test_the_thompsons_may_release_speaks_alone_over_its_2_per_day(db):
     assert f"{THOMPSON}::thompson_river_downstream_of_kamloops_lake.r2" in _speaks(sid, (7, 15), "RB")
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rel,quota,on", [
     ("r3:adams_lake@3-37", "adams_lake.r2", "adams_lake.r3", (1, 1)),
     ("r5:big_lake_approx_30_km_west_of_likely@5-2", "big_lake_likely.r2", "big_lake_likely.r1",
@@ -1590,6 +1626,7 @@ def test_a_lakes_dated_lake_trout_release_silences_its_own_1_per_day(db, eid, re
     assert f"{eid}::{rel}" in got and f"{eid}::{quota}" not in got
 
 
+@pytest.mark.needs_bundle
 def test_region_5s_steelhead_release_empties_its_2_from_streams(db):
     """RU-4 on a Region 5 stream with no row: for a steelhead only the release (and the
     provincial steelhead rules) speak; the "2 per day … from streams" is gone."""
@@ -1603,6 +1640,7 @@ def test_region_5s_steelhead_release_empties_its_2_from_streams(db):
         sid, (7, 1), "RB", key=("retention_limit", "daily@water=stream"))
 
 
+@pytest.mark.needs_bundle
 def test_lakelse_lakes_none_over_50_displaces_region_6s_1_over_50(db):
     _p3(db)
     sid = _sid(db, "r6:lakelse_lake@6-11", "lakelse_lake.r1")
@@ -1613,6 +1651,7 @@ def test_lakelse_lakes_none_over_50_displaces_region_6s_1_over_50(db):
     assert "z6:trout_char_quota::trout_char_quota.r2" not in got
 
 
+@pytest.mark.needs_bundle
 def test_the_okanagans_steelhead_is_answered_as_its_rainbow(db):
     """RU-6: `steelhead_rules` is false on the Okanagan River; "ST" there is the river's
     "Rainbow trout catch and release", not Region 8's trout/char quotas."""
@@ -1622,6 +1661,7 @@ def test_the_okanagans_steelhead_is_answered_as_its_rainbow(db):
     assert _speaks(sid, (7, 1), "ST") == {"r8:okanagan_river@8-1::okanagan_river.r5"}
 
 
+@pytest.mark.needs_bundle
 def test_michel_creek_in_may_shows_the_closure_without_region_4s_quotas(db):
     _p3(db)
     sid = db.execute(
@@ -1639,6 +1679,7 @@ def test_michel_creek_in_may_shows_the_closure_without_region_4s_quotas(db):
     assert "z4:trout_char_quota::trout_char_quota.r1" in jul
 
 
+@pytest.mark.needs_bundle
 def test_ahbau_lake_prints_region_5s_5_per_day_once(db):
     _p3(db)
     sid = db.execute(

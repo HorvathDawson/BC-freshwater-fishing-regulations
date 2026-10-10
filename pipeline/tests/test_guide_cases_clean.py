@@ -21,6 +21,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as RD
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
@@ -71,7 +72,8 @@ NEW = {
 
 
 @pytest.fixture(scope="module")
-def doc() -> dict:
+def doc(request) -> dict:
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
@@ -99,6 +101,7 @@ def _sid(case) -> int:
     return got[0]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("mech", sorted(NEW))
 def test_every_new_mechanism_has_a_clean_case(by_mech, mech):
     """RU-3 (the Thompson's CNR stretch in May, Alta Lake's winter closure), RU-4, RU-5, RU-7,
@@ -118,6 +121,7 @@ def test_every_new_mechanism_has_a_clean_case(by_mech, mech):
     assert set(speak) | set(absent) <= set(c["because"])
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("mech", sorted(NEW))
 def test_the_expect_is_the_reference_readers(by_mech, mech):
     """A case is the reference semantics, never a hand-written answer: re-asked, the reader gives
@@ -130,6 +134,7 @@ def test_the_expect_is_the_reference_readers(by_mech, mech):
     assert got == c["expect"]
 
 
+@pytest.mark.needs_bundle
 def test_the_thompson_cnr_stretch_speaks_its_2_only_after_the_spring_closure(by_mech):
     """The `same_row_release` text's months, re-asked: May the release, June the zone's spring
     stream closure (strict lift ruling), July to September the row's 2."""
@@ -146,12 +151,14 @@ def test_the_thompson_cnr_stretch_speaks_its_2_only_after_the_spring_closure(by_
 
 
 # ---- the texts ----------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_two_regions_text_states_ru8(doc):
     t = doc["guide"]["ladder"]["two_regions"]
     assert "equal rules both speak" not in t
     assert "shown once" in t and "two_regions_same_statement" in t
 
 
+@pytest.mark.needs_bundle
 def test_the_60cm_texts_say_what_the_reader_does(doc):
     """The three ladder texts send the size clause to `moot_size_clause` (not shown), and none
     says it stays beside any more."""
@@ -163,6 +170,7 @@ def test_the_60cm_texts_say_what_the_reader_does(doc):
     assert "superior" in m and "hatchery-only" in m and "no gear in the water" in m
 
 
+@pytest.mark.needs_bundle
 def test_eleven_mile_creek_hides_the_60cm_clause_under_the_zone_release_and_closure():
     """Region 3, no row. Aug 1, a bull trout: the zone's 'from streams' release speaks and 'none
     under 60 cm' is not shown; May 1, a lake trout: the spring stream closure, likewise."""
@@ -182,6 +190,7 @@ def test_eleven_mile_creek_hides_the_60cm_clause_under_the_zone_release_and_clos
     assert "z3:spring_stream_closure::spring_stream_closure.r1" in may and f"{Z3}.r4b" not in may
 
 
+@pytest.mark.needs_bundle
 def test_the_set_ids_and_splits_notes_ship(doc):
     F = doc["field_dictionary"]["file"]
     assert "VALID ONLY WITHIN ONE BUNDLE DIGEST" in F["rulesets"] and "set_keys" in F["rulesets"]

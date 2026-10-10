@@ -18,7 +18,6 @@ import re
 import struct
 from pathlib import Path
 
-import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -51,9 +50,7 @@ def test_the_writer_still_writes_this_layout():
 
 def test_the_app_reads_the_same_offsets():
     """The reader must use THIS stride and THESE offsets, not its own arithmetic."""
-    ts = ROOT / "app/packages/data/src/bundle/source.ts"
-    if not ts.exists():
-        pytest.skip("app/ not present")
+    ts = ROOT / "app/packages/data/src/bundle/source.ts"   # tracked: app/ is in git
     src = ts.read_text(encoding="utf-8")
 
     assert f"o += {STRIDE}" in src and f"o + {STRIDE} <= bytes.byteLength" in src, (

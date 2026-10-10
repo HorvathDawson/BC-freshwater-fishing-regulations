@@ -21,17 +21,20 @@ from pipeline.deliver import calendar as CAL
 
 from pipeline.regs.parsing import catalogue as C
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
 
 
 @pytest.fixture(scope="module")
-def doc() -> dict:
+def doc(request) -> dict:
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     return X.build(BUNDLE)
 
 
 @pytest.fixture(scope="module")
-def db():
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -40,6 +43,7 @@ def db():
 # ---------------------------------------------------------------------------------------
 # Complete: every record once, and what it says is what the bundle says
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_every_rule_appears_exactly_once_and_reads_as_the_bundle(doc, db):
     rows = {f"{e}::{r}": (lab, verb) for e, r, lab, verb in
             db.execute("SELECT entry_id, rule_id, label, verbatim FROM rule")}
@@ -51,6 +55,7 @@ def test_every_rule_appears_exactly_once_and_reads_as_the_bundle(doc, db):
         assert x["label"] and x["verbatim"] and x["provenance"]["authority"]
 
 
+@pytest.mark.needs_bundle
 def test_every_rule_carries_its_fields_exactly_as_shipped(doc, db):
     cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
     for row in db.execute("SELECT * FROM rule"):
@@ -73,6 +78,7 @@ def _lifts_lost(doc, db) -> list[str]:
             if doc["rules"][f"{e}::{r}"]["fields"].get("exempts") != json.loads(x)]
 
 
+@pytest.mark.needs_bundle
 def test_every_lift_in_the_bundle_reaches_the_export(doc, db):
     """`exempts` left `conditions` for a column of its own. An export that reads only the
     conditions ships a corpus in which nothing lifts anything — the North Thompson closed on
@@ -84,6 +90,7 @@ def test_every_lift_in_the_bundle_reaches_the_export(doc, db):
     assert "exempts" in doc["field_dictionary"]["rule.fields"]
 
 
+@pytest.mark.needs_bundle
 def test_the_lift_check_catches_an_export_that_drops_the_column(db, monkeypatch):
     """Mutation pin: the export as it was — `exempts` not among the rule columns."""
     monkeypatch.setattr(X, "_RULE_COLUMNS",
@@ -93,6 +100,7 @@ def test_the_lift_check_catches_an_export_that_drops_the_column(db, monkeypatch)
         "SELECT COUNT(*) FROM rule WHERE exempts IS NOT NULL").fetchone()[0]
 
 
+@pytest.mark.needs_bundle
 def test_a_zone_rule_is_scoped_by_what_it_states_itself(doc):
     """No rule inherits its entry's extents. A zone rule with extents of its own is scoped by them
     (a region table, carve-out or not, is `region`); one with none names its place in words
@@ -118,6 +126,7 @@ def test_a_zone_rule_is_scoped_by_what_it_states_itself(doc):
     # test_no_extents_but_a_named_place_is_that_place).
     assert own, "nothing here was tested"
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("table,idcol", [(t, c) for t, c, _ in X._LIC_TABLES])
 def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db, table, idcol):
     cols = [r[1] for r in db.execute(f"PRAGMA table_info({table})")]
@@ -138,11 +147,13 @@ def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db,
     assert sorted(i for i in listed if i in got) == sorted(got)
 
 
+@pytest.mark.needs_bundle
 def test_every_entry_is_exported(doc, db):
     assert set(doc["entries"]) == {e for (e,) in db.execute("SELECT entry_id FROM entry")}
     assert {e["kind"] for e in doc["entries"].values()} <= {"province", "zone", "area", "water"}
 
 
+@pytest.mark.needs_bundle
 def test_membership_is_the_bundles(doc, db):
     for table, sets, n_table in (("ruleset", "rulesets", "section_ruleset"),
                                  ("licensing_set", "licensing_sets", "section_licensing")):
@@ -162,6 +173,7 @@ def test_membership_is_the_bundles(doc, db):
 # ---------------------------------------------------------------------------------------
 # A water's parts: the (ruleset, licensing set) pairs its sections carry TOGETHER
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
     """The Dean's eight (ruleset, licensing set) combinations used to read as five rule sets
     beside four licensing sets; which Class I unit went with which closure was lost."""
@@ -193,6 +205,7 @@ def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
         assert "province_except" not in w, f"{item}: province_except is a per-part fact"
 
 
+@pytest.mark.needs_bundle
 def test_a_national_park_part_is_marked_on_the_part(doc, db):
     """The park's sections of a water are their own part, carrying `province_except` — so a page
     shows the park stretch without inferring it from the permit (consumer review, 2026-09-25)."""
@@ -203,6 +216,7 @@ def test_a_national_park_part_is_marked_on_the_part(doc, db):
     assert n and got == n
 
 
+@pytest.mark.needs_bundle
 def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):
     n = db.execute("SELECT COUNT(*) FROM section_licensing l LEFT JOIN section_ruleset r "
                    "ON r.sid = l.sid JOIN item_section s ON s.sid = l.sid "
@@ -215,6 +229,7 @@ def test_a_licensing_set_with_no_rule_set_survives_as_null(doc, db):
 # ---------------------------------------------------------------------------------------
 # Water outside B.C.
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_licensing(doc, db):
     """Nitinat Lake is tidal (p.17): the water says so with the words to show, its sections carry
     only the tidal row's own rules and no licensing set, and every province-wide requirement stops
@@ -244,6 +259,7 @@ def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_lic
     assert doc["guide"]["placement"]["tidal"]
 
 
+@pytest.mark.needs_bundle
 def test_water_outside_bc_is_counted_and_carries_no_set(doc, db):
     want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
                            "ON s.ord = i.ord JOIN outside_bc o ON o.sid = s.sid GROUP BY 1"))
@@ -261,12 +277,14 @@ def test_water_outside_bc_is_counted_and_carries_no_set(doc, db):
 # ---------------------------------------------------------------------------------------
 # Where a rule is: never the whole water beside a part in words; labels are not list items
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_no_rule_binds_the_whole_water_beside_a_part_in_words(doc):
     bad = [i for i, x in doc["rules"].items()
            if x["fields"].get("extents") == [{"op": "whole"}] and x["fields"].get("extent_text")]
     assert bad == []
 
 
+@pytest.mark.needs_bundle
 def test_every_rule_says_where_it_holds_and_the_bundle_agrees(doc, db):
     """`binds` is read off the bundle's own columns: `nowhere` exactly when the reach could not
     place it, `sections_in_part` exactly when it holds only in an undrawn part."""
@@ -284,13 +302,14 @@ def test_every_rule_says_where_it_holds_and_the_bundle_agrees(doc, db):
                                           if x["binds"] == "sections_in_part")
 
 
+@pytest.mark.needs_bundle
 def test_the_binds_check_catches_an_export_that_ignores_the_part(db, monkeypatch):
     """Mutation: an export that reads only `uncertain` would ship an undrawn part as a rule that
     holds on the whole water."""
     monkeypatch.setattr(X, "_binds", lambda r: "nowhere" if r["uncertain"] else "sections")
     d = X.build(BUNDLE)
     if not any(d["rules"][i]["fields"].get("undrawn_part") for i in d["rules"]):
-        pytest.skip("this bundle has no rule with an undrawn part")
+        pytest.fail("pinned: this bundle has no rule with an undrawn part, so the mutation proves nothing")
     with pytest.raises(AssertionError):
         test_every_rule_says_where_it_holds_and_the_bundle_agrees(d, db)
 
@@ -302,6 +321,7 @@ HELD_IN_PART = [("r3:shuswap_lake_", f"shuswap_lake.r{n}") for n in range(1, 6)]
     ("r7:nation_arm_williston_lake@", "nation_arm.r2")]
 
 
+@pytest.mark.needs_bundle
 def test_the_part_lake_rules_are_held_on_their_water_as_notes(doc):
     got = {(pre, rid): x for x in doc["rules"].values() for pre, rid in HELD_IN_PART
            if x["entry_id"].startswith(pre) and x["rule_id"] == rid}
@@ -311,6 +331,7 @@ def test_the_part_lake_rules_are_held_on_their_water_as_notes(doc):
     assert all(" — in part: " in x["label"] for x in got.values())
 
 
+@pytest.mark.needs_bundle
 def test_no_default_ships_on_a_rule_it_does_not_apply_to(doc):
     """`period` belongs to the counting types, and every one of them states it; `obligation`
     ships only as advice. 1,549 bait bans and boat rules said "daily", and 3,348 rules "must"."""
@@ -329,6 +350,7 @@ def _squash(t: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", (t or "").lower()).strip()
 
 
+@pytest.mark.needs_bundle
 def test_every_record_ships_its_parts_in_the_model_s_order(doc, db):
     for i, x in doc["rules"].items():
         assert list(x["parts"]) == [k for k in C.LABEL_PARTS if k in x["parts"]], i
@@ -340,6 +362,7 @@ def test_every_record_ships_its_parts_in_the_model_s_order(doc, db):
     assert {i: x["parts"] for i, x in doc["rules"].items()} == got
 
 
+@pytest.mark.needs_bundle
 def test_the_preview_is_the_one_composer_s(doc):
     """`label` is catalogue.compose(parts): there is no second composer to drift from it."""
     for i, x in doc["rules"].items():
@@ -348,6 +371,7 @@ def test_the_preview_is_the_one_composer_s(doc):
         assert x["label"] == C.compose_licensing(x["parts"]), i
 
 
+@pytest.mark.needs_bundle
 def test_no_part_is_the_verbatim(doc):
     """A part is generated from fields. A long sentence found whole inside a part was copied, not
     generated (a short one — "Bait ban" — may coincide with what its fields say)."""
@@ -357,6 +381,7 @@ def test_no_part_is_the_verbatim(doc):
     assert bad == []
 
 
+@pytest.mark.needs_bundle
 def test_no_part_starts_with_a_list_marker(doc):
     import re
     marker = re.compile(r"^\s*(\d{1,2}[.)]|\([a-z0-9ivx]{1,3}\)|[•–-]\s)")
@@ -365,6 +390,7 @@ def test_no_part_starts_with_a_list_marker(doc):
     assert bad == []
 
 
+@pytest.mark.needs_bundle
 def test_a_place_stated_in_words_is_in_where_not_only_in_the_verbatim(doc):
     """The standing buffers print "3. Within 23 m downstream …" and Pitt River "No Fishing within
     Garibaldi Park": each carries its place in `where`."""
@@ -377,16 +403,19 @@ def test_a_place_stated_in_words_is_in_where_not_only_in_the_verbatim(doc):
     assert pitt and "Garibaldi Park" in pitt[0]["parts"].get("where", "")
 
 
+@pytest.mark.needs_bundle
 def test_the_parts_are_explained_by_the_guide(doc):
     g = doc["guide"]["labels"]
     assert set(g["rule_parts"]) == set(C.LABEL_PARTS)
     assert set(g["licensing_parts"]) == set(C.LICENSING_PARTS)
 
 
+@pytest.mark.needs_bundle
 def test_no_label_carries_the_book_s_markdown(doc):
     assert [i for i, x in doc["rules"].items() if "**" in x["label"]] == []
 
 
+@pytest.mark.needs_bundle
 def test_no_label_starts_with_a_list_marker(doc):
     import re
     marker = re.compile(r"^\s*(\d{1,2}[.)]|\([a-z0-9ivx]{1,3}\)|[•–-]\s)")
@@ -395,6 +424,7 @@ def test_no_label_starts_with_a_list_marker(doc):
     assert bad == []
 
 
+@pytest.mark.needs_bundle
 def test_a_bound_rule_on_a_cut_point_names_its_place(doc):
     """226 labels read exactly "No fishing" when a cut-point never reached the label."""
     from pipeline.tools.export_ui_rules import _f
@@ -411,6 +441,7 @@ def test_a_bound_rule_on_a_cut_point_names_its_place(doc):
 # ---------------------------------------------------------------------------------------
 # The guide: `while` is two kinds of token; the methods reading rule; fly only is two laws
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_while_groups_partition_the_validator_s_vocabulary(doc):
     w = doc["guide"]["gear"]["while"]
     means, devices = set(w["means_of_fishing"]["tokens"]), set(w["devices"]["tokens"])
@@ -418,6 +449,7 @@ def test_the_while_groups_partition_the_validator_s_vocabulary(doc):
     assert "downrigger" in devices and "angling" in means
 
 
+@pytest.mark.needs_bundle
 def test_the_province_allows_angling_and_ice_fishing(doc):
     """The book grants both in its Allowable Fishing Methods; the corpus stored only their counts,
     so a consumer read angling as a method no rule allows."""
@@ -427,6 +459,7 @@ def test_the_province_allows_angling_and_ice_fishing(doc):
     assert "All other methods of taking fin fish and crayfish are illegal." in m["book"]["text"]
 
 
+@pytest.mark.needs_bundle
 def test_the_two_fly_only_laws_each_name_the_other(doc):
     slots = doc["guide"]["gear"]["slots"]
     assert slots["lure"]["definitions"]["differs_from"] == "method"
@@ -435,12 +468,14 @@ def test_the_two_fly_only_laws_each_name_the_other(doc):
     assert "may not be attached" in slots["method"]["definitions"]["book"]
 
 
+@pytest.mark.needs_bundle
 def test_an_exemption_releases_the_duties_that_presume_its_documents(doc):
     assert any("presumes" in line for line in doc["guide"]["licensing"]["rules_of_reading"])
     assert doc["licensing"]["zp:licence_administration#produce_licence"]["fields"]["presumes"] \
         == ["basic_licence"]
 
 
+@pytest.mark.needs_bundle
 def test_the_angler_closures_are_all_there(doc, db):
     want = {f"{e}::{r}" for e, r in
             db.execute("SELECT entry_id, rule_id FROM rule WHERE type = 'angler_closure'")}
@@ -448,6 +483,7 @@ def test_the_angler_closures_are_all_there(doc, db):
     assert set(doc["index"]["rules_by_type"]["angler_closure"]) == want
 
 
+@pytest.mark.needs_bundle
 def test_counts_are_computed_not_remembered(doc, db):
     c = doc["about"]["counts"]
     assert c["rules"] == db.execute("SELECT COUNT(*) FROM rule").fetchone()[0]
@@ -459,10 +495,12 @@ def test_counts_are_computed_not_remembered(doc, db):
 # ---------------------------------------------------------------------------------------
 # References
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_every_reference_the_export_makes_resolves(doc):
     assert X.dangling(doc) == []
 
 
+@pytest.mark.needs_bundle
 def test_every_reference_between_records_resolves(doc):
     """A defect in the CORPUS, not the export — the file ships the list under
     `about.unresolved_references`; this keeps it visible until it is empty."""
@@ -470,6 +508,7 @@ def test_every_reference_between_records_resolves(doc):
     assert doc["about"]["unresolved_references"] == []
 
 
+@pytest.mark.needs_bundle
 def test_the_reference_check_catches_a_dangling_id(doc):
     bad = {k: doc[k] for k in ("entries", "rulesets", "licensing_sets", "waters", "index",
                                "guide", "rules", "licensing")}
@@ -487,6 +526,7 @@ def test_the_reference_check_catches_a_dangling_id(doc):
 # ---------------------------------------------------------------------------------------
 # No retired field, anywhere — and the check can fail
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_no_retired_field_appears_anywhere(doc):
     assert X.retired_keys(doc) == []
 
@@ -498,6 +538,7 @@ def _one_rule_doc(doc, mutate):
     return {"rules": {rid: x}, "licensing": {}, "guide": {}, "field_dictionary": {}}
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("name,mutate", [
     ("windows", lambda x: x["fields"].update(windows=[])),
     ("when_open", lambda x: x["fields"].update(when_open=False)),
@@ -513,6 +554,7 @@ def test_the_retired_check_catches_an_injected_key(doc, name, mutate):
     assert X.retired_keys(_one_rule_doc(doc, mutate)), name
 
 
+@pytest.mark.needs_bundle
 def test_a_current_key_that_shares_a_retired_name_is_not_flagged(doc):
     """`method` is retired as a RULE field and current as a gear-clause condition."""
     ok = _one_rule_doc(doc, lambda x: x["fields"].update(
@@ -520,6 +562,7 @@ def test_a_current_key_that_shares_a_retired_name_is_not_flagged(doc):
     assert X.retired_keys(ok) == []
 
 
+@pytest.mark.needs_bundle
 def test_the_retired_check_catches_a_licensing_key(doc):
     lid = next(iter(doc["licensing"]))
     x = copy.deepcopy(doc["licensing"][lid])
@@ -530,6 +573,7 @@ def test_the_retired_check_catches_a_licensing_key(doc):
 # ---------------------------------------------------------------------------------------
 # The guide explains every registry member, in words the model still has
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_every_type_kind_slot_and_act_is_explained(doc):
     g = doc["guide"]
     assert set(g["rule_types"]) == {t.value for t in C.RuleType}
@@ -543,11 +587,13 @@ def test_every_type_kind_slot_and_act_is_explained(doc):
     assert X.unexplained(doc) == []
 
 
+@pytest.mark.needs_bundle
 def test_every_guide_section_in_the_contents_exists(doc):
     g = doc["guide"]
     assert list(g["contents"]) == [k for k in g if k != "contents"]
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("table,drop", [("TYPE_TEXT", "angler_closure"), ("SLOT_TEXT", "barb"),
                                         ("CLAUSE_TEXT", "unless"),
                                         ("LICENSING_KIND_TEXT", "exemption")])
@@ -558,11 +604,13 @@ def test_a_missing_explanation_is_caught(doc, monkeypatch, table, drop):
     assert any(drop in p for p in X.unexplained(doc))
 
 
+@pytest.mark.needs_bundle
 def test_words_for_a_field_the_model_lost_are_caught(doc, monkeypatch):
     monkeypatch.setattr(X, "RULE_FIELD_TEXT", dict(X.RULE_FIELD_TEXT, when_open="stale"))
     assert any("when_open" in p for p in X.unexplained(doc))
 
 
+@pytest.mark.needs_bundle
 def test_the_field_dictionary_is_exactly_what_ships(doc):
     fd = doc["field_dictionary"]
     shipped = {k for x in doc["rules"].values() for k in x["fields"]}
@@ -609,6 +657,7 @@ def _undescribed(doc) -> list[str]:
     return sorted(set(out))
 
 
+@pytest.mark.needs_bundle
 def test_every_key_in_the_data_has_a_field_dictionary_entry(doc):
     """Every top-level key, and every field of a water, a part, a run, a rule (record, `fields`,
     `provenance`) and a licensing record (record, `fields`, `provenance`, `period`), has a
@@ -638,6 +687,7 @@ def _first(d):
     return next(iter(d))
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("where", ["top", "water", "part", "run", "rule", "rule.fields",
                                    "licensing", "licensing.fields", "dictionary"])
 def test_an_undescribed_key_is_caught(doc, where):
@@ -673,6 +723,7 @@ def test_an_undescribed_key_is_caught(doc, where):
     assert X.dictionary_gaps(bad), where
 
 
+@pytest.mark.needs_bundle
 def test_every_guide_example_is_a_real_record_quoted_exactly(doc):
     found = []
 
@@ -696,6 +747,7 @@ def test_every_guide_example_is_a_real_record_quoted_exactly(doc):
             assert x["fields"][k] == v, (ex["id"], k)
 
 
+@pytest.mark.needs_bundle
 def test_each_concept_has_a_live_example(doc):
     g = doc["guide"]
     for t, v in g["rule_types"].items():
@@ -715,6 +767,7 @@ def test_each_concept_has_a_live_example(doc):
 # ---------------------------------------------------------------------------------------
 # Deterministic, and refuses a bundle it cannot read whole
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_output_is_deterministic(doc):
     assert X.dumps(X.build(BUNDLE)) == X.dumps(doc)
 
@@ -744,6 +797,7 @@ def test_a_bundle_without_the_exempts_column_is_refused(tmp_path):
         X.build(p)
 
 
+@pytest.mark.needs_bundle
 def test_no_two_rules_of_an_entry_share_a_label_unless_they_say_the_same(doc):
     """Eighteen pairs of rules in one entry read the same "No fishing" over different water.
     A shared label is allowed only where the label IS the printed sentence, or the two rules differ
@@ -764,6 +818,7 @@ def test_no_two_rules_of_an_entry_share_a_label_unless_they_say_the_same(doc):
     assert bad == [], bad[:10]
 
 
+@pytest.mark.needs_bundle
 def test_a_lake_cut_into_parts_is_read_through_its_parts(doc):
     """Kootenay Lake's own entry is the leftover of the cut (one section, no entry); the guide says
     so and names every such whole, each with the parts that point at it."""
@@ -794,6 +849,7 @@ def _case_section(db, c) -> int | None:
         (int(c["ruleset"]), c["water"]["item_id"], bool(c.get("anadromous_rainbow")))).fetchone()[0]
 
 
+@pytest.mark.needs_bundle
 def test_every_case_expects_what_the_reference_answers(doc, db):
     """Each case's `expect` IS `read.effective_rules` on a section of that water's part, at the
     case's moment (`at`) where it names one — asked
@@ -819,6 +875,7 @@ def test_every_case_expects_what_the_reference_answers(doc, db):
         assert c["because"] or c["mechanism"] == "outside_bc", c["mechanism"]
 
 
+@pytest.mark.needs_bundle
 def test_every_mechanism_has_a_real_case(doc):
     """A mechanism whose predicate finds nothing fails loudly — here and in `problems`, which
     refuses the export. MUTATION: dropping a mechanism's cases makes `case_problems` name it."""
@@ -833,6 +890,7 @@ def test_every_mechanism_has_a_real_case(doc):
     assert X.case_problems(broken) == ["guide.cases: no real case of two_regions_lake"]
 
 
+@pytest.mark.needs_bundle
 def test_the_cases_show_their_mechanisms(doc):
     """A few cases, read for what they claim: a larger water number speaks alone, a water quota
     saying something else sits beside the zone's, a lake across two regions loses a rule of one
@@ -860,6 +918,7 @@ def test_the_cases_show_their_mechanisms(doc):
 # ---------------------------------------------------------------------------------------
 # 2026-09-26 rulings: the book's species, the size-clause caution, places not yet mapped
 # ---------------------------------------------------------------------------------------
+@pytest.mark.needs_bundle
 def test_the_species_section_is_the_book_s_list(doc):
     """`species.fish` is p.80's list and nothing else, under the book's headings; bull trout is
     the Dolly Varden; 'trout' is TROUT_CHAR and TROUT is refused."""
@@ -885,6 +944,7 @@ def test_the_species_section_is_the_book_s_list(doc):
     assert used <= named, used - named
 
 
+@pytest.mark.needs_bundle
 def test_a_rule_in_an_undrawn_part_is_flagged_prominent(doc):
     """Every rule held on its water only as a note (`binds: sections_in_part`) carries
     `not_yet_mapped` — display prominent, its part in words, the sentence to show — and no other
@@ -932,6 +992,7 @@ def test_an_unidentified_part_reads_as_what_is_true():
         "drawn on the map yet." + tail)
 
 
+@pytest.mark.needs_bundle
 def test_the_gotchas_carry_the_size_clause_caution(doc):
     """The guide's gotchas say what to show beside a lift of a region's size clause, and count
     the lifts that carry the caution from the data."""
@@ -949,6 +1010,7 @@ def test_the_gotchas_carry_the_size_clause_caution(doc):
     assert "caution" in doc["field_dictionary"]["rule.fields.exempts[]"]
 
 
+@pytest.mark.needs_bundle
 def test_every_case_asks_about_a_fish_of_the_book(doc):
     """A case's `fish` is a leaf of p.80's list — what an angler catches — never a group or an
     open subject (the superior-authority case once asked about "PROTECTED_SPECIES")."""
@@ -957,6 +1019,7 @@ def test_every_case_asks_about_a_fish_of_the_book(doc):
     assert not bad, bad
 
 
+@pytest.mark.needs_bundle
 def test_every_case_says_what_to_show(doc):
     """guide.cases are sample waters for the page builder: each carries a plain line saying what
     to show, filled with its water. The kinds added 2026-09-26 are all there."""
@@ -972,6 +1035,7 @@ def test_every_case_says_what_to_show(doc):
     assert any(x["state"] == "speaks" and x["id"].startswith("z") for x in und["expect"])
 
 
+@pytest.mark.needs_bundle
 def test_the_gotchas_name_the_source_artefacts(doc):
     """GOAT RIVER 4-6's "Leadville Creek Cameron Creek" is map labels, not a rule (user ruling
     2026-09-30): the guide says so, and no rule in the export quotes it."""
@@ -984,6 +1048,7 @@ def test_the_gotchas_name_the_source_artefacts(doc):
             assert a["text"].lower() not in (x.get("verbatim") or "").lower(), x["id"]
 
 
+@pytest.mark.needs_bundle
 def test_the_gotchas_say_where_closures_combine_and_where_a_dated_bait_ban_replaces(doc, db):
     """User decisions 2026-10-05: every entry whose own closure overlaps a zone seasonal closure
     carries a note that BOTH hold (`closures_combine`, generated from the sets) — the Nahatlatch
@@ -1030,6 +1095,7 @@ FULTON = "r6:fulton_river@6-8"
 WINTER6 = "z6:skeena_nass_winter_closure::skeena_nass_winter_closure.r1"
 
 
+@pytest.mark.needs_bundle
 def test_every_both_hold_claim_is_the_readers(doc, db):
     """Review M1 (2026-10-05): a `row_closure` note says "both hold" only on the days and for the
     fish the READER has the zone closure speaking outside the row's dates (`zone_holds`), and
@@ -1115,6 +1181,7 @@ RECORD_PAIRS = {
 }
 
 
+@pytest.mark.needs_bundle
 def test_every_annual_quota_with_a_record_duty_is_linked(doc):
     """A page added its own "Record each one you keep on your licence" under the steelhead 10,
     beside the printed steelhead.r4: the duty twice. Each annual quota whose printed record rule
@@ -1140,6 +1207,7 @@ def _cut(doc):
     return {"rules": copy.deepcopy(doc["rules"]), "rulesets": copy.deepcopy(doc["rulesets"])}
 
 
+@pytest.mark.needs_bundle
 def test_the_record_link_check_catches_a_dropped_link(doc):
     bad = _cut(doc)
     del bad["rules"]["zp:steelhead::steelhead.r1"]["recorded_by"]
@@ -1148,6 +1216,7 @@ def test_the_record_link_check_catches_a_dropped_link(doc):
            "zp:steelhead::steelhead.r4" in got
 
 
+@pytest.mark.needs_bundle
 def test_the_record_link_check_catches_a_duty_not_in_force_where_the_quota_is(doc):
     bad = _cut(doc)
     q, r = f"{KOOTENAY_MAIN}::kootenay_lake_main_body.r6", \
@@ -1160,6 +1229,7 @@ def test_the_record_link_check_catches_a_duty_not_in_force_where_the_quota_is(do
         in X.record_link_problems(bad)
 
 
+@pytest.mark.needs_bundle
 def test_the_record_link_check_catches_an_ambiguous_duty(doc):
     bad = _cut(doc)
     twin = "zp:steelhead::steelhead.r4_twin"
@@ -1173,6 +1243,7 @@ def test_the_record_link_check_catches_an_ambiguous_duty(doc):
                for p in X.record_link_problems(bad))
 
 
+@pytest.mark.needs_bundle
 @pytest.mark.parametrize("field,value", [("origin", "wild"), ("species", ["CT"]),
                                          ("when", {"dates": [{"from_month": 1, "from_day": 1,
                                                               "to_month": 3, "to_day": 31}]})])

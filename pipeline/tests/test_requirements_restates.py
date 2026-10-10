@@ -13,6 +13,7 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tools import export_ui_rules as X
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 DEAN_I = "r5:dean_river@5-9"
@@ -20,9 +21,8 @@ SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 
 
 @pytest.fixture(scope="module")
-def db():
-    if not BUNDLE.exists():
-        pytest.skip("no bundle")
+def db(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     yield con
     con.close()
@@ -38,6 +38,7 @@ def _sid(db, eid, rid=None):
     return sid
 
 
+@pytest.mark.needs_bundle
 def test_the_dean_holds_one_classified_waters_licence_key_and_one_stamp_key(db):
     """Three records said "Classified Waters Licence" on the Dean (the province's, Region 4's
     wording, the Dean row's restatement) and two said "classified steelhead stamp" (the
@@ -63,6 +64,7 @@ def test_the_dean_holds_one_classified_waters_licence_key_and_one_stamp_key(db):
     assert folded, "the Dean row's restatement is folded where it holds"
 
 
+@pytest.mark.needs_bundle
 def test_a_rows_stamp_restating_the_provinces_is_folded_into_it(db):
     sid = _sid(db, SHUSWAP, "shuswap_lake.r1") if db.execute(
         "select 1 from rule where entry_id = ? and rule_id = 'shuswap_lake.r1'",
@@ -76,6 +78,7 @@ def test_a_rows_stamp_restating_the_provinces_is_folded_into_it(db):
         f"{SHUSWAP}#shuswap_char_stamp"]
 
 
+@pytest.mark.needs_bundle
 def test_a_zone_tables_restatement_holds_on_its_own_region_only(db):
     """Region 4's "Classified Waters Licence … East Kootenay rivers" holds on a Region 4
     classified water, folded into the province's as `also_printed`; never on the Dean."""
@@ -87,6 +90,7 @@ def test_a_zone_tables_restatement_holds_on_its_own_region_only(db):
         got["also_printed"].get("zp:classified_waters_licence#classified_waters_licence", [])
 
 
+@pytest.mark.needs_bundle
 def test_every_dated_water_release_under_a_blanket_closure_is_listed_as_known(db):
     """The export refuses one that is not (`RELEASE_UNDER_CLOSURE_KNOWN`); on a bundle from before
     the Nicola lift (RU-2) the Nicola is the one unlisted finding."""
@@ -103,6 +107,7 @@ def test_every_dated_water_release_under_a_blanket_closure_is_listed_as_known(db
             {"about": {"release_under_closure": got}})) == len(unlisted)
 
 
+@pytest.mark.needs_bundle
 def test_every_water_quota_silenced_under_a_blanket_closure_is_listed_as_known(db, monkeypatch):
     """Review F5: since RU-7 a full closure silences a water row's group-named quota on its days,
     so a missed exemption shaped like a quota would vanish from the page. The export lists every

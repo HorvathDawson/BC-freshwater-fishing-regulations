@@ -8,6 +8,7 @@ import pytest
 from pipeline.common.models import SplitDef
 from pipeline.atlas.splits.splits import load_split_defs
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.tests.conftest import need, ATLAS_HINT
 
 # The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
 # The by-waterbody shape — the only one the loader reads. Each split names its own target in
@@ -141,6 +142,7 @@ def test_lake_anchor_offset_still_needs_a_direction():
         SplitAnchor.from_dict({"type": "lake", "wbk": "1", "offset_m": 100})
 
 
+@pytest.mark.needs_atlas
 def test_every_waterbody_block_targets_a_real_registry_item():
     """A `applies_to` naming an item that does not exist strands every split under it, silently.
 
@@ -157,9 +159,7 @@ def test_every_waterbody_block_targets_a_real_registry_item():
     from pipeline.atlas.registry import load_registry
 
     from pipeline.common.curated import GENERATED
-    reg_path = GENERATED.build() / "registry.json"
-    if not reg_path.exists():
-        pytest.skip("no built registry")
+    reg_path = need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     from pipeline.regs.matching.matcher import build_id_index
 
     reg = load_registry(reg_path)

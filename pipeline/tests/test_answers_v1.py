@@ -32,6 +32,7 @@ from pipeline.deliver.answers import gear as G
 from pipeline.deliver.answers import licence as L
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
@@ -42,18 +43,19 @@ WATERS = (CHILLIWACK, KITIMAT, PEACE, "gnis:39298", "wbk:329518145")    # + Dene
 
 
 @pytest.fixture(scope="module")
-def built():
-    if not Path(BUNDLE).is_file() or not (EXPORT_DIR / "ui-rules-export.json").is_file():
-        pytest.skip("no bundle / export pair (UI_EXPORT_BUNDLE, ANSWERS_EXPORT_DIR)")
+def built(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, guide = C.load_export(EXPORT_DIR)
     missing = [w for w in WATERS if w not in data["waters"]]
     if missing:
-        pytest.skip(f"not in this export: {missing}")
+        pytest.fail(f"pinned waters missing from this export: {missing}")
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=WATERS, log=lambda *_: None)
     wire = json.loads(json.dumps(E.encode(model, data)))
     return data, guide, model, wire
 
 
+@pytest.mark.needs_bundle
 def test_every_section_round_trips_and_is_described(built):
     data, guide, model, wire = built
     assert set(wire["sections"]) == {s.name for s in A.SECTIONS}
@@ -68,6 +70,7 @@ def test_every_section_round_trips_and_is_described(built):
             assert all(0 <= f < len(sec["frames"]) for f in at)
 
 
+@pytest.mark.needs_bundle
 def test_a_section_without_spec_or_codec_is_refused(built):
     _, _, _, wire = built
     bad = copy.deepcopy(wire)
@@ -77,6 +80,7 @@ def test_a_section_without_spec_or_codec_is_refused(built):
     assert "rows.surprise" in gaps and "'mystery' has no codec" in gaps
 
 
+@pytest.mark.needs_bundle
 def test_rule_and_licensing_refs_are_in_range(built):
     data, _, _, wire = built
     nR, nL = len(data["rule_ids"]), len(data["licensing_ids"])
@@ -110,6 +114,7 @@ def _days(wire, k, rng, n=4):
                    for i, s in enumerate(starts)} | {rng.randint(1, 366) for _ in range(n)})
 
 
+@pytest.mark.needs_bundle
 def test_taps_equal_the_producers(built):
     """Every section's frame for a (key, day) is what its producer says for that key and day."""
     from pipeline.deliver import status_index as SI
@@ -174,13 +179,14 @@ def _rid(data, i):
 FIXTURE = Path(__file__).with_name("fixtures") / "answers_v1_peace_page.json.gz"
 
 
+@pytest.mark.needs_bundle
 def test_really_2_a_day_on_the_pages_own_ladder():
     """The real daily limit (5.7) on a real water: the Peace River below the Site C dam, Jul 1,
     read with the page v35's OWN ladder (its golden states, fixture): lake trout 3 a day here, but
     only 2 can be kept — "Really 2 a day here". The port reproduces the page's card exactly."""
     import gzip
-    if not Path(BUNDLE).is_file():
-        pytest.skip("no bundle")
+    need(None, "bundle", BUNDLE, BUNDLE_HINT)
+    need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     fx = json.loads(gzip.open(FIXTURE, "rt").read())
     B = C.load(BUNDLE)
     data, guide = C.load_export(EXPORT_DIR)
@@ -223,6 +229,7 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     assert lt2["real_daily"] is None
 
 
+@pytest.mark.needs_bundle
 def test_peace_river_on_our_ladder_keeps_the_lakes_own_3(built):
     """The shipped answer: our reader lets the lake row's "Lake trout 3" replace Region 7B's lake
     trout clause (the same statement, the water's number), so no smaller cap binds and there is no
@@ -236,6 +243,7 @@ def test_peace_river_on_our_ladder_keeps_the_lakes_own_3(built):
     assert lt[0] == "displaced" and lt[3].endswith("::peace_river.r4")
 
 
+@pytest.mark.needs_bundle
 def test_chilliwack_stream_share_and_hatchery_only(built):
     """Region 2's trout and char: 4 a day region-wide, 2 of them from streams (the share holds on
     the river), hatchery only (wild ones go back)."""
@@ -254,6 +262,7 @@ def test_chilliwack_stream_share_and_hatchery_only(built):
     assert t["steelhead_line"] == "known_with_rules"
 
 
+@pytest.mark.needs_bundle
 def test_kitimat_wild_fish_have_their_own_limit(built):
     data = built[0]
     t = _tap(built, KITIMAT, 0, (7, 1))["rows"]
@@ -262,6 +271,7 @@ def test_kitimat_wild_fish_have_their_own_limit(built):
     assert lines and all(l["o"] == "wild" for l in lines)
 
 
+@pytest.mark.needs_bundle
 def test_a_clause_dropped_from_the_ladder_moves_the_number(built):
     """MUTATION: take the stream share out of the Chilliwack's ladder and the number is the
     region's 4 again; the rows read the ladder, never re-decide it."""

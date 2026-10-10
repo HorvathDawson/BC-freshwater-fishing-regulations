@@ -20,6 +20,7 @@ import pytest
 
 from pipeline.deliver.answers import display as X
 from pipeline.deliver.answers import gear as G
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
 FIXTURE = Path(__file__).parent / "fixtures" / "answers_page_v35.json.gz"
 HOOK_TAG = {"single_barbless": "Single barbless hook", "single": "Single hook",
@@ -165,14 +166,14 @@ def test_hook_answer():
 # --------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def bundle():
+def bundle(request):
     from pipeline.deliver.answers import common
     p = common.bundle_path()
-    if not Path(p).exists():
-        pytest.skip(f"no bundle at {p}")
+    need(request, "bundle", p, BUNDLE_HINT)
     return common.load(p)
 
 
+@pytest.mark.needs_bundle
 def test_the_gear_subset_reads_as_the_whole_set(bundle):
     """Handing the reader only the gear-relevant bindings changes no gear rule's state."""
     from pipeline.deliver.calendar import month_day
@@ -231,10 +232,11 @@ def _key_of(B, item_id):
     finally:
         db.close()
     if not got:
-        pytest.skip(f"{item_id} is not in this bundle")
+        pytest.fail(f"pinned water {item_id} is not in this bundle")
     return got[0]
 
 
+@pytest.mark.needs_bundle
 def test_kootenay_lake_keeps_the_shore_line_count(bundle):
     """The dimension fix (was decision G2's workaround), pinned both ways. Kootenay Lake's
     "unlimited rods from a boat" holds only in a boat (`lines_per_angler@angler=in_boat`), so the
@@ -258,6 +260,7 @@ def test_kootenay_lake_keeps_the_shore_line_count(bundle):
     assert any(c.get("while") == ["in_boat"] for c in lines.get("also", []))
 
 
+@pytest.mark.needs_bundle
 def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
     """The dimension fix: a duty is keyed by its acts. Region 5's ice-hut duty ("remove the hut
     before break-up", while ice fishing) used to share `conduct` with the province's "no gear in
@@ -269,7 +272,7 @@ def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
     closure = ("zp:further_prohibitions", "further_prohibitions.r1")
     huts = ("z5:ice_fishing_huts", "ice_fishing_huts.r1")
     if huts not in B.rules:
-        pytest.skip("no Region 5 ice-hut duty in this bundle")
+        pytest.fail("pinned rule z5:ice_fishing_huts::ice_fishing_huts.r1 is not in this bundle")
     key = next((k for k in B.keys if {closure, huts} <= {b[:2] for b in B.sets[k.set_id]}), None)
     assert key is not None
     assert B.rules[huts]["dimension"] == "conduct:remove_ice_hut_before_breakup@while=ice_fishing"
@@ -283,6 +286,7 @@ def test_the_no_gear_during_a_closure_duty_speaks_beside_a_regions_duty(bundle):
     assert G.rule_id(closure) in never.get("no_gear_in_water_during_closure", [])
 
 
+@pytest.mark.needs_bundle
 def test_lifts_are_the_readers(bundle):
     """The Quatse's dated bait ban lifts Region 1's all-year stream bait ban on the days its lift
     holds (G5 of the 2026-10-03 rulings); on the other days the zone's ban stands."""
@@ -291,7 +295,7 @@ def test_lifts_are_the_readers(bundle):
     B = bundle
     lifter = next((k for k in B.rules if k[1] == "quatse_river.r4x"), None)
     if lifter is None:
-        pytest.skip("no Quatse row in this bundle")
+        pytest.fail("pinned rule quatse_river.r4x is not in this bundle")
     lift = next(l for l in B.rules[lifter]["exempts"] if l["entry_id"] == "z1:bait_ban_streams")
     key = next(k for k in B.keys if any((e, r) == lifter for e, r, _ in B.sets[k.set_id]))
     lawful = G.province_methods(B.rules.values())
@@ -311,6 +315,7 @@ def test_lifts_are_the_readers(bundle):
     assert a_off["elements"]["bait:roe"]["verdict"] == "ban"
 
 
+@pytest.mark.needs_bundle
 def test_gear_answers_are_deterministic_and_lawful_methods_are_the_guides(bundle):
     B = bundle
     keys = list(B.keys)[:60]
@@ -330,6 +335,7 @@ def test_gear_answers_are_deterministic_and_lawful_methods_are_the_guides(bundle
                 assert 0 <= v["by"][0] < n
 
 
+@pytest.mark.needs_bundle
 def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, monkeypatch):
     """C11 (FIX round, user review 2026-10-06): "no gear in the water during a No Fishing period"
     (`zp:further_prohibitions.r1`) is in the gear answer's conduct of EVERY rule key of every region
@@ -370,6 +376,7 @@ def test_no_gear_in_the_water_during_a_closure_speaks_in_every_region(bundle, mo
         assert got.get(closure) != "speaks", "the mutation must displace it"
 
 
+@pytest.mark.needs_bundle
 def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alone_in_a_boat(bundle):
     """User confirmation 2026-10-06 (book p.37 + the province's line rule): on Kootenay Lake's main
     body, from shore the province's 1 line; in a boat unlimited rods (the row's clause, which takes
