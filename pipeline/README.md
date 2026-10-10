@@ -1,47 +1,61 @@
 # pipeline — main commands
 
-Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
+Run everything with the venv: `.venv/bin/python`. The whole rebuild is one command; the steps below
+are what it runs, for when you need one alone.
 
-## 1. Splits (curated stream cuts)
+## The rebuild
 
 ```bash
-# Rebuild splits.json from the curated source (deterministic, no API cost)
-.venv/bin/python -m pipeline.oneoff.build_splits            # writes data/curated/waters/splits.json
-.venv/bin/python -m pipeline.oneoff.build_splits --dry-run  # preview stats only
+python -m pipeline build --dry-run        # each stage, its key, run or up to date
+python -m pipeline build                  # reach → deliver → tiles, whatever is out of date
+python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity
+python -m pipeline build --promote        # adopt <build>_next, then rebuild against it
 ```
 
-## 2. Build graph + registry
+See `pipeline/build.py` and AGENTS rule 62. Heavy (peak ~12 GB): one heavy job at a time.
+
+## The stages alone
 
 ```bash
-# Whole province (heavy, ~15–20 min). Applies splits, writes registry.json.
-.venv/bin/python -m pipeline.atlas.build --full \
-  --splits data/curated/waters/splits.json --out data/generated/atlas/full
+# Atlas: graph, sections, registry (whole province ~15–20 min). Never into a promoted build.
+python -m pipeline.atlas.build --full --out data/generated/atlas/full_next
+python -m pipeline.atlas.promote data/generated/atlas/full_next --dry-run   # parity report only
+python -m pipeline.atlas.promote data/generated/atlas/full_next             # full -> full.prev
 
-# Small area (fast) — scope by GNIS name or bbox
-.venv/bin/python -m pipeline.atlas.build --gnis "Campbell River" --out data/generated/atlas/validate
-.venv/bin/python -m pipeline.atlas.build --bbox MINX MINY MAXX MAXY --out data/generated/atlas/validate
+# A small area, for checking a change fast
+python -m pipeline.atlas.build --gnis "Campbell River" --out data/generated/atlas/validate
+
+# Reach: bind every rule to its sections (deterministic)
+python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out data/generated/reaches/full
+
+# Deliver: bundle → verdicts → status index → UI export → answers
+python -m pipeline.deliver all --build data/generated/atlas/full
+
+# Tiles (~40 min; writes atlas.pmtiles, atlas.meta.json and layers/ — never the basemap)
+python -m pipeline.deliver.tiles --build data/generated/atlas/full
 ```
 
-Output: `data/generated/atlas/<name>/registry.json` (+ graph artifacts / `graph.gpkg`).
-
-## 3. Parse regulations (⛔ HUMAN-ONLY — spends credits)
+## Regulations (⛔ HUMAN-ONLY — the parse spends credits)
 
 ```bash
-REGISTRY=data/generated/atlas/full/registry.json bash pipeline/regs/parsing/run_parse.sh
+python -m pipeline.regs.extraction.extract_synopsis       # PDF → synopsis rows
+bash pipeline/regs/parsing/run_parse.sh status            # where you left off (no credits)
+bash pipeline/regs/parsing/run_parse.sh parse-dry         # export batches only (no credits)
+bash pipeline/regs/parsing/run_parse.sh all               # parse, then review (spends credits)
 ```
 
-Resumable, row-granular (`--skip-existing`): only entries missing from
-`pipeline/regs/parsing/entries/` are re-parsed. Finish a run before re-exporting.
-Do NOT run this from an agent — hand it to a human to run in their terminal.
+Entries land in `data/curated/regulations/entries/catalogue/region-*.json`. An agent never runs
+`parse`, `all`, `review` or `repass`: hand the command to a person.
 
-## 4. Curation review app (edit/confirm parsed entries)
+## Curation
 
 ```bash
-bash curation-review/run.sh        # backend + frontend
+bash curation-review/run.sh               # review entries, edit splits (validated, backed up)
+python -m pipeline.tools.check_curated    # are the committed match artifacts fresh?
 ```
 
 ## Notes
 
-- `data/source/bc_fisheries_data.gpkg` (~9.6 GB FWA source) must be present for build/splits.
-- Merge/pickup radius for splits is 5 m route-measure (distinct cuts stay distinct).
+- `data/source/bc_fisheries_data.gpkg` (~9.6 GB FWA source) must be present for the atlas and tiles.
+- How the book is read: `pipeline/docs/RULINGS.md`. Rules for this repo: `AGENTS.md`.
 - After editing code, `graphify update .` keeps the knowledge graph current.
