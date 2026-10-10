@@ -512,6 +512,15 @@ WATER_CLOSURE_DOMINANT = True
 #: `effective_rules` step 4; named so a test can switch it off and prove the step decides it.
 OWN_ROW_BEATS_INHERITED = True
 
+#: POLICY (user ruling C-5, 2026-10-08, KETTLE -> GRANBY): INHERITED RULES BEHAVE LIKE ZONE RULES —
+#: a rule of the water's own row REPLACES an inherited rule of the same kind (type and dimension)
+#: on every day, as a row's dated bait ban replaces its zone's all-year one (L8). Granby River's
+#: own "bait ban Apr 1-Oct 31" replaces Kettle River's tributaries' all-year "bait ban": on Nov 15
+#: Granby has no bait ban. Quotas keep Q5 (`OWN_ROW_BEATS_INHERITED`, on the days both hold, as a
+#: water's quota meets a zone's) and closures still combine (L20). `effective_rules` step 3b;
+#: named so a test can switch it off and prove the step decides it.
+OWN_ROW_REPLACES_INHERITED = True
+
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
@@ -930,7 +939,41 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
             elif got == "part":
                 partly.add(t)
                 partly_by.setdefault(t, []).append(k)
-    cand = {k for k in live - lifted - no_rainbow
+
+    from pipeline.deliver.bundle.rules import (ORIGINS, closure_grade, release_origins,
+                                               same_statement, statement, yields_to_release)
+
+    # 3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (user ruling C-5,
+    #     `OWN_ROW_REPLACES_INHERITED`): an inherited rule (a water row reaching the section by the
+    #     tributary walk) gives way, ON EVERY DAY, to a rule of the water's own row of the same type
+    #     and dimension that speaks for the fish at least as widely — whether or not the own rule
+    #     is in force today. Not a quota (Q5 decides those on the days both hold, step 4) and not
+    #     a closure (an inherited closure is lifted, never replaced).
+    def own_replacement(k):
+        x = every[k]
+        if here[k] != "trib" or x["_rank"] != 0 or x.get("type") == "retention_limit" \
+                or x.get("dimension") == "lift" or closure_grade(x) is not None:
+            return None
+        for o in sorted(here):
+            y = every[o]
+            if here[o] == "reach" and y["_rank"] == 0 and o not in undrawn \
+                    and (y.get("type"), y.get("dimension")) == (x.get("type"), x.get("dimension")) \
+                    and not y.get("standing") and not y.get("exempts") \
+                    and closure_grade(y) is None and speaks_for(y, fish) \
+                    and all(not y.get(c) or y.get(c) == x.get(c)
+                            for c in ("when_targeting", "while", "origin", "water", "lengths",
+                                      "side", "within", "condition_of")):
+                return o
+        return None
+
+    replaced = set()
+    if OWN_ROW_REPLACES_INHERITED:
+        for k in sorted(live - lifted):
+            o = own_replacement(k)
+            if o is not None:
+                replaced.add(k)
+                why.setdefault(k, ("own_row", o))
+    cand = {k for k in live - lifted - no_rainbow - replaced
             if speaks_for(every[k], fish) and every[k].get("dimension") != "lift"}
 
     def competes(k) -> bool:
@@ -963,9 +1006,6 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     for k in cand:
         if competes(k):
             keyed.setdefault((every[k]["type"], every[k]["dimension"]), []).append(k)
-
-    from pipeline.deliver.bundle.rules import (ORIGINS, closure_grade, release_origins,
-                                               same_statement, statement, yields_to_release)
 
     def place(k) -> int:
         return _ladder_place(every[k], here[k])

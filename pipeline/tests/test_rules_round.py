@@ -218,6 +218,42 @@ def test_q5_an_inherited_closure_still_closes(db):
 
 
 # ---------------------------------------------------------------------------------------------
+# C-5 — the own row's dated bait ban REPLACES the inherited all-year ban (as it does a zone's, L8)
+# ---------------------------------------------------------------------------------------------
+def test_c5_granbys_dated_bait_ban_replaces_the_inherited_all_year_ban(db):
+    """Upper Granby (own 'bait ban Apr 1-Oct 31'; Kettle River's tributaries' all-year 'bait ban'
+    by the walk). Nov 15: no bait ban — the inherited one is displaced by the own row, and the
+    province's "invertebrates in streams unless a bait ban applies" speaks. Jun 20: the own ban
+    speaks. MUTATION: OWN_ROW_REPLACES_INHERITED off -> the inherited ban speaks on Nov 15."""
+    own, inh = f"{GRANBY}::granby_river.r2", f"{KETTLE_T}::kettle_river_s_tributaries.r3"
+    both = sorted(set(_sections(db, "gnis:18775", GRANBY, "granby_river.r2"))
+                  & set(_sections(db, "gnis:18775", KETTLE_T, "kettle_river_s_tributaries.r3",
+                                  "trib")))
+    assert both, "no Granby section carries its own dated ban and the inherited all-year one"
+    sid = both[0]
+    got = _states(sid, (11, 15), "RB")
+    assert got[inh] == ("displaced", "own_row")
+    assert own not in got                                   # not in force: takes no part
+    assert got["zp:bait::bait.r4"][0] == "speaks"
+    got = _states(sid, (6, 20), "RB")
+    assert got[own][0] == "speaks" and got[inh] == ("displaced", "own_row")
+    old = R.OWN_ROW_REPLACES_INHERITED
+    try:
+        R.OWN_ROW_REPLACES_INHERITED = False
+        assert _states(sid, (11, 15), "RB")[inh][0] == "speaks"
+    finally:
+        R.OWN_ROW_REPLACES_INHERITED = old
+
+
+def test_c5_an_inherited_closure_is_not_replaced_by_the_own_row(db):
+    """The step never touches a closure (L20: closures combine): Kettle River's tributaries'
+    'No Fishing Jul 25-Sept 15' still closes upper Granby on Aug 1 with the step on."""
+    assert R.OWN_ROW_REPLACES_INHERITED
+    got = _states(_granby_upper(db), (8, 1), "RB")
+    assert got[f"{KETTLE_T}::kettle_river_s_tributaries.r1"][0] == "speaks"
+
+
+# ---------------------------------------------------------------------------------------------
 # Q9 — a fish exactly on a printed size bound is legal
 # ---------------------------------------------------------------------------------------------
 def _keep(bands, cm, take=None):

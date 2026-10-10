@@ -273,11 +273,15 @@ Never cite a PDF page without writing "PDF p.".
   `test_zone_decisions.py::test_steelhead_over_50_are_not_in_the_trout_one_over_50` justifies
   Region 1's CHAR exclusion by the withdrawn 2026-09-28 "mentions char" ruling. The assertion still
   holds under C2: "All char" is a related retention rule. The comment cites a superseded ruling.
-- **C-5. A dated bait ban vs an inherited one: RULED 2026-10-08, NOT YET ENFORCED.** The user ruled that
+- **C-5. A dated bait ban vs an inherited one: RULED 2026-10-08, ENFORCED 2026-10-09.** The user ruled that
   inherited rules behave like zone rules: any regulation under the water's own row replaces them. So
   a row's dated bait ban REPLACES an inherited all-year ban, exactly as it replaces a zone ban (L8).
-  Granby: its own Apr 1-Oct 31 ban replaces the Kettle's inherited all-year ban. The code still holds
-  both, so this needs a fix.
+  Granby: its own Apr 1-Oct 31 ban replaces the Kettle's inherited all-year ban. Enforced by
+  `read.OWN_ROW_REPLACES_INHERITED` (`effective_rules` step 3b): a non-quota, non-closure own rule of the
+  same type and dimension replaces the inherited one on every day; quotas keep Q5, closures combine (L20).
+  Changed 3 answers (Granby above and below Burrell Creek, West Kettle). Tests:
+  `test_rules_round.py::test_c5_granbys_dated_bait_ban_replaces_the_inherited_all_year_ban`,
+  `::test_c5_an_inherited_closure_is_not_replaced_by_the_own_row`.
 
 ## 16. Not enforced, or held only by curated data
 
