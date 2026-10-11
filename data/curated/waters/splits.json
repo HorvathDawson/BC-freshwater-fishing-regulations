@@ -2705,6 +2705,7 @@
      "id": "chilliwack_vedder_rivers__vedder_crossing_bridge",
      "label": "Vedder Crossing Bridge",
      "kind": "point",
+     "proximity_m": 30,
      "anchor": {
       "type": "point",
       "coord": [
@@ -2713,7 +2714,7 @@
       ],
       "is_lonlat": true
      },
-     "note": "targets the VEDDER (gnis 3062), not the waterbody's primary Chilliwack (8634). Vedder Crossing is where the Chilliwack becomes the Vedder, so on the Chilliwack blue line it falls at measure 0 — the natural mouth, where a boundary already exists — and the cut silently did nothing. On the Vedder it is interior (12925 of 12950) and cuts.",
+     "note": "targets the VEDDER (gnis 3062), not the waterbody's primary Chilliwack (8634). Vedder Crossing is where the Chilliwack becomes the Vedder, so on the Chilliwack blue line it falls at measure 0 — the natural mouth, where a boundary already exists — and the cut silently did nothing. On the Vedder it is interior (12925 of 12950) and cuts. 2026-10-10 (user: 'above Vedder Crossing shouldn't exist for the Vedder — it should be where Vedder turns into Chilliwack'): the bridge projects to 12,923.7 m, but FWA draws the Vedder blue line on to 12,950.7 m — 1.6 m to the Chilliwack mouth (12,925.3) then a 25.4 m dead-end Vedder stub. A cut at the projection left that 27 m as a Vedder stretch ABOVE the crossing. proximity_m 30 lets the cut pick up the Vedder line's bare END (sectionizer._pickup), so the bridge IS the Vedder's top and the Vedder has no water above it; the Chilliwack starts there.",
      "_note": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
      "_coord": [
       -121.9646,
@@ -2737,7 +2738,7 @@
       "offset_m": 200,
       "offset_dir": "upstream"
      },
-     "note": "",
+     "note": "2026-10-10: targets the CHILLIWACK (8634). On the Vedder (as before) 200 m upstream ran off the Vedder line's end 27 m above the bridge and clamped there ('offset 200m upstream clamped at the source'), making a 27 m Vedder stretch 'above Vedder Crossing'. The signs are on the Chilliwack: the bridge projects onto the Chilliwack's mouth, so +200 m lands 200 m up the Chilliwack.",
      "_note": "[dfo-salmon 2026-09-01] DFO Region 2 Chilliwack/Vedder: 'from the orange triangular boundary signs approximately 200 metres upstream of the Vedder Crossing bridge down to the cable car crossing approximately 200 metres downstream of the Vedder Crossing bridge.' Anchored on the BRIDGE coord with an along-channel offset rather than a guessed coordinate for the signs/cable car — DFO gives the distance, not a position, and ash_river__lanternman_falls_200_m_downstream is on file precisely because anchoring on an ALREADY-offset point applied the offset twice. applies_to gnis:3062 for the same reason as the bridge split it derives from: on the Chilliwack this point falls at measure 0 (the natural mouth) and cuts nothing; on the Vedder it is interior.",
      "_coord": [
       -121.9646,
@@ -2745,7 +2746,7 @@
      ],
      "_offset_m": 200,
      "applies_to": {
-      "gnis_id": "3062"
+      "gnis_id": "8634"
      }
     },
     {
