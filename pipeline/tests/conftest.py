@@ -97,6 +97,19 @@ def predates(msg: str) -> None:
     pytest.fail(msg)
 
 
+def part_at(data: dict, item: str, *ends: str) -> int:
+    """The index of `item`'s ONE export part with a range ending at every one of `ends` (an
+    endpoint label such as "mouth" or "chilliwack_vedder_rivers__vedder_crossing_bridge", or a
+    prefix of one ending in "*"): a part found by what it covers, not by its position, so a pin
+    survives an atlas rebuild that adds or drops a part elsewhere on the water."""
+    def hit(label, want):
+        return label.startswith(want[:-1]) if want.endswith("*") else label == want
+    got = [i for i, p in enumerate(data["waters"][item]["parts"])
+           if all(any(hit(r[0], e) or hit(r[1], e) for r in p[3]) for e in ends)]
+    assert len(got) == 1, (item, ends, got, data["waters"][item]["parts"])
+    return got[0]
+
+
 BUNDLE_HINT = "python -m pipeline.deliver (or set UI_EXPORT_BUNDLE to a built bundle)"
 EXPORT_HINT = "python -m pipeline.deliver export (or set ANSWERS_EXPORT_DIR to a written export)"
 ATLAS_HINT = ("python -m pipeline.atlas.build --full --splits data/curated/waters/splits.json "

@@ -30,13 +30,14 @@ from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import model as M
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.bundle import read as R
-from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
                   or Path(R.BUNDLE).parent.parent / "regs")
 
-VEDDER = "gnis:3062"                 # part 1: Vedder Crossing Bridge to the mouth
+VEDDER = "gnis:3062"
+MOUTH = "mouth"                      # the Vedder part ending at the mouth (Vedder Crossing Bridge down)
 GLENN = "gnis:10457"                 # Glenn Creek, a ✱ tributary of the Duncan (Region 4)
 HUMPHRYS = "gnis:2046"               # Humphrys Creek, a ✱ tributary of the Kitimat (Region 6)
 WATERS = (VEDDER, GLENN, HUMPHRYS)
@@ -61,6 +62,8 @@ def card(built, item, part, md, mutate=None):
     """The card's rows for one part and day: as built, or recomputed from the built ladder after
     `mutate(ladder, rid)` (an input mutation)."""
     data, model, B = built
+    if isinstance(part, str):                    # an endpoint label: the part by what it covers
+        part = part_at(data, item, part)
     k = model.parts[item][part]
     s = E.segment_index(model.segments[k], CAL.day_of(md))
     if mutate is None:
@@ -120,7 +123,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     """p.21: "Trout/char: 4, but not more than • 1 over 50 cm (2 hatchery steelhead over 50 cm
     allowed) • 2 from streams (must be hatchery)"; p.22 (c): "hatchery rainbow trout of any length
     50 cm or less: daily quota = 4, July 1-Apr 30"."""
-    t = card(built, VEDDER, 1, md)
+    t = card(built, VEDDER, MOUTH, md)
     row = row_of(built, t, f"{Z2}.r1")
     assert row["daily"] == 2                                     # the stream share, unchanged
     g = row["group"]
@@ -141,7 +144,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     assert own["group"] is None
     assert own["elsewhere"]["says"].endswith("They also count toward Region 2’s 4 trout and char a day.")
     # MUTATION: were r4 not lifted for the hatchery rainbow, the 2 would hold it and nothing is excepted
-    m = row_of(built, card(built, VEDDER, 1, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
+    m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
     assert m["elsewhere"]["ask"][0][1] == "Keep 0 here"
     assert "excepted" not in m["group"]["says"].split(";")[1]
@@ -150,7 +153,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
 @pytest.mark.needs_bundle
 def test_f14_one_group_per_total_and_every_keep_row_says_where_else_counts(built):
     for md in ((1, 15), (5, 15), (10, 10)):
-        t = card(built, VEDDER, 1, md)
+        t = card(built, VEDDER, MOUTH, md)
         pools = [r["group"]["pool"] for r in t["rows"] if r.get("group")]
         assert len(pools) == len(set(pools))
         assert all(r.get("elsewhere") for r in t["rows"] if r["kind"] == "keep")
@@ -187,7 +190,7 @@ def test_f14_the_page_reads_the_group_sentence_and_the_kept_elsewhere_line():
 def test_f13_vedder_may_15_hatchery_rainbow_50_cm_or_less_and_hatchery_cutthroat_are_released(built):
     """p.22 (a): "hatchery rainbow trout catch and release (50 cm or less), and hatchery cutthroat
     catch and release, May 1-31". Over 50 cm a rainbow is a steelhead here: 2 hatchery a day."""
-    t = card(built, VEDDER, 1, (5, 15))
+    t = card(built, VEDDER, MOUTH, (5, 15))
     rb, ct, st = (t["fish"][S]["hatchery"] for S in ("RB", "CT", "ST"))
     assert rb["status"] == "release" and rid(built, rb["win"]) == f"{VR}.r6"
     assert ct["status"] == "release" and rid(built, ct["win"]) == f"{VR}.r7"
@@ -197,7 +200,7 @@ def test_f13_vedder_may_15_hatchery_rainbow_50_cm_or_less_and_hatchery_cutthroat
     assert back[("RB",)] == f"{VR}.r6" and back[("CT",)] == f"{VR}.r7"
     assert "RB" in row["all_members"] and "CT" in row["all_members"]
     # MUTATION: without r6 speaking, no rule speaks for the hatchery rainbow (the old null)
-    m = card(built, VEDDER, 1, (5, 15), silence(f"{VR}.r6", "RB"))
+    m = card(built, VEDDER, MOUTH, (5, 15), silence(f"{VR}.r6", "RB"))
     assert m["fish"]["RB"]["hatchery"] is None
 
 

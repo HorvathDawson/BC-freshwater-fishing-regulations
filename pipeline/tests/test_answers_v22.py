@@ -20,13 +20,14 @@ from pipeline.deliver.answers import glossary as G
 from pipeline.deliver.answers.common import AnswersError, load_export
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tests.conftest import need, EXPORT_HINT
+from pipeline.tests.conftest import need, part_at, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
 CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
 
 BABINE, SKEENA, VEDDER, TESLIN = "gnis:17687", "gnis:2936", "gnis:3062", "wbk:328961703"
+CHILLIWACK = "gnis:8634"            # the Vedder above Vedder Crossing
 VEDDER_CANAL = "wbk:329707189"
 RESIDENT = "resident/16_plus/non_guided/none"
 YUKON_RECORDS = 7
@@ -43,6 +44,8 @@ def _files():
 
 def _tap(item, part, m, d, **kw):
     data, _, wire = _files()
+    if isinstance(part, str):                # an endpoint label: the part by what it covers
+        part = part_at(data, item, part)
     return E.tap(wire, data, item, part, m, d, **kw)
 
 
@@ -110,11 +113,13 @@ def test_d_region_6_one_over_50_counts_hatchery_steelhead(item):
 
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("part", [0, 1])
-def test_d_region_2_one_over_50_leaves_steelhead_to_their_own_line(part):
+@pytest.mark.parametrize("item", [VEDDER, CHILLIWACK])
+def test_d_region_2_one_over_50_leaves_steelhead_to_their_own_line(item):
     """p.21 '1 over 50 cm (2 hatchery steelhead over 50 cm allowed)': on the Vedder the general cap
-    excepts steelhead, which have their own 2."""
-    t = _tap(VEDDER, part, 10, 15)
+    excepts steelhead, which have their own 2. Both sides of Vedder Crossing: the Vedder below it,
+    and the Chilliwack's lowest part just above it (Tamihi Rapids Bridge down to the crossing; it
+    was a 30 m Vedder stub above the bridge until the 2026-10-10 split fix)."""
+    t = _tap(item, "mouth", 10, 15)
     gen = [c for c in _general_caps(t) if c["a"] == 50]
     assert gen and all(c.get("except") == ["ST"] for c in gen)
     st = [c for r in t["rows"]["rows"] for c in r.get("conds") or []
@@ -185,7 +190,7 @@ def test_e_the_vedder_canal_is_the_vedder_river_a_stream_and_no_lake_rule_binds_
             f = m["rules"][rid]["fields"]
             assert f.get("water") != "lake", rid
     # the card: a stream share of Region 2's 4 (2 from streams), the region's total still 4
-    row = _trout_row(_tap(VEDDER, 1, 10, 15))
+    row = _trout_row(_tap(VEDDER, "mouth", 10, 15))
     assert row["scope"]["share"] and row["daily"] == 2
 
 

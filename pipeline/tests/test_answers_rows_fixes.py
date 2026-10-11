@@ -30,7 +30,7 @@ from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.bundle import read as R
-from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
@@ -38,6 +38,7 @@ EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
 
 ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER = "gnis:10030", "wbk:329083341", "gnis:3225", "gnis:3062"
 TESLIN, THOMPSON, MAYER, TRANQUILLE = "wbk:328961703", "gnis:39492", "wbk:329163196", "wbk:329563842"
+MOUTH = "mouth"                     # the Vedder part ending at the mouth (Vedder Crossing Bridge down)
 R8_STREAM = "gnis:10098"            # Buchanan Creek (Region 8)
 WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRANQUILLE, R8_STREAM)
 
@@ -68,6 +69,8 @@ def card(built, item, part, md, mutate=None, patch=None):
     """The card's rows for one part and day: as built, or recomputed from the built ladder after
     `mutate(ladder, rid)` (an input mutation)."""
     data, model, B = built
+    if isinstance(part, str):                    # an endpoint label: the part by what it covers
+        part = part_at(data, item, part)
     k, s = _ks(model, item, part, md)
     if mutate is None:
         return model.sections["rows"][k][s]
@@ -186,7 +189,7 @@ def test_kitimat_february_cutthroat_and_brown_go_back(built, monkeypatch):
 
 @pytest.mark.needs_bundle
 def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
-    t = card(built, VEDDER, 1, (1, 15))
+    t = card(built, VEDDER, MOUTH, (1, 15))
     row = row_of(built, t, "z2:trout_char_quota::trout_char_quota.r1")
     assert row["daily"] == 2                                   # the stream share
     rb = item_of(row, "RB")
@@ -200,7 +203,7 @@ def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
     def keep_share(ladder, rid):
         k = rid("z2:trout_char_quota::trout_char_quota.r4")
         ladder["RB"]["hatchery"][k] = ["speaks", None, None, None]
-    m = row_of(built, card(built, VEDDER, 1, (1, 15), keep_share), "z2:trout_char_quota::trout_char_quota.r1")
+    m = row_of(built, card(built, VEDDER, MOUTH, (1, 15), keep_share), "z2:trout_char_quota::trout_char_quota.r1")
     assert item_of(m, "RB")["against"] == 2
 
 
