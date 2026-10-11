@@ -614,3 +614,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     (`rules.check_corpus`) and records both; the tile sidecar records the registry and the vintage check
     compares registries. The gauge review queue is curated (`curated.gauges.candidates`); only ACTIVE
     stations need a match decision (`check_curated`, user 2026-10-09).
+63. **A tributary walk never enters the entry's own water** (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`,
+    2026-10-11). Every non-area item the entry matches is governed by the rule's extents, never collected by the walk —
+    even when FWA codes it as a tributary (the Chilliwack is a "tributary" of the Vedder: after the Vedder's cut moved
+    onto Vedder Crossing, the Vedder's downstream-of-the-crossing rules walked up the whole Chilliwack, 1,805 sections).
+    A piece on the reach's own watershed code is a side channel, not own water (Old Kootenay River Channel). Before
+    promoting any split or name change, DIFF THE REACH RUN'S PER-RULE BINDINGS against live — atlas parity cannot see this.

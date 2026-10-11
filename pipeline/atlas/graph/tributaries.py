@@ -345,6 +345,27 @@ CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT = True
 #: the Mobbs Creek mouth.
 CONFLUENCE_NEAR_M = 150.0
 
+#: A TRIBUTARY WALK NEVER ENTERS THE ENTRY'S OWN WATER (2026-10-10). Every section of an item the
+#: ENTRY matches is governed by the rule's EXTENT — where the rule's words put it — never by the walk
+#: (AGENTS 13: "a rule's extents are its own"; RULINGS T9: a joining water is "neither the reach nor
+#: one of its tributaries"). A rule naming one stretch of a row's water binds that stretch; the rest
+#: of the row's water above or beside its cut is not a tributary of it, whatever FWA's codes say.
+#: The walk is given that water as `own`: stepping from the reach STRAIGHT into it is the water going
+#: on past the cut, so it is never walked (it and everything above it stay out); met further up a
+#: true tributary (a lake the row names on one of its river's creeks) it is walked through and never
+#: collected, like a `walk_past` carve-out.
+#: The Chilliwack/Vedder row: FWA codes the Chilliwack as a tributary of the Vedder (100-064535-057628
+#: -998041) and hangs its mouth on the Vedder's top piece by a `confluence` edge, so once the Vedder
+#: Crossing cut took that piece into "downstream of Vedder Crossing Bridge" the six rules r4–r9 walked
+#: up the Chilliwack and every stream feeding it — 1,820 sections for a 13 km stretch of the Vedder.
+#: Switch it off and they return.
+#: A SIDE CHANNEL IS THE REACH'S RIVER, NOT "OWN WATER PAST THE CUT": a piece carrying the SAME watershed
+#: code as a reach piece is the river itself beside its line (the rule `confluence_joiners` already
+#: uses), and the walk keeps it and what feeds it as before. Without this the Kootenay's "Idaho border
+#: to Kootenay Lake" lost the Old Kootenay River Channel and 736 sections across the Creston flats draining
+#: through it; the Morice, Atnarko, Zymoetz and Chowade lost side channels of their own stretch.
+THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER = True
+
 
 def confluence_joiners(graph: StreamGraph, blk: str, m: float, *, near: float = 1.0,
                        names: tuple[str, ...] = ()) -> frozenset[str]:
@@ -408,8 +429,14 @@ def tributaries_of_reach(
     passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
     window: tuple[str, float, float] | None = None,
+    own: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
+
+    `own` is the rest of the ENTRY'S OWN water (`THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`): never
+    returned; never walked when the reach joins it directly (the water going on past the cut);
+    walked through, uncollected, when met above a true tributary. A piece sharing a reach piece's
+    watershed code is a side channel of the reach's own river and is not `own`.
 
     `blocked` sections are neither returned nor traversed — that is how a
     `tributary_excludes` carve-out removes a stream *and everything above it*, which is what
@@ -432,6 +459,12 @@ def tributaries_of_reach(
     the lake's code across a divide (`code_runs`) goes with the lake, not with the flow.
     """
     reach = frozenset(reach)
+    if THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER and own:
+        reach_wscs = {n.wsc for r in reach if (n := graph.nodes.get(r)) is not None and n.wsc}
+        own = frozenset(s for s in own if s not in reach and not (
+            (n := graph.nodes.get(s)) is not None and n.wsc and n.wsc in reach_wscs))
+    else:
+        own = frozenset()
     out: set[str] = set()
     seen: set[str] = set(reach)
     stack: list[str] = sorted(reach)          # sorted: determinism, not correctness
@@ -447,7 +480,7 @@ def tributaries_of_reach(
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
     for seed in sorted(_mouths_at_lower_bound(graph, reach, window)):
-        if seed not in seen and seed not in blocked:
+        if seed not in seen and seed not in blocked and seed not in own:
             n = graph.nodes.get(seed)
             if n is not None and not (guarded and n.is_barrier):
                 seen.add(seed)
@@ -516,6 +549,8 @@ def tributaries_of_reach(
                     continue
             if src in seen or src in blocked:
                 continue
+            if src in own and at_boundary:
+                continue                       # the entry's own water past the cut: the extent's
             n = graph.nodes.get(src)
             if n is None:
                 continue
@@ -528,7 +563,7 @@ def tributaries_of_reach(
             out.add(src)
             stack.append(src)
 
-    return frozenset(out - frozenset(passed))
+    return frozenset(out - frozenset(passed) - own)
 
 
 def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
@@ -666,6 +701,7 @@ def expand(
     guarded: bool = True,
     window: tuple[str, float, float] | None = None,
     registry=None,
+    own: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
     """The section set a tributary-scoped rule actually covers.
 
@@ -690,7 +726,7 @@ def expand(
     excluded = frozenset(excluded)
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
-                                        guarded=guarded, window=window)
+                                        guarded=guarded, window=window, own=own)
         if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs

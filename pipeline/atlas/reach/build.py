@@ -862,6 +862,11 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
     """
     detail, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
     passed = carve_out_passed(detail)
+    # THE ENTRY'S OWN WATER is the extent's, never the walk's
+    # (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`): every section of every water item
+    # the entry matches. An AREA item is not a water — a zone row's walk starts inside it.
+    own_water = frozenset(s for i in covered or () if not str(i).startswith("area:")
+                          and i in registry for s in registry[i].section_ids)
     # The water joining at a confluence cut, and everything above it (`confluence_excludes`). Never
     # the reach itself: a braid can make a piece of it an ancestor of the joining mouth.
     # Computed on the first walk only: a joining river's subtree can be most of a basin (the
@@ -896,21 +901,26 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
         stems: set[str] = set()
         for row in expand.confluence:
             if row.get("with_cut") and row.get("own_row"):
-                stem = _stem_to_first_lake(graph, row["mouths"]) - blocked - set(reach)
+                stem = _stem_to_first_lake(graph, row["mouths"]) - blocked - set(reach) \
+                    - own_water
                 row["bounded_at_lake"] = True
                 row["stem"] = sorted(stem)
                 stems |= stem
         got = _tribs.expand(graph, frozenset(reach) | stems, only=only, excluded=blocked,
-                            passed=passed, window=window, registry=registry)
+                            passed=passed, window=window, registry=registry,
+                            own=own_water - set(reach) - stems)
         # A JOINING WATER THAT GOES WITH THE CUT AND HAS NO ROW OF ITS OWN: its subtree joins the
         # walk on whichever side the rule is — the walk alone would find it on one side only, the
         # piece FWA hung its mouth on. Streams only, like every walk (`tributaries.expand`); a
         # carve-out's water stays out.
         with_cut: set[str] = set()
         for row in expand.confluence:
+            if row.get("with_cut") and set(row["mouths"]) & own_water and not row.get("in_reach"):
+                row["joined"] = 0              # the entry's own water past the cut: the extent's
+                continue
             if row.get("with_cut") and not row.get("own_row"):
                 add = {s for s in row["subtree"]
-                       if s not in blocked and s not in passed
+                       if s not in blocked and s not in passed and s not in own_water
                        and (not _tribs.STREAMS_ONLY
                             or _resolve._kind_of(graph, s, registry) == "stream")}
                 row["joined"] = len(add)

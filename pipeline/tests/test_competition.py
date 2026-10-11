@@ -162,16 +162,24 @@ def db(request):
     con.close()
 
 
-def _sid(db, eid, rid, *, without=()):
-    """The first section a rule binds, optionally on a set that holds none of `without`."""
-    q = ("select min(sr.sid) from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
+def _sid(db, eid, rid, *, without=(), direct=False):
+    """The first section a rule binds, optionally on a set that holds none of `without`.
+
+    `direct` prefers a section the rule binds through its OWN extent (`via = 'reach'`) over one its
+    tributary walk reached — a test about the water itself must stand on the water, not on whichever
+    tributary happens to carry the lowest id."""
+    q = (("select sr.sid" if direct else "select min(sr.sid)")
+         + " from ruleset r join section_ruleset sr on sr.set_id = r.set_id "
          "where r.entry_id = ? and r.rule_id = ?")
     args = [eid, rid]
     for e_like, r_id in without:
         q += (" and r.set_id not in (select set_id from ruleset where entry_id like ?"
               + (" and rule_id = ?" if r_id else "") + ")")
         args += [e_like] + ([r_id] if r_id else [])
-    sid = db.execute(q, args).fetchone()[0]
+    if direct:
+        q += " order by r.via != 'reach', sr.sid limit 1"
+    row = db.execute(q, args).fetchone()
+    sid = row[0] if row else None
     assert sid is not None, (eid, rid, without)
     return sid
 
@@ -558,7 +566,7 @@ def test_chilliwack_releases_every_cutthroat_in_may(db):
     catch and release". With the zone's release of wild trout/char from streams, every cutthroat is
     released: the zone's cutthroat quotas are silent in May and speak again in August."""
     eid = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
-    sid = _sid(db, eid, "chilliwack_vedder_rivers.r7")
+    sid = _sid(db, eid, "chilliwack_vedder_rivers.r7", direct=True)
     may = _kept(sid, (5, 15), "CT")
     assert f"{eid}::chilliwack_vedder_rivers.r7" in may
     assert "z2:trout_char_quota::trout_char_quota.r6" in may
@@ -796,7 +804,7 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     the region's 4."""
     eid = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
     tc = "z2:trout_char_quota"
-    sid = _sid(db, eid, "chilliwack_vedder_rivers.r6")
+    sid = _sid(db, eid, "chilliwack_vedder_rivers.r6", direct=True)
     assert db.execute("select 1 from steelhead_water where sid = ?", (sid,)).fetchone()
     may = _kept(sid, (5, 15), "RB")
     assert f"{eid}::chilliwack_vedder_rivers.r6" in may

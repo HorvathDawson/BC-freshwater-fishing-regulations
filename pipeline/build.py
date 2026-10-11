@@ -40,7 +40,8 @@ WORKERS = 4
 
 # What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
 CODE = {
-    "reach": ("pipeline/atlas/reach", "pipeline/atlas/registry", "pipeline/regs", "pipeline/common"),
+    "reach": ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
+              "pipeline/common"),     # graph/: the tributary walk the reach run uses
     "deliver": ("pipeline",),
     "tiles": ("pipeline/deliver/tiles", "pipeline/common", "pipeline/atlas/registry"),
 }
