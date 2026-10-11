@@ -375,7 +375,9 @@ def _size(r: CatalogueRule) -> str:
             n = g.take if g.take is not None else r.take
             return (f" (no more than {n} over {g.min_cm} cm)" if r.within and n
                     else f" over {g.min_cm} cm")
-        return f" under {g.max_cm} cm"
+        # A KEEP band's bounds are inclusive (`LengthBand`; ruling Q13): "50 cm or less", never
+        # "under 50 cm", which would leave a 50.0 cm fish out of the quota it is in.
+        return f" {g.max_cm} cm or less"
 
     # A GRANT WITH A DENIAL BENEATH IT is bounded: the fish you keep must lie on this side.
     # ASYMMETRIC ON PURPOSE — a maximum caps how big a kept fish may be, a minimum is a floor on
