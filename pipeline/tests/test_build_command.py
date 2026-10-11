@@ -39,12 +39,15 @@ def test_an_unchanged_world_is_up_to_date(world):
     assert _runs() == []
 
 
-def test_a_changed_input_reruns_its_stage_and_every_later_one(world):
+def test_a_changed_input_reruns_its_stage_and_what_depends_on_it(world):
     k, _o, seal = world
     seal()
     k["tiles"]["in"] = "edited"
-    assert _runs() == ["tiles", "deliver"]
+    assert _runs() == ["tiles"]                      # deliver does not read tiles
     k["tiles"]["in"] = "tiles"
+    k["reach"]["in"] = "edited"
+    assert _runs() == ["reach", "deliver"]           # tiles do not read the reach run
+    k["reach"]["in"] = "reach"
     k["deliver"]["in"] = "edited"
     assert _runs() == ["deliver"]
 
@@ -59,7 +62,7 @@ def test_a_missing_output_reruns_the_stage(world):
 def test_force_reruns_from_that_stage(world):
     _k, _o, seal = world
     seal()
-    assert _runs(force=["reach"]) == list(B.STAGES)
+    assert _runs(force=["reach"]) == ["reach", "deliver"]
 
 
 def test_a_failed_stage_is_recorded_and_not_marked_done(world, monkeypatch, tmp_path):

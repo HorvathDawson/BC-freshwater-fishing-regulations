@@ -172,15 +172,24 @@ def preflight(want_tiles: bool) -> None:
         tippe.check()
 
 
+# What each stage READS from an earlier stage: a stage reruns when one of THESE reran, not every later
+# one. Tiles read only the atlas (no reach input), so a reach-only change no longer rebuilds them.
+DEPENDS = {"reach": (), "tiles": (), "deliver": ("reach",)}
+
+
 def plan(build_dir: Path, force: set[str]) -> list[tuple[str, str, bool]]:
-    """[(stage, key, run?)] in order; a stage that runs makes every later one run."""
+    """[(stage, key, run?)] in order; a stage runs when its key changed, its outputs are missing, it is
+    forced, or a stage it DEPENDS on runs."""
     m, k, out = load_manifest(), keys(build_dir), outputs(build_dir)
-    rows, dirty = [], False
+    rows, runs = [], set()
     for s in STAGES:
         key = _sha(k[s])
         last = (m["stages"].get(s) or {}).get("key")
-        dirty = dirty or s in force or key != last or not all(p.exists() for p in out[s])
-        rows.append((s, key, dirty))
+        go = (s in force or key != last or not all(p.exists() for p in out[s])
+              or any(d in runs for d in DEPENDS[s]))
+        if go:
+            runs.add(s)
+        rows.append((s, key, go))
     return rows
 
 
@@ -222,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--promote", action="store_true",
                     help="promote <build>_next (built now with --atlas, or already on disk)")
     ap.add_argument("--force", nargs="*", default=[], choices=STAGES, metavar="STAGE",
-                    help=f"rerun these stages and everything after them ({', '.join(STAGES)})")
+                    help=f"rerun these stages and what depends on them ({', '.join(STAGES)})")
     ap.add_argument("--no-tiles", action="store_true", help="stop after deliver (tiles take ~40 min)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and stop")
     a = ap.parse_args(argv)
