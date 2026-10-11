@@ -270,9 +270,11 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
                 row.append(frames.add(v))
             at.append(row)
         sec = {"version": G["version"], "frames": frames.rows, "at": at}
-        if name == "gear":
-            for s in ("province_methods", "parent", "methods", "moments", "conduct_means"):
-                sec[s] = G[s]
+        # EVERY static the section ships rides along (not a hand list: count_nouns, answers 2.6, was
+        # dropped by one) — only the per-key `at` and the `frames` are sliced.
+        for s, v in G.items():
+            if s not in ("version", "at", "frames"):
+                sec[s] = v
         out[name] = sec
 
     # licence
