@@ -29,7 +29,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .lab{font:700 var(--t4)/1.3 Archivo,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
 .wrap{max-width:1180px;margin:0 auto;padding:48px 32px 80px;display:grid;grid-template-columns:392px minmax(0,1fr);gap:72px;align-items:start}
-.app{width:392px;height:846px;border:1.5px solid var(--ink);background:var(--card);overflow:hidden;position:sticky;top:32px;display:flex;flex-direction:column;box-shadow:4px 4px 0 var(--shadow)}
+.app{position:relative;width:392px;height:846px;border:1.5px solid var(--ink);background:var(--card);overflow:hidden;position:sticky;top:32px;display:flex;flex-direction:column;box-shadow:4px 4px 0 var(--shadow)}
 @media (max-width:520px){.wrap{display:block;padding:0}.app{width:100vw;height:100svh;border:0;box-shadow:none;position:relative}.poster{display:none}}
 .shot .wrap{display:block;padding:0}.shot .app{width:390px!important;height:844px!important;border:0;box-shadow:none;position:relative;top:0}.shot .poster{display:none}
 .tall .app{height:auto!important;overflow:visible}.tall .body{overflow:visible}.tall #reg{position:relative}.tall .scroller{position:relative;overflow:visible}.tall .hdr{position:relative}
@@ -183,7 +183,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .who{margin:6px 0 8px}
 .u16h{margin:12px 0 2px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
 /* sheets (Sheet.tsx) */
-.scrim{position:absolute;inset:0;background:var(--scrim);display:none;z-index:20}.scrim.on{display:block}
+.scrim{position:absolute;inset:44px 0 0 0;background:var(--scrim);display:none;z-index:20}.scrim.on{display:block}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--card);border-top:1.5px solid var(--ink);max-height:88%;display:flex;flex-direction:column;transform:translateY(101%);transition:transform .2s}
 .sheet.on{transform:none}
 .shead{padding:10px 8px 0 16px;border-bottom:1.5px solid var(--ink)}
@@ -234,6 +234,43 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ts2 .hdr{position:static}
 [data-gearsrc]{display:none}
 .fishart{margin:8px 0;border:1px solid var(--line2);background:var(--wash);padding:6px}.fishart svg{width:100%;height:auto;display:block}.fishart figcaption{font-size:var(--t4)}
+/* v10 review fixes */
+.lvh{margin:12px 0 2px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.srow{display:flex;flex-direction:column;padding:7px 0;border-top:1px solid var(--line)}
+.srow span{font-size:var(--t3)} .srow small,.srow b{font-size:var(--t4);color:var(--sub)} .srow b{color:var(--ink);font-weight:700}
+.pline em{display:block;flex-basis:100%;font-style:normal;color:var(--sub)}
+.sbody .lres{color:var(--ink)}
+.fe{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;margin-top:4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font:600 var(--t3) Archivo,sans-serif}
+.words{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;margin-top:4px;font-size:var(--t4);color:var(--sub)}
+.glk{min-height:44px;padding:0 6px;color:var(--accent);font:600 var(--t4) Archivo,sans-serif;text-decoration:underline;text-underline-offset:2px}
+.gl{min-width:44px;min-height:44px;margin:-14px -8px}
+.closechain{list-style:none;padding:0}.closechain li{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);min-height:44px;margin:0}
+.closechain li .cd{flex:1}.closechain .srcbtn{min-height:32px}
+.sbar{margin-top:22px}
+.sbar .today{top:-6px;width:2px;height:22px;background:var(--ink);box-shadow:none;transform:translateX(-1px)}
+.sbar .today em{display:block;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font:600 var(--t4)/1 Archivo,sans-serif;font-style:normal;color:var(--ink);white-space:nowrap;margin-bottom:2px}
+.r1 .pill{border:0;padding:0 4px;color:var(--accent)}
+.r1 .pill em{display:none}
+.r1 .pill > span:last-child::after{content:" ▾";font-size:10px}
+.mapbtn svg{width:18px;height:18px}
+.hdr.mini .r2 .mapbtn span{display:inline}
+.kgrid{border:0;gap:12px 16px;padding:4px 0 12px;border-bottom:1px solid var(--line)}
+.ktile{border:0;padding:0;min-height:0}
+.needs li > .price,.gtopic .price{font:600 var(--t4) Archivo,sans-serif;font-variant-numeric:tabular-nums}
+.bk{margin-right:10px;white-space:nowrap}.bk i{font-style:normal}.bk.ok i{color:var(--open)}.bk.no i{color:var(--closed)}
+.gtopic summary,details.lostlist summary{min-height:48px;display:flex;align-items:center;list-style:none}
+.gtopic summary::-webkit-details-marker{display:none}
+.gtopic summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+.gtopic details[open] summary::after{transform:rotate(-135deg)}
+.classbox b{display:block;font:700 var(--t3) Archivo,sans-serif}.classbox span{display:block;font-size:var(--t3)}
+.gconds.oth li::before{content:"✓";color:var(--open);font-weight:800}
+.spg button{flex:0 0 calc((100% - 24px) / 3.5)}
+.spg .im{width:100%;height:auto;aspect-ratio:2/1;border:0;background:var(--wash)}
+.spg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-licsrc]{display:none}
+.kgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .spg img{filter:brightness(.82)}}
+:root[data-theme="dark"] .spg img,:root[data-theme="dark"] .sbody .pic img{filter:brightness(.82)}
 /* water map overlay */
 .wmap{position:absolute;inset:0;z-index:10;background:var(--card);transform:translateX(100%);transition:transform .22s;display:flex;flex-direction:column}
 .wmap.on{transform:none}
@@ -253,9 +290,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <div class="body" id="body">
       <div id="reg"><div class="scroller" id="sc"></div></div>
       <div class="wmap" id="wmap"></div>
-      <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div>
     </div>
-    <nav class="tabs" id="tabs" role="tablist"></nav></div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div></div>
   <div class="poster"><h1>Regs v10</h1>
     <p>One Regulations surface with two parts, <b>What you can keep</b> and <b>Gear &amp; licence</b>, under one header. Every fact is page v36’s, from a script-made snapshot. Data still to come is marked “pending data”.</p>
     <div class="ctl"><span class="lab">Water and day</span><div class="cs" id="c-w"></div></div>
@@ -280,6 +317,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
 const ST = () => SNAP.states[sid()];
+const CHEVI = '<svg viewBox="0 0 16 16" class="chev" aria-hidden="true" style="margin:0"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 16 16" class="chev" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
 const FISHPIC = code => (FISHMANIFEST.images || []).filter(i => i.code === code);
 
@@ -292,7 +330,7 @@ function hdr(){
       <div class="ttl"><b>${esc(st.name)}</b><small>${esc(st.sub)}</small></div>
       <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
     <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div>
-      <button class="mapbtn" data-map="1" aria-label="View this water on a map">◱ <span>Map</span></button></div>
+      <button class="mapbtn" data-map="1" aria-label="View this water on a map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3.5H21V20.5H3Z" stroke-width="1.8"/><path d="M8 3.5V9L12.5 13.5V20.5M17.5 3.5V7L12.5 13.5" stroke-width="2.2"/></svg><span>Map</span></button></div>
     ${parts ? `<div class="parts" role="group" aria-label="Parts, from the mouth">${parts.map((id, i) => { const s2 = SNAP.states[id], k2 = statusOf(s2), on = i === S.p;
       return `<button aria-current="${on}" data-part="${i}" aria-label="Part ${i+1}: ${esc(st.parts.find(o => o.v === s2.part)?.t || '')}, ${k2}"><i class="${k2==='closed'?'s-closed':'s-keep'}"></i>${i+1}${on ? `<span>${esc((st.parts.find(o => o.v === s2.part)?.t || '').replace(/ · \d+ sections?$/,''))}</span>` : ''}</button>`; }).join('')}</div>` : ''}</div>`;
 }
@@ -309,6 +347,8 @@ function buildKeep(){
   const leg = root.querySelector('.slegend') || root.querySelector('.wstrip');
   if (leg) leg.insertAdjacentHTML('beforeend', `<span class="pend" title="Arrives with answers 2.6">Fly-only / bait-ban days: pending data</span>`);
   root.querySelectorAll('.looks, .lthumb').forEach(e => e.remove());
+  root.querySelectorAll('.closechain li').forEach(li => { const t = li.firstChild; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(/^No fishing for any game fish,?\s*/, '').replace(/^from streams,\s*/, 'From streams, ');
+    const sc = li.querySelector('.muted'), b = li.querySelector('.srcbtn'); li.innerHTML = `<span class="cd">${esc(li.firstChild.textContent.trim())}${sc ? ` <span class="muted small">${esc(sc.textContent)}</span>` : ''}</span>${b ? b.outerHTML : ''}`; });
   root.querySelectorAll('article.row.ledger').forEach(art => {
     const ri = +(art.dataset.row || 'r0').slice(1), raw = st.rows[ri] || {}, g = raw.group;
     // header numeral: the group's total from the data, not the stream sub-cap
@@ -318,7 +358,11 @@ function buildKeep(){
     if (gl && g && g.says) {
       const [first, ...rest] = g.says.replace(/\.$/,'').split('; ');
       const tips = [...gl.querySelectorAll('.gl')].map(b => b.outerHTML).join(' ');
-      gl.outerHTML = `<p class="lead">${esc(first)}.</p>${rest.length ? `<ul class="caps">${rest.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}${raw.elsewhere ? `<p class="els">${esc(raw.elsewhere.says)} ${tips}</p>` : ''}`;
+      const words = [...gl.querySelectorAll('.gl')].map(b => { const id = b.dataset.gl, t = (SNAP.gloss[id]?.title || '').replace(/ \(.*\)$/,'').replace(/ – .*$/,''); return `<button class="glk" data-gl="${id}">${esc(t)}</button>`; }).join('');
+      gl.outerHTML = `<p class="lead">${esc(first)}.</p>${rest.length ? `<ul class="caps">${rest.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}${raw.elsewhere ? `<p class="els">${esc(raw.elsewhere.says)}</p>` : ''}`
+        + (raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '')
+        + (words ? `<div class="words"><span>What these words mean:</span>${words}</div>` : '');
+      art.querySelectorAll('ul.exs').forEach(e => e.remove());
     }
     // the species guide sits right under the group's header
     const codes = (g && g.kinds) || raw.members || [];
@@ -345,8 +389,8 @@ const KINDS = {}, OTHERS_ = {};
 function buildGear(){
   const st = ST();
   if (!st.kitTiles) return `<p class="foot">No gear may go in the water and no licence is needed while fishing is closed.</p>`;
-  const labelFix = h => h.replace(/>Lines</g, '>Lines (rods)<').replace(/>1 line</g, '>1 line (one rod)<').replace(/1 line ·/g, '1 line (one rod) ·').replace(/>1 line \(2 alone/g, '>1 line (one rod; 2 alone');
-  const tiles = labelFix(st.kitTiles).replace(/<button class="ktile([^"]*)" role="tab" aria-selected="[^"]*" type="button" data-kit="(\w+)"/g, '<button class="ktile$1" type="button" data-jump="g-$2"');
+  const labelFix = h => h;
+  const tiles = st.kitTiles.replace(/<span class="bk (ok|no)">([^<]+?)&nbsp;<i>([✓✕])<\/i><\/span>/g, '<span class="bk $1"><i>$3</i>&nbsp;$2</span>').replace(/<button class="ktile([^"]*)" role="tab" aria-selected="[^"]*" type="button" data-kit="(\w+)"/g, '<button class="ktile$1" type="button" data-jump="g-$2"');
   const TITLES = {licence:'Licence', line:'Line & hooks', bait:'Bait', ways:'Ways to fish', boats:'Boats', always:'Always'};
   let h = `<div class="kgrid">${tiles}</div>`;
   for (const [k, t] of Object.entries(TITLES)) {
@@ -366,7 +410,7 @@ function buildGear(){
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   const sc = $('sc'), prev = sc.scrollTop;
-  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><h2>Gear &amp; licence</h2><span class="lab">for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
+  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
   $('tabs').innerHTML = [['regs','Regulations','M5 3.5H19V20.5H5Z','M8.5 8.5H15.5 M8.5 12.5H15.5 M8.5 16.5H12.5'],['cond','Conditions','M3.5 19.5H21 M3.5 19.5V5','M3.5 15L8 10.5L12 14L16 6.5L21 11 M16 6.5V19.5']]
     .map(([k,t,f,m]) => `<button role="tab" aria-selected="${k==='regs'}" data-tab="${k}"><svg viewBox="0 0 24 24"><path d="${f}" stroke-width="1.8"/><path d="${m}" stroke-width="2.2"/></svg><em>${t}</em><u></u></button>`).join('');
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
@@ -375,15 +419,28 @@ function render(keep){
   poster();
 }
 function mini(){ const h = $('hdr'); if (h) h.classList.toggle('mini', $('sc').scrollTop > 60);
-  const g = $('gear'), sc = $('sc'); if (g) { const inGear = g.offsetTop - sc.scrollTop < 160; document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.sec === 'gear') === inGear)); } }
+  const g = $('gear'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
+  if (g) { const atEnd = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2 && sc.scrollTop > 0;
+    const inGear = g.offsetTop - sc.scrollTop <= hh + 12 || atEnd;
+    document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.sec === 'gear') === inGear)); } }
 $('sc').addEventListener('scroll', mini, {passive:true});
 
 /* ---------- sheets: one sheet component ---------- */
 const head = (t, sub) => `<div class="shead"><div class="grab"></div><div class="r"><h2>${t}</h2><button class="done" data-close>Done</button></div>${sub ? `<p>${sub}</p>` : ''}</div>`;
 const pendingBook = `<div class="pending"><b>Book page: pending data.</b> A link to this rule’s page in the official Synopsis PDF arrives with answers 2.6.</div>`;
-function scopeLines(html){ // add each rule's scope (this water / area / zone / province) from its own sheet
-  return html.replace(/<button class="pline pl2" type="button" data-rule="([^"]+)">([\s\S]*?)<\/button>/g, (m, key, inner) => {
-    const r = SNAP.rules[key]; return `<button class="pline pl2" type="button" data-open="rule:${key}">${inner}${r ? `<span class="scp">${esc(r.sub)}</span>` : ''}</button>`; });
+function scopeLines(html){ // rules open their own sheet; the level heading above them already says where they apply
+  return html.replace(/<button class="pline pl2" type="button" data-rule="([^"]+)">([\s\S]*?)<\/button>/g, (m, key, inner) => `<button class="pline pl2" type="button" data-open="rule:${key}">${inner}</button>`);
+}
+/* the row-sources sheet: one small heading per level, then plain rows (the rule, its effect) */
+function groupedSources(html){
+  const doc = new DOMParser().parseFromString(`<div id="r">${html}</div>`, 'text/html'), r = doc.getElementById('r'); let out = '', cur = null, buf = [];
+  const flush = () => { if (!buf.length) return; const by = {}; buf.forEach(x => (by[x.where] = by[x.where] || []).push(x));
+    out += Object.entries(by).map(([w, xs]) => `<p class="lvh">${esc(w)}</p>${xs.map(x => `<div class="srow"><span>${esc(x.q)}</span><small>${esc(x.role)}</small></div>`).join('')}`).join(''); buf = []; };
+  [...r.children].forEach(el => {
+    if (el.classList.contains('lbl')) { flush(); out += `<div class="lbl">${esc(el.textContent)}</div>`; }
+    else if (el.classList.contains('sc')) buf.push({where: el.querySelector('.muted')?.textContent.trim() || '', q: (el.querySelector('.scq')?.textContent || '').trim().replace(/^[“"]|[”"]$/g, ''), role: el.querySelector('.scrole')?.textContent.trim() || ''});
+    else { flush(); el.querySelectorAll('.badge,.fraw').forEach(x => x.remove()); out += el.outerHTML; }
+  }); flush(); return out;
 }
 function sheetHtml(k){
   const st = ST();
@@ -391,14 +448,16 @@ function sheetHtml(k){
     return head('Which day?', '') + `<div class="sbody"><div class="lab">Days in this prototype’s snapshot</div>${days.map(d => `<button class="orow" data-day="${d}"><span class="on">${wday(d)} ${fmt(d)}${d === 1010 ? ' · today' : ''}</span>${d === S.d ? '<b>✓</b>' : ''}</button>`).join('')}
       <div class="pending"><b>Other days:</b> the app reads any day from the bundle; this prototype only holds the days above.</div></div>`; }
   if (k.startsWith('kind:')) { const x = KINDS[k.slice(5)]; if (!x) return '';
-    return head(esc(x.title), '') + `<div class="sbody"><div class="krow" style="border:0;padding-top:4px"><span class="kb">${x.head}</span></div><div class="lbl">How this was decided</div>${scopeLines(x.dec.replace(/<div class="lbl">How this was decided<\/div>/,''))}</div>`; }
+    return head(esc(x.title), '') + `<div class="sbody"><div class="krow" style="border:0;padding-top:4px"><span class="kb">${x.head.replace(/<b class="nm">[\s\S]*?<\/b>/, '')}</span></div><div class="lbl">How this was decided</div>${scopeLines(x.dec.replace(/<div class="lbl">How this was decided<\/div>/,''))}</div>`; }
   if (k.startsWith('other:')) { const x = OTHERS_[k.slice(6)]; if (!x) return '';
     const t = (x.match(/<span class="rtitle">([^<]+)/) || [])[1] || 'Other fish';
     return head(esc(t), '') + `<div class="sbody">${scopeLines(x.replace(/<span class="rtitle">[^<]+<\/span>/,'').replace(/<details class="decide"[^>]*>/g,'<div>').replace(/<\/details>/g,'</div>').replace(/<summary>How this was decided<\/summary>/g,'<div class="lbl">How this was decided</div>'))}</div>`; }
   if (k.startsWith('rule:')) { const r = SNAP.rules[k.slice(5)]; if (!r) return '';
     return head(esc(r.title), esc(r.sub)) + `<div class="sbody">${r.body}${pendingBook}</div>`; }
   if (k.startsWith('gl:')) { const g = SNAP.gloss[k.slice(3)]; if (!g) return ''; return head(esc(g.title), esc(g.sub)) + `<div class="sbody">${g.body}</div>`; }
-  if (k.startsWith('src:')) { const s2 = SNAP.sources[k.slice(4)]; if (!s2) return ''; return head(esc(s2.title), esc(s2.sub)) + `<div class="sbody">${scopeLines(s2.body)}${pendingBook}</div>`; }
+  if (k.startsWith('src:')) { const s2 = SNAP.sources[k.slice(4)]; if (!s2) return ''; return head(esc(s2.title), esc(s2.sub)) + `<div class="sbody">${groupedSources(s2.body)}${pendingBook}</div>`; }
+  if (k.startsWith('else:')) { const [id, ri] = k.slice(5).split('|'), e = SNAP.states[id].rows[+ri].elsewhere;
+    return head('Fished elsewhere today?', esc(e.says)) + `<div class="sbody">${e.ask.map(([q, a]) => `<div class="srow"><span>${esc(q)}</span><b>${esc(a)}</b></div>`).join('')}</div>`; }
   if (k === 'hatch') { const h = SNAP.howtell; let i = 0; const body = h.body.replace(/<figure class="fishart">/g, () => `<figure class="fishart">${window.FISHART ? FISHART.draw('RB', {marks:false, adiMark:true, clipped: i++ === 1}) : ''}`); return head(esc(h.title), esc(h.sub)) + `<div class="sbody">${body}</div>`; }
   if (k.startsWith('sp:')) { const c = k.slice(3), f = SNAP.fish[c], pics = FISHPIC(c); if (!f) return '';
     return head(esc(f.name), '') + `<div class="sbody">${pics.map(p => `<div class="pic"><img src="../apps/mobile/assets/fish/${p.file}" alt="${esc(p.caption)}"></div><div class="cred">${esc(p.caption)}${p.phase ? ' · ' + esc(p.phase) : ''} · ${esc(p.credit)} (${esc(p.source)})</div>`).join('')}
@@ -442,7 +501,8 @@ document.addEventListener('click', e => {
   if (d.rule) return go({sheet:'rule:' + d.rule}, true);
   if (d.howtell) return go({sheet:'hatch'}, true);
   if (d.fish) return go({sheet:'sp:' + d.fish}, true);
-  if (d.sec) { const el = d.sec === 'gear' ? $('gear') : $('keep'); $('sc').scrollTo({top: d.sec === 'gear' ? el.offsetTop - $('hdr').offsetHeight + 2 : 0, behavior:'smooth'}); return; }
+  if (d.sec) { const el = d.sec === 'gear' ? $('gear') : $('keep'); $('sc').scrollTo({top: d.sec === 'gear' ? el.offsetTop - $('hdr').offsetHeight + 2 : 0, behavior:'smooth'});
+    document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === d.sec)); return; }
   if (d.jump) { const el = $(d.jump); if (el) $('sc').scrollTo({top: el.offsetTop - $('hdr').offsetHeight - 4, behavior:'smooth'}); return; }
   if (d.map) return go({map:1, sheet:''}, true);
   if (d.unmap != null) return go({map:0}, true);
