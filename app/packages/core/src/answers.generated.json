@@ -3023,6 +3023,40 @@
      "title": "Decided",
      "type": "object"
     },
+    "Elsewhere": {
+     "additionalProperties": false,
+     "description": "The kept-elsewhere line of a keep row (rows F9, F14): one sentence and worked examples\n[[question, answer]].",
+     "properties": {
+      "ask": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "string"
+         }
+        ],
+        "type": "array"
+       },
+       "title": "Ask",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "ask"
+     ],
+     "title": "Elsewhere",
+     "type": "object"
+    },
     "FAlso": {
      "additionalProperties": false,
      "properties": {
@@ -3912,6 +3946,59 @@
      "title": "Group",
      "type": "object"
     },
+    "GroupTotal": {
+     "additionalProperties": false,
+     "description": "One total on today's card and its sub-caps, with ONE sentence (answers 2.5, rows F14;\nuser 2026-10-10): \"Up to 4 trout and char a day, steelhead included; at most 2 from streams\n(hatchery rainbow trout 50 cm or less excepted); \u2026\".",
+     "properties": {
+      "kinds": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "pool": {
+       "minimum": 0,
+       "title": "Pool",
+       "type": "integer"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "subcaps": {
+       "items": {
+        "$ref": "#/$defs/Subcap"
+       },
+       "title": "Subcaps",
+       "type": "array"
+      },
+      "total": {
+       "anyOf": [
+        {
+         "exclusiveMinimum": 0,
+         "type": "integer"
+        },
+        {
+         "const": "unlimited",
+         "type": "string"
+        }
+       ],
+       "title": "Total"
+      }
+     },
+     "required": [
+      "pool",
+      "total",
+      "kinds",
+      "subcaps",
+      "says"
+     ],
+     "title": "GroupTotal",
+     "type": "object"
+    },
     "Item": {
      "additionalProperties": false,
      "description": "5.8: one per kind of fish; each fish in exactly one item.",
@@ -4752,6 +4839,17 @@
        ],
        "title": "Daily"
       },
+      "elsewhere": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Elsewhere"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
       "everyone": {
        "items": {
         "discriminator": {
@@ -4820,6 +4918,17 @@
        },
        "title": "Everyone",
        "type": "array"
+      },
+      "group": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/GroupTotal"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "groups": {
        "items": {
@@ -5041,6 +5150,116 @@
       "members"
      ],
      "title": "SharedCount",
+     "type": "object"
+    },
+    "Subcap": {
+     "additionalProperties": false,
+     "description": "A count or size clause of a total holding some of its kinds here (rows F14).",
+     "properties": {
+      "lifted": {
+       "items": {
+        "$ref": "#/$defs/SubcapLift"
+       },
+       "title": "Lifted",
+       "type": "array"
+      },
+      "of": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Of",
+       "type": "array"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Over Cm"
+      },
+      "r": {
+       "minimum": 0,
+       "title": "R",
+       "type": "integer"
+      },
+      "take": {
+       "minimum": 0,
+       "title": "Take",
+       "type": "integer"
+      },
+      "under_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Under Cm"
+      },
+      "water": {
+       "anyOf": [
+        {
+         "enum": [
+          "stream",
+          "lake"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Water"
+      }
+     },
+     "required": [
+      "r",
+      "take",
+      "water",
+      "over_cm",
+      "under_cm",
+      "of",
+      "lifted"
+     ],
+     "title": "Subcap",
+     "type": "object"
+    },
+    "SubcapLift": {
+     "additionalProperties": false,
+     "description": "Kinds a water's own rule lifts out of a sub-cap (they still count toward the total).",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "members": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Members",
+       "type": "array"
+      }
+     },
+     "required": [
+      "members",
+      "by"
+     ],
+     "title": "SubcapLift",
      "type": "object"
     }
    },

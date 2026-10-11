@@ -98,6 +98,38 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## answers/2.5 (2026-10-10) — group totals in Python; a size release is an answer
+
+Same format string (`answers/2`); **rows 6** (ladder 1, gear 4, licence 4, display 4 unchanged in
+version). A reader that does not know rows 6 must refuse the file. User rulings 2026-10-10: RULINGS
+Q23, T3a, P8.
+
+* **Group totals (rows F14).** Every keep row carries `elsewhere` {says, ask [[question, answer]]},
+  the kept-elsewhere line; ONE row per total carries `group` {pool, total, kinds, subcaps [{r, take,
+  water, over_cm, under_cm, of, lifted [{members, by}]}], says} (else null): the TOTAL the row's fish
+  count toward (the row's pool, or the outer pool they are contained by, F4) — never the narrowed
+  number —, every kind on the card counting toward it (steelhead stay in the trout/char group), each
+  count or size clause of it holding some of them here, the kinds a water's own rule LIFTS out of a
+  clause (they still count toward the total), and one sentence. A slot ("none between 36 and 44 cm")
+  is no sub-cap; a size clause another makes redundant on the card is not said twice. Vedder (mouth
+  part), Oct 10: "Up to 4 trout and char a day, steelhead included; at most 2 from streams (hatchery
+  rainbow trout 50 cm or less excepted); at most 1 Dolly Varden/bull trout or lake trout; at most 2
+  over 50 cm; at most 1 over 50 cm, not counting steelhead." and "Kept 2 on another stream? Keep 0
+  here, except hatchery rainbow trout 50 cm or less: up to 4 in all" (the page said "2 a day in total,
+  all kinds together" and "Keep 0 here"). Page v36's `groupBlock` reads both (P8). 12,577 groups;
+  109 named waters have a stream-share lift (Vedder 4, Duncan ✱ tributaries 80, Kitimat ✱ tributaries
+  24, Peace 1 — the bug study's 109), 724 with any lifted sub-cap (578 of them the Liard watershed's
+  bull trout 30–50 cm).
+* **A size release is an answer (rows F13).** Where no gate or pool speaks, a speaking take-0 size
+  band releasing the fish's whole range on the part decides it (status release). Vedder (mouth part),
+  May 1–31: hatchery rainbow was `null` and missing from the card; now "release", winner r6, whose
+  `plain` is "Release every hatchery rainbow trout 50 cm or less, May 1–31." (was "Keep only rainbow
+  trout 50 cm or longer"). 2 key-segments (the Vedder mouth part and three of its tributaries'
+  key); no other decided answer is null under a speaking release.
+* Proved on a side build (`data/generated/scratch_a25`): status index and export byte-identical;
+  every same-content key's rows frame equals the live one with `group`/`elsewhere` removed, except
+  those 2 key-segments; the display section differs only in r6's `plain` and `subsets`.
+
 ## answers/2.4 (2026-10-10) — every section has an answer (S1: the unnamed water)
 
 Same format string (`answers/2`); **no section version changes** (ladder 1, rows 5, gear 4, licence 4,

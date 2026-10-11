@@ -218,7 +218,9 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.3: rows 5 (G4 `items[].ranges`), gear 4 (Q38 `caught`), licence 4 (G2
         # `others`/`guiding` with their printed paths), display 4 (Z12 `unless_opened`, G3
         # `rules[].subsets`, Q15/Q38 words in `rules[].plain`)
-        Section("rows", 5, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # answers 2.5: rows 6 (F13 a size release is an answer; F14 `rows[].group` /
+        # `rows[].elsewhere`, the group totals and the kept-elsewhere line)
+        Section("rows", 6, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         Section("gear", 4, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,

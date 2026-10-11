@@ -857,17 +857,15 @@ const generalCap = rc => rc.conds.find(c => c.c === 'cap' && !c.who && !(c.raw.o
 function groupBlock(row, rc){
   const s = scopeOf(row), n = row.daily, facts = [];
   let ex = '';
-  const tot = row.kind === 'keep' && n > 1 && row.allMembers.length > 1 ? `<b>${n} a day in total, all kinds together.</b> ` : '';
-  if (row.kind === 'nolimit') facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`);
+  // the total its kinds share, its sub-caps and what a water's own rule lifts out of them, in ONE
+  // sentence, and the kept-elsewhere line: the answers' (rows F14, answers 2.5), never derived here
+  const grp = row.raw.group, el = row.raw.elsewhere;
+  const tot = grp ? `<b>${esc(grp.says)}</b> ${gi('daily_quota')} ` : '';
+  const exs = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
+  if (row.kind === 'nolimit'){ facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`); if (tot) facts.push(`<p class="gline">${tot}</p>`); }
   else if (!row.scope) facts.push(missing('whose count this limit is (rows scope)'));
-  else if (nar0(row)){
-    const wk = row.narrow.f.water, other = wk === 'stream' ? 'lakes' : 'streams', b = row.pool.f.take;
-    facts.push(`<p class="gline">${tot}${tot ? gi('daily_quota') + ' ' : ''}Shared with every ${esc(s)} ${regionGi(row)} ${wk} ${wk === 'stream' ? gi('stream') : ''} you fish today.</p>`);
-    ex = `<ul class="exs"><li><span>Kept ${n} on another ${wk}?</span> <strong>Keep 0 here</strong></li><li class="sep"><span>Kept some at a ${other.replace(/s$/, '')}?</span> <strong>Those don’t count here, but stop at ${b} for the whole day</strong></li></ul>`;
-  } else if (s){ const lakeToo = !row.pool.f.water; facts.push(`<p class="gline">${tot}${tot ? gi('daily_quota') + ' ' : ''}Shared with everywhere in ${esc(s)} ${regionGi(row)} you fish today${lakeToo ? ', lakes and streams alike' : ''}.</p>`);
-    if (row.kind === 'keep' && n > 1){ const k = n > 2 ? 2 : 1; ex = `<ul class="exs"><li><span>Kept ${k} elsewhere today?</span> <strong>Keep ${n - k} more here</strong></li></ul>`; } }
-  // a water's own daily limit still counts the fish kept elsewhere today (answers rows fix F9)
-  else facts.push(`<p class="gline">${tot}This ${PLACE.kind === 'stream' ? 'river' : 'lake'}’s own limit. Fish you kept elsewhere today count toward it too.${row.scope.apart ? ' These fish are counted apart from the region’s total: they don’t use it up.' : ''}</p>`);
+  else if (!el) facts.push(missing('the kept-elsewhere line (rows elsewhere)'));
+  else { facts.push(`<p class="gline">${tot}${esc(el.says)} ${s ? regionGi(row) : ''}${nar0(row) && row.narrow.f.water === 'stream' ? ' ' + gi('stream') : ''}</p>`); ex = exs; }
   const ec = row.real;
   if (ec && ec.all) facts.push(`<p class="gline warnline"><b>Really ${ec.sum} a day here.</b> ${esc(s || 'The region')} allows ${n}, but each kind below has its own smaller limit.</p>`);
   else if (ec && ec.capped_sum < n && ec.rb){ const big = (ec.shared_cap || []).map(c => `Every one you could keep is over ${c.over_cm} cm, and only ${c.take} fish over ${c.over_cm} cm ${c.take > 1 ? 'are' : 'is'} allowed.`).join(' ');

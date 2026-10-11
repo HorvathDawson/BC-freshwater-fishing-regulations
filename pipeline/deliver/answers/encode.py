@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "5",
+            "version": "6",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -230,7 +230,18 @@ SPEC = {
                     "open, shared_count?} or null (5.7: \"Really {sum} a day here\" when `all`; version 4, "
                     "decision F11: `shared_count` [{take, members}] the count limits several kinds "
                     "share — 1 trout from streams is 1 for brown, cutthroat, rainbow and steelhead "
-                    "TOGETHER; a cap's `except` (F12) is decided here, never on the page)",
+                    "TOGETHER; a cap's `except` (F12) is decided here, never on the page); "
+                    "`group` (version 6, decision F14) on ONE row per total, else null or absent: "
+                    "{pool, total (a number or \"unlimited\"), kinds, subcaps [{r, take, water "
+                    "(stream | lake | null), over_cm, under_cm, of, lifted [{members, by}]}], says} "
+                    "— the TOTAL the row's fish count toward (the row's pool, or the outer pool its "
+                    "fish are contained by), every kind on the card counting toward it (steelhead "
+                    "included), each count or size clause of it holding some of them here (`of`) "
+                    "with the kinds a water's own rule lifts out of it (`lifted`: they still count "
+                    "toward the total), and the sentence to show; `elsewhere` (version 6) on every "
+                    "keep row: {says, ask [[question, answer]]} the kept-elsewhere line, qualified "
+                    "by those lifts. A decided answer's winner may be a size release (F13: a take-0 "
+                    "band releasing the fish's whole range, status release)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

@@ -394,6 +394,51 @@ class Group(Model):
     facts: Tuple[Fact, ...]
 
 
+class SubcapLift(Model):
+    """Kinds a water's own rule lifts out of a sub-cap (they still count toward the total)."""
+    members: Tuple[Fish, ...] = Field(min_length=1)
+    by: RuleIx
+
+
+class Subcap(Model):
+    """A count or size clause of a total holding some of its kinds here (rows F14)."""
+    r: RuleIx
+    take: Count
+    water: Optional[Literal["stream", "lake"]]       # a stream (lake) share; None: any water
+    over_cm: Optional[Cm]                            # a size clause's band
+    under_cm: Optional[Cm]
+    of: Tuple[Fish, ...] = Field(min_length=1)       # the kinds it holds here
+    lifted: Tuple[SubcapLift, ...]
+
+
+class GroupTotal(Model):
+    """One total on today's card and its sub-caps, with ONE sentence (answers 2.5, rows F14;
+    user 2026-10-10): "Up to 4 trout and char a day, steelhead included; at most 2 from streams
+    (hatchery rainbow trout 50 cm or less excepted); …"."""
+    pool: RuleIx
+    total: Union[Positive, Literal["unlimited"]]
+    kinds: Tuple[Fish, ...] = Field(min_length=1)    # every kind on the card counting toward it
+    subcaps: Tuple[Subcap, ...]
+    says: StrictStr = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _shares(self):
+        if len(self.kinds) < 2 and not self.subcaps:
+            raise ValueError("a group is a total several kinds share, or one with a sub-cap")
+        for s in self.subcaps:
+            if not set(s.of) <= set(self.kinds) or any(not set(L.members) <= set(self.kinds)
+                                                       for L in s.lifted):
+                raise ValueError("a sub-cap holds (or lifts) only kinds counting toward the total")
+        return self
+
+
+class Elsewhere(Model):
+    """The kept-elsewhere line of a keep row (rows F9, F14): one sentence and worked examples
+    [[question, answer]]."""
+    says: StrictStr = Field(min_length=1)
+    ask: Tuple[Tuple[StrictStr, StrictStr], ...]
+
+
 class Row(Model):
     kind: Decided_
     pool: Optional[RuleIx]
@@ -411,10 +456,16 @@ class Row(Model):
     conds: Optional[Tuple[Cond, ...]] = None          # set <=> the row has a pool
     items: Optional[Tuple[Item, ...]] = None          # set <=> the row has a pool
     real_daily: Optional[RealDaily] = None            # only on a pool row
+    group: Optional[GroupTotal] = None                # answers 2.5: on ONE row per total
+    elsewhere: Optional[Elsewhere] = None             # answers 2.5: set <=> a keep row
 
     @model_validator(mode="after")
     def _pool_rows(self):
         has_pool = self.pool is not None
+        if self.group is not None and not has_pool:
+            raise ValueError("a group total only on a pool row")
+        if (self.elsewhere is not None) != (self.kind == "keep"):
+            raise ValueError("the kept-elsewhere line is set <=> a keep row")
         if has_pool != (self.kind in ("keep", "no_limit")):
             raise ValueError(f"a {self.kind} row with pool {self.pool}: pool <=> keep or no_limit")
         if has_pool == (self.win is not None):

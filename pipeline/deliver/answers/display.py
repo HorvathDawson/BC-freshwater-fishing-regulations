@@ -295,6 +295,10 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return wrap(f"No daily limit for {sp}")
     if _is(take, 0):
         return wrap(f"Release every {org}{sp}")
+    if take is None and floor and floor.get("closed") and len(ln) == 1:
+        # the book's "catch and release (X cm or less)" (Q13: X itself released) — never "keep
+        # only X cm or longer" (answers 2.5: Vedder r6, now the decided winner, rows F13)
+        return wrap(f"Release every {org}{sp} {_num(floor['max_cm'])} cm or less")
     if x.get("period") == "annual":
         return wrap(f"Keep up to {_num(take)} {sp}{over} a licence year"
                     f"{', all kinds together' if len(species) > 1 else ''}")

@@ -18,7 +18,8 @@ DECIDED = {"status": "keep", "win": 3, "daily": 2, "narrow": None,
 ROW = {"kind": "keep", "pool": 3, "win": None, "members": ["RB"], "all_members": ["RB"],
        "daily": 2, "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None,
        "lift_notes": [], "scope": {"of": "water", "entry": None, "share": False, "apart": False},
-       "conds": [], "items": [], "real_daily": None}
+       "conds": [], "items": [], "real_daily": None, "group": None,
+       "elsewhere": {"says": "This river’s own limit.", "ask": []}}     # answers 2.5 (rows 6)
 FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": DECIDED, "wild": DECIDED}}, "rows": [ROW],
          "steelhead_line": None}
 
@@ -60,6 +61,9 @@ def test_every_nullable_field_is_null_exactly_where_its_model_says():
     _bad("rows", {**FRAME, "rows": [{**ROW, "items": [{"members": ["RB"], "bands": None,
                                                        "back": False, "xref": False, "sub": None,
                                                        "conds": [], "against": 4}]}]})
+    _bad("rows", {**FRAME, "rows": [{**ROW, "elsewhere": None}]})          # 2.5: elsewhere <=> keep
+    _bad("rows", {**FRAME, "rows": [{**ROW, "group": {"pool": 3, "total": 2, "kinds": ["RB"],
+                                                      "subcaps": [], "says": "Up to 2."}}]})
 
 
 def test_the_vocabularies_are_the_closed_enums():
