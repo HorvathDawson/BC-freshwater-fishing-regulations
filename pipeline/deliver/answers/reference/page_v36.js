@@ -860,7 +860,8 @@ function groupBlock(row, rc){
   // the total its kinds share, its sub-caps and what a water's own rule lifts out of them, in ONE
   // sentence, and the kept-elsewhere line: the answers' (rows F14, answers 2.5), never derived here
   const grp = row.raw.group, el = row.raw.elsewhere;
-  const tot = grp ? `<b>${esc(grp.says)}</b> ${gi('daily_quota')} ` : '';
+  // answers 2.6: the lead sentence, then the rest as short sub-items (rows 7 `group.items`)
+  const tot = grp ? `<b>${esc(grp.says)}</b> ${gi('daily_quota')} ${(grp.items || []).length ? `<ul class="gitems">${grp.items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}` : '';
   const exs = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
   if (row.kind === 'nolimit'){ facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`); if (tot) facts.push(`<p class="gline">${tot}</p>`); }
   else if (!row.scope) facts.push(missing('whose count this limit is (rows scope)'));
@@ -1109,7 +1110,7 @@ function gearParts(){
   const top = s => G.counts[s] ? { ...clauseOf(G.counts[s].by), also:G.counts[s].also || [] } : null;
   const E = G.elements, el = k => E[k] ? { ...clauseOf(E[k].by), s:E[k].verdict } : null;
   const tags = [], L = top('lines_per_angler');
-  if (L) tags.push(`${countTxt('lines_per_angler', L.c)} line${L.c?.max > 1 ? 's' : ''}${L.also.map(e => ` (${countTxt('lines_per_angler', clauseOf(e.clause).c)} ${circTxt(e).replace('while ', '')})`).join('')}`);
+  if (L) tags.push(`${countTxt('lines_per_angler', L.c)} ${(SEC.gear.count_nouns?.lines_per_angler || [])[L.c?.max > 1 ? 1 : 0] ?? missing('the line count noun (gear count_nouns)')}${L.also.map(e => ` (${countTxt('lines_per_angler', clauseOf(e.clause).c)} ${circTxt(e).replace('while ', '')})`).join('')}`);
   const HOOK = { single_barbless:'Single barbless hook', single:'Single hook', any_barbless:'Any barbless hook', trebles_and_barbs:'Trebles and barbs OK' };
   tags.push(HOOK[G.hook] || `(hook “${G.hook}”: no words for it)`);
   tags.push(G.bait_ban ? 'Bait ban' : 'Some bait OK');

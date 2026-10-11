@@ -74,6 +74,12 @@
        "title": "Status",
        "type": "string"
       },
+      "strip": {
+       "maximum": 31,
+       "minimum": 0,
+       "title": "Strip",
+       "type": "integer"
+      },
       "unless_opened": {
        "anyOf": [
         {
@@ -94,7 +100,8 @@
      },
      "required": [
       "status",
-      "closing"
+      "closing",
+      "strip"
      ],
      "title": "StatusFrame",
      "type": "object"
@@ -148,11 +155,73 @@
     }
    ]
   },
+  "display.reasons": {
+   "$defs": {
+    "ReasonWords": {
+     "additionalProperties": false,
+     "description": "Why a rule lost, in words (`display.REASON_WORDS`): `lost` said of the loser (\"{by}\" the\nrule that beat it), `won` of the winner (\"{rule}\" the rule it beat).",
+     "properties": {
+      "lost": {
+       "title": "Lost",
+       "type": "string"
+      },
+      "won": {
+       "title": "Won",
+       "type": "string"
+      }
+     },
+     "required": [
+      "lost",
+      "won"
+     ],
+     "title": "ReasonWords",
+     "type": "object"
+    }
+   },
+   "additionalProperties": {
+    "$ref": "#/$defs/ReasonWords"
+   },
+   "propertyNames": {
+    "enum": [
+     "lifted",
+     "ladder",
+     "own_row",
+     "water_dates",
+     "zone_release",
+     "closure",
+     "water_closure",
+     "size_release",
+     "water_release",
+     "same_row_release",
+     "moot_size_clause",
+     "stricter_region",
+     "same_as_peer"
+    ]
+   },
+   "type": "object"
+  },
   "display.rules": {
    "$defs": {
     "RuleFacts": {
      "additionalProperties": false,
      "properties": {
+      "applies": {
+       "minLength": 1,
+       "title": "Applies",
+       "type": "string"
+      },
+      "applies_trib": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Applies Trib"
+      },
       "bands": {
        "anyOf": [
         {
@@ -205,6 +274,26 @@
        ],
        "default": null,
        "title": "Bands"
+      },
+      "book": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+         },
+         {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+         }
+        ],
+        "type": "array"
+       },
+       "minItems": 1,
+       "title": "Book",
+       "type": "array"
       },
       "closure": {
        "anyOf": [
@@ -284,7 +373,9 @@
       }
      },
      "required": [
-      "kind"
+      "kind",
+      "book",
+      "applies"
      ],
      "title": "RuleFacts",
      "type": "object"
@@ -366,6 +457,54 @@
    },
    "items": {
     "$ref": "#/$defs/RuleFacts"
+   },
+   "type": "array"
+  },
+  "display.strip": {
+   "$defs": {
+    "StripState": {
+     "additionalProperties": false,
+     "description": "One state of the open-days strip (`display.STRIP`): its bit in a frame's `strip`, the\nlegend's label and its sentence.",
+     "properties": {
+      "bit": {
+       "maximum": 16,
+       "minimum": 0,
+       "title": "Bit",
+       "type": "integer"
+      },
+      "label": {
+       "title": "Label",
+       "type": "string"
+      },
+      "says": {
+       "title": "Says",
+       "type": "string"
+      },
+      "state": {
+       "enum": [
+        "open",
+        "closed",
+        "release",
+        "fly_only",
+        "artificial_fly_only",
+        "bait_ban"
+       ],
+       "title": "State",
+       "type": "string"
+      }
+     },
+     "required": [
+      "state",
+      "bit",
+      "label",
+      "says"
+     ],
+     "title": "StripState",
+     "type": "object"
+    }
+   },
+   "items": {
+    "$ref": "#/$defs/StripState"
    },
    "type": "array"
   },
@@ -1393,6 +1532,22 @@
      "$ref": "#/$defs/TidalState"
     }
    ]
+  },
+  "gear.count_nouns": {
+   "additionalProperties": {
+    "maxItems": 2,
+    "minItems": 2,
+    "prefixItems": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "string"
+     }
+    ],
+    "type": "array"
+   },
+   "type": "object"
   },
   "licence": {
    "$defs": {
@@ -3948,8 +4103,16 @@
     },
     "GroupTotal": {
      "additionalProperties": false,
-     "description": "One total on today's card and its sub-caps, with ONE sentence (answers 2.5, rows F14;\nuser 2026-10-10): \"Up to 4 trout and char a day, steelhead included; at most 2 from streams\n(hatchery rainbow trout 50 cm or less excepted); \u2026\".",
+     "description": "One total on today's card and its sub-caps (answers 2.5, rows F14): a LEAD sentence and short\nsub-items (answers 2.6, user 2026-10-11: \"make it clear: max 4, of which 2 can be from streams\n(all combined)\"): \"Up to 4 trout and char a day in all \u2014 no more than 2 of them from streams\n(all streams combined).\" + [\"Hatchery rainbow trout 50 cm or less don\u2019t count toward the 2\nfrom streams.\", \"Steelhead count toward the 4.\", \"No more than 1 Dolly Varden/bull trout or\nlake trout.\", \u2026].",
      "properties": {
+      "items": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Items",
+       "type": "array"
+      },
       "kinds": {
        "items": {
         "type": "string"
@@ -3994,7 +4157,8 @@
       "total",
       "kinds",
       "subcaps",
-      "says"
+      "says",
+      "items"
      ],
      "title": "GroupTotal",
      "type": "object"

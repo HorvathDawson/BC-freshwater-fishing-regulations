@@ -607,7 +607,11 @@ def static_tables() -> dict:
     """What every gear answer refers to: the element tree, the conduct moments with the page's
     short phrase and the model's own sentence (`guide.gear.conduct.acts[].means`)."""
     from pipeline.regs.parsing.catalogue import CONDUCT_ACTS
+    from pipeline.regs.parsing.catalogue_parts.labels import COUNT_NOUNS
     return {"parent": PARENT, "methods": list(METHODS),
+            # answers 2.6 (owner): a line count's noun — "1 line (rod)", "2 lines (rods)" — the
+            # labels' own table (`labels.COUNT_NOUNS`); a set line keeps "line"
+            "count_nouns": {k: list(v) for k, v in sorted(COUNT_NOUNS.items())},
             "moments": [[m, [[a, phrase, CONDUCT_ACTS.get(a)] for a, phrase in acts]]
                         for m, acts in MOMENTS],
             "conduct_means": dict(sorted(CONDUCT_ACTS.items()))}

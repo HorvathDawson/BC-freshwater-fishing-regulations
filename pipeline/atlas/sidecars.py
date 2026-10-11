@@ -61,6 +61,10 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
             r["source"] = "gauge"
         elif d is not None:
             r["source"] = "curated"
+            # the curated LABEL, as the build's sectionizer wrote it from the same def (all 531
+            # agreed on the promoted build): a label-only edit of `splits.json` reaches the bundle's
+            # cut names through this sidecar, no rebuild (answers 2.6: "CNR Mile 66 Trestle")
+            r["label"] = d.label
             if d.anchor.offset_m and d.anchor.offset_dir:
                 r["anchor_offset_m"] = round(float(d.anchor.offset_m), 1)
                 r["anchor_offset_dir"] = d.anchor.offset_dir
@@ -149,6 +153,34 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     return dest
 
 
+def write_splits_sidecar(build: Path, out: Path, *, log=print) -> Path:
+    """`--splits-only`: a new build dir at `out` holding every artifact of `build` as a symlink
+    (registry, handles, graph — the section handle table and the registry digest untouched) and
+    `splits.resolved.json` written fresh (`enrich_resolved`: source, authored offsets and the
+    curated LABELS). The cheap path for a curated split's label or offset edit: nothing a cut's
+    PLACE depends on changes, so no reach run or tile set needs redoing. The registry's own
+    boundary labels (read only to name a rule with no `extent_text`) stay as the atlas built them
+    until the next atlas build."""
+    from pipeline.atlas.splits.splits import load_split_defs
+    build, dest = Path(build).resolve(), Path(out).resolve()
+    if dest == build:
+        raise SystemExit("sidecars: --splits-only writes a new build dir (--out), never in place")
+    dest.mkdir(parents=True, exist_ok=True)
+    for p in sorted(build.iterdir()):
+        if p.name == "splits.resolved.json":
+            continue
+        link = dest / p.name
+        if not (link.is_symlink() or link.exists()):
+            os.symlink(p, link)
+    rows = json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))
+    before = [r.get("label") for r in rows]
+    rows = enrich_resolved(rows, load_split_defs(str(CURATED.waters.splits)))
+    (dest / "splits.resolved.json").write_text(dump_resolved(rows), encoding="utf-8")
+    moved = sorted({r["split_id"] for r, b in zip(rows, before) if r.get("label") != b})
+    log(f"  splits.resolved.json: {len(rows):,} cuts; labels changed: {moved or 'none'}")
+    return dest
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="pipeline.atlas.sidecars",
                                  description=__doc__.split("\n\n")[0])
@@ -157,8 +189,16 @@ def main(argv=None) -> int:
                     help="write a new build dir here (symlinks + the three sidecars) instead of in "
                          "place")
     ap.add_argument("--force", action="store_true", help="write in place into a promoted atlas")
+    ap.add_argument("--splits-only", action="store_true",
+                    help="with --out: link everything, write only splits.resolved.json (a curated "
+                         "split label or offset edit)")
     a = ap.parse_args(argv)
     build = a.build or GENERATED.require_build()
+    if a.splits_only:
+        if a.out is None:
+            raise SystemExit("sidecars: --splits-only needs --out")
+        write_splits_sidecar(build, a.out)
+        return 0
     if a.out is None and not a.force:
         from pipeline.common.vintage import promoted_atlas
         carrier = promoted_atlas(build, GENERATED.tiles, GENERATED.bundle / "bundle.sqlite")

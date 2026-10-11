@@ -1265,8 +1265,15 @@ def _step4_competition(s: _Ask) -> None:
     # release — itself gone — still took the 5 and the 3 with it, and they vanished on exactly the
     # days the release was overridden. A rule is out only when a rule that SURVIVES beats it: the
     # rules nothing beats stand; whatever a standing rule beats is out; a rule every one of whose
-    # beaters is out stands; repeat until nothing moves. (A cycle of rules beating each other —
-    # none in the corpus — falls back to "beaten by any rule still undecided".)
+    # beaters is out stands; repeat until nothing moves.
+    # A CYCLE (answers 2.6, Clearwater Creek gnis:7628, Arctic grayling): the creek's own "Catch and
+    # release" (a group) loses to Zone 7B's "Arctic grayling: 2" by naming; that quota loses to the
+    # inherited "Arctic grayling catch and release" (Williston Lake's tributaries) by place; and the
+    # inherited line loses to the creek's own row (Q5, "before naming"). Read as "beaten by any rule
+    # still undecided" every one fell and the grayling had no answer at all. The own row's precedence
+    # is the stronger ruling (T4: it decides BEFORE naming), so a cycle is broken there first: a rule
+    # an undecided OWN ROW beats over what it inherits falls, and the reading resumes. Only a cycle
+    # with no such edge falls back to the old reading ("beaten by any rule still undecided").
     s.out_ = set(s.cand)
     family, peers, beats, closure = s.family, s.peers, s.beats, s.closure
     for group in s.keyed.values():
@@ -1274,19 +1281,26 @@ def _step4_competition(s: _Ask) -> None:
                        and not peers(o, k) and beats(o, k)]
                    for k in group if not closure(k)}
         stands, falls = {k for k in group if not beaters.get(k)}, set()
-        moved = True
-        while moved:
-            moved = False
-            for k in group:
-                if k in stands or k in falls:
-                    continue
-                if any(o in stands for o in beaters[k]):
-                    falls.add(k)
-                    moved = True
-                elif all(o in falls for o in beaters[k]):
-                    stands.add(k)
-                    moved = True
-        falls |= {k for k in group if k not in stands}        # a cycle: the old reading
+        while True:
+            moved = True
+            while moved:
+                moved = False
+                for k in group:
+                    if k in stands or k in falls:
+                        continue
+                    if any(o in stands for o in beaters[k]):
+                        falls.add(k)
+                        moved = True
+                    elif all(o in falls for o in beaters[k]):
+                        stands.add(k)
+                        moved = True
+            undecided = [k for k in group if k not in stands and k not in falls]
+            broken = [k for k in undecided
+                      if any(o in undecided and s.own_over_inherited(o, k) for o in beaters[k])]
+            if not broken:
+                break
+            falls |= set(broken)
+        falls |= {k for k in group if k not in stands}        # a cycle with no own-row edge
         for k in sorted(falls):
             won = sorted(o for o in beaters[k] if o in stands) or sorted(beaters[k])
             s.lose(k, "water_dates" if s.water_dates_override(won[0], k)
@@ -1467,10 +1481,14 @@ def _step4d_size_release(s: _Ask) -> None:
 
 
 def _beaten_by(s: _Ask, k) -> list:
+    """The competitors ranked above `k` by the ladder (`order`) — save a rule `k` itself beats as
+    the water's own row over what it inherits (`own_over_inherited`, Q5: `beats` never lets the
+    inherited rule win that pair, so it is no beater of `k` here either; Clearwater Creek's own
+    release is not "beaten" by the Williston tributaries' inherited grayling release)."""
     every = s.every
     g = s.keyed.get((every[k]["type"], every[k]["dimension"]), [])
     return [o for o in g if s.order(o) < s.order(k) and s.family(o) != s.family(k)
-            and not s.peers(o, k)]
+            and not s.peers(o, k) and not s.own_over_inherited(k, o)]
 
 
 def _same_row_dated_release(s: _Ask, k) -> bool:

@@ -1473,8 +1473,12 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     row and every fish with its own row contained by it (F4; steelhead included, user 2026-10-10),
     `subcaps` each count or size clause of the total holding some of those kinds here
     ({r, take, water, over_cm, under_cm, of, lifted [{members, by}]} — `of` the kinds it holds,
-    `lifted` those a water's own rule lifts out of it, which still count toward the total), and
-    `says`, the sentence. None for a total of one kind with no sub-cap."""
+    `lifted` those a water's own rule lifts out of it, which still count toward the total),
+    `says`, the LEAD sentence — the total, and the stream (lake) share of all of it where one holds
+    ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all streams
+    combined).", answers 2.6, user 2026-10-11) — and `items`, the rest as short sentences: what is
+    lifted out of the share, that steelhead count toward the total, every other sub-cap ("No more
+    than 1 Dolly Varden/bull trout or lake trout."). None for a total of one kind with no sub-cap."""
     kinds = [S for S in model["spp"]
              if (m := _kept(model, S)) is not None
              and (m["win"] is T or (m["roles"].get(T.key) or {}).get("role") == "contains")]
@@ -1487,6 +1491,8 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                                                   _clause_take(c) or 0))
     in_chain = {c.key for c in chain} | {T.key}
     subcaps, words = [], []
+    share: Optional[dict] = None
+    lead: List[str] = []                 # the sub-items that qualify the lead (the share's lifts)
     for c in chain:
         held, lifted = [], {}
         for S in kinds:
@@ -1527,7 +1533,16 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                         for o in subcaps):
             continue
         subcaps.append(sc)
-        w = " ".join(x for x in ("at most", _js(sc["take"]), who,
+        # THE STREAM (LAKE) SHARE OF THE WHOLE TOTAL goes in the lead (user 2026-10-11: "make it
+        # clear: max 4, of which 2 can be from streams (all combined)"): a share holding every kind
+        # of the total, for any origin; what a water's own rule lifts out of it is a sub-item
+        if sc["water"] and not band and not who and not out and share is None:
+            share = sc
+            for by, fish in lifted.items():
+                lead.append(f"{_lift_words(P, by, fish)} don’t count toward the "
+                            f"{_js(sc['take'])} from {sc['water']}s")
+            continue
+        w = " ".join(x for x in ("no more than", _js(sc["take"]), who,
                                  _range_words(*band) if band else "",
                                  f"from {sc['water']}s" if sc["water"] else "") if x)
         if lifted:
@@ -1542,11 +1557,15 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     unlimited = bool(T.f.get("unlimited"))
     total = "unlimited" if unlimited else _num(T.f.get("take"))
     what = written_name_of(T)
-    head = f"No daily limit on {what}" if unlimited else f"Up to {_js(total)} {what} a day"
+    head = f"No daily limit on {what}" if unlimited else \
+        f"Up to {_js(total)} {what} a day" + (" in all" if len(kinds) > 1 else "")
+    if share is not None:
+        head += (f" — no more than {_js(share['take'])} of them from {share['water']}s "
+                 f"(all {share['water']}s combined)")
     if "ST" in kinds and "ST" not in (T.f.get("species") or []):
-        head += ", steelhead included"
+        lead.append("steelhead count toward the " + ("total" if unlimited else _js(total)))
     return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps,
-            "says": cap_first("; ".join([head] + words)) + "."}
+            "says": cap_first(head) + ".", "items": [cap_first(w) + "." for w in lead + words]}
 
 
 def written_name_of(r: R) -> str:
@@ -1790,4 +1809,26 @@ def section_derive(ladder_value: dict, scope, ctx, first_day: int, at=None) -> d
     md = month_day(first_day)
     P = Part(ctx.B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kind, presence,
              ladder_value, md, open_states(ctx, rk, md, at), at=at)
-    return refs(json.loads(json.dumps(produce(P))), ctx.rule_index.__getitem__)
+    out = produce(P)
+    no_answer_gate(out, ladder_value, ctx.by_id, f"rule set {rk.set_id}, {md}")
+    return refs(json.loads(json.dumps(out)), ctx.rule_index.__getitem__)
+
+
+def no_answer_gate(out: dict, ladder_value: dict, by_id: Dict[str, dict], where: str) -> None:
+    """EVERY FISH THE ZONE HAS A RULE FOR HAS AN ANSWER (answers 2.6). A decided answer is null
+    only where no rule in scope speaks; it is REFUSED where a zone or provincial table's quota or
+    release for the fish (`retention_limit` of a `z…` entry) took part in the competition — it
+    speaks, or was displaced — and still nothing decides. That is a reader that lost every rule (a
+    cycle: Clearwater Creek gnis:7628, Arctic grayling, before `read._step4_competition` broke it
+    at the own row), never an answer."""
+    for S, v in out["fish"].items():
+        for o in ("hatchery", "wild"):
+            if v[o] is not None:
+                continue
+            lad = (ladder_value.get(S) or {}).get(o) or {}
+            took = sorted(r for r, (st, *_rest) in lad.items()
+                          if st in ("speaks", "displaced") and r.startswith("z")
+                          and (by_id.get(r) or {}).get("type") == "retention_limit")
+            if took:
+                raise AnswersError(f"rows: {S} ({o}) has no decided answer at {where}, but the "
+                                   f"zone's {took[:3]} took part — a reader that lost every rule")

@@ -1023,6 +1023,213 @@ def add_subsets(facts: List[dict], rules_in_order: List[dict], frames: Iterable[
         facts[r]["subsets"] = [subset_says(rules_in_order[r], sub) for sub in sorted(subs)]
 
 
+# --------------------------------------------------------------------------------------------
+# THE OPEN-DAYS STRIP (answers 2.6): what the water strip draws per segment
+# --------------------------------------------------------------------------------------------
+
+#: The strip's vocabulary: (state, bit, label, says). A segment's `strip` code is the OR of its
+#: states' bits; 0 is open with none of them. CLOSED is drawn alone (the gear of a closed water is
+#: moot); RELEASE, FLY_ONLY, ARTIFICIAL_FLY_ONLY and BAIT_BAN combine (Vedder, May: fly fishing
+#: only + bait ban). ONE SOURCE: closed is the display frame's own status (the verdicts'),
+#: release the card's decided answers (`rows`), the gear states the gear answer (`gear.fly`,
+#: `gear.bait_ban`) at the same part key and segment.
+STRIP = (("open", 0, "open", "Open."),
+         ("closed", 1, "closed", "Closed: no fishing for any game fish."),
+         ("release", 2, "release only", "Open, but every game fish caught must be released."),
+         ("fly_only", 4, "fly fishing only", "Fly fishing only."),
+         ("artificial_fly_only", 8, "artificial flies only",
+          "Artificial flies only: no bait or other lures."),
+         ("bait_ban", 16, "bait ban", "Bait ban: no bait of any kind."))
+STRIP_BIT = {st: bit for st, bit, _, _ in STRIP}
+
+
+def strip_legend() -> List[dict]:
+    """The strip's legend (`display.strip`): every state with its bit, label and sentence."""
+    return [{"state": st, "bit": bit, "label": lab, "says": says} for st, bit, lab, says in STRIP]
+
+
+def strip_code(display_v: dict, rows_v: dict, gear_v: dict) -> int:
+    """One segment's strip code from the three answers at that part key and segment: CLOSED where
+    the display status is closed (alone); else RELEASE where no game fish the card asks about may
+    be kept (every decided answer, hatchery and wild, is release or closed, and one is release),
+    FLY_ONLY / ARTIFICIAL_FLY_ONLY by the gear answer's `fly`, BAIT_BAN by its `bait_ban`."""
+    from pipeline.deliver import types as T
+    if display_v["status"] == "closed":
+        return STRIP_BIT["closed"]
+    code = 0
+    game = set(T.GAME_FISH)
+    got = [d["status"] for S, v in rows_v["fish"].items() if S in game
+           for d in (v["hatchery"], v["wild"]) if d is not None]
+    if got and "release" in got and all(g in ("release", "closed") for g in got):
+        code |= STRIP_BIT["release"]
+    if gear_v.get("fly") == "fly_fishing_only":
+        code |= STRIP_BIT["fly_only"]
+    elif gear_v.get("fly") == "artificial_fly_only":
+        code |= STRIP_BIT["artificial_fly_only"]
+    if gear_v.get("bait_ban"):
+        code |= STRIP_BIT["bait_ban"]
+    return code
+
+
+def compose(value: dict, others: Dict[str, dict]) -> dict:
+    """The display frame with its strip code (`strip_code`), from the rows and gear frames at the
+    same part key and segment (`answers.Section.compose`). A tidal frame has no strip."""
+    if value.get("status") == "tidal":
+        return value
+    return {**value, "strip": strip_code(value, others["rows"], others["gear"])}
+
+
+# --------------------------------------------------------------------------------------------
+# HOW THIS WAS DECIDED (answers 2.6): each rule's book pages, and why it applies here
+# --------------------------------------------------------------------------------------------
+
+#: Why a rule LOST, in words, per reader reason (`read.LOSS_REASONS`): `lost` said of the loser,
+#: `won` of the rule that beat it. "{by}" / "{rule}" are the other rule (the app writes its label
+#: and row there).
+REASON_WORDS = {
+    "lifted": ("Lifted here by {by}.", "Lifts {rule} here."),
+    "ladder": ("Replaced by {by}: closer to this water, or names the fish.", "Replaces {rule}."),
+    "own_row": ("Replaced by this water’s own row: {by}.", "This water’s own row replaces {rule}."),
+    "water_dates": ("Replaced on these dates by {by}, which prints its own dates.",
+                    "Its own dates replace {rule}."),
+    "zone_release": ("Silenced by {by}: the table releases these fish.",
+                     "Releases these fish, so {rule} is silent."),
+    "closure": ("Out while {by} closes the water.", "Closes the water, so {rule} is out."),
+    "water_closure": ("Out while this water’s own closure holds: {by}.",
+                      "This water’s own closure silences {rule}."),
+    "size_release": ("Covered by {by}, a release for those sizes.",
+                     "Releases those sizes, so {rule} is silent."),
+    "water_release": ("Silenced by {by}: this water releases these fish.",
+                      "This water releases these fish, so {rule} is silent."),
+    "same_row_release": ("Silent on the dates its own row releases or closes: {by}.",
+                         "Its dates silence {rule} of the same row."),
+    "moot_size_clause": ("Doesn’t matter today: {by} releases every one.",
+                         "Releases every one, so {rule} doesn’t matter today."),
+    "stricter_region": ("Replaced by {by}, the other region’s stricter rule.",
+                        "Stricter than {rule} of the other region."),
+    "same_as_peer": ("Same as {by}, the other region’s identical line.",
+                     "Says what {rule} says, for the other region."),
+}
+
+
+def reasons_table() -> Dict[str, dict]:
+    """`display.reasons`: {reason: {lost, won}} for every reader reason — refused if one is missing
+    (a reason the reader gains must get its words here)."""
+    from pipeline.deliver.bundle import read
+    missing = sorted(set(read.LOSS_REASONS) - set(REASON_WORDS))
+    if missing:
+        raise AnswersError(f"display: no words for the reader's reasons {missing}")
+    return {r: {"lost": REASON_WORDS[r][0], "won": REASON_WORDS[r][1]} for r in read.LOSS_REASONS}
+
+
+def _region_of(entry_id: str) -> Optional[str]:
+    from pipeline.deliver.bundle.read import base_region
+    reg = base_region(entry_id)
+    return f"Region {reg.upper()}" if reg else None
+
+
+def _lc_place(name: str, region: Optional[str] = None) -> str:
+    """An entry name inside a sentence: "Every stream in Region 1" -> "every stream in Region 1";
+    the region itself (Region 2's table, "Region 2") -> "all of Region 2"."""
+    name = name.rstrip(". ")
+    if region and name in (region, region.replace("Region 7", "Zone ")):
+        return f"all of {region}"
+    return re.sub(r"^(Every|Everywhere|Lakes|Streams|All)\b", lambda m: m.group(1).lower(), name)
+
+
+def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
+    """(`applies`, `applies_trib`): one line saying why a rule binds where it does — its scope, by
+    the export's provenance rank and entry — and, for a water row's rule the tributary walk can
+    carry, the line said where it arrives by the walk ("Inherited from …"). A lift adds what it
+    lifts."""
+    prov = x.get("provenance") or {}
+    rank = prov.get("rank")
+    E = doc["entries"].get(x["entry_id"]) or {}
+    name = E.get("name") or prov.get("entry_name") or x["entry_id"]
+    region = _region_of(x["entry_id"])
+    if region is None and rank == 2:
+        # a water table's AREA row (the Liard watershed, Strathcona Park waters): its chapter
+        m = re.match(r"^r(\d+[ab]?)$", str(E.get("chapter") or ""))
+        region = f"Region {m.group(1).upper()}" if m else None
+    trib = None
+    if rank is None:
+        raise AnswersError(f"display: rule {x['id']} ships no provenance rank")
+    if rank < 0:
+        say = f"Set by a federal or park authority — {_lc_place(name)}."
+    elif rank == 4:
+        say = f"A B.C.-wide rule — {_lc_place(name)}."
+    elif rank == 3:
+        say = f"From the {region} table — {_lc_place(name, region)}." if region else \
+            f"A regional rule — {_lc_place(name)}."
+    elif rank == 2:
+        say = f"For an area — {_lc_place(name)}" + (f", in {region}." if region else ".")
+    elif E.get("kind") == "water":
+        say = f"This water’s own row in the book: {name}."
+        trib = f"Inherited from {name}: its row covers its tributaries."
+    else:
+        # a table's line about named waters (Zone B's "all from Williston Lake and its
+        # tributaries"): for, and inherited from, the waters it names
+        def water(i):                          # a lake part is said as its lake (Williston)
+            w = doc["waters"].get(i) or {}
+            return (doc["waters"].get(w.get("part_of")) or w).get("name") or i
+        waters = join(list(dict.fromkeys(water(e["item_id"])
+                                         for e in (x.get("fields") or {}).get("extents") or []
+                                         if e.get("item_id"))))
+        say = f"From the {region} table, for {waters or _lc_place(name, region)}." if region \
+            else f"A B.C. rule for {waters or _lc_place(name)}."
+        trib = (f"Inherited from {waters or _lc_place(name)}: the "
+                f"{region + ' table' if region else 'B.C. rule'} covers its tributaries.")
+    lifts = [(e.get("entry_id"), e.get("rule_id")) for e in (x.get("fields") or {}).get("exempts") or []]
+    if lifts:
+        words = []
+        for e, r in lifts:
+            t = doc["rules"].get(f"{e}::{r}")
+            if t is None:
+                raise AnswersError(f"display: {x['id']} lifts {e}::{r}, which the export lacks")
+            tn = (doc["entries"].get(e) or {}).get("name") or e
+            words.append(f"“{t['label']}” ({_lc_place(tn)})")
+        lift = " It lifts " + join(words) + " here."
+        say += lift
+        trib = trib + lift if trib else None
+    return say, trib
+
+
+def book_pages(x: dict, doc: dict) -> List[List[int]]:
+    """[[printed page, PDF page]] of the rule's entry: the PRINTED page (the book's own address,
+    the entry's `pages`) and the 1-based PDF page it is on (`guide.pdf_pages`, the one map —
+    `pipeline.common.synopsis_pages`), for opening the official synopsis at `#page=N`."""
+    E = doc["entries"].get(x["entry_id"]) or {}
+    pages = E.get("pages") or []
+    pdf = (doc.get("guide") or {}).get("pdf_pages") or {}
+    if not pages:
+        raise AnswersError(f"display: rule {x['id']} — its entry {x['entry_id']} prints no page")
+    out = []
+    for p in pages:
+        q = pdf.get(str(p))
+        if q is None:
+            raise AnswersError(f"display: printed page {p} ({x['entry_id']}) is not in the "
+                               f"guide's pdf_pages")
+        out.append([int(p), int(q)])
+    return out
+
+
+def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
+    """Each rule's book pages and why it applies (`book`, `applies`, `applies_trib`) onto its
+    display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
+    by the tributary walk somewhere carry `applies_trib`."""
+    walked = {k for rs in doc["rulesets"].values() for k in rs.get("trib") or []}
+    for f, rid in zip(facts, order):
+        x = doc["rules"][rid]
+        f["book"] = book_pages(x, doc)
+        say, trib = applies_here(x, doc)
+        f["applies"] = say
+        if rid in walked:
+            if trib is None:
+                raise AnswersError(f"display: {rid} reaches a part by the walk but is bound to "
+                                   f"no water (provenance rank {x['provenance'].get('rank')})")
+            f["applies_trib"] = trib
+
+
 def _unless_words(ctx, rid: str) -> Optional[str]:
     got = ctx.cache.setdefault("display_unless", {})
     if rid not in got:
@@ -1043,7 +1250,10 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
     if rows is not None:
         order = sorted(ctx.B.index, key=ctx.B.index.__getitem__)
         add_subsets(rules, [ctx.B.rules[k] for k in order], (v for per in rows for v in per))
+    order = sorted(ctx.B.index, key=ctx.B.index.__getitem__)
+    add_sources(rules, doc, [f"{e}::{r}" for e, r in order])
     return {"rules": rules,
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
                                     lic_ref=lic_ix.__getitem__, log=lambda *_: None,
-                                    store=ctx.store)}
+                                    store=ctx.store),
+            "strip": strip_legend(), "reasons": reasons_table()}

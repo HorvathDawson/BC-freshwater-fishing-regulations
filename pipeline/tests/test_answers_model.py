@@ -35,8 +35,9 @@ def _bad(name, v):
 
 def test_a_good_frame_validates():
     _ok("rows", FRAME)
-    _ok("display", {"status": "own", "closing": []})
-    _ok("display", {"status": "closed", "closing": [[7, list(GAME_FISH)]]})
+    _ok("display", {"status": "own", "closing": [], "strip": 0})
+    _ok("display", {"status": "own", "closing": [], "strip": 4 | 16})        # 2.6: fly + bait ban
+    _ok("display", {"status": "closed", "closing": [[7, list(GAME_FISH)]], "strip": 1})
 
 
 def test_a_stray_field_a_wrong_type_or_a_word_outside_the_vocabulary_is_refused():
@@ -45,10 +46,15 @@ def test_a_stray_field_a_wrong_type_or_a_word_outside_the_vocabulary_is_refused(
     _bad("rows", {**FRAME, "rows": [{**ROW, "kind": "nolimit"}]})            # answers/1's word
     _bad("rows", {**FRAME, "fish": {"RB": {"hatchery": {**DECIDED, "lines": [
         {"t": "rel", "r": 3, "a": 0, "b": 30, "take": 1}]}, "wild": None}}})  # a line's stray field
-    _bad("display", {"status": "open", "closing": []})
-    _bad("display", {"status": "own"})                                       # 2.1: closing named
-    _bad("display", {"status": "closed", "closing": [[7, ["RB"]]]})          # a fish left open
-    _bad("display", {"status": "own", "closing": [[7, []]]})                 # closes nothing
+    _bad("display", {"status": "open", "closing": [], "strip": 0})
+    _bad("display", {"status": "own", "strip": 0})                           # 2.1: closing named
+    _bad("display", {"status": "closed", "closing": [[7, ["RB"]]], "strip": 1})  # a fish left open
+    _bad("display", {"status": "own", "closing": [[7, []]], "strip": 0})     # closes nothing
+    _bad("display", {"status": "own", "closing": []})                        # 2.6: the strip named
+    _bad("display", {"status": "own", "closing": [], "strip": 1})            # closed <=> status
+    _bad("display", {"status": "closed", "closing": [[7, list(GAME_FISH)]], "strip": 1 | 16})
+    _bad("display", {"status": "own", "closing": [], "strip": 4 | 8})        # one fly answer
+    _bad("display", {"status": "own", "closing": [], "strip": 32})
 
 
 def test_every_nullable_field_is_null_exactly_where_its_model_says():

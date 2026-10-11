@@ -108,7 +108,11 @@ class Section:
                             may be FINER than the parent's (it may read more of the part key), but
                             the parent's scope must be a function of it: it adds no day cuts;
     `static(ctx, data, guide, keys, parts)` -> {table: value}: tables of the section that are not keyed by
-                            (part key, segment) — per export rule, per water."""
+                            (part key, segment) — per export rule, per water;
+    `compose_from`, `compose` a value finished from OTHER sections' values at the same part key and
+                            segment (`compose(value, {section: value})` -> value; answers 2.6: the
+                            display frame's strip code reads the rows and gear frames there). The
+                            sections it reads are built with it."""
     name: str
     version: int
     scope: Callable
@@ -116,6 +120,8 @@ class Section:
     derive_from: Optional[str] = None
     derive: Optional[Callable] = None
     static: Optional[Callable] = None
+    compose_from: Tuple[str, ...] = ()
+    compose: Optional[Callable] = None
 
 
 class Context:
@@ -220,13 +226,18 @@ def _sections() -> Tuple[Section, ...]:
         # `rules[].subsets`, Q15/Q38 words in `rules[].plain`)
         # answers 2.5: rows 6 (F13 a size release is an answer; F14 `rows[].group` /
         # `rows[].elsewhere`, the group totals and the kept-elsewhere line)
-        Section("rows", 6, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
-        Section("gear", 4, gear.section_scope, prepare=gear.section_prepare,
+        Section("rows", 7, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
+        Section("gear", 5, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
-        Section("display", 4, display.section_scope, prepare=display.section_prepare,
-                static=display.section_static),
+        # answers 2.6: rows 7 (F15 the group's lead sentence + `items`), display 5 (`strip` per
+        # segment from the rows and gear frames there; `rules[].book` / `applies`; statics
+        # `strip`, `reasons`)
+        Section("display", 5, display.section_scope, prepare=display.section_prepare,
+                static=display.section_static, compose_from=("rows", "gear"),
+                compose=display.compose),
     )
 
 
@@ -337,6 +348,10 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         B, keys, unnamed if unnamed is not None else (None if items is None else []))
     chosen = [s for s in SECTIONS if sections is None or s.name in sections]
     for s in list(chosen):
+        for need in s.compose_from:
+            if all(c.name != need for c in chosen):
+                chosen.append(next(c for c in SECTIONS if c.name == need))
+    for s in list(chosen):
         if s.derive_from and all(c.name != s.derive_from for c in chosen):
             chosen.insert(0, next(c for c in SECTIONS if c.name == s.derive_from))
     chosen = [s for s in SECTIONS if s in chosen]
@@ -407,6 +422,13 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
             m_count = len(pd) // DAYS
             out[s.name].append([vals[pd[(d - 1) * m_count + (m if m_count > 1 else 0)]]
                                 for d, m in picks])
+    # a value finished from other sections' values at the same key and segment (answers 2.6)
+    for s in chosen:
+        if s.compose is None:
+            continue
+        for ki in range(len(keys)):
+            out[s.name][ki] = [s.compose(v, {n: out[n][ki][j] for n in s.compose_from})
+                               for j, v in enumerate(out[s.name][ki])]
     # a static table may read the sections' values as built (display G3 reads the rows' frames)
     ctx.cache["sections_out"] = out
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen

@@ -98,6 +98,53 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## answers/2.6 (2026-10-11) — zero hand corrections: the strip, the group wording, book links
+
+Same format string (`answers/2`); **rows 7, gear 5, display 5** (ladder 1, licence 4 unchanged). A
+reader that does not know these versions must refuse the file. Product-owner rule: every word the app
+design shows comes from the pipeline.
+
+* **The open-days strip (display 5).** Each status frame carries `strip`, the OR of the bits of the
+  static `display.strip` legend [{state, bit, label, says}]: closed 1 (drawn alone — the gear of a closed
+  water is moot), release 2 (open, but no game fish on the card may be kept), fly_only 4,
+  artificial_fly_only 8, bait_ban 16; 0 open. ONE SOURCE: composed (`answers.Section.compose`,
+  `display.compose`) from the frame's status and the `rows` and `gear` frames at the same key and segment
+  (`gear.fly`, `gear.bait_ban`); a tidal frame has none. Vedder (mouth part): May 1–31 20 (fly fishing
+  only + bait ban, p.22), Oct 10 0. Cowichan (p.15): Greendale Trestle → CNR Bridge (mile 70.2) fly only
+  all year; upstream of the CNR Mile 66 Trestle fly only Sept 1–Nov 15 only (20 on Oct 10, 16 on May 15).
+  Frames: 0 ×2,940, 1 ×3,259, 16 ×2,743, 20 ×126, 24 ×95, 18 ×25, 26 ×14, 2 ×5, 4 ×3.
+* **Group wording (rows 7, user 2026-10-11).** `group.says` is the LEAD — the total and, where one holds
+  every kind of it, the stream (lake) share of all of it — and `group.items` the rest as short sentences:
+  "Up to 4 trout and char a day in all — no more than 2 of them from streams (all streams combined)." +
+  ["Hatchery rainbow trout 50 cm or less don’t count toward the 2 from streams.", "Steelhead count
+  toward the 4.", "No more than 1 Dolly Varden/bull trout or lake trout.", "No more than 2 over 50 cm.",
+  "No more than 1 over 50 cm, not counting steelhead."] (was one sentence joined by ";").
+* **How this was decided (display 5).** `display.rules[r]` adds `book` [[printed page, PDF page]] (the
+  entry's printed page and the 1-based page of the synopsis PDF via the guide's `pdf_pages` — open
+  `#page=N`), `applies` (one line: B.C.-wide, a region's table, an area, this water's own row, a federal
+  or park authority; what a lift lifts) and `applies_trib` (where the tributary walk carries it:
+  "Inherited from Williston Lake: the Region 7B table covers its tributaries."); static `display.reasons`
+  {reason: {lost, won}} words every reader loss reason. Per rule, never per key. 10 random rules checked
+  against the PDF text: 10 of 10 on the page they cite.
+* **A line is a rod (gear 5, owner).** Rule labels say "At most 1 line (rod) per angler", "Unlimited lines
+  (rods) per angler" (`labels.COUNT_NOUNS`); a set line keeps "line". Static `gear.count_nouns`
+  {slot: [one, many]} for the page's count tags. 3 rule labels changed.
+* **The Cowichan's cuts** are named as p.15 prints them: "CNR Mile 66 Trestle", "CNR Bridge (mile 70.2)"
+  (curated `splits.json` labels; `pipeline.atlas.sidecars --splits-only` carries a label edit into
+  `splits.resolved.json` without an atlas rebuild — the registry's own boundary label follows at the next
+  atlas build). 3 Cowichan part labels changed.
+* **No empty answer (reader).** Clearwater Creek gnis:7628 had no Arctic grayling answer (14 nulls, the
+  only ones in the file): its own "Catch and release" lost to Zone B's "Arctic grayling: 2" by naming, that
+  to the inherited Williston tributaries' release by place, and that to the creek's own row (Q5) — a
+  cycle, and the old fallback dropped all three. `read._step4_competition` breaks a cycle at the own-row
+  edge first (T4: before naming); `_beaten_by` no longer counts an inherited rule the own row beats. Now
+  release all year (the creek's r1; Zone B's r4 May 1–Jun 15). `rows.no_answer_gate` refuses a null
+  decided answer where a zone retention rule for the fish spoke or was displaced.
+* Proved on a side build (`data/generated/scratch_a26`): status index byte-identical; every one of the 2,274
+  keys' ladder, gear and licence frames identical but key 1151 (Clearwater Creek) in the ladder; rows and
+  display frames identical with `group.says/items` and `strip` set aside, but key 1151; display statics
+  differ only by the new fields, two grayling `subsets` and the Cowichan's labels; store round trip exact.
+
 ## answers/2.5 (2026-10-10) — group totals in Python; a size release is an answer
 
 Same format string (`answers/2`); **rows 6** (ladder 1, gear 4, licence 4, display 4 unchanged in

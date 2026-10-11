@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "6",
+            "version": "7",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -233,12 +233,18 @@ SPEC = {
                     "TOGETHER; a cap's `except` (F12) is decided here, never on the page); "
                     "`group` (version 6, decision F14) on ONE row per total, else null or absent: "
                     "{pool, total (a number or \"unlimited\"), kinds, subcaps [{r, take, water "
-                    "(stream | lake | null), over_cm, under_cm, of, lifted [{members, by}]}], says} "
+                    "(stream | lake | null), over_cm, under_cm, of, lifted [{members, by}]}], says, "
+                    "items} "
                     "— the TOTAL the row's fish count toward (the row's pool, or the outer pool its "
                     "fish are contained by), every kind on the card counting toward it (steelhead "
                     "included), each count or size clause of it holding some of them here (`of`) "
                     "with the kinds a water's own rule lifts out of it (`lifted`: they still count "
-                    "toward the total), and the sentence to show; `elsewhere` (version 6) on every "
+                    "toward the total), `says` the LEAD sentence (version 7, answers 2.6: the total and, "
+                    "where one holds every kind of it, the stream or lake share of all of it — \"Up to "
+                    "4 trout and char a day in all — no more than 2 of them from streams (all streams "
+                    "combined).\") and `items` [sentence] the rest, each a short sub-item (what is "
+                    "lifted out of the share, that steelhead count toward the total, every other "
+                    "sub-cap); `elsewhere` (version 6) on every "
                     "keep row: {says, ask [[question, answer]]} the kept-elsewhere line, qualified "
                     "by those lifts. A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
@@ -248,7 +254,7 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "4",
+            "version": "5",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
@@ -268,6 +274,7 @@ SPEC = {
             "methods": "[method] — the ways to fish the answer reads",
             "moments": "[[moment, [[act, short phrase, the model's sentence]]]] — the Always cards",
             "conduct_means": "{act: sentence} — every conduct act's sentence",
+            "count_nouns": "{slot: [one, many]} — the noun a count of that slot takes (version 5, answers 2.6, owner): lines_per_angler [\"line (rod)\", \"lines (rods)\"] — \"1 line (rod)\", \"2 lines (rods)\"; a set line keeps \"line\"",
         },
         "licence": {
             "what": "Stage 7.7, the licence answer per part key, segment and angler profile: the "
@@ -310,9 +317,9 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "4",
+            "version": "5",
             "at": "[[frame index per segment] per key]",
-            "frames": "[{status, closing, unless_opened?}] — `status` base | own | closed (the verdicts' "
+            "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
                       "speaking full closure) | tidal: on TIDAL water `{status: tidal, tidal: true, "
                       "note, see, licence}` all year (no freshwater status). `closing` (version 3, "
@@ -325,7 +332,12 @@ SPEC = {
                       "answer here (say `rules[].unless_opened`: \"Closed unless opened by Parks "
                       "Canada — a national park fishing permit is required.\"); absent where a "
                       "closure with no proviso closes the same fish (a national park RESERVE: "
-                      "plainly closed)",
+                      "plainly closed). `strip` (version 5, answers 2.6): THE OPEN-DAYS STRIP's code "
+                      "for this segment, the OR of the bits of `strip` (closed 1 alone; release 2 — "
+                      "no game fish on the card may be kept; fly_only 4; artificial_fly_only 8; "
+                      "bait_ban 16; 0 open), from this status and the `rows` and `gear` frames at "
+                      "the same key and segment — draw it, never re-derive it (absent on a tidal "
+                      "frame)",
             "rules": "[{kind, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: the page's 15-step kind (`caught`: a duty for a fish "
                      "caught some way, Q38), a gate that closes, size bands [[from_cm, to_cm|null, "
@@ -333,7 +345,21 @@ SPEC = {
                      "possession line carries the possession quota's exception, `display.POSSESSION_HOME`, Q15), `unless_opened` "
                      "a closure's proviso in words (Z12), `subsets` (gap G3) [{fish, for, plain?}] "
                      "the rule said for the fish subsets a row's or an item's ladder lists it for "
-                     "(`plain` null: no sentence, write `for` beside the label)",
+                     "(`plain` null: no sentence, write `for` beside the label); version 5 (answers "
+                     "2.6, HOW THIS WAS DECIDED): `book` [[printed page, PDF page]] — the entry's "
+                     "page as the book prints it, and the 1-based page of the official synopsis PDF "
+                     "(open it at `#page=<PDF page>`; the export guide's `pdf_pages`), `applies` one "
+                     "line saying why the rule applies (its scope: B.C.-wide, a region's table, an "
+                     "area, this water's own row, a federal or park authority; and what a lift "
+                     "lifts), `applies_trib` the same line where the rule is INHERITED by the "
+                     "tributary walk (a part whose rule set lists it under `trib`; null where it never is)",
+            "strip": "[{state, bit, label, says}] — the open-days strip's legend (version 5): "
+                     "open 0, closed 1, release 2, fly_only 4, artificial_fly_only 8, bait_ban 16, "
+                     "with the label and sentence to show",
+            "reasons": "{reason: {lost, won}} — why a rule lost, in words (version 5), for every "
+                       "reader reason a ladder's `lost` entry carries: `lost` said of the loser "
+                       "(\"{by}\": write the rule that beat it), `won` said of that winner "
+                       "(\"{rule}\": write the rule it beat)",
             "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
                       "the export's parts ({order, label, runs, place, hint, km, closed_all_year, "
                       "paper_licence [rule]} | null outside B.C.); `picker` {choices [{parts "
@@ -481,8 +507,9 @@ class LicenceCodec:
 #: One codec per section the file may hold — the encoder and the decoder iterate this.
 CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
-                                                  "moments", "conduct_means")),
-                              LicenceCodec(), FrameCodec("display", ("rules", "waters")))}
+                                                  "moments", "conduct_means", "count_nouns")),
+                              LicenceCodec(), FrameCodec("display", ("rules", "waters", "strip",
+                                                                     "reasons")))}
 
 
 # --------------------------------------------------------------------------------------------

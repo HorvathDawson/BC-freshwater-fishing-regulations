@@ -552,7 +552,7 @@
     },
     {
      "id": "cowichan_river__cnr_trestle",
-     "label": "CNR Trestle",
+     "label": "CNR Mile 66 Trestle",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -571,7 +571,7 @@
     },
     {
      "id": "cowichan_river__cnr_bridge",
-     "label": "CNR Bridge",
+     "label": "CNR Bridge (mile 70.2)",
      "kind": "point",
      "anchor": {
       "type": "point",

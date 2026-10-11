@@ -412,14 +412,18 @@ class Subcap(Model):
 
 
 class GroupTotal(Model):
-    """One total on today's card and its sub-caps, with ONE sentence (answers 2.5, rows F14;
-    user 2026-10-10): "Up to 4 trout and char a day, steelhead included; at most 2 from streams
-    (hatchery rainbow trout 50 cm or less excepted); …"."""
+    """One total on today's card and its sub-caps (answers 2.5, rows F14): a LEAD sentence and short
+    sub-items (answers 2.6, user 2026-10-11: "make it clear: max 4, of which 2 can be from streams
+    (all combined)"): "Up to 4 trout and char a day in all — no more than 2 of them from streams
+    (all streams combined)." + ["Hatchery rainbow trout 50 cm or less don’t count toward the 2
+    from streams.", "Steelhead count toward the 4.", "No more than 1 Dolly Varden/bull trout or
+    lake trout.", …]."""
     pool: RuleIx
     total: Union[Positive, Literal["unlimited"]]
     kinds: Tuple[Fish, ...] = Field(min_length=1)    # every kind on the card counting toward it
     subcaps: Tuple[Subcap, ...]
-    says: StrictStr = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)            # the lead: the total (and the share of it all)
+    items: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]   # the rest, one sentence each
 
     @model_validator(mode="after")
     def _shares(self):
@@ -725,6 +729,10 @@ class StatusFrame(Model):
     #: national park fishing permit is required."); absent where none is (a national park
     #: RESERVE's own closure says plainly closed)
     unless_opened: Optional[Tuple[RuleIx, ...]] = Field(default=None, min_length=1)
+    #: answers 2.6: the OPEN-DAYS STRIP's code — the OR of `display.strip`'s bits (closed 1,
+    #: release 2, fly_only 4, artificial_fly_only 8, bait_ban 16; 0 open), from this frame's status
+    #: and the rows and gear frames at the same part key and segment (`display.strip_code`)
+    strip: Annotated[StrictInt, Field(ge=0, le=31)]
 
     @model_validator(mode="after")
     def _closing_closes(self):
@@ -737,7 +745,27 @@ class StatusFrame(Model):
             shut = {f for _, fs in self.closing for f in fs}
             if not set(T.GAME_FISH) <= shut:
                 raise ValueError("status closed, but the closing rules leave a game fish open")
+        if (self.strip == 1) != (self.status == "closed"):
+            raise ValueError("the strip says closed (alone) exactly where the status is closed")
+        if self.strip & 4 and self.strip & 8:
+            raise ValueError("fly fishing only and artificial flies only are one gear answer")
         return self
+
+
+class StripState(Model):
+    """One state of the open-days strip (`display.STRIP`): its bit in a frame's `strip`, the
+    legend's label and its sentence."""
+    state: Literal["open", "closed", "release", "fly_only", "artificial_fly_only", "bait_ban"]
+    bit: Annotated[StrictInt, Field(ge=0, le=16)]
+    label: StrictStr
+    says: StrictStr
+
+
+class ReasonWords(Model):
+    """Why a rule lost, in words (`display.REASON_WORDS`): `lost` said of the loser ("{by}" the
+    rule that beat it), `won` of the winner ("{rule}" the rule it beat)."""
+    lost: StrictStr
+    won: StrictStr
 
 
 class TidalStatus(Model):
@@ -769,6 +797,12 @@ class RuleFacts(Model):
     unless_opened: Optional[StrictStr] = None
     #: G3: the rule said for the fish subsets the ladders list it for
     subsets: Optional[Tuple[SubsetSay, ...]] = Field(default=None, min_length=1)
+    #: answers 2.6, HOW THIS WAS DECIDED: [[printed page, PDF page]] of the rule's entry (open the
+    #: official synopsis at `#page=<PDF page>`), why it applies (its scope, and what a lift lifts),
+    #: and — for a water row's rule the tributary walk carries — the same said where it is inherited
+    book: Tuple[Tuple[Positive, Positive], ...] = Field(min_length=1)
+    applies: StrictStr = Field(min_length=1)
+    applies_trib: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _closure_is_a_gate(self):
@@ -919,6 +953,9 @@ TOP: Dict[str, TypeAdapter] = {"moments": TypeAdapter(Tuple[Moment, ...]),
 STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "rules"): TypeAdapter(Tuple[RuleFacts, ...]),
     ("display", "waters"): TypeAdapter(Dict[StrictStr, WaterFacts]),
+    ("display", "strip"): TypeAdapter(Tuple[StripState, ...]),
+    ("gear", "count_nouns"): TypeAdapter(Dict[StrictStr, Tuple[StrictStr, StrictStr]]),
+    ("display", "reasons"): TypeAdapter(Dict[_enum(T.LossReason, "LossReason"), ReasonWords]),
 }
 
 

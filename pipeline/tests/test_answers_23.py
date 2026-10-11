@@ -109,7 +109,7 @@ def test_where_a_reserve_closes_the_same_fish_the_park_proviso_is_not_the_answer
 
 
 def test_the_frame_model_holds_unless_opened_to_the_closing_rules():
-    ok = {"status": "own", "closing": [[3, ["RB"]]], "unless_opened": [3]}
+    ok = {"status": "own", "closing": [[3, ["RB"]]], "unless_opened": [3], "strip": 0}
     M.FRAMES["display"].validate_json(json.dumps(ok))
     for bad in ({**ok, "unless_opened": [4]}, {**ok, "unless_opened": []}):
         with pytest.raises(Exception):

@@ -180,6 +180,21 @@ def _lower_fish(sp: str) -> str:
     return sp.lower()
 
 
+#: A LINE IS A ROD (owner, answers 2.6): "1 line" read as ambiguous — a line in the water, held on a
+#: rod. The count's noun, singular and plural, wherever a line count is said; a SET line is no rod
+#: and keeps the bare word. ONE table: the labels here and the gear answers' `count_nouns` read it.
+COUNT_NOUNS = {"lines_per_angler": ("line (rod)", "lines (rods)")}
+
+
+def count_noun(slot: str, n, set_lining: bool = False) -> str | None:
+    """The noun a count of `slot` takes ("1 line (rod)", "2 lines (rods)"), or None (the slot's
+    own name); a set line keeps "line"."""
+    got = COUNT_NOUNS.get(slot)
+    if got is None or set_lining:
+        return None
+    return got[0] if n == 1 else got[1]
+
+
 def _gear_words(r: CatalogueRule) -> str:
     """`gear` and `conduct`, in words. ONE place, so a reader and a renderer cannot disagree.
 
@@ -205,6 +220,8 @@ def _gear_words(r: CatalogueRule) -> str:
     if barb or one:
         bits.append(f"{'single ' if one else ''}{'barbless ' if barb else ''}hook")
         gear = [c for c in gear if c is not barb and c is not one]
+    set_lining = "set_lining" in (r.while_ or []) or any(
+        getattr(getattr(c.when, "method", None), "value", None) == "set_lining" for c in r.gear)
     for c in gear:
         name = c.slot.value.replace("_", " ")
         # WHO THE CLAUSE IS ABOUT, when it is only about some fish: "no spear fishing FOR GAME
@@ -243,7 +260,9 @@ def _gear_words(r: CatalogueRule) -> str:
         elif c.must_be:
             bits.append(f"{name} must be {', '.join(c.must_be).replace('_', ' ')}")
         elif c.unlimited:
-            bits.append(f"unlimited {name}")
+            noun = count_noun(c.slot.value, 2, set_lining)
+            bits.append(f"unlimited {noun} per {name.partition(' per ')[2]}" if noun
+                        else f"unlimited {name}")
         else:
             u = UNIT.get(c.slot.value, "")
             for kind, v in (("at most", c.max), ("at least", c.min)):
@@ -257,6 +276,7 @@ def _gear_words(r: CatalogueRule) -> str:
                     head, _, tail = name.partition(" per ")
                     one = ({"flies": "fly"}.get(head, head.removesuffix("s"))
                            if v == 1 else head)
+                    one = count_noun(c.slot.value, v, set_lining) or one
                     bits.append(f"{kind} {v:g} {one}" + (f" per {tail}" if tail else ""))
         if c.when is not None and not c.when.is_empty():
             w = [x for x in (getattr(c.when.water, "value", None),

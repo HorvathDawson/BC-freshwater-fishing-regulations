@@ -111,9 +111,16 @@ def silence(rule, fish, origins=("none", "hatchery", "wild")):
 # F14 group totals
 # --------------------------------------------------------------------------------------------
 
-VEDDER_SAYS = ("Up to 4 trout and char a day, steelhead included; at most 2 from streams (hatchery "
-               "rainbow trout 50 cm or less excepted); at most 1 Dolly Varden/bull trout or lake "
-               "trout; at most 2 over 50 cm; at most 1 over 50 cm, not counting steelhead.")
+# answers 2.6 (user 2026-10-11): the lead says the total and the stream share of all of it; the rest
+# are short sub-items (was ONE sentence: "Up to 4 trout and char a day, steelhead included; at most 2
+# from streams (hatchery rainbow trout 50 cm or less excepted); at most 1 …")
+VEDDER_SAYS = ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all "
+               "streams combined).")
+VEDDER_ITEMS = ["Hatchery rainbow trout 50 cm or less don’t count toward the 2 from streams.",
+                "Steelhead count toward the 4.",
+                "No more than 1 Dolly Varden/bull trout or lake trout.",
+                "No more than 2 over 50 cm.",
+                "No more than 1 over 50 cm, not counting steelhead."]
 
 
 @pytest.mark.needs_bundle
@@ -133,6 +140,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     assert share["take"] == 2 and share["water"] == "stream" and "RB" not in share["of"]
     assert [(L["members"], rid(built, L["by"])) for L in share["lifted"]] == [(["RB"], f"{VR}.r9")]
     assert g["says"] == VEDDER_SAYS                             # the whole sentence (AGENTS 33)
+    assert g["items"] == VEDDER_ITEMS
     assert row["elsewhere"] == {
         "says": "Shared with every Region 2 stream you fish today.",
         "ask": [["Kept 2 on another stream?",
@@ -147,7 +155,8 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
     assert m["elsewhere"]["ask"][0][1] == "Keep 0 here"
-    assert "excepted" not in m["group"]["says"].split(";")[1]
+    assert m["group"]["says"] == VEDDER_SAYS
+    assert m["group"]["items"] == VEDDER_ITEMS[1:]              # nothing lifted out of the share
 
 
 @pytest.mark.needs_bundle
@@ -162,7 +171,7 @@ def test_f14_one_group_per_total_and_every_keep_row_says_where_else_counts(built
 
 
 def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
-    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "says": "Up to 4.",
+    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "says": "Up to 4.", "items": [],
           "subcaps": [{"r": 2, "take": 2, "water": "stream", "over_cm": None, "under_cm": None,
                        "of": ["CT"], "lifted": [{"members": ["RB"], "by": 3}]}]}
     M.GroupTotal.model_validate_json(json.dumps(ok))
