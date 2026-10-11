@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regs v7</title>
+<!-- v6: the v5 answer-first skeleton, drawn in the REAL APP's style (app/packages/ui-native: theme.ts,
+     type.ts, TabBar.tsx, Sheet.tsx, Chrome.tsx Pill, icons.tsx) instead of riffle.html.
+     Colours are the token values from app/packages/map/style/themes/{light,dark}.json.
+     Words are page v36's (regs-v7/data.js); fish drawings are v36's FISHART (regs-v7/fishart.js).
+     Hash state: #w=vedder&v=regs&part=0&d=1010&sheet=part&age=u16&theme=dark&scroll=600&ts=2 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* ---- app tokens: color.ui.* + color.status.* + map water, light and dark ---- */
+:root{
+  --page:#EFEFEC; --card:#FFFFFF; --wash:#F7F7F5; --tint:#EEEFEB; --line:#E5E6E1; --line2:#D3D5CF;
+  --ink:#15181C; --sub:#6C737A; --faint:#6E757B; --quiet:#8A9196;
+  --open:#1D7741; --restricted:#8f5c00; --closed:#940018;
+  --accent:#5F26E0; --on-accent:#FFFFFF; --live:#04879B;
+  --water:#4A90E2; --lake:#64B5F6; --land:#F8F8F2;
+  --shadow:rgba(21,24,28,.9); --scrim:rgba(21,24,28,.28);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227; --line:#252A2F; --line2:#343B42;
+  --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#2F363D;
+  --open:#48b07a; --restricted:#e8a733; --closed:#FC4164;
+  --accent:#A97CFF; --on-accent:#100A22; --live:#37D6EA;
+  --water:#38B6DE; --lake:#205579; --land:#0A0B0D;
+  --shadow:rgba(0,0,0,.85); --scrim:rgba(0,0,0,.28); color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227; --line:#252A2F; --line2:#343B42;
+  --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#2F363D;
+  --open:#48b07a; --restricted:#e8a733; --closed:#FC4164;
+  --accent:#A97CFF; --on-accent:#100A22; --live:#37D6EA;
+  --water:#38B6DE; --lake:#205579; --land:#0A0B0D;
+  --shadow:rgba(0,0,0,.85); --scrim:rgba(0,0,0,.28); color-scheme:dark; }
+/* ---- app type (type.ts), one step up for reading in the sun; rem so 200% text works ----
+   title 30/800 Bricolage · name 21/700 Bricolage · section 11 uppercase 1.4 tracked bold
+   body 15 · bodyStrong 15/600 · small 13 · micro 11.5 · pill 12 uppercase · tab 9.5 uppercase  */
+html{font-size:16px} html.ts2{font-size:32px}
+:root{--title:1.875rem;--name:1.3125rem;--num:1.75rem;--body:.9375rem;--small:.8125rem;--micro:.72rem;--sect:.6875rem}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:var(--body)/1.45 Archivo,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;border-radius:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sect{font:700 var(--sect)/1.3 Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin:0}
+.ok{color:var(--open)} .no{color:var(--closed)} .rel{color:var(--restricted)}
+
+/* ---- frame ---- */
+.wrap{max-width:1180px;margin:0 auto;padding:48px 32px 80px;display:grid;grid-template-columns:392px minmax(0,1fr);gap:72px;align-items:start}
+.app{width:392px;height:846px;border:1.5px solid var(--ink);background:var(--card);overflow:hidden;position:sticky;top:32px;display:flex;flex-direction:column;box-shadow:4px 4px 0 var(--shadow)}
+@media (max-width:520px){.wrap{display:block;padding:0}.app{width:100vw;height:100svh;border:0;box-shadow:none;position:relative}.poster{display:none}}
+.shot .wrap{display:block;padding:0}
+.shot .app{width:390px!important;height:844px!important;border:0;box-shadow:none;position:relative;top:0}
+.shot .poster{display:none}
+.sb{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;font:700 15px Archivo,sans-serif;background:var(--card)}
+.sb i{font-style:normal;font-size:11px;letter-spacing:.1em}
+.body{position:relative;flex:1 1 auto;min-height:0;overflow:hidden}
+.pane{position:absolute;inset:0;display:none;background:var(--card)}
+.pane.on{display:block}
+
+/* ---- TabBar.tsx ---- */
+.tabs{flex:0 0 auto;display:flex;border-top:1.5px solid var(--ink);background:var(--card);padding:9px 0 12px}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0;color:var(--sub);min-height:44px}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor}
+.tabs em{font:normal 700 9.5px/12px Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase}
+.tabs u{display:block;width:22px;height:2.5px;margin-top:1px;background:transparent}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"] u{background:var(--ink)}
+
+/* ---- Chrome.tsx Pill: square, line2 hairline, hard 3px slab ---- */
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;background:var(--card);border:1px solid var(--line2);
+  font:600 var(--small) Archivo,sans-serif;white-space:nowrap;flex:0 0 auto}
+.pill.float{box-shadow:3px 3px 0 var(--shadow);border-color:var(--ink)}
+.pill .dot,.chip .dot{width:8px;height:8px;flex:0 0 8px}
+.pill.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+/* StatusChip: square, wash, micro */
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;background:var(--wash);font:600 var(--micro) Archivo,sans-serif;letter-spacing:.3px;white-space:nowrap}
+.chip.up{font:700 .75rem Archivo,sans-serif;letter-spacing:.7px;text-transform:uppercase}
+
+/* ---- map ---- */
+.mapsvg{position:absolute;inset:0}
+.mapsvg svg{width:100%;height:100%;display:block}
+.m-tl{position:absolute;left:14px;top:12px}
+.m-tr{position:absolute;right:14px;top:12px;display:flex;flex-direction:column;border:1.5px solid var(--ink);background:var(--card);box-shadow:3px 3px 0 var(--shadow)}
+.m-tr span{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font:700 18px Archivo,sans-serif}
+.m-tr span+span{border-top:1px solid var(--line2)}
+.mk-hit{cursor:pointer}
+.place{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1.5px solid var(--ink);padding:10px 18px 14px}
+.grab{width:38px;height:3px;background:var(--line2);margin:0 auto 10px}
+.place .nm{display:flex;align-items:flex-start;gap:10px}
+.place h2{margin:0;font:800 var(--title)/1.13 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.7px;flex:1}
+.x{width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex:0 0 44px;margin:-6px -10px 0 0;color:var(--sub);font-size:16px}
+.place .say{display:block;width:100%;font:600 var(--body)/1.4 Archivo,sans-serif;margin-top:8px}
+.place .hint{font-size:var(--small);color:var(--sub);margin-top:6px}
+
+/* ---- reader + sticky header ---- */
+.scroller{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+.hdr{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1.5px solid var(--ink)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:4px 14px;min-height:52px}
+.thumb{width:40px;height:40px;flex:0 0 40px;border:1.5px solid var(--ink);background:var(--land);overflow:hidden}
+.thumb svg{width:100%;height:100%;display:block}
+.where{flex:1 1 150px;min-width:0;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.where b{font:700 1.125rem/1.15 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.35px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.where small{font-size:var(--small);color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the river ribbon: parts in order, mouth → upstream */
+.ribbon{display:flex;align-items:stretch;gap:0;padding:0 14px}
+.ribbon .nav{width:40px;flex:0 0 40px;min-height:44px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);font:700 18px Archivo,sans-serif}
+.ribbon .nav[disabled]{color:var(--line2);border-color:var(--line2);cursor:default}
+.ribbon .segs{flex:1;display:flex;min-width:0;margin:0 6px;border:1.5px solid var(--ink)}
+.seg{flex:1 1 0;min-width:0;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;position:relative;
+  font:700 var(--small) Archivo,sans-serif;padding:6px 6px 4px;border-left:1.5px solid var(--ink)}
+.seg:first-child{border-left:0}
+.seg i{position:absolute;left:0;right:0;top:0;height:4px}
+.seg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.seg[aria-current="true"]{flex:var(--cur,3) 1 0;background:var(--ink);color:var(--card)}
+.axis{display:flex;justify-content:space-between;padding:2px 60px 4px;font:700 9px/1 Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+
+/* ---- the one card: verdict (square, ink rule) ---- */
+.card{margin:14px 16px 0;border:1.5px solid var(--ink);background:var(--card)}
+.card .band{padding:16px 16px 14px}
+.card .foot{border-top:1px solid var(--line2);padding:9px 16px;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint)}
+.verd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.verd .w{font:800 var(--title)/1 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.7px;display:flex;align-items:center;gap:9px}
+.verd .w i{width:12px;height:12px;flex:0 0 12px}
+.verd .d{font:600 var(--body) Archivo,sans-serif;color:var(--sub)}
+.verd .r{margin-left:auto;font:700 var(--body) Archivo,sans-serif;color:var(--open)}
+.lead{margin:10px 0 0;font:600 1rem/1.4 Archivo,sans-serif}
+.strip{display:block;width:100%;margin-top:14px;padding:2px 0}
+.strip .tw{position:relative}
+.strip .bars{display:flex;height:10px;gap:2px}
+.strip .bars span{display:block;height:100%}
+.strip .tick{position:absolute;top:-4px;width:4px;height:18px;background:var(--card);box-shadow:0 0 0 1.5px var(--ink);transform:translateX(-2px)}
+.strip .mo{display:flex;justify-content:space-between;margin-top:6px;font:500 .6875rem/1 "JetBrains Mono",monospace;color:var(--faint)}
+.strip .mo b{color:var(--ink)}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:var(--small);color:var(--sub)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:10px;height:10px;flex:0 0 10px}
+.when{margin-top:10px;padding-top:10px;border-top:1px solid var(--line2);font-size:var(--small);color:var(--sub)}
+.when b{color:var(--ink);font-weight:600}
+
+/* ---- sections + rows ---- */
+.block{padding:22px 16px 4px}
+.block+.block,.sep{border-top:1px solid var(--line2);margin-top:18px}
+.ghd{display:flex;align-items:flex-start;gap:12px;margin-top:8px}
+.ghd h3{margin:0;font:700 var(--name)/1.2 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.35px}
+.ghd p{margin:4px 0 0;font-size:var(--body);color:var(--sub);line-height:1.45}
+.ghd p b{color:var(--ink);font-weight:600}
+.num{flex:0 0 auto;min-width:64px;text-align:right;line-height:1}
+.num b{display:block;font:800 var(--num)/1 "Bricolage Grotesque",Archivo,sans-serif;font-variant-numeric:tabular-nums}
+.num em{display:block;font-style:normal;font:600 var(--small)/1.2 Archivo,sans-serif;color:var(--sub);margin-top:4px}
+.num .w{font:700 var(--body) Archivo,sans-serif}
+.qa{margin-top:10px;border-left:3px solid var(--line2);padding-left:12px}
+.qa div{padding:4px 0;font-size:var(--small);color:var(--sub)}
+.qa div b{display:block;color:var(--ink);font-size:var(--body);font-weight:600}
+.line{display:flex;gap:10px;align-items:flex-start;width:100%;padding:6px 0;font-size:var(--body);line-height:1.45;flex-wrap:wrap}
+.line > span{flex:1 1 200px;min-width:0}
+svg.i{width:16px;height:16px;flex:0 0 16px;margin-top:3px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:square}
+svg.ck{stroke:var(--open);stroke-width:2.6} svg.x2{stroke:var(--closed);stroke-width:2.6}
+.ts2 .hdr{position:static}
+.line .ck{stroke:var(--open);stroke-width:2.6}
+.line .x2{stroke:var(--closed);stroke-width:2.6}
+.line b{font-weight:600}
+.line.sub{color:var(--sub);font-size:var(--small)}
+.adi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px 26px;width:calc(100% - 26px)}
+.adi figure{margin:0;border:1px solid var(--line2);background:var(--wash);padding:4px 4px 6px}
+.adi svg{width:100%;height:auto;display:block}
+.adi figcaption{font-size:var(--small);color:var(--sub);line-height:1.3;padding:2px 2px 0}
+.adi figcaption b{color:var(--ink);display:block;font-size:var(--body)}
+.pill.dp{flex-direction:row;align-items:center;padding:0 10px;gap:8px}
+.pill.dp > span:last-child{display:flex;flex-direction:column;line-height:1.15}
+.pill.dp em{font:normal 700 9px/1.2 Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase;color:var(--accent)}
+.dots{display:none;gap:4px;align-items:center;margin-right:6px;flex:0 0 auto}
+.dots i{width:7px;height:7px;border:1.5px solid var(--ink);display:block}
+.dots i.on{background:var(--ink)}
+.where small{display:flex;align-items:center}
+.where small .cl{overflow:hidden;text-overflow:ellipsis}
+.hdr.mini .ribbon,.hdr.mini .axis{display:none}
+.hdr.mini .dots{display:inline-flex}
+.hdr .ribbon,.hdr .axis{transition:none}
+.steel{border-color:var(--ink)}
+.steel .band{padding:14px 16px 8px}
+.when.splt{display:block;width:100%;text-align:left;color:var(--open)}
+.when.splt b{color:var(--open)}
+.sub2{margin:6px 0 0;font-size:var(--small);color:var(--sub)}
+.ts2 .ghd{flex-wrap:wrap}
+.line .more{color:var(--accent)!important;font-weight:700}
+.line.lk{color:var(--accent);font-weight:600;align-items:center}
+.line.lk svg.i{margin-top:0}
+.line.lk .chev{margin-top:0}
+.link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase}
+.rows{margin-top:8px}
+.row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border-top:1px solid var(--line2)}
+.row:first-child{border-top:0}
+.row .th{width:58px;height:36px;flex:0 0 58px;background:var(--wash);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.row .th img{width:100%;height:100%;object-fit:contain}
+.row .th svg{width:22px;height:22px;fill:none;stroke:var(--sub);stroke-width:1.8}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font:600 1rem/1.25 Archivo,sans-serif}
+.row .tx .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.row .tx small{display:block;font-size:var(--small);color:var(--sub);line-height:1.4;margin-top:5px}
+.row .tx ul{margin:5px 0 0;padding:0;list-style:none;font-size:var(--small)}
+.row .tx li{padding-left:14px;position:relative;line-height:1.5}
+.row .tx li::before{content:"";position:absolute;left:2px;top:.55em;width:5px;height:5px;background:var(--ink)}
+.chev{width:16px;height:16px;flex:0 0 16px;margin-top:4px;fill:none;stroke:var(--sub);stroke-width:2;stroke-linecap:square}
+.fine{padding:4px 16px 28px;font-size:var(--small);line-height:1.5;color:var(--sub)}
+.fine p{margin:6px 0}
+
+/* ---- gear sections ---- */
+.gsec{padding:18px 16px 14px;border-top:1px solid var(--line2)}
+.gsec:first-of-type{border-top:0}
+.gsec .ans{font:700 1.125rem/1.3 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.2px;margin-top:6px}
+.gsec .ans small{display:block;font:500 var(--small) Archivo,sans-serif;color:var(--sub);letter-spacing:0;margin-top:2px}
+.gl{margin-top:8px}
+.gl .r{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:var(--body)}
+.gl .r:first-child{border-top:0}
+.gl .r .k{flex:0 0 44%;font-size:var(--small);color:var(--sub)}
+.gl .r .v{flex:1;font-weight:600}
+.gl .r .v small{display:block;font-weight:400;color:var(--sub);font-size:var(--small)}
+.marks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.duty{display:flex;gap:10px;margin-top:10px;padding:10px 12px;border:1.5px solid var(--closed);font-size:var(--body)}
+.duty b{font-weight:700}
+.docs .d{padding:10px 0;border-top:1px solid var(--line)}
+.docs .d:first-child{border-top:0}
+.docs .d b{display:block;font-weight:600}
+.docs .d span{display:block;font-size:var(--small);color:var(--sub)}
+.docs .d em{display:block;font:500 .78rem/1.5 "JetBrains Mono",monospace;font-style:normal;margin-top:2px}
+.note{margin-top:8px;padding:10px 12px;background:var(--wash);font-size:var(--small);line-height:1.45}
+.segc{display:flex;border:1.5px solid var(--ink);margin-top:10px}
+.segc button{flex:1;min-height:44px;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase;text-align:center;color:var(--sub)}
+.segc button+button{border-left:1.5px solid var(--ink)}
+.segc button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+details.fold{border-top:1px solid var(--line);margin-top:10px}
+details.fold summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--sub)}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"+";margin-left:auto;font-size:16px;color:var(--ink)}
+details.fold[open] summary::after{content:"−"}
+.src p{font-size:var(--small);line-height:1.5;margin:6px 0}
+.src p small{display:block;color:var(--sub)}
+.src h5{margin:10px 0 0;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;color:var(--faint)}
+
+/* ---- Sheet.tsx: square, 1.5 ink rules, flat grabber, DONE uppercase ---- */
+.scrim{position:absolute;inset:0;background:var(--scrim);display:none;z-index:10}
+.scrim.on{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:11;background:var(--card);border-top:1.5px solid var(--ink);max-height:90%;display:flex;flex-direction:column;
+  transform:translateY(101%);transition:transform .22s cubic-bezier(.2,.75,.3,1)}
+.sheet.on{transform:none}
+.sheet.drag{transition:none}
+.shead{flex:0 0 auto;padding:10px 8px 0 18px;border-bottom:1.5px solid var(--ink);touch-action:none;cursor:grab}
+.shead .r{display:flex;align-items:center;gap:8px}
+.shead h2{margin:0;font:800 1.1875rem/1.2 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.4px;flex:1}
+.done{min-width:44px;min-height:44px;padding:0 10px;color:var(--accent);font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase;text-align:center}
+.shead p{margin:0 12px 10px 0;font-size:var(--small);color:var(--sub)}
+.sbody{flex:1 1 auto;overflow:auto;padding:4px 18px 24px;overscroll-behavior:contain}
+.ssec{padding-top:16px}
+.ssec > .sect{margin-bottom:6px}
+.pmap{height:180px;margin:14px 0 6px;border:1.5px solid var(--ink);background:var(--land)}
+.pmap svg{width:100%;height:100%;display:block}
+.prow{display:flex;gap:12px;align-items:center;width:100%;min-height:64px;padding:10px 0;border-top:1px solid var(--line2);position:relative}
+.prow:first-of-type{border-top:0}
+.prow[aria-current="true"]::before{content:"";position:absolute;left:-18px;top:0;bottom:0;width:4px;background:var(--accent)}
+.nb{width:28px;height:28px;flex:0 0 28px;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font:700 13px Archivo,sans-serif}
+.prow[aria-current="true"] .nb{background:var(--ink);color:var(--card)}
+.prow .tx{flex:1;min-width:0}
+.prow .tx b{display:block;font-weight:600}
+.prow .tx small{display:block;font-size:var(--small);color:var(--sub);line-height:1.35;margin-top:2px}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}
+.mgrid button{border:1px solid var(--line2);min-height:44px;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase;text-align:center}
+.mgrid button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.days{display:flex;align-items:center;gap:12px;margin-top:8px;border:1.5px solid var(--ink)}
+.days button{min-width:48px;min-height:48px;font:700 20px Archivo,sans-serif;text-align:center}
+.days .d{flex:1;text-align:center;font:800 var(--name) "Bricolage Grotesque",Archivo,sans-serif}
+.pic{margin:12px -18px 0;background:var(--wash);aspect-ratio:2/1;display:flex;align-items:center;justify-content:center}
+.pic img{width:100%;height:100%;object-fit:contain}
+.cred{margin-top:6px;font-size:11px;color:var(--faint)}
+.standin{margin-top:4px;font-size:var(--small);color:var(--sub)}
+.standin b{color:var(--restricted);font-weight:700;letter-spacing:.7px;text-transform:uppercase;font-size:var(--micro);margin-right:4px}
+.ans1{font:700 var(--name)/1.25 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-.3px}
+.tips{margin:0;padding:0;list-style:none}
+.tips li{padding:8px 0 8px 18px;border-top:1px solid var(--line);position:relative;font-size:var(--body)}
+.tips li:first-child{border-top:0}
+.tips li::before{content:"";position:absolute;left:3px;top:1.05em;width:6px;height:6px;background:var(--ink)}
+.lad .lv{padding:10px 0;border-top:1px solid var(--line)}
+.lad .lv .who{display:block;font:700 var(--sect) Archivo,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.lad .lv div{font-size:var(--body);line-height:1.45}
+.lad .lv div small{display:block;font-size:var(--small);color:var(--sub)}
+.lad .lv div + div{margin-top:8px}
+.dim{opacity:.6}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.pgrid figure{margin:0}
+.pgrid .im{aspect-ratio:2/1;background:var(--wash);overflow:hidden}
+.pgrid img{width:100%;height:100%;object-fit:contain}
+.pgrid figcaption{font-size:var(--small);line-height:1.35;margin-top:5px}
+.pgrid figcaption small{display:block;color:var(--faint);font-size:11px}
+.big2{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.big2 figure{margin:0;border:1.5px solid var(--ink);background:var(--wash);padding:8px}
+.big2 figcaption{font-size:var(--body)} .big2 figcaption b{font-weight:700}
+.big2 svg{width:100%;height:auto;display:block}
+.toast{position:absolute;left:16px;right:16px;bottom:16px;z-index:20;background:var(--ink);color:var(--card);padding:12px 16px;font-size:var(--small);display:none;box-shadow:3px 3px 0 var(--shadow)}
+.toast.on{display:block}
+
+/* ---- poster ---- */
+.poster h1{font:800 clamp(40px,5vw,60px)/.95 "Bricolage Grotesque",Archivo,sans-serif;letter-spacing:-1.5px;margin:0 0 16px}
+.poster .ledep{font-size:17px;line-height:1.5;max-width:46ch;color:var(--sub);margin:0 0 24px}
+.ctl{border-top:1.5px solid var(--ink);padding:12px 0}
+.ctl .cs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ctl .pill{min-height:36px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app" id="app">
+    <div class="sb"><span>9:41</span><i>●●● ▮</i></div>
+    <div class="body" id="body">
+      <div class="pane" id="p-map"></div>
+      <div class="pane" id="p-regs"><div class="scroller" id="s-regs"></div></div>
+      <div class="pane" id="p-gear"><div class="scroller" id="s-gear"></div></div>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+  </div>
+  <div class="poster">
+    <h1>Regs v7</h1>
+    <p class="ledep">v5’s answer-first layout, drawn the way the app is drawn: square corners, ink rules and uppercase labels.
+      Every limit, size, origin and closure is on the page. Pictures, how to tell, and the reasons behind each answer are one tap away.</p>
+    <div class="ctl"><span class="sect">Water</span><div class="cs" id="c-w"></div></div>
+    <div class="ctl"><span class="sect">Screen</span><div class="cs" id="c-v"></div></div>
+    <div class="ctl"><span class="sect">Theme</span><div class="cs" id="c-t"></div></div>
+  </div>
+</div>
+
+<script src="regs-mock/maps.js"></script>
+<script src="regs-v7/data.js"></script>
+<script src="regs-v7/fishart.js"></script>
+<script src="regs-v7/fixes.js"></script>
+<script>
+"use strict";
+const SHORT = {
+  vedder:['Mouth → Vedder Crossing','Above Vedder Crossing'],
+  klwa:['Whole lake'],
+  cowichan:['Mouth → CNR Trestle','CNR Trestle → CNR Bridge','CNR Bridge → Greendale','Greendale → lake outlet','Side channel'],
+};
+const KCODES = {'Brook, brown and cutthroat trout':['EB','GB','CT'],'Dolly Varden, bull trout and lake trout':['DV','LT'],
+  'Rainbow trout':['RB'],'Steelhead':['ST'],'Cutthroat and rainbow trout':['CT','RB'],'Dolly Varden, bull trout':['DV'],
+  'Brook, brown and lake trout':['EB','GB','LT']};
+const TODAY = 1010, YEAR = 2026;
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DIM = [31,28,31,30,31,30,31,31,30,31,30,31];
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const S = {w:'vedder', v:'regs', part:0, d:TODAY, age:'adult', res:'bc', sheet:'', theme:'', scroll:0, pic:0, ts:0};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip_ = s => String(s||'').replace(/<[^>]+>/g,'');
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100);
+const wday = md => WD[new Date(YEAR, Math.floor(md/100)-1, md%100).getDay()];
+const doy = md => DIM.slice(0, Math.floor(md/100)-1).reduce((a,b)=>a+b,0) + md%100;
+const mdOf = n => { let m=0; while (n > DIM[m]) { n -= DIM[m]; m++; } return (m+1)*100+n; };
+const W = () => WATERS[S.w];
+const P = () => W().parts[S.part] || W().parts[0];
+const dayWord = md => md === TODAY ? 'today' : 'on ' + fmt(md);
+const dateLabel = md => (md === TODAY ? 'Today' : wday(md)) + ' · ' + fmt(md);
+const SC = {k:'--open', c:'--closed', r:'--restricted', f:'--open'};
+const DS = o => o && (o.src === 'design' || o.design) ? ' data-src="design"' : '';
+const mk = i => (W().mapKey||[])[i] ?? i;
+function stripAt(part, md){ if (!part.strip) return null; let x = doy(md); for (const [s,n] of part.strip){ if (x <= n) return s; x -= n; } return null; }
+function frame(){ return W().frames.find(f => f.p === S.part && S.d >= f.a && S.d <= f.b) || null; }
+function nextOpen(part, md){ if (!part.strip) return null; for (let i=1;i<=365;i++){ const m = mdOf(((doy(md)-1+i)%365)+1); if (stripAt(part,m)==='k') return m; } return null; }
+function closedRanges(part){ if (!part.strip) return []; let x=0; const out=[]; for (const [s,n] of part.strip){ if (s==='c') out.push([mdOf(x+1), mdOf(x+n)]); x+=n; } return out; }
+const $ = id => document.getElementById(id);
+const tint = (v,a) => `color-mix(in srgb, var(${v}) ${Math.round(a*100)}%, var(--card))`;
+
+/* verdict: the shared total as the card states it (never a sum of per-kind maxima) */
+function answer(){
+  const f = frame(), p = P(), w = W();
+  if (f && f.closed) return {k:'closed', col:'--closed', word:'Closed', line:(f.ans||{}).line || f.closed.d.replace(/ Together.*$/,''), src:(f.ans||{}).src, right:f.closed.soon};
+  if (f && f.regs) {
+    if (f.ans) return {k:'open', col:'--open', word:'Open', line:f.ans.line, src:f.ans.src};
+    const parts = f.regs.groups.map(g => { const q = (g.every||[]).map(e => strip_(e.h)).find(t => /^Hatchery only/.test(t));
+      return `Keep ${g.big} ${g.t.toLowerCase()} ${g.unit}` + (q ? ` · ${q.split(',')[0].toLowerCase()}` : ''); });
+    (f.regs.times||[]).forEach(([t, now]) => { const m = /^today \([^)]*\):\s*(.*)$/.exec(now); if (m) parts.push(`${t.split(':')[0]} today: ${m[1]}`); });
+    return {k:'open', col:'--open', word:'Open', line:parts.join('. ') + '.'};
+  }
+  const st = stripAt(p, S.d);
+  if (st === 'c') { const n = nextOpen(p, S.d); return {k:'closed', col:'--closed', word:'Closed', line:'No fishing for any game fish.', right: n ? 'Opens '+fmt(n) : ''}; }
+  if (st === 'f') return {k:'open', col:'--open', word:'Open', line:cap((p.fwin||{}).label || 'fly fishing only') + '.', src:'design'};
+  if (st === 'k') return {k:'open', col:'--open', word:'Open', line:''};
+  return {k:'unknown', col:'--sub', word:'No answer yet', line:'We don’t have this part’s rules yet.'};
+}
+
+const IC = {
+  map:{f:['M3 3.5H21V20.5H3Z'], m:['M8 3.5V9L12.5 13.5V20.5','M17.5 3.5V7L12.5 13.5']},
+  search:{f:['M4 4.5H16V16.5H4Z'], m:['M16.5 17L21 21.5']},
+  conditions:{f:['M3.5 19.5H21','M3.5 19.5V5'], m:['M3.5 15L8 10.5L12 14L16 6.5L21 11','M16 6.5V19.5']},
+  spots:{f:['M7 3.5H17V12.5H7Z'], m:['M12 12.5V20.5','M7.5 20.5H16.5']},
+  regs:{f:['M5 3.5H19V20.5H5Z'], m:['M8.5 8.5H15.5','M8.5 12.5H15.5','M8.5 16.5H12.5']},
+  gear:{f:['M15 3.5H18.5'], m:['M15 3.5V15L11 19L7 15V11.5']},
+  fish:{f:['M3 12L8 7.5H15L19 12L15 16.5H8Z'], m:['M19 12L22 8.5V15.5Z']},
+};
+const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k].f.map(d => `<path d="${d}" stroke-width="1.8" stroke-linecap="butt" stroke-linejoin="miter"/>`).join('')}${IC[k].m.map(d => `<path d="${d}" stroke-width="2.2" stroke-linecap="butt" stroke-linejoin="miter"/>`).join('')}</svg>`;
+const SMALL = {check:'<path d="M2.5 8.5 6.3 12.2 13.5 4.2"/>', cross:'<path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/>', clock:'<path d="M2 2H14V14H2Z"/><path d="M8 4.5V8.5H11"/>', info:'<path d="M2 2H14V14H2Z"/><path d="M8 7V11.5"/><path d="M8 4.5V5.5"/>'};
+const ico = (k, cls='i') => `<svg viewBox="0 0 16 16" class="${cls}" aria-hidden="true">${SMALL[k]}</svg>`;
+const CHEV = '<svg viewBox="0 0 16 16" class="chev" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+
+/* ---- maps ---- */
+function nums(d){ return (d.match(/-?\d+(\.\d+)?/g)||[]).map(Number); }
+function bbox(d){ const n = nums(d); let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; for (let i=0;i+1<n.length;i+=2){ x0=Math.min(x0,n[i]); x1=Math.max(x1,n[i]); y0=Math.min(y0,n[i+1]); y1=Math.max(y1,n[i+1]); } return [x0,y0,x1,y1]; }
+function midOf(d){ const n = nums(d), pts = []; for (let i=0;i+1<n.length;i+=2) pts.push([n[i],n[i+1]]); if (pts.length < 2) return pts[0];
+  let L = 0; const seg = pts.slice(1).map((p,i) => { const l = Math.hypot(p[0]-pts[i][0], p[1]-pts[i][1]); L += l; return l; });
+  let h = L/2; for (let i=0;i<seg.length;i++){ if (h <= seg[i]) { const t = seg[i] ? h/seg[i] : 0; return [pts[i][0]+(pts[i+1][0]-pts[i][0])*t, pts[i][1]+(pts[i+1][1]-pts[i][1])*t]; } h -= seg[i]; } return pts[pts.length-1]; }
+function mapSvg(which, opts={}){
+  const w = W(), M = (window.MAPS||{})[w.map]; if (!M) return '';
+  const g = M[which], big = which === 'big', lake = w.kind === 'lake', many = w.parts.length > 1 && !opts.nomarks;
+  let vb, k = 1;
+  if (big) vb = [0,0,390,740];
+  else { const [x0,y0,x1,y1] = bbox(g.target), A = opts.w/opts.h; let cx=(x0+x1)/2, cy=(y0+y1)/2, ww=Math.max(x1-x0,40)*1.2, hh=Math.max(y1-y0,30)*1.3;
+    if (ww/hh > A) hh = ww/A; else ww = hh*A; vb = [cx-ww/2, cy-hh/2, ww, hh]; k = vb[2]/opts.w; }
+  const ns = 'vector-effect="non-scaling-stroke"', tiny = !big && opts.w < 60;
+  let s = `<svg viewBox="${vb.join(' ')}" preserveAspectRatio="${big?'xMidYMin slice':'xMidYMid meet'}" role="img" aria-label="Map of ${esc(w.name)}">`;
+  s += `<rect x="-3000" y="-3000" width="7000" height="7000" fill="var(--land)"/><path d="${g.lakes}" fill="var(--lake)" fill-opacity=".45" fill-rule="evenodd"/>`;
+  if (!tiny) for (const [o,d] of Object.entries(g.streams)) s += `<path d="${d}" fill="none" stroke="var(--water)" stroke-opacity=".55" ${ns} stroke-width="${big?(0.4+o*0.3):(0.3+o*0.15)}"/>`;
+  if (lake) s += `<path d="${g.target}" fill="var(--lake)" fill-opacity=".6" stroke="var(--ink)" ${ns} stroke-width="1"/>`;
+  else s += `<path d="${g.target}" fill="none" stroke="var(--ink)" stroke-opacity="${opts.dim?.25:.45}" ${ns} stroke-width="${tiny?2:3}"/>`;
+  const pd = (g.parts||{})[String(mk(S.part))] || '';
+  if (pd && !opts.dim) { const st = stripAt(P(), S.d), col = st ? `var(${SC[st]})` : 'var(--ink)';
+    if (lake) s += `<path d="${pd}" fill="${col}" fill-opacity=".45" stroke="${col}" ${ns} stroke-width="2"/>`;
+    else s += `<path d="${pd}" fill="none" stroke="${col}" ${ns} stroke-width="${tiny?3.5:5}"/>`;
+    const [x0,y0,x1,y1] = bbox(pd); if (Math.max(x1-x0,y1-y0) < 8*k) s += `<rect x="${(x0+x1)/2-5*k}" y="${(y0+y1)/2-5*k}" width="${10*k}" height="${10*k}" fill="${col}"/>`; }
+  if (big) (g.marks||[]).forEach(m => { const r = m.xy[0] > 280;
+    s += `<text x="${m.xy[0]+(r?-20:20)}" y="${m.xy[1]-18}" text-anchor="${r?'end':'start'}" font-size="12" font-weight="700" fill="var(--sub)" font-family="Archivo,sans-serif" paint-order="stroke" stroke="var(--land)" stroke-width="3">${esc(m.t)}</text>`; });
+  const placed = [];
+  if (many && !opts.dim) w.parts.forEach((p,i) => { const d = (g.parts||{})[String(mk(i))]; if (!d) return; let [x,y] = midOf(d); const on = i === S.part;
+    for (let n=0; n<6 && placed.some(([a,b]) => Math.hypot(a-x,b-y) < 30*k); n++) y -= 32*k; placed.push([x,y]);
+    s += `<g class="mk-hit" data-part="${i}" role="button" aria-label="Part ${i+1}"><rect x="${x-22*k}" y="${y-22*k}" width="${44*k}" height="${44*k}" fill="transparent"/>
+      <rect x="${x-14*k}" y="${y-14*k}" width="${28*k}" height="${28*k}" fill="${on?'var(--ink)':'var(--card)'}" stroke="var(--ink)" stroke-width="${1.5*k}"/>
+      <text x="${x}" y="${y+4.6*k}" text-anchor="middle" font-size="${13*k}" font-weight="700" font-family="Archivo,sans-serif" fill="${on?'var(--card)':'var(--ink)'}">${i+1}</text></g>`; });
+  return s + '</svg>';
+}
+
+/* ---- shared header: water + part + date, then the river ribbon ---- */
+const shortOf = i => ((SHORT_FIX||{})[S.w]||SHORT[S.w]||[])[i] || W().parts[i].t;
+function datePill(cls=''){ const a = answer(); return `<button class="pill dp ${cls}" data-open="date" aria-label="Change date. Now ${dateLabel(S.d)}, ${a.word}"><span class="dot" style="background:var(${a.col})"></span><span><em>Change date</em>${dateLabel(S.d)}</span></button>`; }
+function ribbonHtml(){
+  const w = W(), n = w.parts.length; if (n < 2) return '';
+  return `<div class="ribbon" role="group" aria-label="Parts of ${esc(w.name)}, mouth to upstream">
+      <button class="nav" ${S.part===0?'disabled':`data-part="${S.part-1}"`} aria-label="Previous part (downstream)">‹</button>
+      <div class="segs" style="--cur:${n>3?6:3}">${w.parts.map((p,i) => { const st = stripAt(p, S.d), on = i === S.part;
+        return `<button class="seg" aria-current="${on}" data-part="${i}" aria-label="Part ${i+1}: ${esc(shortOf(i))}${st?', '+(st==='c'?'closed':'open'):''}">
+          <i style="background:${st?`var(${SC[st]})`:'var(--line2)'}"></i>${i+1}${on?`<span>${esc(shortOf(i))}</span>`:''}</button>`; }).join('')}</div>
+      <button class="nav" ${S.part===n-1?'disabled':`data-part="${S.part+1}"`} aria-label="Next part (upstream)">›</button></div>
+    <div class="axis"><span>Mouth</span><span>Upstream</span></div>`;
+}
+function hdrHtml(){
+  const w = W(), n = w.parts.length;
+  const dots = n > 1 ? `<span class="dots" aria-hidden="true">${w.parts.map((p,i) => `<i class="${i===S.part?'on':''}"></i>`).join('')}</span>` : '';
+  return `<div class="hdr" id="hdr"><div class="bar">
+      <button class="thumb" data-open="${n>1?'part':'date'}" aria-label="Map of the parts">${mapSvg('thumb', {w:40, h:40, nomarks:1})}</button>
+      <button class="where" ${n>1?'data-open="part"':''} aria-label="${esc(w.name)}">
+        <b>${esc(w.short||w.name)}</b><small>${dots}${n>1?`<span class="pl">Part ${S.part+1} of ${n}</span><span class="cl"> · ${esc(shortOf(S.part))}</span>`:esc(shortOf(S.part))}</small></button>
+      ${datePill()}</div>${ribbonHtml()}</div>`;
+}
+
+const PAT = {k:'var(--open)', c:'repeating-linear-gradient(135deg, var(--closed) 0 3px, color-mix(in srgb, var(--closed) 35%, var(--card)) 3px 6px)',
+  f:'repeating-linear-gradient(90deg, var(--open) 0 4px, var(--card) 4px 6px)', r:'var(--restricted)'};
+function stripHtml(part){
+  if (!part.strip) return '';
+  const t = (doy(S.d)-0.5)/365*100, cur = Math.floor(S.d/100)-1, cl = closedRanges(part);
+  let x = 0; const fw = []; part.strip.forEach(([s,n]) => { if (s === 'f') fw.push([mdOf(x+1), mdOf(x+n)]); x += n; });
+  return `<button class="strip" data-strip aria-label="Open days this year; tap to pick a day">
+    <div class="tw"><div class="bars">${part.strip.map(([s,n]) => `<span style="flex:${n};background:${PAT[s]}"></span>`).join('')}</div><i class="tick" style="left:${t}%"></i></div>
+    <div class="mo">${MON.map((m,i) => i===cur?`<b>${m[0]}</b>`:`<span>${m[0]}</span>`).join('')}</div></button>
+    <div class="key"><span><i style="background:${PAT.k}"></i>✓ open</span>
+      ${fw.length?`<span data-src="design"><i style="background:${PAT.f};outline:1px solid var(--open)"></i>${fw.map(([a,b]) => fmt(a)+'–'+fmt(b)).join(', ')}: ${esc((part.fwin||{}).label||'fly fishing only')}</span>`:''}
+      ${cl.length?`<span><i style="background:${PAT.c}"></i>✕ closed ${cl.map(([a,b]) => fmt(a)+'–'+fmt(b)).join(', ')}: no fishing for any game fish</span>`:''}</div>`;
+}
+
+function verdictHtml(withStrip=true){
+  const w = W(), a = answer(), f = frame();
+  const foot = [w.region ? 'Region ' + w.region.replace(/\D/g,'') : '', w.kind, P().n ? P().n + (P().n>1?' sections':' section') : ''].filter(Boolean).join(' · ');
+  const times = f && f.regs && f.regs.times ? f.regs.times.map(([t,now]) => `<div class="when">At certain times: <b>${esc(t)}</b><br>${esc(cap(now))}</div>`).join('') : '';
+  const split = w.split && S.part === 0 && a.k === 'closed' ? `<button class="when splt" data-src="design" data-part="1"><b>${esc(w.split.up)}</b> See part 2 ›</button>` : '';
+  return `<section class="card"><div class="band" style="background:${tint(a.col,.08)}">
+    <div class="verd"><span class="w" style="color:var(${a.col})">${a.k==='closed'?'✕ ':a.k==='open'?'✓ ':''}${a.word}</span><span class="d">${a.k==='unknown'?'':dayWord(S.d)}</span>
+      ${a.right?`<span class="r">${esc(a.right)}</span>`:''}</div>
+    ${a.line?`<p class="lead"${DS(a)}>${esc(a.line)}</p>`:''}${split}${w.where?`<p class="sub2"${DS(w.where)}>${esc(w.where.t)}</p>`:''}${withStrip?stripHtml(P()):''}${times}</div>
+    <div class="foot">${esc(foot)}</div></section>`;
+}
+
+function thumb(codes){ const pic = (codes||[]).map(c => (PICS[c]||[])[0]).find(Boolean);
+  return pic ? `<span class="th"><img src="${FISHDIR+pic.f}" alt="" loading="lazy"></span>` : `<span class="th">${icon('fish')}</span>`; }
+const fishArt = (opt) => window.FISHART ? FISHART.draw('RB', Object.assign({marks:false, adiMark:true}, opt)) : '';
+function adiPair(){ return `<button class="adi" data-open="hatch" aria-label="How to tell hatchery from wild: bigger pictures">
+  <figure>${fishArt({})}<figcaption><b>Wild</b>adipose fin there</figcaption></figure>
+  <figure>${fishArt({clipped:true})}<figcaption><b>Hatchery</b>fin clipped, a scar</figcaption></figure></button>`; }
+
+/* =============================== REGULATIONS =============================== */
+function renderRegs(){
+  const f = frame();
+  let h = hdrHtml() + verdictHtml();
+  if (f && f.closed) {
+    h += `<section class="block"><p class="sect">Why it’s closed</p><div class="rows">${f.closed.list.map(([t,src]) =>
+      `<div class="row" style="min-height:0"><span class="tx"><b>${esc(t)}</b><small style="margin-top:2px">${esc(src)}</small></span></div>`).join('')}</div>
+      <button class="link" data-jump="${f.closed.reopen[0]}">See the rules from ${fmt(f.closed.reopen[0])} ›</button></section>`;
+  } else if (f && f.regs) {
+    if (f.regs.steel) h += steelHtml(f.regs.steel);
+    f.regs.groups.forEach((g, gi) => { h += groupHtml(g, gi); });
+    h += `<section class="block"><p class="sect">Other fish</p><div class="rows">${f.regs.other.map(([n,o],oi) => otherRow(n,o,oi)).join('')}</div></section>`;
+    h += catchHtml();
+    h += `<section class="block"><p class="sect">Anywhere in B.C.</p>${ANYWHERE.map(t => `<div class="line sub">${ico('cross','i x2')}<span>${esc(t)}</span></div>`).join('')}
+      <div class="line sub">${ico('info')}<span>${esc(POSS[0])}</span></div>
+      ${f.regs.groups[0].src && f.regs.groups[0].src.on ? `<button class="link" data-open="src">Every regulation line ›</button>` : ''}</section><div style="height:16px"></div>`;
+  } else h += catchHtml() + `<div style="height:24px"></div>`;
+  $('s-regs').innerHTML = h;
+}
+function catchHtml(){
+  return `<section class="block"><p class="sect">When you catch a fish</p>
+    <div class="line"${DS(SNAG)}>${ico('cross','i x2')}<span><b>${esc(SNAG.t)}</b></span></div>
+    <button class="line lk" data-open="hatch">${ico('info')}<span>How to tell hatchery from wild: the adipose fin</span>${CHEV}</button>
+    <button class="line lk" data-open="tile:always">${ico('info')}<span>Handling, keeping and carrying fish: 21 rules</span>${CHEV}</button></section>`;
+}
+function steelHtml(st){
+  return `<section class="card steel"${DS(st)}><div class="band">
+    <div class="ghd" style="margin-top:0"><div style="flex:1;min-width:0"><p class="sect">Steelhead</p><h3>Hatchery steelhead</h3></div>
+      <div class="num"><b style="font-size:2.25rem">${st.v}</b><em>${esc(st.unit)}</em></div></div>
+    ${st.lines.map(t => `<div class="line">${ico('check','i ck')}<span>${t}</span></div>`).join('')}
+    <button class="line lk" data-open="hatch">${ico('info')}<span>How to tell hatchery from wild</span>${CHEV}</button>
+    <button class="line lk" data-tab="gear">${ico('info')}<span>${esc(st.stamp)}</span>${CHEV}</button></div></section>`;
+}
+
+function groupHtml(g, gi){
+  let h = `<section class="block"${DS(g)}><p class="sect">${esc(g.scope)}</p><div class="ghd"><div style="flex:1;min-width:0"><h3>${esc(g.t)}</h3><p>${g.lead}</p></div>
+    <div class="num"><b style="font-size:2.25rem">${esc(g.big)}</b><em>${esc(g.unit)}</em></div></div>`;
+  if (g.qa && !g.src) h += `<div class="qa">${g.qa.map(([q,a]) => `<div>${esc(q)}<b>${esc(a)}</b></div>`).join('')}</div>`;
+  h += `<div style="margin-top:8px">${g.every.map(e => `<div class="line">${ico('check','i ck')}<span>${e.h}</span>${e.tell?`<button class="more" data-open="hatch">How to tell ›</button>`:''}</div>${e.tell?adiPair():''}`).join('')}
+    ${g.note?`<div class="line sub">${ico('info')}<span>${esc(g.note)}</span></div>`:''}</div>`;
+  h += `<p class="sect" style="margin-top:14px">${esc(g.kindsHead||'Each kind')}</p><div class="rows">${g.kinds.map((k,ki) => `<button class="row" data-open="fish:g${gi}k${ki}">${thumb(KCODES[k.n]||k.codes)}
+      <span class="tx"><b>${esc(k.n)}</b><span class="meta">${(k.chips||[]).map(c => `<span class="chip">${esc(c)}</span>`).join('')}</span>
+        ${k.note?`<small>${esc(k.note)}</small>`:''}${k.extras?`<ul>${k.extras.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`:''}</span>
+      <span class="num">${k.v===0?`<b class="w rel">Release</b>`:`<b>${k.v}</b><em>${esc(k.of||'a day')}</em>`}</span>${CHEV}</button>`).join('')}</div>`;
+  return h + '</section>';
+}
+
+function otherRow(n, o, oi){
+  const val = o.cls === 'keep' ? `<b>${esc(o.big)}</b><em>${esc(o.big==='∞'?'no limit':o.unit)}</em>`
+    : `<b class="w ${o.cls==='closed'?'no':'rel'}">${o.cls==='closed'?'Closed':'Release'}</b>`;
+  const say = o.which ? o.say + ' ' + o.which.join(', ') + '.' : [o.say, o.year && o.year.say].filter(Boolean).join(' ');
+  const extra = [o.zero, o.combined].filter(Boolean).map(x => `<small data-src="design"><b>${esc(x.t)}</b></small>`).join('');
+  return `<button class="row" data-open="${o.which?'prot':'fish:o'+oi}">${thumb(o.fish)}<span class="tx"><b>${esc(n)}</b>${say?`<small>${esc(say)}</small>`:''}${extra}</span>
+    <span class="num">${val}</span>${CHEV}</button>`;
+}
+
+/* =============================== GEAR & LICENCE =============================== */
+function renderGear(){
+  const f = frame(), a = answer(), u16 = S.age === 'u16';
+  let h = hdrHtml();
+  if (!f || !f.gear) { h += verdictHtml(false);
+    if (a.k === 'closed') h += `<section class="block"><div class="line sub">${ico('info')}<span>No gear may go in the water and no licence is needed while fishing is closed.</span></div></section>`;
+    $('s-gear').innerHTML = h + '<div style="height:24px"></div>'; return; }
+  const G = f.gear, T = G.tiles;
+  h += `<div style="height:6px"></div>`;
+  // LICENCE: answer, who, every document with its price, the record rule; long material folds in place
+  h += `<section class="gsec"><p class="sect">Licence</p>
+    <div class="segc" role="group" aria-label="Who is fishing"><button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>
+    ${u16 ? `<div class="segc" role="group" aria-label="Where they live" style="margin-top:6px"><button aria-pressed="${S.res==='bc'}" data-res="bc">B.C. resident</button><button aria-pressed="${S.res==='non'}" data-res="non">Not a B.C. resident</button></div>` : ''}
+    <div class="ans"${u16?' data-src="design"':''}>${u16 ? esc(U16BY[S.res].head) : esc(T.licence.v)}<small>${u16 ? esc(U16BY[S.res].body) : esc(T.licence.s)}</small></div>
+    ${!u16 && G.stampNote ? `<div class="line" data-src="design">${ico('info')}<span><b>${esc(G.stampNote.t)}</b></span></div>` : ''}
+    ${u16 ? '' : `<div class="docs" style="margin-top:6px">${G.need.map(d => `<div class="d"><b>${esc(d.n)}</b><span>${esc(d.w)}</span><em>${esc(d.p)}</em></div>`).join('')}</div>
+      <div class="note">${G.record}</div>
+      <p style="font-size:var(--micro);color:var(--faint);margin:8px 0 0">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</p>
+      ${fold('Where each one comes from', srcBlock(G.where))}`}
+    ${fold('If you are guiding other anglers', `<div class="src"><p>${esc(GUIDING[0])}<small>Province · ${esc(GUIDING[2])}</small></p></div>`)}
+    ${u16 ? '' : fold('Rules for other anglers', `<div class="src"><p>${esc(OTHERS[0])}<small>Province · ${esc(OTHERS[2])}</small></p></div>`)}</section>`;
+  // LINE & HOOKS
+  h += `<section class="gsec"><p class="sect">Line &amp; hooks</p><div class="ans">${esc(T.line.v)}<small>${esc(T.line.s)}</small></div>
+    <div class="gl">${G.lines.map(([l,v,s]) => `<div class="r"><span class="k">${esc(cap(l.toLowerCase()))}</span><span class="v">${esc(v)}${s?`<small>${esc(s)}</small>`:''}</span></div>`).join('')}</div></section>`;
+  // BAIT
+  h += `<section class="gsec"><p class="sect">Bait</p><div class="ans">${esc(T.bait.v)}${G.baitWhen?`<small data-src="design"><b style="color:var(--restricted)">${esc(G.baitWhen.t)}.</b> ${esc(G.baitWhen.s)}</small>`:''}</div>
+    <div class="gl">${G.bait.map(([m,t,s]) => `<div class="r"><span class="v" style="display:flex;gap:8px">${ico(m==='y'?'check':'cross', 'i '+(m==='y'?'ck':'x2'))}<span>${esc(t)}<small>${esc(s)}</small></span></span></div>`).join('')}
+      ${G.roe?`<div class="r" data-src="design"><span class="v" style="display:flex;gap:8px">${ico('info')}<span>${esc(G.roe.t)}<small>${esc(G.roe.s)}</small></span></span></div>`:''}</div></section>`;
+  // WAYS TO FISH + the snagged-fish duty
+  h += `<section class="gsec"><p class="sect">Ways to fish</p><div class="ans">${esc(T.ways.v)}<small>${esc(T.ways.s)}</small></div>
+    <div class="gl">${G.ways.yes.map(([t,s]) => `<div class="r"><span class="v" style="display:flex;gap:8px">${ico('check','i ck')}<span>${esc(t)}<small>${esc(s)}</small></span></span></div>`).join('')}
+      <div class="r"><span class="v" style="display:flex;gap:8px">${ico('cross','i x2')}<span>Not allowed<small>${esc(G.ways.no.join(' · '))}</small></span></span></div></div>
+    <div class="duty"><span class="no" style="font-weight:800">!</span><span data-src="design"><b>${esc(SNAG.t)}</b></span></div></section>`;
+  // BOATS (only where the water has boat rules — none of these three do)
+  if (T.boats) h += `<section class="gsec"><p class="sect">Boats</p><div class="ans">${esc(T.boats.v)}</div></section>`;
+  // ALWAYS: 21 rules → sheet (the one long list)
+  h += `<section class="gsec"><p class="sect">Always</p><button class="row" data-open="tile:always" style="padding-top:6px">
+      <span class="tx"><b>${esc(T.always.v)}</b><small>${esc(T.always.s)}: release gently, keep fish countable, never sell your catch…</small></span>${CHEV}</button></section><div style="height:16px"></div>`;
+  $('s-gear').innerHTML = h;
+}
+function fold(t, inner){ return `<details class="fold"><summary>${esc(t)}</summary>${inner}</details>`; }
+function srcBlock(groups){ return `<div class="src">${groups.map(([hd, items]) => `<h5>${esc(hd)}</h5>${items.map(([t,tier,doc]) =>
+  `<p>${esc(t)}<small>${[tier,doc].filter(Boolean).map(esc).join(' · ')}</small></p>`).join('')}`).join('')}</div>`; }
+
+/* =============================== MAP =============================== */
+function renderMap(){
+  const w = W(), a = answer(), open = S.v !== 'map0', many = w.parts.length > 1;
+  let h = `<div class="mapsvg">${mapSvg('big', {dim:!open})}</div><div class="m-tl">${datePill('float')}</div><div class="m-tr"><span>+</span><span>−</span></div>`;
+  if (open) h += `<div class="place"><div class="grab"></div>
+    <div class="nm"><h2>${esc(w.name)}</h2><button class="x" data-close-water aria-label="Close">✕</button></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span class="chip up" style="color:var(${a.col})"><span class="dot" style="background:var(${a.col})"></span>${a.word}</span>
+      <span style="font-size:var(--small);color:var(--sub)">${many?`Part ${S.part+1} of ${w.parts.length} · `:''}${esc(shortOf(S.part))}</span></div>
+    ${a.line?`<button class="say" data-tab="regs"${DS(a)}>${esc(a.line)}</button>`:''}
+    ${w.split && S.part===0 && a.k==='closed' ? `<button class="say" data-part="1" data-src="design" style="color:var(--open)">${esc(w.split.up)} ›</button>`:''}
+    ${many?`<div class="hint">Tap a numbered square to switch part.</div>`:''}
+    <button class="link" data-tab="regs">${a.k==='closed'?'Why it’s closed ›':'See the regulations ›'}</button></div>`;
+  else h += `<button class="pill float" data-reopen style="position:absolute;left:50%;bottom:18px;transform:translateX(-50%)">Open ${esc(w.name)}</button>`;
+  $('p-map').innerHTML = h;
+}
+
+/* =============================== SHEETS =============================== */
+function head(t, sub){ return `<div class="shead" id="shead"><div class="grab"></div><div class="r"><h2>${t}</h2><button class="done" data-close>Done</button></div>${sub?`<p>${sub}</p>`:''}</div>`; }
+function sheetHtml(k){
+  const w = W(), f = frame();
+  if (k === 'part') return head('Which part?', `${esc(w.name)} has ${w.parts.length} parts, numbered from the mouth.`) + `<div class="sbody"><div class="pmap">${mapSvg('thumb', {w:352, h:177})}</div>${w.parts.map((p,i) => {
+      const st = stripAt(p, S.d);
+      return `<button class="prow" aria-current="${i===S.part}" data-part="${i}"><span class="nb">${i+1}</span><span class="tx"><b>${esc(shortOf(i))}</b><small>${esc(p.t)}</small></span>
+        ${st?`<span class="chip up" style="color:var(${SC[st]})"><span class="dot" style="background:var(${SC[st]})"></span>${st==='c'?'Closed':'Open'}</span>`:''}</button>`; }).join('')}</div>`;
+  if (k === 'date') { const m = Math.floor(S.d/100);
+    return head('Which day?', '') + `<div class="sbody"><div class="mgrid">${MON.map((x,i) => `<button aria-pressed="${i+1===m}" data-mon="${i+1}">${x}</button>`).join('')}</div>
+      <div class="days"><button data-dd="-1" aria-label="Day before">−</button><span class="d">${wday(S.d)} ${S.d%100}</span><button data-dd="1" aria-label="Day after">+</button></div>
+      ${S.d!==TODAY?`<button class="link" data-jump="${TODAY}">Back to today ›</button>`:''}</div>`; }
+  if (k === 'hatch') return head('Hatchery or wild?', 'The adipose fin') + `<div class="sbody"><div class="big2">
+      <figure>${fishArt({})}<figcaption><b>Wild</b> · adipose fin there</figcaption></figure>
+      <figure>${fishArt({clipped:true})}<figcaption><b>Hatchery</b> · clipped, a healed scar instead</figcaption></figure></div>
+      <p style="margin-top:12px">Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.</p></div>`;
+  if (k.startsWith('fish:')) {
+    const m = /^fish:(?:g(\d+)k(\d+)|o(\d+))$/.exec(k); if (!m || !f || !f.regs) return '';
+    let name, codes, body, lad, hatch = false;
+    if (m[1] != null) { const g = f.regs.groups[+m[1]], kd = g.kinds[+m[2]]; name = kd.n; codes = KCODES[kd.n]||kd.codes||[]; lad = kd.ladder;
+      hatch = (kd.chips||[]).some(c => /hatchery/.test(c));
+      body = `<div class="ans1">${kd.v===0?'Release every one':`${esc(kd.verb||'Keep up to')} ${kd.v} ${esc(kd.of||'a day')}`}</div><div class="marks">${(kd.chips||[]).map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>
+        ${kd.note?`<p style="margin:10px 0 0">${esc(kd.note)}</p>`:''}${kd.extras?`<div style="margin-top:4px">${kd.extras.map(x => `<div class="line">${ico('check','i ck')}<span>${esc(x)}</span></div>`).join('')}</div>`:''}`;
+    } else { const [n,o] = f.regs.other[+m[3]]; name = n; codes = o.fish||[]; lad = o.ladder;
+      body = `<div class="ans1 ${o.cls==='closed'?'no':o.cls==='rel'?'rel':''}">${o.cls==='keep'?esc(cap(o.word)):o.cls==='closed'?'Closed':'Release every one'}</div>
+        ${o.say?`<p style="margin:8px 0 0">${esc(o.say)}</p>`:''}${o.year&&o.year.say?`<p style="margin:6px 0 0">${esc(o.year.say)}</p>`:''}`; }
+    const pics = codes.flatMap(c => PICS[c]||[]), pi = Math.min(S.pic, Math.max(pics.length-1,0)), p = pics[pi];
+    const tips = [...new Set(codes)].map(c => FISH[c]).filter(x => x && x.tips.length);
+    let h = head(esc(name), '') + `<div class="sbody">`;
+    if (p) h += `<div class="pic"><img src="${FISHDIR+p.f}" alt="${esc(p.c)}"></div>
+      ${pics.length>1?`<div class="segc" role="group" aria-label="Picture">${pics.map((q,i) => `<button aria-pressed="${i===pi}" data-pic="${i}">${q.ph?esc(q.ph):esc(q.c.replace(/ trout$/,''))}</button>`).join('')}</div>`:''}
+      <div class="cred">${esc(p.cr)} · ${esc(p.s)}</div>${p.si?`<div class="standin"><b>Stand-in</b>${esc(p.c)}, pictured for the ${esc(p.si)}</div>`:''}`;
+    h += `<div class="ssec">${body}</div>`;
+    if (hatch) h += `<div class="ssec"><p class="sect">Hatchery or wild?</p>${adiPair().replace('class="adi"','class="adi" style="margin-left:0;width:100%"')}</div>`;
+    if (tips.length) h += `<div class="ssec"><p class="sect">How to tell</p>${tips.map(t => `${tips.length>1?`<div style="font-weight:600;margin-top:8px">${esc(t.n)}</div>`:''}<ul class="tips">${t.tips.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</div>`;
+    if (lad) h += `<div class="ssec lad"><p class="sect">Why this is the answer</p><p style="font-weight:600;margin:6px 0">${esc(lad.ok.replace(/^✓\s*/,''))}</p>
+      ${lad.g.map(([who,items]) => `<div class="lv"><span class="who">${esc(who)}</span>${items.map(([t,l]) => `<div>${esc(t)}<small>${esc(l)}</small></div>`).join('')}</div>`).join('')}
+      ${(lad.other||[]).map(([who,items]) => `<div class="lv"><span class="who">Also · ${esc(who)}</span>${items.map(([t]) => `<div>${esc(t)}</div>`).join('')}</div>`).join('')}
+      ${lad.skip?`<div class="lv dim"><span class="who">Not used here</span>${lad.skip.map(([t,l]) => `<div>${esc(t)}<small>${esc(l)}</small></div>`).join('')}</div>`:''}</div>`;
+    return h + '</div>';
+  }
+  if (k === 'prot') { const o = f.regs.other.find(([n]) => n === 'Protected species')[1], pics = o.fish.flatMap(c => PICS[c]||[]);
+    return head('Protected species', esc(o.say)) + `<div class="sbody"><div class="pgrid">${pics.map(p =>
+      `<figure><div class="im"><img src="${FISHDIR+p.f}" alt="${esc(p.c)}"></div><figcaption>${p.si?`<span class="standin"><b>Stand-in</b></span>${esc(p.c)} for the ${esc(p.si)}`:esc(p.c)}<small>${esc(p.cr)}</small></figcaption></figure>`).join('')}</div>
+      <div class="ssec"><p class="sect">All ${o.which.length}</p><ul class="tips">${o.which.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>`; }
+  if (k === 'src') { const src = f.regs.groups[0].src;
+    const li = arr => arr.map(([tier,t,where,eff]) => `<div class="lv"><span class="who">${esc(tier)}</span><div>${esc(t)}<small>${esc(where)} · ${esc(eff)}</small></div></div>`).join('');
+    return head('Every regulation line', esc(src.sub)) + `<div class="sbody lad"><div class="ssec"><p class="sect">In force · ${src.on.length}</p>${li(src.on)}</div><div class="ssec dim"><p class="sect">Not used · ${src.off.length}</p>${li(src.off)}</div></div>`; }
+  if (k === 'tile:always') return head('Always', '') + `<div class="sbody"><div class="duty" style="margin-top:14px" data-src="design"><span class="no" style="font-weight:800">!</span><span><b>${esc(SNAG.t)}</b></span></div>
+    ${ALWAYS.groups.map(([hd,items]) => `<div class="ssec"><p class="sect">${esc(hd)}</p><ul class="tips">${items.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>`;
+  return '';
+}
+
+/* =============================== render + events =============================== */
+function renderTabs(){
+  const water = S.v !== 'map0';
+  const tabs = water ? [['map','Map','map'],['regs','Regulations','regs'],['gear','Gear & licence','gear']]
+                     : [['map0','Map','map'],['search','Search','search'],['conditions','Conditions','conditions'],['pins','Spots','spots']];
+  $('tabs').innerHTML = tabs.map(([k,t,ic]) => `<button role="tab" data-tab="${k}" aria-selected="${S.v===k}">${icon(ic)}<em>${esc(t)}</em><u></u></button>`).join('');
+}
+function render(keepScroll){
+  const de = document.documentElement;
+  if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme;
+  de.classList.toggle('ts2', +S.ts === 2);
+  const pane = S.v === 'regs' ? 'regs' : S.v === 'gear' ? 'gear' : 'map';
+  ['map','regs','gear'].forEach(p => $('p-'+p).classList.toggle('on', p === pane));
+  const sc = $('s-'+pane), prev = sc ? sc.scrollTop : 0;
+  if (pane === 'regs') renderRegs(); else if (pane === 'gear') renderGear(); else renderMap();
+  renderTabs();
+  const sh = S.sheet ? sheetHtml(S.sheet) : '';
+  const el = $('sheet'); el.innerHTML = sh; el.style.transform = ''; el.classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
+  if (sh) bindSwipe();
+  if (sc) { sc.scrollTop = keepScroll ? prev : S.scroll; mini(sc); }
+  renderPoster();
+  const q = Object.entries({w:S.w, v:S.v, part:S.part, d:S.d, age:S.age, res:S.res, sheet:S.sheet, theme:S.theme, ts:S.ts||''}).filter(([k,v]) => v!=='' && v!=null).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+  history.replaceState(null, '', '#'+(de.classList.contains('shot')?'shot=1&':'')+q);
+}
+function bindSwipe(){
+  const hd = $('shead'), el = $('sheet'); if (!hd) return; let y0 = null, dy = 0;
+  hd.onpointerdown = e => { if (e.target.closest('button')) return; y0 = e.clientY; dy = 0; el.classList.add('drag'); hd.setPointerCapture(e.pointerId); };
+  hd.onpointermove = e => { if (y0 == null) return; dy = Math.max(0, e.clientY - y0); el.style.transform = `translateY(${dy}px)`; };
+  hd.onpointerup = hd.onpointercancel = () => { if (y0 == null) return; y0 = null; el.classList.remove('drag'); if (dy > 80) go({sheet:''}, true); else el.style.transform = ''; };
+}
+function mini(sc){ const h = sc && sc.querySelector('.hdr'); if (h) h.classList.toggle('mini', sc.scrollTop > 40); }
+['s-regs','s-gear'].forEach(id => $(id).addEventListener('scroll', e => mini(e.target), {passive:true}));
+function go(o, keep){ Object.assign(S, o); if (!('scroll' in o)) S.scroll = 0; render(keep); }
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-res],[data-tab],[data-open],[data-close],[data-part],[data-jump],[data-mon],[data-dd],[data-age],[data-pic],[data-strip],[data-close-water],[data-reopen],[data-cw],[data-cv],[data-ct]');
+  if (!t) { if (e.target === $('scrim')) go({sheet:''}, true); return; }
+  const d = t.dataset;
+  if (d.tab) { if (['search','conditions','pins'].includes(d.tab)) return toast('Unchanged app screen'); return go({v:d.tab, sheet:''}); }
+  if (d.open != null) return go({sheet:d.open, pic:0}, true);
+  if (d.close != null) return go({sheet:''}, true);
+  if (d.part != null) return go({part:+d.part, sheet:''}, true);
+  if (d.jump) return go({d:+d.jump, sheet:''});
+  if (d.mon) { const m = +d.mon; return go({d: m*100 + Math.min(S.d%100, DIM[m-1])}, true); }
+  if (d.dd) return go({d: mdOf(((doy(S.d)-1 + +d.dd + 365) % 365) + 1)}, true);
+  if (d.age) return go({age:d.age}, true);
+  if (d.res) return go({res:d.res}, true);
+  if (d.pic != null) return go({pic:+d.pic}, true);
+  if (d.strip != null) { const r = t.querySelector('.bars').getBoundingClientRect(); const x = Math.min(Math.max((e.clientX-r.left)/r.width,0),.999); return go({d: mdOf(Math.floor(x*365)+1)}, true); }
+  if (d.closeWater != null) return go({v:'map0', sheet:''});
+  if (d.reopen != null) return go({v:'map'});
+  if (d.cw) return go({w:d.cw, part:0, d:TODAY, sheet:'', v: S.v==='map0'?'map':S.v});
+  if (d.cv) { const [v,sheet] = d.cv.split('|'); return go({v, sheet:sheet||''}); }
+  if (d.ct != null) { const [th, ts] = d.ct.split('|'); return go({theme:th, ts:+ts||0}, true); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.sheet) go({sheet:''}, true); });
+function renderPoster(){
+  const ch = (on, attr, t) => `<button class="pill ${on?'on':''}" ${attr}>${esc(t)}</button>`;
+  $('c-w').innerHTML = Object.entries(WATERS).map(([k,w]) => ch(S.w===k, `data-cw="${k}"`, w.name)).join('');
+  $('c-v').innerHTML = [['map','','Map'],['regs','','Regulations'],['regs','part','Parts'],['regs','hatch','Hatchery or wild'],['regs','date','Date'],['gear','','Gear & licence']].map(([v,s,t]) =>
+    ch(S.v===v && S.sheet===s, `data-cv="${v}|${s}"`, t)).join('');
+  $('c-t').innerHTML = [['','Auto'],['light','Light'],['dark','Dark'],[S.theme+'|2','200% text']].map(([k,t]) => ch(t==='200% text'? +S.ts===2 : (S.theme===k && +S.ts!==2), `data-ct="${k}"`, t)).join('');
+}
+(function(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.get('shot')) document.documentElement.classList.add('shot');
+  for (const [k,v] of h) if (k in S) S[k] = ['part','d','scroll','pic','ts'].includes(k) ? +v : v;
+  if (!WATERS[S.w]) S.w = 'vedder';
+  const sc = S.scroll; render();
+  if (sc) requestAnimationFrame(() => { const el = $(S.v==='gear'?'s-gear':'s-regs'); if (el) { el.scrollTop = sc; mini(el); } });
+})();
+</script>
+</body>
+</html>
