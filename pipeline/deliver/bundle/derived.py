@@ -14,12 +14,13 @@
                    water and steelhead presence — in the export's order, so `part_ix` IS the
                    export's `waters[item].parts` index. The export and the answers read this
                    table; nothing else groups sections into parts (gate 3)
-  water_place      THE UNNAMED WATER (S1, user ruling 2026-10-10: every section has an answer):
-  unnamed_part     where each section no named water owns lies and what water it is (kind,
-  section_ruleset.up   regions, MUs — the atlas's, handed in by the bundle build), and its PART:
-                   every unnamed section in B.C. carrying the same facts a named part is keyed
-                   by and the same place. The answers make one key per unnamed part; nothing
-                   else groups unnamed sections (gate 3)
+  region_place     WHERE EVERY SECTION IN B.C. IS (S1b): its region set and its MU set (the
+  mu_set           atlas's, handed in by the bundle build), on `section_ruleset.place` / `.mus`
+  unnamed_part     THE UNNAMED WATER (S1, user ruling 2026-10-10: every section has an answer):
+  section_ruleset.up   every section no named water owns, grouped by exactly an answers key's
+                   content (the named part's facts + the water kind). The answers give each part
+                   the key of its content (a named part's where one holds it); nothing else
+                   groups unnamed sections (gate 3)
 
 Every table is held to SQL CHECK / UNIQUE / FOREIGN KEY constraints (schema.sql; the build runs
 `PRAGMA foreign_keys = ON`), and `prove` refuses a build whose rows break a fact the constraints
@@ -95,17 +96,18 @@ def rule_keys(section_set: Dict[int, int], anadromous: Iterable[int], applies: I
 # rule_ix, rule.closure_grade, part, part_section
 # --------------------------------------------------------------------------------------------
 
-#: One unnamed section's place as the bundle build hands it over: (kind, regions, mus) — the water
-#: kind (`reach.water_kind.kind_of`), the sorted regions it takes zone tables from, the sorted MUs
-#: it touches.
+#: One section's place as the bundle build hands it over: (kind, regions, mus) — the water kind
+#: (`reach.water_kind.kind_of`; read for unnamed sections only), the sorted regions it takes zone
+#: tables from, the sorted MUs it touches.
 Place = Tuple[str, Tuple[str, ...], Tuple[str, ...]]
 
 
 def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None) -> None:
     """Write `rule_ix`, `rule.closure_grade`, `part` and `part_section` — and, given `places` (the
-    atlas's place of every section no named water owns, by handle: the bundle build always gives
-    it), `water_place`, `unnamed_part` and `section_ruleset.up` — and prove them. A hand-built
-    bundle with no atlas (the tests' fixtures) passes no places and gets no unnamed parts."""
+    atlas's place of every section, by handle: the bundle build always gives it), `region_place`,
+    `mu_set`, `section_ruleset.place` / `.mus` (every section in B.C.), `unnamed_part` and
+    `section_ruleset.up` — and prove them. A hand-built bundle with no atlas (the tests' fixtures)
+    passes no places and gets none of these."""
     from pipeline.deliver.bundle.read import rules_from
     from pipeline.deliver.bundle.rules import closure_grade
 
@@ -135,22 +137,22 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
     cov.filled("part", len(rows))
     cov.filled("part_section", sum(len(r[13]) for r in rows))
 
-    # ---- water_place / unnamed_part / section_ruleset.up (S1) --------------------------
+    # ---- region_place / mu_set / unnamed_part / section_ruleset (S1, S1b) -----------------
     if places is not None:
-        place_rows, part_rows_, up_of = unnamed_rows(db, places)
-        db.executemany("INSERT INTO water_place (place, kind, regions, mus, sections) "
-                       "VALUES (?,?,?,?,?)", place_rows)
+        place_rows, mu_rows, where, part_rows_, up_of = unnamed_rows(db, places)
+        db.executemany("INSERT INTO region_place (place, regions, sections) VALUES (?,?,?)",
+                       place_rows)
+        db.executemany("INSERT INTO mu_set (mus, codes, sections) VALUES (?,?,?)", mu_rows)
         db.executemany(
             "INSERT INTO unnamed_part (up, set_id, key_ix, licensing_set, province_except, "
-            "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, place, sections, "
+            "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, kind, sections, "
             "rep_sid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", part_rows_)
-        db.executemany("UPDATE section_ruleset SET up = ? WHERE sid = ?",
-                       ((u, s) for s, u in sorted(up_of.items())))
+        db.executemany("UPDATE section_ruleset SET up = ?, place = ?, mus = ? WHERE sid = ?",
+                       ((up_of.get(s), pl, mu, s) for s, (pl, mu) in sorted(where.items())))
         # THE KIND OF EVERY RULE KEY (S1): a key only unnamed sections carry (138 on 2026-10-10)
-        # takes their place's kind; one kind per key, named and unnamed alike, or the build stops
+        # takes their kind; one kind per key, named and unnamed alike, or the build stops
         kinds: Dict[int, set] = defaultdict(set)
-        for k, kind in db.execute("SELECT u.key_ix, w.kind FROM unnamed_part u JOIN water_place w "
-                                  "ON w.place = u.place"):
+        for k, kind in db.execute("SELECT key_ix, kind FROM unnamed_part"):
             kinds[k].add(kind)
         for k, kind in db.execute("SELECT key_ix, kind FROM rule_key WHERE kind IS NOT NULL"):
             kinds[k].add(kind)
@@ -160,7 +162,8 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
                                f"(e.g. key {mixed[0]}: {sorted(kinds[mixed[0]])}) — a key needs one")
         filled = [(next(iter(v)), k) for k, v in sorted(kinds.items())]
         db.executemany("UPDATE rule_key SET kind = ? WHERE key_ix = ? AND kind IS NULL", filled)
-        cov.filled("water_place", len(place_rows))
+        cov.filled("region_place", len(place_rows))
+        cov.filled("mu_set", len(mu_rows))
         cov.filled("unnamed_part", len(part_rows_))
         cov.filled("section_ruleset.up", len(up_of))
     prove(db, unnamed=places is not None)
@@ -226,16 +229,21 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
 
 
 def unnamed_rows(db: sqlite3.Connection, places: Dict[int, Place]
-                 ) -> Tuple[List[tuple], List[tuple], Dict[int, int]]:
-    """`(water_place rows, unnamed_part rows, {sid: up})` for every section in B.C. (it carries a
-    rule set) that no named water owns. `places` must name every such section; a place with no
-    region, an unknown kind or region is refused. Grouped by (rule set, licensing set, province
-    exceptions, steelhead water, steelhead presence, home region, tidal water, place) — the named
-    part's facts and the place — and numbered in that order; the facts a group must share (the
-    steelhead rules apply, the rule key) are read per section and refused when they differ."""
+                 ) -> Tuple[List[tuple], List[tuple], Dict[int, Tuple[int, int]], List[tuple],
+                            Dict[int, int]]:
+    """`(region_place rows, mu_set rows, {sid: (place, mus)}, unnamed_part rows, {sid: up})`.
+    WHERE: every section in B.C. (it carries a rule set), named or not, gets its region set and MU
+    set — `places` must name every such section; a place with no region, an unknown region or MU is
+    refused. THE UNNAMED PARTS: every such section no named water owns, grouped by (rule set,
+    licensing set, province exceptions, steelhead water, steelhead presence, home region, tidal
+    water, water kind) — an answers key's content, never where it lies (S1b) — and numbered in that
+    order; the facts a group must share (the steelhead rules apply, the rule key) are read per
+    section and refused when they differ."""
     named = {s for (s,) in db.execute("SELECT sid FROM item_section")}
     rset, key_of = {}, {}
+    in_bc = []
     for sid, set_id, k in db.execute("SELECT sid, set_id, key_ix FROM section_ruleset"):
+        in_bc.append(sid)
         if sid not in named:
             rset[sid], key_of[sid] = set_id, k
     lset = dict(db.execute("SELECT sid, set_id FROM section_licensing"))
@@ -248,36 +256,48 @@ def unnamed_rows(db: sqlite3.Connection, places: Dict[int, Place]
     home = dict(db.execute("SELECT sid, region FROM section_home"))
     tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
 
-    missing = sorted(s for s in rset if s not in places)
+    missing = sorted(s for s in in_bc if s not in places)
     if missing:
-        raise DerivedError(f"water_place: {len(missing)} unnamed section(s) in B.C. have no place "
-                           f"(e.g. {missing[:3]}) — every section needs a kind and a region")
-    count: Dict[Place, int] = defaultdict(int)
-    for sid in rset:
-        count[places[sid]] += 1
-    place_ix = {p: i for i, p in enumerate(sorted(count))}
-    for p, i in place_ix.items():
-        try:                                    # the type's checks: kind, regions (never none), MUs
-            T.WaterPlace(place=i, kind=p[0], regions=p[1], mus=p[2], sections=count[p])
-        except ValueError as e:
-            raise DerivedError(f"water_place: {e} (a {p[0]} in regions {p[1]}, MUs {p[2]})")
-    place_rows = [(place_ix[p], p[0], ",".join(p[1]), ",".join(p[2]), count[p])
-                  for p in sorted(count)]
+        raise DerivedError(f"region_place: {len(missing)} section(s) in B.C. have no place "
+                           f"(e.g. {missing[:3]}) — every section needs a region (and an unnamed "
+                           f"one a kind)")
+    n_regions: Dict[tuple, int] = defaultdict(int)
+    n_mus: Dict[tuple, int] = defaultdict(int)
+    for sid in in_bc:
+        n_regions[places[sid][1]] += 1
+        n_mus[places[sid][2]] += 1
+    place_ix = {r: i for i, r in enumerate(sorted(n_regions))}
+    mu_ix = {m: i for i, m in enumerate(sorted(n_mus))}
+    try:                                        # the types' checks: regions (never none), MUs
+        for r, i in place_ix.items():
+            T.RegionPlace(place=i, regions=r, sections=n_regions[r])
+        for m, i in mu_ix.items():
+            T.MuSet(mus=i, codes=m, sections=n_mus[m])
+    except ValueError as e:
+        raise DerivedError(f"region_place / mu_set: {e}")
+    place_rows = [(place_ix[r], ",".join(r), n_regions[r]) for r in sorted(n_regions)]
+    mu_rows = [(mu_ix[m], ",".join(m), n_mus[m]) for m in sorted(n_mus)]
+    where = {sid: (place_ix[places[sid][1]], mu_ix[places[sid][2]]) for sid in in_bc}
 
     groups: Dict[tuple, List[int]] = defaultdict(list)
     for sid in sorted(rset):
+        kind = places[sid][0]
+        try:
+            T.WaterKind(kind)
+        except ValueError:
+            raise DerivedError(f"unnamed_part: section {sid} has water kind {kind!r}")
         groups[(rset[sid], lset.get(sid), ",".join(pe.get(sid, ())), sid in sw, st.get(sid),
-                home.get(sid), sid in tidal, place_ix[places[sid]])].append(sid)
+                home.get(sid), sid in tidal, kind)].append(sid)
 
     def order(g):
-        rs, ls, p, w, s, h, td, pl = g
+        rs, ls, p, w, s, h, td, kd = g
         return (rs, ls is None, ls or 0, p != "", p, w, s is None, s or 0, h is None, h or "",
-                td, pl)
+                td, kd)
 
     part_rows_: List[tuple] = []
     up_of: Dict[int, int] = {}
     for up, g in enumerate(sorted(groups, key=order)):
-        rs, ls, p, w, s, h, td, pl = g
+        rs, ls, p, w, s, h, td, kd = g
         sids = groups[g]
         rules_apply = {x in sr for x in sids}
         keys = {key_of[x] for x in sids}
@@ -288,10 +308,10 @@ def unnamed_rows(db: sqlite3.Connection, places: Dict[int, Place]
             raise DerivedError(f"unnamed_part {up}: its sections carry {len(keys)} rule keys")
         part_rows_.append((up, rs, next(iter(keys)), ls, p, int(w), s,
                            int(next(iter(rules_apply))), T.Region(h).value if h else "", int(td),
-                           pl, len(sids), min(sids)))
+                           kd, len(sids), min(sids)))
         for x in sids:
             up_of[x] = up
-    return place_rows, part_rows_, up_of
+    return place_rows, mu_rows, where, part_rows_, up_of
 
 
 def prove(db: sqlite3.Connection, unnamed: Optional[bool] = None) -> None:
@@ -351,16 +371,21 @@ def prove(db: sqlite3.Connection, unnamed: Optional[bool] = None) -> None:
     if wrong:
         raise DerivedError(f"unnamed_part: section(s) {wrong} carry facts their part does not")
     n = db.execute("SELECT (SELECT COUNT(*) FROM section_ruleset WHERE up IS NOT NULL), "
-                   "(SELECT COALESCE(SUM(sections), 0) FROM unnamed_part), "
-                   "(SELECT COALESCE(SUM(sections), 0) FROM water_place)").fetchone()
-    if not n[0] == n[1] == n[2]:
-        raise DerivedError(f"unnamed_part: {n[0]} sections, {n[1]} counted by the parts, {n[2]} by "
-                           f"the places")
-    bad = db.execute("SELECT w.place FROM water_place w WHERE w.sections != (SELECT "
-                     "COALESCE(SUM(u.sections), 0) FROM unnamed_part u WHERE u.place = w.place) "
-                     "LIMIT 3").fetchall()
-    if bad:
-        raise DerivedError(f"water_place: place(s) {bad} count sections their parts do not")
+                   "(SELECT COALESCE(SUM(sections), 0) FROM unnamed_part)").fetchone()
+    if n[0] != n[1]:
+        raise DerivedError(f"unnamed_part: {n[0]} sections, {n[1]} counted by the parts")
+    # WHERE (S1b): every section in B.C. has a region set and an MU set, counted by them
+    unplaced = db.execute("SELECT COUNT(*) FROM section_ruleset WHERE place IS NULL OR mus IS NULL"
+                          ).fetchone()[0]
+    if unplaced:
+        raise DerivedError(f"region_place: {unplaced} section(s) in B.C. have no region set or MU "
+                           f"set")
+    for tbl, col in (("region_place", "place"), ("mu_set", "mus")):
+        got = dict(db.execute(f"SELECT {col}, COUNT(*) FROM section_ruleset GROUP BY {col}"))
+        bad = [x for x, n in db.execute(f"SELECT {col}, sections FROM {tbl}")
+               if got.get(x) != n][:3]
+        if bad:
+            raise DerivedError(f"{tbl}: row(s) {bad} count sections section_ruleset does not")
 
 
 # --------------------------------------------------------------------------------------------
@@ -385,29 +410,33 @@ def parts(db: sqlite3.Connection) -> Dict[str, List[T.Part]]:
     return dict(out)
 
 
-def water_places(db: sqlite3.Connection) -> List[T.WaterPlace]:
-    """Every place of the unnamed water, in `place` order (`types.WaterPlace`)."""
-    return [T.WaterPlace(place=p, kind=k, regions=tuple(r.split(",")),
-                         mus=tuple(m.split(",")) if m else (), sections=n)
-            for p, k, r, m, n in db.execute("SELECT place, kind, regions, mus, sections FROM "
-                                            "water_place ORDER BY place")]
+def region_places(db: sqlite3.Connection) -> List[T.RegionPlace]:
+    """Every region set sections lie in, in `place` order (`types.RegionPlace`, S1b)."""
+    return [T.RegionPlace(place=p, regions=tuple(r.split(",")), sections=n)
+            for p, r, n in db.execute("SELECT place, regions, sections FROM region_place "
+                                      "ORDER BY place")]
+
+
+def mu_sets(db: sqlite3.Connection) -> List[T.MuSet]:
+    """Every MU set sections touch, in `mus` order (`types.MuSet`, S1b)."""
+    return [T.MuSet(mus=m, codes=tuple(c.split(",")) if c else (), sections=n)
+            for m, c, n in db.execute("SELECT mus, codes, sections FROM mu_set ORDER BY mus")]
 
 
 def unnamed_parts(db: sqlite3.Connection) -> List[T.UnnamedPart]:
-    """Every part of the unnamed water, in `up` order (`types.UnnamedPart`), with its place's kind.
-    Empty for a bundle written without places (a test fixture)."""
+    """Every part of the unnamed water, in `up` order (`types.UnnamedPart`). Empty for a bundle
+    written without places (a test fixture)."""
     names = {c: n for c, n in read_steelhead_codes()}
     return [T.UnnamedPart(
         up=up, set_id=s, key=k, licensing_set=ls,
         province_except=tuple(pe.split(",")) if pe else (), steelhead_water=bool(sw),
         steelhead=None if st is None else names[st], steelhead_rules=bool(sr),
-        home_regions=(home,) if home else (), kind=kind, tidal=bool(td), place=pl, sections=n,
+        home_regions=(home,) if home else (), kind=kind, tidal=bool(td), sections=n,
         rep_sid=rep)
-        for (up, s, k, ls, pe, sw, st, sr, home, td, pl, n, rep, kind) in db.execute(
-            "SELECT u.up, u.set_id, u.key_ix, u.licensing_set, u.province_except, "
-            "u.steelhead_water, u.steelhead, u.steelhead_rules, u.home_regions, u.tidal, u.place, "
-            "u.sections, u.rep_sid, w.kind FROM unnamed_part u JOIN water_place w "
-            "ON w.place = u.place ORDER BY u.up")]
+        for (up, s, k, ls, pe, sw, st, sr, home, td, kind, n, rep) in db.execute(
+            "SELECT up, set_id, key_ix, licensing_set, province_except, steelhead_water, "
+            "steelhead, steelhead_rules, home_regions, tidal, kind, sections, rep_sid "
+            "FROM unnamed_part ORDER BY up")]
 
 
 def read_steelhead_codes() -> List[Tuple[int, str]]:

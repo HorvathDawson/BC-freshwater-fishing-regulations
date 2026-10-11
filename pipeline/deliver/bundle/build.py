@@ -263,18 +263,20 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
 
 
 def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
-    """`{sid: (kind, regions, mus)}` for every section NO NAMED WATER OWNS (S1, `water_place`):
+    """`{sid: (kind, regions, mus)}` for every section of the atlas (S1, S1b: `region_place`,
+    `mu_set`, `unnamed_part.kind`):
 
       kind     `reach.water_kind.kind_of` — THE water kind of a section (the owner item's, else the
                graph node's), the one every `feature_types` filter placed the rules by; for a
-               section no water owns, its node's: stream, lake or wetland
+               section no water owns, its node's: stream, lake or wetland (read for those only)
       regions  the `area:region:*` items holding it, through `registry.regions.in_region` with
                the atlas's home map attached (`attach_from`): a straddling stream piece is its home
                region's, a straddling lake both regions' — the regions whose zone tables it takes
       mus      the MUs the atlas graph says it touches (`StreamNode.mus`)
 
     Read once, here, from the atlas the bundle is built from; `derived.write` groups and proves
-    them (a section in B.C. with no place, or a place in no region, stops the build)."""
+    them (a section in B.C. with no place, or a place in no region, stops the build). A NAMED
+    section the graph lacks gets no place here and is refused there if it lies in B.C."""
     from types import SimpleNamespace
 
     from pipeline.atlas.reach.water_kind import kind_of
@@ -295,16 +297,17 @@ def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
     interned: dict[tuple, tuple] = {}
     out: dict[int, tuple] = {}
     for h in ids:
-        if h in named:
-            continue
         node = graph.nodes.get(h)
+        if node is None and h in named:
+            continue
         if node is None:
             raise SystemExit(f"water_place: section {h} is in the handle table but not the graph "
                              f"— the atlas files are from different builds")
         p = (kind_of(graph, registry, h), tuple(sorted(regions_of.get(h, ()))),
              tuple(sorted(set(node.mus))))
         out[sid[h]] = interned.setdefault(p, p)
-    print(f"     places: {len(out):,} unnamed sections, {len(interned):,} distinct places")
+    print(f"     places: {len(out):,} sections ({len(out) - len(named & set(ids)):,} unnamed), "
+          f"{len(interned):,} distinct (kind, regions, MUs)")
     return out
 
 

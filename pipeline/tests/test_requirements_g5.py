@@ -128,13 +128,13 @@ def test_a_section_of_no_named_water_is_read_by_its_own_kind(db, copy_db):
                      "item_section x WHERE x.sid = r.sid) ORDER BY r.sid LIMIT 1").fetchone()
     if sid is None:
         pytest.fail("pinned: no unnamed section carries the stream stamp in this bundle")
-    if not db.execute("SELECT COUNT(*) FROM water_place").fetchone()[0]:
-        predates("the bundle predates S1 (no water_place): an unnamed section has no kind")
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'region_place'").fetchone():
+        predates("the bundle predates S1b (no region_place): an unnamed section's kind is elsewhere")
     assert R.section_kind(db, sid[0]) == "stream"
     got = R.requirements_in_force(db, sid[0], (11, 1))
     assert "zp:steelhead#steelhead_targeting" in got["holds"] and got["wrong_water"] == {}
-    copy_db.execute("UPDATE unnamed_part SET place = (SELECT MIN(place) FROM water_place WHERE "
-                    "kind = 'lake') WHERE up = (SELECT up FROM section_ruleset WHERE sid = ?)", sid)
+    copy_db.execute("UPDATE unnamed_part SET kind = 'lake' WHERE up = (SELECT up FROM "
+                    "section_ruleset WHERE sid = ?)", sid)
     assert R.section_kind(copy_db, sid[0]) == "lake"
     got = R.requirements_in_force(copy_db, sid[0], (11, 1))
     assert "zp:steelhead#steelhead_targeting" not in got["holds"]

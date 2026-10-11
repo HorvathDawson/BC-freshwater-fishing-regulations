@@ -65,28 +65,19 @@ class Store:
         layout = json.loads(self.meta["layout"])
         keys = []
         nseg = []
-        key_places: List[int] = []
-        first: Optional[int] = None
-        for (a, rs, ls, sw, st, sr, pe, home, kind, tidal, seg, mom, n, pl) in self.con.execute(
+        for (a, rs, ls, sw, st, sr, pe, home, kind, tidal, seg, mom, n) in self.con.execute(
                 "SELECT akey, ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, "
-                "province_except, home_region, kind, tidal, seg, mom, nseg, place FROM akey "
+                "province_except, home_region, kind, tidal, seg, mom, nseg FROM akey "
                 "ORDER BY akey"):
             if a != len(keys) + 1:
                 raise StoreError(f"store: akey {a} is out of sequence")
-            if pl is None and first is not None:
-                raise StoreError(f"store: akey {a} is a named key after the unnamed ones")
-            if pl is not None:
-                first = len(keys) if first is None else first
-                key_places.append(pl)
             keys.append([rs, ls, sw, STEELHEAD_NAME.get(st) if st is not None else None, sr,
                          json.loads(self.s(pe)), json.loads(self.s(home)), self.s(kind), tidal,
                          seg, mom])
             nseg.append(n)
-        unnamed = {"first": len(keys) if first is None else first, "places": key_places}
-        places = [{"kind": self.s(k), "regions": json.loads(r), "mus": json.loads(m),
-                   "label": self.s(lb)} for _, k, r, m, lb in
-                  self.con.execute("SELECT place, kind, regions, mus, label FROM place "
-                                   "ORDER BY place")]
+        places = [{"regions": json.loads(r), "label": self.s(lb), "names": json.loads(nm)}
+                  for _, r, lb, nm in
+                  self.con.execute("SELECT place, regions, label, names FROM place ORDER BY place")]
         at: Dict[str, List[list]] = {name: [[] for _ in keys] for name in SECTIONS}
         for row in self.con.execute(
                 f"SELECT akey, s, {', '.join(SECTIONS)} FROM cell ORDER BY akey, s"):
@@ -151,8 +142,6 @@ class Store:
                 out[k] = parts
             elif k == "places":
                 out[k] = places
-            elif k == "unnamed":
-                out[k] = unnamed
             elif k == "sections":
                 out[k] = sections
             else:
@@ -213,32 +202,53 @@ class Store:
         return sub
 
     # ---- section handles
-    def label_of(self, akey: int) -> Optional[str]:
-        """The name of an unnamed part's akey ("Unnamed stream · Region 2 / MU 2-8"); None for a
-        named part's (its name is its water's and its part label)."""
-        row = self.con.execute("SELECT p.label FROM akey a JOIN place p ON p.place = a.place "
-                               "WHERE a.akey = ?", (akey,)).fetchone()
-        return None if row is None else self.s(row[0])
-
-    def akey_of(self, handle: int) -> int:
-        """The akey of a section handle (0: outside B.C.)."""
-        row = self.con.execute("SELECT b FROM section_akey WHERE block = ?",
+    def _cell(self, tbl: str, handle: int, width: int) -> int:
+        row = self.con.execute(f"SELECT b FROM {tbl} WHERE block = ?",
                                (handle >> BLOCK_BITS,)).fetchone()
         if row is None:
             return 0
-        off = 2 * (handle & (BLOCK - 1))
-        return int.from_bytes(row[0][off:off + 2], "little")
+        off = width * (handle & (BLOCK - 1))
+        return int.from_bytes(row[0][off:off + width], "little")
+
+    def place_of(self, handle: int) -> Optional[int]:
+        """The region set (index into `place`) a section handle lies in; None outside B.C."""
+        v = self._cell("section_place", handle, 1)
+        return v - 1 if v else None
+
+    def unnamed_name(self, handle: int) -> Optional[str]:
+        """The name a section's answer takes WHEN NO NAMED WATER OWNS IT (the tile says which), whole:
+        its region set's name for its key's water kind ("Unnamed stream · Region 5", S1b); None
+        outside B.C. A named section is named by its water and part label instead."""
+        a = self.akey_of(handle)
+        pl = self.place_of(handle)
+        if not a or pl is None:
+            return None
+        kind = self.s(self.con.execute("SELECT kind FROM akey WHERE akey = ?", (a,)).fetchone()[0])
+        names = json.loads(self.con.execute("SELECT names FROM place WHERE place = ?",
+                                            (pl,)).fetchone()[0])
+        return names[kind]
+
+    def akey_of(self, handle: int) -> int:
+        """The akey of a section handle (0: outside B.C.)."""
+        return self._cell("section_akey", handle, 2)
+
+    def _all(self, tbl: str, width: int) -> Dict[int, int]:
+        out = {}
+        for blk, b in self.con.execute(f"SELECT block, b FROM {tbl} ORDER BY block"):
+            base = blk << BLOCK_BITS
+            for i in range(BLOCK):
+                v = int.from_bytes(b[width * i:width * i + width], "little")
+                if v:
+                    out[base + i] = v
+        return out
 
     def section_akeys(self) -> Dict[int, int]:
         """Every handle with a key: {handle: akey}."""
-        out = {}
-        for blk, b in self.con.execute("SELECT block, b FROM section_akey ORDER BY block"):
-            base = blk << BLOCK_BITS
-            for i in range(BLOCK):
-                a = b[2 * i] | (b[2 * i + 1] << 8)
-                if a:
-                    out[base + i] = a
-        return out
+        return self._all("section_akey", 2)
+
+    def section_places(self) -> Dict[int, int]:
+        """Every handle with a place: {handle: place index} (S1b)."""
+        return {h: v - 1 for h, v in self._all("section_place", 1).items()}
 
 
 def answers_bytes(path) -> bytes:

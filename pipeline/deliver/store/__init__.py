@@ -8,7 +8,7 @@ answers file (`ui-rules-answers.json`, answers/2), the export pair it pairs with
 part partition, with integer keys — one `akey` row per answers key, `cell` (akey x segment -> one
 frame id per section), one table per deduplicated frame family (the answers' own interned indexes),
 interned strings, a columnar `part` table replacing `display.waters`, `section_akey` (section handle ->
-akey in u16 blocks), the export words the answers lack and `meta` digests. Nothing the page or the
+akey in u16 blocks), `section_place` (the region set every section is in), the export words the answers lack and `meta` digests. Nothing the page or the
 app reads changes: the store is ADDED beside them.
 
 EXACTNESS IS THE GATE: `decode.answers_bytes(store)` rebuilds `ui-rules-answers.json` BYTE-IDENTICAL
@@ -30,4 +30,6 @@ from pipeline.common.curated import GENERATED
 OUT = GENERATED.bundle / "regs.sqlite"
 
 #: 2 (S1): `place`, `akey.place`, and every section in B.C. keyed (`section_akey`).
-FORMAT = "regs-store/2"
+#: 3 (S1b): keys by content (no `akey.place`); `place` is a region set; `section_place`. MUs are
+#: not shipped (the bundle's `mu_set` / `section_ruleset.mus`; the tiles' MU layer).
+FORMAT = "regs-store/3"

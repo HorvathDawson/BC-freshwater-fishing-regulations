@@ -50,8 +50,9 @@ _LIC = "a licensing ref (index into the export's `licensing`)"
 
 SPEC = {
     "format": f"`about.format` is {FORMAT!r}: answers file format 2 (minor 2.4: the unnamed "
-              "water — top-level `places` and `unnamed`, one key per unnamed part after the named "
-              "parts' keys; no frame and no named key changed). A reader refuses any other. "
+              "water — top-level `places` and `unnamed`; an unnamed part takes the key of its "
+              "content, a named part's where one holds it, else a new key after the named parts' "
+              "keys; no frame and no named key changed). A reader refuses any other. "
               "Changed from format 1 (DATAFLOW P7): the `answer` section is gone (the decided "
               "answer is `rows`' alone); a no-limit answer and row say `no_limit` (was `nolimit`); "
               "a part's `km` and `place` are null where there is none (were 1e9 and \"\"); the "
@@ -108,22 +109,25 @@ SPEC = {
                     "union of every section's cuts (a member rule's or a lift's `when`, a "
                     "requirement's or a designation's `when`)",
         "parts": "{item_id: [key index | null]} — aligned with the export's `waters[item].parts`",
-        "places": "[{kind, regions, mus, label}] — THE UNNAMED WATER'S PLACES (answers 2.4, S1; user "
-                  "ruling 2026-10-10: every section has an answer): where sections no named water "
-                  "owns lie and what water they are — `kind` lake | stream | wetland (the atlas's "
-                  "water kind, `water_kind.kind_of`), `regions` the regions whose zone tables they "
-                  "take (never empty), `mus` the wildlife management units they touch ([] only "
-                  "where the atlas names none), `label` the name to show, whole (\"Unnamed stream "
-                  "· Region 2 / MU 2-8\"). Model: `schemas[\"top.places\"]`",
-        "unnamed": "{first, places} — THE UNNAMED WATER'S KEYS (answers 2.4): every key from "
-                   "`first` on is one part of the unnamed water (the bundle's `unnamed_part`: "
-                   "unnamed sections in B.C. sharing every part-key fact and one place), "
-                   "`places[i]` the place (index into `places`) of key `first + i`. The keys "
-                   "before `first` are the named parts' (unchanged). Such a key is read exactly as "
-                   "a part's (`tap` steps 2-4); its frames are the zone base and every area row its "
-                   "sections lie in, as their rule set holds them. A client reaches it by section "
-                   "handle through the regs store's `section_akey` (never by item). Model: "
-                   "`schemas[\"top.unnamed\"]`",
+        "places": "[{regions, label, names}] — THE REGION SETS sections lie in (answers 2.4, S1b; "
+                  "user 2026-10-10: \"just show regions the section is in\"): `regions` the regions "
+                  "whose zone tables they take (never empty), `label` their words (\"Region 5\", "
+                  "\"Regions 3 and 8\"), `names` {lake, stream, wetland} the name to show, whole, "
+                  "for an unnamed answer there of that water kind (the key's `kind`): \"Unnamed "
+                  "stream · Region 5\". A section's place is the regs store's `section_place` (every "
+                  "section in B.C.); its MUs are not in the answers or the store (the tiles' MU layer), never in a name. "
+                  "Model: `schemas[\"top.places\"]`",
+        "unnamed": "{first, parts} — THE UNNAMED WATER'S KEYS (answers 2.4; S1b keyed by content): "
+                   "an unnamed part (the bundle's `unnamed_part`: unnamed sections in B.C. sharing "
+                   "every part-key fact and the water kind) takes the key of its content — a named "
+                   "part's where one holds the same content (the frames are the scope's either "
+                   "way), else a new key; every key from `first` on is such a new one. `parts[up]` "
+                   "the key of unnamed part `up`. The keys before `first` are the named parts' "
+                   "(unchanged). Such a key is read exactly as a part's (`tap` steps 2-4); its "
+                   "frames are the zone base and every area row its sections lie in, as their rule "
+                   "set holds them. A client reaches it by section handle through the regs store's "
+                   "`section_akey` (never by item); the name is `places[section_place].names[kind]`. "
+                   "Model: `schemas[\"top.unnamed\"]`",
         "moments": "[{weekdays, hours}] — interned MOMENTS (answers 2.1, user ruling 2026-10-08: "
                    "a rule held on some weekdays or hours DECIDES then and is out at the other "
                    "moments). `weekdays` the days of the week the segment holds on (Monday "
@@ -500,14 +504,15 @@ def encode(model: Model, data: dict) -> dict:
     if model.glossary is None:
         raise AnswersError("answers: the model has no glossary (answers 2.2)")
     validate_top("glossary", model.glossary)
-    unnamed = model.unnamed if model.unnamed is not None else {"first": len(keys), "places": []}
+    unnamed = model.unnamed if model.unnamed is not None else {"first": len(keys), "parts": []}
     validate_top("places", model.places)
     validate_top("unnamed", unnamed)
-    if unnamed["first"] + len(unnamed["places"]) != len(keys) or \
-            any(p >= len(model.places) for p in unnamed["places"]):
-        raise AnswersError(f"answers: `unnamed` ({unnamed['first']} + {len(unnamed['places'])} "
-                           f"keys) does not cover the {len(keys)} keys, or names a place not in "
-                           f"`places`")
+    used = set(unnamed["parts"])
+    if unnamed["first"] > len(keys) or any(k >= len(keys) for k in used) or \
+            not set(range(unnamed["first"], len(keys))) <= used:
+        raise AnswersError(f"answers: `unnamed` (first {unnamed['first']}, {len(used)} keys used by "
+                           f"{len(unnamed['parts'])} parts) names a key not in the {len(keys)} keys, "
+                           f"or a key from `first` on no unnamed part takes")
     # THE TYPES AT THE BOUNDARY (answers/2): every distinct value of every section, and its static
     # tables, against its model before anything is encoded
     from pipeline.deliver.answers.model import validate_section
@@ -538,7 +543,8 @@ def encode(model: Model, data: dict) -> dict:
                              "moments": len(moments.rows),
                              "waters": len(model.parts),
                              "parts": sum(len(p) for p in model.parts.values()),
-                             "unnamed_keys": len(unnamed["places"]),
+                             "unnamed_keys": len(keys) - unnamed["first"],
+                             "unnamed_parts": len(unnamed["parts"]),
                              "places": len(model.places),
                              "fish": len(fish)}},
         "spec": SPEC,
@@ -671,7 +677,7 @@ def tap_key(wire: dict, data: dict, k: int, month: int, day: int,
             profile: Optional[int] = None, weekday: Optional[str] = None,
             inside: bool = False) -> dict:
     """`tap` for a key index — a named part's (`parts[item][i]`) or an unnamed part's (from
-    `unnamed.first` on, answers 2.4: what the regs store's `section_akey` gives a section)."""
+    `unnamed.parts`, answers 2.4: what the regs store's `section_akey` gives a section)."""
     key = wire["keys"][k]
     m = key[MOMENT_SLOT]
     s = segment_index(wire["segments"][key[SEG_SLOT]], day_of((month, day)),

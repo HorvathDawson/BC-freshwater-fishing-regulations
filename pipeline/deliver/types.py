@@ -276,35 +276,46 @@ _MU = re.compile(r"^[1-8]-\d{1,2}$")
 
 
 @dataclass(frozen=True, slots=True)
-class WaterPlace:
-    """Where unnamed sections lie and what water they are (the bundle's `water_place`, S1): the
-    water kind (`reach.water_kind.kind_of`), the regions whose zone tables they take, the MUs they
-    touch. The name of an unnamed answer (`answers.display.place_label`)."""
+class RegionPlace:
+    """The REGION SET a section lies in (the bundle's `region_place`, S1b): the regions whose zone
+    tables it takes. With an unnamed answer's water kind, its name (`answers.display.place_label`)."""
     place: int
-    kind: str                               # WaterKind value
     regions: Tuple[str, ...]                # sorted Region values; never empty
-    mus: Tuple[str, ...]                    # sorted MU codes; () = the atlas names none
     sections: int
 
     def __post_init__(self):
-        WaterKind(self.kind)
         if not self.regions:
-            raise ValueError(f"WaterPlace {self.place}: no region")
+            raise ValueError(f"RegionPlace {self.place}: no region")
         for r in self.regions:
             Region(r)
-        for m in self.mus:
-            if not _MU.match(m):
-                raise ValueError(f"WaterPlace {self.place}: MU {m!r} is not an MU code")
-        if list(self.regions) != sorted(set(self.regions)) or list(self.mus) != sorted(set(self.mus)):
-            raise ValueError(f"WaterPlace {self.place}: regions / MUs not sorted and unique")
+        if list(self.regions) != sorted(set(self.regions)):
+            raise ValueError(f"RegionPlace {self.place}: regions not sorted and unique")
         if self.sections < 1:
-            raise ValueError(f"WaterPlace {self.place}: no sections")
+            raise ValueError(f"RegionPlace {self.place}: no sections")
+
+
+@dataclass(frozen=True, slots=True)
+class MuSet:
+    """The wildlife management units a section touches (the bundle's `mu_set`, S1b): stored, never
+    part of a name or a key."""
+    mus: int
+    codes: Tuple[str, ...]                  # sorted MU codes; () = the atlas names none
+    sections: int
+
+    def __post_init__(self):
+        for m in self.codes:
+            if not _MU.match(m):
+                raise ValueError(f"MuSet {self.mus}: MU {m!r} is not an MU code")
+        if list(self.codes) != sorted(set(self.codes)):
+            raise ValueError(f"MuSet {self.mus}: MUs not sorted and unique")
+        if self.sections < 1:
+            raise ValueError(f"MuSet {self.mus}: no sections")
 
 
 @dataclass(frozen=True, slots=True)
 class UnnamedPart:
-    """Every unnamed section in B.C. carrying the same answer-relevant facts and the same place
-    (the bundle's `unnamed_part`, S1): keyed like a named part, plus its place."""
+    """Every unnamed section in B.C. carrying the same answer-relevant facts and water kind (the
+    bundle's `unnamed_part`, S1/S1b): exactly an answers key's content."""
     up: int
     set_id: int
     key: int                                # the rule key (`rule_key.key_ix`)
@@ -314,9 +325,8 @@ class UnnamedPart:
     steelhead: Optional[str]
     steelhead_rules: bool
     home_regions: Tuple[str, ...]           # () or the one home region of a straddling stream
-    kind: str                               # its place's WaterKind value
+    kind: str                               # WaterKind value (`water_kind.kind_of`)
     tidal: bool
-    place: int                              # `water_place.place`
     sections: int
     rep_sid: int                            # the lowest section: a HANDLE, never leaves the bundle
 

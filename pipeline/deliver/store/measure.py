@@ -33,12 +33,15 @@ def tables(path: Path) -> Dict[str, int]:
     return dict(rows)
 
 
-def section_akey(path: Path) -> Dict[str, Optional[int]]:
-    """section_akey's blocks, concatenated in block order, compressed (what shipping it alone,
-    beside the index, would cost) — plus how many blocks it holds."""
+def blocks(path: Path, table: str = "section_akey") -> Dict[str, Optional[int]]:
+    """A per-handle block table's blocks (`section_akey`, `section_place`),
+    concatenated in block order, compressed (what shipping it alone, beside the index, would cost)
+    — plus how many blocks it holds. None when the store has no such table."""
     con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
-        rows = con.execute("SELECT block, b FROM section_akey ORDER BY block").fetchall()
+        if not con.execute("SELECT 1 FROM sqlite_master WHERE name = ?", (table,)).fetchone():
+            return None
+        rows = con.execute(f"SELECT block, b FROM {table} ORDER BY block").fetchall()
     finally:
         con.close()
     out = compressed(b"".join(b for _, b in rows))
@@ -46,7 +49,11 @@ def section_akey(path: Path) -> Dict[str, Optional[int]]:
     return out
 
 
+def section_akey(path: Path) -> Dict[str, Optional[int]]:
+    return blocks(path, "section_akey")
+
+
 def measure(path: Path) -> dict:
     path = Path(path)
     return {"file": str(path), "whole": compressed(path.read_bytes()), "tables": tables(path),
-            "section_akey": section_akey(path)}
+            **{t: blocks(path, t) for t in ("section_akey", "section_place")}}

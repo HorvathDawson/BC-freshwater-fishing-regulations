@@ -1,6 +1,8 @@
-"""THE REGS STORE (S0, S1): `regs.sqlite` decodes back to the answers file BYTE FOR BYTE and to the
-export subset it carries by value; every section handle a named part covers holds that part's akey,
-every other section in B.C. its unnamed part's (S1: never 0 inside B.C.); an altered row is refused.
+"""THE REGS STORE (S0, S1, S1b): `regs.sqlite` decodes back to the answers file BYTE FOR BYTE and to
+the export subset it carries by value; every section handle a named part covers holds that part's
+akey, every other section in B.C. its unnamed part's (S1: never 0 inside B.C.; S1b: the key of its
+CONTENT, a named part's where the same), and every section in B.C. a place (its region set,
+`section_place`; MUs are not shipped); an altered row is refused.
 
 The synthetic tests need no data (a hand-made answers wire + export subset). The data tests build a
 store from the live set (`UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point them at a side build) into
@@ -38,17 +40,20 @@ def _wire() -> dict:
         "spec": {"a": "b"}, "schemas": {"s": {}}, "fish": ["RB", "ST"],
         "keys": [[1, None, 0, "known", 1, [], ["1"], "stream", 0, 0, None],
                  [2, 3, 0, None, 0, ["tidal"], [], "lake", 1, 1, 0],
-                 [1, None, 0, None, 0, [], [], "wetland", 0, 0, None]],          # unnamed
+                 [1, None, 0, None, 0, [], [], "wetland", 0, 0, None]],          # unnamed only
         "segments": [[1], [1, 1, 200]],
         "moments": [{"weekdays": ["Monday"], "hours": None},
                     {"weekdays": ["Tuesday"], "hours": None}],
         "segment_moments": [[0, 1, 0]],
         "parts": {"w:a": [0, None], "w:b": [1], "w:c": []},
-        "places": [{"kind": "stream", "regions": ["2"], "mus": ["2-8"],
-                    "label": "Unnamed stream · Region 2 / MU 2-8"},
-                   {"kind": "wetland", "regions": ["3", "8"], "mus": [],
-                    "label": "Unnamed wetland · Regions 3 and 8"}],
-        "unnamed": {"first": 2, "places": [1]},
+        "places": [{"regions": ["2"], "label": "Region 2",
+                    "names": {"lake": "Unnamed lake · Region 2", "stream": "Unnamed stream · Region 2",
+                              "wetland": "Unnamed wetland · Region 2"}},
+                   {"regions": ["3", "8"], "label": "Regions 3 and 8",
+                    "names": {"lake": "Unnamed lake · Regions 3 and 8",
+                              "stream": "Unnamed stream · Regions 3 and 8",
+                              "wetland": "Unnamed wetland · Regions 3 and 8"}}],
+        "unnamed": {"first": 2, "parts": [2, 0]},
         "glossary": {"version": 1, "terms": [{"id": "t", "says": "ü — “quoted”"}]},
         "sections": {
             "ladder": {"version": 1, "at": [[1], [0, 1, 0], [0]], "reasons": ["moot"],
@@ -113,11 +118,14 @@ def _subset() -> dict:
 
 #: (bundle item ord, sid, part_ix): w:a part 0 two sections (one in the next block), part 1 outside
 #: B.C. (no key), w:b one section. Unnamed (S1): sections 13 and 2*BLOCK + 5 in unnamed part 0
-#: (answers key 2); every section in B.C.: all but 11.
+#: (answers key 2, a content no named part has), 14 in unnamed part 1 (S1b: the content of w:a's
+#: key 0, so key 0); every section in B.C.: all but 11. WHERE (S1b): (sid, place).
 ITEM_ORD = {"w:a": 5, "w:b": 9, "w:c": 11}
 PART_SECTION = [(5, 10, 0), (5, BLOCK + 1, 0), (5, 11, 1), (9, 12, 0)]
-UNNAMED_SECTION = [(13, 0), (2 * BLOCK + 5, 0)]
-IN_BC = sorted([10, BLOCK + 1, 12, 13, 2 * BLOCK + 5])
+UNNAMED_SECTION = [(13, 0), (14, 1), (2 * BLOCK + 5, 0)]
+IN_BC = sorted([10, BLOCK + 1, 12, 13, 14, 2 * BLOCK + 5])
+WHERE = [(10, 0), (12, 1), (13, 1), (14, 0), (BLOCK + 1, 0), (2 * BLOCK + 5, 0)]
+STORE_KW = dict(unnamed_section=UNNAMED_SECTION, in_bc=IN_BC, where=WHERE)
 
 
 @pytest.fixture(params=CODECS)
@@ -125,8 +133,7 @@ def synthetic(tmp_path, request):
     A, sub = _wire(), _subset()
     raw = answers_file_bytes(A)
     p = tmp_path / f"regs.{request.param}.sqlite"
-    write_store(p, raw, A, sub, ITEM_ORD, PART_SECTION, request.param,
-                unnamed_section=UNNAMED_SECTION, in_bc=IN_BC)
+    write_store(p, raw, A, sub, ITEM_ORD, PART_SECTION, request.param, **STORE_KW)
     return p, raw, A, sub
 
 
@@ -137,44 +144,62 @@ def test_a_synthetic_store_round_trips_exactly(synthetic):
         assert s.answers() == A
         assert s.answers_bytes() == raw
         assert s.export_subset() == sub
-        assert s.section_akeys() == {10: 1, BLOCK + 1: 1, 12: 2, 13: 3, 2 * BLOCK + 5: 3}
+        assert s.section_akeys() == {10: 1, BLOCK + 1: 1, 12: 2, 13: 3, 14: 1, 2 * BLOCK + 5: 3}
         assert s.akey_of(11) == 0 and s.akey_of(BLOCK * 7) == 0
-        # the unnamed part's akey names its place, whole; a named part's akey has none
-        assert s.label_of(3) == "Unnamed wetland · Regions 3 and 8"
-        assert s.label_of(1) is None
+        # where every section in B.C. is, apart from its key (S1b)
+        assert s.section_places() == {10: 0, BLOCK + 1: 0, 12: 1, 13: 1, 14: 0, 2 * BLOCK + 5: 0}
+        assert s.place_of(11) is None and s.place_of(13) == 1
+        # MUs are not shipped (the bundle keeps them; the app reads the tiles' MU layer)
+        tables = {r[0] for r in s.con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        assert not tables & {"section_mu", "mu_set"}
+        # an unnamed section's name: its key's kind and its place's regions, whole
+        assert s.unnamed_name(13) == "Unnamed wetland · Regions 3 and 8"
+        assert s.unnamed_name(2 * BLOCK + 5) == "Unnamed wetland · Region 2"
+        assert s.unnamed_name(14) == "Unnamed stream · Region 2"           # shares w:a's key
+        assert s.unnamed_name(11) is None
     finally:
         s.close()
 
 
 def test_the_store_refuses_a_section_in_bc_with_no_akey(tmp_path):
-    """S1: every section in B.C. has an answer — a 0 there is refused (here: section 14 carries a
+    """S1: every section in B.C. has an answer — a 0 there is refused (here: section 15 carries a
     rule set, but no part, named or unnamed, covers it)."""
     A = _wire()
     with pytest.raises(StoreError, match="in B.C. have no akey"):
         write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
-                    PART_SECTION, unnamed_section=UNNAMED_SECTION, in_bc=IN_BC + [14])
+                    PART_SECTION, **{**STORE_KW, "in_bc": IN_BC + [15]})
 
 
 def test_the_store_refuses_an_akey_outside_bc(tmp_path):
     A = _wire()
     with pytest.raises(StoreError, match="outside B.C. carry an akey"):
         write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
-                    PART_SECTION, unnamed_section=UNNAMED_SECTION,
-                    in_bc=[x for x in IN_BC if x != 13])
+                    PART_SECTION, **{**STORE_KW, "in_bc": [x for x in IN_BC if x != 13]})
 
 
 def test_the_store_refuses_an_unnamed_section_a_named_part_claims(tmp_path):
     A = _wire()
     with pytest.raises(StoreError, match="claimed by akeys"):
         write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
-                    PART_SECTION, unnamed_section=UNNAMED_SECTION + [(12, 0)], in_bc=IN_BC)
+                    PART_SECTION, **{**STORE_KW, "unnamed_section": UNNAMED_SECTION + [(12, 0)]})
 
 
 def test_the_store_refuses_an_unnamed_part_with_no_key(tmp_path):
     A = _wire()
     with pytest.raises(StoreError, match="which has no key"):
         write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
-                    PART_SECTION, unnamed_section=[(13, 1)], in_bc=IN_BC)
+                    PART_SECTION, **{**STORE_KW, "unnamed_section": [(13, 2)]})
+
+
+def test_the_store_refuses_a_section_in_bc_with_no_place(tmp_path):
+    """S1b: every section in B.C. has a place, named or not."""
+    A = _wire()
+    with pytest.raises(StoreError, match="have no place"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, **{**STORE_KW, "where": WHERE[1:]})
+    with pytest.raises(StoreError, match="not one of the 2 places"):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD,
+                    PART_SECTION, **{**STORE_KW, "where": WHERE[:-1] + [(2 * BLOCK + 5, 2)]})
 
 
 def test_a_synthetic_store_has_no_dangling_reference(synthetic):
@@ -308,12 +333,16 @@ def test_every_section_in_bc_has_a_nonzero_akey_and_none_outside(live):
         in_bc = {sid for (sid,) in b.execute("SELECT sid FROM section_ruleset")}
         outside = {sid for (sid,) in b.execute("SELECT sid FROM outside_bc")}
         assert set(got) == in_bc and not (set(got) & outside) and len(in_bc) > 1_000_000
-        first = A["unnamed"]["first"]
+        key_of = A["unnamed"]["parts"]
         up_of = dict(b.execute("SELECT sid, up FROM section_ruleset WHERE up IS NOT NULL"))
-        assert all(got[sid] == first + up + 1 for sid, up in up_of.items())
+        assert all(got[sid] == key_of[up] + 1 for sid, up in up_of.items())
+        # and a place, the bundle's (S1b); the name is the kind and the regions only
+        places = s.section_places()
+        assert set(places) == in_bc
+        assert all(places[sid] == pl for sid, pl in b.execute("SELECT sid, place FROM section_ruleset"))
         for sid in list(up_of)[::50021]:
-            label = s.label_of(got[sid])
-            assert label is not None and label.startswith("Unnamed ")
+            name = s.unnamed_name(sid)
+            assert name.startswith("Unnamed ") and " MU" not in name
     finally:
         s.close()
         b.close()
@@ -363,13 +392,16 @@ def test_the_live_store_schema_invariants(live):
         assert con.execute("SELECT count(*) FROM akey").fetchone()[0] == len(A["keys"])
         assert con.execute("SELECT count(*) FROM akey a WHERE nseg <> (SELECT count(*) FROM cell c "
                            "WHERE c.akey = a.akey)").fetchone()[0] == 0
-        # every named akey is a part's; every other one an unnamed part's, named by its place (S1)
-        assert con.execute("SELECT count(*) FROM akey WHERE place IS NULL AND akey NOT IN "
-                           "(SELECT akey FROM part WHERE akey IS NOT NULL)").fetchone()[0] == 0
-        assert con.execute("SELECT count(*) FROM akey WHERE place IS NOT NULL").fetchone()[0] == \
-            len(A["unnamed"]["places"])
-        assert con.execute("SELECT count(*) FROM akey a JOIN place p ON p.place = a.place "
-                           "WHERE a.kind != p.kind").fetchone()[0] == 0
+        # every akey before `unnamed.first` is a named part's; every one from it an unnamed
+        # part's (S1b: a content no named part has)
+        first = A["unnamed"]["first"]
+        assert con.execute("SELECT count(*) FROM akey WHERE akey <= ? AND akey NOT IN "
+                           "(SELECT akey FROM part WHERE akey IS NOT NULL)", (first,)
+                           ).fetchone()[0] == 0
+        assert con.execute("SELECT count(*) FROM akey WHERE akey > ? AND akey IN "
+                           "(SELECT akey FROM part WHERE akey IS NOT NULL)", (first,)
+                           ).fetchone()[0] == 0
+        assert con.execute("SELECT count(*) FROM place").fetchone()[0] == len(A["places"])
         # every family holds exactly the answers' interned table, ids 0..n-1
         for (name, key), tbl in FAMILIES.items():
             n, lo, hi = con.execute(f"SELECT count(*), min(id), max(id) FROM {tbl}").fetchone()

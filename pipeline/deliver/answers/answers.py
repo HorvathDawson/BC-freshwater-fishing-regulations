@@ -293,8 +293,9 @@ class Model:
     moments: List[Optional[List[dict]]] = field(default_factory=list)
     #: the plain-language glossary (answers 2.2, `glossary.build`): {version, terms}
     glossary: Optional[dict] = None
-    #: THE UNNAMED WATER (answers 2.4, S1): every bundle place [{kind, regions, mus, label}], and
-    #: {first, places}: the keys from `first` on are unnamed parts, `places[i]` key first+i's place
+    #: THE UNNAMED WATER (answers 2.4, S1; S1b keyed by content): every region set
+    #: [{regions, label, names}], and {first, parts}: the keys from `first` on are unnamed-only
+    #: contents, `parts[up]` the key of the bundle's unnamed part `up`
     places: List[dict] = field(default_factory=list)
     unnamed: Optional[dict] = None
 
@@ -328,9 +329,9 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         remap = {k: n for n, k in enumerate(used)}
         keys = [keys[k] for k in used]
         parts = {i: [None if k is None else remap[k] for k in p] for i, p in parts.items()}
-    # THE UNNAMED WATER (S1): one key per unnamed part, after every named key
+    # THE UNNAMED WATER (S1, S1b): a named key where one holds the content, else a new one after
     first = len(keys)
-    keys, key_places, water_places = common.unnamed_keys(
+    keys, part_key, region_places = common.unnamed_keys(
         B, keys, unnamed if unnamed is not None else (None if items is None else []))
     chosen = [s for s in SECTIONS if sections is None or s.name in sections]
     for s in list(chosen):
@@ -423,8 +424,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     from pipeline.deliver.answers.display import places_table
     return Model(about=about, keys=keys, parts=parts, segments=segs, sections=out,
                  versions={s.name: s.version for s in chosen}, statics=statics,
-                 moments=seg_moments, glossary=gl, places=places_table(water_places),
-                 unnamed={"first": first, "places": key_places})
+                 moments=seg_moments, glossary=gl, places=places_table(region_places),
+                 unnamed={"first": first, "parts": part_key})
 
 
 def moments_of_key(ctx: Context, key: tuple, roots, per_root, B) -> list:

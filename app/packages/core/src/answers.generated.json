@@ -5293,28 +5293,14 @@
    "$defs": {
     "Place": {
      "additionalProperties": false,
-     "description": "Where unnamed water lies and what water it is (the bundle's `water_place`), with its name\nas the page shows it (`display.place_label`): \"Unnamed stream \u00b7 Region 2 / MU 2-8\".",
+     "description": "A REGION SET sections lie in (the bundle's `region_place`, S1b), with its words (\"Region 5\")\nand the name of an unnamed answer there per water kind: \"Unnamed stream \u00b7 Region 5\".",
      "properties": {
-      "kind": {
-       "enum": [
-        "lake",
-        "stream",
-        "wetland"
-       ],
-       "title": "Kind",
-       "type": "string"
-      },
       "label": {
        "title": "Label",
        "type": "string"
       },
-      "mus": {
-       "items": {
-        "pattern": "^[1-8]-\\d{1,2}$",
-        "type": "string"
-       },
-       "title": "Mus",
-       "type": "array"
+      "names": {
+       "$ref": "#/$defs/PlaceNames"
       },
       "regions": {
        "items": {
@@ -5337,12 +5323,36 @@
       }
      },
      "required": [
-      "kind",
       "regions",
-      "mus",
-      "label"
+      "label",
+      "names"
      ],
      "title": "Place",
+     "type": "object"
+    },
+    "PlaceNames": {
+     "additionalProperties": false,
+     "description": "The whole name of an unnamed answer in a region set, per water kind (`display.place_label`).",
+     "properties": {
+      "lake": {
+       "title": "Lake",
+       "type": "string"
+      },
+      "stream": {
+       "title": "Stream",
+       "type": "string"
+      },
+      "wetland": {
+       "title": "Wetland",
+       "type": "string"
+      }
+     },
+     "required": [
+      "lake",
+      "stream",
+      "wetland"
+     ],
+     "title": "PlaceNames",
      "type": "object"
     }
    },
@@ -5353,25 +5363,25 @@
   },
   "top.unnamed": {
    "additionalProperties": false,
-   "description": "The keys of the unnamed water: every key from `first` on is one UNNAMED PART (the bundle's\n`unnamed_part`), `places[i]` the place (index into `places`) of key `first + i`.",
+   "description": "The unnamed water's keys (S1b, keyed by content): every key from `first` on is a content\nonly unnamed parts have; `parts[up]` the key (index into `keys`) of the bundle's unnamed part\n`up` \u2014 a named part's key where the content is the same.",
    "properties": {
     "first": {
      "minimum": 0,
      "title": "First",
      "type": "integer"
     },
-    "places": {
+    "parts": {
      "items": {
       "minimum": 0,
       "type": "integer"
      },
-     "title": "Places",
+     "title": "Parts",
      "type": "array"
     }
    },
    "required": [
     "first",
-    "places"
+    "parts"
    ],
    "title": "Unnamed",
    "type": "object"
