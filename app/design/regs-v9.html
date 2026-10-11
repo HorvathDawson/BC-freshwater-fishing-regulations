@@ -136,6 +136,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .num .w{font:700 .875rem Archivo,sans-serif}
 .gb{padding:0 12px 10px;font-size:.875rem}
 .gb p{margin:0 0 6px}
+.cap1{margin:0 0 6px;font-size:.9375rem} .cap1 span{color:var(--sub)}
+.caps{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px} .caps .chip{white-space:normal;text-transform:none;letter-spacing:0;font-weight:600;font-size:.75rem}
+.els{margin:0 0 4px;font-size:.8125rem;color:var(--sub)}
 .qa{background:var(--wash);padding:6px 10px;margin:6px 0;font-size:.8125rem}
 .qa div{padding:2px 0} .qa b{font-weight:700}
 .ln{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:.875rem}
@@ -355,7 +358,7 @@ function splitHtml(){
   const w = W(); if (!w.split) return '';
   const cell = (i, lbl) => { const a = status(w.parts[i]), txt = a.k === 'closed' ? 'closed' + (a.soon ? ', ' + a.soon.replace('Opens','opens') : '') : 'open' + (a.fly ? ', fly fishing only' : '');
     return `<button class="half ${a.k==='closed'?'hc':'ho'}" data-part="${i}" aria-current="${S.part===i}"><span class="hg">${a.k==='closed'?'✕':'✓'}</span><span><b>${lbl}</b>${esc(txt)}</span></button>`; };
-  return `<div class="split"><p class="sect">This river is split at the ${esc(w.split.at)}</p><div class="two">${cell(w.split.below,'Below it')}${cell(w.split.above,'Above it')}</div></div>`;
+  return `<div class="split"><p class="sect">This river is split at the ${esc(w.split.at)}${w.split.atNote?` <span${DS(w.split.atNote)}>(${esc(w.split.atNote.t)})</span>`:''}</p><div class="two">${cell(w.split.below,'Below it')}${cell(w.split.above,'Above it')}</div></div>`;
 }
 
 /* ===== Regulations: v36's card ===== */
@@ -370,10 +373,18 @@ function lookHtml(g, other){
       return `<div class="sp"><div class="im"><img src="${FISHDIR+p.f}" alt="${esc(p.c)}" loading="lazy"></div><div><b>${esc(f.n)}</b>${p.si?`<div class="si">Stand-in: ${esc(p.c)}</div>`:''}
         <ul>${f.tips.slice(0,3).map(t => `<li>${esc(t)}</li>`).join('')}</ul><div class="cr">${esc(p.cr)}</div></div></div>`; }).join('')}</details>`;
 }
+/* the group's one sentence (answers 2.5 group.says), shown compactly: "Up to N a day" + its sub-caps as chips */
+function capsHtml(g){
+  if (!g.says) return '';
+  const [first, ...rest] = g.says.replace(/\.$/,'').split('; ');
+  const m = /^Up to (\d+) (.+?) a day(?:, (.+))?$/.exec(first);
+  const chips = [m && m[3], ...rest].filter(Boolean);
+  return `<p class="cap1"><b>Up to ${m ? m[1] + ' ' + esc(m[2]) : g.total} a day</b></p>${chips.length?`<div class="caps">${chips.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`:''}`;
+}
 function groupHtml(g, gi, other){
   let h = `<section class="grp"><div class="gh"><div style="flex:1;min-width:0"><h3>${esc(g.t)}</h3><span class="chip" style="margin-top:4px">${esc(g.scope)}</span></div>
-    <div class="num"${DS(g.totalSrc)}><b>${esc(g.big)}</b><em>${esc(g.unit)}</em></div></div><div class="gb"><p${DS(g.leadSrc)}>${g.lead}</p>
-    ${g.qa?`<div class="qa">${g.qa.map(([q,a]) => `<div>${esc(q)} <b>${esc(a)}</b></div>`).join('')}</div>`:''}
+    <div class="num"><b>${esc(String(g.total ?? g.big))}</b><em>${esc(g.unit)}</em></div></div><div class="gb">${capsHtml(g)}
+    ${g.elsewhere?`<p class="els">${esc(g.elsewhere.says)}</p>${g.elsewhere.ask.length?`<div class="qa">${g.elsewhere.ask.map(([q,a]) => `<div>${esc(q)} <b>${esc(a)}</b></div>`).join('')}</div>`:''}`:(g.lead?`<p>${g.lead}</p>`:'')}
     ${g.every.map(e => `<div class="ln">${CHK}<span>${e.h}</span>${e.tell?`<button class="more" data-open="hatch">How to tell ›</button>`:''}</div>`).join('')}
     ${g.note?`<div class="ln sub"><span>${esc(g.note)}</span></div>`:''}</div>
     <div class="kh"><p class="sect">${esc(g.kindsHead||'Each kind')}</p></div>
@@ -410,7 +421,7 @@ function renderGear(){
   const T = f.gear.tiles, u16 = S.age === 'u16';
   const tile = (k, l, v, s, cls='') => `<button class="kt ${cls}" data-open="tile:${k}"><span class="l">${l}</span><b>${v}</b><span>${s}</span></button>`;
   const bait = T.bait.items ? T.bait.items.map(([n,y]) => `<span class="bk ${y?'':'n'}">${esc(n)} ${y?'✓':'✕'}</span>`).join('') : esc(T.bait.s||'');
-  h += `<div class="kgrid">${tile('licence','Licence', esc(u16?'None needed (B.C. resident)':T.licence.v), esc(u16?'Not a B.C. resident: only with a licensed adult':T.licence.s))}
+  h += `<div class="kgrid">${tile('licence','Licence', esc(u16?U16.tile.v:T.licence.v), esc(u16?U16.tile.s + ' · tap for residents and non-residents':T.licence.s))}
     ${tile('line','Line & hooks', esc(T.line.v), esc(T.line.s))}${tile('bait','Bait', esc(T.bait.v), bait)}${tile('ways','Ways to fish', esc(T.ways.v), esc(T.ways.s))}
     ${T.boats?tile('boats','Boats', esc(T.boats.v), esc(T.boats.s||'')):''}
     ${tile('always','Always', esc(T.always.v), 'Any fish snagged — even by accident — must be released. ' + esc(T.always.s), 'wide')}</div>`;
