@@ -10,7 +10,7 @@
 - **Proximity by whitespace and rules, not boxes.** Groups are separated by a 1.5 px ink rule and their heading, with no nested cards (`.row.ledger`). The only bordered elements are controls: the segmented control, the date pill, and the map button.
 - **Scannable text.** Each group's sentence is split into a bold lead plus a short dashed list (`.lead`, `.caps`). Kind rows front-load the name, then "Keep up to **2**", then the chips. There are no paragraphs on the main view. Long text (exact words, glossary) lives in sheets.
 - **Touch targets of 44 px or more (all, including the ⓘ tips after the review), within thumb reach.** Covered: the segmented control and View on map (44 px), the date pill (44 px), the part segments (40 px tall and full width), kind and other-fish rows (≥ 44 px), tabs (48 px), sheet Done (44 px), and the map's part squares (44 px hit area). The ⓘ tips are 28 px, centred in their line, the one exception; it is noted below.
-- **Contrast and no colour-only meaning.** Text tokens hold AA against card. Status always carries a glyph as well as colour (✓ Open / ✕ Closed). On the strip, closed days are hatched, and the legend carries ✓ and ✕. Release words are amber with the word itself ("release"), and closed reads "closed".
+- **Contrast and no colour-only meaning.** Text tokens hold AA against card. Status always carries a glyph as well as colour (✓ Open / ✕ Closed). On the strip, every flag from the data has its own pattern: closed is hatched, fly-only is striped, bait ban is underlined in amber. The legend carries ✓, ✕ and a word for each. Release words are amber with the word itself ("release"), and closed reads "closed".
 - **Predictable navigation.**
   - The water map is an overlay. Back (‹, Escape, or a swipe from the left edge) returns to the regulations at the same scroll position (screens 24 → 25 → 26).
   - The sheets close back to where you were.
@@ -55,3 +55,9 @@ The Kootenay's "Only 1 … over 50 cm" line now carries the ✓ like the Vedder'
 | Folds captured open made Gear & licence taller | Failed | Folds now start closed. |
 | ⓘ tips were 28 px, below 44 | Fixed | 44 px hit areas, and the group's tips are labelled links. |
 | "All gear/licence sources" buttons hidden | Open gap | See PARITY.md. |
+
+## Answers 2.6 pass
+- **Pending markers removed.** The strip, the group lead and items, and the book links now come from the data.
+- **Book links.** Each is a 44 px tap target labelled "Book p.N ↗". It opens the PDF in a new tab.
+- **Rule sheet subtitle.** "Region 2 rule · Region 2" collapses to "Region 2".
+- **Gear summary.** The tiles wrap their bait items and no longer overlap.
