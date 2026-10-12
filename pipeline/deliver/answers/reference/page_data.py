@@ -415,6 +415,8 @@ def build(export_dir: Path, waters: list, inputs: dict):
     disp = ans["sections"]["display"]
     A["display"]["rules"] = {i: disp["rules"][int(i)] for i in rid}
     A["display"]["waters"] = {wid: disp["waters"][wid] for wid in waters}
+    if "licensing" in disp:                     # answers 2.7: each licensing record's book pages
+        A["display"]["licensing"] = {i: disp["licensing"][int(i)] for i in lid}
 
     data = {"rules": rules, "rid": rid, "licensing": licensing, "lid": lid,
             "licences": X["licences"], "species": X["species"], "waters": W, "entries": entries,

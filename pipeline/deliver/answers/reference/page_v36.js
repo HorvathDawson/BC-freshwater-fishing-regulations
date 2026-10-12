@@ -863,10 +863,13 @@ function groupBlock(row, rc){
   // answers 2.6: the lead sentence, then the rest as short sub-items (rows 7 `group.items`)
   const tot = grp ? `<b>${esc(grp.says)}</b> ${gi('daily_quota')} ${(grp.items || []).length ? `<ul class="gitems">${grp.items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}` : '';
   const exs = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
-  if (row.kind === 'nolimit'){ facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`); if (tot) facts.push(`<p class="gline">${tot}</p>`); }
+  if (row.kind === 'nolimit'){ facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`); if (tot) facts.push(`<div class="gline">${tot}</div>`); }
   else if (!row.scope) facts.push(missing('whose count this limit is (rows scope)'));
   else if (!el) facts.push(missing('the kept-elsewhere line (rows elsewhere)'));
-  else { facts.push(`<p class="gline">${tot}${esc(el.says)} ${s ? regionGi(row) : ''}${nar0(row) && row.narrow.f.water === 'stream' ? ' ' + gi('stream') : ''}</p>`); ex = exs; }
+  // answers 2.7 (A2): a DIV, never a <p> — the group items are a <ul>, and a <ul> inside a <p> closes
+  // it early: the items and the kept-elsewhere line fell out of the line, after its ⓘ tips (the
+  // design read them as part of "What these words mean")
+  else { facts.push(`<div class="gline">${tot}${esc(el.says)} ${s ? regionGi(row) : ''}${nar0(row) && row.narrow.f.water === 'stream' ? ' ' + gi('stream') : ''}</div>`); ex = exs; }
   const ec = row.real;
   if (ec && ec.all) facts.push(`<p class="gline warnline"><b>Really ${ec.sum} a day here.</b> ${esc(s || 'The region')} allows ${n}, but each kind below has its own smaller limit.</p>`);
   else if (ec && ec.capped_sum < n && ec.rb){ const big = (ec.shared_cap || []).map(c => `Every one you could keep is over ${c.over_cm} cm, and only ${c.take} fish over ${c.over_cm} cm ${c.take > 1 ? 'are' : 'is'} allowed.`).join(' ');

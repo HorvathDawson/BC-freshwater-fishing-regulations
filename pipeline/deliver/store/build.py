@@ -45,13 +45,13 @@ SECTION_STATIC = {("ladder", "reasons"), ("ladder", "reason_state"),
                   ("gear", "province_methods"), ("gear", "parent"), ("gear", "methods"),
                   ("gear", "moments"), ("gear", "conduct_means"), ("gear", "count_nouns"),
                   ("licence", "profiles"), ("licence", "profile_dims"),
-                  ("display", "strip"), ("display", "reasons")}
+                  ("display", "strip"), ("display", "reasons"), ("display", "licensing")}
 #: The answers' top-level keys held in tables; every other one is a `static` row.
 TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "places", "sections")
 TOP_STATIC = ("about", "spec", "schemas", "fish", "moments", "glossary", "unnamed")
 #: display.waters' shapes (the columnar `item` / `part` rows rebuild them in this key order).
 DISPLAY_WATER_KEYS = ("parts", "picker", "unresolved_licensing")
-DISPLAY_PART_KEYS = ("order", "label", "runs", "place", "hint", "km", "closed_all_year",
+DISPLAY_PART_KEYS = ("order", "label", "short", "runs", "place", "hint", "km", "closed_all_year",
                      "paper_licence")
 #: The export water's words held as `item` columns (the rest goes to `item.x`).
 WATER_COLUMNS = ("name", "kind", "sections", "outside_bc", "entries", "steelhead", "parts")
@@ -364,14 +364,14 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
             xj = dumps({kk: v for kk, v in p.items() if kk not in ("sections", "runs")})
             xp = xparts.setdefault(xj, len(xparts))
             if q is None:
-                cols = (None,) * 8
+                cols = (None,) * 9
             else:
                 if tuple(q) != DISPLAY_PART_KEYS:
                     raise StoreError(f"store: display part {wid}[{i}] keys {list(q)}")
                 if type(q["order"]) is not int or type(q["closed_all_year"]) is not bool \
                         or not (q["km"] is None or type(q["km"]) is float):
                     raise StoreError(f"store: display part {wid}[{i}] has an untaught type")
-                cols = (q["order"], S.add(q["label"]), S.add(q["runs"]), S.add(q["place"]),
+                cols = (q["order"], S.add(q["label"]), S.add(q["short"]), S.add(q["runs"]), S.add(q["place"]),
                         S.add(q["hint"]), q["km"], int(q["closed_all_year"]),
                         dumps_s(q["paper_licence"]))
             parts.append((o, i, None if k is None else k + 1, *cols, xp, p["sections"],
@@ -380,7 +380,7 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     pending["xpart"] = [(i, j) for j, i in xparts.items()]
     pending["picker"] = [(i, j) for j, i in pickers.items()]
     pending["runs"] = [(i, j) for j, i in runs.items()]
-    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
+    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
 
     # ---- section_akey: every section a keyed named part covers
     by_ord = {o: wid for wid, o in item_ord.items()}

@@ -235,7 +235,10 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.6: rows 7 (F15 the group's lead sentence + `items`), display 5 (`strip` per
         # segment from the rows and gear frames there; `rules[].book` / `applies`; statics
         # `strip`, `reasons`)
-        Section("display", 5, display.section_scope, prepare=display.section_prepare,
+        # answers 2.7: display 6 (`waters[].parts[].short`, static `licensing` [{book}]); rows 7
+        # (wording only: the Q16 size pair said once, a lift names whose rule and what it allows,
+        # "steelhead (rainbow trout over 50 cm)")
+        Section("display", 6, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers import common
@@ -1467,6 +1468,95 @@ def _lift_words(P: "Part", by: str, fish: List[str], sized: bool = True) -> str:
                                 _range_words(a, b) if sized else "") if x)
 
 
+#: answers 2.7 (A1): where a rainbow over 50 cm IS a steelhead (p.80), the group's first "steelhead"
+#: says so, once
+STEELHEAD_DEFINED = " (rainbow trout over 50 cm)"
+_WATER_NOUNS = {"river": "river", "rivers": "river", "creek": "creek", "creeks": "creek",
+                "slough": "slough", "lake": "lake", "lakes": "lake", "reservoir": "reservoir",
+                "channel": "channel", "brook": "brook", "pond": "pond"}
+
+
+def _whose(P: "Part", L: R) -> str:
+    """Whose rule a lift is, in a few words (answers 2.7, A1): the water's own row "On this
+    river" (the row's own noun: river, creek, lake …, else the part's kind), a ✱ row the tributary
+    walk carries "On the Duncan River and its tributaries", an area's or a region's by its name."""
+    name = (L.x.get("entry_name") or "").strip()
+    if L.via == "trib" and name:
+        return f"On the {re.sub(r'^the ', '', name, flags=re.I)} and its tributaries"
+    b = badge_of(L)
+    if b == "water":
+        last = re.sub(r"[^a-z]", "", (name.split() or [""])[-1].lower())
+        noun = _WATER_NOUNS.get(last) or ("lake" if P.kind == "lake" else "stream")
+        return f"On this {noun}"
+    if b == "bc":
+        return "In B.C."
+    return f"In {name}" if name else ("In this area" if b == "area" else "In this region")
+
+
+def _lift_item(P: "Part", by: str, fish: List[str], sc: dict, total, unlimited: bool) -> str:
+    """A water's rule lifting kinds out of the total's stream (lake) share, said as WHOSE rule it is
+    and WHAT it allows (answers 2.7, A1): "On this river: up to 4 hatchery rainbow trout 50 cm or
+    less — the 2-from-streams limit doesn’t apply to them" (Vedder r9, p.22). The number is the
+    lifting rule's own, else the total's (the lifted fish still count toward it, RULINGS Q23)."""
+    L = P.by_key[by]
+    n = L.f.get("take") if isinstance(L.f.get("take"), (int, float)) and not L.f.get("unlimited") \
+        else (None if unlimited else total)
+    what = _lift_words(P, by, fish)
+    allows = f"up to {_js(n)} {what}" if n is not None else f"any number of {what}"
+    return (f"{_whose(P, L)}: {allows} — the {_js(sc['take'])}-from-{sc['water']}s limit "
+            f"doesn’t apply to them")
+
+
+def _origin_words(model: dict, kinds: Sequence[str]) -> str:
+    """The origin every one of `kinds` is kept in on the card ("hatchery" where only hatchery fish
+    may be kept: Region 2's steelhead), else ""."""
+    os_ = set()
+    for S in kinds:
+        R_ = model["R"].get(S) or {}
+        h, w = R_.get("H"), R_.get("W")
+        hk, wk = bool(h and _keepish(h["status"])), bool(w and _keepish(w["status"]))
+        os_.add("hatchery" if hk and not wk else "wild" if wk and not hk else "")
+    return os_.pop() if len(os_) == 1 else ""
+
+
+def _merge_size_pairs(words: List[str], meta: List[Optional[dict]],
+                      model: dict) -> None:
+    """RULINGS Q16 said once (answers 2.7, A1): a size clause holding every kind ("No more than 2 over
+    50 cm") beside a SMALLER one of the same band leaving some kinds out ("No more than 1 over 50
+    cm, not counting steelhead") is ONE item: "Over 50 cm: at most 2 — only 1 of them may be
+    anything other than a hatchery steelhead". Neither may carry a lift (its words would be lost)."""
+    i = 0
+    while i < len(words):
+        a = meta[i]
+        if a is None or a["out"] or a["lifted"] or a["who"]:
+            i += 1
+            continue
+        j = next((j for j in range(len(words)) if j != i and meta[j] is not None
+                  and meta[j]["band"] == a["band"] and meta[j]["out"] and not meta[j]["who"]
+                  and not meta[j]["lifted"] and meta[j]["take"] < a["take"]), None)
+        if j is None:
+            i += 1
+            continue
+        b = meta[j]
+        o = _origin_words(model, b["out"])
+        x = " ".join(v for v in (o, _names(b["out"])) if v)
+        x = ("a " + x) if len(b["out"]) == 1 else x
+        words[i] = (f"{_range_words(*a['band'])}: at most {_js(a['take'])} — only {_js(b['take'])} "
+                    f"of them may be anything other than {x}")
+        del words[j], meta[j]
+        i = 0 if j < i else i + 1
+
+
+def _define_steelhead(items: List[str]) -> List[str]:
+    """The first "steelhead" of the items, defined inline (p.80) — not where the item already says
+    "steelhead over 50 cm"."""
+    for n, t in enumerate(items):
+        m = re.search(r"\b[Ss]teelhead\b(?! over 50 cm)", t)
+        if m:
+            return items[:n] + [t[:m.end()] + STEELHEAD_DEFINED + t[m.end():]] + items[n + 1:]
+    return items
+
+
 def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     """One total on today's card (decision F14): `pool` the total's rule, `total` its number
     ("unlimited" for none), `kinds` every fish of the card counting toward it — the total's own
@@ -1477,8 +1567,12 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     `says`, the LEAD sentence — the total, and the stream (lake) share of all of it where one holds
     ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all streams
     combined).", answers 2.6, user 2026-10-11) — and `items`, the rest as short sentences: what is
-    lifted out of the share, that steelhead count toward the total, every other sub-cap ("No more
-    than 1 Dolly Varden/bull trout or lake trout."). None for a total of one kind with no sub-cap."""
+    lifted out of the share, whose rule and what it allows ("On this river: up to 4 hatchery rainbow
+    trout 50 cm or less — the 2-from-streams limit doesn’t apply to them", answers 2.7), that
+    steelhead count toward the total ("steelhead (rainbow trout over 50 cm)" where a big rainbow is
+    one), every other sub-cap ("No more than 1 Dolly Varden/bull trout or lake trout.") — a Q16 size
+    pair said once ("Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery
+    steelhead"). None for a total of one kind with no sub-cap."""
     kinds = [S for S in model["spp"]
              if (m := _kept(model, S)) is not None
              and (m["win"] is T or (m["roles"].get(T.key) or {}).get("role") == "contains")]
@@ -1490,7 +1584,10 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                                                   else 2, -sum(_covers(c, S) for S in kinds),
                                                   _clause_take(c) or 0))
     in_chain = {c.key for c in chain} | {T.key}
+    unlimited = bool(T.f.get("unlimited"))
+    total = "unlimited" if unlimited else _num(T.f.get("take"))
     subcaps, words = [], []
+    meta: List[Optional[dict]] = []      # per word: its size clause's facts (Q16 pairs, A1)
     share: Optional[dict] = None
     lead: List[str] = []                 # the sub-items that qualify the lead (the share's lifts)
     for c in chain:
@@ -1539,8 +1636,7 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
         if sc["water"] and not band and not who and not out and share is None:
             share = sc
             for by, fish in lifted.items():
-                lead.append(f"{_lift_words(P, by, fish)} don’t count toward the "
-                            f"{_js(sc['take'])} from {sc['water']}s")
+                lead.append(_lift_item(P, by, fish, sc, total, unlimited))
             continue
         w = " ".join(x for x in ("no more than", _js(sc["take"]), who,
                                  _range_words(*band) if band else "",
@@ -1552,10 +1648,12 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
         if who == "" and out:
             w += f", not counting {_names(out)}"
         words.append(w)
+        meta.append({"band": tuple(band), "take": sc["take"], "who": who,
+                     "out": out if who == "" else [], "lifted": bool(lifted)}
+                    if band and not sc["water"] else None)
     if len(kinds) < 2 and not subcaps:
         return None
-    unlimited = bool(T.f.get("unlimited"))
-    total = "unlimited" if unlimited else _num(T.f.get("take"))
+    _merge_size_pairs(words, meta, model)
     what = written_name_of(T)
     head = f"No daily limit on {what}" if unlimited else \
         f"Up to {_js(total)} {what} a day" + (" in all" if len(kinds) > 1 else "")
@@ -1564,8 +1662,11 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                  f"(all {share['water']}s combined)")
     if "ST" in kinds and "ST" not in (T.f.get("species") or []):
         lead.append("steelhead count toward the " + ("total" if unlimited else _js(total)))
+    items = [cap_first(w) + "." for w in lead + words]
+    if P.steelhead_water and "ST" in kinds:
+        items = _define_steelhead(items)
     return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps,
-            "says": cap_first(head) + ".", "items": [cap_first(w) + "." for w in lead + words]}
+            "says": cap_first(head) + ".", "items": items}
 
 
 def written_name_of(r: R) -> str:

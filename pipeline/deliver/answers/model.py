@@ -816,12 +816,20 @@ class RuleFacts(Model):
 class PartFacts(Model):
     order: Count
     label: StrictStr
+    #: answers 2.7 (A4): the part strip's short name, from the range's end labels ("Mouth → Vedder
+    #: Crossing Bridge"); `label` stays the sheet's full name
+    short: StrictStr = Field(min_length=1)
     runs: StrictStr
     place: Optional[StrictStr]                        # None: no entry heading
     hint: StrictStr
     km: Optional[Union[StrictInt, StrictFloat]]       # None: no run carries a measure
     closed_all_year: StrictBool
     paper_licence: Tuple[RuleIx, ...]
+
+
+class LicensingFacts(Model):
+    """answers 2.7 (A3): a licensing record's book pages [[printed page, PDF page]]."""
+    book: Tuple[Tuple[Positive, Positive], ...] = Field(min_length=1)
 
 
 class Choice(Model):
@@ -955,6 +963,7 @@ STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "waters"): TypeAdapter(Dict[StrictStr, WaterFacts]),
     ("display", "strip"): TypeAdapter(Tuple[StripState, ...]),
     ("gear", "count_nouns"): TypeAdapter(Dict[StrictStr, Tuple[StrictStr, StrictStr]]),
+    ("display", "licensing"): TypeAdapter(Tuple[LicensingFacts, ...]),
     ("display", "reasons"): TypeAdapter(Dict[_enum(T.LossReason, "LossReason"), ReasonWords]),
 }
 

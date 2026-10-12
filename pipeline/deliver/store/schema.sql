@@ -1,4 +1,4 @@
--- THE REGS STORE (`regs.sqlite`, format regs-store/3: S0, + S1's unnamed water, + S1b keyed by
+-- THE REGS STORE (`regs.sqlite`, format regs-store/4: S0, + S1's unnamed water, + S1b keyed by
 -- content with the place apart). ONE definition of the format.
 --
 -- Built by `pipeline/deliver/store/build.py` from the answers file (answers/2) and the export pair it
@@ -113,6 +113,7 @@ CREATE TABLE part (
     akey            INTEGER REFERENCES akey(akey),
     ord             INTEGER,
     label_s         INTEGER REFERENCES str(id),
+    short_s         INTEGER REFERENCES str(id),     -- answers 2.7: the part strip's short name
     runs_s          INTEGER REFERENCES str(id),
     place_s         INTEGER REFERENCES str(id),
     hint_s          INTEGER REFERENCES str(id),

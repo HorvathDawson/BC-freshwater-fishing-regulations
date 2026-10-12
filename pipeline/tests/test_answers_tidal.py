@@ -108,8 +108,8 @@ def test_mutation_the_licence_half_returns_to_no_licence_needed(monkeypatch):
 def test_the_tidal_sections_carry_their_versions():
     # answers 2.3 (Q38 gear `caught`, G2 licence, Z12/G3 display): display 4, gear 4, licence 4;
     # answers 2.6: display 5 (the strip code, the rules' book pages and `applies`), gear 5
-    # (`count_nouns`)
-    want = {"display": 5, "gear": 5, "licence": 4}
+    # (`count_nouns`); answers 2.7: display 6 (part `short`, static `licensing` book pages)
+    want = {"display": 6, "gear": 5, "licence": 4}
     assert {s.name: s.version for s in A.SECTIONS if s.name in want} == want
     from pipeline.deliver.answers.encode import SPEC
     for name in want:

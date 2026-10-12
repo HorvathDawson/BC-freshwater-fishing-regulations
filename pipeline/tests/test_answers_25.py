@@ -116,11 +116,15 @@ def silence(rule, fish, origins=("none", "hatchery", "wild")):
 # from streams (hatchery rainbow trout 50 cm or less excepted); at most 1 …")
 VEDDER_SAYS = ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all "
                "streams combined).")
-VEDDER_ITEMS = ["Hatchery rainbow trout 50 cm or less don’t count toward the 2 from streams.",
-                "Steelhead count toward the 4.",
+# answers 2.7 (A1): the lift names whose rule and what it allows, steelhead defined inline, Q16
+# said once (was "… don’t count toward the 2 from streams.", "No more than 2 over 50 cm.", "No more
+# than 1 over 50 cm, not counting steelhead.")
+VEDDER_ITEMS = ["On this river: up to 4 hatchery rainbow trout 50 cm or less — the 2-from-streams "
+                "limit doesn’t apply to them.",
+                "Steelhead (rainbow trout over 50 cm) count toward the 4.",
                 "No more than 1 Dolly Varden/bull trout or lake trout.",
-                "No more than 2 over 50 cm.",
-                "No more than 1 over 50 cm, not counting steelhead."]
+                "Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery "
+                "steelhead."]
 
 
 @pytest.mark.needs_bundle

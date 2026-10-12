@@ -317,7 +317,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "5",
+            "version": "6",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -353,6 +353,9 @@ SPEC = {
                      "area, this water's own row, a federal or park authority; and what a lift "
                      "lifts), `applies_trib` the same line where the rule is INHERITED by the "
                      "tributary walk (a part whose rule set lists it under `trib`; null where it never is)",
+            "licensing": "[{book}] — aligned with the export's `licensing_ids` (version 6, answers "
+                         "2.7): a licensing record's [[printed page, PDF page]], as `rules[].book` — "
+                         "the page cites a record (a Classified Water, an exemption) as it cites a rule",
             "strip": "[{state, bit, label, says}] — the open-days strip's legend (version 5): "
                      "open 0, closed 1, release 2, fly_only 4, artificial_fly_only 8, bait_ban 16, "
                      "with the label and sentence to show",
@@ -361,8 +364,11 @@ SPEC = {
                        "(\"{by}\": write the rule that beat it), `won` said of that winner "
                        "(\"{rule}\": write the rule it beat)",
             "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
-                      "the export's parts ({order, label, runs, place, hint, km, closed_all_year, "
-                      "paper_licence [rule]} | null outside B.C.); `picker` {choices [{parts "
+                      "the export's parts ({order, label, short, runs, place, hint, km, closed_all_year, "
+                      "paper_licence [rule]} | null outside B.C.; `short` (version 6, answers 2.7) the "
+                      "part strip's name from the range's end labels, mouth upward: \"Mouth → Vedder "
+                      "Crossing Bridge\", \"Site C dam → Hwy. 29 bridge (2 stretches)\", \"Side "
+                      "channel\" — `label` stays the sheet's full name); `picker` {choices [{parts "
                       "[export part index], closed, sections, heading, text}], headed}; "
                       "`unresolved_licensing` [licensing ref]. `km` null: no run carries a measure; `place` null: "
                       "no entry heading",
@@ -509,7 +515,7 @@ CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
                                                   "moments", "conduct_means", "count_nouns")),
                               LicenceCodec(), FrameCodec("display", ("rules", "waters", "strip",
-                                                                     "reasons")))}
+                                                                     "reasons", "licensing")))}
 
 
 # --------------------------------------------------------------------------------------------

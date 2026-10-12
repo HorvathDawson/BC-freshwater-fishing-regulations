@@ -626,6 +626,81 @@ def runs_label(doc: dict, part: dict) -> str:
     return t
 
 
+#: answers 2.7 (A4): a short part label's end names lose the sign-post words the full label keeps
+_SIGN_WORDS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
+SHORT_MAX = 60
+END_MAX = 26
+
+
+def _end_short(doc: dict, e: Optional[str], side: str) -> str:
+    """A run end in a few words: "Mouth", "Source", "B.C. border", "Vedder Crossing Bridge"."""
+    if e in ("mouth", "source"):
+        return cap(e)
+    t = end_name(doc, e, side)
+    t = re.sub(r"^the ", "", t)
+    t = _SIGN_WORDS.sub("", t) or t
+    t = re.sub(r" of Canada\b", "", t) or t
+    return cap(cut_words(t, END_MAX))
+
+
+def _run_short(doc: dict, r: dict) -> str:
+    if _js(r.get("polygon")):
+        return "" if r["polygon"] == "whole" else str(r["polygon"])
+    if r.get("from") and r.get("from") == r.get("to") and str(r["from"]).startswith("area:"):
+        return "Within " + re.sub(r" boundary$", "", end_name(doc, r["from"]))
+    return f"{_end_short(doc, r.get('to'), 'to')} → {_end_short(doc, r.get('from'), 'from')}"
+
+
+def short_label(doc: dict, part: dict, label: str) -> str:
+    """A part's SHORT label for the part strip (answers 2.7, A4) — generic, from its range's END
+    labels, mouth upward: "Mouth → Vedder Crossing Bridge"; several stretches "Mouth → Hwy 29
+    bridge (2 stretches)" (the first's lower end to the last's upper end); side channels only "Side
+    channel" / "3 side channels"; a part with no run (a lake, an area) its full label, cut to
+    `SHORT_MAX`. The full label (`label`) stays for the sheet."""
+    rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
+    main0 = sorted((r for r in rs if not r.get("branch")),
+                   key=lambda r: -(r.get("km_from") if r.get("km_from") is not None else 0))
+    side = [r for r in rs if r.get("branch")]
+    main: List[dict] = []
+    for r in main0:                                  # a lake's inlet and outlet join (runs_label)
+        last = main[-1] if main else None
+        if last and str(last.get("to") or "").startswith("lake_inlet") and \
+                str(r.get("from") or "").startswith("lake_outlet"):
+            last["to"], last["km_to"] = r.get("to"), r.get("km_to")
+        else:
+            main.append(dict(r))
+    main = list(reversed(main))                      # mouth upward
+    if len(main) == 1:
+        t = _run_short(doc, main[0])
+    elif main and all(not _js(r.get("polygon")) and not str(r.get("from") or "").startswith("area:")
+                      for r in main):
+        t = (f"{_end_short(doc, main[0].get('to'), 'to')} → "
+             f"{_end_short(doc, main[-1].get('from'), 'from')} ({len(main)} stretches)")
+    elif main:
+        t = f"{len(main)} stretches"
+    elif side:
+        t = "Side channel" if len(side) == 1 else f"{len(side)} side channels"
+    else:
+        t = ""
+    return cut_words(t or label, SHORT_MAX)
+
+
+def short_labels(W: "Water", labels: Sequence[str]) -> List[str]:
+    """Every part's short label, in the page's part order; two parts the same short words would
+    name are told apart by their full labels' distinguishing tail (`labels`, `part_labels`), else
+    numbered."""
+    out = [short_label(W.doc, p, labels[i]) for i, p in enumerate(W.parts)]
+    for s in set(out):
+        ix = [i for i, t in enumerate(out) if t == s]
+        if len(ix) < 2:
+            continue
+        for n, i in enumerate(ix, 1):
+            h = re.split(r" — | · ", labels[i], maxsplit=1)
+            tail = h[1] if len(h) > 1 and h[1] else ""
+            out[i] = cut_words(f"{s} · {tail}", SHORT_MAX + 24) if tail else f"{s} ({n})"
+    return out
+
+
 def part_km(part: dict) -> Optional[float]:
     """`partKm` — the picker's mouth-upward sort key: the highest `km_from` of the main-stem runs,
     else of the side channels (they sort where they join), else last."""
@@ -820,6 +895,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         if not W.parts:
             continue
         labels = part_labels(W)
+        shorts = short_labels(W, labels)
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
@@ -828,7 +904,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
             facts[ex] = {
-                "order": i, "label": labels[i], "runs": runs_label(doc, p),
+                "order": i, "label": labels[i], "short": shorts[i], "runs": runs_label(doc, p),
                 "place": part_place(W, i) or None,           # null: no entry heading
                 "hint": part_label(W, i), "km": part_km(p),
                 "closed_all_year": closed[-1],
@@ -1213,6 +1289,19 @@ def book_pages(x: dict, doc: dict) -> List[List[int]]:
     return out
 
 
+def licensing_books(doc: dict, lic_ids: Sequence[str]) -> List[dict]:
+    """answers 2.7 (A3): every licensing record's book pages ({book}, aligned with the export's
+    `licensing_ids`) — the page cites a licensing record ("Source" on a Classified Water, an
+    exemption) as it cites a rule, so it opens the synopsis at the same `#page=N`."""
+    out = []
+    for k in lic_ids:
+        x = (doc.get("licensing") or {}).get(k)
+        if x is None:
+            raise AnswersError(f"display: licensing record {k} is not in the decoded export")
+        out.append({"book": book_pages({"entry_id": x["entry_id"], "id": k}, doc)})
+    return out
+
+
 def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     """Each rule's book pages and why it applies (`book`, `applies`, `applies_trib`) onto its
     display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
@@ -1256,4 +1345,5 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
                                     lic_ref=lic_ix.__getitem__, log=lambda *_: None,
                                     store=ctx.store),
-            "strip": strip_legend(), "reasons": reasons_table()}
+            "strip": strip_legend(), "reasons": reasons_table(),
+            "licensing": licensing_books(doc, data.get("licensing_ids") or [])}

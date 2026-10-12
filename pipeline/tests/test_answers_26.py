@@ -174,9 +174,11 @@ def test_the_group_lead_says_the_total_and_the_stream_share_of_it_all(built):
     g = next(r["group"] for r in rows if r.get("group") and r["group"]["total"] == 4)
     assert g["says"] == ("Up to 4 trout and char a day in all — no more than 2 of them from streams "
                          "(all streams combined).")
-    assert g["items"][:2] == ["Hatchery rainbow trout 50 cm or less don’t count toward the 2 from "
-                              "streams.", "Steelhead count toward the 4."]
-    assert all(len(t) < 80 and t.endswith(".") for t in g["items"])      # short sub-items
+    # answers 2.7 (A1) rewords the lift and defines steelhead inline: test_answers_27.py
+    assert g["items"][:2] == ["On this river: up to 4 hatchery rainbow trout 50 cm or less — the "
+                              "2-from-streams limit doesn’t apply to them.",
+                              "Steelhead (rainbow trout over 50 cm) count toward the 4."]
+    assert all(len(t) < 110 and t.endswith(".") for t in g["items"])     # short sub-items
     M.GroupTotal.model_validate_json(json.dumps(g))
 
 

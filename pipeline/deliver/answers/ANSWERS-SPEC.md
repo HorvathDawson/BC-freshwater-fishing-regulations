@@ -98,6 +98,48 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## answers/2.7 (2026-10-11) — group wording, book pages for licensing, short part labels
+
+Same format string (`answers/2`); **display 6** (ladder 1, rows 7, gear 5, licence 4 unchanged in
+version — rows changes words only). A reader that does not know display 6 must refuse the file. The
+regs store is `regs-store/4` (`part.short_s`). ROUND8 A1–A4; RULINGS Q4, Q16, Q23 unchanged.
+
+* **Group items (rows, words only — A1).** RULINGS Q16 is ONE item: a size clause holding every kind of
+  the total beside a smaller one of the same band that leaves kinds out ("No more than 2 over 50 cm." +
+  "No more than 1 over 50 cm, not counting steelhead.") is "Over 50 cm: at most 2 — only 1 of them may
+  be anything other than a hatchery steelhead." (`rows._merge_size_pairs`; the origin word where only
+  that origin may be kept on the card; neither clause may carry a lift). A lift out of the stream (lake)
+  share names WHOSE rule and WHAT it allows (`rows._lift_item`): "On this river: up to 4 hatchery rainbow
+  trout 50 cm or less — the 2-from-streams limit doesn’t apply to them." (Vedder r9, p.22; the number is
+  the lifting rule's own, else the total); an inherited ✱ row's lift "On the Duncan River and its
+  tributaries: …" (Lardeau Creek). Where a rainbow over 50 cm is a steelhead (p.80, `steelhead_water`)
+  the first "steelhead" of the items is defined inline: "Steelhead (rainbow trout over 50 cm) count
+  toward the 4." `subcaps` (the decision) are unchanged. Vedder (mouth part), Oct 10: ["On this river:
+  up to 4 hatchery rainbow trout 50 cm or less — the 2-from-streams limit doesn’t apply to them.",
+  "Steelhead (rainbow trout over 50 cm) count toward the 4.", "No more than 1 Dolly Varden/bull trout or
+  lake trout.", "Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery
+  steelhead."]. 1,099 rows frames reworded (19 distinct item lists), nothing else in them.
+* **A definition only defines (A2).** Page v36 wrote the group line as `<p class="gline">` holding the
+  items' `<ul>`: HTML closes a `<p>` at a `<ul>`, so the items and the kept-elsewhere line fell out of
+  the line, after its ⓘ tips — the design showed them under "What these words mean · Daily quota". The
+  line is a `<div>`; the glossary term (`daily_quota`) was never the problem and is unchanged.
+* **Book pages for licensing records (display 6 — A3).** Static `display.licensing` [{book}], aligned
+  with the export's `licensing_ids`, as `rules[].book` (`display.licensing_books`): the page cites a
+  licensing record ("Source" on a Classified Water, an exemption) as it cites a rule. Coverage: rules
+  3,406 / 3,406 (page v36: 697 / 697) before and after; licensing records 0 / 135 before (page: 0 / 68),
+  135 / 135 after (page: 68 / 68).
+* **Short part labels (display 6 — A4).** `waters[].parts[].short`, the part strip's name, generic from
+  the part's range END labels, mouth upward (`display.short_label`): "Mouth → Vedder Crossing Bridge",
+  "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)", "Site C dam → Hwy. 29 bridge (2 stretches)", "Side
+  channel", "3 side channels"; a sign post loses "fishing boundary signs", each end is cut at 26
+  characters, a part with no run keeps its full label ("Whole water"), cut at 60. Two parts of a water
+  never share one (`short_labels` adds the full label's distinguishing tail). `label` stays the sheet's
+  full name.
+* Proved on a side build (`data/generated/scratch_a27`, the LIVE bundle and verdicts copied — no bundle
+  code changed): status index and export byte-identical; every key's ladder, gear, licence and display
+  frames identical; rows frames identical with `group.items` set aside; display statics identical but
+  `waters[].parts[].short` and the new `licensing`; store round trip exact.
+
 ## answers/2.6 (2026-10-11) — zero hand corrections: the strip, the group wording, book links
 
 Same format string (`answers/2`); **rows 7, gear 5, display 5** (ladder 1, licence 4 unchanged). A
