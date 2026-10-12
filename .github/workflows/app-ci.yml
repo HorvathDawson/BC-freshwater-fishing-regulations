@@ -41,6 +41,14 @@ jobs:
       - name: Tests + conformance suite
         run: pnpm run test
 
+      # The regulations design prototype (design/regs-v11.html), rendered headless and offline: no
+      # hand-written fact, the fishway lines beside the open/closed strip, ONE Sources line per Gear &
+      # licence section (no chip per line, no trailing barbless box), and a water map painted in the
+      # app's own status tokens from the pipeline's export. Chrome ships on ubuntu-latest.
+      - name: Design prototype checks (regs-v11)
+        run: node design/regs-v11/tools/check.mjs design/regs-v11.html
+        env: { CHROME: google-chrome }
+
       # Nothing above bundles anything. Metro's monorepo resolution, the react-native-web
       # aliasing and the single-React pin are exactly the things that break silently and
       # are only observable in a bundle — a workspace link can typecheck and still fail to
