@@ -72,7 +72,10 @@ from typing import Callable
 #:    (`outside.region_limit`, the Canim River rows, user Q24).
 #: 17: (RULES round 2026-10-07) a rule held as an undrawn part never walks tributaries
 #:    (`classify.UNDRAWN_PART_DOES_NOT_WALK`: Dinosaur, Deena, Mamin).
-POLICY_VERSION = "17"
+#: 18: (D5, owner 2026-10-12) a piece the neighbour pass leaves unplaced is placed by its FLOW PATH
+#:    through lakes, ponds, other waters and water outside B.C. to the first section of its own water
+#:    (`extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW`); what stays unplaced carries a typed reason.
+POLICY_VERSION = "18"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

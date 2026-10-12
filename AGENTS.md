@@ -61,7 +61,11 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     over-closing is safe. Measurement killed it: **all 45 unclassified pieces are DETACHED,
     none are straddlers**, and it attached a 380 m stub hanging off Cowichan Lake to
     "No fishing, Cowichan Lake outlet to Greendale Trestle". Silent widening is a defect
-    here (㉗), even in the "safe" direction.
+    here (㉗), even in the "safe" direction. A DETACHED piece (linked to its water only through a
+    lake, pond, other water or the sea) is placed by its FLOW PATH to the first sections of its
+    water (D5, 2026-10-12, `extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW`, `test_reach_flow_placement.py`);
+    what stays unplaced carries a typed reason (`straddles_the_cut`, `meets_the_line_at_the_cut`,
+    `flows_to_the_sea_unjoined`, … in the `unclassified` diagnostic's `reasons`).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
     `pipeline/deliver/bundle/read.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
@@ -452,12 +456,14 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     WHERE THE WATER HAS NO ENTRY OF ITS OWN in that region (`own_entry_regions`; a row whose
     every rule is `tributaries_only` is not one): the Fraser (rows in 3, 5, 7) and the Canim
     never carry; West Road's mainstem pieces in Region 6 / Zone 7A keep its lift (only tributary
-    rows there) and NO lift reaches a West Road tributary in any region. NO EXEMPTION PRINTED ON A ✱
-    ROW REACHES ITS TRIBUTARIES (user ruling Q3, 2026-10-07): the row's ✱ carries its closures,
-    quotas and gear, never its lifts — every lift-only rule of a ✱ row is `includes_tributaries:
-    false` (Nitinat, Quinsam, Duncan, Lardeau, Dutch, Hevenor, Fulton, Babine's Rainbow Alley, and
-    the Similkameen, whose lift no longer reaches its Region 3 tributaries); `test_rules_round.py`
-    refuses one that walks, and the export's `gotchas.exemption_stays_on_its_water` lists them. G4 — "open all year" lifts only FULL blanket
+    rows there) and NO lift reaches a West Road tributary in any region. A ✱ ROW'S PRINTED EXEMPTION
+    WALKS TO ITS TRIBUTARIES (owner ruling D4, 2026-10-12, RULINGS T13, superseding Q3 of 2026-10-07):
+    the row's ✱ carries its lifts like its closures, quotas and gear — no lift-only rule of a ✱ row
+    carries `includes_tributaries: false` (Nitinat, Quinsam, Duncan, Lardeau, Dutch, Hevenor, Fulton,
+    Babine's Rainbow Alley — that channel's tributaries only — and the Similkameen, whose lift again
+    reaches its Region 3 tributaries); `test_rules_round.py::test_d4_*` refuses one that does not walk,
+    and the export's `gotchas.star_carries_exemptions` lists them. A row without the ✱ still lifts
+    nothing on a tributary (L7). G4 — "open all year" lifts only FULL blanket
     closures, never a species closure: Region 6's steelhead closure (May 15-Jun 15, p.49) holds
     on every Region 6 river and stream except the Skeena, Nass, Iskut, Stikine and Taku
     mainstems (its own sibling lift, which binds exactly those five items). G5 — a row's DATED
@@ -577,7 +583,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 60. **The 2026-10-07 rulings (RULES round).** A ROW WHOSE NAME CARRIES THE GLOBAL ✱ includes tributaries
     for EVERY rule, even when a clause repeats a ✱ (San Juan, Inland, Sooke, Bull River, Kitsumkalum);
     only a row WITHOUT the global ✱ narrows to the clause printing one (p.4: Oyster r2, Anderson r4,
-    Dinosaur r1 walk, their other rules do not). NO EXEMPTION ON A ✱ ROW REACHES ITS TRIBUTARIES (rule 57 G3). A TRIBUTARY WITH
+    Dinosaur r1 walk, their other rules do not). A ✱ ROW'S EXEMPTION WALKS WITH IT (rule 57, D4/T13). A TRIBUTARY WITH
     ITS OWN ROW gets both its own and its inherited rules; on one competition key its OWN row speaks,
     before naming (`read.OWN_ROW_BEATS_INHERITED`, Granby under "Kettle River's tributaries") — never a
     closure either way (an inherited closure is only lifted). A FISH EXACTLY ON A PRINTED SIZE BOUND IS

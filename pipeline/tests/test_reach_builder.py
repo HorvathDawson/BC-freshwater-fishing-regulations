@@ -399,14 +399,16 @@ def test_policy_version_is_bumped_when_classify_changes():
         "code_lakes_placed_by_position": extent.CODE_LAKES_PLACED_BY_POSITION,
         "designations_stop_at_national_parks": licensing.DESIGNATIONS_STOP_AT_NATIONAL_PARKS,
         "order_zero_is_unknown": tributaries.ORDER_ZERO_IS_UNKNOWN,
+        "off_line_pieces_follow_their_flow": extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
                      "water_row_walks_cross_regions": True,
                      "code_lakes_placed_by_position": True,
                      "designations_stop_at_national_parks": True,
-                     "order_zero_is_unknown": True})
-    assert cache.POLICY_VERSION == "17", "update this pin with the version it was taken at"
+                     "order_zero_is_unknown": True,
+                     "off_line_pieces_follow_their_flow": True})
+    assert cache.POLICY_VERSION == "18", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

@@ -361,7 +361,6 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "includes_tributaries": false,
      "extents": [
       {
        "op": "between",
@@ -2765,7 +2764,6 @@
        }
       ]
      },
-     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -3215,7 +3213,6 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"

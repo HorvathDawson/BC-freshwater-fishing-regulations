@@ -277,7 +277,8 @@ def _cut_at(g, refs: set[str], universe: set[str]):
 
 
 def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
-                seed_outside: frozenset = frozenset()) -> tuple[set[str], set[str]]:
+                seed_outside: frozenset = frozenset(),
+                why: dict | None = None) -> tuple[set[str], set[str]]:
     """(sections in the reach, braided pieces that STRADDLE its end).
 
     Two passes. First the cut's own blue line, selected by ROUTE MEASURE — exact, no topology needed.
@@ -334,6 +335,8 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
         elif n.down_m >= lo - 0.001 and n.up_m <= hi + 0.001:
             on_blk.add(nid)
 
+    for nid in poly_straddle:
+        _say(why, nid, "polygon_straddles_the_cut")
     inside = set(on_blk)
     outside = ({n for n in universe if g.nodes.get(n) and g.nodes[n].blk == blk} - on_blk) | poly_out
     # `outside` is normally seeded from this blue line’s own pieces that fall outside the window.
@@ -345,36 +348,45 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
     # that knows which pieces sit across the cut passes them here.
     outside |= (set(seed_outside) & universe)
     pending = set(others) - outside
-    while True:
-        settled = set()
-        for nid in pending:
-            nbrs = _nbrs(nid)
-            if not nbrs:
-                continue                                   # detached: cannot be placed
-            if nbrs <= inside:
-                inside.add(nid); settled.add(nid)
-            elif nbrs <= outside:
-                outside.add(nid); settled.add(nid)
-        if not settled:
-            break                                          # fixpoint; judge what is left per component
-        pending -= settled
 
+    def _settle(pending: set[str], nbrs_of) -> set[str]:
+        """Settle every piece whose neighbours all lie on one side, to a fixpoint; return the rest."""
+        while True:
+            settled = set()
+            for nid in sorted(pending):
+                nbrs = nbrs_of(nid)
+                if not nbrs:
+                    continue                               # detached: cannot be placed
+                if nbrs <= inside:
+                    inside.add(nid); settled.add(nid)
+                elif nbrs <= outside:
+                    outside.add(nid); settled.add(nid)
+            if not settled:
+                return pending                             # fixpoint; judge what is left per component
+            pending = pending - settled
+
+    def _components(pending: set[str], nbrs_of) -> list[tuple[set[str], set[str]]]:
+        """Connected components within `pending`, each with the neighbours outside itself."""
+        out, seen = [], set()
+        for start in sorted(pending):
+            if start in seen:
+                continue
+            comp, stack = set(), [start]
+            seen.add(start)
+            while stack:
+                nid = stack.pop()
+                comp.add(nid)
+                for x in nbrs_of(nid) & pending:
+                    if x not in seen:
+                        seen.add(x)
+                        stack.append(x)
+            out.append((comp, set().union(*(nbrs_of(n) for n in comp)) - comp))
+        return out
+
+    pending = _settle(pending, _nbrs)
     straddling: set[str] = set()
     detached: list[set[str]] = []
-    seen: set[str] = set()
-    for start in pending:
-        if start in seen:
-            continue
-        comp, stack = set(), [start]                        # connected component within `pending`
-        seen.add(start)
-        while stack:
-            nid = stack.pop()
-            comp.add(nid)
-            for x in _nbrs(nid) & pending:
-                if x not in seen:
-                    seen.add(x)
-                    stack.append(x)
-        ext = set().union(*(_nbrs(n) for n in comp)) - comp
+    for comp, ext in _components(pending, _nbrs):
         if ext and ext <= inside:
             inside |= comp
         elif ext and ext <= outside:
@@ -383,6 +395,8 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
             detached.append(comp)                          # touches nothing in the water: below
         else:
             straddling |= comp                             # touches both sides: unplaceable
+            for nid in comp:
+                _say(why, nid, "straddles_the_cut")
 
     # DETACHED PIECES, PLACED BY THEIR OWN BLUE LINE. A side channel threading a chain of little
     # unnamed lakes (the Peace below Site C: blk 359004080 runs piece, lake, piece, lake…) touches
@@ -392,13 +406,144 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
     # the nearest placed piece of the same line below it and above it. Both inside → inside; both
     # outside → outside; only one side placed, or the two disagree → it stays unplaceable. Judged
     # against the placements made above and never against each other, so the order is irrelevant.
-    verdicts = [(comp, _bracket(g, comp, inside, outside, universe)) for comp in detached]
-    for comp, side in verdicts:
+    lost: set[str] = set()
+    for comp in detached:
+        side = _bracket(g, comp, inside, outside, universe)
         if side == "in":
             inside |= comp
-        elif side != "out":
+        elif side == "out":
+            outside |= comp
+        else:
+            lost |= comp
+
+    if lost and OFF_LINE_PIECES_FOLLOW_THEIR_FLOW:
+        # WHAT IS STILL DETACHED IS PLACED BY ITS FLOW PATH (D5, owner 2026-10-12). `_nbrs` sees only
+        # the scoped water, so a piece whose link to it runs through a lake, a pond, another named
+        # water or the sea touched "nothing", and the bracket needs a placed piece of its own line on
+        # BOTH sides — none exists above the Chilliwack's lake or below the Cowichan's delta pond.
+        # Its water still goes somewhere: follow it (`_flow_reach`) to the first sections of the
+        # scoped water it meets and judge it on those exactly as on neighbours — every one on one
+        # side places it; touching a straddling braid or both sides leaves it unplaced. Only these
+        # pieces are re-judged, so no placement made above can change.
+        reach: dict[str, set[str]] = {}
+        flags: dict[str, set[str]] = {}
+        for nid in sorted(lost):
+            reach[nid], flags[nid] = _flow_reach(g, nid, universe, blk, lo, hi)
+        inside.add(_JUST_ABOVE_IN)                         # the window's side of "just above a cut"
+        outside.add(_JUST_ABOVE_OUT)
+
+        def _flow_nbrs(nid: str) -> set[str]:
+            return _nbrs(nid) | reach.get(nid, set())
+        rest = _settle(lost, _flow_nbrs)
+        for comp, ext in _components(rest, _flow_nbrs):
+            if ext and ext <= inside:
+                inside |= comp
+                continue
+            if ext and ext <= outside:
+                outside |= comp
+                continue
             straddling |= comp
+            if ext & straddling:
+                reason = "joins_a_straddling_braid"
+            elif ext:
+                reason = "straddles_the_cut"
+            else:
+                # WHY its water could not place it — the flow path's own word, never a guess.
+                seen_flags = set().union(*(flags.get(n, set()) for n in comp))
+                reason = next((r for f, r in _UNJOINED if f in seen_flags),
+                              "touches_none_of_its_water")
+            for nid in comp:
+                _say(why, nid, reason)
+        inside.discard(_JUST_ABOVE_IN)
+        outside.discard(_JUST_ABOVE_OUT)
+    else:
+        straddling |= lost
+        for nid in lost:
+            _say(why, nid, "detached")
     return inside, straddling | poly_straddle
+
+
+#: D5 (owner 2026-10-12): a piece the direct neighbour pass cannot place is placed by its FLOW PATH —
+#: through lakes, ponds, wetlands, other named waters and water outside B.C. (T11) — to the first
+#: section of the scoped water it meets (`_flow_reach`). Guarded by the reach cache's POLICY_VERSION.
+OFF_LINE_PIECES_FOLLOW_THEIR_FLOW = True
+
+#: A flow path reaching the cut's line THROUGH A LAKE'S OUTLET exactly at a cut is just ABOVE that
+#: cut — it drained into the lake, which lies wholly above its outlet (Sproat River pieces draining
+#: into Sproat Lake, outside "between Sproat Lake and the signs"). Stand-ins for that position on the
+#: window's inside / outside (`_flow_reach`).
+_JUST_ABOVE_IN, _JUST_ABOVE_OUT = "\x00just-above-a-cut:in", "\x00just-above-a-cut:out"
+
+#: The typed reasons a detached piece stays unplaced, strongest first (flag -> reason).
+_UNJOINED = (("at_cut", "meets_the_line_at_the_cut"),
+             ("leaves_bc", "leaves_bc_unjoined"),
+             ("sea", "flows_to_the_sea_unjoined"))
+
+
+def _say(why: dict | None, nid: str, reason: str) -> None:
+    """Record the first reason a piece is unplaced (a caller that did not ask passes None)."""
+    if why is not None:
+        why.setdefault(nid, reason)
+
+
+def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float):
+    """(sections of the scoped water `nid`'s WATER reaches, flags) — the flow path through water
+    that is not the scoped water's own.
+
+    DOWNSTREAM through anything (a lake, a pond, another named water, water outside B.C. — T11: the
+    path resumes where the stream re-enters) to the first scoped section on every branch; a branch
+    that ends without one ends at the SEA (flag `sea`) or OUTSIDE B.C. (`leaves_bc`). UPSTREAM only
+    through the piece's own water (its lakes and side channels): a tributary basin — a code that
+    extends the piece's — never leads back to the river, so it is not climbed. A downstream path that
+    meets the cut's own line AT the cut (within `WATERSHED_AT_CUT_M`) is on neither side: it is
+    dropped and flagged `at_cut`, so the piece stays unplaced and says why — unless it arrives
+    through a LAKE'S OUTLET, which puts it just above the cut (`_JUST_ABOVE_IN` / `_OUT`)."""
+    cuts = [c for c in (lo, hi) if 0.0 < c < float("inf")]
+    from pipeline.atlas.registry.basins import node_basin_code
+    hits: set[str] = set()
+    flags: set[str] = set()
+    seen, stack = {nid}, [nid]
+    while stack:
+        x = stack.pop()
+        downs = g.down_adj.get(x, [])
+        if not downs:                                      # the path ends: the sea, or out of B.C.
+            n = g.nodes.get(x)
+            flags.add("leaves_bc" if n is not None and n.out_of_bc else "sea")
+        for i in downs:
+            e = g.edges[i]
+            y = e.to_node
+            if y in universe:
+                q = g.nodes.get(y)
+                at = [c for c in cuts if abs(e.at_measure - c) <= WATERSHED_AT_CUT_M]
+                if q is not None and q.blk == blk and at:
+                    src = g.nodes.get(x)
+                    if e.kind == "lake_out" and src is not None and not src.blk:
+                        c = at[0]
+                        hits.add(_JUST_ABOVE_IN if lo - WATERSHED_AT_CUT_M <= c < hi - WATERSHED_AT_CUT_M
+                                 else _JUST_ABOVE_OUT)
+                    else:
+                        flags.add("at_cut")
+                else:
+                    hits.add(y)
+            elif y not in seen:
+                seen.add(y)
+                stack.append(y)
+    own = node_basin_code(g.nodes[nid]) if nid in g.nodes else ""
+    seen, stack = {nid}, [nid]
+    while stack:
+        x = stack.pop()
+        for i in g.up_adj.get(x, []):
+            y = g.edges[i].from_node
+            if y in universe:
+                hits.add(y)
+                continue
+            n = g.nodes.get(y)
+            if y in seen or n is None or (own and node_basin_code(n).startswith(own + "-")):
+                continue
+            seen.add(y)
+            stack.append(y)
+    hits.discard(nid)
+    return hits, flags
 
 
 def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: set[str]) -> str:
@@ -480,7 +625,7 @@ def _on_line_end(g, universe: set[str], blk: str, m: float, upper: bool) -> bool
     return bool(ms) and abs(m - (max(ms) if upper else min(ms))) < 0.01
 
 
-def _half(g, universe: set[str], blk: str, m: float, upper: bool):
+def _half(g, universe: set[str], blk: str, m: float, upper: bool, why: dict | None = None):
     """One side of a cut — measure-selected, and by COMPLEMENT when the cut sits on the line's end.
 
     `_by_measure` seeds from nodes of the cut's OWN blue line that fall inside the window, then grows
@@ -510,9 +655,9 @@ def _half(g, universe: set[str], blk: str, m: float, upper: bool):
     at_top = _on_line_end(g, universe, blk, m, True)
     at_bottom = _on_line_end(g, universe, blk, m, False)
     if not (at_top or at_bottom):
-        return _by_measure(g, universe, blk, lo, hi)
+        return _by_measure(g, universe, blk, lo, hi, why=why)
     seed = _across_the_junction(g, universe, blk, m, at_top)
-    sec, straddling = _by_measure(g, universe, blk, lo, hi, seed_outside=seed)
+    sec, straddling = _by_measure(g, universe, blk, lo, hi, seed_outside=seed, why=why)
     if sec:
         return sec, straddling
     other, _ = _by_measure(g, universe, blk, *((0.0, m) if upper else (m, INF)), seed_outside=seed)
@@ -537,7 +682,7 @@ def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool)
     return frozenset(x for x in (out & universe) if g.nodes.get(x) and g.nodes[x].blk != blk)
 
 
-def _between_across_lines(g, universe: set[str], a, b):
+def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None):
     """`between` when the two cuts sit on DIFFERENT blue lines, or None if they are not on one flow.
 
     A reach can span a name change: "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge" runs
@@ -551,8 +696,8 @@ def _between_across_lines(g, universe: set[str], a, b):
     (unreliable across braids): if B's own piece falls inside A's downstream half, then B is below A.
     Both cuts keep their braid handling, and a piece that straddles EITHER cut stays unplaceable."""
     (blk_a, m_a, _), (blk_b, m_b, _) = a, b
-    down_a, s_a = _half(g, universe, blk_a, m_a, upper=False)   # everything below cut A
-    down_b, s_b = _half(g, universe, blk_b, m_b, upper=False)   # everything below cut B
+    down_a, s_a = _half(g, universe, blk_a, m_a, upper=False, why=why)   # everything below cut A
+    down_b, s_b = _half(g, universe, blk_b, m_b, upper=False, why=why)   # everything below cut B
     up_a, _ = _half(g, universe, blk_a, m_a, upper=True)
     up_b, _ = _half(g, universe, blk_b, m_b, upper=True)
 
@@ -774,6 +919,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         return None
     INF = float("inf")
     ambiguous: list[dict] = []
+    #: piece -> why it stays unplaced (`_by_measure`), for every piece reported `unclassified`
+    why: dict[str, str] = {}
 
     def _refs(bid: str) -> set[str]:
         """The section-boundary refs a bound boundary ID maps to.
@@ -798,6 +945,10 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                     out.update(aliases)             # ids this same cut-point also answers to
         return out
 
+    def _why_of(pieces) -> dict[str, str]:
+        """The typed reason for each reported piece (`unknown` only if no pass said one)."""
+        return {p: why.get(p, "unknown") for p in sorted(pieces)}
+
     def _note(sid: str, at) -> None:
         if at[2]:
             ambiguous.append({"split_id": sid, "used": round(at[1], 2),
@@ -812,7 +963,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         blk, m = at[0], at[1]
         lo, hi = (m, INF) if op == "upstream_of" else (0.0, m)
         window = (blk, lo, hi)
-        sec, braided = _half(g, universe, blk, m, upper=(op == "upstream_of"))
+        sec, braided = _half(g, universe, blk, m, upper=(op == "upstream_of"), why=why)
     elif op == "between" and len(ids) == 2:
         a = _cut_at(g, _refs(ids[0]), universe)
         b = _cut_at(g, _refs(ids[1]), universe)
@@ -833,9 +984,9 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                       + (f"; alternatives at {a[2]}" if a[2] else ""))
                 return None
             window = (a[0], min(a[1], b[1]), max(a[1], b[1]))
-            sec, braided = _by_measure(g, universe, *window)
+            sec, braided = _by_measure(g, universe, *window, why=why)
         else:
-            got = _between_across_lines(g, universe, a, b)
+            got = _between_across_lines(g, universe, a, b, why=why)
             if got is None:
                 _fail("between_cuts_not_ordered", f"{ids[0]} / {ids[1]}")
                 return None
@@ -855,10 +1006,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             _fail(part, ",".join(scope))
             return None
         d = _out(part["sections"], ambiguous_cut=ambiguous, window=None,
-                 unclassified=sorted(braided))
+                 unclassified=sorted(braided), unclassified_why=_why_of(braided))
         d.pop("seed", None)
         d.update(watershed=True, river=sorted(universe),
                  unplaced=[s for s in part["unplaced"] if s not in braided],
                  at_cut=part["at_cut"], river_code=part["river_code"])
         return d
-    return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window)
+    return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window,
+                unclassified_why=_why_of(braided))

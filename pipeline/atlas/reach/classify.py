@@ -213,6 +213,7 @@ def classify(
                 diags.append(Diagnostic(entry_id, rid, "unclassified", {
                     "extent": i, "pieces": sorted(got["unclassified"]), "included": False,
                     "why": "reported for curation; the builder never places these itself",
+                    "reasons": dict(got.get("unclassified_why") or {}),
                 }))
             for amb in got.get("ambiguous_cut") or []:
                 diags.append(Diagnostic(entry_id, rid, "ambiguous_cut", dict(amb, extent=i)))
@@ -229,6 +230,7 @@ def classify(
             diags.append(Diagnostic(entry_id, rid, "unclassified", {
                 "extent": i, "pieces": sorted(straddling), "included": include,
                 "why": "reported for curation; the builder never places these itself",
+                "reasons": dict(got.get("unclassified_why") or {}),
             }))
 
         for amb in got.get("ambiguous_cut") or []:

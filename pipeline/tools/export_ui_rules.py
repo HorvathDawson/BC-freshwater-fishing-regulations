@@ -4849,7 +4849,7 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
                   "fish, by which rules; the answer itself already holds both closures (`ladder`)",
         "entries": combine,
     }
-    g["gotchas"]["exemption_stays_on_its_water"] = exemption_stays_on_its_water(d, bundle)
+    g["gotchas"]["star_carries_exemptions"] = star_carries_exemptions(d, bundle)
     g["gotchas"]["excepted_rivers_creeks_stay_closed"] = {
         "says": "A row closing its tributaries 'EXCEPT' some named rivers excepts those rivers' "
                 "OWN channels only: a creek flowing into an excepted river is still a tributary of "
@@ -6109,14 +6109,14 @@ UNDRAWN_PART_TRIBUTARIES = (
 EXCEPTED_RIVERS_CREEKS_CLOSED = ("r2:squamish_river_s_tributaries@2-6",)
 
 
-def exemption_stays_on_its_water(d: dict, bundle=None) -> dict:
-    """AN EXEMPTION PRINTED ON A ✱ ROW STAYS ON THE ROW'S OWN WATER (user ruling Q3, 2026-10-07):
-    the row's ✱ (p.4: "all regulations cited apply to both the named body of water and its
-    tributaries") carries its closures, quotas and gear to the tributaries, never its lifts — a
-    small Quinsam tributary is closed Jul 15-Aug 31 under Region 1's summer closure although the
-    Quinsam itself is "Exempt from July 15-Aug 31 summer closure". GENERATED from the export: every
-    rule of a ✱ row that lifts something (`exempts`) and does not walk (`includes_tributaries:
-    false`)."""
+def star_carries_exemptions(d: dict, bundle=None) -> dict:
+    """A ✱ ROW CARRIES ITS EXEMPTIONS TO ITS TRIBUTARIES (owner ruling D4, 2026-10-12, revising Q3 of
+    2026-10-07): the row's ✱ (p.4: "all regulations cited apply to both the named body of water and
+    its tributaries") carries a closure exemption the row prints like everything else it prints — a
+    small Quinsam tributary is open Jul 15-Aug 31 like the Quinsam, which is "Exempt from July 15-Aug
+    31 summer closure". A row WITHOUT the ✱ never lifts a closure on a tributary (L7). GENERATED from
+    the export and the bundle: every lift-only rule of a ✱ row, and whether the walk bound it (`walks`
+    — a rule that does not walk is a defect the reach run would show)."""
     walkers = {i for i, e in d["entries"].items() if "Incl. Tribs" in (e.get("symbols") or [])}
     walked: set = set()
     if bundle is not None:
@@ -6126,23 +6126,22 @@ def exemption_stays_on_its_water(d: dict, bundle=None) -> dict:
                 "SELECT DISTINCT entry_id, rule_id FROM ruleset WHERE via = 'trib'")}
         finally:
             db.close()
-    # a lift-only rule (no number, no sizes) of a ✱ row that binds sections but none by the walk
+    # a lift-only rule (no number, no sizes) of a ✱ row that binds sections
     lifts = sorted(i for i, x in d["rules"].items() if x["entry_id"] in walkers
                    and x["fields"].get("exempts") and x.get("binds") == "sections"
                    and x["type"] == "retention_limit" and x["fields"].get("take") is None
-                   and not x["fields"].get("unlimited") and not x["fields"].get("lengths")
-                   and i not in walked)
+                   and not x["fields"].get("unlimited") and not x["fields"].get("lengths"))
     return {
-        "says": "A row marked ✱ (includes tributaries) carries its closures, quotas and gear "
-                "rules to its tributary streams — but NOT an exemption it prints (user ruling "
-                "2026-10-07): 'Exempt from July 15-Aug 31 summer closure', 'exempt from spring "
-                "closure', 'open all year', 'Open June 16-Apr 30' open the row's own water only "
-                "(`rules` lists every one). On a tributary the zone closure the row lifts still "
-                "holds; never show the row's exemption there.",
-        "key_on": "rules[id].fields.exempts with rules[id].fields.includes_tributaries == false "
-                  "on an entry whose symbols hold 'Incl. Tribs'; an answer on a tributary never "
-                  "carries them (the reach does not bind them there)",
+        "says": "A row marked ✱ (includes tributaries) carries an exemption it prints to its "
+                "tributary streams too (owner ruling 2026-10-12): 'Exempt from July 15-Aug 31 "
+                "summer closure', 'exempt from spring closure', 'open all year', 'Open June 16-Apr "
+                "30' open the row's tributaries on the same days as its own water (`rules` lists "
+                "every one). An exemption scoped to a part of the water (a named channel) opens "
+                "only that part's tributaries. A row without ✱ never opens a tributary.",
+        "key_on": "rules[id].fields.exempts on an entry whose symbols hold 'Incl. Tribs'; the "
+                  "reach binds them on the tributaries (`walks`), so an answer there carries them",
         "rules": lifts,
+        "walks": {i: i in walked for i in lifts} if bundle is not None else {},
     }
 
 

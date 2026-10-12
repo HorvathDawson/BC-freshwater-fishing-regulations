@@ -179,14 +179,22 @@ def test_a_detached_piece_goes_where_its_own_line_puts_it():
     assert above == {"M:1500"} and not strad, "a piece bracketed outside is outside, not reported"
 
 
-def test_a_detached_piece_with_one_side_unplaced_stays_unplaceable():
-    """Only when BOTH its line's neighbours are placed, on the same side, is it placed. Mutation
-    guard: placing on one bracket alone would put S:200 inside here."""
-    from pipeline.atlas.reach.extent import _by_measure
+def test_a_detached_piece_with_one_side_unplaced_stays_unplaceable(monkeypatch):
+    """THE BRACKET ALONE: only when BOTH its line's neighbours are placed, on the same side, is it
+    placed. Mutation guard: placing on one bracket alone would put S:200 inside here.
+
+    Since D5 (2026-10-12) the bracket is the last resort: S:200's WATER reaches M:0 both ways (down
+    through lake 1 and S:0, up through lake 2 and S:400 from M:0), so the flow path places it below
+    the cut (`extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW`, `test_reach_flow_placement.py`)."""
+    from pipeline.atlas.reach import extent as X
     g, universe = _braid_graph()
     universe = universe - {"S:400"}
-    below, strad = _by_measure(g, universe, "M", 0.0, 1500.0)
+    monkeypatch.setattr(X, "OFF_LINE_PIECES_FOLLOW_THEIR_FLOW", False)
+    below, strad = X._by_measure(g, universe, "M", 0.0, 1500.0)
     assert "S:200" in strad and "S:200" not in below
+    monkeypatch.setattr(X, "OFF_LINE_PIECES_FOLLOW_THEIR_FLOW", True)
+    below, strad = X._by_measure(g, universe, "M", 0.0, 1500.0)
+    assert "S:200" in below and not strad
 
 
 # ------------------------------------------------------------------ the row's own scope

@@ -66,9 +66,12 @@ def _states(sid: int, day, fish: str) -> dict:
 
 
 # ---------------------------------------------------------------------------------------------
-# Q3 — an exemption printed on a ✱ row never reaches the row's tributaries
+# D4 (owner ruling 2026-10-12, revises Q3/T3, closes C-6): on a ✱ row a CLOSURE EXEMPTION the row
+# prints walks to the row's tributaries too — the ✱ ("all regulations cited apply to both the named
+# body of water and its tributaries", p.4) carries the row's lifts like everything else it prints.
+# A row WITHOUT the ✱ still never lifts a closure on a tributary (L7, West Road).
 # ---------------------------------------------------------------------------------------------
-Q3_LIFTS = [("1", "r1:nitinat_river@1-4", "nitinat_river.r1"),
+D4_LIFTS = [("1", "r1:nitinat_river@1-4", "nitinat_river.r1"),
             ("1", "r1:quinsam_river@1-6", "quinsam_river.r3"),
             ("4", "r4:duncan_river@4-19", "duncan_river.r1"),
             ("4", "r4:duncan_river@4-19", "duncan_river.r2"),
@@ -80,31 +83,52 @@ Q3_LIFTS = [("1", "r1:nitinat_river@1-4", "nitinat_river.r1"),
             ("6", "r6:babine_river@6-8", "babine_river.r3"),
             ("8", "r8:similkameen_river@8-2", "similkameen_river.r3")]
 
+#: Lift-only rules of a ✱ row whose exemption the ROW does not print, so D4 does not walk them:
+#: Region 5's spring closure excepts "other streams listed in the tables" (p.42, L13) — the
+#: Mitchell River itself, not its tributaries.
+NOT_PRINTED_BY_THE_ROW = {"r5:mitchell_river@5-15::mitchell_river.r3x"}
 
-@pytest.mark.parametrize("region,entry_id,rule_id", Q3_LIFTS)
-def test_q3_a_lift_on_a_starred_row_stays_on_its_water(region, entry_id, rule_id):
+
+@pytest.mark.parametrize("region,entry_id,rule_id", D4_LIFTS)
+def test_d4_a_closure_exemption_on_a_starred_row_walks_to_its_tributaries(region, entry_id, rule_id):
+    """A Quinsam tributary is open Jul 15-Aug 31 like the Quinsam itself."""
     assert "Incl. Tribs" in (_entries(region)[entry_id].get("symbols") or [])
     assert _rule(region, entry_id, rule_id).get("exempts")
-    assert _walks(region, entry_id, rule_id) is False
+    assert _walks(region, entry_id, rule_id) is True
 
 
-def test_q3_every_lift_on_a_starred_row_is_listed():
-    """No other rule of a ✱ row both lifts and walks (Quatse r4x walks because its bait ban is a
-    regulation the ✱ carries — the one printed exception the audit kept)."""
-    walking = []
+def _lift_only(r: dict) -> bool:
+    """A rule that only LIFTS (no number, no sizes) — the shape of "Exempt from spring closure"."""
+    return bool(r.get("exempts")) and r.get("type") == "retention_limit" and r.get("take") is None \
+        and not r.get("unlimited") and not r.get("lengths")
+
+
+def test_d4_every_lift_on_a_starred_row_walks():
+    """No lift-only rule of a ✱ row stays on the row's own water (the list above is complete: a new
+    one fails here until it walks, or is shown not to be printed by its row)."""
+    stuck, found = [], []
     for f in sorted(CAT.glob("region-*.json")):
         for e in json.loads(f.read_text())["entries"]:
             if "Incl. Tribs" not in (e.get("symbols") or []):
                 continue
             for r in e.get("rules") or []:
+                key = f"{e['entry_id']}::{r['rule_id']}"
+                if not _lift_only(r) or key in NOT_PRINTED_BY_THE_ROW:
+                    continue
+                found.append(key)
                 v = r.get("includes_tributaries")
-                walks = bool(e.get("includes_tributaries")) if v is None else v
-                # a LIFT-ONLY rule (no number, no sizes); a quota or size window that lifts the zone's
-                # number beside it (Duncan's 5, Lonzo's 20-30 cm) is a regulation the ✱ carries
-                if r.get("exempts") and walks and r.get("type") == "retention_limit" \
-                        and r.get("take") is None and not r.get("unlimited") and not r.get("lengths"):
-                    walking.append(f"{e['entry_id']}::{r['rule_id']}")
-    assert walking == [], walking
+                if not (bool(e.get("includes_tributaries")) if v is None else v):
+                    stuck.append(key)
+    assert stuck == [], stuck
+    assert sorted(found) == sorted(f"{e}::{r}" for _, e, r in D4_LIFTS)
+
+
+def test_d4_a_row_without_the_star_still_lifts_nothing_on_its_tributaries():
+    """L7 unchanged: the West Road is not ✱ and its text sends its tributaries to the spring
+    closure, so its lift stays on the mainstem."""
+    e = _entries("5")["r5:west_road_blackwater_river@5-12+5-13"]
+    assert "Incl. Tribs" not in (e.get("symbols") or [])
+    assert _walks("5", e["entry_id"], "west_road_blackwater_river.r6") is False
 
 
 # ---------------------------------------------------------------------------------------------

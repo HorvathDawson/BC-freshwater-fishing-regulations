@@ -4879,7 +4879,6 @@
      "species": [
       "ALL_GAME_FISH"
      ],
-     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
