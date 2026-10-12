@@ -45,14 +45,6 @@ LARDEAU_CREEK = "gnis:16357"          # Region 4: a Duncan tributary, the lift i
 CHILLIWACK_LAKE = "wbk:329083341"     # Region 2 lake: no steelhead, the Q16 pair is one clause
 WATERS = (VEDDER, DUNCAN, LARDEAU_CREEK, CHILLIWACK_LAKE)
 
-Q16 = "Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery steelhead."
-VEDDER_ITEMS = [
-    "On this river: up to 4 hatchery rainbow trout 50 cm or less — the 2-from-streams limit "
-    "doesn’t apply to them.",
-    "Steelhead (rainbow trout over 50 cm) count toward the 4.",
-    "No more than 1 Dolly Varden/bull trout or lake trout.",
-    Q16,
-]
 
 
 @pytest.fixture(scope="module")
@@ -79,19 +71,35 @@ def _groups(built, item, part, md):
 
 def _trout(built, item, part, md=(10, 10)):
     return next(g for g in _groups(built, item, part, md)
-                if "trout and char" in g["says"])
+                if "CT" in g["kinds"] or "DV" in g["kinds"])
 
 
 # --------------------------------------------------------------------------------------------
 # A1. the group items
 # --------------------------------------------------------------------------------------------
 
+# answers 2.8 rewords A1 (ROUND9): lifts positive with whose rule, over-50 on the kind rows — pinned
+# here on the real waters, and on the no-data fixture in test_answers_28_card.py
+
+def _lifts(g):
+    return [L["says"] for L in g["lifts"]]
+
+
+def _kinds(g):
+    return {"/".join(k["species"]): k for b in g["buckets"] for k in b["kinds"]}
+
+
 @pytest.mark.needs_bundle
-def test_vedder_items_say_q16_once_name_the_lift_and_define_steelhead(built):
+def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     g = _trout(built, VEDDER, ("mouth",))
-    assert g["says"] == ("Up to 4 trout and char a day in all — no more than 2 of them from streams "
-                         "(all streams combined).")
-    assert g["items"] == VEDDER_ITEMS
+    assert g["headline"]["says"] == "2 a day from this stream"
+    assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this "
+                         "river’s rule replaces Region 2’s 2-from-streams limit for them."]
+    k = _kinds(g)
+    assert k["EB/GB/CT"]["notes"] == ["only 1 over 50 cm"]
+    assert k["DV/LT"]["notes"] == ["uses your 1 over 50 cm"]
+    assert k["ST"]["name"] == "Steelhead" and k["ST"]["n"] == 2
+    assert k["RB"]["n"] == 4 and k["RB"]["notes"] == ["counts toward the 4 a day"]
     # the sub-caps (the decision) are untouched: both size clauses still hold their fish
     over = [s for s in g["subcaps"] if s["over_cm"] == 50]
     assert sorted(s["take"] for s in over) == [1, 2]
@@ -101,55 +109,30 @@ def test_vedder_items_say_q16_once_name_the_lift_and_define_steelhead(built):
 @pytest.mark.needs_bundle
 def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
     g = _trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river"))
-    lifts = [t for t in g["items"] if t.startswith("On this river: ")]
-    assert lifts == ["On this river: up to 2 Dolly Varden/bull trout — the 2-from-streams limit "
-                     "doesn’t apply to them.",
-                     "On this river: up to 5 rainbow trout — the 2-from-streams limit doesn’t "
-                     "apply to them."]
-    assert not any("don’t count toward" in t for t in g["items"])
+    assert _lifts(g) == [
+        "On this river, Dolly Varden/bull trout: up to 2 a day — this river’s rule replaces Region "
+        "4’s 2-from-streams limit for them.",
+        "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s "
+        "2-from-streams limit for them."]
+    assert [b["title"] for b in g["buckets"]] == ["Share the 2 from streams", "This river’s rule"]
+    assert [w["kept"] for w in g["worked"]] == [5, 4, 3, 2]
 
 
 @pytest.mark.needs_bundle
 def test_an_inherited_lift_names_the_row_it_comes_from(built):
     g = _trout(built, LARDEAU_CREEK, 0)
-    assert g["items"][0] == ("On the Duncan River and its tributaries: up to 5 rainbow trout — the "
-                             "2-from-streams limit doesn’t apply to them.")
+    assert _lifts(g) == ["On the Duncan River and its tributaries, rainbow trout: up to 5 a day — the "
+                         "Duncan River’s rule replaces Region 4’s 2-from-streams limit for them."]
 
 
 @pytest.mark.needs_bundle
-def test_a_lake_with_no_steelhead_says_one_size_clause_and_no_definition(built):
+def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     g = _trout(built, CHILLIWACK_LAKE, 0)
-    assert g["items"] == ["No more than 1 Dolly Varden/bull trout or lake trout.",
-                          "No more than 1 over 50 cm."]
-    assert not any("steelhead" in t.lower() for t in g["items"])
-
-
-def test_the_q16_pair_merges_only_with_its_partner():
-    """MUTATION: a pair whose smaller clause is not smaller, or carries a lift, stays two items."""
-    model = {"R": {"ST": {"H": {"status": "keep"}, "W": {"status": "release"}}}}
-    a = {"band": (50, RW.INF), "take": 2, "who": "", "out": [], "lifted": False}
-    b = {"band": (50, RW.INF), "take": 1, "who": "", "out": ["ST"], "lifted": False}
-    words = ["no more than 2 over 50 cm", "no more than 1 over 50 cm, not counting steelhead"]
-    w = list(words)
-    RW._merge_size_pairs(w, [a, b], model)
-    assert w == ["over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery "
-                 "steelhead"]
-    for bad in ({**b, "take": 2}, {**b, "lifted": True}, {**b, "band": (60, RW.INF)}):
-        w = list(words)
-        RW._merge_size_pairs(w, [a, bad], model)
-        assert w == words, bad
-    # wild and hatchery steelhead both kept: no origin word
-    w = list(words)
-    RW._merge_size_pairs(w, [a, b], {"R": {"ST": {"H": {"status": "keep"},
-                                                   "W": {"status": "keep"}}}})
-    assert w[0].endswith("anything other than a steelhead")
-
-
-def test_steelhead_is_defined_once_at_its_first_mention():
-    got = RW._define_steelhead(["No more than 1 over 50 cm (hatchery steelhead over 50 cm excepted).",
-                                "Steelhead count toward the 5.", "Steelhead again."])
-    assert got[1] == "Steelhead (rainbow trout over 50 cm) count toward the 5."
-    assert got[0].count("(rainbow") == 0 and got[2] == "Steelhead again."
+    assert g["headline"]["says"] == "4 a day" and g["lifts"] == [] and g["total_line"] is None
+    k = _kinds(g)
+    assert k["EB/GB/CT/RB"]["notes"] == ["only 1 over 50 cm"]
+    assert k["DV/LT"]["notes"] == ["uses your 1 over 50 cm"]
+    assert not any("steelhead" in t.lower() for kk in k.values() for t in kk["notes"])
 
 
 # --------------------------------------------------------------------------------------------

@@ -411,19 +411,80 @@ class Subcap(Model):
     lifted: Tuple[SubcapLift, ...]
 
 
+class Headline(Model):
+    """The card's big number (answers 2.8, A1): this water's number with no lift — on a Region 2
+    stream the stream share ("2 a day from this stream"), on a lake the total ("4 a day")."""
+    n: Optional[Count]                                # None: no daily limit
+    unit: StrictStr = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)
+
+
+class CardLift(Model):
+    """A water's rule lifting kinds out of the share, said positively with whose rule it is; `by`
+    the lifting rule (the page cites its Book page)."""
+    says: StrictStr = Field(min_length=1)
+    by: RuleIx
+    kinds: Tuple[Fish, ...] = Field(min_length=1)
+    n: Optional[Count]
+
+
+class CardKind(Model):
+    """One kind row: its species (one picture each, P5), name, origin/size, number, notes (over 50
+    cm said here, once), duties (a year, record it, stop after)."""
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    name: StrictStr = Field(min_length=1)
+    detail: StrictStr
+    n: Optional[Count]
+    notes: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
+    duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
+
+
+class Bucket(Model):
+    """Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,
+    or the total; `by` the rule of that cap."""
+    title: Optional[StrictStr]                        # None: the only bucket, the headline's
+    cap: Optional[Count]
+    by: RuleIx
+    why: Literal["share", "rule", "total"]
+    kinds: Tuple[CardKind, ...] = Field(min_length=1)
+
+
+class Worked(Model):
+    """RULINGS Q23b worked through: after keeping `kept` of the lifted kind here, `here` more here,
+    `other` more on another water of this kind, `away` more on the other kind (proved by the gate)."""
+    kept: Positive
+    q: StrictStr = Field(min_length=1)
+    a: StrictStr = Field(min_length=1)
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    origin: Literal["hatchery", "wild"]
+    share: RuleIx
+    here: Count
+    other: Count
+    away: Count
+
+
+class CardState(Model):
+    """Which cap a card line STATES (the gate: none twice)."""
+    r: RuleIx
+    line: StrictStr = Field(min_length=1)
+
+
 class GroupTotal(Model):
-    """One total on today's card and its sub-caps (answers 2.5, rows F14): a LEAD sentence and short
-    sub-items (answers 2.6, user 2026-10-11: "make it clear: max 4, of which 2 can be from streams
-    (all combined)"): "Up to 4 trout and char a day in all — no more than 2 of them from streams
-    (all streams combined)." + ["Hatchery rainbow trout 50 cm or less don’t count toward the 2
-    from streams.", "Steelhead count toward the 4.", "No more than 1 Dolly Varden/bull trout or
-    lake trout.", …]."""
+    """One total on today's card and its sub-caps (answers 2.5, rows F14) — the DECISION (`pool`,
+    `total`, `kinds`, `subcaps`) — and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact
+    once: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `worked`, `states` (`card.py`; every
+    number proved by `card_check`)."""
     pool: RuleIx
     total: Union[Positive, Literal["unlimited"]]
     kinds: Tuple[Fish, ...] = Field(min_length=1)    # every kind on the card counting toward it
     subcaps: Tuple[Subcap, ...]
-    says: StrictStr = Field(min_length=1)            # the lead: the total (and the share of it all)
-    items: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]   # the rest, one sentence each
+    headline: Headline
+    origin: Optional[StrictStr]
+    lifts: Tuple[CardLift, ...]
+    total_line: Optional[StrictStr]
+    buckets: Tuple[Bucket, ...] = Field(min_length=1)
+    worked: Tuple[Worked, ...]
+    states: Tuple[CardState, ...]
 
     @model_validator(mode="after")
     def _shares(self):
@@ -433,6 +494,12 @@ class GroupTotal(Model):
             if not set(s.of) <= set(self.kinds) or any(not set(L.members) <= set(self.kinds)
                                                        for L in s.lifted):
                 raise ValueError("a sub-cap holds (or lifts) only kinds counting toward the total")
+        every = [S for b in self.buckets for k in b.kinds for S in k.species]
+        if sorted(every) != sorted(self.kinds):
+            raise ValueError("every kind of the total sits in exactly one bucket row")
+        rs = [x.r for x in self.states]
+        if len(rs) != len(set(rs)):
+            raise ValueError("a cap is stated once on the card")
         return self
 
 
@@ -795,6 +862,9 @@ class RuleFacts(Model):
     plain: Optional[StrictStr] = None                # None: the page shows the label
     #: Z12/Q41: a closure printed "unless opened", in the user's accepted words
     unless_opened: Optional[StrictStr] = None
+    #: answers 2.8 (D2): the heading a standing no-fishing place rule shows under on the KEEP side,
+    #: beside the open/closed strip ("Where you can’t fish": the fishway and fish-facility buffers)
+    where: Optional[StrictStr] = None
     #: G3: the rule said for the fish subsets the ladders list it for
     subsets: Optional[Tuple[SubsetSay, ...]] = Field(default=None, min_length=1)
     #: answers 2.6, HOW THIS WAS DECIDED: [[printed page, PDF page]] of the rule's entry (open the

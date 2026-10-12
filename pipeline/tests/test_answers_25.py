@@ -111,20 +111,10 @@ def silence(rule, fish, origins=("none", "hatchery", "wild")):
 # F14 group totals
 # --------------------------------------------------------------------------------------------
 
-# answers 2.6 (user 2026-10-11): the lead says the total and the stream share of all of it; the rest
-# are short sub-items (was ONE sentence: "Up to 4 trout and char a day, steelhead included; at most 2
-# from streams (hatchery rainbow trout 50 cm or less excepted); at most 1 …")
-VEDDER_SAYS = ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all "
-               "streams combined).")
-# answers 2.7 (A1): the lift names whose rule and what it allows, steelhead defined inline, Q16
-# said once (was "… don’t count toward the 2 from streams.", "No more than 2 over 50 cm.", "No more
-# than 1 over 50 cm, not counting steelhead.")
-VEDDER_ITEMS = ["On this river: up to 4 hatchery rainbow trout 50 cm or less — the 2-from-streams "
-                "limit doesn’t apply to them.",
-                "Steelhead (rainbow trout over 50 cm) count toward the 4.",
-                "No more than 1 Dolly Varden/bull trout or lake trout.",
-                "Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery "
-                "steelhead."]
+# answers 2.8 (ROUND9 A1): the lift said positively, with whose rule it is (the 2.6 lead sentence and
+# the 2.7 items are gone — they restated the kind rows)
+VEDDER_LIFT = ("On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule "
+               "replaces Region 2’s 2-from-streams limit for them.")
 
 
 @pytest.mark.needs_bundle
@@ -143,14 +133,15 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     share = subcap(built, g, f"{Z2}.r4")
     assert share["take"] == 2 and share["water"] == "stream" and "RB" not in share["of"]
     assert [(L["members"], rid(built, L["by"])) for L in share["lifted"]] == [(["RB"], f"{VR}.r9")]
-    assert g["says"] == VEDDER_SAYS                             # the whole sentence (AGENTS 33)
-    assert g["items"] == VEDDER_ITEMS
-    assert row["elsewhere"] == {
-        "says": "Shared with every Region 2 stream you fish today.",
-        "ask": [["Kept 2 on another stream?",
-                 "Keep 0 here, except hatchery rainbow trout 50 cm or less: up to 4 in all"],
-                ["Kept some at a lake?",
-                 "Those don’t count toward the 2 from streams, but stop at 4 for the whole day"]]}
+    # answers 2.8: the card is water-first (headline, lifts, total line; test_answers_28_card.py)
+    assert g["headline"]["says"] == "2 a day from this stream"
+    assert [L["says"] for L in g["lifts"]] == [VEDDER_LIFT]
+    assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
+    assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
+    assert row["elsewhere"]["ask"][:2] == [
+        ["Kept 2 on another stream?",
+         "Keep 0 here, except hatchery rainbow trout 50 cm or less: up to 2 more (4 in all)"],
+        ["Kept some at a lake?", "They count toward the 4 a day, not toward the 2 from streams"]]
     # the hatchery rainbow's own row names no second group, and says what it counts toward
     own = row_of(built, t, f"{VR}.r9")
     assert own["group"] is None
@@ -159,8 +150,8 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
     assert m["elsewhere"]["ask"][0][1] == "Keep 0 here"
-    assert m["group"]["says"] == VEDDER_SAYS
-    assert m["group"]["items"] == VEDDER_ITEMS[1:]              # nothing lifted out of the share
+    assert m["group"]["headline"]["says"] == "2 a day from this stream"
+    assert m["group"]["lifts"] == [] and m["group"]["worked"] == []   # nothing lifted out of the share
 
 
 @pytest.mark.needs_bundle
@@ -175,7 +166,11 @@ def test_f14_one_group_per_total_and_every_keep_row_says_where_else_counts(built
 
 
 def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
-    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "says": "Up to 4.", "items": [],
+    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], **{"headline": {"n": 4, "unit": "a day", "says": "4 a day"}, "origin": None, "lifts": [],
+              "total_line": None, "worked": [], "states": [{"r": 1, "line": "headline"}],
+              "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
+                           "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
+                                      "detail": "any size", "n": 4, "notes": [], "duties": []}]}]},
           "subcaps": [{"r": 2, "take": 2, "water": "stream", "over_cm": None, "under_cm": None,
                        "of": ["CT"], "lifted": [{"members": ["RB"], "by": 3}]}]}
     M.GroupTotal.model_validate_json(json.dumps(ok))

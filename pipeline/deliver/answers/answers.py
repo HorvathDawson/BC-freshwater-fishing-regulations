@@ -226,7 +226,9 @@ def _sections() -> Tuple[Section, ...]:
         # `rules[].subsets`, Q15/Q38 words in `rules[].plain`)
         # answers 2.5: rows 6 (F13 a size release is an answer; F14 `rows[].group` /
         # `rows[].elsewhere`, the group totals and the kept-elsewhere line)
-        Section("rows", 7, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # answers 2.8: rows 8 (`group` is the CARD: headline, origin, lifts, total_line, buckets, worked,
+        # states — `says`/`items` gone; RULINGS Q23b in `elsewhere`)
+        Section("rows", 8, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         Section("gear", 5, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
@@ -238,7 +240,9 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.7: display 6 (`waters[].parts[].short`, static `licensing` [{book}]); rows 7
         # (wording only: the Q16 size pair said once, a lift names whose rule and what it allows,
         # "steelhead (rainbow trout over 50 cm)")
-        Section("display", 6, display.section_scope, prepare=display.section_prepare,
+        # answers 2.8: display 7 (`rules[].where`: "Where you can’t fish", the fishway and fish-facility
+        # buffers on the Keep side, D2)
+        Section("display", 7, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

@@ -333,11 +333,28 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     return wrap(", ".join(bits))
 
 
+#: answers 2.8 (D2, owner 2026-10-12): the heading the fishway / fish-facility buffers ("No fishing within
+#: 23 m downstream of … any fishway", "within 100 m of any government fish facility", p.9) show under —
+#: on the KEEP side, beside the open/closed strip, never at the bottom of the gear page
+CANT_FISH_TITLE = "Where you can’t fish"
+
+
+def where_of(x: dict) -> Optional[str]:
+    """Where the page shows a rule apart from the rows: "cant_fish" for a standing no-fishing place
+    rule (a take-0, may-not-target rule bound everywhere because no dataset places it), else None."""
+    if kind_of(x) == "standing" and _is(x.get("take"), 0) and x.get("may_target") is False:
+        return "cant_fish"
+    return None
+
+
 def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
-    """{kind, closure?, bands?, plain?, unless_opened?} for one rule — the per-rule display facts.
-    `rules` (the bundle's, by (entry, rule)) lets a closure find its proviso (`unless_opened`)."""
+    """{kind, closure?, bands?, plain?, unless_opened?, where?} for one rule — the per-rule display
+    facts. `rules` (the bundle's, by (entry, rule)) lets a closure find its proviso (`unless_opened`);
+    `where` the heading a place rule shows under on the Keep side (answers 2.8, D2)."""
     k = kind_of(x)
     out: dict = {"kind": k}
+    if where_of(x) == "cant_fish":
+        out["where"] = CANT_FISH_TITLE
     if is_closure_gate(x, k):
         out["closure"] = True
         u = unless_opened(x, rules) if rules is not None else None

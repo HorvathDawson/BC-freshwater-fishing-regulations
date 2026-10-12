@@ -134,6 +134,14 @@ DECISIONS = [
     "share, a count clause, a size clause) with the kinds a water's own rule LIFTS out of it, and "
     "one plain sentence — on ONE row per total; and `elsewhere`, the kept-elsewhere line, qualified "
     "by those lifts ('Keep 0 here, except hatchery rainbow trout 50 cm or less: up to 4 in all').",
+    # answers 2.8 (2026-10-12, ROUND9)
+    "F15 THE CARD IS WATER-FIRST AND SAYS EACH FACT ONCE (owner 2026-10-12): `group` keeps the decision "
+    "(pool, total, kinds, subcaps) and carries the card (`card.card_of`): the headline is this water's "
+    "number with no lift, a lift is a positive line naming whose rule, the total a line under a share, "
+    "the kinds grouped under the cap they draw from with over 50 cm on their rows; the 2.6 lead and the "
+    "2.7 items are gone (they restated the rows). RULINGS Q23b: lifted fish count toward the stream "
+    "tally (`elsewhere`, `worked`). Every number is proved by `card_check` against baskets kept under "
+    "the rules and the reader's verdicts.",
 ]
 
 
@@ -1468,111 +1476,15 @@ def _lift_words(P: "Part", by: str, fish: List[str], sized: bool = True) -> str:
                                 _range_words(a, b) if sized else "") if x)
 
 
-#: answers 2.7 (A1): where a rainbow over 50 cm IS a steelhead (p.80), the group's first "steelhead"
-#: says so, once
-STEELHEAD_DEFINED = " (rainbow trout over 50 cm)"
-_WATER_NOUNS = {"river": "river", "rivers": "river", "creek": "creek", "creeks": "creek",
-                "slough": "slough", "lake": "lake", "lakes": "lake", "reservoir": "reservoir",
-                "channel": "channel", "brook": "brook", "pond": "pond"}
-
-
-def _whose(P: "Part", L: R) -> str:
-    """Whose rule a lift is, in a few words (answers 2.7, A1): the water's own row "On this
-    river" (the row's own noun: river, creek, lake …, else the part's kind), a ✱ row the tributary
-    walk carries "On the Duncan River and its tributaries", an area's or a region's by its name."""
-    name = (L.x.get("entry_name") or "").strip()
-    if L.via == "trib" and name:
-        return f"On the {re.sub(r'^the ', '', name, flags=re.I)} and its tributaries"
-    b = badge_of(L)
-    if b == "water":
-        last = re.sub(r"[^a-z]", "", (name.split() or [""])[-1].lower())
-        noun = _WATER_NOUNS.get(last) or ("lake" if P.kind == "lake" else "stream")
-        return f"On this {noun}"
-    if b == "bc":
-        return "In B.C."
-    return f"In {name}" if name else ("In this area" if b == "area" else "In this region")
-
-
-def _lift_item(P: "Part", by: str, fish: List[str], sc: dict, total, unlimited: bool) -> str:
-    """A water's rule lifting kinds out of the total's stream (lake) share, said as WHOSE rule it is
-    and WHAT it allows (answers 2.7, A1): "On this river: up to 4 hatchery rainbow trout 50 cm or
-    less — the 2-from-streams limit doesn’t apply to them" (Vedder r9, p.22). The number is the
-    lifting rule's own, else the total's (the lifted fish still count toward it, RULINGS Q23)."""
-    L = P.by_key[by]
-    n = L.f.get("take") if isinstance(L.f.get("take"), (int, float)) and not L.f.get("unlimited") \
-        else (None if unlimited else total)
-    what = _lift_words(P, by, fish)
-    allows = f"up to {_js(n)} {what}" if n is not None else f"any number of {what}"
-    return (f"{_whose(P, L)}: {allows} — the {_js(sc['take'])}-from-{sc['water']}s limit "
-            f"doesn’t apply to them")
-
-
-def _origin_words(model: dict, kinds: Sequence[str]) -> str:
-    """The origin every one of `kinds` is kept in on the card ("hatchery" where only hatchery fish
-    may be kept: Region 2's steelhead), else ""."""
-    os_ = set()
-    for S in kinds:
-        R_ = model["R"].get(S) or {}
-        h, w = R_.get("H"), R_.get("W")
-        hk, wk = bool(h and _keepish(h["status"])), bool(w and _keepish(w["status"]))
-        os_.add("hatchery" if hk and not wk else "wild" if wk and not hk else "")
-    return os_.pop() if len(os_) == 1 else ""
-
-
-def _merge_size_pairs(words: List[str], meta: List[Optional[dict]],
-                      model: dict) -> None:
-    """RULINGS Q16 said once (answers 2.7, A1): a size clause holding every kind ("No more than 2 over
-    50 cm") beside a SMALLER one of the same band leaving some kinds out ("No more than 1 over 50
-    cm, not counting steelhead") is ONE item: "Over 50 cm: at most 2 — only 1 of them may be
-    anything other than a hatchery steelhead". Neither may carry a lift (its words would be lost)."""
-    i = 0
-    while i < len(words):
-        a = meta[i]
-        if a is None or a["out"] or a["lifted"] or a["who"]:
-            i += 1
-            continue
-        j = next((j for j in range(len(words)) if j != i and meta[j] is not None
-                  and meta[j]["band"] == a["band"] and meta[j]["out"] and not meta[j]["who"]
-                  and not meta[j]["lifted"] and meta[j]["take"] < a["take"]), None)
-        if j is None:
-            i += 1
-            continue
-        b = meta[j]
-        o = _origin_words(model, b["out"])
-        x = " ".join(v for v in (o, _names(b["out"])) if v)
-        x = ("a " + x) if len(b["out"]) == 1 else x
-        words[i] = (f"{_range_words(*a['band'])}: at most {_js(a['take'])} — only {_js(b['take'])} "
-                    f"of them may be anything other than {x}")
-        del words[j], meta[j]
-        i = 0 if j < i else i + 1
-
-
-def _define_steelhead(items: List[str]) -> List[str]:
-    """The first "steelhead" of the items, defined inline (p.80) — not where the item already says
-    "steelhead over 50 cm"."""
-    for n, t in enumerate(items):
-        m = re.search(r"\b[Ss]teelhead\b(?! over 50 cm)", t)
-        if m:
-            return items[:n] + [t[:m.end()] + STEELHEAD_DEFINED + t[m.end():]] + items[n + 1:]
-    return items
-
-
 def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     """One total on today's card (decision F14): `pool` the total's rule, `total` its number
     ("unlimited" for none), `kinds` every fish of the card counting toward it — the total's own
     row and every fish with its own row contained by it (F4; steelhead included, user 2026-10-10),
     `subcaps` each count or size clause of the total holding some of those kinds here
     ({r, take, water, over_cm, under_cm, of, lifted [{members, by}]} — `of` the kinds it holds,
-    `lifted` those a water's own rule lifts out of it, which still count toward the total),
-    `says`, the LEAD sentence — the total, and the stream (lake) share of all of it where one holds
-    ("Up to 4 trout and char a day in all — no more than 2 of them from streams (all streams
-    combined).", answers 2.6, user 2026-10-11) — and `items`, the rest as short sentences: what is
-    lifted out of the share, whose rule and what it allows ("On this river: up to 4 hatchery rainbow
-    trout 50 cm or less — the 2-from-streams limit doesn’t apply to them", answers 2.7), that
-    steelhead count toward the total ("steelhead (rainbow trout over 50 cm)" where a big rainbow is
-    one), every other sub-cap ("No more than 1 Dolly Varden/bull trout or lake trout.") — a Q16 size
-    pair said once ("Over 50 cm: at most 2 — only 1 of them may be anything other than a hatchery
-    steelhead"). None for a total of one kind with no sub-cap."""
+    `lifted` those a water's own rule lifts out of it). None for a total of one kind with no
+    sub-cap. THE DECISION ONLY: how the card SAYS it is `card.card_of` (answers 2.8 — the lead
+    sentence and the items of 2.6/2.7 are gone: they restated the kind rows)."""
     kinds = [S for S in model["spp"]
              if (m := _kept(model, S)) is not None
              and (m["win"] is T or (m["roles"].get(T.key) or {}).get("role") == "contains")]
@@ -1586,10 +1498,7 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
     in_chain = {c.key for c in chain} | {T.key}
     unlimited = bool(T.f.get("unlimited"))
     total = "unlimited" if unlimited else _num(T.f.get("take"))
-    subcaps, words = [], []
-    meta: List[Optional[dict]] = []      # per word: its size clause's facts (Q16 pairs, A1)
-    share: Optional[dict] = None
-    lead: List[str] = []                 # the sub-items that qualify the lead (the share's lifts)
+    subcaps = []
     for c in chain:
         held, lifted = [], {}
         for S in kinds:
@@ -1612,11 +1521,6 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
             # a slot ("none between 36 cm and 44 cm", Teslin) keeps no number: a release band the
             # row's lines and the item's bands show (F5a), never a sub-cap of the total
             continue
-        covered = [S for S in kinds if _covers(c, S)]
-        out = [S for S in kinds if S not in covered]
-        who = ""
-        if out and len(out) > len(covered):
-            who = " ".join(x for x in (c.f.get("origin") or "", _names(covered)) if x)
         sc = {"r": c.key, "take": _num(take), "water": c.f.get("water"),
               "over_cm": _num(band[0]) if band and band[0] else None,
               "under_cm": _num(band[1]) if band and band[1] != INF else None,
@@ -1630,52 +1534,14 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                         for o in subcaps):
             continue
         subcaps.append(sc)
-        # THE STREAM (LAKE) SHARE OF THE WHOLE TOTAL goes in the lead (user 2026-10-11: "make it
-        # clear: max 4, of which 2 can be from streams (all combined)"): a share holding every kind
-        # of the total, for any origin; what a water's own rule lifts out of it is a sub-item
-        if sc["water"] and not band and not who and not out and share is None:
-            share = sc
-            for by, fish in lifted.items():
-                lead.append(_lift_item(P, by, fish, sc, total, unlimited))
-            continue
-        w = " ".join(x for x in ("no more than", _js(sc["take"]), who,
-                                 _range_words(*band) if band else "",
-                                 f"from {sc['water']}s" if sc["water"] else "") if x)
-        if lifted:
-            w += " (" + common.join([_lift_words(P, by, fish, sized=not band)
-                                     for by, fish in lifted.items()]) \
-                 + " excepted)"
-        if who == "" and out:
-            w += f", not counting {_names(out)}"
-        words.append(w)
-        meta.append({"band": tuple(band), "take": sc["take"], "who": who,
-                     "out": out if who == "" else [], "lifted": bool(lifted)}
-                    if band and not sc["water"] else None)
     if len(kinds) < 2 and not subcaps:
         return None
-    _merge_size_pairs(words, meta, model)
-    what = written_name_of(T)
-    head = f"No daily limit on {what}" if unlimited else \
-        f"Up to {_js(total)} {what} a day" + (" in all" if len(kinds) > 1 else "")
-    if share is not None:
-        head += (f" — no more than {_js(share['take'])} of them from {share['water']}s "
-                 f"(all {share['water']}s combined)")
-    if "ST" in kinds and "ST" not in (T.f.get("species") or []):
-        lead.append("steelhead count toward the " + ("total" if unlimited else _js(total)))
-    items = [cap_first(w) + "." for w in lead + words]
-    if P.steelhead_water and "ST" in kinds:
-        items = _define_steelhead(items)
-    return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps,
-            "says": cap_first(head) + ".", "items": items}
+    return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps}
 
 
 def written_name_of(r: R) -> str:
     from pipeline.deliver.answers.display import written_name
     return written_name(r.x)
-
-
-def cap_first(s: str) -> str:
-    return common.cap(s)
 
 
 def _scope_name(sc: dict, pool: R) -> Optional[str]:
@@ -1700,14 +1566,25 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         wk = nw.f["water"]
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
-        ex = common.join([_lift_words(P, L["by"], L["members"]) for L in (mine or {}).get("lifted", [])],
-                         " or ")
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
         says = f"Shared with every {s} {wk} you fish today."
-        a1 = "Keep 0 here" + (f", except {ex}: up to {_js(tot)} in all" if ex and tot != "unlimited"
-                              else f", except {ex}" if ex else "")
-        a2 = (f"Those don’t count toward the {_js(n)} from {wk}s, but stop at {_js(tot)} for the "
-              f"whole day") if tot != "unlimited" else f"Those don’t count toward the {_js(n)} from {wk}s"
+        # RULINGS Q23b (owner 2026-10-12): the stream tally counts every trout/char kept from ANY
+        # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
+        # total — after n kept on another stream, up to min(its own, total - n) more of it here
+        ex = []
+        for L in (mine or {}).get("lifted", []):
+            own = P.by_key[L["by"]].f.get("take")
+            more = (tot - n) if own is None or tot == "unlimited" else min(own, tot - n) \
+                if tot != "unlimited" else own
+            ex.append((_lift_words(P, L["by"], L["members"]), more))
+        a1 = "Keep 0 here"
+        if ex and tot != "unlimited":
+            a1 += ", except " + common.join([f"{w}: up to {_js(m)} more" for w, m in ex], "; ") \
+                + f" ({_js(tot)} in all)"
+        elif ex:
+            a1 += ", except " + common.join([w for w, _m in ex], " or ")
+        a2 = (f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
+              if tot != "unlimited" else f"They don’t count toward the {_js(n)} from {wk}s")
         ask = [[f"Kept {_js(n)} on another {wk}?", a1], [f"Kept some at a {other}?", a2]]
     elif s:
         says = f"Shared with everywhere in {s} you fish today" + \
@@ -1725,7 +1602,8 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                 a += f", but no more than {_js(sh['take'])}{of} from {sh['water']}s in all"
                 ex = common.join([_lift_words(P, L["by"], L["members"]) for L in sh["lifted"]])
                 if ex:
-                    a += f" ({ex} excepted)"
+                    # RULINGS Q23b: lifted fish count toward the tally; they may go past it here
+                    a += f" ({ex} may go past it here)"
             ask = [[f"Kept {k} elsewhere today?", a]]
     else:
         says = (f"This {'river' if P.kind == 'stream' else 'lake'}’s own limit. Fish you kept "
@@ -1739,7 +1617,41 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                      f"day." if not T.f.get("unlimited") else
                      f" They also count toward {whose} {written_name_of(T)}, which has no daily "
                      f"limit.")
+    ask += over_elsewhere(P, row, grp)
     return {"says": says, "ask": ask}
+
+
+def over_elsewhere(P: "Part", row: dict, grp: Optional[dict]) -> List[List[str]]:
+    """RULINGS Q16 across waters (answers 2.8, A2): a size clause of the total holding the row's kinds
+    counts fish kept anywhere today — said in the kept-elsewhere sheet, never on the card: "Kept a fish
+    over 50 cm elsewhere today?" — "It counts here too: at most 2 over 50 cm a day in all — only 1 of
+    them may be anything other than a hatchery steelhead." """
+    if grp is None:
+        return []
+    sizes = [x for x in grp["subcaps"] if x["over_cm"] is not None and not x["water"]
+             and set(x["of"]) & set(row["members"])]
+    if not sizes:
+        return []
+    by_band: Dict[tuple, List[dict]] = {}
+    for x in sizes:
+        by_band.setdefault((x["over_cm"], x["under_cm"]), []).append(x)
+    out = []
+    for (a, b), xs in sorted(by_band.items(), key=lambda kv: (kv[0][0], kv[0][1] or 0)):
+        xs.sort(key=lambda x: -x["take"])
+        band = _range_words(a, INF if b is None else b)
+        big = xs[0]
+        say = f"It counts here too: at most {_js(big['take'])} {band} a day in all"
+        if len(xs) > 1 and set(xs[1]["of"]) < set(big["of"]):
+            rest = [S for S in big["of"] if S not in xs[1]["of"]]
+            who = " ".join(w for w in ("hatchery" if "ST" in rest and P.steelhead_water else "",
+                                       _names(rest)) if w)
+            say += (f" — only {_js(xs[1]['take'])} of them may be anything other than "
+                    f"{'a ' if len(rest) == 1 else ''}{who}")
+        from pipeline.deliver.answers.display import written_name
+        who = written_name(P.by_key[big["r"]].x, " or ").replace(" and ", " or ")
+        out.append([f"Kept {who} {band} elsewhere today?",
+                    say + "."])
+    return out
 
 
 def produce(P: Part) -> dict:
@@ -1812,6 +1724,10 @@ def produce(P: Part) -> dict:
                 o["elsewhere"] = elsewhere_of(P, model, row, o["scope"], T, grp) \
                     if o["scope"] is not None else None
         rows.append(o)
+    from pipeline.deliver.answers.card import card_of                   # answers 2.8
+    for i, o in enumerate(rows):
+        if o.get("group") is not None:
+            o["group"].update(card_of(P, model, o["group"], rows, i))
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     return {"spp": model["spp"], "fish": fish, "rows": rows,
@@ -1897,7 +1813,11 @@ def refs(out: dict, ix) -> dict:
             o["group"] = {**g, "pool": ix(g["pool"]),
                           "subcaps": [{**s, "r": ix(s["r"]),
                                        "lifted": [{**L, "by": ix(L["by"])} for L in s["lifted"]]}
-                                      for s in g["subcaps"]]}
+                                      for s in g["subcaps"]],
+                          "lifts": [{**L, "by": ix(L["by"])} for L in g["lifts"]],
+                          "buckets": [{**b, "by": ix(b["by"])} for b in g["buckets"]],
+                          "worked": [{**w, "share": ix(w["share"])} for w in g["worked"]],
+                          "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}
         return o
     return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
             "rows": [row(r) for r in out["rows"]]}

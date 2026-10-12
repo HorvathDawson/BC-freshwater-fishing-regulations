@@ -170,30 +170,31 @@ def test_every_strip_code_is_its_three_answers(built):
 
 @pytest.mark.needs_bundle
 def test_the_group_lead_says_the_total_and_the_stream_share_of_it_all(built):
+    """answers 2.8 supersedes the 2.6 lead + items: the headline is the stream's 2, the total is a line
+    under it (test_answers_28_card.py pins the whole card on the no-data fixture)."""
     rows = at(built, VEDDER, "mouth", (10, 10), "rows")["rows"]
     g = next(r["group"] for r in rows if r.get("group") and r["group"]["total"] == 4)
-    assert g["says"] == ("Up to 4 trout and char a day in all — no more than 2 of them from streams "
-                         "(all streams combined).")
-    # answers 2.7 (A1) rewords the lift and defines steelhead inline: test_answers_27.py
-    assert g["items"][:2] == ["On this river: up to 4 hatchery rainbow trout 50 cm or less — the "
-                              "2-from-streams limit doesn’t apply to them.",
-                              "Steelhead (rainbow trout over 50 cm) count toward the 4."]
-    assert all(len(t) < 110 and t.endswith(".") for t in g["items"])     # short sub-items
+    assert g["headline"]["says"] == "2 a day from this stream"
+    assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
     M.GroupTotal.model_validate_json(json.dumps(g))
 
 
-def test_the_group_model_carries_items():
-    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "subcaps": [], "says": "Up to 4.",
-          "items": ["No more than 1 over 50 cm."]}
+def test_the_group_model_requires_the_card():
+    ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "subcaps": [], **{"headline": {"n": 4, "unit": "a day", "says": "4 a day"}, "origin": None, "lifts": [],
+            "total_line": None, "worked": [], "states": [{"r": 1, "line": "headline"}],
+            "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
+                         "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
+                                    "detail": "any size", "n": 4, "notes": [], "duties": []}]}]}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
-    for bad in ({k: v for k, v in ok.items() if k != "items"}, {**ok, "items": [""]}):
+    for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
+                {**ok, "states": ok["states"] * 2}):
         with pytest.raises(Exception):
             M.GroupTotal.model_validate_json(json.dumps(bad))
 
 
-def test_the_page_shows_the_group_items():
+def test_the_page_shows_the_card():
     js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert "grp.items" in js
+    assert "grp.items" not in js and "cardBlock(row, id)" in js
 
 
 # --------------------------------------------------------------------------------------------

@@ -598,8 +598,14 @@ function sideHtml(ctx, fams){
   const u = ctx.side.filter(r => fams.includes(r.family));
   return u.length ? `<div class="caveats top"><div class="lbl">⚠ On one side of the channel only</div><ul>${u.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}"><b>${esc(clean(r.parts?.what || r.label))}</b><span class="where">${esc(cap(r.parts?.side || r.f.side + ' half only'))}${r.parts?.where ? ' · ' + esc(r.parts.where) : ''}</span></button></li>`).join('')}</ul></div>` : '';
 }
+// answers 2.8 (D2): a standing no-fishing place rule shows under its heading (display.rules[].where: "Where you can’t
+// fish") beside the open/closed strip; the rest of the standing rules stay at the foot of the card
+function whereHtml(ctx){
+  const by = new Map(); ctx.standing.filter(r => r.dr?.where).forEach(r => { if (!by.has(r.dr.where)) by.set(r.dr.where, []); by.get(r.dr.where).push(r); });
+  return [...by].map(([t, rs]) => `<div class="caveats top where"><div class="lbl">${esc(t)}</div><ul>${rs.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}">No fishing: ${esc(lc(clean(r.verbatim).replace(/\.$/, '')))}</button></li>`).join('')}</ul></div>`).join('');
+}
 function standingHtml(ctx){
-  const s = ctx.standing;
+  const s = ctx.standing.filter(r => !r.dr?.where);
   return s.length ? `<div class="caveats"><div class="lbl">Anywhere in B.C.</div><ul>${s.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}">No fishing: ${esc(lc(clean(r.verbatim).replace(/\.$/, '')))}</button></li>`).join('')}</ul></div>` : '';
 }
 // the possession footnote: a rule the answers give the role "possession"
@@ -650,6 +656,9 @@ function liftNoteHtml(row){ return (row.liftNotes || []).map(n => `<div class="f
 
 /* ---------- today's card ---------- */
 function valueHtml(row, big){
+  // answers 2.8 (A1): a group's big number is its headline — this water's number with no lift (rows group.headline)
+  const hd = row.raw?.group?.headline;
+  if (hd && big) return hd.n == null ? `<span class="pill nolimit">No limit</span>` : `<div class="num">${hd.n}<small>${esc(hd.unit)}</small></div>`;
   if (row.kind === 'keep') return big ? `<div class="num">${row.daily}<small>${row.members.length > 1 ? 'a day, shared' : 'a day'}</small></div>` : `<span class="gv">${row.daily}<small> a day</small></span>`;
   if (row.kind === 'nolimit') return `<span class="pill nolimit">No limit</span>`;
   return `<span class="pill ${row.kind}">${row.kind === 'closed' ? 'Closed' : 'Release'}</span>${gi(row.kind === 'closed' ? 'no_fishing_for' : 'catch_and_release')}`;
@@ -680,7 +689,7 @@ function renderCard(){
   if (PLACE.k == null){ el.innerHTML = `<p class="foot">This part of the water is outside B.C.: no B.C. rules apply.</p>`; return; }
   if (isTidal(PLACE)){ el.innerHTML = waterStrip(PLACE, state.md); return; }
   const ctx = settle(PLACE, state.md);
-  let h = waterStrip(PLACE, state.md) + closedBanner();
+  let h = waterStrip(PLACE, state.md) + closedBanner() + whereHtml(settle(PLACE, state.md));
   if (MODEL.status !== 'closed' && ctx.status){
     h += inPartHtml(ctx, ['retention','access']) + sideHtml(ctx, ['retention','access']) + anglerClosures(ctx) + timedHtml(ctx);
     if (MODEL.missingRows) h += missing(`the card’s rows on ${fmtMd(state.md)} (rows frame for this part key and segment)`);
@@ -861,7 +870,8 @@ function groupBlock(row, rc){
   // sentence, and the kept-elsewhere line: the answers' (rows F14, answers 2.5), never derived here
   const grp = row.raw.group, el = row.raw.elsewhere;
   // answers 2.6: the lead sentence, then the rest as short sub-items (rows 7 `group.items`)
-  const tot = grp ? `<b>${esc(grp.says)}</b> ${gi('daily_quota')} ${(grp.items || []).length ? `<ul class="gitems">${grp.items.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}` : '';
+  // answers 2.8: a row with a group is the card (`cardBlock`); here only rows with no group total
+  const tot = grp ? missing('the card of this group (rows group.buckets)') : '';
   const exs = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
   if (row.kind === 'nolimit'){ facts.push(`<div class="gf"><div class="gdt"><b>∞</b></div><div class="gdd">No daily limit</div></div>`); if (tot) facts.push(`<div class="gline">${tot}</div>`); }
   else if (!row.scope) facts.push(missing('whose count this limit is (rows scope)'));
@@ -899,7 +909,25 @@ function groupBlock(row, rc){
   const apart = MODEL.rows.filter(r => r !== row && r.pool && row.pool && r.members.length && r.members.every(S => { const m = mainRes(MODEL.R[S]?.H, MODEL.R[S]?.W); return m && m.roles.get(row.pool.key)?.role === 'lifted'; }));
   apart.forEach(r => (VAR === 'B' ? conds : oth).push(`<li><span class="ic"></span><div><b>${esc(rowTitle(r))}: own limit of ${r.daily} a day</b><span class="sub">Not part of these ${n}. See its row below.</span></div></li>`));
   const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
-  return `<section class="gblock">${facts.join('')}${ex}${conds.length ? (VAR === 'B' ? `<ul class="gconds">${conds.join('')}</ul>` : `<div class="gfor"><div class="lbl">${VAR === 'C' ? 'For every kind' : 'Across all kinds'}</div><ul class="gconds v2">${conds.join('')}</ul></div>`) : ''}${oth.length ? `<div class="gfor">${conds.length ? '<div class="lbl">Also</div>' : ''}<ul class="gconds v2 oth">${oth.join('')}</ul></div>` : ''}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
+  return `<section class="gblock">${facts.join('')}${ex}${conds.length ? (VAR === 'B' ? `<ul class="gconds">${conds.join('')}</ul>` : `<div class="gfor">${VAR === 'C' ? '' : '<div class="lbl">Across all kinds</div>'}<ul class="gconds v2">${conds.join('')}</ul></div>`) : ''}${oth.length ? `<div class="gfor">${conds.length ? '<div class="lbl">Also</div>' : ''}<ul class="gconds v2 oth">${oth.join('')}</ul></div>` : ''}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
+}
+// answers 2.8 (ROUND9 A1-A3): THE QUOTA CARD, read from the answers (rows `group`: headline, origin, lifts,
+// total_line, buckets, worked; `elsewhere`) — water-first, each fact once, every number proved by card_check.
+// The page words nothing here: it lays the lines out, cites a rule's Book page from display.rules[].book and draws
+// one picture per species of a kind row (P5).
+function bookOf(ix){ const r = PLACE.R(ix), b = r.dr?.book; return b && b.length ? `<button class="bookref" type="button" data-rule="${esc(r.key)}">Book p.${b.map(x => x[0]).join(', p.')}</button>` : ''; }
+function cardBlock(row, id){
+  const g = row.raw.group, el = row.raw.elsewhere;
+  const org = g.origin ? `<p class="gorigin">${esc(g.origin)} <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button> ${gi('hatchery_wild')}</p>` : '';
+  const lines = [...g.lifts.map(L => `<li>${esc(L.says)} ${bookOf(L.by)}</li>`), ...(g.total_line ? [`<li>${esc(g.total_line)} ${gi('daily_quota')}</li>`] : [])];
+  const pic = S => hasPic(S) ? `<button class="kpic" type="button" data-fish="${S}" aria-label="${esc(spName(S))}">${FISHART.draw(S, { marks:false })}</button>` : '';
+  const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
+  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${b.kinds.map(kind).join('')}</section>`).join('');
+  const ask = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
+  const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
+  const sheet = el ? `<details class="elsewhere" data-dd="${id}e"${ddOpen(id + 'e')}><summary>Fished elsewhere today? ›</summary><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${ask}${worked}</details>` : '';
+  const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
+  return `<section class="gblock card28">${org}${lines.length ? `<ul class="glifts">${lines.join('')}</ul>` : ''}${buckets}${sheet}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }
 // the keep sentence: "Keep 1 of the 2 · 60 cm or longer · hatchery only"
 const sent = (num, of, segs, o) => { const sg = segs.filter(Boolean); return `<div class="sl">${o ? `<span class="o">${o}</span>` : ''}<span class="k">Keep${of && num >= of ? ' up to' : ''}</span> <b class="n">${num === Infinity ? 'any number' : num}</b>${of && of !== Infinity && num < of ? ` <span class="of">of your ${of}</span>` : ''}${sg.length ? `<span class="segs">${sg.map(x => `<span class="seg">${esc(x)}</span>`).join(' · ')}</span>` : ''}</div>`; };
@@ -1037,6 +1065,7 @@ function summaryHtml(row, id){
   const pics = row.allMembers.filter(hasPic);
   const photos = pics.length ? `<details class="looks" data-dd="${id}p"${ddOpen(id + 'p')}><summary>${pics.length > 1 ? `What they look like <span class="lc">${pics.length} fish</span>` : `What ${/^[aeiou]/i.test(spName(pics[0])) ? 'an' : 'a'} ${esc(spName(pics[0]).toLowerCase())} looks like`}</summary><div class="lstrip">${pics.map(S => `<button class="lthumb" type="button" data-fish="${S}">${FISHART.draw(S, { marks:false })}<span>${esc(spName(S))}</span></button>`).join('')}</div></details>` : '';
   const more = [liftNoteHtml(row), miniStrip(PLACE, row.members, state.md) ? stripHtml(PLACE, row.members, state.md) : ''].join('');
+  if (row.raw?.group?.buckets) return cardBlock(row, id) + more + `<button class="linkrow" type="button" data-src="${id}">See every regulation line ›</button>`;
   const sb = speciesBlock(row, rc, id);
   const srcLink = `<button class="linkrow" type="button" data-src="${id}">See every regulation line ›</button>`;
   const s = scopeOf(row);

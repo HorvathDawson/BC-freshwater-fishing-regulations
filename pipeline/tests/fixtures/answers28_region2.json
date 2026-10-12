@@ -1,0 +1,688 @@
+{
+ "_about": "answers 2.8 no-data fixture: Region 2's trout/char table (p.21), the provincial steelhead rules (p.8) and ONE water's lift (the Vedder's r9, p.22: hatchery rainbow <=50 cm, 4 a day, lifting the 2-from-streams share). Cut from the live bundle by the round-9 agent; the reader runs over it in the test (no bundle needed).",
+ "rules": [
+  {
+   "dimension": "daily",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char — 4 per day, all species combined",
+   "may_target": null,
+   "parts": "{\"what\":\"Trout and char — 4 per day, all species combined\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r1",
+   "rule_id": "trout_char_quota.r1",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [],
+   "take": 4,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "Trout/char: 4"
+  },
+  {
+   "dimension": "daily",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char other than steelhead (no more than 1 over 50 cm)",
+   "lengths": [
+    {
+     "min_cm": 50
+    }
+   ],
+   "may_target": null,
+   "parts": "{\"what\":\"Trout and char other than steelhead\",\"size\":\"no more than 1 over 50 cm\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r2",
+   "rule_id": "trout_char_quota.r2",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [
+    "ST"
+   ],
+   "take": 1,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "1 over 50 cm",
+   "within": "trout_char_quota.r1"
+  },
+  {
+   "dimension": "daily",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char (no more than 2 over 50 cm)",
+   "lengths": [
+    {
+     "min_cm": 50
+    }
+   ],
+   "may_target": null,
+   "parts": "{\"what\":\"Trout and char\",\"size\":\"no more than 2 over 50 cm\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r2b",
+   "rule_id": "trout_char_quota.r2b",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [],
+   "take": 2,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
+   "within": "trout_char_quota.r1"
+  },
+  {
+   "dimension": "daily@origin=hatchery",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Steelhead (no more than 2 over 50 cm), hatchery only",
+   "lengths": [
+    {
+     "min_cm": 50
+    }
+   ],
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Steelhead\",\"size\":\"no more than 2 over 50 cm\",\"conditions\":\"hatchery only\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r3",
+   "rule_id": "trout_char_quota.r3",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": 2,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "2 hatchery steelhead over 50 cm allowed",
+   "within": "trout_char_quota.r1"
+  },
+  {
+   "dimension": "daily@origin=hatchery&water=stream",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char — 2 per day, all species combined, from streams, hatchery only",
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Trout and char — 2 per day, all species combined\",\"conditions\":\"from streams, hatchery only\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r4",
+   "rule_id": "trout_char_quota.r4",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [],
+   "take": 2,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "2 from streams (must be hatchery)",
+   "water": "stream",
+   "within": "trout_char_quota.r1"
+  },
+  {
+   "dimension": "daily",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Dolly Varden/bull trout and Lake trout — 1 per day, all species combined",
+   "may_target": null,
+   "parts": "{\"what\":\"Dolly Varden/bull trout and Lake trout — 1 per day, all species combined\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r5",
+   "rule_id": "trout_char_quota.r5",
+   "scope": "area",
+   "species": [
+    "DV",
+    "LT"
+   ],
+   "species_except": [],
+   "take": 1,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "1 char (bull trout, Dolly Varden, or lake trout)",
+   "within": "trout_char_quota.r1"
+  },
+  {
+   "dimension": "daily/size",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Dolly Varden/bull trout and Lake trout (none under 60 cm)",
+   "lengths": [
+    {
+     "max_cm": 60,
+     "take": 0
+    }
+   ],
+   "may_target": null,
+   "parts": "{\"what\":\"Dolly Varden/bull trout and Lake trout\",\"size\":\"none under 60 cm\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r5b",
+   "rule_id": "trout_char_quota.r5b",
+   "scope": "area",
+   "species": [
+    "DV",
+    "LT"
+   ],
+   "species_except": [],
+   "take": null,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "none under 60 cm"
+  },
+  {
+   "dimension": "daily@origin=wild&water=stream",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char — release all, from streams, wild only",
+   "may_target": 1,
+   "origin": "wild",
+   "parts": "{\"what\":\"Trout and char — release all\",\"conditions\":\"from streams, wild only\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r6",
+   "rule_id": "trout_char_quota.r6",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [],
+   "take": 0,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "Wild trout/char from streams",
+   "water": "stream"
+  },
+  {
+   "dimension": "daily@origin=wild",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Steelhead — release all, wild only",
+   "may_target": 1,
+   "origin": "wild",
+   "parts": "{\"what\":\"Steelhead — release all\",\"conditions\":\"wild only\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r7",
+   "rule_id": "trout_char_quota.r7",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": 0,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "All wild steelhead"
+  },
+  {
+   "dimension": "daily/size@origin=hatchery&water=stream",
+   "entry": "z2:trout_char_quota",
+   "entry_id": "z2:trout_char_quota",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Trout and char (none under 30 cm), from streams, hatchery only",
+   "lengths": [
+    {
+     "max_cm": 30,
+     "take": 0
+    }
+   ],
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Trout and char\",\"size\":\"none under 30 cm\",\"conditions\":\"from streams, hatchery only\"}",
+   "period": "daily",
+   "rule": "trout_char_quota.r8",
+   "rule_id": "trout_char_quota.r8",
+   "scope": "area",
+   "species": [
+    "TROUT_CHAR"
+   ],
+   "species_except": [],
+   "take": null,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "Hatchery trout/char under 30 cm from streams",
+   "water": "stream"
+  },
+  {
+   "dimension": "annual@origin=hatchery&water=stream",
+   "entry": "zp:steelhead",
+   "entry_id": "zp:steelhead",
+   "entry_name": "Everywhere in B.C.",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:1",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:3",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:5",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:6",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Steelhead — 10 per licence year, from streams, hatchery only",
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Steelhead — 10 per licence year\",\"conditions\":\"from streams, hatchery only\"}",
+   "period": "annual",
+   "rule": "steelhead.r1",
+   "rule_id": "steelhead.r1",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": 10,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "The annual province-wide quota for hatchery steelhead is 10.",
+   "water": "stream"
+  },
+  {
+   "dimension": "daily@origin=wild",
+   "entry": "zp:steelhead",
+   "entry_id": "zp:steelhead",
+   "entry_name": "Everywhere in B.C.",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:1",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:3",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:5",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:6",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Steelhead — release all, wild only",
+   "may_target": 1,
+   "origin": "wild",
+   "parts": "{\"what\":\"Steelhead — release all\",\"conditions\":\"wild only\"}",
+   "period": "daily",
+   "rule": "steelhead.r2",
+   "rule_id": "steelhead.r2",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": 0,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "All wild steelhead must be released."
+  },
+  {
+   "dimension": "daily@origin=hatchery&water=stream&record",
+   "entry": "zp:steelhead",
+   "entry_id": "zp:steelhead",
+   "entry_name": "Everywhere in B.C.",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:1",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:3",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:5",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    },
+    {
+     "area_id": "area:region:6",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Steelhead, from streams, hatchery only — record your retention on your licence immediately",
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Steelhead\",\"conditions\":\"from streams, hatchery only\",\"duty\":\"record your retention on your licence immediately\"}",
+   "period": "daily",
+   "record_retention": true,
+   "rule": "steelhead.r4",
+   "rule_id": "steelhead.r4",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": null,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+   "water": "stream"
+  },
+  {
+   "dimension": "stop_fishing_after_quota",
+   "entry": "z2:hatchery_steelhead_stop",
+   "entry_id": "z2:hatchery_steelhead_stop",
+   "entry_name": "Region 2",
+   "extent_text": null,
+   "extents": [
+    {
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ],
+     "op": "within"
+    }
+   ],
+   "family": "retention",
+   "label": "Stop fishing the water for the rest of the day once you have kept your daily quota of hatchery steelhead",
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Stop fishing the water for the rest of the day once you have kept your daily quota of hatchery steelhead\"}",
+   "period": "daily",
+   "rule": "hatchery_steelhead_stop.r1",
+   "rule_id": "hatchery_steelhead_stop.r1",
+   "scope": "area",
+   "species": [
+    "ST"
+   ],
+   "species_except": [],
+   "take": null,
+   "type": "stop_fishing_after_quota",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day."
+  },
+  {
+   "dimension": "daily@origin=hatchery",
+   "entry": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4",
+   "entry_id": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4",
+   "entry_name": "Chilliwack River",
+   "exempts": [
+    {
+     "entry_id": "z2:trout_char_quota",
+     "note": "hatchery rainbow trout quota = 4 replaces '2 from streams'",
+     "rule_id": "trout_char_quota.r4",
+     "species": [
+      "RB"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 7,
+        "to_day": 30,
+        "to_month": 4
+       }
+      ]
+     }
+    },
+    {
+     "entry_id": "z2:trout_char_quota",
+     "note": "of any length 50 cm or less",
+     "rule_id": "trout_char_quota.r8",
+     "species": [
+      "RB"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 7,
+        "to_day": 30,
+        "to_month": 4
+       }
+      ]
+     }
+    }
+   ],
+   "extent_text": null,
+   "extents": [
+    {
+     "op": "downstream_of",
+     "splits": [
+      "chilliwack_vedder_rivers__vedder_crossing_bridge"
+     ]
+    }
+   ],
+   "family": "retention",
+   "label": "Rainbow trout — 4 per day (50 cm or less), hatchery only, Jul 1-Apr 30 — downstream of Vedder Crossing Bridge — lifts “Trout and char — 2 per day, all species combined, from streams, hatchery only”, “Trout and char (none under 30 cm), from streams, hatchery only” for rainbow trout",
+   "lengths": [
+    {
+     "max_cm": 50
+    }
+   ],
+   "may_target": null,
+   "origin": "hatchery",
+   "parts": "{\"what\":\"Rainbow trout — 4 per day\",\"size\":\"50 cm or less\",\"conditions\":\"hatchery only\",\"when\":\"Jul 1-Apr 30\",\"where\":\"downstream of Vedder Crossing Bridge\",\"lifts\":\"lifts “Trout and char — 2 per day, all species combined, from streams, hatchery only”, “Trout and char (none under 30 cm), from streams, hatchery only” for rainbow trout\"}",
+   "period": "daily",
+   "rule": "chilliwack_vedder_rivers.r9",
+   "rule_id": "chilliwack_vedder_rivers.r9",
+   "scope": "section",
+   "species": [
+    "RB"
+   ],
+   "species_except": [],
+   "take": 4,
+   "type": "retention_limit",
+   "uncertain": 0,
+   "undrawn_part": null,
+   "unresolved": null,
+   "verbatim": "hatchery rainbow trout of any length 50 cm or less: daily quota = 4, July 1-Apr 30",
+   "when": {
+    "dates": [
+     {
+      "from_day": 1,
+      "from_month": 7,
+      "to_day": 30,
+      "to_month": 4
+     }
+    ]
+   }
+  }
+ ]
+}

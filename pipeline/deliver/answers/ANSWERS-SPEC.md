@@ -98,6 +98,55 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## answers/2.8 (2026-10-12) — the quota card: water-first, each fact once, every number proved
+
+Same format string (`answers/2`); **rows 8, display 7** (ladder 1, gear 5, licence 4 unchanged). A reader
+that does not know rows 8 / display 7 must refuse the file. ROUND9 A1-A5, owner decisions D1/D2; RULINGS
+Q23b (new, revises Q23's tally) and P9. The regs store format is unchanged (`regs-store/4`: frames and
+rule facts are stored whole).
+
+* **The card (rows 8 — A1, A3).** `rows[].group` keeps the DECISION (`pool`, `total`, `kinds`,
+  `subcaps`) and replaces the 2.6 lead (`says`) and the 2.7 items (`items`) — they restated the kind rows
+  in a second generator and drifted — with the card (`card.card_of`):
+  `headline` {n, unit, says} this water's number with no lift (on a stream whose share holds every kind,
+  the share: "2 a day from this stream"; else the total: "4 a day"); `origin` ("Hatchery only — release
+  wild trout and char." where every kind keeps one origin, else null); `lifts` [{says, by, kinds, n}] a
+  water's rule lifting kinds out of the share, said positively, `by` the rule (the page cites its Book
+  page): "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule replaces
+  Region 2’s 2-from-streams limit for them."; `total_line` under a share ("No more than 4 trout and char a
+  day across Region 2, lakes included."), else null; `buckets` [{title, cap, by, why: share | rule |
+  total, kinds [{species, name, detail, n, notes, duties}]}] — the kinds under the cap they draw from
+  ("Share the 2 from streams"; "This river’s rule"; the total, untitled when alone), each kind row with
+  its number, origin/size, over 50 cm said HERE ("only 1 over 50 cm"; "uses your 1 over 50 cm"; a size
+  cap a second row shares: "shares the 1 over 50 cm above"), its duties ("10 a year", "stop fishing for
+  the day after 2", "record each one on your licence") and its species (one picture each, P5); `worked`
+  (A2) [{kept, q, a, species, origin, share, here, other, away}] RULINGS Q23b worked through for a lift
+  past the share; `states` [{r, line}] the cap each card line states — never two.
+  A row's lifts name the water as "this river" (a row's own noun): the rows are keyed by CONTENT (a key is
+  shared by every part with the same rule set), so a row string cannot carry the water's name; a ✱ row
+  the walk carries names its row ("On the Duncan River and its tributaries").
+* **Q23b in the kept-elsewhere line (A2).** `elsewhere.ask` on a share: "Kept 2 on another stream? Keep 0
+  here, except hatchery rainbow trout 50 cm or less: up to 2 more (4 in all)"; "Kept some at a lake? They
+  count toward the 4 a day, not toward the 2 from streams"; and RULINGS Q16 across waters, in the sheet,
+  never on the card: "Kept trout or char over 50 cm elsewhere today? It counts here too: at most 2 over
+  50 cm a day in all — only 1 of them may be anything other than a hatchery steelhead." A partial share
+  (Region 6's "1 trout from streams") says its lifted kinds "may go past it here".
+* **Where you can't fish (display 7 — A4, D2).** `display.rules[].where` "Where you can’t fish" on the
+  standing no-fishing place rules (`display.where_of`: the fishway 23 m and fish-facility 100 m
+  buffers, p.9); page v36 shows them under that heading beside the open/closed strip (Keep side); every
+  other standing rule stays at the foot of the card.
+* **The card gate (A5).** `python -m pipeline.deliver.answers.card_check [--bundle] [--export-dir]
+  [--items]` builds the rows and, for every part at Jan 15, May 15, Jun 15, Jul 15 and Oct 10 (each
+  distinct card once), keeps baskets of fish under the RULES and the reader's VERDICTS (`card_check.Engine`
+  — it never reads the card's arrangement) and holds each claim against them: each kind's number = the
+  most of that kind alone here (and of each of its species alone), each bucket's cap = the most of its
+  kinds together, the headline = the most of every kind here with the share's lifts set aside, the total
+  = the most here, on other streams and on lakes, each worked count = what is left here / on another
+  water of this kind / on the other kind after keeping that many of the lifted kind, and no cap stated
+  twice. Mutation-pinned on the no-data fixture (`test_answers_28_card.py`: a broken lift, a broken tally).
+* Page v36 reads the card (`cardBlock`): no "For every kind" checklist, no group sentence or items, the
+  group's big number is `headline`.
+
 ## answers/2.7 (2026-10-11) — group wording, book pages for licensing, short part labels
 
 Same format string (`answers/2`); **display 6** (ladder 1, rows 7, gear 5, licence 4 unchanged in

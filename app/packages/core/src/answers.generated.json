@@ -409,6 +409,18 @@
        ],
        "default": null,
        "title": "Unless Opened"
+      },
+      "where": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Where"
       }
      },
      "required": [
@@ -2402,6 +2414,66 @@
      "title": "Badge",
      "type": "object"
     },
+    "Bucket": {
+     "additionalProperties": false,
+     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "cap": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cap"
+      },
+      "kinds": {
+       "items": {
+        "$ref": "#/$defs/CardKind"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "title": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Title"
+      },
+      "why": {
+       "enum": [
+        "share",
+        "rule",
+        "total"
+       ],
+       "title": "Why",
+       "type": "string"
+      }
+     },
+     "required": [
+      "title",
+      "cap",
+      "by",
+      "why",
+      "kinds"
+     ],
+     "title": "Bucket",
+     "type": "object"
+    },
     "CBack": {
      "additionalProperties": false,
      "properties": {
@@ -3040,6 +3112,133 @@
       "sub"
      ],
      "title": "CSubcap",
+     "type": "object"
+    },
+    "CardKind": {
+     "additionalProperties": false,
+     "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (over 50\ncm said here, once), duties (a year, record it, stop after).",
+     "properties": {
+      "detail": {
+       "title": "Detail",
+       "type": "string"
+      },
+      "duties": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Duties",
+       "type": "array"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "notes": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Notes",
+       "type": "array"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "species",
+      "name",
+      "detail",
+      "n",
+      "notes",
+      "duties"
+     ],
+     "title": "CardKind",
+     "type": "object"
+    },
+    "CardLift": {
+     "additionalProperties": false,
+     "description": "A water's rule lifting kinds out of the share, said positively with whose rule it is; `by`\nthe lifting rule (the page cites its Book page).",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "kinds": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "by",
+      "kinds",
+      "n"
+     ],
+     "title": "CardLift",
+     "type": "object"
+    },
+    "CardState": {
+     "additionalProperties": false,
+     "description": "Which cap a card line STATES (the gate: none twice).",
+     "properties": {
+      "line": {
+       "minLength": 1,
+       "title": "Line",
+       "type": "string"
+      },
+      "r": {
+       "minimum": 0,
+       "title": "R",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "r",
+      "line"
+     ],
+     "title": "CardState",
      "type": "object"
     },
     "Decided": {
@@ -4148,15 +4347,18 @@
     },
     "GroupTotal": {
      "additionalProperties": false,
-     "description": "One total on today's card and its sub-caps (answers 2.5, rows F14): a LEAD sentence and short\nsub-items (answers 2.6, user 2026-10-11: \"make it clear: max 4, of which 2 can be from streams\n(all combined)\"): \"Up to 4 trout and char a day in all \u2014 no more than 2 of them from streams\n(all streams combined).\" + [\"Hatchery rainbow trout 50 cm or less don\u2019t count toward the 2\nfrom streams.\", \"Steelhead count toward the 4.\", \"No more than 1 Dolly Varden/bull trout or\nlake trout.\", \u2026].",
+     "description": "One total on today's card and its sub-caps (answers 2.5, rows F14) \u2014 the DECISION (`pool`,\n`total`, `kinds`, `subcaps`) \u2014 and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact\nonce: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `worked`, `states` (`card.py`; every\nnumber proved by `card_check`).",
      "properties": {
-      "items": {
+      "buckets": {
        "items": {
-        "minLength": 1,
-        "type": "string"
+        "$ref": "#/$defs/Bucket"
        },
-       "title": "Items",
+       "minItems": 1,
+       "title": "Buckets",
        "type": "array"
+      },
+      "headline": {
+       "$ref": "#/$defs/Headline"
       },
       "kinds": {
        "items": {
@@ -4166,15 +4368,35 @@
        "title": "Kinds",
        "type": "array"
       },
+      "lifts": {
+       "items": {
+        "$ref": "#/$defs/CardLift"
+       },
+       "title": "Lifts",
+       "type": "array"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
       "pool": {
        "minimum": 0,
        "title": "Pool",
        "type": "integer"
       },
-      "says": {
-       "minLength": 1,
-       "title": "Says",
-       "type": "string"
+      "states": {
+       "items": {
+        "$ref": "#/$defs/CardState"
+       },
+       "title": "States",
+       "type": "array"
       },
       "subcaps": {
        "items": {
@@ -4195,6 +4417,24 @@
         }
        ],
        "title": "Total"
+      },
+      "total_line": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Total Line"
+      },
+      "worked": {
+       "items": {
+        "$ref": "#/$defs/Worked"
+       },
+       "title": "Worked",
+       "type": "array"
       }
      },
      "required": [
@@ -4202,10 +4442,50 @@
       "total",
       "kinds",
       "subcaps",
-      "says",
-      "items"
+      "headline",
+      "origin",
+      "lifts",
+      "total_line",
+      "buckets",
+      "worked",
+      "states"
      ],
      "title": "GroupTotal",
+     "type": "object"
+    },
+    "Headline": {
+     "additionalProperties": false,
+     "description": "The card's big number (answers 2.8, A1): this water's number with no lift \u2014 on a Region 2\nstream the stream share (\"2 a day from this stream\"), on a lake the total (\"4 a day\").",
+     "properties": {
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "unit": {
+       "minLength": 1,
+       "title": "Unit",
+       "type": "string"
+      }
+     },
+     "required": [
+      "n",
+      "unit",
+      "says"
+     ],
+     "title": "Headline",
      "type": "object"
     },
     "Item": {
@@ -5469,6 +5749,76 @@
       "by"
      ],
      "title": "SubcapLift",
+     "type": "object"
+    },
+    "Worked": {
+     "additionalProperties": false,
+     "description": "RULINGS Q23b worked through: after keeping `kept` of the lifted kind here, `here` more here,\n`other` more on another water of this kind, `away` more on the other kind (proved by the gate).",
+     "properties": {
+      "a": {
+       "minLength": 1,
+       "title": "A",
+       "type": "string"
+      },
+      "away": {
+       "minimum": 0,
+       "title": "Away",
+       "type": "integer"
+      },
+      "here": {
+       "minimum": 0,
+       "title": "Here",
+       "type": "integer"
+      },
+      "kept": {
+       "exclusiveMinimum": 0,
+       "title": "Kept",
+       "type": "integer"
+      },
+      "origin": {
+       "enum": [
+        "hatchery",
+        "wild"
+       ],
+       "title": "Origin",
+       "type": "string"
+      },
+      "other": {
+       "minimum": 0,
+       "title": "Other",
+       "type": "integer"
+      },
+      "q": {
+       "minLength": 1,
+       "title": "Q",
+       "type": "string"
+      },
+      "share": {
+       "minimum": 0,
+       "title": "Share",
+       "type": "integer"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "kept",
+      "q",
+      "a",
+      "species",
+      "origin",
+      "share",
+      "here",
+      "other",
+      "away"
+     ],
+     "title": "Worked",
      "type": "object"
     }
    },

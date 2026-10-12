@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "7",
+            "version": "8",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -233,18 +233,26 @@ SPEC = {
                     "TOGETHER; a cap's `except` (F12) is decided here, never on the page); "
                     "`group` (version 6, decision F14) on ONE row per total, else null or absent: "
                     "{pool, total (a number or \"unlimited\"), kinds, subcaps [{r, take, water "
-                    "(stream | lake | null), over_cm, under_cm, of, lifted [{members, by}]}], says, "
-                    "items} "
+                    "(stream | lake | null), over_cm, under_cm, of, lifted [{members, by}]}], "
+                    "headline, origin, lifts, total_line, buckets, worked, states} "
                     "— the TOTAL the row's fish count toward (the row's pool, or the outer pool its "
                     "fish are contained by), every kind on the card counting toward it (steelhead "
                     "included), each count or size clause of it holding some of them here (`of`) "
-                    "with the kinds a water's own rule lifts out of it (`lifted`: they still count "
-                    "toward the total), `says` the LEAD sentence (version 7, answers 2.6: the total and, "
-                    "where one holds every kind of it, the stream or lake share of all of it — \"Up to "
-                    "4 trout and char a day in all — no more than 2 of them from streams (all streams "
-                    "combined).\") and `items` [sentence] the rest, each a short sub-item (what is "
-                    "lifted out of the share, that steelhead count toward the total, every other "
-                    "sub-cap); `elsewhere` (version 6) on every "
+                    "with the kinds a water's own rule lifts out of it (`lifted`); version 8 "
+                    "(answers 2.8) THE CARD, water-first, each fact once, every number proved by "
+                    "`card_check`: `headline` {n (null: no daily limit), unit, says} this water's "
+                    "number with no lift (\"2 a day from this stream\"; a lake: the total), `origin` "
+                    "(\"Hatchery only — release wild trout and char.\" or null), `lifts` [{says, by, "
+                    "kinds, n}] a water's rule lifting kinds out of the share, said positively "
+                    "(cite `by`'s Book page), `total_line` the total under a share (\"No more than 4 "
+                    "trout and char a day across Region 2, lakes included.\") or null, `buckets` "
+                    "[{title (null: the only one), cap, by, why: share | rule | total, kinds "
+                    "[{species, name, detail, n, notes, duties}]}] the kinds under the cap they "
+                    "draw from, each kind its species (one picture each), over-50 said on the row, "
+                    "once; `worked` [{kept, q, a, species, origin, share, here, other, away}] RULINGS "
+                    "Q23b worked through for a lift past the share; `states` [{r, line}] the cap "
+                    "each card line states (none twice). `says` and `items` (versions 6-7) are gone; "
+                    "`elsewhere` (version 6) on every "
                     "keep row: {says, ask [[question, answer]]} the kept-elsewhere line, qualified "
                     "by those lifts. A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
@@ -317,7 +325,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "6",
+            "version": "7",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -352,7 +360,10 @@ SPEC = {
                      "line saying why the rule applies (its scope: B.C.-wide, a region's table, an "
                      "area, this water's own row, a federal or park authority; and what a lift "
                      "lifts), `applies_trib` the same line where the rule is INHERITED by the "
-                     "tributary walk (a part whose rule set lists it under `trib`; null where it never is)",
+                     "tributary walk (a part whose rule set lists it under `trib`; null where it never is); "
+                     "version 7 (answers 2.8, D2): `where` the heading a standing no-fishing place rule "
+                     "shows under on the KEEP side beside the open/closed strip (\"Where you can’t "
+                     "fish\": the fishway and fish-facility buffers), absent on every other rule",
             "licensing": "[{book}] — aligned with the export's `licensing_ids` (version 6, answers "
                          "2.7): a licensing record's [[printed page, PDF page]], as `rules[].book` — "
                          "the page cites a record (a Classified Water, an exemption) as it cites a rule",
