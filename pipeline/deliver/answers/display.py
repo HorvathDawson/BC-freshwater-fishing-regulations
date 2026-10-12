@@ -537,12 +537,32 @@ def part_place(W: Water, i: int) -> str:
 _THE_LESS = re.compile(r"^\d|^[A-Z][\w.]* ?[\w.]*'s ", re.ASCII)
 
 
+def begins_at(doc: dict, y: str) -> Optional[str]:
+    """Where a stream BEGINS, as an end token: the upstream end (`from`) of its top main-stem run, when
+    that is a cut of `splits` (the Vedder begins at Vedder Crossing Bridge); None where it begins at
+    no cut (answers 2.8: then the place is said as "where it becomes the <name>")."""
+    w = doc["waters"].get(y) or {}
+    runs = [r for p in w.get("parts") or [] for r in p.get("runs") or []
+            if not r.get("branch") and r.get("km_from") is not None]
+    if not runs:
+        return None
+    top = max(runs, key=lambda r: r["km_from"]).get("from")
+    return top if top in (doc.get("splits") or {}) else None
+
+
 def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     """`endName` — a run end in words."""
     if not e:
         return ""
     if e == "mouth":
         return "the mouth"
+    if str(e).startswith("continues:"):
+        # answers 2.8 (owner 2026-10-12): not a mouth — the water goes on under another name; the
+        # place is where that water begins (Chilliwack: "Vedder Crossing Bridge")
+        y = e.split(":", 1)[1]
+        b = begins_at(doc, y)
+        nm = (doc["waters"].get(y) or {}).get("name") or y
+        return end_name(doc, b, side) if b else f"where it becomes the {nm}"
     if e == "source":
         return "the top of the river" if side == "from" else "the source"
     if e == "bc_border":
@@ -653,6 +673,9 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
     """A run end in a few words: "Mouth", "Source", "B.C. border", "Vedder Crossing Bridge"."""
     if e in ("mouth", "source"):
         return cap(e)
+    if str(e).startswith("continues:") and begins_at(doc, e.split(":", 1)[1]) is None:
+        nm = (doc["waters"].get(e.split(":", 1)[1]) or {}).get("name") or ""
+        return cap(cut_words(f"{nm} begins", END_MAX))
     t = end_name(doc, e, side)
     t = re.sub(r"^the ", "", t)
     t = _SIGN_WORDS.sub("", t) or t

@@ -304,27 +304,24 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         q = main["n"] or 0
         S0 = main["kinds"][0]
         plural = SHORT_PLURAL.get(S0) or _names(main["kinds"])
-        # every lifted kind may fill what is left here (Duncan: rainbows or Dolly Varden)
-        plurals = common.join(list(dict.fromkeys(
-            [plural] + [SHORT_PLURAL.get(L["kinds"][0]) or _names(L["kinds"]) for L in lifts])), " or ")
-        ones = common.join(list(dict.fromkeys(
-            " ".join(x for x in (P.by_key[L["by"]].f.get("origin") or "", _names(L["kinds"])) if x)
-            for L in [main] + lifts)), " or ")
         other_kind = "lake" if share["water"] == "stream" else "stream"
         for k in range(q, share["take"] - 1, -1):
             if k <= 0:
                 break
             left = total - k
-            here = min(left, sum(max(0, (L["n"] or 0) - (k if L is main else 0)) for L in lifts))
+            # RULINGS Q23b (refined 2026-10-12): on its own water the lifted kind does not use the share
+            # for the other kinds — here: the lifted kinds' rest, and the share's own number
+            here = min(left, share["take"] + sum(max(0, (L["n"] or 0) - (k if L is main else 0))
+                                                 for L in lifts))
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
             elif k == share["take"]:
                 a = (f"you’re done on every other {share['water']}; up to {_js(left)} more from here "
-                     f"({plurals}) or from {other_kind}s.")
+                     f"or from {other_kind}s.")
             elif left == 1:
-                a = f"1 more: another {ones} here, or a fish from a {other_kind}."
+                a = f"1 more: from here, or a fish from a {other_kind}."
             else:
-                a = f"{_js(left)} more: {plurals} here, or fish from {other_kind}s."
+                a = f"{_js(left)} more: from here, or from {other_kind}s."
             worked.append({"kept": k, "q": f"Keep {k} {plural} here", "a": a, "species": [S0],
                            "origin": P.by_key[main["by"]].f.get("origin") or "hatchery",
                            "share": share["r"], "here": here, "other": 0, "away": left})

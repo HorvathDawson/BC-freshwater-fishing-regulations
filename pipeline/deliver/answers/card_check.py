@@ -22,11 +22,13 @@ the basket when every rule that CHECKS it allows one more:
   * elsewhere, the zone's and B.C.'s rules for that kind of water (no water's lift reaches another water);
   * a gate (take 0) or a size band of take 0 at the fish's length: never; a count (a pool, a sub-cap, a
     size clause's band): the fish it COUNTS already in the basket must be fewer than its take.
-A rule COUNTS every fish it covers (species, origin, water kind, band) that it speaks for OR that was
-lifted out of it — Q23b: the stream tally counts every trout/char kept from ANY stream, lifted fish
-included — and, for a water's own count, the same fish kept elsewhere too (rows F9). Order matters
-(a lifted fish kept first uses the tally another stream needs), so a basket is a SEQUENCE; the maxima
-search every order (a fish is added only where it may be kept after the ones before it).
+A rule COUNTS every fish it covers (species, origin, water kind, band) that it speaks for, and, for a
+fish kept on ANOTHER water, every fish a water's rule lifted out of it too — RULINGS Q23b (refined by the
+owner 2026-10-12): on the Vedder up to 2 non-lifted trout/char from streams AND up to 4 hatchery rainbows,
+4 in all, in any order; on every other stream the tally counts every trout/char kept from any stream,
+the Vedder's rainbows included; lakes face only the total — and, for a water's own count, the same fish
+kept elsewhere too (rows F9). Across waters order matters (rainbows kept here first use the tally another
+stream needs), so a basket is a SEQUENCE; the maxima search every order.
 """
 from __future__ import annotations
 
@@ -100,12 +102,18 @@ class Engine:
             return self.state(r, f[0], f[1]) == "speaks"
         return r in self.zone
 
-    def counts(self, r, g: Fish) -> bool:
-        """`r` counts `g` (a fish already kept) toward its take — Q23b: lifted fish too."""
+    def counts(self, r, g: Fish, f: Optional[Fish] = None) -> bool:
+        """`r` counts `g` (a fish already kept) toward its take when `f` is asked about — RULINGS
+        Q23b (refined 2026-10-12): a fish a water's rule lifted out of `r` counts toward `r` for a fish
+        kept on ANOTHER water (the stream tally counts every trout/char from any stream), never for one
+        kept on its own water (there the lifted kind and the rest are kept in any order)."""
         if not self._applies(r, g):
             return False
         if g[3] == "here":
-            return self.state(r, g[0], g[1]) in ("speaks", "lifted")
+            st = self.state(r, g[0], g[1])
+            if st == "lifted" and (f is None or f[3] == "here"):
+                return False
+            return st in ("speaks", "lifted")
         # elsewhere: the zone's rules for that water, and this water's own counts (rows F9)
         return r in self.zone or (not r.entry_id.startswith("z")
                                   and self.state(r, g[0], g[1]) in ("speaks", "lifted"))
@@ -134,7 +142,7 @@ class Engine:
                 return False
             if take is None:                       # a clause's uncovered band, or unlimited
                 continue
-            n = sum(1 for g in kept if self.counts(r, g) and (self._band(r, g[2]) or (None,))[0] == bi)
+            n = sum(1 for g in kept if self.counts(r, g, f) and (self._band(r, g[2]) or (None,))[0] == bi)
             if n + 1 > take:
                 return False
         return True
@@ -181,8 +189,9 @@ class Engine:
         # classes: fish every rule checks and counts alike, in the same band
         sig: Dict[tuple, Fish] = {}
         for f in cands:
-            key = tuple((self.checks(r, f), self.counts(r, f), (self._band(r, f[2]) or (None,))[0])
-                        for r in self.rules)
+            away = ("", "", 0.0, "stream")
+            key = tuple((self.checks(r, f), self.counts(r, f), self.counts(r, f, away),
+                         (self._band(r, f[2]) or (None,))[0]) for r in self.rules)
             sig.setdefault(key, f)
         reps = list(sig.values())
 
@@ -314,7 +323,6 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
     model = A.build(bundle, Path(export_dir), workers=1, items=items, sections=["rows"],
                     export=(data, guide), log=lambda *_: None)
     B = C.load(bundle)
-    ctx = A.Context(bundle, {}, verdicts=str(Path(bundle).with_name("verdicts.sqlite")))
     ids = data["rule_ids"]
     seen, probs, groups = set(), [], 0
     for k, key in enumerate(model.keys):
@@ -329,8 +337,9 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
                 continue
             seen.add((rk, kd["kind"], kd["steelhead"], json_key(built)))
             lad = model.sections["ladder"][k][s]
+            # the engine reads no open-subject gate (protected species, salmon): no open states
             P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
-                        kd["steelhead"], lad, md, RW.open_states(ctx, rk, md))
+                        kd["steelhead"], lad, md, {})
             for g in built:
                 groups += 1
                 for p in check_group(P, _unref(g, ids)):

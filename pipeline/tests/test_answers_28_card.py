@@ -119,18 +119,22 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
     g = _g(F.VEDDER)
     assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
         {"kept": 4, "q": "Keep 4 rainbows here", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: another hatchery rainbow trout here, or a fish "
-                                                      "from a lake."},
-        {"kept": 2, "q": "Keep 2 rainbows here", "a": "you’re done on every other stream; up to 2 more from "
-                                                      "here (rainbows) or from lakes."}]
+        {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: from here, or a fish from a lake."},
+        {"kept": 2, "q": "Keep 2 rainbows here", "a": "you’re done on every other stream; up to 2 more "
+                                                      "from here or from lakes."}]
     assert _g(F.STREAM)["worked"] == [] and _g(F.LAKE)["worked"] == []
 
 
-def test_q23b_lifted_fish_count_toward_the_stream_tally():
+def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
+    """RULINGS Q23b (refined, owner 2026-10-12): on the lifted water the lifted kind and the rest are
+    kept in any order; every OTHER stream counts the lifted fish toward its tally; lakes: the total."""
     _out, P = F.card(F.VEDDER, OCT10)
     E = CC.Engine(P, F.TOTAL)
     rb, ct = ("RB", "hatchery", 40, "here"), ("CT", "hatchery", 40, "stream")
-    assert E.legal([ct, ct, rb, rb])                 # the stream's 2 first, then the lift on its own water
+    here_ct = ("CT", "hatchery", 40, "here")
+    assert E.legal([ct, ct, rb, rb])                 # another stream's 2 first, then the lift here
+    assert E.legal([rb, rb, here_ct, here_ct])       # on the Vedder: any order
+    assert not E.legal([rb, rb, here_ct, here_ct, rb])               # the total
     assert not E.legal([rb, rb, ct])                 # 2 rainbows kept here: no other stream today
     assert E.legal([rb, rb, ("CT", "hatchery", 40, "lake")])         # lakes face only the total
     assert not E.legal([rb, rb, rb, rb, ("CT", "hatchery", 40, "lake")])

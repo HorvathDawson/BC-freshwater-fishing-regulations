@@ -1250,6 +1250,10 @@ END_TEXT = {
     "polygon": "the stretch meets the water's OWN polygon — a river drawn as a wide polygon, a "
                "slough's: no cut, the same water goes on (its polygon is the next stretch, or the "
                "same part); a cut aliased onto that edge keeps its own id instead",
+    "continues:<item_id>": "the water's natural lower end is NOT a mouth: it goes on downstream as "
+                           "that other named stream (a key of `waters`), which begins there (the "
+                           "Chilliwack becomes the Vedder at Vedder Crossing). Name the place by "
+                           "where that water begins (its top run's `from`), never 'mouth'",
     "mouth": "the water's own downstream end — into the sea, another river or a lake it ends in "
              "— with no cut",
     "source": "the water's own upstream end with no cut — its source, or where it takes its "
@@ -5511,6 +5515,8 @@ def valid_end(token, doc: dict) -> bool:
     w = doc["waters"].get(item)
     if head in ("lake_inlet", "lake_outlet"):
         return w is not None and w["kind"] in ("lake", "wetland")
+    if head == "continues":                       # answers 2.8: the water goes on as that stream
+        return w is not None and w["kind"] == "stream"
     return head == "confluence" and w is not None
 
 

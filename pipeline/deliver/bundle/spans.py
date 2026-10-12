@@ -40,6 +40,9 @@ END TOKENS (one vocabulary, the export's `from` / `to`):
                            wide reach)
   polygon                  the stretch meets the water's OWN polygon: no cut, the same water goes
                            on (a cut aliased onto that edge keeps its own id instead)
+  continues:<item_id>      the water's natural lower end is NOT a mouth: it goes on downstream as that
+                           other named STREAM, which BEGINS there (the Chilliwack becomes the Vedder
+                           at Vedder Crossing; owner 2026-10-12) — `continues_as`
   mouth, source            the water's own natural ends (no cut)
 A lake that is not a named water drops its suffix (`lake_inlet`, `lake_outlet`).
 """
@@ -58,7 +61,9 @@ NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "po
 #: The water's own polygon begins or ends here — not a cut (`end_token`).
 POLYGON = "polygon"
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
-PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:")
+PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "continues:")
+#: A natural lower end within this many metres of another water's top is where that water begins.
+_BEGINS_M = 1.0
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
 #: or a group of management units, and keeps its split id.
 REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
@@ -129,6 +134,26 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
     return bid
 
 
+def continues_as(nid: str, own: str, nodes: dict, down: dict, items_of: dict,
+                 stem_of: dict, stem_top: dict) -> str | None:
+    """THE WATER GOES ON UNDER ANOTHER NAME (owner 2026-10-12): the named STREAM this stem piece's
+    natural lower end flows into AT THAT STREAM'S TOP — the edge enters the other water's main stem
+    at its upstream-most measure, so no part of it lies above the junction (the Chilliwack at Vedder
+    Crossing: the Vedder begins there). None where the water truly ends: it joins another river part
+    way up (a confluence, a "mouth"), a lake, the sea, or two named waters begin there."""
+    got = set()
+    for e in down.get(nid, ()):
+        to = nodes.get(e.to_node)
+        if to is None or getattr(to.kind, "value", to.kind) != "stream":
+            continue
+        for y in items_of.get(e.to_node, ()):
+            if y == own or stem_of.get(y) != to.blk or y not in stem_top:
+                continue
+            if abs(e.at_measure - stem_top[y]) <= _BEGINS_M and abs(to.up_m - stem_top[y]) <= _BEGINS_M:
+                got.add(y)
+    return got.pop() if len(got) == 1 else None
+
+
 def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, str, str, list[int]]],
             lake_items: dict[str, tuple[str, str]], stems: dict[str, str] | None = None,
             graph=None) -> list[tuple]:
@@ -153,13 +178,26 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
         if to is not None and getattr(to.kind, "value", to.kind) == "stream":
             into[to.blk].append((e.at_measure, e.from_node))
 
-    rows = []
-    for ord_, item_id, kind, sids in items:
+    # every stream water's main stem and the top of it (`continues_as` reads every water's)
+    stem_of: dict[str, str] = {}
+    stem_top: dict[str, float] = {}
+    for _, item_id, kind, sids in items:
         if kind != "stream":
             continue
         pieces = [nodes[node_of[s]] for s in sids]
         stem = main_stem([(n.blk, n.length_m) for n in pieces
                           if getattr(n.kind, "value", n.kind) == "stream"])
+        if stem:
+            stem_of[item_id] = stem
+            stem_top[item_id] = max(n.up_m for n in pieces
+                                    if getattr(n.kind, "value", n.kind) == "stream" and n.blk == stem)
+
+    rows = []
+    for ord_, item_id, kind, sids in items:
+        if kind != "stream":
+            continue
+        pieces = [nodes[node_of[s]] for s in sids]
+        stem = stem_of.get(item_id)
         if stems is not None and stem:
             stems[item_id] = stem
 
@@ -229,6 +267,10 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
                            own=item_id)
             hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary,
                            own=item_id)
+            if lo == "mouth" and n.blk == stem:
+                y = continues_as(node_of[s], item_id, nodes, down, items_of, stem_of, stem_top)
+                if y is not None:
+                    lo = f"continues:{y}"
             if n.blk == stem:
                 rows.append((s, round(n.down_m), round(n.up_m), lo, hi, 0, 0))
             else:

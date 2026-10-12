@@ -84,9 +84,9 @@ def test_vedder_mouth_oct_10_card(built):
         "RB 4: counts toward the 4 a day"]
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
         "Keep 4 rainbows here → that’s your trout and char for the day, everywhere.",
-        "Keep 3 rainbows here → 1 more: another hatchery rainbow trout here, or a fish from a lake.",
-        "Keep 2 rainbows here → you’re done on every other stream; up to 2 more from here (rainbows) "
-        "or from lakes."]
+        "Keep 3 rainbows here → 1 more: from here, or a fish from a lake.",
+        "Keep 2 rainbows here → you’re done on every other stream; up to 2 more from here or from "
+        "lakes."]
 
 
 @pytest.mark.needs_bundle

@@ -125,6 +125,12 @@ rule facts are stored whole).
   A row's lifts name the water as "this river" (a row's own noun): the rows are keyed by CONTENT (a key is
   shared by every part with the same rule set), so a row string cannot carry the water's name; a ✱ row
   the walk carries names its row ("On the Duncan River and its tributaries").
+* **Q23b (refined by the owner the same day).** On the lifted water the lifted kind and the other kinds are
+  kept in any order (the lifted fish do not use the share there); every OTHER stream counts the lifted
+  fish toward its tally; lakes face only the total. Vedder worked count: "Keep 4 rainbows here → that’s
+  your trout and char for the day, everywhere." / "Keep 3 rainbows here → 1 more: from here, or a fish
+  from a lake." / "Keep 2 rainbows here → you’re done on every other stream; up to 2 more from here or
+  from lakes."
 * **Q23b in the kept-elsewhere line (A2).** `elsewhere.ask` on a share: "Kept 2 on another stream? Keep 0
   here, except hatchery rainbow trout 50 cm or less: up to 2 more (4 in all)"; "Kept some at a lake? They
   count toward the 4 a day, not toward the 2 from streams"; and RULINGS Q16 across waters, in the sheet,
