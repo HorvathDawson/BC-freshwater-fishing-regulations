@@ -61,3 +61,12 @@ The Kootenay's "Only 1 … over 50 cm" line now carries the ✓ like the Vedder'
 - **Book links.** Each is a 44 px tap target labelled "Book p.N ↗". It opens the PDF in a new tab.
 - **Rule sheet subtitle.** "Region 2 rule · Region 2" collapses to "Region 2".
 - **Gear summary.** The tiles wrap their bait items and no longer overlap.
+
+## v10.1 (round 8, B1–B6)
+- **B1 Gear & licence is a tile grid again; a tile expands inline.** The page's six tiles stay a two-column grid. Tapping one opens its topic right under the tile's row (an accordion: one open at a time, tap again to close). The tile keeps its place on screen when another closes above it, so the scroll never jumps. Each tile is a 76 px button with `aria-expanded` and a rotating chevron; the open one carries a 3 px ink underline. The page is 55% shorter (heights in PARITY.md).
+- **B2 A picture on every fish row.** Each kind row and each "Other fish" row leads with a 56 × 28 picture: the first fish in the row that has a photo in the app's manifest. Rows with no photo (crayfish, protected species) get a neutral grey silhouette, so the column never breaks. Which fish a kind row covers is the page's own item list (`kinds` in the snapshot).
+- **B3 "Book p.N ↗" wherever a rule is cited.** It appears beside every source chip: closures, gear and possession lines, each line of "How this was decided", each card in the sources sheet, and each rule sheet. It always comes from the data's `book`. The link keeps a 44 px hit area without making the line taller.
+- **B4 ⓘ sits inline right after its term.** Two or more side by side become one "What these words mean" link, which opens one sheet listing each term. A ⓘ the page puts before its term ("ⓘ Possession: …") is moved to after it. There is no row of bare ⓘ any more; the old "What these words mean:" row is gone.
+- **B5 Part strip labels.** The strip uses the data's short part label when the snapshot carries one (any `short…` field from answers 2.7 A4). Otherwise it uses the full label.
+- **B6 Snapshot and screens are one command each.** `tools/snap.mjs` renders page v36 headless, drives its own controls, and copies its HTML and data. `tools/shoot.mjs` re-shoots every screen. See `tools/README.md`.
+- **Also: the strip legend now uses the data's words** (`display.strip[].label`, for example "artificial flies only"), replacing v10's own copy.

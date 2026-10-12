@@ -1,6 +1,6 @@
 # regs-v10 vs page v36 (regenerated with answers 2.6): parity
 
-**Source.** `regs-v10/v36snap.js` is a snapshot of the regenerated page v36. A script made it: it opens the page in headless Chrome and copies the page's own HTML fragments, row groups, rule, glossary and source sheets, and fish look-for notes. Fish pictures come from the app's manifest (`regs-v10/fish.js`). **No fact is hand-written.**
+**Source.** `regs-v10/v36snap.js` is a snapshot of the regenerated page v36, made by `regs-v10/tools/snap.mjs`. The script opens the page in headless Chrome and drives the page's own controls. It copies the page's HTML fragments, row groups, each kind's fish, the rule, glossary and source sheets (each source card with its rule key), the fish look-for notes, the strip legend, and each rule's `book` and `applies`. Fish pictures come from the app's manifest (`regs-v10/fish.js`). **No fact is hand-written.**
 
 The only text v10 adds is UI copy: section names, "Change date", "View on map", "Fished elsewhere today?", "What these words mean", and the "pending data" markers. No v36 wording is edited. "1 line (rod)" will come from the pipeline (answers 2.6).
 
@@ -17,7 +17,7 @@ Each comparison is in `screens/parity-*.png`. v36's Today's card is on the left.
 
 \* Cowichan is the same height in both. That height is v10's numbered part strip. In v36 the part choice is a separate "Which part?" select above the card (about 70 px), so it is not counted in v36's 605.
 
-**Gear & licence.** v36 shows the six tiles plus one pane at a time. Opening every pane in turn totals 4067 px for the Vedder. v10 shows the same tiles with every topic inline on one page in 2997 px (Kootenay: 3865 vs 2851). The "where it comes from" folds start closed in v10.
+**Gear & licence.** v36 shows the six tiles plus one pane at a time. v10.1 does the same, but as an accordion: the tapped tile's topic opens inline under its row. v10.0 had printed every topic inline (Vedder 2956 px). The "where it comes from" folds start closed.
 
 ## Facts v36 shows that v10 does not
 | v36 | v10 |
@@ -47,3 +47,20 @@ Checks: `grep 'data-src="design"\|pending' regs-v10.html` finds nothing.
 
 ## Still missing in the data
 Nothing. The line count now comes from the data: "1 line (rod)", "1 line (rod) (2 alone in a boat)". The "Missing from the answers file" note is gone.
+
+## v10.1 (round 8): page height, before and after
+Measured with the whole regulations page scrolled (`#sc` scrollHeight, 390 px wide). "Before" is v10.0 at 86427452. "After" is v10.1 with every gear tile closed.
+
+| State | Before | After | Gear section before → after |
+|---|---|---|---|
+| Vedder, Oct 10 | 5132 px | 2298 px | 2956 → 300 px |
+| Vedder, May 15 | 5121 px | 2381 px | 2908 → 305 px |
+| Kootenay LWA, Sat / Mon | 4512 px | 2012 px | 2778 → 316 px |
+| Cowichan part 2 | 4883 px | 2199 px | 2838 → 305 px |
+| Cowichan mouth part (closed) | 757 px | 738 px | 129 → 129 px |
+
+With one tile open, the Vedder page is 2988 px (Licence) or 3787 px (Always, the longest topic). What you can keep is also shorter: the group's list no longer prints twice (v36's list spills out of its paragraph and was shown again). It also gained a picture per row (Vedder: 2045 → 1867 px).
+
+`screens/parity-*.png` predate v10.1. The other screens were re-shot with `tools/shoot.mjs`.
+
+Checks: `grep 'data-src="design"\|pending' regs-v10.html` finds nothing. In the snapshot, the only match is "de*pending*" in v36's glossary wording.
