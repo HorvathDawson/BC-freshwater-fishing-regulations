@@ -62,8 +62,10 @@ NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "po
 POLYGON = "polygon"
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
 PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "continues:")
-#: A natural lower end within this many metres of another water's top is where that water begins.
-_BEGINS_M = 1.0
+#: A natural lower end within this many metres of another water's stem top — and the UPPERMOST water
+#: flowing into that top piece — is where that water begins. Measured: the Chilliwack joins the Vedder
+#: 25 m below the Vedder's stem top, the Atnarko the Bella Coola 35 m below (FWA stubs past the junction).
+_BEGINS_M = 100.0
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
 #: or a group of management units, and keeps its split id.
 REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
@@ -135,12 +137,13 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
 
 
 def continues_as(nid: str, own: str, nodes: dict, down: dict, items_of: dict,
-                 stem_of: dict, stem_top: dict) -> str | None:
+                 stem_of: dict, stem_top: dict, up: dict | None = None) -> str | None:
     """THE WATER GOES ON UNDER ANOTHER NAME (owner 2026-10-12): the named STREAM this stem piece's
     natural lower end flows into AT THAT STREAM'S TOP — the edge enters the other water's main stem
     at its upstream-most measure, so no part of it lies above the junction (the Chilliwack at Vedder
     Crossing: the Vedder begins there). None where the water truly ends: it joins another river part
-    way up (a confluence, a "mouth"), a lake, the sea, or two named waters begin there."""
+    way up (a confluence, a "mouth"), a lake, the sea, or two named waters begin there. Within
+    `_BEGINS_M` of the other's stem top, and only the uppermost water flowing into that top piece."""
     got = set()
     for e in down.get(nid, ()):
         to = nodes.get(e.to_node)
@@ -149,8 +152,16 @@ def continues_as(nid: str, own: str, nodes: dict, down: dict, items_of: dict,
         for y in items_of.get(e.to_node, ()):
             if y == own or stem_of.get(y) != to.blk or y not in stem_top:
                 continue
-            if abs(e.at_measure - stem_top[y]) <= _BEGINS_M and abs(to.up_m - stem_top[y]) <= _BEGINS_M:
-                got.add(y)
+            if not (abs(to.up_m - stem_top[y]) <= _BEGINS_M
+                    and stem_top[y] - e.at_measure <= _BEGINS_M):
+                continue
+            # the uppermost inflow into that top piece (the Talchako joins the Bella Coola 23 m
+            # below the Atnarko: the Atnarko goes on as the Bella Coola, the Talchako has a mouth)
+            ins = [x.at_measure for x in (up or {}).get(e.to_node, ())
+                   if (nodes.get(x.from_node) is not None and nodes[x.from_node].blk != to.blk)]
+            if ins and e.at_measure < max(ins) - 0.5:
+                continue
+            got.add(y)
     return got.pop() if len(got) == 1 else None
 
 
@@ -268,7 +279,7 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
             hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary,
                            own=item_id)
             if lo == "mouth" and n.blk == stem:
-                y = continues_as(node_of[s], item_id, nodes, down, items_of, stem_of, stem_top)
+                y = continues_as(node_of[s], item_id, nodes, down, items_of, stem_of, stem_top, up)
                 if y is not None:
                     lo = f"continues:{y}"
             if n.blk == stem:

@@ -27,14 +27,18 @@ def _piece(nid, blk, lo, hi):
 
 
 def _graph():
-    """W (blk A) flows into V (blk B) at V's TOP; T (blk C) joins V part way up; V ends at the sea."""
+    """W (blk A) flows into V (blk B) 25 m below V's stem top (an FWA stub), the uppermost inflow; T
+    (blk C) joins V part way up; U (blk D) joins just below W at the top: a mouth; V ends at the sea."""
     nodes = {"A:0": _piece("A:0", "A", 0, 5000), "B:0": _piece("B:0", "B", 0, 1000),
-             "B:1000": _piece("B:1000", "B", 1000, 2000), "C:0": _piece("C:0", "C", 0, 800)}
+             "B:1000": _piece("B:1000", "B", 1000, 2025), "C:0": _piece("C:0", "C", 0, 800),
+             "D:0": _piece("D:0", "D", 0, 300)}
     edges = [NS(from_node="A:0", to_node="B:1000", at_measure=2000.0, kind="confluence"),
+             NS(from_node="D:0", to_node="B:1000", at_measure=1980.0, kind="confluence"),
              NS(from_node="C:0", to_node="B:0", at_measure=600.0, kind="confluence"),
              NS(from_node="B:1000", to_node="B:0", at_measure=1000.0, kind="confluence")]
-    handles = {"A:0": 1, "B:0": 2, "B:1000": 3, "C:0": 4}
-    items = [(1, "W", "stream", [1]), (2, "V", "stream", [2, 3]), (3, "T", "stream", [4])]
+    handles = {"A:0": 1, "B:0": 2, "B:1000": 3, "C:0": 4, "D:0": 5}
+    items = [(1, "W", "stream", [1]), (2, "V", "stream", [2, 3]), (3, "T", "stream", [4]),
+             (4, "U", "stream", [5])]
     return nodes, edges, handles, items
 
 
@@ -43,6 +47,7 @@ def test_a_water_that_goes_on_as_another_named_stream_does_not_end_at_a_mouth():
     rows = {sid: (lo, hi) for sid, _a, _b, lo, hi, _o, _s in SP.compute(nodes, edges, handles, items, {})}
     assert rows[1] == ("continues:V", "source")      # W becomes V at V's top
     assert rows[4] == ("mouth", "source")             # T joins V part way up: a true mouth
+    assert rows[5] == ("mouth", "source")             # U joins just below W, at V's top: a mouth
     assert rows[2][0] == "mouth"                      # V ends (the sea)
 
 
