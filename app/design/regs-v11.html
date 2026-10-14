@@ -424,6 +424,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .worked li span{color:var(--sub)}.worked li b{font-weight:700}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kp img{filter:brightness(.82)}}
 :root[data-theme="dark"] .kp img{filter:brightness(.82)}
+.num .also{display:block;max-width:12em;margin-top:4px;color:var(--accent,inherit);font-weight:600;line-height:1.25;text-align:right}
 </style>
 </head>
 <body>
@@ -545,7 +546,8 @@ function buildKeep(){
     if (!g || !g.headline) return;
     const h = g.headline, cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
     const head = art.querySelector('.rhead .rtitle')?.outerHTML || '';
-    const num = h.n != null ? `<div class="num">${h.n}<small>${esc(h.unit)}</small></div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
+    const also = (h.also || []).map(x => `<small class="also">or ${esc(x.says)}</small>`).join('');
+    const num = h.n != null ? `<div class="num">${h.n}<small>${esc(h.unit)}</small>${also}</div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
     const gor = art.querySelector('.gorigin'), lis = [...art.querySelectorAll('ul.glifts > li')];
     const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
     const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
