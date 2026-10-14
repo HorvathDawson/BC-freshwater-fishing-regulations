@@ -29,10 +29,22 @@ owner 2026-10-12): on the Vedder up to 2 non-lifted trout/char from streams AND 
 the Vedder's rainbows included; lakes face only the total — and, for a water's own count, the same fish
 kept elsewhere too (rows F9). Across waters order matters (rainbows kept here first use the tally another
 stream needs), so a basket is a SEQUENCE; the maxima search every order.
+
+HOW THE MAXIMA ARE FOUND (`Engine.most`): `can_keep` reads a basket only through its COUNTERS — for each
+rule, band and kind of place asked about (here / elsewhere), how many kept fish that rule counts — and only
+asks whether a counter is below the rule's take. So the search runs over counter states, each counter
+clipped at its take (past it, a counter refuses the same fish whatever its value): every fish of a class
+needs some counters below their take and adds one to others. A keepable fish that moves no counter can be
+kept for ever (the claim of no limit); otherwise every fish kept moves the state up, so the states are a
+finite DAG searched once each, memoised. Every order is still searched — the state forgets only what no
+rule can read. `most_brute` is the old search over count vectors of fish (the reference; the no-data
+tests hold the two equal on the fixture and on random cap systems).
 """
 from __future__ import annotations
 
 import math
+import sys
+import time
 from functools import lru_cache
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -71,7 +83,9 @@ class Engine:
         # elsewhere: the zone's (and B.C.'s) rules in force today, by kind of water
         self.zone = [r for r in self.rules if r.entry_id.startswith("z")
                      and read.in_force(r.f.get("when"), P.md, P.at) != "no"]
+        self._zone = {id(r) for r in self.zone}
         self._state: Dict[Tuple[str, str, str], str] = {}
+        self._bands_of: Dict[int, list] = {}
 
     # -- what a rule is to a fish ------------------------------------------------------------------
     def kind_of_place(self, place: str) -> str:
@@ -100,7 +114,7 @@ class Engine:
             return False
         if f[3] == "here":
             return self.state(r, f[0], f[1]) == "speaks"
-        return r in self.zone
+        return id(r) in self._zone
 
     def counts(self, r, g: Fish, f: Optional[Fish] = None) -> bool:
         """`r` counts `g` (a fish already kept) toward its take when `f` is asked about — RULINGS
@@ -115,13 +129,14 @@ class Engine:
                 return False
             return st in ("speaks", "lifted")
         # elsewhere: the zone's rules for that water, and this water's own counts (rows F9)
-        return r in self.zone or (not r.entry_id.startswith("z")
+        return id(r) in self._zone or (not r.entry_id.startswith("z")
                                   and self.state(r, g[0], g[1]) in ("speaks", "lifted"))
 
-    @staticmethod
-    def _band(r, L: float):
+    def _band(self, r, L: float):
         """(band index, take) of the length, or None where no band of the rule holds it."""
-        bs = _bands(r)
+        bs = self._bands_of.get(id(r))
+        if bs is None:
+            bs = self._bands_of[id(r)] = _bands(r)
         if not bs:
             return 0, (None if r.f.get("unlimited") else r.f.get("take"))
         for i, (a, b, t) in enumerate(bs):
@@ -155,7 +170,7 @@ class Engine:
         """One length inside every band any rule draws (cut points from every rule's lengths)."""
         cuts = {0.0}
         for r in self.rules:
-            for a, b, _t in _bands(r):
+            for a, b, _t in (self._bands_of.get(id(r)) or _bands(r)):
                 cuts.add(float(a))
                 if b != INF:
                     cuts.add(float(b))
@@ -181,8 +196,80 @@ class Engine:
 
     def most(self, cands: Sequence[Fish], base: Sequence[Fish] = (), cap: int = CAP) -> int:
         """The most fish of `cands` (any number of each) that can be kept after `base`, in the best
-        order, up to `cap` (the search stops there: ask for one more than a claim to prove it). Fish
-        that every rule treats alike are one class (their count is what matters)."""
+        order, up to `cap` (ask for one more than a claim to prove it) — searched over the baskets'
+        counter states (the module docstring); equal to `most_brute`, which the tests hold it to."""
+        base = tuple(base)
+        if not self.legal(base):
+            raise ValueError(f"card_check: the base basket {base} is not legal")
+        modes = {"here": ("", "", 0.0, "here"), "away": ("", "", 0.0, "stream")}
+        idx: Dict[tuple, int] = {}             # (rule, band, mode) -> counter
+        clip: List[int] = []
+        meta: List[tuple] = []                  # counter -> (rule, band, the fish asked about)
+        need_of: List[Optional[tuple]] = []
+        for f in cands:
+            mode = "here" if f[3] == "here" else "away"
+            need, blocked = [], False
+            for ri, r in enumerate(self.rules):
+                if not self.checks(r, f):
+                    continue
+                hit = self._band(r, f[2])
+                if hit is None:
+                    continue
+                bi, take = hit
+                if r.k == "gate" or take == 0:
+                    blocked = True
+                    break
+                if take is None:
+                    continue
+                c = idx.get((ri, bi, mode))
+                if c is None:
+                    c = idx[(ri, bi, mode)] = len(clip)
+                    # refused once n + 1 > take: every n from floor(take) on reads alike
+                    clip.append(int(math.floor(take)))
+                    meta.append((r, bi, modes[mode]))
+                need.append(c)
+            need_of.append(None if blocked else tuple(sorted(set(need))))
+
+        def inc(g: Fish) -> tuple:
+            return tuple(c for c, (r, bi, f) in enumerate(meta)
+                         if self.counts(r, g, f) and (self._band(r, g[2]) or (None,))[0] == bi)
+
+        state0 = [0] * len(clip)
+        for g in base:
+            for c in inc(g):
+                state0[c] = min(clip[c], state0[c] + 1)
+        classes = sorted({(n, inc(f)) for f, n in zip(cands, need_of) if n is not None})
+        memo: Dict[tuple, float] = {}
+
+        def best(st: tuple) -> float:
+            got = memo.get(st)
+            if got is not None:
+                return got
+            top: float = 0
+            for need, add in classes:
+                if any(st[c] >= clip[c] for c in need):
+                    continue
+                nxt = list(st)
+                for c in add:
+                    nxt[c] = min(clip[c], nxt[c] + 1)
+                nxt = tuple(nxt)
+                if nxt == st:                  # keepable, and keeping it changes nothing: no limit
+                    top = INF
+                    break
+                top = max(top, 1 + best(nxt))
+            memo[st] = top
+            return top
+
+        depth = sum(clip) + 50
+        if depth > sys.getrecursionlimit():
+            sys.setrecursionlimit(depth + 1000)
+        got = best(tuple(state0))
+        return cap if got >= cap else int(got)
+
+    def most_brute(self, cands: Sequence[Fish], base: Sequence[Fish] = (), cap: int = CAP) -> int:
+        """THE REFERENCE for `most`: the same maximum by keeping fish one at a time over count
+        vectors of classes, up to `cap` (the search stops there). Fish that every rule treats alike
+        are one class (their count is what matters). Exponential in the claim — tests only."""
         base = tuple(base)
         if not self.legal(base):
             raise ValueError(f"card_check: the base basket {base} is not legal")
@@ -315,7 +402,9 @@ def _unref(v, ids):
 
 def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> dict:
     """Build the rows for every part (or `items`) and prove every group of every card at `dates`:
-    {checked, groups, problems [str]} — one check per distinct (rows scope, segment)."""
+    {checked, groups, problems [str]} — one check per distinct (rule key, kind, steelhead, date, the
+    reader's verdicts, the card): rows are keyed by content and many sections share a key, so each
+    distinct card is proved once on each sample date (the date picks the zone rules in force elsewhere)."""
     from pathlib import Path
     from pipeline.deliver.answers import answers as A, common as C, encode as E, rows as RW
     from pipeline.deliver.calendar import day_of
@@ -325,7 +414,12 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
     B = C.load(bundle)
     ids = data["rule_ids"]
     seen, probs, groups = set(), [], 0
+    lad_json: Dict[int, str] = {}
+    t0 = time.monotonic()
     for k, key in enumerate(model.keys):
+        if k and k % 2000 == 0:
+            log(f"card_check: {k}/{len(model.keys)} keys, {len(seen)} distinct cards, {groups} groups, "
+                f"{len(probs)} problems, {time.monotonic() - t0:.0f} s")
         rk, kd = C.rule_key(key), C.key_dict(key)
         for md in dates:
             s = E.segment_index(model.segments[k], day_of(md))
@@ -333,10 +427,14 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
             built = [r["group"] for r in frame["rows"] if r.get("group")]
             if not built:
                 continue
-            if (rk, kd["kind"], kd["steelhead"], json_key(built)) in seen:
-                continue
-            seen.add((rk, kd["kind"], kd["steelhead"], json_key(built)))
             lad = model.sections["ladder"][k][s]
+            lj = lad_json.get(id(lad))         # the model holds every frame: ids are stable here
+            if lj is None:
+                lj = lad_json[id(lad)] = json_key(lad)
+            sig = (rk, kd["kind"], kd["steelhead"], md, lj, json_key(built))
+            if sig in seen:
+                continue
+            seen.add(sig)
             # the engine reads no open-subject gate (protected species, salmon): no open states
             P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                         kd["steelhead"], lad, md, {})
@@ -344,13 +442,14 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
                 groups += 1
                 for p in check_group(P, _unref(g, ids)):
                     probs.append(f"key {k} ({md[0]:02d}-{md[1]:02d}): {p}")
-    log(f"card_check: {groups} groups on {len(seen)} distinct cards, {len(probs)} problems")
+    log(f"card_check: {groups} groups on {len(seen)} distinct cards, {len(probs)} problems "
+        f"({time.monotonic() - t0:.0f} s)")
     return {"checked": len(seen), "groups": groups, "problems": probs}
 
 
 def json_key(v) -> str:
     import json
-    return json.dumps(v, sort_keys=True)
+    return json.dumps(v, sort_keys=True, default=str)
 
 
 def main(argv=None) -> int:
