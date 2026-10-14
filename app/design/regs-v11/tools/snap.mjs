@@ -20,6 +20,9 @@ const SPECS = [
   // for this part" has a page to show. One day each: the prototype's "today".
   ['chw{v}_1010', 'Chilliwack River', 1010],
   ['klmb_1010', 'Kootenay Lake — Main Body', 1010], ['kluwa_1010', 'Kootenay Lake — Upper West Arm', 1010],
+  // round 2: plain waters (no row of their own: only zone + province rules). Page v36 offers 32 waters; these are its
+  // only ones with no entries in the export. It offers no plain lake.
+  ['anderson_1010', 'Anderson River', 1010], ['wilkes_1010', 'Wilkes Creek', 1010],
 ];
 
 // runs inside the page: uses the page's own globals (state, WATERS, renderAll, openRule, …)

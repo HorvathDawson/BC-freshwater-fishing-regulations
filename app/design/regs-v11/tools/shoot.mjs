@@ -43,6 +43,17 @@ const SCREENS = [
   ['28-dark-keep', `${V}&theme=dark`],
   ['29-text-200-gear', `${V}&ts=2&at=%23g-line`],
   ['30-text-200-map', `${V}&ts=2&map=1`],
+  // round 2: the answers 2.8 quota card
+  ['31-card-vedder', `${V}&at=.g28`],
+  ['32-card-vedder-how-it-adds-up', `${V}&at=.worked`],
+  ['33-sheet-fished-elsewhere', `${V}&sheet=else:vedder_1010|0`],
+  ['34-card-kootenay', 'w=klwa&d=1010&at=.g28'],
+  ['35-card-cowichan-part2', 'w=cowichan&d=1010&p=1&at=.g28'],
+  ['36-card-chilliwack', 'w=chilliwack&d=1010&p=0&at=.g28'],
+  ['37-card-wilkes-plain-r2-stream', 'w=wilkes&d=1010&at=.g28'],
+  ['38-card-anderson-plain-r3-stream', 'w=anderson&d=1010&at=.g28'],
+  ['39-dark-card', `${V}&theme=dark&at=.g28`],
+  ['40-text-200-card', `${V}&ts=2&at=.g28`],
 ];
 const only = process.argv[2];
 for (const [name, hash] of SCREENS) {

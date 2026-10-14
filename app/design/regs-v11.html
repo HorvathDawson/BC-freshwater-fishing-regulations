@@ -396,6 +396,34 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #gear .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
 .ts2 .gdl > div{grid-template-columns:minmax(0,1fr);gap:2px}
 .ts2 .mlegend{max-width:80%}.ts2 .mk span{max-width:240px}
+/* round 9 / answers 2.8: the water-first quota card */
+.g28 .rhead .num{white-space:normal;max-width:42%}.g28 .rhead .num small{white-space:normal}
+.ts2 .g28 .rhead{flex-direction:column;gap:2px}.ts2 .g28 .rhead .num{text-align:left;max-width:none}
+.g28 .num.nolimit small{font:700 var(--t3) Archivo,sans-serif;color:var(--ink);max-width:9em;white-space:normal}
+.g28 .gorigin{margin:8px 0 0;font-weight:700}
+.lift{margin:10px 0 0;padding:6px 0 6px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--card))}
+.lift .ltag{display:block;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--accent)}
+.lift p{margin:2px 0 0}.lift .book,.bkh .book{min-height:0;padding:12px 0;margin:-12px 0}
+.gtotal{margin:10px 0 0;color:var(--sub)}
+.bkt{margin-top:12px}
+.bkh{margin:0;padding:6px 0 4px;border-top:1px solid var(--line2);font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.bkt.rule .bkh{color:var(--accent);border-top-color:var(--accent)}
+.bkh .book{text-transform:none;letter-spacing:0}
+.krow.k28{align-items:flex-start;gap:12px;border-top:1px solid var(--line);padding:10px 0}
+.bkh + .krow.k28{border-top:0}
+.k28 .kb{flex:1;min-width:0}.k28 .kdet{color:var(--sub);font-size:var(--t4)}
+.k28 .s2{margin:2px 0 0;font-size:var(--t4);color:var(--sub)}
+.k28 .duty{margin:2px 0 0;font-size:var(--t4);font-weight:700;color:var(--restricted)}
+.k28 .kn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);min-width:1.2em;text-align:right}
+.kpics{display:flex;flex:0 0 92px;padding-top:2px}
+.kp{width:52px;height:26px;background:var(--wash);border:1.5px solid var(--card);border-radius:13px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.kp img{width:100%;height:100%;object-fit:contain}.kp.sil{color:var(--line2)}.kp.sil svg{width:36px;height:18px}
+.worked{margin-top:12px}
+.worked ul{list-style:none;margin:0;padding:0}
+.worked li{padding:6px 0;border-top:1px solid var(--line);font-size:var(--t4)}.worked li:first-child{border-top:0}
+.worked li span{color:var(--sub)}.worked li b{font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kp img{filter:brightness(.82)}}
+:root[data-theme="dark"] .kp img{filter:brightness(.82)}
 </style>
 </head>
 <body>
@@ -418,13 +446,18 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 <script>
 "use strict";
 /* which snapshot states exist (the prototype can only show days the snapshot holds) */
+/* a water's parts, in the page's own order (the snapshot's `parts`): the state ids `<prefix><v>_<md>` that exist */
+const PARTS = (prefix, md) => { const any = Object.keys(SNAP.states).find(k => k.startsWith(prefix) && k.endsWith('_' + md));
+  return any ? SNAP.states[any].parts.map(p => `${prefix}${p.v}_${md}`).filter(k => SNAP.states[k]) : []; };
 const WATERS = {
   vedder:{snap:{1010:'vedder_1010', 515:'vedder_515', 615:'vedder_615'}, map:'vedder'},
   klwa:{snap:{1010:'klwa_1010', 1012:'klwa_1012'}, map:'klwa'},
-  cowichan:{snap:{1010:['cow0_1010','cow2_1010','cow3_1010','cow4_1010','cow1_1010']}, map:'cowichan'},
+  cowichan:{snap:{1010:PARTS('cow', 1010)}, map:'cowichan'},
   // v11: the parts the water map steps to (one day each)
-  chilliwack:{snap:{1010:['chw1_1010','chw2_1010','chw0_1010']}, map:'vedder'},
+  chilliwack:{snap:{1010:PARTS('chw', 1010)}, map:'vedder'},
   klmb:{snap:{1010:'klmb_1010'}, map:'klwa'}, kluwa:{snap:{1010:'kluwa_1010'}, map:'klwa'},
+  // round 2: plain waters (no row of their own); not in the water map export
+  wilkes:{snap:{1010:'wilkes_1010'}, map:null}, anderson:{snap:{1010:'anderson_1010'}, map:null},
 };
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
@@ -456,7 +489,7 @@ const SIL = '<svg viewBox="0 0 64 32" aria-hidden="true"><path d="M6 16c7-8 18-1
 function thumb(codes){ const c = (codes || []).find(x => FISHPIC(x).length);
   return `<span class="th${c ? '' : ' sil'}" aria-hidden="true">${c ? `<img src="../apps/mobile/assets/fish/${FISHPIC(c)[0].file}" alt="" loading="lazy">` : SIL}</span>`; }
 /* B3: every cited rule carries its book page: after each remaining data-rule chip, the data's "Book p.N ↗" */
-const citeBooks = html => html.replace(/(<button\b[^>]*\bdata-rule="([^"]+)"[^>]*>[\s\S]*?<\/button>)/g, (m, b, key) => { const bl = bookLinks(key); return bl ? `<span class="cite">${b}${bl}</span>` : b; });
+const citeBooks = html => html.replace(/<button class="bookref"[^>]*\bdata-rule="([^"]+)"[^>]*>[^<]*<\/button>/g, (m, key) => bookLinks(key) || m).replace(/(<button\b[^>]*\bdata-rule="([^"]+)"[^>]*>[\s\S]*?<\/button>)/g, (m, b, key) => { const bl = bookLinks(key); return bl ? `<span class="cite">${b}${bl}</span>` : b; });
 /* B4: a lone ⓘ stays inline after its term; two or more side by side become one "What these words mean" link */
 const tip = id => `<button class="gl" type="button" data-gl="${id}" aria-label="What does ${esc((SNAP.gloss[id]?.title || id))} mean?">ⓘ</button>`;
 const tips = ids => !ids.length ? '' : ids.length === 1 ? tip(ids[0]) : `<button class="glk" type="button" data-gl="${ids.join(',')}">What these words mean</button>`;
@@ -473,7 +506,7 @@ function hdr(){
       <div class="ttl"><b>${esc(st.name)}</b><small>${esc(st.sub)}</small></div>
       <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
     <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div>
-      <button class="mapbtn" data-map="1" aria-label="View this water on a map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3.5H21V20.5H3Z" stroke-width="1.8"/><path d="M8 3.5V9L12.5 13.5V20.5M17.5 3.5V7L12.5 13.5" stroke-width="2.2"/></svg><span>Map</span></button></div>
+      ${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '<!--'}<button class="mapbtn" data-map="1" aria-label="View this water on a map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3.5H21V20.5H3Z" stroke-width="1.8"/><path d="M8 3.5V9L12.5 13.5V20.5M17.5 3.5V7L12.5 13.5" stroke-width="2.2"/></svg><span>Map</span></button>${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '-->'}</div>
     ${parts ? `<div class="parts" role="group" aria-label="Parts, from the mouth">${parts.map((id, i) => { const s2 = SNAP.states[id], k2 = statusOf(s2), on = i === S.p;
       return `<button aria-current="${on}" data-part="${i}" aria-label="Part ${i+1}: ${esc(st.parts.find(o => o.v === s2.part)?.t || '')}, ${k2}"><i class="${k2==='closed'?'s-closed':'s-keep'}"></i>${i+1}${on ? `<span>${esc(partLbl(st.parts.find(o => o.v === s2.part)))}</span>` : ''}</button>`; }).join('')}</div>` : ''}</div>`;
 }
@@ -504,37 +537,33 @@ function buildKeep(){
     if (m) { n.textContent = m[3]; b.before(doc.createTextNode(m[1] + m[2])); } });
   root.querySelectorAll('.closechain li').forEach(li => { const t = li.firstChild; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(/^No fishing for any game fish,?\s*/, '').replace(/^from streams,\s*/, 'From streams, ');
     const sc = li.querySelector('.muted'), b = li.querySelector('.srcbtn'); li.innerHTML = `<span class="cd">${esc(li.firstChild.textContent.trim())}${sc ? ` <span class="muted small">${esc(sc.textContent)}</span>` : ''}</span>${b ? b.outerHTML : ''}`; });
+  // round 9 / answers 2.8: each group drawn from the data's card (rows[i].group) — headline, origin, lifts, total line,
+  // buckets of kinds, the worked count — each fact once. From v36's own HTML only what the data does not carry:
+  // the title and scope, the origin line's "How to tell" + ⓘ, the rule keys behind each "Book p.N", the steelhead note.
   root.querySelectorAll('article.row.ledger').forEach(art => {
     const ri = +(art.dataset.row || 'r0').slice(1), raw = st.rows[ri] || {}, g = raw.group;
-    // header numeral: the group's total from the data, not the stream sub-cap
-    const num = art.querySelector('.rhead .num'); if (g && num && typeof g.total === 'number') num.innerHTML = `${g.total}<small>a day</small>`;
-    // the group sentence as a lead line + a short list (answers 2.5 group.says; answers 2.6 will word it)
-    const gl = art.querySelector('.gline');
-    if (gl && g && g.says) {
-      const first = g.says.replace(/\.$/,''), rest = (g.items || []).map(t => t.replace(/\.$/,''));
-      // the page's ⓘs, kept where the page puts them: those right after the group sentence, then those after the shared line
-      const leadIds = [], elsIds = []; let past = false;
-      gl.childNodes.forEach(n => { if (n.nodeType === 3 && n.textContent.trim()) past = true; else if (n.nodeType === 1 && n.classList.contains('gl')) (past ? elsIds : leadIds).push(n.dataset.gl); });
-      // the page's list and shared line spill out of its <p> (a <ul> closes it): drop them, they are re-drawn from the data below
-      for (let n = gl.nextSibling; n && !(n.nodeType === 1 && n.matches('ul.exs, .gfor, .gquiet, section')); ) { const nx = n.nextSibling;
-        if (n.nodeType === 1 && n.classList.contains('gl')) elsIds.push(n.dataset.gl); n.remove(); n = nx; }
-      gl.outerHTML = `<p class="lead">${esc(first)}. ${tips(leadIds)}</p>${rest.length ? `<ul class="caps">${rest.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}${raw.elsewhere ? `<p class="els">${esc(raw.elsewhere.says)} ${tips(elsIds)}</p>` : ''}`
-        + (raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '');
-      art.querySelectorAll('ul.exs').forEach(e => e.remove());
-    }
-    // the species guide sits right under the group's header
-    const codes = (g && g.kinds) || raw.members || [];
-    const rh = art.querySelector('.rhead'); if (rh && art.querySelector('.sblock')) rh.insertAdjacentHTML('afterend', speciesRow(codes));
-    // kinds: rows that open one clean sheet (the "how this was decided" lives there)
-    const items = (st.kinds && st.kinds[ri]) || [], statics = items.filter(x => x.static);
-    art.querySelectorAll('details.sp2').forEach((d, ki) => {
-      const sum = d.querySelector('summary'), dec = d.querySelector('.minidec'), it = items.find(x => art.dataset.row + x.key === d.dataset.dd);
-      const id = `${sid()}|${art.dataset.row}|${ki}`; KINDS[id] = {head: sum.innerHTML, dec: dec ? dec.innerHTML : '', codes: it ? it.members : [], title: sum.querySelector('.nm')?.textContent || ''};
-      const b = doc.createElement('button'); b.className = 'krow'; b.dataset.open = 'kind:' + id;
-      b.innerHTML = `${thumb(it && it.members)}<span class="kb">${sum.innerHTML}</span>${CHEV}`; d.replaceWith(b);
-    });
-    art.querySelectorAll('.sp2.static:not(.solo)').forEach((d, si) => { const it = statics[si];
-      const r = doc.createElement('div'); r.className = 'krow'; r.innerHTML = `${thumb(it && it.members)}<span class="kb">${d.innerHTML}</span>`; d.replaceWith(r); });
+    if (!g || !g.headline) return;
+    const h = g.headline, cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+    const head = art.querySelector('.rhead .rtitle')?.outerHTML || '';
+    const num = h.n != null ? `<div class="num">${h.n}<small>${esc(h.unit)}</small></div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
+    const gor = art.querySelector('.gorigin'), lis = [...art.querySelectorAll('ul.glifts > li')];
+    const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
+    const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
+    const vb = [...art.querySelectorAll('section.bucket')];
+    const lifts = (g.lifts || []).map((l, i) => { const b = (g.buckets || []).find(x => x.by === l.by && x.why === 'rule');
+      return `<div class="lift"><span class="ltag">${esc(b?.title || '')}</span><p>${esc(l.says)} ${bookLinks(keyIn(lis[i]))}</p></div>`; }).join('');
+    const total = g.total_line ? `<p class="gtotal">${esc(g.total_line)} ${tips(glOf(lis[(g.lifts || []).length]))}</p>` : '';
+    // one picture per species, stacked into a fixed 92 px column: the more species, the more they overlap
+    const pics = codes => { const step = codes.length > 1 ? Math.min(20, 40 / (codes.length - 1)) : 0;
+      return `<span class="kpics">${codes.map((c, i) => { const f = FISHPIC(c)[0], nm = SNAP.fish[c]?.name || c;
+      return `<button type="button" class="kp${f ? '' : ' sil'}"${i ? ` style="margin-left:${(step - 52).toFixed(1)}px"` : ''}${SNAP.fish[c] ? ` data-open="sp:${c}"` : ''} aria-label="${esc(nm)}">${f ? `<img src="../apps/mobile/assets/fish/${f.file}" alt="" loading="lazy">` : SIL}</button>`; }).join('')}</span>`; };
+    const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bk.title ? `<p class="bkh">${esc(bk.title)}${key ? ` · ${bookLinks(key)}` : ''}</p>` : ''}${bk.kinds.map(k => `<div class="krow k28">${pics(k.species)}<div class="kb"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
+    const worked = (g.worked || []).length ? `<div class="worked"><p class="bkh">How it adds up</p><ul>${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <b>${esc(w.a)}</b></li>`).join('')}</ul></div>` : '';
+    const fe = raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '';
+    const quiet = art.querySelector('.gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
+    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${lifts}${total}${worked}${buckets}${fe}${quiet}${more}`;
+    art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
   root.querySelectorAll('details.others').forEach(o => {
@@ -867,7 +896,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0}, true); } });
 function poster(){
-  $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2']]
+  $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
     .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${S.w==='cowichan'?'|'+S.p:''}`===k?'on':''}" data-cw="${k}">${t}</button>`).join('');
   $('c-t').innerHTML = [['','Auto'],['light','Light'],['dark','Dark'],['|2','200% text']].map(([k,t]) => `<button class="pill" data-ct="${k}">${t}</button>`).join('');
 }

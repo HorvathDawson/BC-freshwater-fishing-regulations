@@ -11,6 +11,11 @@
 //                         (packages/map/style/themes/{light,dark}.json color.status.*), in light and in dark
 //   map-from-pipeline     the map's data is the pipeline export's (water_map_export), with a labelled boundary
 //   map-steps-and-back    ▲ Upstream moves to the next part; Escape returns to the regulations at the same scroll
+//   card-* (answers 2.8, on the Vedder, Kootenay LWA, Cowichan part 2, Chilliwack and Wilkes Creek, a plain stream):
+//   card-headline         each group's big number is the data's headline.n ("2 a day from this stream"), never its total
+//   card-one-book-per-lift  each lift line carries exactly one "Book p.N" link
+//   card-picture-per-species  every kind row shows one picture per species it names
+//   card-cap-once         no line on a group is repeated, and the big number never restates the total line's cap
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath, pathToFileURL } from 'node:url';
 import { open } from './cdp.mjs';
 
@@ -83,6 +88,42 @@ await page('w=vedder&d=1010&scroll=600', async b => {
   check('map-steps-and-back', !!r.n0 && r.n1 && r.n1 !== r.n0 && !!r.word && !r.open && r.after === r.before,
     `upstream "${r.n0}" → "${r.n1}" (${r.word || 'no status words'}); map ${r.open ? 'still open' : 'closed'}; scroll ${r.before} → ${r.after}`);
 });
+
+// 8–11. the quota card (answers 2.8): what the data says, once
+const CARDS = [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=1010'], ['cow part 2', 'w=cowichan&d=1010&p=1'],
+  ['chilliwack', 'w=chilliwack&d=1010&p=0'], ['wilkes', 'w=wilkes&d=1010']];
+const card = {headline: [], book: [], pics: [], once: []};
+for (const [name, hash] of CARDS) await page(hash, async b => {
+  const r = JSON.parse(await b.evaluate(`JSON.stringify((() => {
+    const out = []; if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return [{missing: true}];
+    const st = SNAP.states[sid()], norm = t => t.replace(/\\s+/g, ' ').trim();
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => {
+      const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+      const num = (art.querySelector('.rhead .num')?.firstChild?.textContent || '').trim();
+      const lifts = (g.lifts || []).map(l => { const el = [...art.querySelectorAll('p, li, div')].reverse().find(e => norm(e.textContent).includes(norm(l.says).slice(0, 40)));
+        return el ? (norm(el.textContent).match(/Book p\\.\\d+/g) || []).length : -1; });
+      const kinds = (g.buckets || []).flatMap(bk => bk.kinds).map(k => { const row = [...art.querySelectorAll('.krow')].find(e => e.textContent.includes(k.name));
+        return [k.name, k.species.length, row ? row.querySelectorAll('img, svg').length : -1]; });
+      const lines = [...art.querySelectorAll('p, li')].map(e => norm(e.textContent)).filter(Boolean);
+      const dup = lines.filter((t, i) => lines.indexOf(t) !== i);
+      out.push({head: g.headline.n, num, total: g.total, totalLine: !!g.total_line, lifts, kinds, dup});
+    }); return out; })())`));
+  for (const g of r) {
+    if (g.missing) { card.headline.push([name, 'a state', 'not on this page']); continue; }
+    if (g.head != null) card.headline.push([name, g.head, g.num]);
+    g.lifts.forEach(n => card.book.push([name, n]));
+    g.kinds.forEach(([k, want, got]) => card.pics.push([name, k, want, got]));
+    card.once.push([name, g.dup, g.totalLine && g.total != null && g.head !== g.total && +g.num === g.total]);
+  }
+});
+const badH = card.headline.filter(([, n, num]) => String(n) !== num);
+check('card-headline', card.headline.length > 0 && !badH.length, `${badH.length} of ${card.headline.length} groups: e.g. ${JSON.stringify(badH[0])} [water, headline.n, shown]`);
+const badB = card.book.filter(([, n]) => n !== 1);
+check('card-one-book-per-lift', card.book.length > 0 && !badB.length, `${badB.length} of ${card.book.length} lifts: e.g. ${JSON.stringify(badB[0])} [water, book links]`);
+const badP = card.pics.filter(([, , want, got]) => want !== got);
+check('card-picture-per-species', card.pics.length > 0 && !badP.length, `${badP.length} of ${card.pics.length} kind rows: e.g. ${JSON.stringify(badP[0])} [water, kind, species, pictures]`);
+const badO = card.once.filter(([, dup, total]) => dup.length || total);
+check('card-cap-once', !badO.length, `${badO.length} groups: e.g. ${JSON.stringify(badO[0])} [water, repeated lines, big number = the total line's cap]`);
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
