@@ -131,7 +131,11 @@ def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     assert g["headline"]["says"] == "4 a day" and g["lifts"] == [] and g["total_line"] is None
     k = _kinds(g)
     assert k["EB/GB/CT/RB"]["notes"] == ["only 1 over 50 cm"]
-    assert k["DV/LT"]["notes"] == ["uses your 1 over 50 cm"]
+    # round 9 gate: the lake's own "Dolly Varden 1 (none under 60 cm)" is the cap its Dolly Varden
+    # draw from (P4), a bucket of its own; both char still use the 1 over 50 cm between them
+    assert [b["title"] for b in g["buckets"]] == ["This lake’s rule", "The rest of the 4 a day"]
+    assert k["DV"]["notes"] == ["uses your 1 over 50 cm", "counts toward the 4 a day"]
+    assert k["LT"]["notes"] == ["uses your 1 over 50 cm"]
     assert not any("steelhead" in t.lower() for kk in k.values() for t in kk["notes"])
 
 

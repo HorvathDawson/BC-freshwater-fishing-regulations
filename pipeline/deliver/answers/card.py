@@ -82,6 +82,10 @@ def _whose(P, L) -> Tuple[str, str]:
     b = badge_of(L)
     if b == "water":
         n = _noun(P, L)
+        # a row naming a lake that also holds a stream (Shuswap Lake's row on the Little River): the
+        # water by its name, never "this lake" on a river
+        if name and (n in ("lake", "reservoir", "pond")) != (P.kind == "lake"):
+            return f"On the {name}", f"the {name}’s rule"
         return f"On this {n}", f"this {n}’s rule"
     if b == "bc":
         return "In B.C.", "the B.C. rule"
@@ -95,13 +99,25 @@ def _kept_origins(model: dict, S: str) -> List[str]:
             if R_.get(k) and _keepish(R_[k]["status"])]
 
 
-def _item_of(rows_out: List[dict], home: int, S: str) -> Optional[dict]:
+def _items_of(rows_out: List[dict], home: int, S: str) -> List[dict]:
+    """Every row item holding `S`, the group's own row first."""
     order = [rows_out[home]] + [r for i, r in enumerate(rows_out) if i != home]
-    for r in order:
-        for it in r.get("items") or []:
-            if S in it["members"]:
-                return it
-    return None
+    return [it for r in order for it in r.get("items") or [] if S in it["members"]]
+
+
+def _kind_n(rows_out: List[dict], home: int, S: str, total) -> Tuple[Optional[float], int]:
+    """The most of one kind, and which item says it: its OWN row's item (its bands) — a
+    cross-reference on the group's row ("has its own limit, counts toward this one", rows F4) only
+    bounds it by the number it counts toward. The Shuswap's "char 1 (none under 60 cm)" on a stream
+    under it: 1, not the stream share's 4; the Flathead's tributaries' trout 1: 1, not 2. Kinds
+    share a kind row only when one item holds them (one limit together): Bridge Lake's lake trout 1
+    (its own row) and Region 5's Dolly Varden 1 are two rows, not "1" for both together."""
+    its = _items_of(rows_out, home, S)
+    got = [(n, it) for it in its if (n := _item_n(it, total)) is not None]
+    if not got:
+        return None, 0
+    own = next((it for it in its if not it.get("xref") and it.get("bands")), got[0][1])
+    return min(n for n, _ in got), id(own)
 
 
 def _item_n(it: dict, total) -> Optional[float]:
@@ -140,7 +156,7 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
 
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     """The card fields of one group total (see the module docstring)."""
-    from pipeline.deliver.answers.rows import _lift_words, written_name_of, keep_range
+    from pipeline.deliver.answers.rows import _lift_words, _kept, written_name_of, keep_range
     T = P.by_key[grp["pool"]]
     total = grp["total"]
     unlimited = total == "unlimited"
@@ -154,16 +170,65 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                  None)
     sizes = [s for s in grp["subcaps"] if s["over_cm"] is not None and not s["water"]]
 
+    by_lift = {S: L["by"] for L in (share or {}).get("lifted", []) for S in L["members"]}
+    cap_all = INF if unlimited else total
+
+    # -- every kind: its own number, keep range, and the INNER pool holding it --------------------
+    # A kind whose decided winner is another pool than the total (a water's own "trout 1": the St.
+    # Mary's tributaries, Abbott Lake, the Dean; an area's: the Liard watershed's bull trout 1)
+    # draws from THAT cap, smaller than the share or the total it would otherwise share: it gets
+    # a bucket of its own, and the headline is what this water allows (RULINGS P9, ROUND9 P1/P4).
+    info: Dict[str, dict] = {}
+    for S in kinds:
+        n, said_by = _kind_n(rows_out, home, S, total)
+        if n is None:
+            n = cap_all
+        lo, hi = keep_range(P, model, [S]) or (0, INF)
+        default = share["take"] if share is not None and S in share["of"] else cap_all
+        m = _kept(model, S)
+        W = m["win"] if m else None
+        inner = W if (W is not None and W.k == "pool" and W.key != grp["pool"] and S not in by_lift
+                      and isinstance(W.f.get("take"), (int, float)) and not W.f.get("unlimited")
+                      and W.f["take"] < default) else None
+        info[S] = {"n": n, "said_by": said_by, "lo": lo, "hi": hi, "inner": inner}
+
+    def capacity(K: Sequence[str], base) -> Optional[float]:
+        """How many of the kinds `K` this water lets you keep together, at most `base`: each inner
+        pool holds its kinds to its number, every other kind to its own; a sub-cap of the total
+        holding every one of them (a count clause, the share, a size clause every one of them is
+        wholly inside) holds them together."""
+        best = INF if base is None else base
+        held: Dict[str, float] = {}
+        free = 0.0
+        for S in K:
+            W = info[S]["inner"]
+            if W is not None:
+                held[W.key] = held.get(W.key, 0) + info[S]["n"]
+            else:
+                free += info[S]["n"]
+        best = min(best, free + sum(min(v, P.by_key[k].f["take"]) for k, v in held.items()))
+        for sc in grp["subcaps"]:
+            if sc["under_cm"] is not None or not set(K) <= set(sc["of"]):
+                continue
+            if sc["over_cm"] is not None and not all(info[S]["lo"] >= sc["over_cm"] for S in K):
+                continue
+            best = min(best, sc["take"])
+        return None if best == INF else best
+
     # -- headline: this water's number with no lift ------------------------------------------------
     if unlimited:
         head = {"n": None, "unit": f"no daily limit on {what}", "says": f"No daily limit on {what}"}
-    elif share is not None:
-        unit = f"a day from this {share['water']}"
-        head = {"n": share["take"], "unit": unit, "says": f"{_js(share['take'])} {unit}"}
-        states.append({"r": share["r"], "line": "headline"})
     else:
-        head = {"n": total, "unit": "a day", "says": f"{_js(total)} a day"}
-        states.append({"r": grp["pool"], "line": "headline"})
+        base = share["take"] if share is not None else total
+        n_head = capacity(kinds, base)
+        unit = f"a day from this {share['water']}" if share is not None else "a day"
+        head = {"n": n_head, "unit": unit, "says": f"{_js(n_head)} {unit}"}
+        inners = {info[S]["inner"].key for S in kinds if info[S]["inner"] is not None}
+        if n_head == base:
+            states.append({"r": share["r"] if share is not None else grp["pool"], "line": "headline"})
+        elif len(inners) == 1 and all(info[S]["inner"] is not None for S in kinds) \
+                and n_head == P.by_key[next(iter(inners))].f["take"]:
+            states.append({"r": next(iter(inners)), "line": "headline"})
 
     # -- origin ----------------------------------------------------------------------------------
     os_ = {tuple(_kept_origins(model, S)) for S in kinds}
@@ -192,18 +257,18 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                       "by": L["by"], "kinds": list(L["members"]), "n": n})
         states.append({"r": L["by"], "line": "lift"})
     total_line = None
-    if share is not None and not unlimited:
-        other = "lakes" if share["water"] == "stream" else "streams"
+    if not unlimited and (share is not None or (head["n"] is not None and head["n"] < total)):
+        wk = share["water"] if share is not None else ("stream" if P.kind == "stream" else "lake")
+        other = "lakes" if wk == "stream" else "streams"
         scope = T.x.get("entry_name") or "the region"
         total_line = f"No more than {_js(total)} {what} a day across {scope}, {other} included."
         states.append({"r": grp["pool"], "line": "total"})
 
     # -- buckets and kind rows -------------------------------------------------------------------
-    by_lift = {S: L["by"] for L in (share or {}).get("lifted", []) for S in L["members"]}
-    buckets: List[dict] = []
+    share_b = None
     if share is not None:
-        buckets.append({"title": f"Share the {_js(share['take'])} from {share['water']}s",
-                        "cap": share["take"], "by": share["r"], "why": "share", "kinds": []})
+        share_b = {"title": f"Share the {_js(share['take'])} from {share['water']}s",
+                   "cap": share["take"], "by": share["r"], "why": "share", "kinds": []}
     # one bucket per lifting entry (Duncan: its rainbow and its Dolly Varden rules are one row)
     lift_bucket: Dict[str, dict] = {}
     for L in (share or {}).get("lifted", []):
@@ -213,34 +278,55 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             b = {"title": common.cap(_whose(P, R_)[1]), "cap": 0, "by": L["by"], "why": "rule",
                  "kinds": []}
             lift_bucket[R_.entry_id] = b
-            buckets.append(b)
         c = lift_cap[L["by"]]
         b["cap"] = None if c is None or b["cap"] is None else b["cap"] + c
     for b in lift_bucket.values():
         if b["cap"] is not None and not unlimited:
             b["cap"] = min(b["cap"], total)
-    rest = None
-    if share is None or any(S not in share["of"] and S not in by_lift for S in kinds):
-        rest = {"title": None if share is None else f"The rest of the {_js(total)} a day",
-                "cap": None if unlimited else total, "by": grp["pool"], "why": "total", "kinds": []}
-        buckets.append(rest)
+    # one bucket per entry whose own pool holds kinds (the Shuswap's char 1 and rainbow 1: one)
+    own_bucket: Dict[str, dict] = {}
+    rest = {"title": None, "cap": None if unlimited else total, "by": grp["pool"], "why": "total",
+            "kinds": []}
+    members: Dict[int, List[str]] = {}
 
     def bucket_of(S):
         if S in by_lift:
             return lift_bucket[P.by_key[by_lift[S]].entry_id]
-        if share is not None and S in share["of"]:
-            return buckets[0]
+        W = info[S]["inner"]
+        if W is not None:
+            b = own_bucket.get(W.entry_id)
+            if b is None:
+                b = own_bucket[W.entry_id] = {"title": common.cap(_whose(P, W)[1]), "cap": 0,
+                                              "by": W.key, "why": "rule", "kinds": [], "_w": set()}
+            if W.key not in b["_w"]:
+                b["_w"].add(W.key)
+                b["cap"] += W.f["take"]
+            return b
+        if share_b is not None and S in share["of"]:
+            return share_b
         return rest
+
+    where_of = {S: bucket_of(S) for S in kinds}
+    buckets: List[dict] = [b for b in ([share_b] + list(lift_bucket.values()) + list(own_bucket.values())
+                                       + [rest]) if b is not None]
+    for b in buckets:
+        b.pop("_w", None)
+        ks = [S for S in kinds if where_of[S] is b]
+        if not ks:
+            continue
+        if b is not share_b and b["why"] == "rule" and b not in lift_bucket.values():
+            b["cap"] = min(b["cap"], share["take"] if share is not None and set(ks) <= set(share["of"])
+                           else cap_all)
+        b["cap"] = capacity(ks, b["cap"])
+    if rest["kinds"] is not None and len([b for b in buckets if any(where_of[S] is b for S in kinds)]) > 1:
+        rest["title"] = f"The rest of the {_js(total)} a day"
 
     rows_by: Dict[tuple, dict] = {}
     for S in kinds:
-        it = _item_of(rows_out, home, S)
-        n = _item_n(it, total) if it is not None else None
-        if n is None:
-            n = INF if unlimited else total
-        b = bucket_of(S)
-        kr = keep_range(P, model, [S]) or (0, INF)
-        lo, hi = kr
+        n, said_by, lo, hi = info[S]["n"], info[S]["said_by"], info[S]["lo"], info[S]["hi"]
+        b = where_of[S]
+        if b["cap"] is not None and n >= b["cap"]:
+            said_by = 0                        # the bucket's own cap holds them together
         o = _kept_origins(model, S)
         ow = o[0] if len(o) == 1 else ""
         if S == "ST" and P.steelhead_water:
@@ -256,13 +342,20 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                 notes.append(f"only {_js(sc['take'])} over {_js(sc['over_cm'])} cm")
                 break
             cap_b = b["cap"] if b["cap"] is not None else INF
-            if lo >= sc["over_cm"] and sc["take"] < cap_b and len(sc["of"]) > 1:
+            # wholly over the size: it uses the shared count when that is smaller than its bucket,
+            # or is shared with kinds of another bucket (Chilliwack Lake: the lake's Dolly Varden 1
+            # and Region 2's lake trout 1 — both over 60 cm, only 1 over 50 cm between them)
+            shared = any(where_of.get(x) is not b for x in sc["of"] if x != S and x in where_of)
+            if lo >= sc["over_cm"] and len(sc["of"]) > 1 and (sc["take"] < cap_b or shared):
                 notes.append(f"uses your {_js(sc['take'])} over {_js(sc['over_cm'])} cm")
                 break
-        if b is not None and b["why"] == "rule" and not unlimited:
-            notes.append(f"counts toward the {_js(total)} a day")
+        if b["why"] == "rule" and not unlimited:
+            if b not in lift_bucket.values() and share is not None and S in share["of"]:
+                notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
+            else:
+                notes.append(f"counts toward the {_js(total)} a day")
         duties = _duties(P, model, S, n)
-        key = (id(b), n, name, detail, tuple(notes), tuple(duties))
+        key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties))
         k = rows_by.get(key)
         if k is None:
             k = {"species": [], "name": name, "detail": detail, "n": None if n == INF else n,

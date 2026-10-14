@@ -9,7 +9,10 @@ then holds every claim of the card against those maxima:
   each kind row's number   = the most of that kind alone, here (and of each of its species alone);
   each bucket's cap        = the most of its kinds together, here;
   the headline             = the most of every kind together, here, WITH NO LIFT (lifted rules checked);
-  the total                = the most of every kind together, here, on other streams and on lakes;
+  the total                = a zone's (B.C.'s): the most of every kind together, here, on other
+                             streams and on lakes; a water's (an area's) own: the most here, and one
+                             fewer after a fish kept elsewhere (rows F9) — past it the zone's rules
+                             govern the other waters;
   each worked count        = what is left, here / on another stream / on a lake, after keeping that many
                              of the lifted kind here (RULINGS Q23b);
   no two card lines state the same cap.
@@ -125,9 +128,17 @@ class Engine:
             return False
         if g[3] == "here":
             st = self.state(r, g[0], g[1])
-            if st == "lifted" and (f is None or f[3] == "here"):
+            if f is None or f[3] == "here":
+                return st == "speaks"
+            # for a fish kept on ANOTHER water: a daily quota counts every fish kept today (p.80;
+            # rows F9) — one this water's own number decided too (the zone's pool DISPLACED by a
+            # water's smaller one sits beside it, RULINGS Q4: Deer Lake's 2, then Region 2's 4 leaves
+            # 2 for another lake) — save a fish a water's rule LIFTED out of the total itself: it is
+            # counted apart (rows F7, Ross Lake's brook trout 5). One lifted out of a sub-cap still
+            # counts toward it (RULINGS Q23b, the stream tally).
+            if st == "lifted" and r.k == "pool":
                 return False
-            return st in ("speaks", "lifted")
+            return st in ("speaks", "lifted", "displaced")
         # elsewhere: the zone's rules for that water, and this water's own counts (rows F9)
         return id(r) in self._zone or (not r.entry_id.startswith("z")
                                   and self.state(r, g[0], g[1]) in ("speaks", "lifted"))
@@ -339,9 +350,28 @@ def check_group(P, g: dict) -> List[str]:
         ok, got = proved(head["n"], no_lift.fish(kinds), no_lift)
         if not ok:
             probs.append(f"{where}: headline says {head['n']}, with no lift {got} may be kept here")
-    ok, got = proved(g["total"], E.fish(kinds, PLACES))
-    if not ok:
-        probs.append(f"{where}: the total says {g['total']}, {got} may be kept here and elsewhere")
+    if E.T.entry_id.startswith("z"):
+        # the zone's (or B.C.'s) total holds on every water of the region: here and elsewhere together
+        ok, got = proved(g["total"], E.fish(kinds, PLACES))
+        if not ok:
+            probs.append(f"{where}: the total says {g['total']}, {got} may be kept here and elsewhere")
+    else:
+        # a water's (an area's) own number limits what is kept HERE; the fish kept elsewhere today
+        # count toward it (rows F9), but past it the region's rules govern the other waters — keep 2
+        # on a lake whose quota is 2, and the region's 5 still allows 3 on another lake
+        ok, got = proved(g["total"], E.fish(kinds))
+        if not ok:
+            probs.append(f"{where}: the total says {g['total']}, {got} may be kept here")
+        c = _claim(g["total"])
+        # a fish kept elsewhere that the total counts, in a band of it that has a number
+        away = next((f for f in E.fish(kinds, ("lake", "stream"))
+                     if E.counts(E.T, f, f[:3] + ("here",))
+                     and ((E._band(E.T, f[2]) or (0, None))[1] or 0) > 0), None) if c else None
+        if away is not None:
+            after = E.most(E.fish(kinds), (away,), cap=int(c) + 1)
+            if after > c - 1:
+                probs.append(f"{where}: the total says {g['total']}, but after 1 kept elsewhere "
+                             f"{after} more may be kept here (fish kept elsewhere count toward it)")
     other = "stream" if P.kind == "stream" else "lake"
     away = "lake" if P.kind == "stream" else "stream"
     for w in g.get("worked") or []:

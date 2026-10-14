@@ -142,6 +142,13 @@ DECISIONS = [
     "2.7 items are gone (they restated the rows). RULINGS Q23b: lifted fish count toward the stream "
     "tally (`elsewhere`, `worked`). Every number is proved by `card_check` against baskets kept under "
     "the rules and the reader's verdicts.",
+    # round 9 card gate (2026-10-13)
+    "F16 A FISH WHOSE EVERY LENGTH IS RELEASED IS RELEASED (`_range_released`): the take-0 bands of the "
+    "rules speaking for it, together, cover its whole range on the part — Marshall (Lonzo) Creek's "
+    "'Trout/char 20-30 cm' beside Region 2's char 'none under 60 cm' (no char may be kept), the "
+    "Coquitlam's 'Hatchery trout 2 (20-30 cm only)' on a steelhead water (no steelhead). Before, the "
+    "card said '1' and '2'. An ORPHAN count clause (another table's, still speaking: Region 5's '1 Dolly "
+    "Varden' under Polley Lake's 'trout 8', RULINGS Q2) caps the fish's bands like a sub-cap.",
 ]
 
 
@@ -251,9 +258,12 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         win = _size_release(P, S, A)                       # decision F13
     if win is None:
         return None
+    shut = _range_released(P, S, A) if win.k == "pool" else None     # decision F16
+    if shut is not None:
+        win = shut
     if win.k == "gate":
         status = "closed" if _closed_gate(win) else "release"
-    elif win.k == "size":
+    elif win.k == "size" or shut is not None:
         status = "release"
     else:
         status = "no_limit" if win.f.get("unlimited") else "keep"
@@ -425,6 +435,29 @@ def fish_range(P: "Part", S: str) -> Tuple[float, float]:
     if P.steelhead_water and S == "ST":
         return 50, INF
     return 0, INF
+
+
+def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
+    """Decision F16: a fish whose every length on this part is released by the take-0 bands of the
+    rules speaking for it TOGETHER is released, whatever its pool says — Marshall (Lonzo) Creek's
+    "Trout/char 20-30 cm" beside Region 2's "Dolly Varden … none under 60 cm" (p.24, p.21): no char
+    may be kept there, not "1"; the Coquitlam's "Hatchery trout 2 (20-30 cm only)" on a steelhead
+    water: no steelhead (rainbow over 50 cm) may be kept. The winner is the lowest-ranked (the
+    water's own first) rule whose band releases part of the range. None where some length is kept."""
+    lo, hi = fish_range(P, S)
+    rel = sorted(((a, b, r) for r in A if r.k in ("size", "pool")
+                  for a, b, t in _bands(r) if t == 0), key=lambda x: (x[0], x[1], x[2].key))
+    if not rel:
+        return None
+    at, grew = lo, True
+    while grew and at < hi:
+        grew = False
+        for a, b, _r in rel:
+            if a <= at < b:
+                at, grew = b, True
+    if at < hi:
+        return None
+    return min((r for a, b, r in rel if b > lo and a < hi), key=lambda r: r.rank)
 
 
 def _size_release(P: "Part", S: str, A: List[R]) -> Optional[R]:
@@ -922,8 +955,13 @@ def fish_bands(P: "Part", model: dict, S: str, facts: List[dict], sub: Optional[
                                != "lifted" for o in ("H", "W")):
         base = min(base, nw.f.get("take"))
     for l in facts + row["everyone"]:
-        if l["t"] in ("outercap", "subcap") and l["r"].f.get("take") is not None \
-                and (S in l["members"] if l.get("members") else True) and _covers(l["r"], S):
+        # an ORPHAN is a count clause of another table that still speaks for the fish (its own pool
+        # displaced): Region 5's "1 Dolly Varden" under Polley Lake's "trout 8" (RULINGS Q2: the
+        # clause naming the fish beats the lake's group number) — it caps the fish like a sub-cap
+        if l["t"] in ("outercap", "subcap", "orphan") and l["r"].f.get("take") is not None \
+                and (S in l["members"] if l.get("members") else True) and _covers(l["r"], S) \
+                and (l["t"] != "orphan" or (l["r"].f.get("water") in (None, P.kind)
+                                            and P.in_dates(l["r"]))):
             base = min(base, l["r"].f["take"])
     capt = ("cap", "outersize")
     own = [l for l in facts if l["t"] in capt and l.get("take") is not None]
