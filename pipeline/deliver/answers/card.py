@@ -199,7 +199,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         wholly inside) holds them together."""
         best = INF if base is None else base
         held: Dict[str, float] = {}
-        free = 0.0
+        free = 0
         for S in K:
             W = info[S]["inner"]
             if W is not None:
@@ -213,7 +213,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             if sc["over_cm"] is not None and not all(info[S]["lo"] >= sc["over_cm"] for S in K):
                 continue
             best = min(best, sc["take"])
-        return None if best == INF else best
+        if best == INF:
+            return None
+        return int(best) if float(best).is_integer() else best
 
     # -- headline: this water's number with no lift ------------------------------------------------
     if unlimited:
