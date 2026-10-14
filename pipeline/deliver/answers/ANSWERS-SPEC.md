@@ -187,7 +187,7 @@ regs store is `regs-store/4` (`part.short_s`). ROUND8 A1–A4; RULINGS Q4, Q16, 
   the part's range END labels, mouth upward (`display.short_label`): "Mouth → Vedder Crossing Bridge",
   "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)", "Site C dam → Hwy. 29 bridge (2 stretches)", "Side
   channel", "3 side channels"; a sign post loses "fishing boundary signs", each end is cut at 26
-  characters, a part with no run keeps its full label ("Whole water"), cut at 60. An end reads "Mouth" only where the water truly ends; where it continues under another name (`continues:<item>`) it names where the next water begins ("Vedder Crossing Bridge"), else "Y begins" (RULINGS P10). Two parts of a water
+  characters, a part with no run keeps its full label ("Whole water"), cut at 60. An end reads "Mouth" only where the water truly ends; where it continues under another name (`continues:<item>`: a pure name change in FWA, nothing else joining) it names where the next water begins ("Vedder Crossing Bridge"), else "Y begins"; where it meets another stream and the two form the next water it reads "<other> confluence" ("Stamp River confluence"); a tributary keeps "Mouth" (RULINGS P10). Two parts of a water
   never share one (`short_labels` adds the full label's distinguishing tail). `label` stays the sheet's
   full name.
 * Proved on a side build (`data/generated/scratch_a27`, the LIVE bundle and verdicts copied — no bundle

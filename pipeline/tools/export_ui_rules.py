@@ -1245,14 +1245,17 @@ END_TEXT = {
                              "alone: unnamed)",
     "confluence:<item_id>": "a cut the atlas made where that tributary (a key of `waters`) flows "
                             "in, or the stretch meets that STREAM's polygon (a tributary's mouth "
-                            "at a river's wide reach). Say it '<name> confluence' (that water's "
+                            "at a river's wide reach), or — as a lower end — the water meets that "
+                            "other stream there and the two form the next water (the Sproat and "
+                            "the Stamp form the Somass). Say it '<name> confluence' (that water's "
                             "`name`)",
     "polygon": "the stretch meets the water's OWN polygon — a river drawn as a wide polygon, a "
                "slough's: no cut, the same water goes on (its polygon is the next stretch, or the "
                "same part); a cut aliased onto that edge keeps its own id instead",
     "continues:<item_id>": "the water's natural lower end is NOT a mouth: it goes on downstream as "
-                           "that other named stream (a key of `waters`), which begins there (the "
-                           "Chilliwack becomes the Vedder at Vedder Crossing). Name the place by "
+                           "that other named stream (a key of `waters`), which begins there — the "
+                           "same channel under another name, nothing else joining (the Chilliwack "
+                           "becomes the Vedder at Vedder Crossing). Name the place by "
                            "where that water begins (its top run's `from`), never 'mouth'",
     "mouth": "the water's own downstream end — into the sea, another river or a lake it ends in "
              "— with no cut",

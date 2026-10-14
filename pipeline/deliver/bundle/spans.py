@@ -42,7 +42,7 @@ END TOKENS (one vocabulary, the export's `from` / `to`):
                            on (a cut aliased onto that edge keeps its own id instead)
   continues:<item_id>      the water's natural lower end is NOT a mouth: it goes on downstream as that
                            other named STREAM, which BEGINS there (the Chilliwack becomes the Vedder
-                           at Vedder Crossing; owner 2026-10-12) — `continues_as`
+                           at Vedder Crossing; owner 2026-10-12) — `lower_end_into`
   mouth, source            the water's own natural ends (no cut)
 A lake that is not a named water drops its suffix (`lake_inlet`, `lake_outlet`).
 """
@@ -62,10 +62,14 @@ NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "po
 POLYGON = "polygon"
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
 PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "continues:")
-#: A natural lower end within this many metres of another water's stem top — and the UPPERMOST water
-#: flowing into that top piece — is where that water begins. Measured: the Chilliwack joins the Vedder
-#: 25 m below the Vedder's stem top, the Atnarko the Bella Coola 35 m below (FWA stubs past the junction).
+#: A natural lower end within this many metres below where another water's blue line begins is where
+#: that water begins (`lower_end_into`). Measured: the Chilliwack joins the Vedder 26 m below the top
+#: of the Vedder's blue line, the Atnarko the Bella Coola 35 m (FWA leaves a stub past the junction).
 _BEGINS_M = 100.0
+#: The other streams meeting there: those feeding the next water's stem within this many metres below
+#: where it begins. Measured: the Inklin joins the Taku 154 m below its top (the Nakina 65 m), the
+#: Sikanni Chief the Fort Nelson 130 m (the Fontas 53 m).
+_MEET_M = 250.0
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
 #: or a group of management units, and keeps its split id.
 REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
@@ -136,33 +140,91 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
     return bid
 
 
-def continues_as(nid: str, own: str, nodes: dict, down: dict, items_of: dict,
-                 stem_of: dict, stem_top: dict, up: dict | None = None) -> str | None:
-    """THE WATER GOES ON UNDER ANOTHER NAME (owner 2026-10-12): the named STREAM this stem piece's
-    natural lower end flows into AT THAT STREAM'S TOP — the edge enters the other water's main stem
-    at its upstream-most measure, so no part of it lies above the junction (the Chilliwack at Vedder
-    Crossing: the Vedder begins there). None where the water truly ends: it joins another river part
-    way up (a confluence, a "mouth"), a lake, the sea, or two named waters begin there. Within
-    `_BEGINS_M` of the other's stem top, and only the uppermost water flowing into that top piece."""
+def lower_end_into(nid: str, own: str, nodes: dict, down: dict, up: dict, items_of: dict,
+                   stem_of: dict, stem_top: dict, stem_pieces: dict, blk_top: dict) -> str | None:
+    """WHAT A WATER'S NATURAL LOWER END MEETS (owner D6, RULINGS P10), read from FWA topology alone —
+    no names. `nid` is the lowest piece of `own`'s main stem, its lower end a plain `mouth`. Returns
+    `continues:<y>`, `confluence:<x>`, or None (a mouth: the water truly ends).
+
+    Only where the next water BEGINS: the piece flows into the top piece of a named stream `y`'s stem,
+    whose blue line starts within `_BEGINS_M` above the junction (FWA leaves a stub of a few tens of
+    metres; no piece of y's blue line lies further up) — or within `_MEET_M` when the other stream it
+    meets there joins within `_BEGINS_M` (the Inklin, 154 m below the Taku's top, meets the Nakina
+    at 65 m). Anywhere else it is a tributary's mouth. A piece that flows into a LAKE ends at the lake
+    (Still Creek into Burnaby Lake, though FWA also links it to the Brunette's top). At y's top, the other streams feeding y's stem there (within `_MEET_M` below
+    where it begins, from other blue lines) decide:
+      * a lake (y begins at its outlet): a mouth;
+      * a NAMED one of comparable rank — Strahler order within 1 of this water's, and the two of
+        them make y's order (5 + 6 -> 6, 8 + 8 -> 9) — two streams meet to form y: `confluence:<x>`,
+        the largest by magnitude (Sproat + Stamp = Somass; Atnarko + Talchako = Bella Coola);
+      * else, any of comparable or higher rank, named or not: this water is a tributary — a mouth;
+      * else, y's top piece carries exactly this water's flow (FWA magnitude: the piece's, less every
+        other stream feeding it, equals this water's) — a PURE NAME CHANGE: `continues:<y>` (the
+        Chilliwack, magnitude 2166, is all of the Vedder's top piece, 2166, at Vedder Crossing);
+      * else a mouth (y has a head of its own above the junction: Jr 4-1-2 into Jr 4-1)."""
+    def kind(n):
+        return getattr(nodes[n].kind, "value", nodes[n].kind) if n in nodes else None
+
+    outs = down.get(nid, ())
+    if any(e.kind == "lake_in" or kind(e.to_node) == "lake" for e in outs):
+        return None                                   # it ends at the lake
+    me = nodes[nid]
     got = set()
-    for e in down.get(nid, ()):
+    for e in outs:
         to = nodes.get(e.to_node)
         if to is None or getattr(to.kind, "value", to.kind) != "stream":
             continue
         for y in items_of.get(e.to_node, ()):
             if y == own or stem_of.get(y) != to.blk or y not in stem_top:
                 continue
-            if not (abs(to.up_m - stem_top[y]) <= _BEGINS_M
-                    and stem_top[y] - e.at_measure <= _BEGINS_M):
+            top = stem_top[y]
+            if (abs(to.up_m - top) > 1.0 or blk_top.get(to.blk, top) > top + 1.0
+                    or not (top - _MEET_M <= e.at_measure <= top + 1.0)):
                 continue
-            # the uppermost inflow into that top piece (the Talchako joins the Bella Coola 23 m
-            # below the Atnarko: the Atnarko goes on as the Bella Coola, the Talchako has a mouth)
-            ins = [x.at_measure for x in (up or {}).get(e.to_node, ())
-                   if (nodes.get(x.from_node) is not None and nodes[x.from_node].blk != to.blk)]
-            if ins and e.at_measure < max(ins) - 0.5:
-                continue
-            got.add(y)
-    return got.pop() if len(got) == 1 else None
+            got.add((y, e.to_node, e.at_measure))
+    if len({g[0] for g in got}) != 1:
+        return None
+    y, top_piece, at = max(got, key=lambda g: g[2])
+    top = stem_top[y]
+    first = at >= top - _BEGINS_M          # within the stub: else only a partner nearer the top counts
+
+    def feeders(pieces):
+        """{from_node: at} of everything else flowing into these pieces from off their blue line."""
+        out = {}
+        for p in pieces:
+            blk = nodes[p].blk
+            for x in up.get(p, ()):
+                f = nodes.get(x.from_node)
+                if (f is None or x.from_node == nid or own in items_of.get(x.from_node, ())
+                        or f.blk == blk):
+                    continue
+                out[x.from_node] = max(out.get(x.from_node, x.at_measure), x.at_measure)
+        return out
+
+    feeds = feeders(stem_pieces.get(y, ()))
+    near = [f for f, a in sorted(feeds.items()) if top - _MEET_M <= a <= top + 1.0]
+    if any(kind(f) != "stream" for f in near):
+        return None                                   # y begins at a lake's outlet
+    order, rank = me.stream_order or 0, nodes[top_piece].stream_order
+    partners = sorted((-(nodes[f].stream_magnitude or 0), x) for f in near
+                      if (first or feeds[f] >= top - _BEGINS_M)
+                      and abs((nodes[f].stream_order or 0) - order) <= 1
+                      and _strahler(order, nodes[f].stream_order or 0) == rank
+                      for x in items_of.get(f, ()) if x not in (own, y))
+    if partners:
+        return f"confluence:{partners[0][1]}"
+    if not first or any((nodes[f].stream_order or 0) >= order - 1 for f in near):
+        return None
+    rest = sum(nodes[f].stream_magnitude or 0 for f in feeders([top_piece]) if kind(f) == "stream")
+    tm, mm = nodes[top_piece].stream_magnitude, me.stream_magnitude
+    if tm is not None and mm is not None and tm - rest == mm:
+        return f"continues:{y}"
+    return None
+
+
+def _strahler(a: int, b: int) -> int:
+    """The Strahler order below two streams of orders a and b meeting."""
+    return a + 1 if a == b else max(a, b)
 
 
 def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, str, str, list[int]]],
@@ -189,9 +251,10 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
         if to is not None and getattr(to.kind, "value", to.kind) == "stream":
             into[to.blk].append((e.at_measure, e.from_node))
 
-    # every stream water's main stem and the top of it (`continues_as` reads every water's)
+    # every stream water's main stem and the top of it (`lower_end_into` reads every water's)
     stem_of: dict[str, str] = {}
     stem_top: dict[str, float] = {}
+    stem_pieces: dict[str, list[str]] = {}
     for _, item_id, kind, sids in items:
         if kind != "stream":
             continue
@@ -202,6 +265,14 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
             stem_of[item_id] = stem
             stem_top[item_id] = max(n.up_m for n in pieces
                                     if getattr(n.kind, "value", n.kind) == "stream" and n.blk == stem)
+            stem_pieces[item_id] = [node_of[s] for s, n in zip(sids, pieces)
+                                    if getattr(n.kind, "value", n.kind) == "stream" and n.blk == stem]
+    # where each of those stems' blue lines ends upstream (a water's stem may stop short of it)
+    want = set(stem_of.values())
+    blk_top: dict[str, float] = {}
+    for n in nodes.values():
+        if n.blk in want and n.up_m > blk_top.get(n.blk, float("-inf")):
+            blk_top[n.blk] = n.up_m
 
     rows = []
     for ord_, item_id, kind, sids in items:
@@ -279,9 +350,8 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
             hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary,
                            own=item_id)
             if lo == "mouth" and n.blk == stem:
-                y = continues_as(node_of[s], item_id, nodes, down, items_of, stem_of, stem_top, up)
-                if y is not None:
-                    lo = f"continues:{y}"
+                lo = lower_end_into(node_of[s], item_id, nodes, down, up, items_of, stem_of,
+                                    stem_top, stem_pieces, blk_top) or lo
             if n.blk == stem:
                 rows.append((s, round(n.down_m), round(n.up_m), lo, hi, 0, 0))
             else:
