@@ -200,12 +200,26 @@ def test_display_closing_is_the_closed_predicate(shipped):
     from pipeline.deliver.types import GAME_FISH
     wire, _ = shipped
     sec = wire["sections"]["display"]
-    assert sec["version"] == 6                      # answers 2.7 (2.6 `strip`; 2.3 `unless_opened`)
+    assert sec["version"] == 7                      # answers 2.8 `where` (2.7 `short`; 2.6 `strip`)
     for f in sec["frames"]:
         if f.get("status") == "tidal":
             continue
         shut = {x for _, fs in f["closing"] for x in fs}
         assert (f["status"] == "closed") == (set(GAME_FISH) <= shut)
+
+
+@pytest.mark.needs_bundle
+def test_the_shipped_fishway_buffers_are_where_you_cant_fish(shipped):
+    """answers 2.8 (D2, RULINGS P9): the SHIPPED display rules carry `where` on exactly the fishway
+    and fish-facility buffers (p.9). The live build of 3a310d5b shipped none: `where_of` tested the
+    export's `may_target is False` against the bundle's 0."""
+    from pipeline.deliver.answers.display import CANT_FISH_TITLE
+    wire, export = shipped
+    keys = export["rule_ids"]                       # the display rules are in the export's order
+    got = {keys[i]: r["where"] for i, r in enumerate(wire["sections"]["display"]["rules"])
+           if isinstance(r, dict) and r.get("where")}
+    assert got == {"zp:no_fishing_buffers::no_fishing_buffers.r1": CANT_FISH_TITLE,
+                   "zp:no_fishing_buffers::no_fishing_buffers.r2": CANT_FISH_TITLE}
 
 
 # --------------------------------------------------------------------------------------------

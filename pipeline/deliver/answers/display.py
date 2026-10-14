@@ -341,8 +341,10 @@ CANT_FISH_TITLE = "Where you can’t fish"
 
 def where_of(x: dict) -> Optional[str]:
     """Where the page shows a rule apart from the rows: "cant_fish" for a standing no-fishing place
-    rule (a take-0, may-not-target rule bound everywhere because no dataset places it), else None."""
-    if kind_of(x) == "standing" and _is(x.get("take"), 0) and x.get("may_target") is False:
+    rule (a STANDING closure — a "no fishing" bound everywhere because no dataset places it), else
+    None. The closure is `rules.closure_grade`, the one predicate (AGENTS 56, dataflow gate 2): a
+    bundle rule carries `may_target` 0, the export's fields `false`, and both must say the same."""
+    if kind_of(x) == "standing" and closure_grade(x) is not None:
         return "cant_fish"
     return None
 

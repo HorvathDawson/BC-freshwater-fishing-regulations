@@ -156,6 +156,13 @@ def test_the_fishway_and_hatchery_buffers_are_where_you_cant_fish_on_the_keep_si
     assert D.CANT_FISH_TITLE == "Where you can’t fish"
     assert D.where_of({"type": "retention_limit", "family": "retention", "take": 2,
                        "species": ["RB"]}) is None
+    # the BUNDLE spells the same rule with `may_target` 0 (sqlite), the export's fields `false`: the
+    # heading must come from both alike (it did not — d78cda88 tested `is False`, so the bundle's
+    # facts lost `where` and the dataflow gate saw a second `may_target` reader)
+    assert D.where_of({**x, "may_target": 0}) == "cant_fish"
+    assert D.rule_facts({**x, "may_target": 0}) == D.rule_facts(x)
+    # a standing rule one MAY fish for is no place you can't fish
+    assert D.where_of({**x, "may_target": 1}) is None
 
 
 # the gate ----------------------------------------------------------------------------------------
