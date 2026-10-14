@@ -113,13 +113,15 @@ def test_d_region_6_one_over_50_counts_hatchery_steelhead(item):
 
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("item", [VEDDER, CHILLIWACK])
-def test_d_region_2_one_over_50_leaves_steelhead_to_their_own_line(item):
+@pytest.mark.parametrize("item,lower_end", [(VEDDER, "mouth"), (CHILLIWACK, f"continues:{VEDDER}")])
+def test_d_region_2_one_over_50_leaves_steelhead_to_their_own_line(item, lower_end):
     """p.21 '1 over 50 cm (2 hatchery steelhead over 50 cm allowed)': on the Vedder the general cap
     excepts steelhead, which have their own 2. Both sides of Vedder Crossing: the Vedder below it,
     and the Chilliwack's lowest part just above it (Tamihi Rapids Bridge down to the crossing; it
-    was a 30 m Vedder stub above the bridge until the 2026-10-10 split fix)."""
-    t = _tap(item, "mouth", 10, 15)
+    was a 30 m Vedder stub above the bridge until the 2026-10-10 split fix). The Chilliwack does not
+    END there — it continues as the Vedder (RULINGS P10, owner D6, 57eeebad) — so its lowest part's
+    lower end is `continues:<Vedder>`, never "mouth"."""
+    t = _tap(item, lower_end, 10, 15)
     gen = [c for c in _general_caps(t) if c["a"] == 50]
     assert gen and all(c.get("except") == ["ST"] for c in gen)
     st = [c for r in t["rows"]["rows"] for c in r.get("conds") or []

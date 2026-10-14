@@ -5566,12 +5566,9 @@ QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
      "west_road_blackwater_rivers_tributaries.r1"):
         "tributaries only: as Region 6's — Zone 7A's spring stream closure holds on them ("
         "'tributaries subject to spring closure'); the 1 per day holds the rest of the year",
-    ("r4:duncan_river@4-19", "duncan_river.r4"):
-        "on the Duncan's TRIBUTARIES (the row's ✱ carries its quotas): its 'Exempt from spring "
-        "closure' stays on the river itself (user ruling Q3, 2026-10-07), so Region 4's Apr 1-Jun 14 "
-        "stream closure holds there; the 5 rainbow holds the rest of the year",
-    ("r4:duncan_river@4-19", "duncan_river.r5"):
-        "as duncan_river.r4: the 2 bull trout on the tributaries hold outside Region 4's stream closure",
+    # (Duncan River r4/r5 left this list 2026-10-13: under T13 (owner D4, 2026-10-12, commit
+    # ce74eaef) the ✱ row's "Exempt from spring closure" walks to its tributaries with its quotas,
+    # so Region 4's stream closure no longer silences the 5 rainbow / 2 bull trout there.)
     ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r1"):
         "the park's streams lying in Zone 7A fall under Zone 7A's spring stream closure: Region "
         "5's page exception (p.42) lifts only Region 5's closure, and the row prints no "

@@ -206,7 +206,9 @@ def test_the_cowichans_cuts_are_named_as_the_book_prints_them(built):
     """p.15: "downstream of the CNR Mile 66 Trestle", "to CNR Bridge (mile 70.2)"."""
     data, model = built
     labels = [p["label"] for p in model.statics["display"]["waters"][COWICHAN]["parts"] if p]
-    assert "From the mouth up to the CNR Mile 66 Trestle" in labels
+    # R9 D5/D7 (ce74eaef): the delta piece (sid 716, a line from a pond's outlet to the sea) is placed
+    # by its flow path into the mouth part, so the part says its side channel (was the bare cut)
+    assert "From the mouth up to the CNR Mile 66 Trestle and 1 side channel" in labels
     assert "From the CNR Mile 66 Trestle up to the CNR Bridge (mile 70.2)" in labels
     assert not any(l.endswith("CNR Trestle") or "CNR Trestle " in l for l in labels)
 

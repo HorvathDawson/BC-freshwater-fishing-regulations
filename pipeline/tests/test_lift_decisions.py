@@ -205,7 +205,7 @@ def _equivalents(db, eid, rid) -> set:
 @pytest.mark.needs_bundle
 def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
     """On the bundle: the Fraser's and the Canim's carried lifts are gone; West Road keeps its
-    Region 6 / Zone 7A ones; the Similkameen's no longer reaches its Region 3 tributaries (Q3)."""
+    Region 6 / Zone 7A ones; the Similkameen's (a ✱ row) reaches its Region 3 tributaries again (T13)."""
     fraser = "r5:fraser_river@5-2"
     # positive control: the Fraser row still lifts its OWN region's closure, by name
     own = {f"{x['entry_id']}::{x['rule_id']}" for x in json.loads(db.execute(
@@ -218,17 +218,21 @@ def test_the_bundles_equivalent_lifts_follow_the_own_entry_caveat(db):
         (canim,)).fetchone()[0])}
     assert canim_lifts == {Z5_SPRING}
     assert {Z6_FRASER, Z7A_SPRING} <= _equivalents(db, WEST_ROAD, "west_road_blackwater_river.r6")
-    # USER RULING Q3 (2026-10-07): no exemption printed on a ✱ row reaches its tributaries — the
-    # Similkameen's "exempt from spring closure" stays on the river, so its Region 3 tributaries
-    # (walked by the row's other rules) are closed under Region 3's spring closure on Jun 15.
-    assert Z3_SPRING not in _equivalents(db, "r8:similkameen_river@8-2", "similkameen_river.r3")
-    sid = db.execute(
-        "select min(sr.sid) from ruleset a join ruleset b on b.set_id = a.set_id "
+    # OWNER RULING T13 (D4, 2026-10-12, superseding Q3/T3 of 2026-10-07; commit ce74eaef): a ✱
+    # row's printed exemption walks to its tributaries — the Similkameen's "exempt from spring
+    # closure" carries to its Region 3 tributaries (G3: Region 3 is co-bound through the walk), so
+    # every such tributary section is OPEN to rainbow on Jun 15 although Region 3's spring closure
+    # is bound there. Was: closed (Q3).
+    assert Z3_SPRING in _equivalents(db, "r8:similkameen_river@8-2", "similkameen_river.r3")
+    sids = [s for (s,) in db.execute(
+        "select distinct sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
         "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? and a.rule_id = ? "
-        "and a.via = 'trib' and b.entry_id = 'z3:spring_stream_closure'",
-        ("r8:similkameen_river@8-2", "similkameen_river.r1")).fetchone()[0]
-    assert sid is not None and Z3_SPRING in _bound(db, sid)
-    assert Z3_SPRING in _closures(sid, (6, 15), "RB")
+        "and a.via = 'trib' and b.entry_id = 'z3:spring_stream_closure' order by sr.sid",
+        ("r8:similkameen_river@8-2", "similkameen_river.r1"))]
+    assert sids, "no Similkameen tributary section in Region 3 under the spring closure"
+    for sid in sids:
+        assert Z3_SPRING in _bound(db, sid)
+        assert Z3_SPRING not in _closures(sid, (6, 15), "RB"), sid
 
 
 # ---- 6. West Road: the mainstem is lifted, no tributary is ------------------------------------
