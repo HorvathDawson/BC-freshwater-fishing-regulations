@@ -76,7 +76,7 @@ def test_vedder_mouth_oct_10_card(built):
         "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
         "No more than 4 trout and char a day across Region 2, lakes included.",
-        "Share the 2 from streams",
+        "Up to 2 a day between them — all Region 2 streams combined",
         "EB/GB/CT 2: only 1 over 50 cm",
         "DV/LT 1: uses your 1 over 50 cm",
         "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence",
@@ -84,8 +84,8 @@ def test_vedder_mouth_oct_10_card(built):
         "RB 4: counts toward the 4 a day"]
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
         "Keep 4 rainbows here → that’s your trout and char for the day, everywhere.",
-        "Keep 3 rainbows here → 1 more: from here, or a fish from a lake.",
-        "Keep 2 rainbows here → you’re done on every other stream; up to 2 more from here or from "
+        "Keep 3 rainbows here → 1 more: any kind from here, or one from a lake.",
+        "Keep 2 rainbows here → no more trout and char from any other stream today; up to 2 more from here or from "
         "lakes."]
 
 

@@ -114,7 +114,7 @@ def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
         "4’s 2-from-streams limit for them.",
         "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s "
         "2-from-streams limit for them."]
-    assert [b["title"] for b in g["buckets"]] == ["Share the 2 from streams", "This river’s rule"]
+    assert [b["title"] for b in g["buckets"]] == ["Up to 2 a day between them — all Region 2 streams combined", "This river’s rule"]
     assert [w["kept"] for w in g["worked"]] == [5, 4, 3, 2]
 
 

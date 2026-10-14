@@ -417,6 +417,15 @@ class Headline(Model):
     n: Optional[Count]                                # None: no daily limit
     unit: StrictStr = Field(min_length=1)
     says: StrictStr = Field(min_length=1)
+    #: the lifted numbers said beside the big one, so "2" never reads as the whole limit (round 9
+    #: persona): Vedder "4 if they're hatchery rainbow trout 50 cm or less"
+    also: Tuple["HeadAlso", ...] = ()
+
+
+class HeadAlso(Model):
+    """A lifted kind's own number beside the headline."""
+    n: Optional[Count]
+    says: StrictStr = Field(min_length=1)
 
 
 class CardLift(Model):

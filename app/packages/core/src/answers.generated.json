@@ -4453,10 +4453,47 @@
      "title": "GroupTotal",
      "type": "object"
     },
+    "HeadAlso": {
+     "additionalProperties": false,
+     "description": "A lifted kind's own number beside the headline.",
+     "properties": {
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "n",
+      "says"
+     ],
+     "title": "HeadAlso",
+     "type": "object"
+    },
     "Headline": {
      "additionalProperties": false,
      "description": "The card's big number (answers 2.8, A1): this water's number with no lift \u2014 on a Region 2\nstream the stream share (\"2 a day from this stream\"), on a lake the total (\"4 a day\").",
      "properties": {
+      "also": {
+       "default": [],
+       "items": {
+        "$ref": "#/$defs/HeadAlso"
+       },
+       "title": "Also",
+       "type": "array"
+      },
       "n": {
        "anyOf": [
         {

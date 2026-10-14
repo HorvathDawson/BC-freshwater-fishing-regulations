@@ -53,7 +53,9 @@ def _card_text(g, row):
 # 1 ---------------------------------------------------------------------------------------------
 def test_the_headline_is_this_waters_number_without_a_lift():
     assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day from this stream",
-                                         "says": "2 a day from this stream"}
+                                         "says": "2 a day from this stream",
+                                         "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm "
+                                                                   "or less"}]}
     assert _g(F.STREAM)["headline"]["n"] == 2
     assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day", "says": "4 a day"}
 
@@ -74,7 +76,7 @@ def test_a_lift_is_said_positively_naming_whose_rule_with_its_book_page():
 def test_steelhead_share_the_2_from_streams():
     g = _g(F.VEDDER)
     b, st = _kind(g, "ST")
-    assert (b["title"], b["cap"], b["by"]) == ("Share the 2 from streams", 2, F.SHARE)
+    assert (b["title"], b["cap"], b["by"]) == ("Up to 2 a day between them — all Region 2 streams combined", 2, F.SHARE)
     assert st["n"] == 2 and st["name"] == "Steelhead" and st["detail"] == "hatchery rainbow trout over 50 cm"
     assert not any(re.search(r"[Ss]teelhead.*count toward the 4", t) for t in _card_text(g, None))
 
@@ -119,8 +121,8 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
     g = _g(F.VEDDER)
     assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
         {"kept": 4, "q": "Keep 4 rainbows here", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: from here, or a fish from a lake."},
-        {"kept": 2, "q": "Keep 2 rainbows here", "a": "you’re done on every other stream; up to 2 more "
+        {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: any kind from here, or one from a lake."},
+        {"kept": 2, "q": "Keep 2 rainbows here", "a": "no more trout and char from any other stream today; up to 2 more "
                                                       "from here or from lakes."}]
     assert _g(F.STREAM)["worked"] == [] and _g(F.LAKE)["worked"] == []
 
@@ -191,3 +193,10 @@ def test_check_card_fails_when_the_tally_breaks():
     g["worked"][-1]["other"] = 2
     probs = CC.check_card(P, bad)
     assert any("worked" in p for p in probs), probs
+
+
+def test_the_headline_says_the_lifted_number_beside_it():
+    """Round 9 persona: a bare "2" next to a 4-rainbow lift read as the whole limit."""
+    assert _g(F.VEDDER)["headline"].get("also") == [
+        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm or less"}]
+    assert not _g(F.STREAM)["headline"].get("also") and not _g(F.LAKE)["headline"].get("also")
