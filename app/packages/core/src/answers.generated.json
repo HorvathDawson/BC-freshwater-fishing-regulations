@@ -3177,12 +3177,20 @@
     },
     "CardLift": {
      "additionalProperties": false,
-     "description": "A water's rule lifting kinds out of the share, said positively with whose rule it is; `by`\nthe lifting rule (the page cites its Book page).",
+     "description": "A water's rules lifting kinds out of the share, said positively in ONE line per lifting entry\n(ROUND10 W1: \"\u2026 its own rule replaces Region 4\u2019s 2-from-streams limit for rainbow trout (up to 5 a\nday) and Dolly Varden/bull trout (up to 2 a day).\"); `each` every lifting rule, highest number\nfirst; `by`, `n` the first's (the page cites its Book page), `kinds` every kind lifted.",
      "properties": {
       "by": {
        "minimum": 0,
        "title": "By",
        "type": "integer"
+      },
+      "each": {
+       "items": {
+        "$ref": "#/$defs/CardLiftEach"
+       },
+       "minItems": 1,
+       "title": "Each",
+       "type": "array"
       },
       "kinds": {
        "items": {
@@ -3214,9 +3222,54 @@
       "says",
       "by",
       "kinds",
-      "n"
+      "n",
+      "each"
      ],
      "title": "CardLift",
+     "type": "object"
+    },
+    "CardLiftEach": {
+     "additionalProperties": false,
+     "description": "One lifting rule of a card lift: its kinds, its number (None: any number), the rule (`by`, its\nBook page) and the words naming its fish (\"hatchery rainbow trout 50 cm or less\").",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "fish": {
+       "minLength": 1,
+       "title": "Fish",
+       "type": "string"
+      },
+      "kinds": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      }
+     },
+     "required": [
+      "kinds",
+      "n",
+      "by",
+      "fish"
+     ],
+     "title": "CardLiftEach",
      "type": "object"
     },
     "CardState": {

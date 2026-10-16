@@ -109,6 +109,12 @@ def test_part_labels_match_the_page(page, monkeypatch):
                "hint": [X.part_label(W, i) for i in range(len(W.parts))],
                # the page's partKm says 1e9 for "no measure"; answers/2 says null (P7)
                "km": [1e9 if X.part_km(p) is None else X.part_km(p) for p in W.parts]}
+        # ROUND10 W2: a part with a main run no longer says "… and N side channels" (the golden did);
+        # W3: a hint the page cut at 60 characters ("including Six Mile…") is said whole now
+        want = {**want, **{f: [re.sub(r" and \d+ side channels?\b", "", t) for t in want[f]]
+                           for f in ("labels", "runs")}}
+        want["labels"] = [g if w.endswith("…") and g.startswith(w[:-1]) and len(g) > len(w) else w
+                          for g, w in zip(got["labels"], want["labels"])]
         bad += [(want["name"], f, got[f], want[f]) for f in got if got[f] != want[f]]
     assert not bad, bad[:3]
     thompson = next(w for w in page["expect"]["waters"] if w["name"] == "Thompson River")

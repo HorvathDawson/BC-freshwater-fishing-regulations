@@ -418,7 +418,8 @@ class Headline(Model):
     unit: StrictStr = Field(min_length=1)
     says: StrictStr = Field(min_length=1)
     #: the lifted numbers said beside the big one, so "2" never reads as the whole limit (round 9
-    #: persona): Vedder "4 if they're hatchery rainbow trout 50 cm or less"
+    #: persona): Vedder "4 if they're hatchery rainbow trout 50 cm or less"; every lifted number above
+    #: the headline, highest first (ROUND10 W1)
     also: Tuple["HeadAlso", ...] = ()
 
 
@@ -428,13 +429,32 @@ class HeadAlso(Model):
     says: StrictStr = Field(min_length=1)
 
 
+class CardLiftEach(Model):
+    """One lifting rule of a card lift: its kinds, its number (None: any number), the rule (`by`, its
+    Book page) and the words naming its fish ("hatchery rainbow trout 50 cm or less")."""
+    kinds: Tuple[Fish, ...] = Field(min_length=1)
+    n: Optional[Count]
+    by: RuleIx
+    fish: StrictStr = Field(min_length=1)
+
+
 class CardLift(Model):
-    """A water's rule lifting kinds out of the share, said positively with whose rule it is; `by`
-    the lifting rule (the page cites its Book page)."""
+    """A water's rules lifting kinds out of the share, said positively in ONE line per lifting entry
+    (ROUND10 W1: "… its own rule replaces Region 4’s 2-from-streams limit for rainbow trout (up to 5 a
+    day) and Dolly Varden/bull trout (up to 2 a day)."); `each` every lifting rule, highest number
+    first; `by`, `n` the first's (the page cites its Book page), `kinds` every kind lifted."""
     says: StrictStr = Field(min_length=1)
     by: RuleIx
     kinds: Tuple[Fish, ...] = Field(min_length=1)
     n: Optional[Count]
+    each: Tuple[CardLiftEach, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _first(self):
+        if (self.by, self.n) != (self.each[0].by, self.each[0].n) or \
+                list(self.kinds) != list(dict.fromkeys(S for e in self.each for S in e.kinds)):
+            raise ValueError("a lift's `by`, `n` are its first rule's and `kinds` every rule's")
+        return self
 
 
 class CardKind(Model):

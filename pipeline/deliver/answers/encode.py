@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "8",
+            "version": "9",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -243,8 +243,10 @@ SPEC = {
                     "`card_check`: `headline` {n (null: no daily limit), unit, says} this water's "
                     "number with no lift (\"2 a day from this stream\"; a lake: the total), `origin` "
                     "(\"Hatchery only — release wild trout and char.\" or null), `lifts` [{says, by, "
-                    "kinds, n}] a water's rule lifting kinds out of the share, said positively "
-                    "(cite `by`'s Book page), `total_line` the total under a share (\"No more than 4 "
+                    "kinds, n, each}] a water's rules lifting kinds out of the share, said positively "
+                    "in ONE line per lifting entry (version 9, ROUND10 W1: each kind with its number, "
+                    "highest first), `each` [{kinds, n, by, fish}] every lifting rule (cite `by`'s "
+                    "Book page; the lift's `by`/`n` are the first's), `total_line` the total under a share (\"No more than 4 "
                     "trout and char a day across Region 2, lakes included.\") or null, `buckets` "
                     "[{title (null: the only one), cap, by, why: share | rule | total, kinds "
                     "[{species, name, detail, n, notes, duties}]}] the kinds under the cap they "

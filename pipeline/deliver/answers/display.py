@@ -660,15 +660,15 @@ def runs_label(doc: dict, part: dict) -> str:
             t = f"Side channel, {where}" if where else _run_txt(doc, side[0])
         else:
             t = f"{len(side)} side channels" + (f", {where}" if where else "")
-    elif side:
-        t += f" and {len(side)} side channel{'s' if len(side) > 1 else ''}"
+    # ROUND10 W2 (owner 2026-10-16): a part WITH a main run never mentions its side channels —
+    # they are simply part of it ("… CNR Mile 66 Trestle and 1 side channel" confused the owner)
     return t
 
 
-#: answers 2.7 (A4): a short part label's end names lose the sign-post words the full label keeps
+#: answers 2.7 (A4): a short part label's end names lose the sign-post words the full label keeps.
+#: ROUND10 W3 (owner 2026-10-16): no label cuts a name mid-way ("Sikanni Chief River…" was scary) —
+#: an end is said whole however long, and a part with no run shows its full label.
 _SIGN_WORDS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
-SHORT_MAX = 60
-END_MAX = 26
 
 
 def _end_short(doc: dict, e: Optional[str], side: str) -> str:
@@ -677,12 +677,12 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
         return cap(e)
     if str(e).startswith("continues:") and begins_at(doc, e.split(":", 1)[1]) is None:
         nm = (doc["waters"].get(e.split(":", 1)[1]) or {}).get("name") or ""
-        return cap(cut_words(f"{nm} begins", END_MAX))
+        return cap(f"{nm} begins")
     t = end_name(doc, e, side)
     t = re.sub(r"^the ", "", t)
     t = _SIGN_WORDS.sub("", t) or t
     t = re.sub(r" of Canada\b", "", t) or t
-    return cap(cut_words(t, END_MAX))
+    return cap(t)
 
 
 def _run_short(doc: dict, r: dict) -> str:
@@ -697,8 +697,8 @@ def short_label(doc: dict, part: dict, label: str) -> str:
     """A part's SHORT label for the part strip (answers 2.7, A4) — generic, from its range's END
     labels, mouth upward: "Mouth → Vedder Crossing Bridge"; several stretches "Mouth → Hwy 29
     bridge (2 stretches)" (the first's lower end to the last's upper end); side channels only "Side
-    channel" / "3 side channels"; a part with no run (a lake, an area) its full label, cut to
-    `SHORT_MAX`. The full label (`label`) stays for the sheet."""
+    channel" / "3 side channels"; a part with no run (a lake, an area) its full label, whole (W3).
+    The full label (`label`) stays for the sheet."""
     rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
     main0 = sorted((r for r in rs if not r.get("branch")),
                    key=lambda r: -(r.get("km_from") if r.get("km_from") is not None else 0))
@@ -724,7 +724,7 @@ def short_label(doc: dict, part: dict, label: str) -> str:
         t = "Side channel" if len(side) == 1 else f"{len(side)} side channels"
     else:
         t = ""
-    return cut_words(t or label, SHORT_MAX)
+    return t or label
 
 
 def short_labels(W: "Water", labels: Sequence[str]) -> List[str]:
@@ -739,7 +739,7 @@ def short_labels(W: "Water", labels: Sequence[str]) -> List[str]:
         for n, i in enumerate(ix, 1):
             h = re.split(r" — | · ", labels[i], maxsplit=1)
             tail = h[1] if len(h) > 1 and h[1] else ""
-            out[i] = cut_words(f"{s} · {tail}", SHORT_MAX + 24) if tail else f"{s} ({n})"
+            out[i] = f"{s} · {tail}" if tail else f"{s} ({n})"
     return out
 
 
@@ -764,7 +764,7 @@ def part_labels(W: Water) -> List[str]:
             hint = ""
             if same and not re.match(r"^(The rest of the water|Whole water)", lab):
                 h = re.sub(r"^[^:·]{3,90}: ", "", re.sub(r"^Stretch with: ", "", lab))
-                hint = cut_words(h.split(" · also ")[0], 60)
+                hint = h.split(" · also ")[0]                 # whole (ROUND10 W3)
             out.append((pl + " · " if pl else "") + rl + (f" — {hint}" if hint else ""))
         elif not pl:
             out.append(lab)

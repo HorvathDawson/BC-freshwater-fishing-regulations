@@ -423,7 +423,8 @@ def _unref(v, ids):
     g["pool"] = r(g["pool"])
     g["subcaps"] = [{**s, "r": r(s["r"]), "lifted": [{**L, "by": r(L["by"])} for L in s["lifted"]]}
                     for s in g["subcaps"]]
-    g["lifts"] = [{**L, "by": r(L["by"])} for L in g["lifts"]]
+    g["lifts"] = [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}
+                  for L in g["lifts"]]
     g["buckets"] = [{**b, "by": r(b["by"])} for b in g["buckets"]]
     g["worked"] = [{**w, "share": r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]

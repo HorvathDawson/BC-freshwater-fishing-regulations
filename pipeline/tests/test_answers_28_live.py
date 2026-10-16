@@ -92,11 +92,10 @@ def test_vedder_mouth_oct_10_card(built):
 @pytest.mark.needs_bundle
 def test_duncan_and_lardeau_cards(built):
     d = _text(_trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river")))
-    assert d[:3] == ["2 a day from this stream",
-                     "On this river, Dolly Varden/bull trout: up to 2 a day — this river’s rule "
-                     "replaces Region 4’s 2-from-streams limit for them.",
-                     "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region "
-                     "4’s 2-from-streams limit for them."]
+    # ROUND10 W1: the row's two lifts are ONE line, each kind with its number, highest first
+    assert d[:2] == ["2 a day from this stream",
+                     "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow "
+                     "trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
     lc = _text(_trout(built, LARDEAU_CREEK))
     assert lc[1] == ("On the Duncan River and its tributaries, rainbow trout: up to 5 a day — the "
                      "Duncan River’s rule replaces Region 4’s 2-from-streams limit for them.")

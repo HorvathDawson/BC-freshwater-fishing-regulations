@@ -122,6 +122,13 @@ rule facts are stored whole).
   the day after 2", "record each one on your licence") and its species (one picture each, P5); `worked`
   (A2) [{kept, q, a, species, origin, share, here, other, away}] RULINGS Q23b worked through for a lift
   past the share; `states` [{r, line}] the cap each card line states — never two.
+  ROUND10 W1 (rows 9): ONE lift line per lifting ENTRY — a row lifting several kinds names each with its
+  number, highest first: "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow
+  trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."; a single lift reads as above.
+  `lifts[].each` [{kinds, n, by, fish}] every lifting rule (each `by` cites its Book page), the lift's `by`
+  and `n` the first's, `kinds` all; `headline.also` every lifted number above the headline, highest first.
+  ROUND10 W2/W3: a part with a main run never mentions its side channels; no label is cut (`…`) — an end
+  name is said whole, a part with no run shows its full label.
   A row's lifts name the water as "this river" (a row's own noun): the rows are keyed by CONTENT (a key is
   shared by every part with the same rule set), so a row string cannot carry the water's name; a ✱ row
   the walk carries names its row ("On the Duncan River and its tributaries").

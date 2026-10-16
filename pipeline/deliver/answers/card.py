@@ -9,6 +9,11 @@ out of them) is said as the angler reads a water:
   lifts       each water's rule lifting kinds out of the share, said positively with whose rule it is:
               "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule
               replaces Region 2’s 2-from-streams limit for them." (`by`: the page cites its Book page);
+              ONE line per lifting entry, each kind with its number, highest first (ROUND10 W1): "On
+              this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow trout (up
+              to 5 a day) and Dolly Varden/bull trout (up to 2 a day)." — `each` [{kinds, n, by, fish}]
+              per lifting rule, `by`/`n` the first (highest); the headline's `also` lists every lifted
+              number above it, highest first;
   total_line  under a share, the region's total: "No more than 4 trout and char a day across Region 2,
               lakes included.";
   buckets     the kinds grouped under the cap they draw from — "Share the 2 from streams" (steelhead;
@@ -243,23 +248,41 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
+    # ROUND10 W1: ONE line per lifting entry (the Duncan's rainbow and Dolly Varden rules are one row),
+    # each kind with its number, highest first; `each` keeps every rule's kinds, number and `by`
     lifts: List[dict] = []
     lift_cap: Dict[str, float] = {}
+    each_of: Dict[str, List[dict]] = {}
     for L in (share or {}).get("lifted", []):
         R_ = P.by_key[L["by"]]
         own = R_.f.get("take") if isinstance(R_.f.get("take"), (int, float)) \
             and not R_.f.get("unlimited") else None
         n = min(own, total) if own is not None and not unlimited else (total if not unlimited else None)
         lift_cap[L["by"]] = n
-        where, whose = _whose(P, R_)
-        fish = _lift_words(P, L["by"], L["members"])
-        allows = f"up to {_js(n)} a day" if n is not None else "any number"
-        if n is not None and head.get("n") is not None and n > head["n"]:
-            head.setdefault("also", []).append({"n": n, "says": f"{_js(n)} if they’re {fish}"})
-        lifts.append({"says": f"{where}, {fish}: {allows} — {whose} replaces {region}’s "
-                              f"{_js(share['take'])}-from-{share['water']}s limit for them.",
-                      "by": L["by"], "kinds": list(L["members"]), "n": n})
+        each_of.setdefault(R_.entry_id, []).append(
+            {"kinds": list(L["members"]), "n": n, "by": L["by"],
+             "fish": _lift_words(P, L["by"], L["members"])})
         states.append({"r": L["by"], "line": "lift"})
+    limit = f"{region}’s {_js(share['take'])}-from-{share['water']}s limit" if share is not None else ""
+    for each in each_of.values():
+        each.sort(key=lambda e: -(INF if e["n"] is None else e["n"]))     # stable: highest first
+        where, whose = _whose(P, P.by_key[each[0]["by"]])
+        allows = ["any number" if e["n"] is None else f"up to {_js(e['n'])} a day" for e in each]
+        if len(each) == 1:
+            says = f"{where}, {each[0]['fish']}: {allows[0]} — {whose} replaces {limit} for them."
+        else:
+            named = common.join([f"{e['fish']} ({a})" for e, a in zip(each, allows)], " and ")
+            says = f"{where}, its own rule replaces {limit} for {named}."
+        ns = [e["n"] for e in each]
+        lifts.append({"says": says, "by": each[0]["by"],
+                      "kinds": list(dict.fromkeys(S for e in each for S in e["kinds"])),
+                      "n": None if None in ns else max(ns), "each": each})
+    # the headline's "or N if they’re …": every lifted number above it, highest first
+    also = sorted((e for L in lifts for e in L["each"]
+                   if e["n"] is not None and head.get("n") is not None and e["n"] > head["n"]),
+                  key=lambda e: -e["n"])
+    if also:
+        head["also"] = [{"n": e["n"], "says": f"{_js(e['n'])} if they’re {e['fish']}"} for e in also]
     total_line = None
     if not unlimited and (share is not None or (head["n"] is not None and head["n"] < total)):
         wk = share["water"] if share is not None else ("stream" if P.kind == "stream" else "lake")
@@ -398,7 +421,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # -- the worked count (RULINGS Q23b) -----------------------------------------------------------
     worked: List[dict] = []
     if share is not None and lifts and not unlimited:
-        main = max(lifts, key=lambda L: (L["n"] or 0))
+        parts = [e for L in lifts for e in L["each"]]              # every lifting rule (W1)
+        main = max(parts, key=lambda L: (L["n"] or 0))
         q = main["n"] or 0
         S0 = main["kinds"][0]
         plural = SHORT_PLURAL.get(S0) or _names(main["kinds"])
@@ -410,7 +434,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             # RULINGS Q23b (refined 2026-10-12): on its own water the lifted kind does not use the share
             # for the other kinds — here: the lifted kinds' rest, and the share's own number
             here = min(left, share["take"] + sum(max(0, (L["n"] or 0) - (k if L is main else 0))
-                                                 for L in lifts))
+                                                 for L in parts))
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
             elif k == share["take"]:

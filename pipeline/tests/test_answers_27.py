@@ -109,13 +109,13 @@ def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
 @pytest.mark.needs_bundle
 def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
     g = _trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river"))
+    # ROUND10 W1: one line for the row, each kind with its number, highest first
     assert _lifts(g) == [
-        "On this river, Dolly Varden/bull trout: up to 2 a day — this river’s rule replaces Region "
-        "4’s 2-from-streams limit for them.",
-        "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s "
-        "2-from-streams limit for them."]
+        "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow trout (up "
+        "to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
     assert [b["title"] for b in g["buckets"]] == ["Up to 2 a day between them — all Region 4 streams combined",
                                                    "This river’s rule"]
+    assert g["headline"]["also"] == [{"n": 5, "says": "5 if they’re rainbow trout"}]
     assert [w["kept"] for w in g["worked"]] == [5, 4, 3, 2]
 
 
@@ -177,7 +177,7 @@ def test_every_part_has_a_short_label_from_its_ends(built):
     assert ws[CHILLIWACK_LAKE]["parts"][0]["short"] == "Whole water"
     for item, w in ws.items():
         shorts = [p["short"] for p in w["parts"] if p]
-        assert all(0 < len(s) <= D.SHORT_MAX + 24 for s in shorts), item
+        assert all(s and "…" not in s for s in shorts), item      # ROUND10 W3: never cut
         assert len(set(shorts)) == len(shorts), item          # tells the parts apart
 
 

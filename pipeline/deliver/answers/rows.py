@@ -1852,7 +1852,9 @@ def refs(out: dict, ix) -> dict:
                           "subcaps": [{**s, "r": ix(s["r"]),
                                        "lifted": [{**L, "by": ix(L["by"])} for L in s["lifted"]]}
                                       for s in g["subcaps"]],
-                          "lifts": [{**L, "by": ix(L["by"])} for L in g["lifts"]],
+                          "lifts": [{**L, "by": ix(L["by"]),
+                                     "each": [{**e, "by": ix(e["by"])} for e in L["each"]]}
+                                    for L in g["lifts"]],
                           "buckets": [{**b, "by": ix(b["by"])} for b in g["buckets"]],
                           "worked": [{**w, "share": ix(w["share"])} for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}
