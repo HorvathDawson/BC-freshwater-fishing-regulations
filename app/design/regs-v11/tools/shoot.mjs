@@ -46,7 +46,6 @@ const SCREENS = [
   // the answers 2.8 quota card; v12: whole pictures under each kind's name
   ['31-card-vedder', `${V}&at=.g28`],
   ['32-card-vedder-how-it-adds-up', `${V}&at=.worked`],
-  ['33-sheet-fished-elsewhere', `${V}&sheet=else:vedder_1010|0`],
   ['34-card-kootenay', 'w=klwa&d=1010&at=.g28'],
   ['35-card-cowichan-part2', 'w=cowichan&d=1010&p=1&at=.g28'],
   ['36-card-chilliwack', 'w=chilliwack&d=1010&p=0&at=.g28'],
@@ -81,6 +80,13 @@ const SCREENS = [
   ['60-gear-cowichan-dated-rows', 'w=cowichan&d=1010&p=1&at=%23g-gear'],
   ['61-gear-kootenay-bait-ways', 'w=klwa&d=1010&at=%5Bdata-k%3D%22bait%22%5D'],
   ['62-keep-iron-char-release', 'w=iron&d=720&at=%5Bdata-row%3D%22r1%22%5D'],
+  // round 12 phase 2 (answers rows 11): own bucket first, sizes said whole, every cap a bucket note, one "How it adds up"
+  ['63-card-vedder-rows11', `${V}&at=.g28`],
+  ['64-card-vedder-how-it-adds-up', `${V}&at=.worked`],
+  ['65-card-wahleach-lake', 'w=x34p&d=1010&at=.g28'],
+  ['66-card-bennett-lake-slot', 'w=x35p&d=1010&at=.g28'],
+  ['67-card-morley-lake', 'w=x12p&d=1010&at=.g28'],
+  ['68-card-bella-coola', 'w=x36p&d=1010&p=0&at=.g28'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

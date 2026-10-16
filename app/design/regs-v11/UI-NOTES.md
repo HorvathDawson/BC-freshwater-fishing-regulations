@@ -1,5 +1,13 @@
 # regs v14 (round 12, owner 1 3 4 + More) — in place on regs-v11.html
 
+- **Phase 2 (answers rows 11, gear 8; page v36 @ 3be6310d, 38 waters, 124 states).** Buckets in the data's order (a
+  water's own rule first), size words whole (`detail`: "any length, 50 cm or less", "60 cm or less, or 90 cm or longer"),
+  every cap a bucket note (Bennett Lake 3, Atlin 3). ONE "How it adds up" after the buckets: the data's
+  `elsewhere.says`, then each `group.worked` line ("Keep 3 rainbows here → …" for `at: here`, a question and its
+  answer otherwise); the "Fished elsewhere today?" row and sheet are gone. Gear sentence as gear 8 says it. Checks
+  `one-worked-list`, `buckets-own-first-sizes-whole`, `every-cap-once`, `gear-sentence-plain`. Persona (haiku): a lone
+  ✕ column now marks each item; "Other days" -> "Different on other days". Screens 63-68 (Vedder, Wahleach, Bennett,
+  Morley, Bella Coola).
 - **1 + 4 Header.** No kind: the water's name, then the part's label alone as a full-width line of its own aligned with the
   name, then "View on map ›" under it (the whole block is one button); a whole water with a map: just "View on map ›"; a
   whole water with nowhere to go: no line. The water's name wraps instead of truncating. Compact (scrolled): the label
@@ -14,7 +22,7 @@
   conditions running on after its name; the ways not allowed one line. Both take no more height than v13 on the four
   states measured. Check `bait-ways-compact`.
 - **3 Dated changes.** One row component everywhere in Gear & methods (the sentence's "Other days", Bait's bait-ban runs):
-  the date in a fixed 7.4em column, the change beside it in the data's words, "· in force today" when it is. Check
+  ("Different on other days"), the date in a fixed 7.4em column, the change beside it in the data's words, "· in force today" when it is. Check
   `dated-rows`.
 - **More: How to tell.** The "Hatchery or wild (adipose fin)" term sits inside the How to tell sheet, under the pictures,
   smaller (book's words folded, Book p.13 / p.80 linked); no separate ⓘ beside "How to tell". Check `howtell-has-hatchery`.

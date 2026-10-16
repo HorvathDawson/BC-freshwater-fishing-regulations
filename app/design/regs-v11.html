@@ -493,7 +493,7 @@ button.hplace:active .pl{color:var(--accent)}
 .drow .dc{font-weight:600;color:var(--ink)}.drow em{font-style:normal;font-weight:700;color:var(--restricted)}
 .ts2 .drow{grid-template-columns:minmax(0,1fr)}
 .gtopic ul.dlist,.gtopic .ync ul{padding-left:0;margin-bottom:0}.gtopic .ync ul{margin-top:0}.gtopic ul.dlist{padding-left:0}
-.ync[data-col]:only-child{padding-left:0;border-left:0}.ync:only-child ul{columns:2;column-gap:14px}.ync:only-child li{break-inside:avoid}
+.ync[data-col]:only-child{padding-left:0;border-left:0}.ync li:has(> i){position:relative;padding-left:18px}.ync li > i{position:absolute;left:0;font-style:normal;font-weight:800}.ync[data-col="ok"] li > i{color:var(--open)}.ync[data-col="no"] li > i{color:var(--closed)}.ync:only-child ul{columns:2;column-gap:14px}.ync:only-child li{break-inside:avoid}
 /* round 12 (owner 3): Bait and Ways to fish, two columns */
 .yn{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0 12px;margin:2px 0 0}
 .ync[data-col="no"]{padding-left:12px;border-left:1px solid var(--line2)}
@@ -548,7 +548,8 @@ details.bookw blockquote{margin:0 0 10px}
 .kp img{width:80px!important}
 .kp img{display:block;width:72px;height:auto;object-fit:contain;background:var(--wash)}
 .kp.sil{color:var(--line2);min-height:44px}.kp.sil svg{width:56px;height:28px}
-.worked{margin-top:12px}
+.worked{margin-top:14px}.worked .wsays{margin:2px 0 4px;font-size:var(--t4);color:var(--sub)}
+.worked li.wq span{display:block;color:var(--ink);font-weight:600}.worked li.wq b{font-weight:400;color:var(--sub)}
 .worked ul{list-style:none;margin:0;padding:0}
 .worked li{padding:6px 0;border-top:1px solid var(--line);font-size:var(--t4)}.worked li:first-child{border-top:0}
 .worked li span{color:var(--sub)}.worked li b{font-weight:700}
@@ -755,10 +756,14 @@ function buildKeep(){
       return `<div class="bkhd"><p class="bkt1">${m[1].trim() ? `<span class="bkp">${esc(m[1].trim())}</span> ` : ''}<b class="bkn">${bk.cap}</b> <span class="bkw">${esc(m[2].trim())}</span></p>${scope || book ? `<p class="bks">${esc(scope)}${scope && book ? ' · ' : ''}${book}</p>` : ''}</div>`; };
     const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
       return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${pics(k.species)}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
-    const worked = (g.worked || []).length ? `<div class="worked"><p class="bkh">How it adds up</p><ul>${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <b>${esc(w.a)}</b></li>`).join('')}</ul></div>` : '';
-    const fe = raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '';
+    // round 12 (answers rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list after the buckets — the data's
+    // elsewhere.says, then every group.worked line once: a keep-here line "Keep 3 rainbows here → …", the kept-elsewhere
+    // lines as questions with their answers. No dropdown, no sheet.
+    const els = raw.elsewhere?.says || '', wk = g.worked || [];
+    const worked = els || wk.length ? `<section class="worked" aria-label="How it adds up"><p class="bkh">How it adds up</p>${els ? `<p class="wsays">${esc(els)}</p>` : ''}${wk.length ? `<ul>${wk.map(w => `<li class="${w.at === 'here' ? 'wh' : 'wq'}"><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <b>${esc(w.a)}</b></li>`).join('')}</ul>` : ''}</section>` : '';
+    const fe = '';
     const quiet = art.querySelector('.gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
-    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${lifts}${total}${worked}${buckets}${fe}${quiet}${more}`;
+    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${lifts}${total}${buckets}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -855,7 +860,8 @@ const gearJSON = key => { const m = (SNAP.rules[key]?.body || '').match(/<pre cl
   try { return m ? JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')) : null; } catch (e) { return null; } };
 const namesBoat = key => (gearJSON(key)?.gear || []).some(g => /boat/.test(JSON.stringify(g.when || {})));
 /* round 12 (owner 3): Bait and Ways to fish as two columns — ✓ allowed | ✕ not — each item its name, its note small under it */
-function yesNo(ok, no){ const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh"><i>${k === 'ok' ? '✓' : '✕'}</i>${h}</p><ul>${xs.map(([n, sm]) => `<li><b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
+function yesNo(ok, no){ const solo = !ok.length || !no.length;   // persona: a lone column flowed in two — each item carries its own mark
+  const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh"><i>${k === 'ok' ? '✓' : '✕'}</i>${h}</p><ul>${xs.map(([n, sm]) => `<li>${solo ? `<i>${k === 'ok' ? '✓' : '✕'}</i>` : ''}<b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
   return `<div class="yn">${col('ok', 'Allowed', ok)}${col('no', 'Not allowed', no)}</div>`; }
 function buildGear(){
   const st = ST(), id = sid();
@@ -878,7 +884,7 @@ function buildGear(){
     const gl = sm.terms.filter(t => SNAP.gloss[t]);
     const tipBtn = !gl.length ? '' : `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`;
     sentence = `<div class="gsum" data-summary><p class="gsay">${esc(sm.says)}${tipBtn ? ' ' + tipBtn : ''}</p>`
-      + (sm.changes.length ? `<p class="dlab">Other days</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : '')
+      + (sm.changes.length ? `<p class="dlab">Different on other days</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : '')
       + `<p class="gbooks">${booksOnce(sm.cites)}</p></div>`; }
   // bait: the ✓/✕ list, as it was
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
@@ -981,8 +987,6 @@ function sheetHtml(k){
     if (ids.length === 1) { const g = SNAP.gloss[ids[0]]; return head(esc(g.title), g.term ? '' : esc(g.sub)) + `<div class="sbody">${glossBody(ids[0])}</div>`; }
     return head('What these words mean', '') + `<div class="sbody">${ids.map(id => { const g = SNAP.gloss[id]; return `<section class="gterm"><h3>${esc(g.title)}</h3>${g.term ? '' : `<p class="appl">${esc(g.sub)}</p>`}${glossBody(id)}</section>`; }).join('')}</div>`; }
   if (k.startsWith('src:')) { const s2 = SNAP.sources[k.slice(4)]; if (!s2) return ''; return head(esc(s2.title), esc(s2.sub)) + `<div class="sbody">${groupedSources(s2.body)}</div>`; }
-  if (k.startsWith('else:')) { const [id, ri] = k.slice(5).split('|'), e = SNAP.states[id].rows[+ri].elsewhere;
-    return head('Fished elsewhere today?', esc(e.says)) + `<div class="sbody">${e.ask.map(([q, a]) => `<div class="srow"><span>${esc(q)}</span><b>${esc(a)}</b></div>`).join('')}</div>`; }
   if (k === 'hatch') { const h = SNAP.howtell; let i = 0; const body = h.body.replace(/<figure class="fishart">/g, () => `<figure class="fishart">${window.FISHART ? FISHART.draw('RB', {marks:false, adiMark:true, clipped: i++ === 1}) : ''}`);
     // round 12 (More): the "Hatchery or wild" term lives here, under the pictures, smaller — not as an ⓘ beside "How to tell"
     const hw = SNAP.gloss.hatchery_wild;

@@ -11,7 +11,8 @@
 //   (round 11) place-in-header, gear-sentence, gear-no-icons, always-as-reference, bucket-number-big, bucket-note-once,
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
 //   (round 12) compact-header-place, sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
-//   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own)
+//   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
+//   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
 //   gear-one-summary      (round 10, retired in round 11 by gear-sentence) gear and methods are ONE section holding one summary block with an icon per cell:
 //                         lines, hooks, bait, then methods (gear first); the strip's dated changes are on it
 //   boat-lines            (owner 3) the Lines cell says what the data says about a boat: the data's own words where it
@@ -418,6 +419,41 @@ for (const hash of ['w=iron&d=720', 'w=iron&d=1010']) await page(hash, async b =
 });
 const rgb = RG.filter(x => !x.out.length || x.out.some(o => !o.rows || o.got.length !== o.want.length));
 check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.stringify(x.out)}`).join('; ') || '');
+
+// ---------- round 12, phase 2 (answers rows 11, gear 8) ----------
+// ONE "How it adds up" list per group: the data's elsewhere.says, then every group.worked line (q, a) once; no "Fished
+// elsewhere today?" row or sheet; a keep-here line reads "q →", the others are questions
+// buckets in the data's order (a water's own rule first), every kind's size words whole (detail), every bucket note
+// (several per group: Morley Lake, Atlin Lake) once, with its nested `then` caps
+const W2 = [];
+const CARDS2 = CARDS.concat([['vedder may', 'w=vedder&d=515'], ['morley', 'w=x12p&d=1010'], ['atlin', 'w=x3p&d=1010'], ['iron', 'w=iron&d=720'],
+  ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=x36p&d=1010&p=0']]);
+for (const [name, hash] of CARDS2) await page(hash, async b => {
+  W2.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
+    const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {name: ${JSON.stringify(name)}, fe: /fished elsewhere today/i.test(document.getElementById('keep').textContent), g: []};
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const raw = st.rows[+(art.dataset.row || 'r0').slice(1)] || {}, g = raw.group; if (!g || !g.headline) return;
+      const lists = [...art.querySelectorAll('.worked')], wl = lists[0], wt = norm(wl?.textContent), at = norm(art.textContent);
+      const el = raw.elsewhere?.says || '', worked = g.worked || [];
+      const secs = [...art.querySelectorAll('section.bkt')];
+      out.g.push({lists: lists.length, want: !!(el || worked.length), ask: (raw.elsewhere?.ask || []).length,
+        el: !el || (wt.includes(norm(el)) && at.split(norm(el)).length === 2),
+        lines: worked.map(w => wt.includes(norm(w.q)) && wt.includes(norm(w.a)) && at.split(norm(w.a)).length === 2 && (w.at !== 'here') === !wt.includes(norm(w.q) + ' →')),
+        order: (g.buckets || []).map((bk, i) => !!secs[i] && bk.kinds.every(k => norm(secs[i].textContent).includes(norm(k.name)))),
+        sizes: (g.buckets || []).flatMap((bk, i) => bk.kinds.map(k => !k.detail || [...(secs[i]?.querySelectorAll('.krow') || [])].some(r => norm(r.textContent).includes(norm(k.name)) && norm(r.querySelector('.kdet')?.textContent) === norm(k.detail)))),
+        notes: (g.buckets || []).flatMap((bk, i) => (bk.notes || []).map(n => at.split(norm(n.says)).length === 2 && norm(secs[i]?.textContent).includes(norm(n.says))
+          && (n.then || []).every(t => norm(n.says).includes(String(t.over_cm)) || [...secs[i].querySelectorAll('[data-then]')].some(e => norm(e.textContent).includes(String(t.over_cm)))))),
+        first: (g.buckets || [])[0]?.why || null, whys: (g.buckets || []).map(bk => bk.why)}); });
+    return out; })())`)));
+});
+const wb = W2.filter(x => x.missing || x.fe || x.g.some(g => g.ask || (g.want ? g.lists !== 1 : g.lists) || !g.el || !g.lines.every(Boolean)));
+check('one-worked-list', W2.some(x => x.g && x.g.some(g => g.lines.length > 3)) && !wb.length, wb.map(x => `${x.name}: ${x.missing ? 'not in the snapshot' : `${x.fe ? '"Fished elsewhere today?" still shown; ' : ''}${JSON.stringify(x.g.map(g => [g.lists, g.ask, g.el, g.lines]))}`}`).join('; '));
+const ob = W2.filter(x => !x.missing && x.g.some(g => !g.order.every(Boolean) || (g.whys.includes('rule') && g.first !== 'rule') || !g.sizes.every(Boolean)));
+check('buckets-own-first-sizes-whole', !ob.length && W2.some(x => x.name === 'vedder' && x.g[0]?.first === 'rule'), ob.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => [g.whys, g.order, g.sizes]))}`).join('; '));
+const nb = W2.filter(x => !x.missing && x.g.some(g => !g.notes.every(Boolean)));
+check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.notes.length >= 3)), nb.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => g.notes))}`).join('; ') || 'no group with several caps checked');
+// gear 8: the sentence as the data says it (no em dash)
+const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown) || !r.shown.startsWith(r.says));
+check('gear-sentence-plain', !gd.length, gd.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
