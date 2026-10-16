@@ -9,15 +9,14 @@
  * Every control is a 44 px target with its own accessible label, and the day is said in words
  * ("Oct 10"), never a bare number.
  */
+import { monthAbbr } from "@app/core";
 import { Pressable, Text, View } from "react-native";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
 
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 /** "Oct 10" */
 export function dayLabel(d: Date): string {
-  return `${MON[d.getMonth()]} ${d.getDate()}`;
+  return `${monthAbbr(d.getMonth())} ${d.getDate()}`;
 }
 
 /** The day `n` days (or, with `months`, months) after `d`; a month step keeps the day, clamped. */
