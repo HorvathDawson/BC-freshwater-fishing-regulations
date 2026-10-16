@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Regs v12</title>
-<!-- v12 (round 10, owner 1 2 3 5), in place on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
+<title>Regs v13</title>
+<!-- v13 (round 11, owner 2 3 4 6 + answers rows 10 / gear 7 / display 8), in place on v12 (round 10, owner 1 2 3 5), on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
      `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
-     Hash: #w=vedder&d=1010&p=0&sec=keep|gear&kit=licence|line|…&sheet=…&map=1&age=u16&theme=dark&ts=2&scroll=…&at=<selector> -->
+     Hash: #w=vedder&d=1010&p=0&sec=keep|gear&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -429,6 +429,55 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .gxno{display:flex;flex-wrap:wrap;gap:2px 12px;margin:6px 0 0;font-size:var(--t4);color:var(--sub)}.gxno i{font-style:normal;font-weight:800;color:var(--closed);margin-right:4px}
 .gxi.plain li{font-size:var(--t4)}
 .ts2 .gx{grid-template-columns:minmax(0,1fr)}.ts2 .gxc{border-right:0!important;padding-left:0!important}
+/* v13 (round 11, owner 4): the place inside the header */
+.r1{min-height:48px}
+.hplace{display:flex;align-items:baseline;gap:10px;width:100%;min-height:44px;padding:0 12px 8px 56px;margin-top:-8px;text-align:left}
+.hplace .pl{flex:1;min-width:0;font:500 var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}
+.hplace .pgo{flex:0 0 auto;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
+.hdr.mini .hplace .pl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
+.bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
+/* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
+.bkt:has(.bkhd) > .krow,.bkt:has(.bkhd) > .bnote{margin-left:2px;padding-left:12px;border-left:3px solid var(--line2)}
+.bkt.rule:has(.bkhd) > .krow{border-left-color:var(--accent)}
+.bkt.rule .bkhd{border-top-color:var(--accent)}
+.bkt1{margin:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;font:700 var(--t3)/1.2 Archivo,sans-serif}
+.bkt1 .bkn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open)}
+.bkt1 .bkp{color:var(--sub);font-weight:600}
+.bks{margin:2px 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--faint)}
+.bks .book{min-height:0;padding:12px 0;margin:-12px 0}
+.bnote{margin:6px 0 2px;padding:4px 8px;background:var(--wash);border-left:3px solid var(--ink);font:600 var(--t4)/1.35 Archivo,sans-serif}
+.k28 .kl{margin:0;font-size:var(--t3);line-height:1.3}.k28 .kl .nm{display:inline}
+.k28 .kn{margin-top:-3px}
+.k28 .kpics{margin-top:4px}
+.inh{margin:8px 16px 0;padding:6px 0 6px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--card))}
+.inh .ltag{display:block;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--accent)}
+.inh p{margin:2px 0 0}.inh .book{min-height:0;padding:12px 0;margin:-12px 0}
+/* v13 (round 11, owner 3): one gear sentence, dated chips, no icons; the province-wide rules a reference fold */
+.gsum{margin:2px 0 10px}
+.gsay{margin:0;font:700 var(--t2)/1.35 Archivo,sans-serif}
+.gchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.gchip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1.5px solid var(--restricted);font:600 var(--t4)/1.3 Archivo,sans-serif}
+.gchip b{color:var(--restricted)}
+.gbooks{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:0 12px}.gbooks .book{min-height:0;padding:12px 0;margin:-10px 0}
+#gear .gref{margin:0;border-top:1.5px solid var(--ink);padding:0 0 8px}
+#gear .gref > summary{min-height:56px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 0;list-style:none;cursor:pointer;font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
+#gear .gref > summary .lab{flex-basis:100%}
+#gear .gref > summary em{font:500 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
+#gear .gref > summary::-webkit-details-marker{display:none}
+#gear .gref > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;align-self:center;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+#gear .gref[open] > summary::after{transform:rotate(-135deg)}
+#gear .gref ul{list-style:none;margin:0 0 6px;padding:0}#gear .gref .hh{margin:10px 0 0}
+#gear .gref .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
+/* v13 (round 11, owner 6): braid review */
+.blist{display:flex;flex-direction:column;margin-top:8px;max-height:520px;overflow:auto;border-top:1px solid var(--line2)}
+.brow{flex:0 0 auto;display:flex;flex-direction:column;gap:1px;padding:8px 4px;border-bottom:1px solid var(--line2);min-height:44px}
+.brow span{font-size:var(--t4)}.brow em{font-style:normal;font-size:var(--t4);color:var(--sub)}.brow.on{background:var(--tint)}
+.braidlab{max-width:calc(100% - 20px)!important;right:10px}.braidlab .so{font-weight:700}
+.sw.dash{height:5px;background:repeating-linear-gradient(90deg,var(--ink) 0 7px,transparent 7px 12px)}
+.sw.rule{height:10px;background:color-mix(in srgb,var(--accent) 35%,transparent)}
+.mk.cut{pointer-events:none}.mk.cut i{border-radius:0;transform:rotate(45deg);width:14px;height:14px;background:var(--ink)}
+.mrule{margin:2px 0 4px;font:700 var(--t3)/1.3 Archivo,sans-serif}
 /* round 9 / answers 2.8: the water-first quota card */
 .g28 .rhead .num{white-space:normal;max-width:42%}.g28 .rhead .num small{white-space:normal}
 .ts2 .g28 .rhead{flex-direction:column;gap:2px}.ts2 .g28 .rhead .num{text-align:left;max-width:none}
@@ -472,10 +521,11 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
       <div class="wmap" id="wmap"></div>
     </div>
     <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div></div>
-  <div class="poster"><h1>Regs v12</h1>
+  <div class="poster"><h1>Regs v13</h1>
     <p>One Regulations surface with two parts, <b>What you can keep</b> and <b>Gear &amp; licence</b>, under one header. Every fact is page v36’s, from a script-made snapshot. Strip flags, book pages and group items come from answers 2.6.</p>
     <div class="ctl"><span class="lab">Water and day</span><div class="cs" id="c-w"></div></div>
-    <div class="ctl"><span class="lab">Theme and text</span><div class="cs" id="c-t"></div></div></div>
+    <div class="ctl"><span class="lab">Theme and text</span><div class="cs" id="c-t"></div></div>
+    <div class="ctl"><span class="lab">Braid review · round 10 placements to check (no regulation changed)</span><div class="blist" id="c-b"></div></div></div>
 </div>
 <script src="regs-v11/watermap.js"></script>
 <script src="regs-v11/v36snap.js"></script>
@@ -498,12 +548,13 @@ const WATERS = {
   wilkes:{snap:{1010:'wilkes_1010'}, map:null}, anderson:{snap:{1010:'anderson_1010'}, map:null},
 };
 // every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
-for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p)(\d*)_(\d+)$/); if (!m) continue;
+// round 11: Iron River (a Quinsam tributary, Jul 20 and Oct 10: the inherited summer opening)
+for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*)_(\d+)$/); if (!m) continue;
   const w = WATERS[m[1]] || (WATERS[m[1]] = {snap:{}, map:null, name: SNAP.states[k].name});
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -546,35 +597,35 @@ const tip = id => `<button class="gl" type="button" data-gl="${id}" aria-label="
 const tips = ids => !ids.length ? '' : ids.length === 1 ? tip(ids[0]) : `<button class="glk" type="button" data-gl="${ids.join(',')}">What these words mean</button>`;
 const combineTips = html => html.replace(/(?:<button class="gl"[^>]*?data-gl="\w+"[^>]*>ⓘ<\/button>\s*){2,}/g, run => ' ' + tips([...run.matchAll(/data-gl="(\w+)"/g)].map(m => m[1])) + ' ');
 
-/* ---------- header: back · water · date, then [What you can keep | Gear & licence] + View on map, then parts ---------- */
+/* ---------- header (v13, round 11 owner 4): back · water · date, then the place — "<kind> · <the part's label>" — with
+   "View on map ›" (the water map is where parts are chosen), then [What you can keep | Gear & licence]. The place is
+   part of the header itself, so it shows on every state from the first render (v12's row under the header was
+   reported missing until the part changed). No section count (the owner: drop "9 sections"), no MAP button. ---------- */
 function statusOf(st){ const h = st.cardHTML; return /wsstat closed/.test(h) ? 'closed' : /wsstat open/.test(h) ? 'open' : 'unknown'; }
-function hdr(){
-  const st = ST(), w = WATERS[S.w], parts = st.parts.length > 1 ? (Array.isArray(w.snap[S.d]) ? w.snap[S.d] : null) : null;
-  const k = statusOf(st), col = k === 'closed' ? '--closed' : k === 'open' ? '--open' : '--faint';
-  return `<div class="hdr" id="hdr"><div class="r1"><button class="back" aria-label="Back to search" data-toast="Back to the app’s Search">‹</button>
-      <div class="ttl"><b>${esc(st.name)}</b><small>${esc(st.sub)}</small></div>
-      <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
-    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div>
-      ${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '<!--'}<button class="mapbtn" data-map="1" aria-label="View this water on a map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3.5H21V20.5H3Z" stroke-width="1.8"/><path d="M8 3.5V9L12.5 13.5V20.5M17.5 3.5V7L12.5 13.5" stroke-width="2.2"/></svg><span>Map</span></button>${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '-->'}</div>
-    </div>`;
-}
-/* v12 (round 10, owner 5): no part strip. Right under the header, one row says where these rules apply (the part's
-   label from the data) and opens the water map, the one place parts are chosen. A label the data shortened with "…"
-   is never used: the full one is. Waters this prototype has no map for get a parts list sheet instead. */
+/* the part's label: page v36's own long label ("From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge") when its
+   subtitle names the part by it, else its short label unless the data cut it with "…"; a water with no part picker: its
+   map part's label */
 const fullPart = o => !o ? '' : (o.short && !/…/.test(o.short) ? o.short : o.t.replace(/ · \d+ sections?$/, ''));
 function hereLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part);
-  if (o) return fullPart(o);
+  if (o) { const long = o.t.replace(/ · \d+ sections?$/, ''); return st.sub.includes(long) ? long : fullPart(o); }
   const g = WATERS[S.w].map && WM.waters[WATERS[S.w].map];
   if (g) { const p = g.parts[curPart()]; return p.short && !/…/.test(p.short) ? p.short : p.name; }
   return ''; }
-const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true" class="pin"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.8" r="2.3" fill="currentColor"/></svg>';
-function whereRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = hereLabel();
+function placeRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = hereLabel() === st.name ? '' : hereLabel();   // a whole water: its name is the title already
   const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
-  const inner = `${PIN}<span class="wt"><span class="wl">Where these rules apply</span><b>${esc(lbl || st.name)}</b></span>`;
-  if (hasMap) return `<button class="where" type="button" data-map="1">${inner}<span class="wgo">View on map ›</span></button>`;
-  if (many) return `<button class="where" type="button" data-open="parts">${inner}<span class="wgo">Other parts ›</span></button>`;
-  return `<div class="where">${inner}</div>`; }
-
+  const inner = `<span class="pl" data-place>${esc(st.kind)}${lbl ? ` · ${esc(lbl)}` : ''}</span>`;
+  if (hasMap) return `<button class="hplace" type="button" data-map="1" aria-label="Where these rules apply: ${esc(lbl || st.name)}. View on map">${inner}<span class="pgo">View on map ›</span></button>`;
+  if (many) return `<button class="hplace" type="button" data-open="parts">${inner}<span class="pgo">Other parts ›</span></button>`;
+  return `<div class="hplace">${inner}</div>`; }
+function hdr(){
+  const st = ST(), k = statusOf(st), col = k === 'closed' ? '--closed' : k === 'open' ? '--open' : '--faint';
+  return `<div class="hdr" id="hdr"><div class="r1"><button class="back" aria-label="Back to search" data-toast="Back to the app’s Search">‹</button>
+      <div class="ttl"><b>${esc(st.name)}</b></div>
+      <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
+    ${placeRow()}
+    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div></div>
+    </div>`;
+}
 /* ---------- transform v36's card fragment into v10's layout ---------- */
 function speciesRow(codes){
   const cs = codes.filter(c => SNAP.fish[c] && FISHPIC(c).length);
@@ -591,6 +642,12 @@ function buildKeep(){
   root.querySelectorAll('.looks, .lthumb').forEach(e => e.remove());
   // v12 (round 10, owner 1): the no-fishing buffers (fishway 23 m, fish facility 100 m) are a quiet note BELOW the quota
   // tables (after the groups and Other fish), not a list of red ✕ rules up front. The data's own lines and scope.
+  // v13 (round 11, A3): a lift another water's row carries here (display `inherited`): a visible line right under the
+  // strip, in the data's words, with the lifting rule's book page; v36's own block (labelled in its words) is replaced
+  const inhs = st.inherited || [], inhBlocks = [...root.querySelectorAll('.caveats')].filter(c => inhs.some(x => c.textContent.includes(x.says)));
+  const inhLabel = (inhBlocks[0]?.querySelector('.lbl')?.textContent || '').trim(); inhBlocks.forEach(c => c.remove());
+  if (inhs.length) { const html = `<div class="inh">${inhLabel ? `<span class="ltag">${esc(inhLabel)}</span>` : ''}${inhs.map(x => `<p data-inherited>${esc(x.says)} ${x.by ? bookLinks(x.by) : ''}</p>`).join('')}</div>`;
+    const ws = root.querySelector('.wstrip'); if (ws) ws.insertAdjacentHTML('afterend', html); else root.insertAdjacentHTML('afterbegin', html); }
   const cav = root.querySelector('.caveats'); let nofish = null;
   if (cav) { nofish = doc.createElement('section');
     nofish.className = 'nofish'; nofish.setAttribute('aria-labelledby', 'nofish-h');
@@ -624,8 +681,17 @@ function buildKeep(){
     const total = g.total_line ? `<p class="gtotal">${esc(g.total_line)} ${tips(glOf(lis[(g.lifts || []).length]))}</p>` : '';
     // v12 (owner 2): one WHOLE picture per species, side by side under the kind's name, never stacked or cropped
     const pics = codes => `<span class="kpics">${codes.map(c => fishBtn(c)).join('')}</span>`;
+    // v13 (round 11, owner 2): a bucket's shared number big and obvious — the data's `cap`, found in its title ("Up to 2 a
+    // day between them") — and the title's scope after " — " ("all Region 2 streams combined") a smaller line; the
+    // bucket's size note (rows 10 `notes`) once, under the title; each kind row on one line: name, detail, number, then its
+    // own notes and duties, then its pictures (they no longer split a row's text from its notes)
+    const bhead = (bk, key) => { if (!bk.title) return '';
+      const cut = bk.title.indexOf(' — '), main = cut < 0 ? bk.title : bk.title.slice(0, cut), scope = cut < 0 ? '' : bk.title.slice(cut + 3);
+      const m = bk.cap != null ? main.match(new RegExp(`^(.*?)\\b${bk.cap}\\b(.*)$`)) : null, book = key ? bookLinks(key) : '';
+      if (!m) return `<p class="bkh">${esc(bk.title)}${book ? ` · ${book}` : ''}</p>`;
+      return `<div class="bkhd"><p class="bkt1">${m[1].trim() ? `<span class="bkp">${esc(m[1].trim())}</span> ` : ''}<b class="bkn">${bk.cap}</b> <span class="bkw">${esc(m[2].trim())}</span></p>${scope || book ? `<p class="bks">${esc(scope)}${scope && book ? ' · ' : ''}${book}</p>` : ''}</div>`; };
     const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
-      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bk.title ? `<p class="bkh">${esc(bk.title)}${key ? ` · ${bookLinks(key)}` : ''}</p>` : ''}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}${pics(k.species)}${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${pics(k.species)}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
     const worked = (g.worked || []).length ? `<div class="worked"><p class="bkh">How it adds up</p><ul>${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <b>${esc(w.a)}</b></li>`).join('')}</ul></div>` : '';
     const fe = raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '';
     const quiet = art.querySelector('.gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
@@ -730,66 +796,64 @@ function buildGear(){
   if (!st.kitTiles) return `<p class="foot">No gear may go in the water and no licence is needed while fishing is closed.</p>`;
   learnChipWords(st);
   const secs = [], cells = [], keys = [], words = [];
-  const dateds = bits => dated(st, bits).map(x => `<p class="gxd${x.now ? ' now' : ''}" data-dated>${icon('cal')}<span><b>${x.when}</b> ${x.words}${x.now ? ' <em>· in force today</em>' : ''}</span></p>`).join('');
-  // gear: the Line & hooks rows, in the data's order
-  if (st.panes.line) { const r = parse(st.panes.line), terms = [...r.querySelectorAll('.kitnote [data-gl]')].map(b => b.dataset.gl);
-    const rows = [...r.querySelectorAll('.grow')].map(g => { const c = takeChips(g, '.gsrc');
-      return {t: g.querySelector('.glabel')?.textContent || '', b: g.querySelector('.gval b')?.innerHTML || '', sub: [...g.querySelectorAll('.gval > span')].map(x => x.innerHTML), ...c}; });
-    terms.forEach(gl => { const row = [...rows].reverse().find(x => x.keys.some(k => k.includes(gl))); if (row) row.b += ' ' + tip(gl); });
-    rows.forEach(x => { keys.push(...x.keys); words.push(...x.words); const k = ROWKEY[x.t] || 'other';
-      let subs = x.sub, boat = '', val = `<p class="gxv">${x.b}</p>`;
-      if (k === 'lines' && st.lines?.says) {
-        // gear v6 (answers W4): the Lines row's own sentence, boat included, and the book page of every rule deciding it
-        keys.push(...st.lines.cites); words.push(...st.lines.cites.map(wordOf_));
-        val = `<p class="gxv says" data-boat data-cites="${st.lines.cites.length}">${icon('boats')}<span>${esc(st.lines.says)}</span></p>`;
-        subs = subs.filter(t => !/boat/.test(t)); const bk = booksOnce(st.lines.cites); if (bk) subs = subs.concat(bk); }
-      else if (k === 'lines') { const bs = subs.find(t => /boat/.test(t));   // older snapshots: the row's own words about a boat
-        if (bs) { subs = subs.filter(t => t !== bs); boat = bs; }
-        else { const rk = x.keys.find(namesBoat); if (rk) boat = esc(SNAP.rules[rk].title); } }
-      cells.push(`<div class="gxc gx-${k}" data-k="${k}" role="listitem"><p class="gxl">${icon(k)}${esc(x.t)}</p>${val}${subs.map(t => `<p class="gxs">${t}</p>`).join('')}`
-        + (boat ? `<p class="gxb" data-boat>${icon('boats')}<span>${boat}</span></p>` : '') + (k === 'lures' ? dateds(4 | 8) : '') + '</div>'); }); }
-  // bait: the ✓/✕ list, condensed
+  // the strip's bait-ban runs (bit 16) on the Bait cell, in the data's words
+  const dateds = bits => dated(st, bits).map(x => `<p class="gxd${x.now ? ' now' : ''}" data-dated><span><b>${x.when}</b> ${x.words}${x.now ? ' <em>· in force today</em>' : ''}</span></p>`).join('');
+  // v13 (round 11, owner 3): the day's terminal gear is the data's ONE sentence (gear 7 `summary.says`), an ⓘ for its
+  // glossary terms, one book link per page of the rules it cites, and the other days whose sentence differs as dated
+  // chips (`summary.changes`). No icons. The Line & hooks rows' rules still feed the section's one Sources line.
+  if (st.panes.line) { const r = parse(st.panes.line);
+    r.querySelectorAll('.grow').forEach(g => { const c = takeChips(g, '.gsrc'); keys.push(...c.keys); words.push(...c.words); }); }
+  const sm = st.summary;
+  let sentence = '';
+  if (sm) { const ck = [...sm.cites, ...sm.changes.flatMap(c => c.cites)]; keys.push(...ck); words.push(...ck.map(wordOf_));
+    const gl = sm.terms.filter(t => SNAP.gloss[t]);
+    const tipBtn = !gl.length ? '' : `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`;
+    sentence = `<div class="gsum" data-summary><p class="gsay">${esc(sm.says)}${tipBtn ? ' ' + tipBtn : ''}</p>`
+      + (sm.changes.length ? `<div class="gchips">${sm.changes.map(c => `<span class="gchip" data-change><b>${esc(c.when)}</b> ${esc(c.says)}</span>`).join('')}</div>` : '')
+      + `<p class="gbooks">${booksOnce(sm.cites)}</p></div>`; }
+  // bait: the ✓/✕ list, as it was
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
     const items = [...r.querySelectorAll('.bait')].map(b => ({ok: b.classList.contains('ok'), n: b.querySelector('b')?.innerHTML || '', s: b.querySelector('span')?.innerHTML || ''}));
     const note = [...r.querySelectorAll('p')].map(p => p.innerHTML);
-    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${icon('bait')}${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}<ul class="gxi">${items.map(x => `<li class="${x.ok ? 'ok' : 'no'}"><i>${x.ok ? '✓' : '✕'}</i><span><b>${x.n}</b>${x.s && !/^(allowed|bait ban)$/.test(x.s) ? ` <small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${dateds(16)}</div>`); }
-  // methods: what's allowed (with the data's conditions), then what is not
+    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}<ul class="gxi">${items.map(x => `<li class="${x.ok ? 'ok' : 'no'}"><i>${x.ok ? '✓' : '✕'}</i><span><b>${x.n}</b>${x.s && !/^(allowed|bait ban)$/.test(x.s) ? ` <small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${dateds(16)}</div>`); }
+  // ways to fish: what's allowed (with the data's conditions), then what is not — as it was
   if (st.panes.ways) { const r = parse(st.panes.ways);
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
     const ok = [...r.querySelectorAll('.wrow')].map(w => ({n: w.querySelector('b')?.innerHTML || '', s: w.querySelector('small')?.innerHTML || ''}));
     const no = [...r.querySelectorAll('.nochip')].map(c => c.textContent.replace(/^✕/, '').trim());
-    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${icon('methods')}${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><ul class="gxi">${ok.map(x => `<li class="ok"><i>✓</i><span><b>${x.n}</b>${x.s ? `<small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${no.length ? `<p class="gxno">${no.map(t => `<span><i>✕</i>${esc(t)}</span>`).join('')}</p>` : ''}</div>`); }
+    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><ul class="gxi">${ok.map(x => `<li class="ok"><i>✓</i><span><b>${x.n}</b>${x.s ? `<small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${no.length ? `<p class="gxno">${no.map(t => `<span><i>✕</i>${esc(t)}</span>`).join('')}</p>` : ''}</div>`); }
   // boats: the data's boat rules for this water, when it has any
   if (st.panes.boats) { const r = parse(st.panes.boats);
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
     r.querySelectorAll('.src').forEach(e => e.remove());
-    cells.push(`<div class="gxc wide" data-k="boats" role="listitem"><p class="gxl">${icon('boats')}${esc(r.querySelector('h3')?.textContent || 'Boats')}</p><ul class="gxi plain">${[...r.querySelectorAll('.factbtn')].map(b => `<li><span>${b.innerHTML}</span></li>`).join('')}</ul></div>`); }
-  secs.push({k: 'gear', h: 'Gear & methods', body: dayLine() + `<div class="gx" role="list" aria-label="What’s allowed">${cells.join('')}</div>` + sourcesLine(`line|${id}`, keys, words)});
-  // Always: the data's headings, folded; a heading with fewer than 3 rules shares a fold with the next
-  if (st.panes.always) { const r = parse(st.panes.always), cards = [...r.querySelectorAll('.hcard')], folds = [];
-    for (const c of cards) { const last = folds[folds.length - 1], n = c.querySelectorAll('li').length;
-      if (last && last.n < 3) { last.cards.push(c); last.n += n; } else folds.push({cards: [c], n}); }
-    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
-    secs.push({k: 'always', h: 'Always', body: folds.map(f => `<details class="afold"><summary><span>${f.cards.map(c => esc(c.querySelector('.hh')?.textContent || '')).join(' · ')}</span><em>${f.n}</em></summary>${f.cards.map(c => (f.cards.length > 1 ? `<p class="hh">${esc(c.querySelector('.hh')?.textContent || '')}</p>` : '') + c.querySelector('ul').outerHTML).join('')}</details>`).join('')
-        + sourcesLine(`always|${id}`, ks, ks.map(wordOf_))}); }
-  // Licence: its own section, last
+    cells.push(`<div class="gxc wide" data-k="boats" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Boats')}</p><ul class="gxi plain">${[...r.querySelectorAll('.factbtn')].map(b => `<li><span>${b.innerHTML}</span></li>`).join('')}</ul></div>`); }
+  secs.push({k: 'gear', h: 'Gear & methods', body: dayLine() + sentence + `<div class="gx" role="list" aria-label="Bait and ways to fish">${cells.join('')}</div>` + sourcesLine(`line|${id}`, keys, words)});
+  // Licence: its own section, the last one
   const L = licence(st, id), u16 = S.age === 'u16';
   secs.push({k: 'licence', h: 'Licence', body: `<div class="segm who" role="group" aria-label="Who is fishing"><button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>${L.html}`
       + sourcesLine(`lic|${id}|${L.keyed}`, [], L.words)});
+  // v13 (round 11, owner 3: "Always" felt out of place, its rules matter): the province-wide handling rules are a closed
+  // REFERENCE fold after Licence, named by the data's own tile ("Handling fish · 21 rules that apply everywhere")
+  let ref = '';
+  if (st.panes.always) { const r = parse(st.panes.always), tile = parse(st.kitTiles).querySelector('[data-kit="always"]');
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
+    ref = `<details class="gref" id="g-always" data-reference><summary><span class="lab">Reference</span><b>${esc(tile?.querySelector('.kv')?.textContent || '')}</b><em>${esc(tile?.querySelector('.ks')?.textContent || '')}</em></summary>`
+      + [...r.querySelectorAll('.hcard')].map(c => `<p class="hh">${esc(c.querySelector('.hh')?.textContent || '')}</p>${c.querySelector('ul').outerHTML}`).join('')
+      + sourcesLine(`always|${id}`, ks, ks.map(wordOf_)) + `</details>`; }
   // no per-line book cites here: each section's one Sources line carries its pages
-  return combineTips(secs.map(x => `<section class="gpart gtopic" id="g-${x.k}" aria-labelledby="gh-${x.k}"><h3 id="gh-${x.k}">${x.h}</h3>${x.body}</section>`).join(''));
+  return combineTips(secs.map(x => `<section class="gpart gtopic" id="g-${x.k}" aria-labelledby="gh-${x.k}"><h3 id="gh-${x.k}">${x.h}</h3>${x.body}</section>`).join('') + ref);
 }
 
 /* ---------- render ---------- */
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   const sc = $('sc'), prev = sc.scrollTop;
-  sc.innerHTML = hdr() + whereRow() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
+  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
   $('wmap').innerHTML = +S.map ? mapHtml() : ''; $('wmap').classList.toggle('on', !!+S.map);
-  if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}`, keepVB = MV.vb;
+  if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}|${S.br}|${S.bj}`, keepVB = MV.vb;
     if (!keepVB) mapOpened(); else { setVB(keepVB); if (MV.key !== key) ease(targetBox()); } MV.key = key; }
   else { MV.vb = null; MV.key = null; }
   sc.scrollTop = keep ? prev : S.scroll; mini();
@@ -864,12 +928,16 @@ const ST_KIND = {c: 'closed', o: 'own', b: 'base'};
   const el = document.createElement('style'); el.id = 'wm-tokens';
   el.textContent = `:root{${v(WM.colours.light)}}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${v(WM.colours.dark)}}}:root[data-theme="dark"]{${v(WM.colours.dark)}}`;
   document.head.appendChild(el); })();
-const mgroup = () => WM.waters[WATERS[S.w].map];
+/* v13 (round 11, owner 6): braid review — a braid the round-10 placement marked (bundle section_straddle, RULINGS E15),
+   drawn on its own map (WATERMAP.braids, the export's --braids): S.br the braid, S.bj the rule it was placed for */
+const BR = () => S.br >= 0 ? (WM.braids || [])[S.br] || null : null;
+const wgroup = () => WM.waters[WATERS[S.w].map];
+const mgroup = () => BR() || wgroup();
 const dayCol = () => WM.about.dates.indexOf(String(S.d));
 const kindOf = s => ST_KIND[(s || '')[dayCol()]] || null;           // null: tidal / outside / a day the export lacks
 const wordOf = k => k ? WM.words[k] : '';
 /* the part the page is on, in the map's order */
-function curPart(){ const st = ST(), g = mgroup();
+function curPart(){ const st = ST(), g = wgroup();
   const i = g.parts.findIndex(p => p.name === st.name && (st.part == null || p.picker === +st.part)); return Math.max(0, i); }
 /* the snapshot state that shows a map part on the page's day: {w, p} or null */
 function stateFor(part){
@@ -886,7 +954,34 @@ const statusChip = k => k ? `<span class="mst ${k}"><i></i>${esc(wordOf(k))}</sp
 function markLabel(g, m){ if (m.label) return m.label;
   const a = g.parts[m.down].short || '', b = g.parts[m.up].short || ''; let k = 0; while (k < a.length && a[k] === b[k]) k++;
   k = a.lastIndexOf(' ', k) + 1; return `${a.slice(k)} / ${b.slice(k)}`; }
+const pct = x => Math.round(x * 100) + '%';
+/* the braid's label: the data's cut, side and share (rows[].cut / side / share / words), never a guess */
+function braidSays(b, r){ const cut = r.cut != null ? b.cuts[r.cut] : null, inout = r.side === 'in' ? 'inside' : 'outside';
+  return r.words && cut ? `This channel crosses ${cut.name} — counted as ${r.words} it: ${pct(r.share)} of its length is ${r.words} it.`
+    : `This channel crosses this rule’s boundar${b.cuts.length > 1 ? 'ies' : 'y'} — counted ${inout} its stretch: ${pct(r.share)} of its length is.`; }
+const braidSo = r => r.side === 'in' ? 'So this rule applies to the whole channel.' : 'So this rule applies to none of it.';
+const pageOf = water => Object.entries(WATERS).find(([, w]) => { const x = Object.values(w.snap)[0]; const id = Array.isArray(x) ? x[0] : x; return SNAP.states[id]?.name === water; });
+function braidMapHtml(){
+  const b = BR(), r = b.rows[Math.min(S.bj, b.rows.length - 1)], ns = 'vector-effect="non-scaling-stroke"';
+  const stroke = s => { const kk = kindOf(s); return kk ? `var(--st-${kk})` : 'var(--faint)'; };
+  let svg = `<svg id="msvg" viewBox="0 0 ${b.view.w} ${b.view.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of a braid of the ${esc(b.water)}">`
+    + `<path d="${b.other.areas}" fill="var(--st-lake)" fill-opacity=".28" stroke="none"/><path d="${b.other.lines}" fill="none" stroke="var(--st-water)" stroke-opacity=".35" stroke-width="1.2" ${ns}/>`
+    + (r.stretch ? `<path class="stretch" d="${r.stretch}" fill="none" stroke="var(--accent)" stroke-opacity=".28" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" ${ns}/>` : '');
+  for (const l of b.lines) svg += `<path data-status="${kindOf(l.s) || ''}" d="${l.d}" fill="none" stroke="${stroke(l.s)}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" ${ns}/>`;
+  svg += `<path d="${b.braid.d}" fill="none" stroke="var(--card)" stroke-width="8" stroke-linecap="round" ${ns}/><path class="braid" data-status="${kindOf(b.braid.s) || ''}" d="${b.braid.d}" fill="none" stroke="${stroke(b.braid.s)}" stroke-width="5" stroke-dasharray="7 5" ${ns}/></svg>`;
+  const pg = pageOf(b.water), i = S.br, all = (WM.braids || []).flatMap((x, bi) => x.rows.map((_, ri) => [bi, ri])), at = all.findIndex(([x, y]) => x === S.br && y === S.bj);
+  const nb = d => { const t = all[at + d]; return t ? `${t[0]}|${t[1]}` : ''; };
+  return `<div class="mh"><button class="mback" type="button" data-unmap aria-label="Back to regulations">‹ Back</button><div class="ttl"><b>Braid review · ${esc(b.water)}</b><small>${at + 1} of ${all.length} placements the builder marked</small></div></div>
+    <div class="mcanvas" id="mcanvas">${svg}<div class="mmarks" id="mmarks"></div>
+      <div class="mlegend braidlab" data-braid-label><span><i class="sw dash"></i><b>${esc(braidSays(b, r))}</b></span><span class="so">${esc(braidSo(r))}</span>
+        ${r.stretch ? '<span><i class="sw rule"></i>This rule’s stretch</span>' : ''}${['closed', 'own', 'base'].map(x => `<span><i class="sw ${x}"></i>${esc(WM.words[x])}</span>`).join('')}<span class="muted">${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></div></div>
+    <div class="mbar"><p class="mwhere">The rule · counted ${r.side === 'in' ? 'inside' : 'outside'} · ${pct(r.share)}</p>
+      <p class="mrule">${esc(r.rule)}</p>${statusChip(kindOf(b.braid.s))}
+      <div class="mstep"><button type="button" data-braid="${nb(-1)}"${nb(-1) ? '' : ' disabled aria-disabled="true"'}>‹ Previous</button><button type="button" data-braid="${nb(1)}"${nb(1) ? '' : ' disabled aria-disabled="true"'}>Next ›</button></div>
+      ${pg ? `<button class="mgo" type="button" data-cw="${pg[0]}|1010">Open the ${esc(b.water)} regulations</button>` : `<p class="note2">Page v36 does not offer the ${esc(b.water)}: review only.</p>`}</div>`;
+}
 function mapHtml(){
+  if (BR()) return braidMapHtml();
   const g = mgroup(), mp = S.mp >= 0 ? S.mp : curPart(), p = g.parts[mp], k = kindOf(p.s), ns = 'vector-effect="non-scaling-stroke"';
   const stroke = s => { const kk = kindOf(s); return kk ? `var(--st-${kk})` : 'var(--faint)'; };
   let svg = `<svg id="msvg" viewBox="0 0 ${g.view.w} ${g.view.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of ${esc(p.name)} and its parts">`
@@ -922,7 +1017,8 @@ function fitBox(b, pad){ const r = $('mcanvas').getBoundingClientRect(), g = mgr
   let w = Math.max(x1 - x0, min) * (1 + 2 * pad), h = Math.max(y1 - y0, min) * (1 + 2 * pad);
   if (w / h > asp) h = w / asp; else w = h * asp;
   return [(x0 + x1) / 2 - w / 2, (y0 + y1) / 2 - h / 2, w, h]; }
-function targetBox(){ const g = mgroup(), mp = S.mp >= 0 ? S.mp : curPart();
+function targetBox(){ if (BR()) { const b = BR(), xs = [b.box[0], b.box[2], ...b.cuts.map(c => c.x)], ys = [b.box[1], b.box[3], ...b.cuts.map(c => c.y)];   // the braid and its cut
+    return fitBox([Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], 0.9); } const g = mgroup(), mp = S.mp >= 0 ? S.mp : curPart();
   return S.mw ? fitBox([0, 0, g.view.w, g.view.h], 0) : fitBox(g.parts[mp].box, 0.35); }
 function setVB(vb){ MV.vb = vb; const s = $('msvg'); if (!s) return; s.setAttribute('viewBox', vb.map(v => v.toFixed(1)).join(' ')); placeMarks(); }
 function ease(to){ const from = MV.vb || to, t0 = performance.now();
@@ -932,6 +1028,9 @@ function ease(to){ const from = MV.vb || to, t0 = performance.now();
 /* the boundary markers: HTML over the map so they stay finger-sized at any zoom; the current part's two ends are labelled */
 function placeMarks(){ const box = $('mmarks'), g = mgroup(); if (!box || !MV.vb) return;
   const r = $('mcanvas').getBoundingClientRect(), [x, y, w, h] = MV.vb, sc = Math.min(r.width / w, r.height / h);
+  if (BR()) { const ox = (r.width - w * sc) / 2, oy = (r.height - h * sc) / 2;   // a braid map: its cuts, each named
+    box.innerHTML = BR().cuts.map(c => { const px = ox + (c.x - x) * sc, py = oy + (c.y - y) * sc, dx = Math.min(0, r.width - 100 - px) + Math.max(0, 100 - px);
+      return `<span class="mk cut" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;--dx:${dx.toFixed(0)}px" aria-label="Boundary: ${esc(c.name)}"><i></i><span>${esc(c.name)}</span></span>`; }).join(''); return; }
   const ox = (r.width - w * sc) / 2, oy = (r.height - h * sc) / 2, mp = S.mp >= 0 ? S.mp : curPart();
   box.innerHTML = g.marks.map((m, i) => { const px = ox + (m.x - x) * sc, py = oy + (m.y - y) * sc;
     if (px < -20 || py < -20 || px > r.width + 20 || py > r.height + 20) return '';
@@ -965,15 +1064,16 @@ function mapOpened(){ MV.vb = null; setVB(targetBox()); }
 /* swipe back from the left edge closes the water map */
 (() => { let x0 = null; $('wmap').addEventListener('pointerdown', e => { if (e.clientX - $('wmap').getBoundingClientRect().left < 24) x0 = e.clientX; });
   $('wmap').addEventListener('pointermove', e => { if (x0 != null) $('wmap').style.transform = `translateX(${Math.max(0, e.clientX - x0)}px)`; });
-  $('wmap').addEventListener('pointerup', e => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; $('wmap').style.transform = ''; if (dx > 80) go({map:0, mp:-1, mk:-1, mw:0}, true); }); })();
+  $('wmap').addEventListener('pointerup', e => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; $('wmap').style.transform = ''; if (dx > 80) go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true); }); })();
 
 /* ---------- events ---------- */
 function go(o, keep){ Object.assign(S, o); if (!keep && !('scroll' in o)) S.scroll = 0; render(keep); }
 function toast(t){ $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('on'), 1800); }
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-step],[data-mgo],[data-mk],[data-mwhole],[data-open],[data-close],[data-sec],[data-map],[data-unmap],[data-part],[data-day],[data-age],[data-jump],[data-acc],[data-gl],[data-src],[data-rule],[data-howtell],[data-fish],[data-tab],[data-toast],[data-cw],[data-ct],[data-md]');
+  const t = e.target.closest('[data-braid],[data-step],[data-mgo],[data-mk],[data-mwhole],[data-open],[data-close],[data-sec],[data-map],[data-unmap],[data-part],[data-day],[data-age],[data-jump],[data-acc],[data-gl],[data-src],[data-rule],[data-howtell],[data-fish],[data-tab],[data-toast],[data-cw],[data-ct],[data-md]');
   if (!t) { if (e.target === $('scrim')) go({sheet:''}, true); return; }
   const d = t.dataset;
+  if (d.braid != null) { if (!d.braid) return; const [bi, ri] = d.braid.split('|').map(Number); return go({map:1, br:bi, bj:ri, mp:-1, mk:-1, mw:0, sheet:''}, true); }
   if (d.step) { const g = mgroup(), cur = S.mp >= 0 ? S.mp : curPart(), n = cur + +d.step;
     return n < 0 || n >= g.parts.length ? null : go({mp:n, mk:-1, mw:0}, true); }
   if (d.mgo != null) { const g = mgroup(), part = g.parts[+d.mgo], to = stateFor(part);
@@ -994,29 +1094,31 @@ document.addEventListener('click', e => {
   if (d.acc) { const sc = $('sc'), y0 = t.getBoundingClientRect().top; go({kit: S.kit === d.acc ? '' : d.acc}, true);
     const t2 = document.querySelector(`[data-acc="${d.acc}"]`); if (t2) { sc.scrollTop += t2.getBoundingClientRect().top - y0; t2.focus({preventScroll:true}); } mini(); return; }
   if (d.jump) { const el = $(d.jump); if (el) $('sc').scrollTo({top: el.offsetTop - $('hdr').offsetHeight - 4, behavior:'smooth'}); return; }
-  if (d.map) return go({map:1, mp:-1, mk:-1, mw:0, sheet:''}, true);
-  if (d.unmap != null) return go({map:0, mp:-1, mk:-1, mw:0}, true);
+  if (d.map) return go({map:1, mp:-1, mk:-1, mw:0, br:-1, sheet:''}, true);
+  if (d.unmap != null) return go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true);
   if (d.part != null) return go({p:+d.part, sheet:''}, !!+S.map);
   if (d.day) return go({d:+d.day, p:0, sheet:''});
   if (d.md) return toast('This prototype holds only the snapshot’s days');
   if (d.age) return go({age:d.age}, true);
   if (d.tab) return d.tab === 'cond' ? toast('Conditions: the app’s existing water conditions') : null;
   if (d.toast) return toast(d.toast);
-  if (d.cw) { const [w, dd, p] = d.cw.split('|'); return go({w, d:+dd, p:+(p||0), sheet:'', map:0}); }
+  if (d.cw) { const [w, dd, p] = d.cw.split('|'); return go({w, d:+dd, p:+(p||0), sheet:'', map:0, br:-1}); }
   if (d.ct != null) { const [th, ts] = d.ct.split('|'); return go({theme:th, ts:+ts||0}, true); }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0}, true); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true); } });
 function poster(){
   $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
     .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${S.w==='cowichan'?'|'+S.p:''}`===k?'on':''}" data-cw="${k}">${t}</button>`).join('')
     + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
       .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;
   $('c-all').onchange = e => { if (e.target.value) { const [w, dd] = e.target.value.split('|'); go({w, d:+dd, p:0, sheet:'', map:0}); } };
+  // v13 (round 11, owner 6): every braid placement the builder marked, each opening its map (the export's words)
+  $('c-b').innerHTML = (WM.braids || []).flatMap((b, bi) => b.rows.map((r, ri) => `<button class="brow${S.br === bi && S.bj === ri && +S.map ? ' on' : ''}" type="button" data-braid="${bi}|${ri}"><b>${esc(b.water)}</b><span>${esc(r.rule)}</span><em>Counted ${r.words ? r.words + ' ' + esc(b.cuts[r.cut].name) : r.side === 'in' ? 'inside the stretch' : 'outside the stretch'} · ${r.side === 'in' ? 'rule applies' : 'rule does not apply'} · ${pct(r.share)} of it on that side</em></button>`)).join('');
   $('c-t').innerHTML = [['','Auto'],['light','Light'],['dark','Dark'],['|2','200% text']].map(([k,t]) => `<button class="pill" data-ct="${k}">${t}</button>`).join('');
 }
 (function(){ const h = new URLSearchParams(location.hash.slice(1));
   if (h.get('shot')) document.documentElement.classList.add('shot'); if (h.get('tall')) document.documentElement.classList.add('tall');
-  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','ts','scroll'].includes(k) ? +v : v;
+  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
   const sec = S.sec; render();
   if (sec === 'gear' && !S.scroll && !S.at) requestAnimationFrame(() => { $('sc').scrollTop = $('gear').offsetTop - $('hdr').offsetHeight + 2; mini(); });
   if (S.at) requestAnimationFrame(() => { const el = document.querySelector(S.at), sc = $('sc'); if (el) { sc.scrollTop += el.getBoundingClientRect().top - sc.getBoundingClientRect().top - $('hdr').offsetHeight - 4; mini(); } });

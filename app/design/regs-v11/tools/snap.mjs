@@ -23,6 +23,9 @@ const SPECS = [
   // round 2: plain waters (no row of their own: only zone + province rules). Page v36 offers 32 waters; these are its
   // only ones with no entries in the export. It offers no plain lake.
   ['anderson_1010', 'Anderson River', 1010], ['wilkes_1010', 'Wilkes Creek', 1010],
+  // round 11 (A3): a Quinsam River tributary whose summer opening is the Quinsam's exemption (display `inherited`):
+  // Jul 20, inside the exemption, and the prototype's today
+  ['iron{v}_720', 'Iron River', 720], ['iron{v}_1010', 'Iron River', 1010],
   // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
   // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
   ['*', null, 1010],
@@ -70,6 +73,17 @@ function extract(SPECS, YR) {
       { const lp = gearAt(PLACE, md)?.counts?.lines_per_angler;
         st.lines = lp ? { says: lp.says ?? null, cites: (lp.cites || []).map(i => D.rid[i]).filter(Boolean) } : null;
         if (st.lines) takeRules(st.lines.cites); }
+      // gear 7 (ROUND11 A2): the day's terminal gear as ONE sentence, its glossary terms, the rules it cites and the
+      // other days whose sentence differs (cites: display indices -> keys via D.rid)
+      { const sm = gearAt(PLACE, md)?.summary, key = i => D.rid[i];
+        st.summary = sm ? { says: sm.says, terms: [...(sm.terms || [])], cites: (sm.cites || []).map(key).filter(Boolean),
+          changes: (sm.changes || []).map(c => ({ when: c.when, says: c.says, cites: (c.cites || []).map(key).filter(Boolean) })) } : null;
+        if (st.summary) { st.summary.terms.forEach(t => glIds.add(t)); takeRules([...st.summary.cites, ...st.summary.changes.flatMap(c => c.cites)]); } }
+      // display 8 (ROUND11 A3): a lift another water's row carries here (the frame's `inherited`): its words and the
+      // rule key behind its `by` (the lifting row's rule, whose book page the prototype cites)
+      { const f = frameIx(PLACE, 'display', segOf(PLACE, md)), fr = f == null ? null : SEC.display.frames[f];
+        st.inherited = (fr?.inherited || []).map(x => ({ says: x.says, by: D.rid[x.by] || null }));
+        takeRules(st.inherited.map(x => x.by).filter(Boolean)); }
       // the rule key behind every `by` the quota card names (lifts, each part of a combined lift, buckets): page v36's
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;

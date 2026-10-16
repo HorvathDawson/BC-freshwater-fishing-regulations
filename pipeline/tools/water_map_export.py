@@ -386,6 +386,120 @@ def build_group(gid: str, items: Sequence[str], *, export_waters: Dict[str, dict
 
 
 # --------------------------------------------------------------------------------------------
+# Braid review (ROUND11 owner 6): the braids the round-10 placement marked, to be SEEN
+# --------------------------------------------------------------------------------------------
+
+BRAID_MIN_M = 1500                              # a braid map frames at least this much ground
+BRAID_MARGIN = 0.4                              # ... and this much past the braid and its cut
+
+
+def stretch_side(extent: dict, km: Dict[str, float], cut: str) -> Optional[str]:
+    """Which side of `cut` (a split of `extent`) the rule's stretch lies on, km measured from the
+    mouth: 'above' (upstream), 'below', or None when the extent does not say (whole, within, ...)."""
+    op, sp = extent.get("op"), list(extent.get("splits") or [])
+    if op == "upstream_of":
+        return "above"
+    if op == "downstream_of":
+        return "below"
+    if op == "between" and cut in sp and len(sp) == 2:
+        other = sp[1] if sp[0] == cut else sp[0]
+        if cut in km and other in km and km[cut] != km[other]:
+            return "above" if km[other] > km[cut] else "below"
+    return None
+
+
+def placed_words(side: str, stretch: Optional[str]) -> Optional[str]:
+    """The side of the cut a braid was COUNTED on: the stretch's side when it was placed in the
+    rule, the other when out; None when the stretch's side is unknown."""
+    if stretch is None:
+        return None
+    return stretch if side == "in" else {"above": "below", "below": "above"}[stretch]
+
+
+def _ends(g: dict) -> List[Tuple[float, float]]:
+    return [p for ring, closed in rings(g) if not closed for p in (tuple(ring[0]), tuple(ring[-1]))]
+
+
+def cut_point(below: dict, above: dict) -> Tuple[float, float]:
+    """Where a cut is: the closest pair of line ends of the main-stem section ending at it and the
+    one starting at it (lon/lat), their middle — the shared end when they share one."""
+    a, b = _ends(below), _ends(above)
+    (x0, y0), (x1, y1) = min(((p, q) for p in a for q in b),
+                             key=lambda pq: (pq[0][0] - pq[1][0]) ** 2 + (pq[0][1] - pq[1][1]) ** 2)
+    return ((x0 + x1) / 2, (y0 + y1) / 2)
+
+
+def nearest_cut(braid: Sequence[dict], cuts: Sequence[Tuple[str, float, float]]) -> int:
+    """The index of the cut nearest the braid (its vertices; x scaled by cos latitude)."""
+    pts = [p for g in braid for ring, _ in rings(g) for p in ring]
+    k = math.cos(math.radians(sum(p[1] for p in pts) / len(pts)))
+    return min(range(len(cuts)), key=lambda i: min(((x - cuts[i][1]) * k) ** 2 + (y - cuts[i][2]) ** 2
+                                                   for x, y in pts))
+
+
+def crossed_cuts(braid: Sequence[dict], cuts: Sequence[Tuple[str, float, float]],
+                 reach_m: float = 100) -> List[int]:
+    """The cuts a braid runs across: those within `reach_m` of its frame (its bbox, grown)."""
+    x0, y0, x1, y1 = bbox(braid)
+    gy = reach_m / 111_320
+    gx = gy / math.cos(math.radians((y0 + y1) / 2))
+    return [i for i, (_, x, y) in enumerate(cuts) if x0 - gx <= x <= x1 + gx and y0 - gy <= y <= y1 + gy]
+
+
+def build_braid(*, water: str, kind: Optional[str], braid: Sequence[int], lines: Iterable[int],
+                cuts: Sequence[dict], rows: Sequence[dict], geom: Dict[int, dict], code_on,
+                dates: Sequence[date], other: Sequence[dict] = ()) -> dict:
+    """One marked braid's review map. `braid` its sections (one channel); `lines` its water's
+    sections (drawn where they fall in the frame, by status); `cuts` [{split, name, at: (lon, lat)}];
+    `rows` one per (entry, rule) the braid was placed for: {entry_id, rule_id, label, side, share,
+    how, cut (split id or None), stretch ('above' | 'below' | None), sids (the rule's sections)}.
+    Section ids never leave: only paths, statuses and words do."""
+    bg = [geom[s] for s in braid if s in geom]
+    x0, y0, x1, y1 = bbox(bg + [{"type": "LineString", "coordinates": [list(c["at"]), list(c["at"])]} for c in cuts])
+    k = math.cos(math.radians((y0 + y1) / 2))
+    need = BRAID_MIN_M / 111_320
+    if (y1 - y0) < need:
+        y0, y1 = (y0 + y1) / 2 - need / 2, (y0 + y1) / 2 + need / 2
+    if (x1 - x0) * k < need:
+        x0, x1 = (x0 + x1) / 2 - need / k / 2, (x0 + x1) / 2 + need / k / 2
+    proj = Projection((x0, y0, x1, y1), BRAID_MARGIN)
+    fx0, fy0, fx1, fy1 = proj.box()
+
+    def inside(g):
+        a0, b0, a1, b1 = bbox([g])
+        return a1 >= fx0 and a0 <= fx1 and b1 >= fy0 and b0 <= fy1
+
+    tol = 1.0
+    by_status = defaultdict(list)
+    for s in sorted(set(lines) - set(braid)):
+        if s in geom and inside(geom[s]):
+            by_status[status_string(code_on, s, dates)].append(geom[s])
+    bx = bbox(bg)
+    a, b = proj(bx[0], bx[3]), proj(bx[2], bx[1])
+    out_cuts, at = [], {}
+    for c in cuts:
+        x, y = proj(*c["at"])
+        at[c["split"]] = len(out_cuts)
+        out_cuts.append({"x": round(x), "y": round(y), "name": c["name"]})
+    out_rows = []
+    for r in rows:
+        stretch = [geom[s] for s in r.get("sids") or () if s in geom and inside(geom[s])]
+        out_rows.append({"entry": r["entry_id"], "rule_id": r["rule_id"], "rule": r["label"],
+                         "side": r["side"], "share": r["share"], "how": r["how"],
+                         "cut": at.get(r.get("cut")), "words": placed_words(r["side"], r.get("stretch")),
+                         "stretch": path(stretch, proj, tol)})
+    return {"water": water, "kind": kind,
+            "view": {"w": proj.w, "h": proj.h, "m_per_unit": round(proj.m_per_unit, 3)},
+            "box": [round(a[0]), round(a[1]), round(b[0]), round(b[1])],
+            "lines": [{"s": st, "d": path(gs, proj, tol)} for st, gs in sorted(by_status.items())],
+            "braid": {"s": rollup(status_string(code_on, s, dates) for s in braid),
+                      "d": path(bg, proj, tol)},
+            "cuts": out_cuts, "rows": out_rows,
+            "other": {"lines": path([g for g in other if rings(g) and not rings(g)[0][1] and inside(g)], proj, TOL["other"] / 4),
+                      "areas": path([g for g in other if rings(g) and rings(g)[0][1] and inside(g)], proj, TOL["other"] / 4)}}
+
+
+# --------------------------------------------------------------------------------------------
 # Reading the build (main only)
 # --------------------------------------------------------------------------------------------
 
@@ -445,6 +559,80 @@ def read_other(index, box, skip: set) -> List[dict]:
     return out
 
 
+def _grow(box, by: float = 0.03):
+    """A lon/lat box grown on every side (the context read around a small braid frame)."""
+    x0, y0, x1, y1 = box
+    return (x0 - by, y0 - by, x1 + by, y1 + by)
+
+
+def read_braids(db, meta: dict, reach_dir: Path) -> List[dict]:
+    """Every braid section the bundle marks (`section_straddle`, read through
+    `pipeline.deliver.bundle.read.straddles`), grouped one map per section, with what the review map
+    needs: its water, its water's sections, and per (entry, rule): the rule's words, the placed side
+    and share, the candidate cuts (each split of the rule's extents, as the main-stem sections ending
+    and starting at it) and the extents themselves. A rule's extents are the reach run's
+    (`rule_extent.jsonl` of the run the bundle was built from — the digests must agree); the row's own
+    scope (rule_id '') is the entry's `extents`."""
+    from pipeline.deliver.bundle import read as bundle_read
+
+    report = json.loads((reach_dir / "report.json").read_text())
+    if report.get("digest") != meta["reach_digest"]:
+        raise VintageError(f"water_map_export: reach run {reach_dir} is {report.get('digest')}, the bundle "
+                           f"{meta['reach_digest']}")
+    rule_ext = defaultdict(list)
+    with open(reach_dir / "rule_extent.jsonl") as fh:
+        for line in fh:
+            d = json.loads(line)
+            rule_ext[(d["entry_id"], d["rule_id"])].append(d)
+    splits = {sid: (name, json.loads(at)) for sid, name, at in db.execute("SELECT split_id, name, at FROM split")}
+    out = []
+    for (sid,) in db.execute("SELECT DISTINCT sid FROM section_straddle ORDER BY sid").fetchall():
+        marks = bundle_read.straddles(db, sid)
+        item_id, water, kind, ord_ = db.execute(
+            "SELECT i.item_id, i.name, i.kind, i.ord FROM item_section x JOIN item i ON i.ord = x.ord "
+            "WHERE x.sid = ? ORDER BY i.ord LIMIT 1", (sid,)).fetchone()
+        lines = [s for (s,) in db.execute("SELECT sid FROM item_section WHERE ord = ?", (ord_,))]
+        stem = {s: (lo, hi) for s, lo, hi in db.execute(
+            f"SELECT sid, lo_m, hi_m FROM section_span WHERE off_stem = 0 AND lo_m IS NOT NULL AND sid IN "
+            f"({','.join('?' * len(lines))})", lines)}
+        rows, cut_sids = [], []
+        for m in marks:
+            if m["how"] != "projected":
+                continue
+            if m["rule_id"]:
+                label = db.execute("SELECT label FROM rule WHERE entry_id = ? AND rule_id = ?",
+                                   (m["entry_id"], m["rule_id"])).fetchone()[0]
+                extents = rule_ext.get((m["entry_id"], m["rule_id"]), [])
+                sets = "r.entry_id = ? AND r.rule_id = ?", (m["entry_id"], m["rule_id"])
+            else:
+                label, ex = db.execute("SELECT full_name, extents FROM entry WHERE entry_id = ?",
+                                       (m["entry_id"],)).fetchone()
+                extents = json.loads(ex or "[]")
+                sets = "r.entry_id = ?", (m["entry_id"],)
+            sids = sorted({s for (s,) in db.execute(
+                f"SELECT DISTINCT s.sid FROM ruleset r JOIN section_ruleset s ON s.set_id = r.set_id "
+                f"WHERE r.via = 'reach' AND {sets[0]}", sets[1])})
+            km, cands = {}, []
+            for sp in sorted({x for e in extents for x in e.get("splits") or []}):
+                name, at = splits.get(sp, (None, []))
+                k = next((v for it, v in at if it == item_id), None)
+                if k is None:
+                    continue
+                km[sp] = k
+                lo = [s for s, (a, b) in stem.items() if abs(b - k * 1000) <= 60]
+                hi = [s for s, (a, b) in stem.items() if abs(a - k * 1000) <= 60]
+                if lo and hi:
+                    cands.append((sp, name, lo[0], hi[0]))
+                    cut_sids.append([lo[0], hi[0]])
+            rows.append({"entry_id": m["entry_id"], "rule_id": m["rule_id"], "label": label,
+                         "side": m["side"], "share": m["share"], "how": m["how"], "sids": sids,
+                         "extents": extents, "km": km, "cands": cands})
+        if rows:
+            out.append({"water": water, "kind": kind, "braid": [sid], "lines": lines, "rows": rows,
+                        "cut_sids": cut_sids})
+    return out
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     from pipeline.common.curated import GENERATED
     from pipeline.deliver.status_index import Index
@@ -461,6 +649,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--export", type=Path, default=EXPORT)
     ap.add_argument("--tiles", type=Path, default=GENERATED.tiles)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--braids", action="store_true",
+                    help="also every braid the reach builder placed across a cut (bundle "
+                         "section_straddle, RULINGS E15): one review map each")
     a = ap.parse_args(argv)
 
     dates = [date(YEAR, *map(int, d.split("-"))) for d in a.date]
@@ -507,9 +698,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         trib[gid] = {s for (s,) in db.execute(
             f"SELECT DISTINCT s.sid FROM ruleset r JOIN section_ruleset s ON s.set_id = r.set_id "
             f"WHERE r.via = 'trib' AND r.entry_id IN ({','.join('?' * len(entries))})", entries)}
+    braids = read_braids(db, meta, GENERATED.reaches / meta["reach_run"]) if a.braids else []
     db.close()
 
-    want = set(sid_item) | set().union(*trib.values())
+    want = set(sid_item) | set().union(*trib.values()) | \
+        {s for b in braids for s in b["braid"] + b["lines"] + [x for r in b["rows"] for x in r["sids"]]} | \
+        {s for b in braids for c in b["cut_sids"] for s in c}
     files = [a.tiles / "layers" / "stream.geojsonl", a.tiles / "layers" / "lake.geojsonl"]
     print(f"water map: {len(groups)} waters, {len(sid_item)} sections, {len(want) - len(sid_item):,} "
           f"tributary sections; reading {', '.join(f.name for f in files)}")
@@ -530,6 +724,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"  {gid}: {len(waters[-1]['parts'])} parts, {len(waters[-1]['marks'])} boundaries, "
               f"{len(other):,} context features")
 
+    braid_maps = []
+    for b in braids:
+        cuts, rows = [], []
+        for r in b["rows"]:
+            cand = [(sp, nm, cut_point(geom[lo], geom[hi])) for sp, nm, lo, hi in r["cands"]
+                    if lo in geom and hi in geom]
+            bg = [geom[s] for s in b["braid"] if s in geom]
+            crossed = crossed_cuts(bg, [(sp, x, y) for sp, _, (x, y) in cand])
+            # one cut the braid runs across: that one; several (a braid over both ends of a short
+            # stretch): no single cut and no above / below; none within reach: the nearest
+            pick = cand[crossed[0]] if len(crossed) == 1 else None if crossed else \
+                cand[nearest_cut(bg, [(sp, x, y) for sp, _, (x, y) in cand])] if cand else None
+            for c in ([cand[i] for i in crossed] if len(crossed) > 1 else [pick] if pick else []):
+                if c[0] not in {x["split"] for x in cuts}:
+                    cuts.append({"split": c[0], "name": c[1], "at": c[2]})
+            ext = next((e for e in r["extents"] if pick and pick[0] in (e.get("splits") or [])), {})
+            rows.append(r | {"cut": pick[0] if pick else None,
+                             "stretch": stretch_side(ext, r["km"], pick[0]) if pick else None})
+        frame = Projection(bbox([geom[s] for s in b["braid"] if s in geom]))
+        braid_maps.append(build_braid(water=b["water"], kind=b["kind"], braid=b["braid"], lines=b["lines"],
+                                      cuts=cuts, rows=rows, geom=geom, code_on=idx.code, dates=dates,
+                                      other=read_other(index, _grow(frame.box()), want)))
+        print(f"  braid {b['water']}: {len(rows)} rules, cuts {[c['name'] for c in cuts]}")
+
     out = {"about": {"generated_by": "python -m pipeline.tools.water_map_export",
                      "section_handles": got["bundle"], "reach_digest": reach["bundle"],
                      "registry": tiles.get("registry"),
@@ -538,7 +756,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                                   "outside": "x"}.items()}},
            "words": {k: v["label"] for k, v in words.items()},
            "colours": theme_colours(words, themes),
-           "waters": {w["id"]: w for w in waters}}
+           "waters": {w["id"]: w for w in waters},
+           "braids": braid_maps}
     head = ("/* The water map's data: written by `python -m pipeline.tools.water_map_export` from the "
             "bundle, its status index,\n   the UI export + answers and the tile layers of ONE build "
             f"(section_handles {got['bundle']}, reach {reach['bundle']}). Not hand-edited. */\n")

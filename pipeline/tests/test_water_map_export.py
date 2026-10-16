@@ -174,3 +174,51 @@ def test_the_legend_is_the_apps_words_and_colours():
             assert col[n][s] == t["values"][f"color.status.{s}"]
     with pytest.raises(ValueError):
         W.status_words("export const WATER_STATUS = {}")
+
+
+# --------------------------------------------------------------------------------------------
+# Braid review (ROUND11 owner 6): a braid the round-10 placement marked (bundle `section_straddle`,
+# RULINGS E15) is drawn so a person can SEE it before trusting it — its water, the rule, the cut it
+# crosses, the side it was counted on and the share of its length there. No regulation is changed.
+# --------------------------------------------------------------------------------------------
+
+def test_the_side_a_braid_is_counted_on_is_said_from_the_cut_and_the_rules_stretch():
+    km = {"crag": 3.75, "canyon": 5.24}
+    # the rule's stretch lies above its lower cut and below its upper one
+    assert W.stretch_side({"op": "between", "splits": ["crag", "canyon"]}, km, "crag") == "above"
+    assert W.stretch_side({"op": "between", "splits": ["crag", "canyon"]}, km, "canyon") == "below"
+    assert W.stretch_side({"op": "upstream_of", "splits": ["crag"]}, km, "crag") == "above"
+    assert W.stretch_side({"op": "downstream_of", "splits": ["crag"]}, km, "crag") == "below"
+    assert W.stretch_side({"op": "whole"}, km, "crag") is None
+    # counted IN the rule: the stretch's side; OUT: the other side; no stretch known: no words
+    assert W.placed_words("in", "below") == "below" and W.placed_words("out", "below") == "above"
+    assert W.placed_words("out", "above") == "below" and W.placed_words("in", None) is None
+
+
+def test_a_cut_is_where_its_two_main_stem_sections_meet_and_a_braid_crosses_the_nearest():
+    below, above = _line((0, 0), (1, 0)), _line((1, 0), (2, 0))
+    assert W.cut_point(below, above) == (1, 0)
+    braid = [_line((1.8, 0.0005), (2.2, 0.0005))]
+    cuts = [("a", 1.0, 0.0), ("b", 2.0, 0.0), ("c", 5.0, 0.0)]
+    assert W.nearest_cut(braid, cuts) == 1
+    assert W.crossed_cuts(braid, cuts) == [1]                    # 2.0 lies inside the braid's frame
+    assert W.crossed_cuts([_line((0.9, 0.0), (2.1, 0.0))], cuts) == [0, 1]   # over both ends: no one cut
+
+
+def test_a_braid_map_carries_side_share_rule_and_cut_and_never_a_section_id():
+    geom = {1: _line((0, 0), (0.01, 0)), 2: _line((0.01, 0), (0.02, 0)), 9: _line((0.008, 0.0005), (0.0115, 0.0005))}
+    idx = _index({1: (SI.CLOSED, SI.BASE), 2: (SI.OWN, SI.OWN), 9: (SI.CLOSED, SI.CLOSED)})
+    out = W.build_braid(
+        water="Dean River", kind="stream", braid=[9], lines=[1, 2],
+        cuts=[{"split": "canyon", "name": "signs ~0.5 km above the canyon", "at": (0.01, 0.0)}],
+        rows=[{"entry_id": "r5:dean", "rule_id": "dean.r4", "label": "No fishing — canyon", "side": "out",
+               "share": 0.69, "how": "projected", "cut": "canyon", "stretch": "below", "sids": [1]}],
+        geom=geom, code_on=idx.code, dates=DATES)
+    assert out["water"] == "Dean River" and out["braid"]["s"] == "cc" and out["braid"]["d"].startswith("M")
+    assert out["cuts"] == [{"x": out["cuts"][0]["x"], "y": out["cuts"][0]["y"], "name": "signs ~0.5 km above the canyon"}]
+    row = out["rows"][0]
+    assert (row["rule"], row["side"], row["share"], row["cut"], row["words"]) == ("No fishing — canyon", "out", 0.69, 0, "above")
+    assert row["stretch"].startswith("M")
+    assert {ln["s"] for ln in out["lines"]} == {"cb", "oo"}
+    text = json.dumps(out)
+    assert not re.search(r'"sids?"|section', text)            # section ids never leave the bundle (AGENTS 5)

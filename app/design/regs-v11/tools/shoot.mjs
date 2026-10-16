@@ -14,7 +14,7 @@ const SCREENS = [
   ['02-keep-cowichan-closed', 'w=cowichan&d=1010&p=0'],
   // Gear & licence: 1 Gear & methods (one what's-allowed block), 2 Always, 3 Licence last (v12, owner 3)
   ['03-gear-vedder-whats-allowed', `${V}&sec=gear`],
-  ['04-gear-vedder-methods', `${V}&at=%23g-gear%20.gx-weight`],
+  ['04-gear-vedder-methods', `${V}&at=%5Bdata-k%3D%22methods%22%5D`],
   ['05-gear-vedder-always-licence', `${V}&at=%23g-always`],
   ['06-gear-vedder-licence', `${V}&at=%23g-licence`],
   ['07-gear-kootenay-boat-lines', 'w=klwa&d=1010&sec=gear'],
@@ -61,11 +61,24 @@ const SCREENS = [
   ['44-keep-cowichan-part2-where', 'w=cowichan&d=1010&p=1'],
   ['45-gear-kitimat-boats', 'w=x14p&d=1010&p=0&sec=gear'],
   ['46-sheet-parts-no-map', 'w=x14p&d=1010&p=0&sheet=parts'],
+  // v13 (round 11): the place in the header (owner 4); bucket number + note, one-line kinds (owner 2); the gear sentence
+  // with dated chips and the reference fold (owner 3); the inherited line (A3); braid review (owner 6)
+  ['47-header-chilliwack-part', 'w=chilliwack&d=1010&p=0'],
+  ['48-header-kitimat-other-parts', 'w=x14p&d=1010&p=1'],
+  ['49-card-vedder-bucket', `${V}&at=.bkt`],
+  ['50-gear-cowichan-fly-only-sentence', 'w=cowichan&d=1010&p=1&sec=gear'],
+  ['51-gear-vedder-reference', `${V}&at=%23g-always`],
+  ['52-keep-iron-jul20-inherited', 'w=iron&d=720'],
+  ['53-braid-dean-in', `${V}&map=1&br=11&bj=2`],
+  ['54-braid-dean-out', `${V}&map=1&br=12&bj=2`],
+  ['55-braid-peace-site-c', `${V}&map=1&br=6&bj=1`],
+  ['56-braid-review-panel', `${V}&map=1&br=3&bj=0`, 'desk'],
 ];
 const only = process.argv[2];
-for (const [name, hash] of SCREENS) {
+for (const [name, hash, desk] of SCREENS) {
   if (only && !name.includes(only)) continue;
-  execFileSync(CHROME, ['--headless=new', '--hide-scrollbars', '--window-size=440,900', '--virtual-time-budget=4000',
-    `--screenshot=${path.join(OUT, name + '.png')}`, `${PAGE}#shot=1&${hash}`], { stdio: 'ignore' });
+  // 'desk': the desktop page with its side panel (the braid review list lives there)
+  execFileSync(CHROME, ['--headless=new', '--hide-scrollbars', `--window-size=${desk ? '1280,1000' : '440,900'}`, '--virtual-time-budget=4000',
+    `--screenshot=${path.join(OUT, name + '.png')}`, `${PAGE}#${desk ? '' : 'shot=1&'}${hash}`], { stdio: 'ignore' });
   console.log(name);
 }

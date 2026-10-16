@@ -1,3 +1,27 @@
+# regs v13 (round 11, owner 2 3 4 6; answers rows 10, gear 7, display 8) — in place on regs-v11.html
+
+- **4 Header.** The place is IN the header: water name; "<kind> · <the part's label>" (page v36's long label when its
+  subtitle names the part by it, else the uncut short one; a whole water: just the kind); "View on map ›" (no map: "Other
+  parts ›"); the date. No section count, no MAP button, no row under the header. v12's row was reported missing until the
+  part changed — not reproduced headless, fixed structurally; `place-in-header` loads every state (117) fresh.
+- **2 Card.** A bucket's shared number (`cap`, found in its title) is big; the title's scope after " — " a smaller
+  line; the bucket's size note (rows 10 `notes`) once under it; one rail down the bucket so its kinds read as sharing
+  it (persona). Kind row: name · detail · number on one line, then notes/duties, then pictures. Checks
+  `bucket-number-big`, `bucket-note-once`, `kind-row-one-line`.
+- **3 Gear.** Gear & methods = the data's ONE sentence (`summary.says`), one ⓘ for its terms, its book pages, the other
+  days as dated chips (`summary.changes`); Bait and Ways to fish as before; no icons. Licence is the last section; the
+  province-wide rules are a closed "Reference" fold after it, named by the data's tile ("Handling fish · 21 rules that
+  apply everywhere"). Checks `gear-sentence`, `gear-no-icons`, `licence-last`, `always-as-reference`.
+- **A3 Inherited.** A lift another water's row carries here (display `inherited`) is a line right under the strip, the
+  data's words + the lifting rule's book page, under v36's own label ("By another water’s rule"). Iron River Jul 20.
+  Check `inherited-line`.
+- **6 Braids.** `water_map_export --braids` writes `WATERMAP.braids`: one map per braid section the bundle marks
+  (`section_straddle` via `read.straddles`), each rule it was placed for with its cut (the rule's extent split nearest /
+  crossed; a braid over both ends of a short stretch has no single cut), side, share and above/below. The side panel's
+  "Braid review" lists all 38 placements (18 braids, 11 waters); each opens a map: the braid dashed, the rule's stretch
+  shaded, the cut marked, and "This channel crosses <cut> — counted as below it: 69% of its length is below it. So this
+  rule applies to the whole channel." No regulation changed. Check `braid-review`. Phone width hides the panel.
+
 # regs v12 (round 10, owner items 1, 2, 3, 5) — in place on regs-v11.html so the published link updates
 
 - **1 Where you can't fish** is a quiet note at the END of "What you can keep" (after the groups and Other fish): small
