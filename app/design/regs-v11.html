@@ -375,7 +375,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .mmarks{position:absolute;inset:0;pointer-events:none}
 .mk{position:absolute;display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;transform:translate(-22px,-22px);pointer-events:auto}
 .mk i{flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
-.mk span{position:absolute;bottom:38px;left:50%;transform:translateX(calc(-50% + var(--dx, 0px)));max-width:180px;padding:3px 7px;background:var(--card);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--shadow);font:700 var(--t4)/1.25 Archivo,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk span{position:absolute;bottom:38px;left:50%;transform:translateX(calc(-50% + var(--dx, 0px)));max-width:180px;padding:3px 7px;background:var(--card);border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--shadow);font:700 var(--t4)/1.25 Archivo,sans-serif;white-space:normal;width:max-content}
 .mk.on i{background:var(--ink)}
 .mlegend{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:3px;max-width:64%;padding:7px 10px;background:var(--card);border:1.5px solid var(--ink);font-size:var(--t4);line-height:1.25}
 .mlegend span{display:flex;align-items:center;gap:8px}
@@ -434,7 +434,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .hplace{display:flex;align-items:baseline;gap:10px;width:100%;min-height:44px;padding:0 12px 8px 56px;margin-top:-8px;text-align:left}
 .hplace .pl{flex:1;min-width:0;font:500 var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}
 .hplace .pgo{flex:0 0 auto;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
-.hdr.mini .hplace .pl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr.mini .hplace .pl{white-space:normal}
 /* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
 .bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
 /* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
