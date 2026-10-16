@@ -27,6 +27,9 @@ const SPECS = [
   // round 11 (A3): a Quinsam River tributary whose summer opening is the Quinsam's exemption (display `inherited`):
   // Jul 20, inside the exemption, and the prototype's today
   ['iron{v}_720', 'Iron River', 720], ['iron{v}_1010', 'Iron River', 1010],
+  // round 13 (owner B): Bella Coola front and centre: every part on the prototype's today AND on May 1, inside the
+  // mainstem's Apr 1–May 31 exception
+  ['bc{v}_1010', 'Bella Coola River', 1010], ['bc{v}_501', 'Bella Coola River', 501],
   // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
   // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
   ['*', null, 1010],
@@ -108,9 +111,10 @@ function extract(SPECS, YR) {
         for (const k of [...grid.querySelectorAll('[data-kit]')].map(b => b.dataset.kit)) { state.kit = k; renderKit();
           st.panes[k] = $('kit').querySelector('.kpane').innerHTML; takeRules(scan(st.panes[k])); }
         st.licence = {};
-        for (const [lk, residency, age] of [['adult', 'resident', '16_plus'], ['u16_res', 'resident', 'under_16'], ['u16_non', 'non_resident', 'under_16'], ['u16_alien', 'non_resident_alien', 'under_16']]) {
+        // round 13 (owner L): every residency's 16-or-older answer too, for the "Rules for other anglers" dropdowns
+        for (const [lk, residency, age] of [['adult', 'resident', '16_plus'], ['adult_non', 'non_resident', '16_plus'], ['adult_alien', 'non_resident_alien', '16_plus'], ['u16_res', 'resident', 'under_16'], ['u16_non', 'non_resident', 'under_16'], ['u16_alien', 'non_resident_alien', 'under_16']]) {
           state.kit = 'licence'; state.who = { ...state.who, residency, age }; renderKit(); st.licence[lk] = $('kit').querySelector('.kpane').innerHTML; takeRules(scan(st.licence[lk])); }
-      } else { st.kitTiles = ''; st.panes = {}; st.licence = { adult: '', u16_res: '', u16_non: '', u16_alien: '' }; }
+      } else { st.kitTiles = ''; st.panes = {}; st.licence = { adult: '', adult_non: '', adult_alien: '', u16_res: '', u16_non: '', u16_alien: '' }; }
       takeRules(scan(st.kitTop));
       out.states[id] = st;
     }

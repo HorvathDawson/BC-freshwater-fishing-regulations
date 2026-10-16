@@ -74,7 +74,7 @@ const SCREENS = [
   ['56-braid-review-panel', `${V}&map=1&br=3&bj=0`, 'desk'],
   // v14 (round 12): the header's place line (owner 1 + 4), compact; ⓘ sheets with the book's words folded and page links,
   // Bait two columns, ways inline, dated rows (owner 3); "How to tell" holds the hatchery term; a release-only group's species
-  ['57-header-compact-scrolled', 'w=chilliwack&d=1010&p=0&scroll=900'],
+  ['57-header-scrolled-same-shape', 'w=chilliwack&d=1010&p=0&scroll=900'],
   ['58-sheet-term-book-words', `${V}&sheet=gl:bait_ban,single_barbless_hook`],
   ['59-sheet-how-to-tell', 'w=iron&d=720&sheet=hatch&at=.htw'],
   ['60-gear-cowichan-dated-rows', 'w=cowichan&d=1010&p=1&at=%23g-gear'],
@@ -86,7 +86,16 @@ const SCREENS = [
   ['65-card-wahleach-lake', 'w=x34p&d=1010&at=.g28'],
   ['66-card-bennett-lake-slot', 'w=x35p&d=1010&at=.g28'],
   ['67-card-morley-lake', 'w=x12p&d=1010&at=.g28'],
-  ['68-card-bella-coola', 'w=x36p&d=1010&p=0&at=.g28'],
+  ['68-card-bella-coola', 'w=bellacoola&d=1010&p=1&at=.g28'],
+  // round 13: one header shape at the top and scrolled, slim tabs (H); Under 16 shows the default angler only, the other
+  // residencies in their own "Rules for other anglers" dropdowns (L); Bella Coola on May 1, each part, and its quick pills (B)
+  ['69-header-vedder-top', V],
+  ['70-header-vedder-scrolled', `${V}&scroll=900`],
+  ['71-licence-vedder-u16-one-block', `${V}&age=u16&at=%23g-licence`],
+  ['72-licence-vedder-other-anglers-open', `${V}&age=u16&open=%5Bdata-res%3D%22non_resident%22%5D&at=%5Bdata-res%3D%22non_resident%22%5D`],
+  ['73-card-bella-coola-may1', 'w=bellacoola&d=501&p=1&at=.g28'],
+  ['74-card-bella-coola-side-channels-may1', 'w=bellacoola&d=501&p=0&at=.g28'],
+  ['75-panel-bella-coola-pills', 'w=bellacoola&d=501&p=1', 'desk'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

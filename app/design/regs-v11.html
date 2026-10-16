@@ -8,7 +8,7 @@
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
      `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
-     Hash: #w=vedder&d=1010&p=0&sec=keep|gear&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector> -->
+     Hash: #w=vedder&d=1010&p=0&sec=keep|gear&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector>&open=<details selector> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -68,7 +68,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .parts button i{position:absolute;left:0;right:0;top:0;height:4px}
 .parts button span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600}
 .parts button[aria-current="true"]{flex:5 1 0;background:var(--ink);color:var(--card)}
-.hdr.mini .parts,.hdr.mini .r2 .mapbtn span{display:none}
 /* section titles: one header style for every section */
 .sec{padding:18px 16px 4px}
 .sec + .sec{border-top:1.5px solid var(--ink)}
@@ -261,7 +260,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .r1 .pill em{display:none}
 .r1 .pill > span:last-child::after{content:" ▾";font-size:10px}
 .mapbtn svg{width:18px;height:18px}
-.hdr.mini .r2 .mapbtn span{display:inline}
 .kgrid{border:0;gap:12px 16px;padding:4px 0 12px;border-bottom:1px solid var(--line)}
 .ktile{border:0;padding:0;min-height:0}
 .needs li > .price,.gtopic .price{font:600 var(--t4) Archivo,sans-serif;font-variant-numeric:tabular-nums}
@@ -437,9 +435,14 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .hplace .pgo{display:inline-flex;align-items:center;min-height:24px;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
 button.hplace:active .pl{color:var(--accent)}
 .r2{padding:0 16px 10px}
-/* compact (scrolled): the label stays whole, smaller; the action folds into the label (still a button to the map) */
-.hdr.mini .hplace{padding-bottom:8px;gap:0}.hdr.mini .hplace .pl{font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
-.hdr.mini .hplace .pl + .pgo{display:none}
+/* round 13 (owner H): the header keeps ONE shape (no compact mode on scroll), "View on map ›" always shown; the two
+   section tabs are slim underline tabs (the app's TabBar look: the chosen one in ink with an ink bar), sitting on the
+   header's rule */
+.hdr .r2{padding:0 16px;gap:22px}
+.segm[role=tablist]{flex:0 1 auto;border:0;gap:22px}
+.segm[role=tablist] button{flex:0 0 auto;min-height:38px;padding:2px 0 0;border:0;border-bottom:3px solid transparent;background:none;color:var(--sub);font:700 var(--t4) Archivo,sans-serif;letter-spacing:.2px}
+.segm[role=tablist] button+button{border-left:0}
+.segm[role=tablist] button[aria-pressed="true"]{background:none;color:var(--ink);border-bottom-color:var(--ink)}
 /* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
 .bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
 /* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
@@ -591,7 +594,10 @@ const WATERS = {
   klmb:{snap:{1010:'klmb_1010'}, map:'klwa'}, kluwa:{snap:{1010:'kluwa_1010'}, map:'klwa'},
   // round 2: plain waters (no row of their own); not in the water map export
   wilkes:{snap:{1010:'wilkes_1010'}, map:null}, anderson:{snap:{1010:'anderson_1010'}, map:null},
+  // round 13 (owner B): Bella Coola front and centre, every part on Oct 10 and on May 1 (the mainstem's Apr 1–May 31 exception)
+  bellacoola:{snap:{1010:PARTS('bc', 1010), 501:PARTS('bc', 501)}, map:null},
 };
+WATERS.bellacoola.name = SNAP.states[WATERS.bellacoola.snap[1010][0]]?.name;
 // every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
 // round 11: Iron River (a Quinsam tributary, Jul 20 and Oct 10: the inherited summer opening)
 for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*)_(\d+)$/); if (!m) continue;
@@ -599,7 +605,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -820,21 +826,31 @@ function takeChips(root, sel){ const keys = [], words = [];
     const t = b.textContent.trim(); words.push(t === 'Region' && k ? levelOf(k) : t); b.remove(); });  // "Region" names its region
   return {keys, words}; }
 function licence(st, id){
-  const html = S.age === 'u16' ? null : st.licence.adult;
-  const one = (h, sub) => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
+  // round 13 (owner L): each tab shows ONLY the default angler's answer (B.C. resident; the page's own default); every other
+  // residency is a "Rules for other anglers" dropdown of its own (the page's fold name), carrying that residency's 16-or-older
+  // AND under-16 answers. The page's own "Rules for other anglers (N)" fold is replaced by these: its lines are those answers'.
+  const prof = parse(st.licence.adult), optText = (axis, v) => (prof.querySelector(`#who-${axis} option[value="${v}"]`)?.textContent || '').trim();
+  const isOthers = d => /other anglers\s*\(\d+\)\s*$/i.test(d.querySelector('summary')?.textContent || '');   // "… (7)": not the guiding fold
+  const othersName = (() => { for (const h of Object.values(st.licence)) { const d = [...parse(h).querySelectorAll('details.lostlist')].find(isOthers);
+    if (d) return d.querySelector('summary').textContent.replace(/\s*\(\d+\)\s*$/, '').trim(); } return ''; })();
+  const one = (h, bare) => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
     const words = [...r.querySelectorAll('.lhead .src')].map(e => e.textContent.trim());
     // its first fold ("Where each one comes from") is the section's sources: it moves to the Sources sheet
     const f = r.querySelector('details.lostlist'); let from = null;
     if (f) { const sm = f.querySelector('summary'); from = {t: sm ? sm.textContent.trim() : '', b: ''}; sm?.remove(); from.b = f.innerHTML; f.remove(); }
     r.querySelectorAll('.lhead .src').forEach(e => e.remove());
+    r.querySelectorAll('details.lostlist').forEach(d => { if (bare || isOthers(d)) d.remove(); });   // a dropdown's answer: no folds of its own
     const names = [...r.querySelectorAll('.needs li > b')].map(b => b.textContent.replace(/ⓘ/g, '').trim());
     const head = names[0] || (r.querySelector('b')?.textContent || '').trim();
     return {html: r.innerHTML.replace(/ open=""/g, ''), words, names, head, from}; };
-  if (html) { const a = one(html, 'adult'); LICSRC[`lic|${id}|adult`] = a.from; return {...a, keyed: 'adult'}; }
-  const parts = [['u16_res', 'B.C. resident'], ['u16_non', 'Canadian, other province']].concat(st.licence.u16_alien !== st.licence.u16_non ? [['u16_alien', 'From outside Canada']] : []);
-  const got = parts.map(([k, t]) => [t, one(st.licence[k], k)]), fr = got.filter(([, x]) => x.from);
-  LICSRC[`lic|${id}|u16`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${t}</p>${x.from.b}`).join('')} : null;
-  return {html: got.map(([t, x]) => `<p class="u16h">${t}</p>${x.html}`).join(''), words: got.flatMap(([, x]) => x.words), names: [], head: got[0][1].head, keyed: 'u16'};
+  const u16 = S.age === 'u16', mine = one(st.licence[u16 ? 'u16_res' : 'adult']);
+  const ages = [['adult', optText('age', '16_plus')], ['u16', optText('age', 'under_16')]];
+  const others = [['non_resident', 'adult_non', 'u16_non'], ['non_resident_alien', 'adult_alien', 'u16_alien']].filter(([, a, u]) => st.licence[a] || st.licence[u])
+    .map(([res, a, u]) => ({res, name: optText('residency', res), got: [[ages[0][1], st.licence[a] ? one(st.licence[a], true) : null], [ages[1][1], st.licence[u] ? one(st.licence[u], true) : null]].filter(([, x]) => x)}));
+  const fr = [[optText('residency', 'resident'), mine]].concat(others.flatMap(o => o.got.map(([t, x]) => [`${o.name} · ${t}`, x]))).filter(([, x]) => x.from);
+  LICSRC[`lic|${id}|${u16 ? 'u16' : 'adult'}`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.from.b}`).join('')} : null;
+  const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">${esc(othersName)} · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
+  return {html: mine.html + folds, words: [...mine.words, ...others.flatMap(o => o.got.flatMap(([, x]) => x.words))].filter((w, i, all) => all.indexOf(w) === i), names: mine.names, head: mine.head, keyed: u16 ? 'u16' : 'adult'};
 }
 /* v12 (round 10, owner 3): Gear & licence is three sections: 1 Gear & methods, ONE compact "what's allowed" block (gear
    first: lines, hooks, points, barbs, lures, weight, bait; then methods and boats), with the strip's dated changes on the
@@ -939,7 +955,7 @@ function render(keep){
   sc.scrollTop = keep ? prev : S.scroll; mini();
   poster();
 }
-function mini(){ const h = $('hdr'); if (h) h.classList.toggle('mini', $('sc').scrollTop > 60);
+function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
   if (g) { const atEnd = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2 && sc.scrollTop > 0;
     const inGear = g.offsetTop - sc.scrollTop <= hh + 12 || atEnd;
@@ -1189,7 +1205,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true); } });
 function poster(){
   $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
-    .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${S.w==='cowichan'?'|'+S.p:''}`===k?'on':''}" data-cw="${k}">${t}</button>`).join('')
+    // round 13 (owner B): Bella Coola, each part on Oct 10 and May 1, named by the snapshot's own water name and part labels
+    .concat(['1010', '501'].flatMap(d => [].concat(WATERS.bellacoola.snap[d] || []).map((id, p) => { const st = SNAP.states[id], o = st.parts.find(x => x.v === st.part);
+      return [`bellacoola|${d}|${p}`, `${st.name.replace(/ River$/, '')} · ${fmt(+d)} · ${o?.short || ''}`]; })))
+    .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${k.split('|').length > 2 ? '|'+S.p : ''}`===k?'on':''}" data-cw="${k}">${esc(t)}</button>`).join('')
     + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
       .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;
   $('c-all').onchange = e => { if (e.target.value) { const [w, dd] = e.target.value.split('|'); go({w, d:+dd, p:0, sheet:'', map:0}); } };
@@ -1202,6 +1221,7 @@ function poster(){
   for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
   const sec = S.sec; render();
   if (sec === 'gear' && !S.scroll && !S.at) requestAnimationFrame(() => { $('sc').scrollTop = $('gear').offsetTop - $('hdr').offsetHeight + 2; mini(); });
+  if (S.open) document.querySelectorAll(S.open).forEach(d => { d.open = true; });   // round 13: a screen of a fold opened
   if (S.at) requestAnimationFrame(() => { const el = document.querySelector(S.at), sc = $('sc'); if (el) { sc.scrollTop += el.getBoundingClientRect().top - sc.getBoundingClientRect().top - $('hdr').offsetHeight - 4; mini(); } });
 })();
 </script>

@@ -10,7 +10,8 @@
 //                         cover fit, no rounded clip), and every one with a photo opens its picture sheet (sp:CODE)
 //   (round 11) place-in-header, gear-sentence, gear-no-icons, always-as-reference, bucket-number-big, bucket-note-once,
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
-//   (round 12) compact-header-place, sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
+//   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired)
+//   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
 //   gear-one-summary      (round 10, retired in round 11 by gear-sentence) gear and methods are ONE section holding one summary block with an icon per cell:
@@ -332,15 +333,7 @@ await page('w=vedder&d=1010', async b => {
 });
 
 // ---------- round 12 ----------
-// (owner 1 + 4) the compact (scrolled) header keeps the bare place label, whole, on its own line
-const MH = [];
-for (const hash of ['w=vedder&d=1010&scroll=900', 'w=chilliwack&d=1010&p=0&scroll=900']) await page(hash, async b => {
-  MH.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const hdr = document.getElementById('hdr'), pl = hdr.querySelector('[data-place]'), t = (pl?.textContent || '').trim();
-    const cut = pl ? [pl, ...pl.querySelectorAll('*')].some(e => getComputedStyle(e).textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) : true;
-    return {hash: location.hash.slice(8), mini: hdr.classList.contains('mini'), t, kind: t === ST().kind || t.startsWith(ST().kind + ' · '), cut, h: Math.round(hdr.getBoundingClientRect().height)}; })())`)));
-});
-const mhb = MH.filter(x => !(x.mini && x.t && !x.kind && !x.cut));
-check('compact-header-place', !mhb.length, mhb.map(x => `${x.hash}: ${x.mini ? '' : 'not compact, '}place ${JSON.stringify(x.t)}${x.kind ? ' (leads with the kind)' : ''}${x.cut ? ' (cut)' : ''}`).join('; '));
+// (owner 1 + 4) compact-header-place retired in round 13: the header no longer changes on scroll (header-one-shape)
 
 // (owner 3) an ⓘ sheet: the plain words first, the BOOK's words folded ("In the book's words", closed), and every printed
 // page the term names a link to that page of the book's PDF (pdfPages: pipeline.common.synopsis_pages)
@@ -427,7 +420,7 @@ check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.str
 // (several per group: Morley Lake, Atlin Lake) once, with its nested `then` caps
 const W2 = [];
 const CARDS2 = CARDS.concat([['vedder may', 'w=vedder&d=515'], ['morley', 'w=x12p&d=1010'], ['atlin', 'w=x3p&d=1010'], ['iron', 'w=iron&d=720'],
-  ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=x36p&d=1010&p=0']]);
+  ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=bellacoola&d=1010&p=1'], ['bella coola may', 'w=bellacoola&d=501&p=1']]);
 for (const [name, hash] of CARDS2) await page(hash, async b => {
   W2.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {name: ${JSON.stringify(name)}, fe: /fished elsewhere today/i.test(document.getElementById('keep').textContent), g: []};
@@ -454,6 +447,52 @@ check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.notes.
 // gear 8: the sentence as the data says it (no em dash)
 const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown) || !r.shown.startsWith(r.says));
 check('gear-sentence-plain', !gd.length, gd.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
+
+// ---------- round 13 ----------
+// (H) the header keeps ONE shape: the same height, words and classes at scroll 0 and scrolled; "View on map ›" shown in
+// both on a water with a map; the two section tabs slim (one row no taller than 40 px)
+const H13 = [];
+for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=0', 'w=x14p&d=1010&p=1', 'w=cowichan&d=1010&p=1']) await page(hash, async b => {
+  H13.push(JSON.parse(await b.evaluate(`(async () => { const sc = document.getElementById('sc'), raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const look = () => { const h = document.getElementById('hdr'), go = [...h.querySelectorAll('.pgo')].find(e => /View on map/.test(e.textContent));
+      const tl = h.querySelector('[role=tablist]');
+      return {h: Math.round(h.getBoundingClientRect().height), cls: h.className, text: h.textContent.replace(/\\s+/g, ' ').trim(),
+        map: !!(go && go.offsetHeight > 0 && getComputedStyle(go).display !== 'none'), tabs: tl ? Math.round(tl.getBoundingClientRect().height) : -1}; };
+    await raf(); const a = look(); sc.scrollTop = 900; sc.dispatchEvent(new Event('scroll')); await raf(); const z = look();
+    const w = WATERS[S.w]; return JSON.stringify({hash: location.hash.slice(8), hasMap: !!(w.map && WM.waters[w.map]), a, z, scrolled: sc.scrollTop}); })()`)));
+});
+const hb13 = H13.filter(x => x.scrolled < 300 || x.a.h !== x.z.h || x.a.cls !== x.z.cls || x.a.text !== x.z.text || (x.hasMap && !(x.a.map && x.z.map)) || x.a.tabs > 40 || x.a.tabs < 0);
+check('header-one-shape', H13.some(x => x.hasMap) && !hb13.length, hb13.map(x => `${x.hash}: top ${JSON.stringify(x.a)} vs scrolled ${JSON.stringify(x.z)}`).join('; '));
+
+// (L) Licence: each tab shows only the default angler's (B.C. resident) answer; every other residency is a "Rules for
+// other anglers" dropdown of its own, carrying that residency's 16-or-older AND under-16 answers (the snapshot's own words)
+const L13 = [];
+for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%23g-licence`, async b => {
+  L13.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), L = document.getElementById('g-licence'), norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+    const box = h => { if (!h) return ''; const d = document.createElement('div'); d.innerHTML = h; return norm((d.querySelector('.classbox') || d.querySelector('.needs li'))?.textContent); };
+    const outside = L.cloneNode(true); outside.querySelectorAll('details').forEach(d => d.remove()); const out = norm(outside.textContent);
+    const res = [['non_resident', 'u16_non', 'adult_non'], ['non_resident_alien', 'u16_alien', 'adult_alien']].map(([r, u, a]) => {
+      const d = L.querySelector('details[data-res="' + r + '"]'), t = norm(d?.textContent);
+      return {r, fold: !!d, closed: d ? !d.open : null, named: d ? /Rules for other anglers/.test(d.querySelector('summary')?.textContent || '') : false,
+        u16: !!st.licence[u] && !!box(st.licence[u]) && t.includes(box(st.licence[u])), adult: !!st.licence[a] && !!box(st.licence[a]) && t.includes(box(st.licence[a])),
+        leak: !!st.licence[u] && !!box(st.licence[u]) && box(st.licence[u]) !== box(st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}]) && out.includes(box(st.licence[u])) }; });
+    const mine = box(st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}]);
+    return {age: ${JSON.stringify(age)}, blocks: outside.querySelectorAll('.u16h').length, mine: !!mine && out.includes(mine), res}; })())`)));
+});
+const lb13 = L13.filter(x => x.blocks > 0 || !x.mine || x.res.some(r => !r.fold || !r.closed || !r.named || !r.u16 || !r.adult || r.leak));
+check('licence-others-in-dropdowns', !lb13.length, lb13.map(x => JSON.stringify(x)).join('; '));
+
+// (B) Bella Coola front and centre: snapshotted on Oct 10 AND May 1 (every part the page offers), the May 1 mainstem card
+// is not Oct 10's (the Apr 1–May 31 exception), and the side panel's quick pills open both days
+const B13 = await page('w=bellacoola&d=501&p=1', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const w = WATERS.bellacoola;
+  if (!w) return {missing: true};
+  const days = Object.keys(w.snap).map(Number), ids = d => [].concat(w.snap[d] || []), names = days.flatMap(d => ids(d).map(i => SNAP.states[i]?.name));
+  const main = d => ids(d).map(i => SNAP.states[i]).find(s => s && s.part === '0');
+  const pills = [...document.querySelectorAll('#c-w [data-cw^="bellacoola|"]')].map(e => e.dataset.cw);
+  return {days, parts: days.map(d => ids(d).length), names: [...new Set(names)], differ: !!(main(1010) && main(501) && main(1010).cardHTML !== main(501).cardHTML),
+    pills, shown: document.querySelector('#hdr .ttl')?.textContent.trim()}; })())`)));
+check('bella-coola-front', !B13.missing && [1010, 501].every(d => B13.days.includes(d)) && B13.parts.every(n => n >= 2) && B13.names.join() === 'Bella Coola River'
+  && B13.differ && ['1010', '501'].every(d => B13.pills.some(p => p.split('|')[1] === d)) && B13.shown === 'Bella Coola River', JSON.stringify(B13));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

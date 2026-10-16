@@ -1,3 +1,19 @@
+# regs v15 (round 13, owner H L B) — in place on regs-v11.html
+
+- **H Header, one shape.** No compact mode: the header is the same height and words at the top and scrolled (only the
+  tab in view changes); "View on map ›" is always shown. The two section tabs are slim underline tabs (the app's TabBar
+  look: the chosen one in ink on a 3 px ink bar sitting on the header's rule), 38 px instead of a 47 px boxed control.
+  Check `header-one-shape` (retires `compact-header-place`).
+- **L Licence.** Each tab (16 or older / Under 16) shows only the default angler's answer (B.C. resident, the page's
+  default). Every other residency is a closed dropdown of its own, "Rules for other anglers · <residency>" (the page's
+  fold name and residency names), carrying that residency's 16-or-older AND under-16 answers; the page's own "Rules for
+  other anglers (N)" fold is replaced by these. snap.mjs now also reads `adult_non` and `adult_alien`. Each answer's
+  "Where each one comes from" goes to the Sources sheet under its residency · age. Check `licence-others-in-dropdowns`.
+- **B Bella Coola.** Snapshotted on Oct 10 and May 1 (inside the mainstem's Apr 1–May 31 exception), both parts the
+  page offers (mouth → Talchako; the 4 side channels); page v36 offers no Bella Coola tributary water. `w=bellacoola`.
+  Four quick pills in the side panel, named by the snapshot's own water and part labels. Check `bella-coola-front`.
+  Screens 69-75.
+
 # regs v14 (round 12, owner 1 3 4 + More) — in place on regs-v11.html
 
 - **Phase 2 (answers rows 11, gear 8; page v36 @ 3be6310d, 38 waters, 124 states).** Buckets in the data's order (a
