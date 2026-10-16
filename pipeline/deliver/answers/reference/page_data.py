@@ -52,7 +52,8 @@ CALENDAR_JS = HERE / "calendar.generated.js"
 #: and waters with more than one size cap in a group (owner, ROUND12): Wahleach (Jones) Lake, Bennett Lake,
 #: Bella Coola River, Coquitlam River.
 EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244", "gnis:2349", "gnis:10307",
-                "wbk:329177886", "wbk:328961756", "gnis:11611", "gnis:19986"]
+                "wbk:329177886", "wbk:328961756", "gnis:11611", "gnis:19986",
+                "gnis:10549"]  # Ape Creek: a Bella Coola tributary (ROUND13 B)
 
 RULE_KEEP = convert.RULE_KEEP
 LIC_KEEP = convert.LIC_KEEP
