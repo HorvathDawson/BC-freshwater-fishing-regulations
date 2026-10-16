@@ -73,6 +73,14 @@ const SCREENS = [
   ['54-braid-dean-out', `${V}&map=1&br=12&bj=2`],
   ['55-braid-peace-site-c', `${V}&map=1&br=6&bj=1`],
   ['56-braid-review-panel', `${V}&map=1&br=3&bj=0`, 'desk'],
+  // v14 (round 12): the header's place line (owner 1 + 4), compact; ⓘ sheets with the book's words folded and page links,
+  // Bait two columns, ways inline, dated rows (owner 3); "How to tell" holds the hatchery term; a release-only group's species
+  ['57-header-compact-scrolled', 'w=chilliwack&d=1010&p=0&scroll=900'],
+  ['58-sheet-term-book-words', `${V}&sheet=gl:bait_ban,single_barbless_hook`],
+  ['59-sheet-how-to-tell', 'w=iron&d=720&sheet=hatch&at=.htw'],
+  ['60-gear-cowichan-dated-rows', 'w=cowichan&d=1010&p=1&at=%23g-gear'],
+  ['61-gear-kootenay-bait-ways', 'w=klwa&d=1010&at=%5Bdata-k%3D%22bait%22%5D'],
+  ['62-keep-iron-char-release', 'w=iron&d=720&at=%5Bdata-row%3D%22r1%22%5D'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

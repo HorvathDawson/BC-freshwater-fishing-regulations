@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Regs v13</title>
-<!-- v13 (round 11, owner 2 3 4 6 + answers rows 10 / gear 7 / display 8), in place on v12 (round 10, owner 1 2 3 5), on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
+<title>Regs v14</title>
+<!-- v14 (round 12, owner 1 3 4 + More), in place on v13 (round 11, owner 2 3 4 6 + answers rows 10 / gear 7 / display 8), in place on v12 (round 10, owner 1 2 3 5), on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
      `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
@@ -46,12 +46,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tabs button[aria-selected="true"]{color:var(--ink)}.tabs button[aria-selected="true"] u{background:var(--ink)}
 /* regulations surface */
 #reg{position:absolute;inset:0}
-.scroller{position:absolute;inset:0;overflow:auto;scrollbar-width:none}.scroller::-webkit-scrollbar{display:none}
+.scroller{position:absolute;inset:0;overflow:auto;scrollbar-width:none;overflow-anchor:none}.scroller::-webkit-scrollbar{display:none}
 .hdr{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1.5px solid var(--ink)}
 .r1{display:flex;align-items:center;gap:8px;padding:2px 12px 2px 4px;min-height:52px}
 .back{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;font:700 22px Archivo,sans-serif;color:var(--accent)}
 .ttl{flex:1;min-width:0}
-.ttl b{display:block;font:800 var(--t2)/1.2 "Bricolage Grotesque",Archivo,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl b{display:block;font:800 var(--t2)/1.2 "Bricolage Grotesque",Archivo,sans-serif}
 .ttl small{display:block;font-size:var(--t4);color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pill{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 10px;border:1px solid var(--line2);background:var(--card);font:600 var(--t4) Archivo,sans-serif;white-space:nowrap}
 .pill .dot{width:8px;height:8px}
@@ -429,12 +429,17 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .gxno{display:flex;flex-wrap:wrap;gap:2px 12px;margin:6px 0 0;font-size:var(--t4);color:var(--sub)}.gxno i{font-style:normal;font-weight:800;color:var(--closed);margin-right:4px}
 .gxi.plain li{font-size:var(--t4)}
 .ts2 .gx{grid-template-columns:minmax(0,1fr)}.ts2 .gxc{border-right:0!important;padding-left:0!important}
-/* v13 (round 11, owner 4): the place inside the header */
-.r1{min-height:48px}
-.hplace{display:flex;align-items:baseline;gap:10px;width:100%;min-height:44px;padding:0 12px 8px 56px;margin-top:-8px;text-align:left}
-.hplace .pl{flex:1;min-width:0;font:500 var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}
-.hplace .pgo{flex:0 0 auto;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
-.hdr.mini .hplace .pl{white-space:normal}
+/* round 12 (owner 1 + 4): the header reads as one block: the water's name, the part's label right under it (a full line of
+   its own, aligned with the name), the action under that; then the two tabs. The 56 px inset is the back button's column. */
+.r1{min-height:48px;padding-top:4px}
+.hplace{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:0 16px 12px 56px;margin-top:-8px;text-align:left}
+.hplace .pl{display:block;width:100%;font:600 var(--t3)/1.3 Archivo,sans-serif;color:var(--ink)}
+.hplace .pgo{display:inline-flex;align-items:center;min-height:24px;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
+button.hplace:active .pl{color:var(--accent)}
+.r2{padding:0 16px 10px}
+/* compact (scrolled): the label stays whole, smaller; the action folds into the label (still a button to the map) */
+.hdr.mini .hplace{padding-bottom:8px;gap:0}.hdr.mini .hplace .pl{font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+.hdr.mini .hplace .pl + .pgo{display:none}
 /* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
 .bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
 /* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
@@ -478,6 +483,45 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .sw.rule{height:10px;background:color-mix(in srgb,var(--accent) 35%,transparent)}
 .mk.cut{pointer-events:none}.mk.cut i{border-radius:0;transform:rotate(45deg);width:14px;height:14px;background:var(--ink)}
 .mrule{margin:2px 0 4px;font:700 var(--t3)/1.3 Archivo,sans-serif}
+/* round 12 (owner 3): dated changes, one row component: the date in a fixed column, then the change */
+.dlab{margin:10px 0 3px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.dlist{list-style:none;margin:6px 0 0;padding:0;border-left:3px solid var(--restricted)}
+.dlab + .dlist{margin-top:0}
+.drow{display:grid;grid-template-columns:7.4em minmax(0,1fr);gap:0 8px;align-items:baseline;padding:4px 0 4px 10px;font-size:var(--t4);line-height:1.3}
+.drow + .drow{border-top:1px solid var(--line)}
+.drow .dw{font:700 var(--t4) Archivo,sans-serif;color:var(--restricted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.drow .dc{font-weight:600;color:var(--ink)}.drow em{font-style:normal;font-weight:700;color:var(--restricted)}
+.ts2 .drow{grid-template-columns:minmax(0,1fr)}
+.gtopic ul.dlist,.gtopic .ync ul{padding-left:0;margin-bottom:0}.gtopic .ync ul{margin-top:0}.gtopic ul.dlist{padding-left:0}
+.ync[data-col]:only-child{padding-left:0;border-left:0}.ync:only-child ul{columns:2;column-gap:14px}.ync:only-child li{break-inside:avoid}
+/* round 12 (owner 3): Bait and Ways to fish, two columns */
+.yn{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0 12px;margin:2px 0 0}
+.ync[data-col="no"]{padding-left:12px;border-left:1px solid var(--line2)}
+.ync:only-child{grid-column:1 / -1}
+.ynh{display:flex;align-items:center;gap:5px;margin:0 0 2px;font:700 var(--t4) Archivo,sans-serif;color:var(--sub)}
+.ynh i{font-style:normal;font-weight:800}.ync[data-col="ok"] .ynh i{color:var(--open)}.ync[data-col="no"] .ynh i{color:var(--closed)}
+.ync ul{list-style:none;margin:0;padding:0}
+.ync li{padding:1px 0;font:600 var(--t3)/1.25 Archivo,sans-serif}
+.ync li b{font-weight:600}.ync li small{display:block;font:400 var(--t4)/1.25 Archivo,sans-serif;color:var(--sub)}
+.gtopic .wyn ul{list-style:none;margin:2px 0 0;padding:0}
+.wyn li,.wyn p{position:relative;margin:0;padding:1px 0 1px 18px;font:600 var(--t3)/1.3 Archivo,sans-serif}
+.wyn li > i,.wyn p > i{position:absolute;left:0;font-style:normal;font-weight:800}.wyn li > i{color:var(--open)}.wyn p > i{color:var(--closed)}
+.wyn li b{font-weight:600}.wyn li small{font:400 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+.wyn p{font-weight:500}.wyn p .sep{color:var(--faint)}
+.ts2 .yn{grid-template-columns:minmax(0,1fr)}.ts2 .ync[data-col="no"]{padding-left:0;border-left:0;margin-top:6px}
+/* round 12 (owner 3): an ⓘ sheet — the plain words, the book's own words folded, the pages as links */
+.sbody .glsays{margin:4px 0 8px;font-size:var(--t3);line-height:1.45}.sbody .glex{margin:0 0 8px;font-size:var(--t4);color:var(--sub)}
+details.bookw{margin:2px 0}
+details.bookw > summary{min-height:44px;display:inline-flex;align-items:center;gap:6px;list-style:none;cursor:pointer;font:700 var(--t4) Archivo,sans-serif;color:var(--accent)}
+details.bookw > summary::-webkit-details-marker{display:none}
+details.bookw > summary::after{content:"▸";font-size:11px;transition:transform .15s}
+details.bookw[open] > summary::after{transform:rotate(90deg)}
+details.bookw blockquote{margin:0 0 10px}
+.glpages{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;margin:-8px 0 0;font:700 var(--t4) Archivo,sans-serif;color:var(--sub)}.glpages .book{min-height:44px}
+.htw{margin-top:14px;padding-top:10px;border-top:1.5px solid var(--ink)}
+.htw h3{margin:0 0 2px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.htw .glsays{font-size:var(--t4);color:var(--sub)}
+.krel28{border-top:0;padding-top:6px}.krel28 .nm{font-weight:600}
 /* round 9 / answers 2.8: the water-first quota card */
 .g28 .rhead .num{white-space:normal;max-width:42%}.g28 .rhead .num small{white-space:normal}
 .ts2 .g28 .rhead{flex-direction:column;gap:2px}.ts2 .g28 .rhead .num{text-align:left;max-width:none}
@@ -521,7 +565,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
       <div class="wmap" id="wmap"></div>
     </div>
     <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div></div>
-  <div class="poster"><h1>Regs v13</h1>
+  <div class="poster"><h1>Regs v14</h1>
     <p>One Regulations surface with two parts, <b>What you can keep</b> and <b>Gear &amp; licence</b>, under one header. Every fact is page v36’s, from a script-made snapshot. Strip flags, book pages and group items come from answers 2.6.</p>
     <div class="ctl"><span class="lab">Water and day</span><div class="cs" id="c-w"></div></div>
     <div class="ctl"><span class="lab">Theme and text</span><div class="cs" id="c-t"></div></div>
@@ -563,6 +607,14 @@ const SYNOPSIS_PDF = 'https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-a
 const bookLinks = key => { const i = SNAP.ruleInfo[key]; if (!i || !i.book) return ''; return i.book.map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
 const booksOnce = keys => { const pages = new Map(); keys.forEach(k => (SNAP.ruleInfo[k]?.book || []).forEach(([pr, pdf]) => pages.has(pr) || pages.set(pr, pdf)));
   return [...pages].map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
+/* round 12 (owner 3): a PRINTED page the data names, as a link to that page of the book's PDF (SNAP.pdfPages: the one
+   printed -> PDF map, pipeline.common.synopsis_pages); a page the map lacks is plain text */
+const pageLink = pr => { const pdf = (SNAP.pdfPages || {})[pr]; return pdf ? `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">p.${pr} ↗</a>` : `<span>p.${pr}</span>`; };
+/* an ⓘ term: its plain words (and example), the book's own words folded, then its pages as links */
+function glossBody(id){ const g = SNAP.gloss[id]; if (!g) return ''; const t = g.term; if (!t) return g.body;
+  return `<p class="glsays">${esc(t.says)}</p>${t.example ? `<p class="glex"><b>For example:</b> ${esc(t.example)}</p>` : ''}`
+    + (t.quote ? `<details class="bookw"><summary>In the book’s words</summary><blockquote class="exact">${esc(t.quote)}</blockquote></details>` : '')
+    + (t.pages.length ? `<p class="glpages">Book ${t.pages.map(pageLink).join(' ')}</p>` : ''); }
 const appliesOf = key => { const i = SNAP.ruleInfo[key]; return i ? [i.applies, i.applies_trib].filter(Boolean) : []; };
 /* the strip from the data's per-day flags (answers 2.6): closed 1, release 2, fly-only 4, flies-only 8, bait ban 16.
    Legend words are the data's own (display.strip[].label). */
@@ -613,10 +665,12 @@ function hereLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part);
   return ''; }
 function placeRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = hereLabel() === st.name ? '' : hereLabel();   // a whole water: its name is the title already
   const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
-  const inner = `<span class="pl" data-place>${esc(st.kind)}${lbl ? ` · ${esc(lbl)}` : ''}</span>`;
+  // round 12 (owner 1 + 4): no kind; the part's label alone, a full-width line of its own under the water's name, and the
+  // action on the line below it (the whole block is the button); a whole water with nowhere to go: no line at all
+  const inner = lbl ? `<span class="pl" data-place>${esc(lbl)}</span>` : '';
   if (hasMap) return `<button class="hplace" type="button" data-map="1" aria-label="Where these rules apply: ${esc(lbl || st.name)}. View on map">${inner}<span class="pgo">View on map ›</span></button>`;
   if (many) return `<button class="hplace" type="button" data-open="parts">${inner}<span class="pgo">Other parts ›</span></button>`;
-  return `<div class="hplace">${inner}</div>`; }
+  return inner ? `<div class="hplace">${inner}</div>` : ''; }
 function hdr(){
   const st = ST(), k = statusOf(st), col = k === 'closed' ? '--closed' : k === 'open' ? '--open' : '--faint';
   return `<div class="hdr" id="hdr"><div class="r1"><button class="back" aria-label="Back to search" data-toast="Back to the app’s Search">‹</button>
@@ -661,6 +715,15 @@ function buildKeep(){
   // round 9 / answers 2.8: each group drawn from the data's card (rows[i].group) — headline, origin, lifts, total line,
   // buckets of kinds, the worked count — each fact once. From v36's own HTML only what the data does not carry:
   // the title and scope, the origin line's "How to tell" + ⓘ, the rule keys behind each "Book p.N", the steelhead note.
+  // round 12 (More): "Hatchery or wild" is explained inside "How to tell", so no ⓘ of its own beside that link
+  root.querySelectorAll('[data-howtell]').forEach(h => h.parentElement.querySelectorAll('.gl[data-gl="hatchery_wild"]').forEach(x => x.remove()));
+  // round 12 (More): a release-only group with no card of its own ("Char": "You can fish for them, but release every one")
+  // lists its species like a keep group's kind row: their names on one line, then a whole picture of each (the row's members)
+  root.querySelectorAll('article.row.ledger').forEach(art => { if (art.closest('details.others')) return;
+    const raw = st.rows[+(art.dataset.row || 'r0').slice(1)] || {}, cs = (raw.members || []).filter(c => SNAP.fish[c] || FISHPIC(c).length);
+    if (raw.group?.headline || raw.kind !== 'release' || !cs.length) return;
+    const html = `<div class="krow k28 krel28"><div class="kb"><p class="kl"><b class="nm">${cs.map(c => esc(fishName(c))).join(' · ')}</b></p><span class="kpics">${cs.map(c => fishBtn(c)).join('')}</span></div></div>`;
+    const at = art.querySelector('.rsum .sum') || art.querySelector('.rhead'); at.insertAdjacentHTML('afterend', html); });
   root.querySelectorAll('article.row.ledger').forEach(art => {
     const ri = +(art.dataset.row || 'r0').slice(1), raw = st.rows[ri] || {}, g = raw.group;
     if (!g || !g.headline) return;
@@ -791,13 +854,19 @@ const ROWKEY = {'Lines': 'lines', 'Hook, lure or fly per line': 'hooks', 'Hook p
 const gearJSON = key => { const m = (SNAP.rules[key]?.body || '').match(/<pre class="gjson">([\s\S]*?)<\/pre>/);
   try { return m ? JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')) : null; } catch (e) { return null; } };
 const namesBoat = key => (gearJSON(key)?.gear || []).some(g => /boat/.test(JSON.stringify(g.when || {})));
+/* round 12 (owner 3): Bait and Ways to fish as two columns — ✓ allowed | ✕ not — each item its name, its note small under it */
+function yesNo(ok, no){ const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh"><i>${k === 'ok' ? '✓' : '✕'}</i>${h}</p><ul>${xs.map(([n, sm]) => `<li><b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
+  return `<div class="yn">${col('ok', 'Allowed', ok)}${col('no', 'Not allowed', no)}</div>`; }
 function buildGear(){
   const st = ST(), id = sid();
   if (!st.kitTiles) return `<p class="foot">No gear may go in the water and no licence is needed while fishing is closed.</p>`;
   learnChipWords(st);
   const secs = [], cells = [], keys = [], words = [];
   // the strip's bait-ban runs (bit 16) on the Bait cell, in the data's words
-  const dateds = bits => dated(st, bits).map(x => `<p class="gxd${x.now ? ' now' : ''}" data-dated><span><b>${x.when}</b> ${x.words}${x.now ? ' <em>· in force today</em>' : ''}</span></p>`).join('');
+  // round 12 (owner 3): every dated change is ONE row component — the date label in its own column, then the change in the
+  // data's words — the same under the gear sentence and on Bait, so the dates and the changes line up down the section
+  const drow = (when, says, now) => `<li class="drow${now ? ' now' : ''}" data-dated><span class="dw">${esc(when)}</span><span class="dc">${esc(says)}${now ? ' <em>· in force today</em>' : ''}</span></li>`;
+  const dateds = bits => { const xs = dated(st, bits); return xs.length ? `<ul class="dlist">${xs.map(x => drow(x.when, x.words, x.now)).join('')}</ul>` : ''; };
   // v13 (round 11, owner 3): the day's terminal gear is the data's ONE sentence (gear 7 `summary.says`), an ⓘ for its
   // glossary terms, one book link per page of the rules it cites, and the other days whose sentence differs as dated
   // chips (`summary.changes`). No icons. The Line & hooks rows' rules still feed the section's one Sources line.
@@ -809,20 +878,25 @@ function buildGear(){
     const gl = sm.terms.filter(t => SNAP.gloss[t]);
     const tipBtn = !gl.length ? '' : `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`;
     sentence = `<div class="gsum" data-summary><p class="gsay">${esc(sm.says)}${tipBtn ? ' ' + tipBtn : ''}</p>`
-      + (sm.changes.length ? `<div class="gchips">${sm.changes.map(c => `<span class="gchip" data-change><b>${esc(c.when)}</b> ${esc(c.says)}</span>`).join('')}</div>` : '')
+      + (sm.changes.length ? `<p class="dlab">Other days</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : '')
       + `<p class="gbooks">${booksOnce(sm.cites)}</p></div>`; }
   // bait: the ✓/✕ list, as it was
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
     const items = [...r.querySelectorAll('.bait')].map(b => ({ok: b.classList.contains('ok'), n: b.querySelector('b')?.innerHTML || '', s: b.querySelector('span')?.innerHTML || ''}));
     const note = [...r.querySelectorAll('p')].map(p => p.innerHTML);
-    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}<ul class="gxi">${items.map(x => `<li class="${x.ok ? 'ok' : 'no'}"><i>${x.ok ? '✓' : '✕'}</i><span><b>${x.n}</b>${x.s && !/^(allowed|bait ban)$/.test(x.s) ? ` <small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${dateds(16)}</div>`); }
+    // round 12 (owner 3): the same items as two columns, ✓ allowed | ✕ not (the column says "allowed" / "banned", so a
+    // note that only repeats it is dropped; the rest of the note stays under its item)
+    const note2 = x => x.s.replace(/^(allowed|banned|bait ban)(\s*·\s*)?/, '');
+    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${dateds(16)}</div>`); }
   // ways to fish: what's allowed (with the data's conditions), then what is not — as it was
   if (st.panes.ways) { const r = parse(st.panes.ways);
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
     const ok = [...r.querySelectorAll('.wrow')].map(w => ({n: w.querySelector('b')?.innerHTML || '', s: w.querySelector('small')?.innerHTML || ''}));
     const no = [...r.querySelectorAll('.nochip')].map(c => c.textContent.replace(/^✕/, '').trim());
-    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><ul class="gxi">${ok.map(x => `<li class="ok"><i>✓</i><span><b>${x.n}</b>${x.s ? `<small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${no.length ? `<p class="gxno">${no.map(t => `<span><i>✕</i>${esc(t)}</span>`).join('')}</p>` : ''}</div>`); }
+    // round 12 (owner 3): ways inline — each allowed way one line, its conditions running on after its name; the ways
+    // that are not allowed one line of their own
+    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><div class="wyn">${ok.length ? `<ul data-col="ok">${ok.map(x => `<li><i>✓</i><b>${x.n}</b>${x.s ? ` <small>${x.s}</small>` : ''}</li>`).join('')}</ul>` : ''}${no.length ? `<p data-col="no"><i>✕</i>${no.map(t => `<span>${esc(t)}</span>`).join('<span class="sep"> · </span>')}</p>` : ''}</div></div>`); }
   // boats: the data's boat rules for this water, when it has any
   if (st.panes.boats) { const r = parse(st.panes.boats);
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
@@ -904,12 +978,15 @@ function sheetHtml(k){
   if (k.startsWith('rule:')) { const r = SNAP.rules[k.slice(5)]; if (!r) return '';
     const key = k.slice(5); return head(esc(r.title), esc(r.sub.replace(/^(.+?) rule · \1$/, '$1'))) + `<div class="sbody">${appliesOf(key).map(a => `<p class="appl">${esc(a)}</p>`).join('')}${r.body}<p>${bookLinks(key)}</p></div>`; }
   if (k.startsWith('gl:')) { const ids = k.slice(3).split(',').filter(id => SNAP.gloss[id]); if (!ids.length) return '';
-    if (ids.length === 1) { const g = SNAP.gloss[ids[0]]; return head(esc(g.title), esc(g.sub)) + `<div class="sbody">${g.body}</div>`; }
-    return head('What these words mean', '') + `<div class="sbody">${ids.map(id => { const g = SNAP.gloss[id]; return `<section class="gterm"><h3>${esc(g.title)}</h3><p class="appl">${esc(g.sub)}</p>${g.body}</section>`; }).join('')}</div>`; }
+    if (ids.length === 1) { const g = SNAP.gloss[ids[0]]; return head(esc(g.title), g.term ? '' : esc(g.sub)) + `<div class="sbody">${glossBody(ids[0])}</div>`; }
+    return head('What these words mean', '') + `<div class="sbody">${ids.map(id => { const g = SNAP.gloss[id]; return `<section class="gterm"><h3>${esc(g.title)}</h3>${g.term ? '' : `<p class="appl">${esc(g.sub)}</p>`}${glossBody(id)}</section>`; }).join('')}</div>`; }
   if (k.startsWith('src:')) { const s2 = SNAP.sources[k.slice(4)]; if (!s2) return ''; return head(esc(s2.title), esc(s2.sub)) + `<div class="sbody">${groupedSources(s2.body)}</div>`; }
   if (k.startsWith('else:')) { const [id, ri] = k.slice(5).split('|'), e = SNAP.states[id].rows[+ri].elsewhere;
     return head('Fished elsewhere today?', esc(e.says)) + `<div class="sbody">${e.ask.map(([q, a]) => `<div class="srow"><span>${esc(q)}</span><b>${esc(a)}</b></div>`).join('')}</div>`; }
-  if (k === 'hatch') { const h = SNAP.howtell; let i = 0; const body = h.body.replace(/<figure class="fishart">/g, () => `<figure class="fishart">${window.FISHART ? FISHART.draw('RB', {marks:false, adiMark:true, clipped: i++ === 1}) : ''}`); return head(esc(h.title), esc(h.sub)) + `<div class="sbody">${body}</div>`; }
+  if (k === 'hatch') { const h = SNAP.howtell; let i = 0; const body = h.body.replace(/<figure class="fishart">/g, () => `<figure class="fishart">${window.FISHART ? FISHART.draw('RB', {marks:false, adiMark:true, clipped: i++ === 1}) : ''}`);
+    // round 12 (More): the "Hatchery or wild" term lives here, under the pictures, smaller — not as an ⓘ beside "How to tell"
+    const hw = SNAP.gloss.hatchery_wild;
+    return head(esc(h.title), esc(h.sub)) + `<div class="sbody">${body}${hw ? `<section class="htw" data-term="hatchery_wild"><h3>${esc(hw.title)}</h3>${glossBody('hatchery_wild')}</section>` : ''}</div>`; }
   if (k.startsWith('sp:')) { const c = k.slice(3), f = SNAP.fish[c], pics = FISHPIC(c); if (!f && !pics.length) return '';
     const tipsL = f?.tips || [];
     return head(esc(fishName(c)), '') + `<div class="sbody">${pics.map(p => `<div class="pic"><img src="../apps/mobile/assets/fish/${p.file}" alt="${esc(p.caption)}"></div><div class="cred">${esc(p.caption)}${p.phase ? ' · ' + esc(p.phase) : ''} · ${esc(p.credit)} (${esc(p.source)})</div>`).join('')}

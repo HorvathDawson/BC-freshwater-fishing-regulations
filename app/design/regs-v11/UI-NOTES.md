@@ -1,3 +1,27 @@
+# regs v14 (round 12, owner 1 3 4 + More) — in place on regs-v11.html
+
+- **1 + 4 Header.** No kind: the water's name, then the part's label alone as a full-width line of its own aligned with the
+  name, then "View on map ›" under it (the whole block is one button); a whole water with a map: just "View on map ›"; a
+  whole water with nowhere to go: no line. The water's name wraps instead of truncating. Compact (scrolled): the label
+  stays whole, smaller and grey, the action folds into it (still a button); `.scroller` has `overflow-anchor:none` so the
+  header changing height never moves the scroll. Checks `place-in-header` (no kind, bare label, own line), `compact-header-place`.
+- **3 ⓘ sheets.** Built from the term's own fields (snap.mjs now copies `says`, `example`, `quote`, `pages` from page v36's
+  glossary): the plain words, "In the book’s words ▸" folded (closed), then "Book p.4 ↗ p.8 ↗", each a link to that page
+  of the PDF through `SNAP.pdfPages` — the one printed -> PDF map (`pipeline.common.synopsis_pages.printed_to_pdf`, read
+  by snap.mjs; nothing typed). Check `sheet-book-words`.
+- **3 Bait / Ways to fish.** Bait is two columns, ✓ Allowed | ✕ Not allowed (one column, flowed in two, when the other is
+  empty; a note that only repeats the column, "banned", is dropped). Ways to fish inline: each allowed way one line, its
+  conditions running on after its name; the ways not allowed one line. Both take no more height than v13 on the four
+  states measured. Check `bait-ways-compact`.
+- **3 Dated changes.** One row component everywhere in Gear & methods (the sentence's "Other days", Bait's bait-ban runs):
+  the date in a fixed 7.4em column, the change beside it in the data's words, "· in force today" when it is. Check
+  `dated-rows`.
+- **More: How to tell.** The "Hatchery or wild (adipose fin)" term sits inside the How to tell sheet, under the pictures,
+  smaller (book's words folded, Book p.13 / p.80 linked); no separate ⓘ beside "How to tell". Check `howtell-has-hatchery`.
+- **More: release-only groups.** A release row with no card of its own (Iron River's "Char") lists its members as a kind
+  row: their names (page v36's species names, " · " between), then a whole picture of each with its caption. Check
+  `release-group-pictures`.
+
 # regs v13 (round 11, owner 2 3 4 6; answers rows 10, gear 7, display 8) — in place on regs-v11.html
 
 - **4 Header.** The place is IN the header: water name; "<kind> · <the part's label>" (page v36's long label when its

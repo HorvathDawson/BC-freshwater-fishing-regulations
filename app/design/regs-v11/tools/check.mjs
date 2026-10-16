@@ -10,6 +10,8 @@
 //                         cover fit, no rounded clip), and every one with a photo opens its picture sheet (sp:CODE)
 //   (round 11) place-in-header, gear-sentence, gear-no-icons, always-as-reference, bucket-number-big, bucket-note-once,
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
+//   (round 12) compact-header-place, sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
+//   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own)
 //   gear-one-summary      (round 10, retired in round 11 by gear-sentence) gear and methods are ONE section holding one summary block with an icon per cell:
 //                         lines, hooks, bait, then methods (gear first); the strip's dated changes are on it
 //   boat-lines            (owner 3) the Lines cell says what the data says about a boat: the data's own words where it
@@ -170,9 +172,15 @@ await page('w=vedder&d=1010', async b => {
         : hasMap ? [uncut(WM.waters[w.map].parts[curPart()].short), WM.waters[w.map].parts[curPart()].name].filter(Boolean) : [];
       const act = hasMap ? hdr.querySelector('[data-map]') : many ? hdr.querySelector('[data-open="parts"]') : null;
       const r = place?.getBoundingClientRect(), hr = hdr.getBoundingClientRect();
+      // round 12: the label is a full-width line of its own; the action sits below it, never beside it (measured before the
+      // map opens, which re-renders the header)
+      const own = !txt || (() => { const a = hdr.querySelector('.pgo') || act, w = hdr.querySelector('.ttl b').getBoundingClientRect();
+        return Math.abs(r.left - w.left) < 2 && hr.right - r.right < 20 && (!a || a.getBoundingClientRect().top >= r.bottom - 1); })();
       let title = ''; if (hasMap && act) { act.click(); await new Promise(r => setTimeout(r, 300)); title = norm(document.querySelector('#wmap .mh')?.textContent); }
       return JSON.stringify({hash: location.hash.slice(8), kind: st.kind, name: norm(hdr.querySelector('.ttl b')?.textContent) === st.name, txt, labels,
-        label: !labels.length || labels.some(l => txt.includes(l)) || (labels.includes(st.name) && txt === st.kind), lead: txt === st.kind || txt.startsWith(st.kind + ' · '),
+        // round 12 (owner 1 + 4): no kind ("stream ·"): the place is the part's label itself, nothing for a whole water
+        label: txt ? labels.includes(txt) : !labels.length || labels.includes(st.name), lead: txt !== st.kind && !txt.startsWith(st.kind + ' · '),
+        own,
         count: /\\b\\d+ sections?\\b/.test(norm(hdr.textContent)), visible: !!r && r.height > 0 && r.top >= hr.top && r.bottom <= hr.bottom,
         act: hasMap ? !!act && /view on map/i.test(act.textContent) && /where these rules apply/i.test(title) : many ? !!act && /other parts/i.test(act.textContent) : true,
         date: !!hdr.querySelector('[data-open="date"]'), mapbtn: document.querySelectorAll('.mapbtn').length,
@@ -180,8 +188,8 @@ await page('w=vedder&d=1010', async b => {
         strip: document.getElementById('sc').querySelectorAll('.parts, [data-part]').length}); })()`)));
   }
 });
-const hbad = HS.filter(h => !(h.name && h.txt && h.lead && h.label && !h.count && h.visible && h.act && h.date && !h.mapbtn && !h.row));
-check('place-in-header', HS.length > 40 && !hbad.length, `${hbad.length} of ${HS.length} fresh loads: ` + hbad.slice(0, 3).map(h => `${h.hash}: place ${JSON.stringify(h.txt.slice(0, 90))} (labels ${JSON.stringify(h.labels)})${h.name ? '' : ', no name'}${h.lead ? '' : ', not "' + h.kind + ' · …"'}${h.count ? ', a section count' : ''}${h.visible ? '' : ', not visible in the header'}${h.act ? '' : ', no map / parts action'}${h.date ? '' : ', no date control'}${h.mapbtn ? ', a MAP button' : ''}${h.row ? ', a place row outside the header' : ''}`).join('; '));
+const hbad = HS.filter(h => !(h.name && h.lead && h.label && h.own && !h.count && (h.visible || !h.txt) && h.act && h.date && !h.mapbtn && !h.row));
+check('place-in-header', HS.length > 40 && !hbad.length, `${hbad.length} of ${HS.length} fresh loads: ` + hbad.slice(0, 3).map(h => `${h.hash}: place ${JSON.stringify(h.txt.slice(0, 90))} (labels ${JSON.stringify(h.labels)})${h.name ? '' : ', no name'}${h.lead ? '' : ', still leads with the kind'}${h.label ? '' : ', not the bare label'}${h.own ? '' : ', not a full-width line of its own (the action beside it)'}${h.count ? ', a section count' : ''}${h.visible ? '' : ', not visible in the header'}${h.act ? '' : ', no map / parts action'}${h.date ? '' : ', no date control'}${h.mapbtn ? ', a MAP button' : ''}${h.row ? ', a place row outside the header' : ''}`).join('; '));
 check('no-part-strip', !HS.some(h => h.strip), HS.filter(h => h.strip).map(h => `${h.hash}: ${h.strip} part-strip elements`).join('; '));
 
 // 5–6. the water map, light and dark
@@ -321,6 +329,95 @@ await page('w=vedder&d=1010', async b => {
   check('braid-review', r.from === 'python -m pipeline.tools.water_map_export' && ['Dean River', 'Peace River'].every(w => r.waters.includes(w)) && r.rows > 0 && r.links === r.rows && r.text && !r.bad.length,
     `export ${r.from}; waters ${JSON.stringify(r.waters)}; ${r.rows} marked rows, ${r.links} review links${r.text ? '' : ' (a link without its water / share)'}; ${r.bad.length} maps without a dashed, labelled braid: ${JSON.stringify(r.bad[0] || '')}`);
 });
+
+// ---------- round 12 ----------
+// (owner 1 + 4) the compact (scrolled) header keeps the bare place label, whole, on its own line
+const MH = [];
+for (const hash of ['w=vedder&d=1010&scroll=900', 'w=chilliwack&d=1010&p=0&scroll=900']) await page(hash, async b => {
+  MH.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const hdr = document.getElementById('hdr'), pl = hdr.querySelector('[data-place]'), t = (pl?.textContent || '').trim();
+    const cut = pl ? [pl, ...pl.querySelectorAll('*')].some(e => getComputedStyle(e).textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) : true;
+    return {hash: location.hash.slice(8), mini: hdr.classList.contains('mini'), t, kind: t === ST().kind || t.startsWith(ST().kind + ' · '), cut, h: Math.round(hdr.getBoundingClientRect().height)}; })())`)));
+});
+const mhb = MH.filter(x => !(x.mini && x.t && !x.kind && !x.cut));
+check('compact-header-place', !mhb.length, mhb.map(x => `${x.hash}: ${x.mini ? '' : 'not compact, '}place ${JSON.stringify(x.t)}${x.kind ? ' (leads with the kind)' : ''}${x.cut ? ' (cut)' : ''}`).join('; '));
+
+// (owner 3) an ⓘ sheet: the plain words first, the BOOK's words folded ("In the book's words", closed), and every printed
+// page the term names a link to that page of the book's PDF (pdfPages: pipeline.common.synopsis_pages)
+const GLS = [];
+for (const k of ['bait_ban', 'single_barbless_hook', 'bait_ban,single_barbless_hook', 'daily_quota']) await page(`w=vedder&d=1010&sheet=gl:${k}`, async b => {
+  GLS.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const sh = document.getElementById('sheet'), norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+    return {k: ${JSON.stringify(k)}, terms: ${JSON.stringify(k)}.split(',').map(id => { const t = SNAP.gloss[id]?.term; if (!t) return {id, none: true};
+      const q = [...sh.querySelectorAll('blockquote')].find(e => norm(e.textContent) === norm(t.quote)), d = q?.closest('details');
+      const links = [...sh.querySelectorAll('a[href*="fishing_synopsis.pdf#page="]')].map(a => [norm(a.textContent), +a.href.split('#page=')[1]]);
+      return {id, folded: !!d && !d.open && /in the book.s words/i.test(d.querySelector('summary')?.textContent || ''),
+        says: norm(sh.textContent).includes(norm(t.says)), pages: t.pages.map(p => links.some(([tx, n]) => tx.includes('p.' + p) && n === (SNAP.pdfPages || {})[p]))}; })}; })())`)));
+});
+const glb = GLS.filter(x => x.terms.some(t => t.none || !t.folded || !t.says || !t.pages.every(Boolean)));
+check('sheet-book-words', !glb.length, glb.map(x => `${x.k}: ${JSON.stringify(x.terms)}`).join('; '));
+
+// (owner 3) Bait and Ways to fish: the same items in no more room than v13 took; Bait as two columns side by side (✓ allowed |
+// ✕ not), Ways to fish inline (each allowed way one line, the ones that are not one line)
+const V13H = {'w=vedder&d=1010': 361, 'w=klwa&d=1010': 390, 'w=cowichan&d=1010&p=1': 352, 'w=vedder&d=515': 291};
+const BW = [];
+for (const hash of Object.keys(V13H)) await page(hash, async b => {
+  BW.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim(), st = ST(), out = {hash: ${JSON.stringify(hash)}, h: 0, cells: []};
+    const P = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d; };
+    const want = {bait: [...P(st.panes.bait).querySelectorAll('.bait')].map(e => [norm(e.querySelector('b')?.textContent), e.classList.contains('ok')]),
+      methods: [...P(st.panes.ways).querySelectorAll('.wrow b')].map(e => [norm(e.textContent), true]).concat([...P(st.panes.ways).querySelectorAll('.nochip')].map(e => [norm(e.textContent.replace(/^✕/, '')), false]))};
+    for (const k of ['bait', 'methods']) { const c = document.querySelector('[data-k="' + k + '"]'); if (!c) { out.cells.push({k, none: true}); continue; }
+      out.h += c.getBoundingClientRect().height;
+      const ok = c.querySelector('[data-col="ok"]'), no = c.querySelector('[data-col="no"]');
+      const side = k === 'methods' ? !!(ok || no) : ok && no ? Math.abs(ok.getBoundingClientRect().top - no.getBoundingClientRect().top) < 4 && no.getBoundingClientRect().left > ok.getBoundingClientRect().left + 40 : !!(ok || no);
+      const miss = want[k].filter(([n, y]) => !norm((y ? ok : no)?.textContent).includes(n));
+      out.cells.push({k, side, miss: miss.map(x => x[0])}); }
+    out.h = Math.round(out.h); return out; })())`)));
+});
+const bwb = BW.filter(x => x.h > V13H[x.hash] || x.cells.some(c => c.none || !c.side || c.miss.length));
+check('bait-ways-compact', !bwb.length, bwb.map(x => `${x.hash}: ${x.h} px (v13 ${V13H[x.hash]}); ${JSON.stringify(x.cells)}`).join('; '));
+
+// (owner 3) every dated change in Gear & methods (the sentence's other days, Bait's bait ban) is ONE row component: the
+// date label, then the change, the dates in one column and the changes in another, in the data's words
+const DR = [];
+for (const hash of ['w=vedder&d=1010', 'w=cowichan&d=1010&p=1', 'w=vedder&d=515']) await page(hash, async b => {
+  DR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim(), g = document.getElementById('g-gear'), st = ST();
+    const rows = [...g.querySelectorAll('[data-dated]')].map(e => { const w = e.querySelector('.dw'), c = e.querySelector('.dc');
+      return {w: norm(w?.textContent), c: norm(c?.textContent), wl: w ? Math.round(w.getBoundingClientRect().left) : -1, cl: c ? Math.round(c.getBoundingClientRect().left) : -1}; });
+    const want = (st.summary?.changes || []).map(c => [c.when, c.says]);
+    return {hash: location.hash.slice(8), rows, want, old: g.querySelectorAll('.gchip, .gxd').length}; })())`)));
+});
+const drb = DR.filter(x => x.old || !x.rows.length || x.rows.some(r => !r.w || !r.c) || new Set(x.rows.map(r => r.wl)).size > 1 || new Set(x.rows.map(r => r.cl)).size > 1
+  || !x.want.every(([w, t]) => x.rows.some(r => r.w.includes(w) && r.c.includes(t))));
+check('dated-rows', DR.some(x => x.rows.length > 1) && !drb.length, drb.map(x => `${x.hash}: ${x.old} old chips; rows ${JSON.stringify(x.rows)}; data ${JSON.stringify(x.want)}`).join('; '));
+
+// (More) "Hatchery or wild" is explained INSIDE "How to tell" (its plain words; the book's words folded; Book p.13, p.80 as
+// links), and no separate ⓘ sits beside "How to tell"
+const HT = [];
+for (const hash of ['w=vedder&d=1010', 'w=iron&d=720']) await page(hash, async b => {
+  HT.push(JSON.parse(await b.evaluate(`(async () => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+    const ht = document.querySelector('#keep [data-howtell]'), beside = ht ? [...ht.parentElement.querySelectorAll('[data-gl="hatchery_wild"]')].length : -1;
+    ht && ht.click(); await new Promise(r => setTimeout(r, 300));
+    const sh = document.getElementById('sheet'), t = SNAP.gloss.hatchery_wild?.term || {};
+    const q = [...sh.querySelectorAll('blockquote')].find(e => norm(e.textContent) === norm(t.quote)), d = q?.closest('details');
+    const links = [...sh.querySelectorAll('a[href*="fishing_synopsis.pdf#page="]')].map(a => [norm(a.textContent), +a.href.split('#page=')[1]]);
+    return JSON.stringify({hash: location.hash.slice(8), howtell: !!ht, beside, open: sh.classList.contains('on'), says: norm(sh.textContent).includes(norm(t.says)),
+      folded: !!d && !d.open, pages: (t.pages || []).map(p => links.some(([tx, n]) => tx.includes('p.' + p) && n === (SNAP.pdfPages || {})[p]))}); })()`)));
+});
+const htb = HT.filter(x => !(x.howtell && x.beside === 0 && x.open && x.says && x.folded && x.pages.length && x.pages.every(Boolean)));
+check('howtell-has-hatchery', !htb.length, htb.map(x => JSON.stringify(x)).join('; '));
+
+// (More) a release-only group (Iron River's "Char") lists its species with a picture and a name each, like a keep
+// group's kind rows (the row's members)
+const RG = [];
+for (const hash of ['w=iron&d=720', 'w=iron&d=1010']) await page(hash, async b => {
+  RG.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), out = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const r = st.rows[+(art.dataset.row || 'r0').slice(1)] || {};
+      if (r.group?.headline || r.kind !== 'release') return;
+      const want = (r.members || []).filter(c => FISHPIC(c).length), rows = art.querySelectorAll('.krow');
+      out.push({t: art.querySelector('.rtitle')?.textContent, want, rows: rows.length, got: want.filter(c => art.querySelector('.krow [data-open="sp:' + c + '"] .kcap'))}); });
+    return {hash: location.hash.slice(8), out}; })())`)));
+});
+const rgb = RG.filter(x => !x.out.length || x.out.some(o => !o.rows || o.got.length !== o.want.length));
+check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.stringify(x.out)}`).join('; ') || '');
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
