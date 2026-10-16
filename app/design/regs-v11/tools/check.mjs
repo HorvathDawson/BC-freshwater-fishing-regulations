@@ -10,7 +10,8 @@
 //                         cover fit, no rounded clip), and every one with a photo opens its picture sheet (sp:CODE)
 //   (round 11) place-in-header, gear-sentence, gear-no-icons, always-as-reference, bucket-number-big, bucket-note-once,
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
-//   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired)
+//   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired); phase 2:
+//   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -258,8 +259,7 @@ for (const [name, hash] of CARDS) await page(hash, async b => {
 });
 const badH = card.headline.filter(([, n, num]) => String(n) !== num);
 check('card-headline', card.headline.length > 0 && !badH.length, `${badH.length} of ${card.headline.length} groups: e.g. ${JSON.stringify(badH[0])} [water, headline.n, shown]`);
-const badB = card.book.filter(([, [n, want]]) => n !== want);
-check('card-one-book-per-lift', card.book.length > 0 && !badB.length, `${badB.length} of ${card.book.length} lifts: e.g. ${JSON.stringify(badB[0])} [water, [book links, distinct pages of its lifting rules]]`);
+// card-one-book-per-lift retired in round 13 (D): the lift box is gone; no-lift-box / bucket-replaces below
 const badP = card.pics.filter(([, , want, got]) => want !== got);
 check('card-picture-per-species', card.pics.length > 0 && !badP.length, `${badP.length} of ${card.pics.length} kind rows: e.g. ${JSON.stringify(badP[0])} [water, kind, species, pictures]`);
 const badO = card.once.filter(([, dup, total]) => dup.length || total);
@@ -420,7 +420,7 @@ check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.str
 // (several per group: Morley Lake, Atlin Lake) once, with its nested `then` caps
 const W2 = [];
 const CARDS2 = CARDS.concat([['vedder may', 'w=vedder&d=515'], ['morley', 'w=x12p&d=1010'], ['atlin', 'w=x3p&d=1010'], ['iron', 'w=iron&d=720'],
-  ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=bellacoola&d=1010&p=1'], ['bella coola may', 'w=bellacoola&d=501&p=1']]);
+  ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=bellacoola&d=1010&p=1'], ['bella coola may', 'w=bellacoola&d=501&p=1'], ['ape', 'w=ape&d=1010'], ['ape may', 'w=ape&d=501'], ['fraser', 'w=x15p&d=1010&p=0']]);
 for (const [name, hash] of CARDS2) await page(hash, async b => {
   W2.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {name: ${JSON.stringify(name)}, fe: /fished elsewhere today/i.test(document.getElementById('keep').textContent), g: []};
@@ -493,6 +493,40 @@ const B13 = await page('w=bellacoola&d=501&p=1', async b => JSON.parse(await b.e
     pills, shown: document.querySelector('#hdr .ttl')?.textContent.trim()}; })())`)));
 check('bella-coola-front', !B13.missing && [1010, 501].every(d => B13.days.includes(d)) && B13.parts.every(n => n >= 2) && B13.names.join() === 'Bella Coola River'
   && B13.differ && ['1010', '501'].every(d => B13.pills.some(p => p.split('|')[1] === d)) && B13.shown === 'Bella Coola River', JSON.stringify(B13));
+
+// ---------- round 13 phase 2 (rows 12, gear 9, display 9) ----------
+const C13 = [];
+for (const [name, hash] of CARDS2) await page(hash, async b => {
+  C13.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
+    const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), cap = t => t ? t[0].toUpperCase() + t.slice(1) : t, out = {name: ${JSON.stringify(name)}, lift: document.querySelectorAll('#keep .lift, #keep .glifts .lift').length, rep: [], nk: [], zero: []};
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+      const secs = [...art.querySelectorAll('section.bkt')], at = norm(art.textContent);
+      (g.buckets || []).forEach((bk, i) => { if (bk.replaces) { const r = secs[i]?.querySelector('[data-replaces]');
+        out.rep.push({says: bk.replaces.says, shown: norm(r?.textContent), underTitle: !!r && !!r.previousElementSibling?.matches('.bkhd, .bkh'), once: at.split(norm(bk.replaces.says)).length === 2}); }
+        bk.kinds.forEach(k => { if (k.n === 0) { const row = [...(secs[i]?.querySelectorAll('.krow') || [])].find(e => norm(e.querySelector('.nm')?.textContent) === norm(k.name));
+          out.zero.push({kind: k.name, det: norm(row?.querySelector('.kdet')?.textContent), want: k.detail}); } }); });
+      (g.not_kept || []).forEach(x => { const row = [...art.querySelectorAll('[data-notkept]')].find(e => norm(e.textContent).includes(norm(x.says)));
+        const key = (st.ruleKey || {})[x.by], pages = (SNAP.ruleInfo[key]?.book || []).map(b => 'p.' + b[0]);
+        out.nk.push({says: x.says, status: x.status, row: !!row, cls: row?.dataset.notkept, mark: norm(row?.querySelector('.kn')?.textContent), whose: !!row && norm(row.textContent).includes(norm(cap(x.whose))),
+          book: !!row && pages.length > 0 && pages.every(p => norm(row.textContent).includes(p)), pics: row ? row.querySelectorAll('img').length : 0}); }); });
+    return out; })())`)));
+});
+const lf = C13.filter(x => x.missing || x.lift);
+check('no-lift-box', !lf.length, lf.map(x => `${x.name}: ${x.missing ? 'not in the snapshot' : x.lift + ' lift box(es)'}`).join('; '));
+const rp = C13.filter(x => !x.missing && x.rep.some(r => r.shown !== r.says.replace(/\.?$/, '.') || !r.underTitle || !r.once));
+check('bucket-replaces', C13.some(x => x.rep && x.rep.length) && !rp.length, rp.map(x => `${x.name}: ${JSON.stringify(x.rep)}`).join('; ') || 'no bucket with replaces checked');
+const nkb = C13.filter(x => !x.missing && x.nk.some(n => !n.row || n.cls !== n.status || n.mark !== (n.status === 'closed' ? '✕' : '0') || !n.whose || !n.book));
+check('not-kept-said', C13.some(x => x.nk && x.nk.some(n => n.status === 'closed')) && C13.some(x => x.nk && x.nk.some(n => n.status === 'release')) && !nkb.length,
+  nkb.map(x => `${x.name}: ${JSON.stringify(x.nk)}`).join('; ') || 'no closed AND release line checked');
+const zb = C13.filter(x => !x.missing && x.zero.some(z => /\bcm\b/.test(z.det) || z.det !== z.want));
+check('zero-kind-no-size', C13.some(x => x.zero && x.zero.length) && !zb.length, zb.map(x => `${x.name}: ${JSON.stringify(x.zero)}`).join('; ') || 'no 0-quota kind checked');
+// gear 9: the sentence names no hook when nothing restricts it (the data's words, never "any hook")
+const ah = Object.entries(gear).filter(([, r]) => /any hook/i.test(r.shown || ''));
+check('gear-no-any-hook', !ah.length, ah.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
+// Ape Creek (a Bella Coola tributary) on both days, with quick pills
+const A13 = await page('w=ape&d=501', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const w = WATERS.ape; if (!w) return {missing: true};
+  return {days: Object.keys(w.snap).map(Number), name: document.querySelector('#hdr .ttl')?.textContent.trim(), pills: [...document.querySelectorAll('#c-w [data-cw^="ape|"]')].map(e => e.dataset.cw)}; })())`)));
+check('ape-creek-front', !A13.missing && [1010, 501].every(d => A13.days.includes(d) && A13.pills.some(p => p.split('|')[1] === String(d))) && A13.name === 'Ape Creek', JSON.stringify(A13));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

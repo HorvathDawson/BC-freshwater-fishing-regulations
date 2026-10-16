@@ -530,9 +530,15 @@ details.bookw blockquote{margin:0 0 10px}
 .ts2 .g28 .rhead{flex-direction:column;gap:2px}.ts2 .g28 .rhead .num{text-align:left;max-width:none}
 .g28 .num.nolimit small{font:700 var(--t3) Archivo,sans-serif;color:var(--ink);max-width:9em;white-space:normal}
 .g28 .gorigin{margin:8px 0 0;font-weight:700}
-.lift{margin:10px 0 0;padding:6px 0 6px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--card))}
-.lift .ltag{display:block;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--accent)}
-.lift p{margin:2px 0 0}.lift .book,.bkh .book{min-height:0;padding:12px 0;margin:-12px 0}
+.bkh .book{min-height:0;padding:12px 0;margin:-12px 0}
+/* round 13 (D): what a water's own rule replaces, under the bucket's title; (S) the fish nobody may keep here */
+.brepl{margin:2px 0 6px;font-size:var(--t4);color:var(--sub);line-height:1.35}
+.nkt{margin-top:6px;border-top:1px solid var(--line2)}
+/* persona (round 13): a kind keeping none reads like a release (0 in the release colour), not like a limit */
+.k28 .kn.none{color:var(--restricted)}
+.nkr .kn{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif}
+.nkr.closed .kn,.nkr.closed .nm{color:var(--closed)}.nkr.release .kn{color:var(--restricted)}
+.nkr .s2 .book{min-height:0}
 .gtotal{margin:10px 0 0;color:var(--sub)}
 .bkt{margin-top:12px}
 .bkh{margin:0;padding:6px 0 4px;border-top:1px solid var(--line2);font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
@@ -598,6 +604,9 @@ const WATERS = {
   bellacoola:{snap:{1010:PARTS('bc', 1010), 501:PARTS('bc', 501)}, map:null},
 };
 WATERS.bellacoola.name = SNAP.states[WATERS.bellacoola.snap[1010][0]]?.name;
+// round 13 phase 2: Ape Creek, a Bella Coola tributary, on the same two days (a part list when the page offers one)
+{ const one = (pre, md) => { const ps = PARTS(pre, md); return ps.length ? ps : `${pre}_${md}`; };
+  WATERS.ape = {snap:{1010:one('ape', 1010), 501:one('ape', 501)}, map:null}; WATERS.ape.name = SNAP.states[[].concat(WATERS.ape.snap[1010])[0]]?.name; }
 // every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
 // round 11: Iron River (a Quinsam tributary, Jul 20 and Oct 10: the inherited summer opening)
 for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*)_(\d+)$/); if (!m) continue;
@@ -648,7 +657,7 @@ const fishName = c => SNAP.fish[c]?.name || FISHPIC(c)[0]?.caption || c;
 function fishBtn(c, cls = 'kp'){ const f = FISHPIC(c)[0];
   if (!f) return `<span class="${cls} sil" aria-hidden="true">${SIL}</span>`;
   // the kind rows caption each picture with the photo's own caption (the manifest's), so a name can be found and tapped
-  return `<button type="button" class="${cls}" data-open="sp:${c}" aria-label="What a ${esc(fishName(c))} looks like"><img src="../apps/mobile/assets/fish/${f.file}" alt="" loading="lazy" style="aspect-ratio:${f.width}/${f.height}">${cls === 'kp' ? `<span class="kcap">${esc(f.caption)} ›</span>` : ''}</button>`; }
+  return `<button type="button" class="${cls}" data-open="sp:${c}" aria-label="What a ${esc(fishName(c))} looks like"><img src="../apps/mobile/assets/fish/${f.file}" alt="" loading="lazy" style="aspect-ratio:${f.width}/${f.height}">${cls === 'kp' ? `<span class="kcap">${esc(f.caption)}\u00a0›</span>` : ''}</button>`; }
 /* B3: every cited rule carries its book page: after each remaining data-rule chip, the data's "Book p.N ↗" */
 const citeBooks = html => html.replace(/<button class="bookref"[^>]*\bdata-rule="([^"]+)"[^>]*>[^<]*<\/button>/g, (m, key) => bookLinks(key) || m).replace(/(<button\b[^>]*\bdata-rule="([^"]+)"[^>]*>[\s\S]*?<\/button>)/g, (m, b, key) => { const bl = bookLinks(key); return bl ? `<span class="cite">${b}${bl}</span>` : b; });
 /* B4: a lone ⓘ stays inline after its term; two or more side by side become one "What these words mean" link */
@@ -742,13 +751,9 @@ function buildKeep(){
     const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
     const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
     const vb = [...art.querySelectorAll('section.bucket')];
-    // a lift cites EVERY lifting rule's book page, once each (answers rows v9: a water lifting several kinds has one
-    // lift with each[] = {kinds, n, by}; older snapshots carry one lift per kind, so [l] stands in when each is absent)
-    const lifts = (g.lifts || []).map((l, i) => { const parts = l.each && l.each.length ? l.each : [l];
-      const b = (g.buckets || []).find(x => parts.some(e => e.by === x.by) && x.why === 'rule');
-      const keys = [...new Set(parts.map(e => st.ruleKey?.[e.by]).filter(Boolean))];
-      return `<div class="lift"><span class="ltag">${esc(b?.title || '')}</span><p>${esc(l.says)} ${keys.length ? booksOnce(keys) : bookLinks(keyIn(lis[i]))}</p></div>`; }).join('');
-    const total = g.total_line ? `<p class="gtotal">${esc(g.total_line)} ${tips(glOf(lis[(g.lifts || []).length]))}</p>` : '';
+    // round 13 (D, rows 12): the lift box is gone; a water's own-rule bucket says what it replaces (`buckets[].replaces`),
+    // under its title. `g.lifts` stay in the data for proof only; page v36's glifts list now holds the total line alone.
+    const total = g.total_line ? `<p class="gtotal">${esc(g.total_line)} ${tips(glOf(lis[lis.length - 1]))}</p>` : '';
     // v12 (owner 2): one WHOLE picture per species, side by side under the kind's name, never stacked or cropped
     const pics = codes => `<span class="kpics">${codes.map(c => fishBtn(c)).join('')}</span>`;
     // v13 (round 11, owner 2): a bucket's shared number big and obvious — the data's `cap`, found in its title ("Up to 2 a
@@ -761,7 +766,10 @@ function buildKeep(){
       if (!m) return `<p class="bkh">${esc(bk.title)}${book ? ` · ${book}` : ''}</p>`;
       return `<div class="bkhd"><p class="bkt1">${m[1].trim() ? `<span class="bkp">${esc(m[1].trim())}</span> ` : ''}<b class="bkn">${bk.cap}</b> <span class="bkw">${esc(m[2].trim())}</span></p>${scope || book ? `<p class="bks">${esc(scope)}${scope && book ? ' · ' : ''}${book}</p>` : ''}</div>`; };
     const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
-      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${pics(k.species)}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${bk.replaces ? `<p class="brepl" data-replaces>${esc(bk.replaces.says.replace(/\.?$/, '.'))}</p>` : ''}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${pics(k.species)}</div>${k.n != null ? `<b class="kn${k.n === 0 ? ' none' : ''}">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
+    // round 13 (S, rows 12): every fish of the row nobody may keep here, one line per deciding rule (`group.not_kept`): the
+    // data's words, whose rule and its Book page, the fish pictured; a closure (✕, closed colour) reads apart from a release (0)
+    const nk = (g.not_kept || []).length ? `<section class="nkt" aria-label="Not kept here">${g.not_kept.map(x => `<div class="krow k28 nkr ${x.status}" data-notkept="${x.status}"><div class="kb"><p class="kl"><b class="nm">${esc(x.says)}</b></p><p class="s2">${esc(cap1(x.whose))}${st.ruleKey?.[x.by] ? ' · ' + bookLinks(st.ruleKey[x.by]) : ''}</p>${pics(x.species)}</div><b class="kn">${x.status === 'closed' ? '✕' : '0'}</b></div>`).join('')}</section>` : '';
     // round 12 (answers rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list after the buckets — the data's
     // elsewhere.says, then every group.worked line once: a keep-here line "Keep 3 rainbows here → …", the kept-elsewhere
     // lines as questions with their answers. No dropdown, no sheet.
@@ -769,7 +777,7 @@ function buildKeep(){
     const worked = els || wk.length ? `<section class="worked" aria-label="How it adds up"><p class="bkh">How it adds up</p>${els ? `<p class="wsays">${esc(els)}</p>` : ''}${wk.length ? `<ul>${wk.map(w => `<li class="${w.at === 'here' ? 'wh' : 'wq'}"><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <b>${esc(w.a)}</b></li>`).join('')}</ul>` : ''}</section>` : '';
     const fe = '';
     const quiet = art.querySelector('.gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
-    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${lifts}${total}${buckets}${worked}${quiet}${more}`;
+    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${total}${buckets}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1207,7 +1215,8 @@ function poster(){
   $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
     // round 13 (owner B): Bella Coola, each part on Oct 10 and May 1, named by the snapshot's own water name and part labels
     .concat(['1010', '501'].flatMap(d => [].concat(WATERS.bellacoola.snap[d] || []).map((id, p) => { const st = SNAP.states[id], o = st.parts.find(x => x.v === st.part);
-      return [`bellacoola|${d}|${p}`, `${st.name.replace(/ River$/, '')} · ${fmt(+d)} · ${o?.short || ''}`]; })))
+      return [`bellacoola|${d}|${p}`, `${st.name.replace(/ River$/, '')} · ${fmt(+d)} · ${o?.short || ''}`]; })
+      .concat(Array.isArray(WATERS.ape.snap[d]) ? [] : [[`ape|${d}`, `${WATERS.ape.name} · ${fmt(+d)}`]])))
     .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${k.split('|').length > 2 ? '|'+S.p : ''}`===k?'on':''}" data-cw="${k}">${esc(t)}</button>`).join('')
     + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
       .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;

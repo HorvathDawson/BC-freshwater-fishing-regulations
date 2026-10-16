@@ -30,6 +30,8 @@ const SPECS = [
   // round 13 (owner B): Bella Coola front and centre: every part on the prototype's today AND on May 1, inside the
   // mainstem's Apr 1–May 31 exception
   ['bc{v}_1010', 'Bella Coola River', 1010], ['bc{v}_501', 'Bella Coola River', 501],
+  // round 13 phase 2: Ape Creek, a Bella Coola tributary, on the same two days
+  ['ape{v}_1010', 'Ape Creek', 1010], ['ape{v}_501', 'Ape Creek', 501],
   // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
   // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
   ['*', null, 1010],
@@ -92,7 +94,8 @@ function extract(SPECS, YR) {
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;
           (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
-          (g.buckets || []).forEach(b => bys.add(b.by)); });
+          (g.buckets || []).forEach(b => bys.add(b.by));
+          (g.not_kept || []).forEach(x => bys.add(x.by)); });   // round 13 S: whose rule closes / releases a fish of the row
         st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];
         takeRules(Object.values(st.ruleKey)); }
       (MODEL.rows || []).forEach(r => [...(r.raw?.members || []), ...(r.raw?.group?.kinds || [])].forEach(c => codes.add(c)));

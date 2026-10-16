@@ -96,6 +96,13 @@ const SCREENS = [
   ['73-card-bella-coola-may1', 'w=bellacoola&d=501&p=1&at=.g28'],
   ['74-card-bella-coola-side-channels-may1', 'w=bellacoola&d=501&p=0&at=.g28'],
   ['75-panel-bella-coola-pills', 'w=bellacoola&d=501&p=1', 'desk'],
+  // round 13 phase 2 (rows 12, gear 9): no lift box, the own-rule bucket's replaces note (D); the fish nobody may keep (S);
+  // a kind keeping none says "catch and release" (Z); Ape Creek, a Bella Coola tributary
+  ['76-card-vedder-replaces', `${V}&at=.bkt`],
+  ['77-card-bella-coola-not-kept', 'w=bellacoola&d=1010&p=1&at=.nkt'],
+  ['78-card-ape-creek', 'w=ape&d=1010&at=.g28'],
+  ['79-card-ape-creek-may1', 'w=ape&d=501&at=.nkt'],
+  ['80-gear-vedder-sentence', `${V}&at=%23g-gear`],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

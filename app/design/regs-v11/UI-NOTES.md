@@ -1,5 +1,14 @@
 # regs v15 (round 13, owner H L B) — in place on regs-v11.html
 
+- **Phase 2 (rows 12, gear 9, display 9; page v36 @ c4eecc9e, 128 states).** D: the lift box is gone; a water's
+  own-rule bucket says what it replaces (`buckets[].replaces.says`) right under its title. S: `group.not_kept` after the
+  buckets, one kind-style row per deciding rule: the data's words, whose rule (capitalised) and its Book page, the fish
+  pictured; a closure is ✕ in the closed colour, a release 0 in the release colour (snap.mjs adds each `by` to
+  `ruleKey`). Z: a kind keeping none shows the data's "catch and release" and its 0 in the release colour. G/P: the gear
+  sentence and the lake line are the data's words. Ape Creek (a Bella Coola tributary, `w=ape`) on Oct 10 and May 1 with
+  quick pills. Checks `no-lift-box`, `bucket-replaces`, `not-kept-said`, `zero-kind-no-size`, `gear-no-any-hook`,
+  `ape-creek-front` (`card-one-book-per-lift` retired). Persona (haiku): sizes and captions no longer break before
+  "cm" / "›". Screens 76-80.
 - **H Header, one shape.** No compact mode: the header is the same height and words at the top and scrolled (only the
   tab in view changes); "View on map ›" is always shown. The two section tabs are slim underline tabs (the app's TabBar
   look: the chosen one in ink on a 3 px ink bar sitting on the header's rule), 38 px instead of a 47 px boxed control.
