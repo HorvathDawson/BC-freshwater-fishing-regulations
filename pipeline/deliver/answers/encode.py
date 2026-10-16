@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "9",
+            "version": "10",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -249,9 +249,13 @@ SPEC = {
                     "Book page; the lift's `by`/`n` are the first's), `total_line` the total under a share (\"No more than 4 "
                     "trout and char a day across Region 2, lakes included.\") or null, `buckets` "
                     "[{title (null: the only one), cap, by, why: share | rule | total, kinds "
-                    "[{species, name, detail, n, notes, duties}]}] the kinds under the cap they "
-                    "draw from, each kind its species (one picture each), over-50 said on the row, "
-                    "once; `worked` [{kept, q, a, species, origin, share, here, other, away}] RULINGS "
+                    "[{species, name, detail, n, notes, duties}], notes [{says, n, over_cm, kinds, "
+                    "not_counting}]}] the kinds under the cap they draw from, each kind its species "
+                    "(one picture each); version 10 (ROUND11 A1): a size cap the kinds share is the "
+                    "BUCKET's note, said once (\"Only 1 of these may be over 50 cm, not counting "
+                    "steelhead\"; a cap spanning buckets on the first: \"Only 1 of the day’s trout and "
+                    "char may be over 50 cm\"), never on a kind row (the gate proves `n` over "
+                    "`over_cm` for `kinds`, and `not_counting` still keepable after them); `worked` [{kept, q, a, species, origin, share, here, other, away}] RULINGS "
                     "Q23b worked through for a lift past the share; `states` [{r, line}] the cap "
                     "each card line states (none twice). `says` and `items` (versions 6-7) are gone; "
                     "`elsewhere` (version 6) on every "
@@ -264,13 +268,21 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "6",
+            "version": "7",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
-                      "otherwise {counts {slot: {by, over, also?, cites, says?}} (version 6, ROUND10 W4: "
+                      "otherwise {summary {says, parts [{part: mode | lines | hook | attach | weight, says, "
+                      "cites, terms}], terms, cites, changes [{when, says, cites}]} (version 7, ROUND11 "
+                      "A2: the day's terminal gear in ONE sentence — \"1 line, a single barbless hook — "
+                      "one hook, lure or fly — and up to 1 kg of weight.\" — made from the count, hook, "
+                      "barb, lure and weight answers; `terms` glossary ids for the ⓘ; `changes` the "
+                      "other days of the year at this moment that read differently, in calendar "
+                      "order: {when: \"May 1–31\", says: \"fly fishing only\"}), "
+                      "counts {slot: {by, over, also?, cites, says?}} (version 6, ROUND10 W4: "
                       "`cites` every rule deciding the row, `says` the Lines row in plain words — "
-                      "\"1 line (rod), in a boat too\", \"1 line (rod); 2 while alone in a boat\"), specs {slot: [clause]}, "
+                      "\"1 line (rod)\" (version 7: no \", in a boat too\"), \"1 line (rod); 2 while "
+                      "alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
                       "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "
@@ -329,7 +341,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "7",
+            "version": "8",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -349,7 +361,13 @@ SPEC = {
                       "no game fish on the card may be kept; fly_only 4; artificial_fly_only 8; "
                       "bait_ban 16; 0 open), from this status and the `rows` and `gear` frames at "
                       "the same key and segment — draw it, never re-derive it (absent on a tidal "
-                      "frame)",
+                      "frame). `inherited` (version 8, ROUND11 A3): [{says, by, lifts}] the lifts this "
+                      "answer relies on that ANOTHER water's ✱ row carries to its tributaries "
+                      "(RULINGS T13 / T3a) — \"Open Jul 15–Aug 31: the Quinsam River’s exemption from "
+                      "the summer stream closure (MUs 1-1 to 1-6) covers its tributaries.\" — `by` "
+                      "the lifting rule (cite its Book page; its `rules[].applies_trib`), `lifts` "
+                      "the rules it lifts today; show it on the KEEP side; absent where none (a "
+                      "quota lift the card's `lifts` already names is not repeated)",
             "rules": "[{kind, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: the page's 15-step kind (`caught`: a duty for a fish "
                      "caught some way, Q38), a gate that closes, size bands [[from_cm, to_cm|null, "

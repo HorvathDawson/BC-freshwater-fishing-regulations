@@ -23,7 +23,8 @@ from typing import Callable, Dict, List, Optional
 
 from pipeline.deliver.answers.common import AnswersError
 
-VERSION = 1
+#: 2 (ROUND11 A2): `fly_fishing`, `artificial_fly` — the gear sentence's terms
+VERSION = 2
 
 
 # --------------------------------------------------------------------------------------------
@@ -217,6 +218,24 @@ def t_hook(B: Book, D: Data) -> dict:
                  "definitions p.80; zp:barbless_single_hook_streams")
 
 
+def t_fly_fishing(B: Book, D: Optional[Data] = None) -> dict:
+    """ROUND11 A2: the gear sentence's "Fly fishing only" (`gear.FLY_MODES`)."""
+    return _term("fly_fishing", "Fly fishing only",
+                 "Only an artificial fly on the line — no bait, lure, float, sinker or attractor. "
+                 "Where a water is fly fishing only, that is the only way to fish it.",
+                 [80], f"fly fishing: {B.define('fly fishing')} artificial fly: "
+                 f"{B.define('artificial fly')}", "definitions p.80")
+
+
+def t_artificial_fly(B: Book, D: Optional[Data] = None) -> dict:
+    """ROUND11 A2: the gear sentence's "Artificial fly only" (`gear.FLY_MODES`)."""
+    return _term("artificial_fly", "Artificial fly",
+                 "A single-pointed hook dressed only with fur, feathers, hair, textiles, tinsel or wire, "
+                 "with no weight or attractor of its own. Where flies only are allowed, no lure or bait "
+                 "hook — but a float or sinker may still be on the line.",
+                 [80], f"artificial fly: {B.define('artificial fly')}", "definitions p.80")
+
+
 def t_bait(B: Book, D: Data) -> dict:
     return _term("bait_ban", "Bait ban",
                  "No natural bait of any kind — worms, roe, insects, fish parts — for any fish, "
@@ -394,9 +413,9 @@ def t_regions(B: Book, D: Data) -> List[dict]:
     return out
 
 
-GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_bait, t_tributaries,
-              t_hatchery, t_steelhead, t_stamp, t_surcharge, t_classified, t_set_line, t_guided,
-              t_under_16, t_stream, t_mu, t_year)
+GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_fly_fishing,
+              t_artificial_fly, t_bait, t_tributaries, t_hatchery, t_steelhead, t_stamp, t_surcharge,
+              t_classified, t_set_line, t_guided, t_under_16, t_stream, t_mu, t_year)
 
 
 def build(doc: dict, ref_dir: Optional[Path] = None) -> dict:

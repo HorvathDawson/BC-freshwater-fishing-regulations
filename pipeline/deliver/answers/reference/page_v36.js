@@ -600,6 +600,12 @@ function sideHtml(ctx, fams){
 }
 // answers 2.8 (D2): a standing no-fishing place rule shows under its heading (display.rules[].where: "Where you can’t
 // fish") beside the open/closed strip; the rest of the standing rules stay at the foot of the card
+// ROUND11 A3: a lift another water's ✱ row carries here (display frame `inherited`), on the Keep side with its Book page
+function inheritedHtml(){
+  const f = frameIx(PLACE, 'display', segOf(PLACE, state.md)), fr = f == null ? null : SEC.display.frames[f];
+  const xs = fr?.inherited || [];
+  return xs.length ? `<div class="caveats top where"><div class="lbl">By another water’s rule</div><ul>${xs.map(x => `<li>${esc(x.says)} ${bookOf(x.by)}</li>`).join('')}</ul></div>` : '';
+}
 function whereHtml(ctx){
   const by = new Map(); ctx.standing.filter(r => r.dr?.where).forEach(r => { if (!by.has(r.dr.where)) by.set(r.dr.where, []); by.get(r.dr.where).push(r); });
   return [...by].map(([t, rs]) => `<div class="caveats top where"><div class="lbl">${esc(t)}</div><ul>${rs.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}">No fishing: ${esc(lc(clean(r.verbatim).replace(/\.$/, '')))}</button></li>`).join('')}</ul></div>`).join('');
@@ -689,7 +695,7 @@ function renderCard(){
   if (PLACE.k == null){ el.innerHTML = `<p class="foot">This part of the water is outside B.C.: no B.C. rules apply.</p>`; return; }
   if (isTidal(PLACE)){ el.innerHTML = waterStrip(PLACE, state.md); return; }
   const ctx = settle(PLACE, state.md);
-  let h = waterStrip(PLACE, state.md) + closedBanner() + whereHtml(settle(PLACE, state.md));
+  let h = waterStrip(PLACE, state.md) + closedBanner() + inheritedHtml() + whereHtml(settle(PLACE, state.md));
   if (MODEL.status !== 'closed' && ctx.status){
     h += inPartHtml(ctx, ['retention','access']) + sideHtml(ctx, ['retention','access']) + anglerClosures(ctx) + timedHtml(ctx);
     if (MODEL.missingRows) h += missing(`the card’s rows on ${fmtMd(state.md)} (rows frame for this part key and segment)`);
@@ -922,7 +928,9 @@ function cardBlock(row, id){
   const lines = [...g.lifts.map(L => `<li>${esc(L.says)} ${bookOf(L.by)}</li>`), ...(g.total_line ? [`<li>${esc(g.total_line)} ${gi('daily_quota')}</li>`] : [])];
   const pic = S => hasPic(S) ? `<button class="kpic" type="button" data-fish="${S}" aria-label="${esc(spName(S))}">${FISHART.draw(S, { marks:false })}</button>` : '';
   const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
-  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${b.kinds.map(kind).join('')}</section>`).join('');
+  // ROUND11 A1: a size cap the bucket's kinds share is its note, said once (rows 10 `buckets[].notes`)
+  const bnotes = b => (b.notes || []).map(n => `<p class="s2"><b>${esc(n.says)}.</b></p>`).join('');
+  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
   const ask = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
   const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
   const sheet = el ? `<details class="elsewhere" data-dd="${id}e"${ddOpen(id + 'e')}><summary>Fished elsewhere today? ›</summary><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${ask}${worked}</details>` : '';
@@ -1160,7 +1168,10 @@ function gearParts(){
   const lureNo = el('lure:artificial_lure');
   line += lureNo?.s === 'ban' ? gRow('Lures', 'Artificial flies only', 'floats and sinkers may be on the line', lureNo.r, true) : gRow('Lures', 'Any lure or fly', '');
   line += (top('terminal_attachments_per_line') ? '' : row('flies_per_line')) + row('weight_per_line_kg') + row('hooks_per_line');
-  P.line = `<div class="gsec">${line}</div>${/single|barbless/.test(G.hook) ? `<p class="kitnote">${esc(HOOK[G.hook])} ${gi('single_barbless_hook')}</p>` : ''}`;
+  // ROUND11 A2: the day's terminal gear in one sentence (gear 7 `summary`), its glossary terms and dated changes
+  const SM = G.summary;
+  const sum = SM ? `<p class="kitnote"><b>${esc(SM.says)}</b> ${SM.terms.map(gi).join('')}</p>${SM.changes.map(c => `<p class="kitnote"><b>${esc(c.when)}</b> ${esc(c.says)} ${c.cites.length ? bookOf(c.cites[0]) : ''}</p>`).join('')}` : missing('the gear sentence (gear summary)');
+  P.line = `${sum}<div class="gsec">${line}</div>`;
   P.baitBan = G.bait_ban;
   const WHY = { bait_ban:'bait ban', on_streams:'on streams', on_lakes:'on lakes', not_on_streams:'not on streams', not_on_lakes:'not on lakes', banned_roe_ok:'banned · roe is still OK', allowed:'allowed' };
   P.baitList = G.bait.map(b => ({ e:b.element, ok:b.ok }));

@@ -3,6 +3,38 @@
  "schemas": {
   "display": {
    "$defs": {
+    "InheritedLift": {
+     "additionalProperties": false,
+     "description": "ROUND11 A3: a lift this section relies on that ANOTHER water's \u2731 row carries to its tributaries\n(RULINGS T13 / T3a), in words: \"Open Jul 15\u2013Aug 31: the Quinsam River\u2019s exemption from the summer\nstream closure (MUs 1-1 to 1-6) covers its tributaries.\" \u2014 `by` the lifting rule (its Book page,\nits `applies_trib`), `lifts` the rules it lifts here today.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "lifts": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Lifts",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "by",
+      "lifts"
+     ],
+     "title": "InheritedLift",
+     "type": "object"
+    },
     "StatusFrame": {
      "additionalProperties": false,
      "properties": {
@@ -64,6 +96,22 @@
        },
        "title": "Closing",
        "type": "array"
+      },
+      "inherited": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/InheritedLift"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Inherited"
       },
       "status": {
        "enum": [
@@ -1282,6 +1330,9 @@
        "title": "Specs",
        "type": "object"
       },
+      "summary": {
+       "$ref": "#/$defs/GearSummary"
+      },
       "timed": {
        "items": {
         "minimum": 0,
@@ -1310,6 +1361,7 @@
       }
      },
      "required": [
+      "summary",
       "counts",
       "specs",
       "elements",
@@ -1332,6 +1384,56 @@
       "repeats"
      ],
      "title": "GearAnswer",
+     "type": "object"
+    },
+    "GearSummary": {
+     "additionalProperties": false,
+     "description": "ROUND11 A2: the day's terminal gear in ONE sentence (\"1 line, a single barbless hook \u2014 one hook,\nlure or fly \u2014 and up to 1 kg of weight.\"), made from the count / hook / barb / lure / weight\nanswers; `parts` its pieces, `terms` the glossary keys for the \u24d8 (`glossary` ids), `cites` every\nrule deciding it, `changes` the other days of the year that read differently (at this moment).",
+     "properties": {
+      "changes": {
+       "items": {
+        "$ref": "#/$defs/SummaryChange"
+       },
+       "title": "Changes",
+       "type": "array"
+      },
+      "cites": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Cites",
+       "type": "array"
+      },
+      "parts": {
+       "items": {
+        "$ref": "#/$defs/SummaryPart"
+       },
+       "minItems": 1,
+       "title": "Parts",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "terms": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Terms",
+       "type": "array"
+      }
+     },
+     "required": [
+      "says",
+      "parts",
+      "terms",
+      "cites",
+      "changes"
+     ],
+     "title": "GearSummary",
      "type": "object"
     },
     "Overruled": {
@@ -1387,6 +1489,82 @@
       "by"
      ],
      "title": "Overruled",
+     "type": "object"
+    },
+    "SummaryChange": {
+     "additionalProperties": false,
+     "description": "Days of the year whose sentence differs: {when: \"May 1\u201331\", says: \"fly fishing only\"}.",
+     "properties": {
+      "cites": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Cites",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "when": {
+       "minLength": 1,
+       "title": "When",
+       "type": "string"
+      }
+     },
+     "required": [
+      "when",
+      "says",
+      "cites"
+     ],
+     "title": "SummaryChange",
+     "type": "object"
+    },
+    "SummaryPart": {
+     "additionalProperties": false,
+     "description": "One part of the gear sentence: its words, the rules deciding it (Book pages), its glossary\nterms.",
+     "properties": {
+      "cites": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Cites",
+       "type": "array"
+      },
+      "part": {
+       "enum": [
+        "mode",
+        "lines",
+        "hook",
+        "attach",
+        "weight"
+       ],
+       "title": "Part",
+       "type": "string"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "terms": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Terms",
+       "type": "array"
+      }
+     },
+     "required": [
+      "part",
+      "says",
+      "cites",
+      "terms"
+     ],
+     "title": "SummaryPart",
      "type": "object"
     },
     "TidalState": {
@@ -2438,7 +2616,7 @@
     },
     "Bucket": {
      "additionalProperties": false,
-     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap.",
+     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1).",
      "properties": {
       "by": {
        "minimum": 0,
@@ -2463,6 +2641,13 @@
        },
        "minItems": 1,
        "title": "Kinds",
+       "type": "array"
+      },
+      "notes": {
+       "items": {
+        "$ref": "#/$defs/BucketNote"
+       },
+       "title": "Notes",
        "type": "array"
       },
       "title": {
@@ -2491,9 +2676,61 @@
       "cap",
       "by",
       "why",
-      "kinds"
+      "kinds",
+      "notes"
      ],
      "title": "Bucket",
+     "type": "object"
+    },
+    "BucketNote": {
+     "additionalProperties": false,
+     "description": "ROUND11 A1: a size cap the bucket's kinds share, said ONCE (\"Only 1 of these may be over 50 cm,\nnot counting steelhead\"; a cap spanning buckets on the first: \"Only 1 of the day\u2019s trout and char\nmay be over 50 cm\"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),\n`not_counting` the kinds it names as outside it (still keepable over the size after those `n`).",
+     "properties": {
+      "kinds": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "not_counting": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Not Counting",
+       "type": "array"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "n",
+      "over_cm",
+      "kinds",
+      "not_counting"
+     ],
+     "title": "BucketNote",
      "type": "object"
     },
     "CBack": {
@@ -3138,7 +3375,7 @@
     },
     "CardKind": {
      "additionalProperties": false,
-     "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (over 50\ncm said here, once), duties (a year, record it, stop after).",
+     "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the\nrow's own cap counts toward \u2014 never a size cap, ROUND11 A1), duties (a year, record it, stop\nafter).",
      "properties": {
       "detail": {
        "title": "Detail",

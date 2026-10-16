@@ -155,9 +155,11 @@ def _lines(kind, kootenay=False):
     return G.resolve(rules, kind, ["angling"])["counts"]["lines_per_angler"]
 
 
-def test_w4_a_stream_says_its_one_line_holds_in_a_boat_too():
+def test_w4_a_stream_says_its_one_line():
+    """ROUND11 A2 (owner): on a stream the boat changes nothing, so just "1 line (rod)" (it said ",
+    in a boat too")."""
     L = _lines("stream")
-    assert (L["says"], L["cites"]) == ("1 line (rod), in a boat too", [PROVINCE])
+    assert (L["says"], L["cites"]) == ("1 line (rod)", [PROVINCE])
 
 
 def test_w4_a_lake_says_two_while_alone_in_a_boat():

@@ -229,10 +229,13 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.8: rows 8 (`group` is the CARD: headline, origin, lifts, total_line, buckets, worked,
         # states — `says`/`items` gone; RULINGS Q23b in `elsewhere`)
         # ROUND10 W1: rows 9 (`group.lifts[]` one per lifting entry with `each` [{kinds, n, by, fish}])
-        Section("rows", 9, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND11 A1: rows 10 (`group.buckets[].notes`: a shared size cap said once, on its bucket)
+        Section("rows", 10, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
-        Section("gear", 6, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
+        # "1 line (rod)")
+        Section("gear", 7, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
@@ -244,7 +247,8 @@ def _sections() -> Tuple[Section, ...]:
         # "steelhead (rainbow trout over 50 cm)")
         # answers 2.8: display 7 (`rules[].where`: "Where you can’t fish", the fishway and fish-facility
         # buffers on the Keep side, D2)
-        Section("display", 7, display.section_scope, prepare=display.section_prepare,
+        # ROUND11 A3: display 8 (frame `inherited`: a lift the tributary walk carries, in words)
+        Section("display", 8, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

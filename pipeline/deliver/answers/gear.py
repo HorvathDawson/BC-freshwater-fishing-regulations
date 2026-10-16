@@ -238,21 +238,187 @@ def _lines_n(c: dict, first: bool) -> str:
     return (f"{n} line (rod)" if n == 1 else f"{n} lines (rods)") if first else str(n)
 
 
+def _held_words(e: dict) -> str:
+    """A count's circumstance in words: "while alone in a boat", "when fishing for …"."""
+    words = [_CIRC_WORDS.get(t, t.replace("_", " ")) for t in e["circ"]]
+    if e["targeting_codes"]:
+        words.append("when fishing for " + ", ".join(e["targeting"] or e["targeting_codes"]))
+    if e["note"]:
+        words.append(e["note"])
+    return " ".join(words)
+
+
 def lines_says(main: dict, held: Sequence[dict]) -> str:
     """The Lines row in plain words, from the clauses that decide it (ROUND10 W4, design v12 "lines
-    in a boat and out of a boat"): a stream "1 line (rod), in a boat too"; a lake "1 line (rod); 2
-    while alone in a boat"; Kootenay Lake's main body "1 line (rod); no limit while in a boat"."""
+    in a boat and out of a boat"): a stream "1 line (rod)" (ROUND11 A2: no ", in a boat too" where
+    the boat changes nothing); a lake "1 line (rod); 2 while alone in a boat"; Kootenay Lake's main
+    body "1 line (rod); no limit while in a boat"."""
     out = _lines_n(main["c"], True)
     for e in held:
-        words = [_CIRC_WORDS.get(t, t.replace("_", " ")) for t in e["circ"]]
-        if e["targeting_codes"]:
-            words.append("when fishing for " + ", ".join(e["targeting"] or e["targeting_codes"]))
-        if e["note"]:
-            words.append(e["note"])
-        out += f"; {_lines_n(e['c'], False)} " + " ".join(words)
-    if not any(t in _BOATS for e in held for t in e["circ"]):
-        out += ", in a boat too"
+        out += f"; {_lines_n(e['c'], False)} {_held_words(e)}"
     return out
+
+
+# --------------------------------------------------------------------------------------------
+# ROUND11 A2: the day's terminal gear in ONE sentence
+# --------------------------------------------------------------------------------------------
+
+#: the hook answer in words (`resolve`'s `hook`)
+HOOK_WORDS = {"single_barbless": "a single barbless hook", "single": "a single hook",
+              "any_barbless": "barbless hooks", "trebles_and_barbs": "any hook"}
+#: a terminal attachment's noun (`terminal_attachments_per_line` members)
+ATTACH_NOUNS = {"hook": ("hook", "hooks"), "artificial_lure": ("lure", "lures"),
+                "artificial_fly": ("fly", "flies")}
+#: the fly modes (`resolve`'s `fly`): the sentence's lead, its glossary term
+FLY_MODES = {"fly_fishing_only": ("Fly fishing only", "fly_fishing"),
+             "artificial_fly_only": ("Artificial fly only", "artificial_fly")}
+#: what fly fishing only leaves off the line (p.80 "fly fishing": "floats, sinkers, or attracting
+#: devices may not be attached to the line when fishing is restricted to 'fly fishing only'")
+FLY_ONLY_WEIGHT = "no float, sinker or attracting device"
+#: the order a summary's parts are said in
+SUMMARY_PARTS = ("mode", "lines", "hook", "attach", "weight")
+
+
+def _or(words: Sequence[str]) -> str:
+    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " or " + words[-1]
+
+
+def _and(words: Sequence[str]) -> str:
+    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
+
+
+def summary_sentence(parts: Dict[str, str]) -> str:
+    """"1 line, a single barbless hook — one hook, lure or fly — and up to 1 kg of weight." (the
+    owner's sentence, ROUND11 3), a fly mode its lead ("Fly fishing only: …")."""
+    body = parts.get("lines") or ""
+    if parts.get("hook"):
+        body += (", " if body else "") + parts["hook"]
+    if parts.get("attach"):
+        body += f" — {parts['attach']} —"
+    if parts.get("weight"):
+        body += (" with " if parts["weight"] == FLY_ONLY_WEIGHT else " and ") + parts["weight"]
+    body = body.strip(" —")
+    if parts.get("mode"):
+        return f"{parts['mode']}: {body}."
+    return body[:1].upper() + body[1:] + "."
+
+
+def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[dict]:
+    """The sentence's parts, each with the rules deciding it and its glossary terms:
+    [{part, says, cites, terms}] in `SUMMARY_PARTS` order."""
+    out: List[dict] = []
+
+    def add(part, says, es, terms=()):
+        out.append({"part": part, "says": says,
+                    "cites": list(dict.fromkeys(e["r"].key for e in es if e is not None)),
+                    "terms": list(terms)})
+
+    def verdict(k):
+        x = elems.get(k)
+        return x["s"] if x else None
+    if fly in FLY_MODES:
+        lead, term = FLY_MODES[fly]
+        add("mode", lead, [(elems.get("method:fly_fishing") if fly == "fly_fishing_only"
+                            else elems.get("lure:artificial_lure") or {}).get("e")], [term])
+    L = top("lines_per_angler")
+    if L is not None:
+        held = circ_for("lines_per_angler")
+        c, n = L["c"], L["c"].get("max")
+        if c.get("unlimited") or n is None:
+            says = "any number of lines"
+        else:
+            n = int(n) if float(n).is_integer() else n
+            says = f"{n} line" if n == 1 else f"{n} lines"
+        if held:
+            says += " (" + "; ".join(f"{_lines_n(e['c'], False)} {_held_words(e)}" for e in held) + ")"
+        add("lines", says, [L] + list(held))
+    pts, barb = top("points_per_hook"), elems.get("barb:barbed")
+    add("hook", HOOK_WORDS[hook], [pts, barb["e"] if barb and barb["s"] == "ban" else None],
+        ["single_barbless_hook"] if hook != "trebles_and_barbs" else [])
+    T = top("terminal_attachments_per_line")
+    if T is not None and T["c"].get("members"):
+        ms = [m for m in T["c"]["members"] if m in ATTACH_NOUNS]
+        if fly == "fly_fishing_only":
+            ms = [m for m in ms if m == "artificial_fly"]
+        ms = [m for m in ms if verdict(f"lure:{m}") != "ban"]
+        n = T["c"].get("max")
+        if ms and n is not None:
+            n = int(n) if float(n).is_integer() else n
+            says = ("one " + _or([ATTACH_NOUNS[m][0] for m in ms])) if n == 1 else \
+                f"up to {n} " + _or([ATTACH_NOUNS[m][1] for m in ms])
+            add("attach", says, [T])
+    if fly == "fly_fishing_only":
+        add("weight", FLY_ONLY_WEIGHT, [])
+    else:
+        W = top("weight_per_line_kg")
+        if W is not None and W["c"].get("max") is not None:
+            n = W["c"]["max"]
+            n = int(n) if float(n).is_integer() else n
+            add("weight", f"up to {n} kg of weight", [W])
+    return out
+
+
+def summary_of(parts: List[dict]) -> dict:
+    """`gear.summary` (ROUND11 A2): {says, parts, terms, cites, changes} — `changes` is filled per
+    year by `add_changes`."""
+    return {"says": summary_sentence({p["part"]: p["says"] for p in parts}),
+            "parts": parts,
+            "terms": list(dict.fromkeys(t for p in parts for t in p["terms"])),
+            "cites": list(dict.fromkeys(r for p in parts for r in p["cites"])),
+            "changes": []}
+
+
+def _change(me: dict, other: dict) -> Optional[dict]:
+    """What another reading's sentence says differently from this one's: its fly mode when it has
+    one this reading does not ("fly fishing only"), else its parts that differ ("one hook, lure or
+    fly and up to 1 kg of weight") — None when it reads the same."""
+    a = {p["part"]: p for p in me["parts"]}
+    b = {p["part"]: p for p in other["parts"]}
+    diff = [k for k in SUMMARY_PARTS if (a.get(k) or {}).get("says") != (b.get(k) or {}).get("says")]
+    if not diff:
+        return None
+    if "mode" in diff and "mode" in b:
+        got = [b["mode"]]
+        says = b["mode"]["says"][:1].lower() + b["mode"]["says"][1:]
+    else:
+        got = [b[k] for k in diff if k in b and k != "mode"]
+        says = _and([p["says"] for p in got]) if got else \
+            "not " + a["mode"]["says"][:1].lower() + a["mode"]["says"][1:]
+    return {"when": None, "says": says,
+            "cites": list(dict.fromkeys(r for p in got for r in p["cites"])),
+            "terms": list(dict.fromkeys(t for p in got for t in p["terms"]))}
+
+
+def add_changes(answers: Sequence[dict], runs: Sequence[Tuple[int, int]]) -> None:
+    """Each reading's `summary.changes` (ROUND11 A2): the other days of the year (at one moment:
+    `runs` [(start day, reading)] covering 1..366) whose sentence differs, by what they say —
+    [{when: "May 1–31", says: "fly fishing only", cites}], in calendar order (a run over New Year
+    from its start: "Jun 1–Apr 30"); each change's terms join the reading's."""
+    from pipeline.deliver.answers.common import range_txt
+    from pipeline.deliver.calendar import DAYS, SPEC, runs as day_runs
+    days: Dict[int, List[int]] = {}
+    for i, (d, r) in enumerate(runs):
+        end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
+        days.setdefault(r, []).extend(range(d, end))
+    for i in days:
+        me = (answers[i].get("summary") if isinstance(answers[i], dict) else None)
+        if me is None:
+            continue
+        by_says: Dict[str, dict] = {}
+        for j, ds in days.items():
+            other = answers[j].get("summary") if j != i else None
+            ch = _change(me, other) if other is not None else None
+            if ch is None:
+                continue
+            got = by_says.setdefault(ch["says"], {**ch, "days": []})
+            got["days"] += ds
+        out = []
+        for ch in by_says.values():
+            for fm, fd, tm, td in day_runs(ch["days"]):
+                out.append((SPEC.day_index(fm, fd), {"when": range_txt(fm * 100 + fd, tm * 100 + td),
+                                                     "says": ch["says"], "cites": ch["cites"]}))
+                me["terms"] = list(dict.fromkeys(me["terms"] + ch["terms"]))
+        me["changes"] = [c for _, c in sorted(out, key=lambda t: t[0])]
 
 
 def _main(e: dict) -> bool:
@@ -358,6 +524,8 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
                     and elems["method:fly_fishing"]["e"]["c"].get("only"))
     ans["hook"] = hook
     ans["fly"] = "fly_fishing_only" if fly_only else fly
+    # ROUND11 A2: the day's terminal gear in one sentence (its `changes` per year: `add_changes`)
+    ans["summary"] = summary_of(summary_parts(top, elems, circ_for, hook, ans["fly"]))
 
     any_ban = next((elems[f"bait:{k}"] for k in ("roe", "invertebrate", "fin_fish")
                     if verdict(f"bait:{k}") == "ban"
@@ -620,9 +788,13 @@ def gear_readings(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable 
     moment)."""
     k = B.key_ix[key]
     ms = store.moments(k)
-    return [gear_answer(B, key, month_day(rd.first_day), lawful, ref, store=store, reading=rd.ix,
-                        at=ms[rd.moment])
-            for rd in store.readings(k)]
+    got = [gear_answer(B, key, month_day(rd.first_day), lawful, ref, store=store, reading=rd.ix,
+                       at=ms[rd.moment])
+           for rd in store.readings(k)]
+    # ROUND11 A2: each reading's sentence names the days of its year (at its moment) that differ
+    for m in range(len(ms)):
+        add_changes(got, store.runs(k, m))
+    return got
 
 
 def gear_year(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable = rule_id, *,

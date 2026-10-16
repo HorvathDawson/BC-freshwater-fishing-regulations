@@ -96,8 +96,10 @@ def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this "
                          "river’s rule replaces Region 2’s 2-from-streams limit for them."]
     k = _kinds(g)
-    assert k["EB/GB/CT"]["notes"] == ["only 1 over 50 cm"]
-    assert k["DV/LT"]["notes"] == ["uses your 1 over 50 cm"]
+    # ROUND11 A1: the share's over-50 cap is its bucket's note, said once; no size note on a row
+    assert [n["says"] for n in g["buckets"][0]["notes"]] == [
+        "Only 1 of these may be over 50 cm, not counting steelhead"]
+    assert k["EB/GB/CT"]["notes"] == [] and k["DV/LT"]["notes"] == []
     assert k["ST"]["name"] == "Steelhead" and k["ST"]["n"] == 2
     assert k["RB"]["n"] == 4 and k["RB"]["notes"] == ["counts toward the 4 a day"]
     # the sub-caps (the decision) are untouched: both size clauses still hold their fish
@@ -131,12 +133,14 @@ def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     g = _trout(built, CHILLIWACK_LAKE, 0)
     assert g["headline"]["says"] == "4 a day" and g["lifts"] == [] and g["total_line"] is None
     k = _kinds(g)
-    assert k["EB/GB/CT/RB"]["notes"] == ["only 1 over 50 cm"]
     # round 9 gate: the lake's own "Dolly Varden 1 (none under 60 cm)" is the cap its Dolly Varden
-    # draw from (P4), a bucket of its own; both char still use the 1 over 50 cm between them
+    # draw from (P4), a bucket of its own; ROUND11 A1: the 1 over 50 cm they all share spans both
+    # buckets, so it is said once, on the first, naming the day's fish — never on a row
     assert [b["title"] for b in g["buckets"]] == ["This lake’s rule", "The rest of the 4 a day"]
-    assert k["DV"]["notes"] == ["uses your 1 over 50 cm", "counts toward the 4 a day"]
-    assert k["LT"]["notes"] == ["uses your 1 over 50 cm"]
+    assert [[n["says"] for n in b["notes"]] for b in g["buckets"]] == [
+        ["Only 1 of the day’s trout and char may be over 50 cm"], []]
+    assert k["EB/GB/CT/RB"]["notes"] == [] and k["LT"]["notes"] == []
+    assert k["DV"]["notes"] == ["counts toward the 4 a day"]
     assert not any("steelhead" in t.lower() for kk in k.values() for t in kk["notes"])
 
 

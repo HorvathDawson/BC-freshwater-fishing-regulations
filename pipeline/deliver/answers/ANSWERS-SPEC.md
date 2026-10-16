@@ -98,6 +98,34 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND11 (2026-10-16) — rows 10, gear 7, display 8: one size note per bucket, one gear sentence, inherited lifts
+
+Same format string (`answers/2`); **rows 10, gear 7, display 8** (ladder 1, licence 4 unchanged); glossary 2.
+Owner review of v12 (ROUND11 1-3); RULINGS P9 (revised), P11, P12.
+
+* **A1 (rows 10).** `group.buckets[].notes` [{says, n, over_cm, kinds, not_counting}]: a size cap the
+  bucket's kinds share, said ONCE — Vedder's share bucket "Only 1 of these may be over 50 cm, not counting
+  steelhead"; a cap spanning buckets on the first bucket it touches, naming the day's fish (Chilliwack Lake:
+  "Only 1 of the day’s trout and char may be over 50 cm"). Kind rows carry no size note ("only 1 over 50
+  cm", "uses your …", "shares the … above" are gone); `notes` there is only "counts toward …". The card
+  gate proves each note: at most `n` of `kinds` over `over_cm` together, and `not_counting` still keepable
+  over the size after those `n`; `states` names the bucket note's cap.
+* **A2 (gear 7).** `summary` {says, parts [{part: mode | lines | hook | attach | weight, says, cites,
+  terms}], terms, cites, changes [{when, says, cites}]}: the day's terminal gear in one sentence — Vedder
+  "1 line, a single barbless hook — one hook, lure or fly — and up to 1 kg of weight.", Okanagan Lake "1
+  line (2 while alone in a boat), any hook — …", Cowichan's fly-only part "Fly fishing only: 1 line, a
+  single barbless hook — one fly — with no float, sinker or attracting device." `terms` are glossary ids
+  (`single_barbless_hook`, new `fly_fishing`, `artificial_fly`); `changes` the other days of the year at
+  the frame's moment whose sentence differs, by what differs, in calendar order (Vedder Oct 10: {when:
+  "May 1–31", says: "fly fishing only"}). A stream's Lines row `says` "1 line (rod)" (", in a boat too"
+  dropped); a lake keeps its boat clause.
+* **A3 (display 8).** Frame `inherited` [{says, by, lifts}]: a lift the tributary walk carries from a ✱ row
+  that this answer relies on (the verdicts say the walked rule `lifted` a closure, release or gear rule
+  here) — Iron River, Jul 15–Aug 31: "Open Jul 15–Aug 31: the Quinsam River’s exemption from the summer
+  stream closure (MUs 1-1 to 1-6) covers its tributaries." `by` cites the row's Book page and is the rule
+  whose `rules[].applies_trib` names the same water. A quota lift (T3a) is the card's lift line; never
+  both. Absent where none.
+
 ## answers/2.8 (2026-10-12) — the quota card: water-first, each fact once, every number proved
 
 Same format string (`answers/2`); **rows 8, display 7** (ladder 1, gear 5, licence 4 unchanged). A reader

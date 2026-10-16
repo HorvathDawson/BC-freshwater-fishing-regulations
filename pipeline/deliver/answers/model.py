@@ -458,8 +458,9 @@ class CardLift(Model):
 
 
 class CardKind(Model):
-    """One kind row: its species (one picture each, P5), name, origin/size, number, notes (over 50
-    cm said here, once), duties (a year, record it, stop after)."""
+    """One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the
+    row's own cap counts toward — never a size cap, ROUND11 A1), duties (a year, record it, stop
+    after)."""
     species: Tuple[Fish, ...] = Field(min_length=1)
     name: StrictStr = Field(min_length=1)
     detail: StrictStr
@@ -468,14 +469,27 @@ class CardKind(Model):
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
 
 
+class BucketNote(Model):
+    """ROUND11 A1: a size cap the bucket's kinds share, said ONCE ("Only 1 of these may be over 50 cm,
+    not counting steelhead"; a cap spanning buckets on the first: "Only 1 of the day’s trout and char
+    may be over 50 cm"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),
+    `not_counting` the kinds it names as outside it (still keepable over the size after those `n`)."""
+    says: StrictStr = Field(min_length=1)
+    n: Count
+    over_cm: Cm
+    kinds: Tuple[Fish, ...] = Field(min_length=1)
+    not_counting: Tuple[Fish, ...]
+
+
 class Bucket(Model):
     """Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,
-    or the total; `by` the rule of that cap."""
+    or the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1)."""
     title: Optional[StrictStr]                        # None: the only bucket, the headline's
     cap: Optional[Count]
     by: RuleIx
     why: Literal["share", "rule", "total"]
     kinds: Tuple[CardKind, ...] = Field(min_length=1)
+    notes: Tuple[BucketNote, ...]
 
 
 class Worked(Model):
@@ -610,7 +624,7 @@ class CountPick(Model):
     also: Optional[Tuple[Circumstance, ...]] = None
     #: ROUND10 W4: every rule deciding the row (`by`'s, then each `also`'s), each cited for its Book page
     cites: Tuple[RuleIx, ...] = Field(min_length=1)
-    #: ROUND10 W4: the Lines row in plain words ("1 line (rod), in a boat too"; "1 line (rod); 2 while
+    #: ROUND10 W4: the Lines row in plain words ("1 line (rod)" — ROUND11 A2; "1 line (rod); 2 while
     #: alone in a boat"); `lines_per_angler` only
     says: Optional[StrictStr] = None
 
@@ -661,7 +675,37 @@ class Overruled(Model):
     by: RuleIx
 
 
+class SummaryPart(Model):
+    """One part of the gear sentence: its words, the rules deciding it (Book pages), its glossary
+    terms."""
+    part: Literal["mode", "lines", "hook", "attach", "weight"]
+    says: StrictStr = Field(min_length=1)
+    cites: Tuple[RuleIx, ...]
+    terms: Tuple[StrictStr, ...]
+
+
+class SummaryChange(Model):
+    """Days of the year whose sentence differs: {when: "May 1–31", says: "fly fishing only"}."""
+    when: StrictStr = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)
+    cites: Tuple[RuleIx, ...]
+
+
+class GearSummary(Model):
+    """ROUND11 A2: the day's terminal gear in ONE sentence ("1 line, a single barbless hook — one hook,
+    lure or fly — and up to 1 kg of weight."), made from the count / hook / barb / lure / weight
+    answers; `parts` its pieces, `terms` the glossary keys for the ⓘ (`glossary` ids), `cites` every
+    rule deciding it, `changes` the other days of the year that read differently (at this moment)."""
+    says: StrictStr = Field(min_length=1)
+    parts: Tuple[SummaryPart, ...] = Field(min_length=1)
+    terms: Tuple[StrictStr, ...]
+    cites: Tuple[RuleIx, ...]
+    changes: Tuple[SummaryChange, ...]
+
+
 class GearAnswer(Model):
+    #: ROUND11 A2 (gear 7): the day's terminal gear in one sentence, its terms and dated changes
+    summary: GearSummary
     counts: Dict[StrictStr, CountPick]
     specs: Dict[StrictStr, Tuple[ClauseRef, ...]]
     elements: Dict[StrictStr, ElementPick]
@@ -819,6 +863,16 @@ class LicenceFrame(Model):
 # display
 # --------------------------------------------------------------------------------------------
 
+class InheritedLift(Model):
+    """ROUND11 A3: a lift this section relies on that ANOTHER water's ✱ row carries to its tributaries
+    (RULINGS T13 / T3a), in words: "Open Jul 15–Aug 31: the Quinsam River’s exemption from the summer
+    stream closure (MUs 1-1 to 1-6) covers its tributaries." — `by` the lifting rule (its Book page,
+    its `applies_trib`), `lifts` the rules it lifts here today."""
+    says: StrictStr = Field(min_length=1)
+    by: RuleIx
+    lifts: Tuple[RuleIx, ...] = Field(min_length=1)
+
+
 class StatusFrame(Model):
     status: Literal["base", "own", "closed"]
     #: gap G1 (answers 2.1): every full closure that speaks, not partly lifted, for some game
@@ -834,6 +888,9 @@ class StatusFrame(Model):
     #: release 2, fly_only 4, artificial_fly_only 8, bait_ban 16; 0 open), from this frame's status
     #: and the rows and gear frames at the same part key and segment (`display.strip_code`)
     strip: Annotated[StrictInt, Field(ge=0, le=31)]
+    #: ROUND11 A3 (display 8): the lifts inherited by the tributary walk this answer relies on, said
+    #: on the Keep side; absent where none is (a quota lift the card already names is not repeated)
+    inherited: Optional[Tuple[InheritedLift, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _closing_closes(self):

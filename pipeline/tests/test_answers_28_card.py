@@ -7,7 +7,8 @@ complaint the owner made on the Vedder (mouth part, Oct 10; ROUND9 R1-R6, decisi
   1 a big "4 a day" on a stream whose share is 2            -> headline
   2 "the 2-from-streams limit doesn't apply to them"        -> a lift said positively, with whose rule
   3 "Steelhead count toward the 4" (they share the 2 too)   -> steelhead in the stream share's bucket
-  4 "Over 50 cm: at most 2 — only 1 …" against the rows     -> over-50 lives on the kind rows
+  4 "Over 50 cm: at most 2 — only 1 …" against the rows     -> over-50 said once, as the bucket's note
+                                                              (ROUND11 A1; it lived on the kind rows)
   5 "Only 1 fish over 50 cm in total (steelhead don't count)" (page checklist) -> no checklist
   6 the same cap stated in several places                   -> each cap stated once
   7 one picture standing for brook, brown and cutthroat     -> every kind row lists its species
@@ -45,6 +46,7 @@ def _card_text(g, row):
     out += [g["total_line"]] if g["total_line"] else []
     for b in g["buckets"]:
         out += [b["title"]] if b["title"] else []
+        out += [n["says"] for n in b.get("notes") or []]
         for k in b["kinds"]:
             out += [k["name"], k["detail"], *k["notes"], *k["duties"]]
     return [t for t in out if t]
@@ -82,10 +84,12 @@ def test_steelhead_share_the_2_from_streams():
 
 
 # 4 ---------------------------------------------------------------------------------------------
-def test_over_50_lives_on_the_kind_rows():
+def test_over_50_is_said_once_on_its_bucket():
+    """ROUND11 A1 (owner, superseding "over 50 cm lives on the kind rows"): the bucket's note."""
     g = _g(F.VEDDER)
-    assert _kind(g, "CT")[1]["notes"] == ["only 1 over 50 cm"]
-    assert _kind(g, "DV")[1]["notes"] == ["uses your 1 over 50 cm"]
+    assert [n["says"] for n in _kind(g, "CT")[0]["notes"]] == [
+        "Only 1 of these may be over 50 cm, not counting steelhead"]
+    assert _kind(g, "CT")[1]["notes"] == [] and _kind(g, "DV")[1]["notes"] == []
     assert _kind(g, "ST")[1]["notes"] == []
     assert not any("Over 50 cm: at most" in t for t in _card_text(g, None))
 

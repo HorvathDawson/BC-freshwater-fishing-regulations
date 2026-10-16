@@ -344,6 +344,24 @@ def check_group(P, g: dict) -> List[str]:
                 ok, one = proved(k["n"], E.fish([S]))
                 if not ok:
                     probs.append(f"{where}: kind {k['species']} says {k['n']}, {S} alone keeps {one}")
+        # ROUND11 A1: a bucket's size note — at most `n` of its kinds over the size together, and each
+        # kind it says does not count still keepable over the size after those `n`
+        for nt in b.get("notes") or []:
+            cm = nt["over_cm"]
+            over = [f for f in E.fish(nt["kinds"]) if f[2] > cm]
+            ok, got = proved(nt["n"], over)
+            if not ok:
+                probs.append(f"{where}: bucket {b['title']!r} note says {nt['n']} over {cm} cm, its kinds "
+                             f"keep {got} over it")
+            if nt["not_counting"]:
+                base: List[Fish] = []
+                for f in over:
+                    while len(base) < nt["n"] and E.can_keep(base, f):
+                        base.append(f)
+                aside = [f for f in E.fish(nt["not_counting"]) if f[2] > cm]
+                if len(base) < nt["n"] or not aside or E.most(aside, base, cap=1) < 1:
+                    probs.append(f"{where}: bucket {b['title']!r} note says {nt['not_counting']} do not "
+                                 f"count toward its {nt['n']} over {cm} cm, but none may be kept after them")
     head = g.get("headline")
     if head is not None:
         no_lift = Engine(P, g["pool"], unlift=frozenset(s["r"] for s in g["subcaps"] if s["lifted"]))

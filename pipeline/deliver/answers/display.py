@@ -1028,6 +1028,9 @@ def section_prepare(scope, ctx):
     k = ctx.B.key_ix[scope]
     floor = "own" if st.own(k) else "base"
     none = "none"
+    # ROUND11 A3: the lifting rules this key holds by the tributary walk (a ✱ row's, T13 / T3a)
+    walked = {f"{e}::{r}" for e, r, via in ctx.B.sets[scope.set_id]
+              if via == "trib" and ctx.B.rules[(e, r)].get("exempts")}
     by_reading = []
     for rd in st.readings(k):
         closing = project.closing(lambda f, r=rd.ix: st.rows(st.verdict_id(k, r, f, none)),
@@ -1042,6 +1045,9 @@ def section_prepare(scope, ctx):
         unless = unless_opened_here({st.rule_ids[r]: fs for r, fs in closing.items()}, words, sup)
         if unless:
             v["unless_opened"] = sorted(ctx.rule_index[r] for r in unless)
+        got = inherited_here(ctx, k, rd.ix, walked)
+        if got:
+            v["inherited"] = got
         by_reading.append(v)
     values: List[dict] = []
     seen: Dict[str, int] = {}
@@ -1053,6 +1059,32 @@ def section_prepare(scope, ctx):
             values.append(v)
         ix.append(seen[key])
     return [ix[r] for r in slots(st, k)], values
+
+
+def inherited_here(ctx, k: int, reading: int, walked: set) -> List[dict]:
+    """ROUND11 A3: the lifts the tributary walk carries here that THIS reading relies on — every rule
+    the stored verdicts (origin none, every fish asked) say a walked rule `lifted` — each said by
+    `inherited_line`: [{says, by, lifts}] (rules by export index), in export order. A quota lifted
+    (a T3a lift) is left to the card, which names it."""
+    if not walked:
+        return []
+    from pipeline.deliver import types as TY
+    st = ctx.store
+    got: Dict[str, set] = {}
+    for f in st.fish(k):
+        for r, _s, rs, by, _lift in st.rows(st.verdict_id(k, reading, f, "none")):
+            if rs is None or by is None or TY.by_code(TY.LossReason, rs).value != "lifted":
+                continue
+            L = st.rule_ids[by]
+            if L in walked and inherited_kind(ctx.by_id[st.rule_ids[r]]) is not None:
+                got.setdefault(L, set()).add(st.rule_ids[r])
+    out = []
+    ix = ctx.rule_index
+    for L in sorted(got, key=ix.__getitem__):
+        ts = sorted(got[L], key=ix.__getitem__)
+        out.append({"says": inherited_line(L, ts, {"rules": ctx.by_id}), "by": ix[L],
+                    "lifts": [ix[t] for t in ts]})
+    return out
 
 
 # --------------------------------------------------------------------------------------------
@@ -1191,10 +1223,21 @@ def strip_code(display_v: dict, rows_v: dict, gear_v: dict) -> int:
 
 def compose(value: dict, others: Dict[str, dict]) -> dict:
     """The display frame with its strip code (`strip_code`), from the rows and gear frames at the
-    same part key and segment (`answers.Section.compose`). A tidal frame has no strip."""
+    same part key and segment (`answers.Section.compose`). A tidal frame has no strip. ROUND11 A3: an
+    inherited lift the card already names (a quota lift walked per T3a: "On the Duncan River and its
+    tributaries, …") is not said again."""
     if value.get("status") == "tidal":
         return value
-    return {**value, "strip": strip_code(value, others["rows"], others["gear"])}
+    out = {**value, "strip": strip_code(value, others["rows"], others["gear"])}
+    if value.get("inherited"):
+        carded = {e["by"] for r in others["rows"].get("rows") or [] for L in (r.get("group") or {}).get("lifts") or []
+                  for e in L.get("each") or []}
+        keep = [x for x in value["inherited"] if x["by"] not in carded]
+        if keep:
+            out["inherited"] = keep
+        else:
+            out.pop("inherited")
+    return out
 
 
 # --------------------------------------------------------------------------------------------
@@ -1255,6 +1298,98 @@ def _lc_place(name: str, region: Optional[str] = None) -> str:
     return re.sub(r"^(Every|Everywhere|Lakes|Streams|All)\b", lambda m: m.group(1).lower(), name)
 
 
+def trib_owner(x: dict, entries: Optional[dict] = None) -> str:
+    """The water whose row a walked rule comes from, as `applies_trib` names it ("Inherited from
+    Quinsam River: …"): its entry's name (the export's entries, else the bundle rule's own
+    `entry_name`)."""
+    E = (entries or {}).get(x.get("entry_id") or x.get("entry")) or {}
+    prov = x.get("provenance") or {}
+    return E.get("name") or prov.get("entry_name") or x.get("entry_name") or \
+        x.get("entry_id") or x.get("entry")
+
+
+def _fx(x: dict) -> dict:
+    """A rule's fields flat, from the export's form ({fields, type, …}) or the bundle's (flat)."""
+    return {**x, **(x.get("fields") or {})}
+
+
+def _parts(x: dict) -> dict:
+    p = x.get("parts") or {}
+    return json.loads(p) if isinstance(p, str) else p
+
+
+def _days(when) -> set:
+    from pipeline.deliver.calendar import when_vector
+    return {d for d, v in enumerate(when_vector(when), start=1) if v}
+
+
+def _days_txt(days: set) -> str:
+    from pipeline.deliver.calendar import DAYS, LEAP, runs
+    if len(days - {LEAP}) >= DAYS - 1:
+        return "all year"
+    return ", ".join(range_txt(a * 100 + b, c * 100 + d) for a, b, c, d in runs(days))
+
+
+#: an inherited lift's lead, by what it lifts (`inherited_kind`)
+INHERITED_KINDS = ("closure", "release", "gear")
+
+
+def inherited_kind(t: dict) -> Optional[str]:
+    """What a lifted rule is, for an inherited lift's line: a closure ("Open …"), a release ("… may be
+    kept …"), a gear rule ("No bait ban …"); None for a quota (the card names those lifts)."""
+    f = _fx(t)
+    k = kind_of(f)
+    if k in ("gear", "conduct", "vessel"):
+        return "gear"
+    if k == "gate":
+        return "closure" if closure_grade(f) is not None else "release"
+    return None
+
+
+def inherited_line(lifter: str, lifted: Sequence[str], doc: dict) -> str:
+    """ROUND11 A3: a lift the tributary walk carries from a ✱ row, in words — whose rule it is (the
+    water `applies_trib` names), what it lifts and when: "Open Jul 15–Aug 31: the Quinsam River’s
+    exemption from the summer stream closure (MUs 1-1 to 1-6) covers its tributaries." `doc`: the
+    export ({rules, entries}) or the bundle's rules by id ({rules})."""
+    from pipeline.deliver.answers.common import lc_names
+    x = doc["rules"][lifter]
+    ts = [doc["rules"][t] for t in lifted]
+    fx = _fx(x)
+    owner = trib_owner(x, doc.get("entries"))
+    whose = f"{'' if re.search(r'(Lake|Lakes|Biny)$', owner) else 'the '}{owner}’s"
+    days: set = set()
+    for t in ts:
+        days |= _days(_fx(t).get("when"))
+    days &= _days(fx.get("when"))
+    when = _days_txt(days)
+    t0 = ts[0]
+    # what it lifts: the row's own words ("Summer stream closure lifted — …"), else the lifted line
+    label = x.get("label") or ""
+    if re.search(r" lifted\b", label):
+        what = re.split(r" lifted\b", label)[0].strip()
+        first = what.split()[0] if what else ""
+        tE = (doc.get("entries") or {}).get(t0.get("entry_id") or t0.get("entry")) or {}
+        place = " ".join([tE.get("name") or "", t0.get("entry_name") or ""])
+        what = "the " + (what if first and first in place else what[:1].lower() + what[1:])
+    else:
+        what = f"“{_parts(t0).get('what') or t0.get('label')}”"
+    where = (_parts(t0).get("where") or "")
+    if where.startswith("within "):
+        what += " (" + where[len("within "):].replace("Management Units", "MUs") + ")"
+    kind = inherited_kind(t0)
+    sp = [c for c in fx.get("species") or [] if c != "ALL_GAME_FISH"]
+    fish = lc_names(sp) if sp else None
+    if kind == "closure":
+        lead = "Open" + (f" for {fish}" if fish else "") + f" {when}"
+    elif kind == "release":
+        lead = f"{cap(fish or lc_names(_fx(t0).get('species') or []))} may be kept {when}"
+    elif kind == "gear":
+        lead = f"No {_parts(t0).get('what', '').lower() or 'such rule'} {when}"
+    else:
+        lead = cap(when)
+    return f"{lead}: {whose} exemption from {what} covers its tributaries."
+
+
 def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     """(`applies`, `applies_trib`): one line saying why a rule binds where it does — its scope, by
     the export's provenance rank and entry — and, for a water row's rule the tributary walk can
@@ -1272,6 +1407,7 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     trib = None
     if rank is None:
         raise AnswersError(f"display: rule {x['id']} ships no provenance rank")
+    name = trib_owner(x, doc["entries"])
     if rank < 0:
         say = f"Set by a federal or park authority — {_lc_place(name)}."
     elif rank == 4:

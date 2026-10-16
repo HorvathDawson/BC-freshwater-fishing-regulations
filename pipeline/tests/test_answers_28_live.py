@@ -56,6 +56,7 @@ def _text(row):
     out = [g["headline"]["says"], g["origin"], *[L["says"] for L in g["lifts"]], g["total_line"]]
     for b in g["buckets"]:
         out.append(b["title"])
+        out += [n["says"] for n in b.get("notes") or []]
         out += [f"{'/'.join(k['species'])} {k['n']}: " + " · ".join(k["notes"] + k["duties"])
                 for k in b["kinds"]]
     return [t for t in out if t]
@@ -77,8 +78,9 @@ def test_vedder_mouth_oct_10_card(built):
         "replaces Region 2’s 2-from-streams limit for them.",
         "No more than 4 trout and char a day across Region 2, lakes included.",
         "Up to 2 a day between them — all Region 2 streams combined",
-        "EB/GB/CT 2: only 1 over 50 cm",
-        "DV/LT 1: uses your 1 over 50 cm",
+        "Only 1 of these may be over 50 cm, not counting steelhead",
+        "EB/GB/CT 2: ",
+        "DV/LT 1: ",
         "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence",
         "This river’s rule",
         "RB 4: counts toward the 4 a day"]
@@ -106,7 +108,7 @@ def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     k = _text(_trout(built, KOOTENAY_MAIN))
     assert k[0] == "5 a day" and not any("rule replaces" in t for t in k)
     lake = _text(_trout(built, R2_LAKE))
-    assert lake[0] == "4 a day" and any(t.endswith("only 1 over 50 cm") for t in lake)
+    assert lake[0] == "4 a day" and "Only 1 of these may be over 50 cm" in lake
     stream = _trout(built, R2_STREAM)
     assert stream["group"]["headline"]["says"] == "2 a day from this stream"
     assert stream["group"]["lifts"] == [] and stream["group"]["worked"] == []

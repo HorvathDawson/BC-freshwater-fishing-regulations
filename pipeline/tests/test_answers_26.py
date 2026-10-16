@@ -184,7 +184,8 @@ def test_the_group_model_requires_the_card():
             "total_line": None, "worked": [], "states": [{"r": 1, "line": "headline"}],
             "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                          "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
-                                    "detail": "any size", "n": 4, "notes": [], "duties": []}]}]}}
+                                    "detail": "any size", "n": 4, "notes": [], "duties": []}],
+                         "notes": []}]}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
     for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
                 {**ok, "states": ok["states"] * 2}):

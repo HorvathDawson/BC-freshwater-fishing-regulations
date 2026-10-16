@@ -14,6 +14,8 @@ floor for them). Three waters are bound from it:
   TWO     the Vedder with a SECOND lift from its own row (ROUND10 W1, the Duncan's shape: one row lifting
           two kinds out of the share with two numbers) — a made-up r90, hatchery cutthroat trout 3 a day
           lifting the 2-from-streams share; never bound on the other three
+  CLAKE   Chilliwack Lake (ROUND11 A1): a plain Region 2 lake plus its own row's "1 bull trout over 60 cm"
+          (`chilliwack_lake.r2`, p.22, copied from the bundle) — the over-50 cap spans two buckets
 
 `card(water, md)` asks the reader (`read.effective_rules_bound`, trace, per fish and origin — what the
 verdicts stage stores) over the rule set, builds the `rows.Part` and returns `rows.produce` plus the
@@ -40,12 +42,14 @@ FISH = ("RB", "CT", "EB", "GB", "DV", "LT", "ST")
 ORIGINS = ("none", "hatchery", "wild")
 
 LIFT2 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r90"
-VEDDER, STREAM, LAKE, TWO = "vedder", "stream", "lake", "two_lifts"
+CLAKE_DV = "r2:chilliwack_lake@2-4::chilliwack_lake.r2"
+VEDDER, STREAM, LAKE, TWO, CLAKE = "vedder", "stream", "lake", "two_lifts", "chilliwack_lake"
 #: water -> (set id, kind, steelhead water, steelhead rules here, presence)
 WATERS = {VEDDER: (1, "stream", True, True, "known"),
           STREAM: (2, "stream", True, True, "known"),
           LAKE: (3, "lake", False, True, None),
-          TWO: (4, "stream", True, True, "known")}
+          TWO: (4, "stream", True, True, "known"),
+          CLAKE: (5, "lake", False, True, None)}
 
 
 @dataclass
@@ -61,17 +65,32 @@ def _load() -> _B:
         rules = json.loads(FIXTURE.read_text(encoding="utf-8"))["rules"]
         got = {(x["entry"], x["rule"]): x for x in rules}
         got[tuple(LIFT2.split("::"))] = _second_lift(got[tuple(LIFT.split("::"))])
+        got[tuple(CLAKE_DV.split("::"))] = dict(_CHILLIWACK_LAKE_DV)
         for x in got.values():
             x["_rank"] = read.source_of(x).rank
         read._RULES_BY_PATH[PATH] = got
-    lift, lift2 = tuple(LIFT.split("::")), tuple(LIFT2.split("::"))
-    every = sorted(k for k in got if k != lift2)
+    lift, lift2, dv = tuple(LIFT.split("::")), tuple(LIFT2.split("::")), tuple(CLAKE_DV.split("::"))
+    every = sorted(k for k in got if k not in (lift2, dv))
     sets = {1: [(e, r, "reach") for e, r in every],
-            4: [(e, r, "reach") for e, r in sorted(got)],
+            4: [(e, r, "reach") for e, r in sorted(got) if (e, r) != dv],
             2: [(e, r, "reach") for e, r in every if (e, r) != lift],
             3: [(e, r, "reach") for e, r in every
                 if (e, r) != lift and got[(e, r)].get("water") != "stream"]}
+    sets[5] = sorted(sets[3] + [(*dv, "reach")])
     return _B(rules=got, sets=sets)
+
+
+#: Chilliwack Lake's own row, p.22: "1 bull trout over 60 cm" (the bundle's record, verbatim)
+_CHILLIWACK_LAKE_DV = {
+    "entry_id": "r2:chilliwack_lake@2-4", "rule_id": "chilliwack_lake.r2", "type": "retention_limit",
+    "family": "retention", "dimension": "daily",
+    "label": "Dolly Varden/bull trout — 1 per day (none under 60 cm)",
+    "parts": '{"what":"Dolly Varden/bull trout — 1 per day","size":"none under 60 cm"}',
+    "scope": "section", "species": ["DV"], "species_except": [], "take": 1, "may_target": None,
+    "uncertain": 0, "unresolved": None, "verbatim": "1 bull trout over 60 cm", "extent_text": None,
+    "undrawn_part": None, "extents": [{"op": "whole"}],
+    "lengths": [{"min_cm": 60}, {"max_cm": 60, "take": 0}], "period": "daily",
+    "rule": "chilliwack_lake.r2", "entry": "r2:chilliwack_lake@2-4", "entry_name": "Chilliwack Lake"}
 
 
 def _second_lift(r9: dict) -> dict:
