@@ -415,10 +415,17 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         pool = first["kinds"] if len(holding) == 1 else [k for b in buckets for k in b["kinds"]]
         aside = [S for k in pool for S in k["species"] if S not in sc["of"] and info[S]["hi"] > cm]
         n_w = "None" if not sc["take"] else f"Only {_js(sc['take'])}"
-        who = "these" if len(holding) == 1 else f"the day’s {what}"
-        says = f"{n_w} of {who} may be over {_js(cm)} cm"
-        if aside:
-            says += f", not counting {_names(aside, ' or ')}"
+        if aside and len(over) <= len(aside):
+            # a cap on a few of the kinds (Region 4's "rainbow and cutthroat trout, no more than 1
+            # over 50 cm"): name them — and claim nothing of the rest (another region's cap may hold
+            # them on a boundary water)
+            says = f"{n_w} {_names(over, ' or ')} may be over {_js(cm)} cm"
+            aside = []
+        else:
+            who = "these" if len(holding) == 1 else f"the day’s {what}"
+            says = f"{n_w} of {who} may be over {_js(cm)} cm"
+            if aside:
+                says += f", not counting {_names(aside, ' or ')}"
         first["notes"].append({"says": says, "n": sc["take"], "over_cm": cm, "kinds": over,
                                "not_counting": aside})
         states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} note"})
