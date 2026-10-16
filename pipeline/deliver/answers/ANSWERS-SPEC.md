@@ -98,6 +98,43 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND12 (2026-10-16) — rows 11, gear 8: sizes said whole, own bucket first, every cap once, one list
+
+Same format string (`answers/2`); **rows 11, gear 8** (ladder 1, licence 4, display 8 unchanged). Owner
+review of v13 (ROUND12 2-3); RULINGS P9 (revised), P11 (revised).
+
+* **1 (rows 11).** A kind row's `detail` says what is kept AND a lifted limit: where a water's rule lifts a
+  minimum (or maximum) the open end reads "any length" — Vedder hatchery rainbow "any length, 50 cm or
+  less" (p.22 "of any length 50 cm or less" lifts Region 2's 30 cm minimum); a slot reads as its ranges —
+  Bennett Lake lake trout "60 cm or less, or 90 cm or longer". Every other detail is unchanged.
+* **2 (rows 11).** `buckets`: the water's own rule bucket(s) first, then the region's share, then "The rest
+  of the N a day".
+* **3 (rows 11).** EVERY cap inside the group is a bucket note, said once where it binds, from the total's
+  clauses and from caps outside it the reader says speak for a kind here: a count over two kind rows
+  (`over_cm` 0: Bella Coola "Only 1 of these may be cutthroat trout or rainbow trout"; across buckets
+  "Only 1 Dolly Varden/bull trout or lake trout a day in all"), a kind's own size cap (Bennett Lake "Only
+  1 lake trout may be over 90 cm"), the region's 1 over 50 cm beside a lake's own quota (Deer Lake), a
+  stream share's own size clause nested in order on one note (`then` [{n, over_cm, kinds}]: Region 8
+  streams "Only 2 of these may be over 30 cm, and only 1 over 50 cm"). A cap another one implies (as
+  small a size, no larger number, every kind: Wahleach Lake's 1 over 40 cm over Region 2's over-50 caps)
+  or a count holding all its kinds with no larger number (Region 1's "2 over 50 cm" under the stream
+  share of 2) is not said. The gate proves each note and each `then`.
+* **4 (rows 11).** `group.worked` is ONE list — "How it adds up" and "Fished elsewhere today?" merged: the
+  keep-N lines (lifted waters), then the kept-elsewhere examples they do not repeat ("Kept some at a
+  lake?", over 50 cm across waters); on a water with no lift those examples are the list. Each line
+  {kept, q, a, species, origin, share (keep-here lines), here, other, away (null: not claimed), at: here |
+  stream | lake | elsewhere, over_cm, of, most: exactly | at_most}; the gate keeps the line's basket
+  (`kept` of the first kind of `species` that may be kept so at `at`) and proves the numbers. "Kept 2
+  elsewhere today? Keep 3 more here" is said only where the headline is the row's number (Ross Lake's own
+  trout 1 counts fish kept elsewhere: its buckets say it). The card row's `elsewhere.ask` is empty
+  (folded); `elsewhere.says` stays.
+* **5 (gear 8).** `summary.says` has no em dash: Vedder "1 line with a single barbless hook (one hook, lure
+  or fly). Weight up to 1 kg."; Okanagan Lake "1 line (2 while alone in a boat) with any hook (one hook,
+  lure or fly). Weight up to 1 kg."; Kootenay Lake Main Body "1 line (no limit while in a boat) with any
+  hook (one hook, lure or fly). Weight up to 1 kg."; Cowichan fly-only "Fly fishing only: 1 line with a
+  single barbless hook (one fly). No float, sinker or attracting device." The weight part says "weight up
+  to 1 kg"; `parts`, `terms`, `cites`, `changes` {when, says} unchanged in shape.
+
 ## ROUND11 (2026-10-16) — rows 10, gear 7, display 8: one size note per bucket, one gear sentence, inherited lifts
 
 Same format string (`answers/2`); **rows 10, gear 7, display 8** (ladder 1, licence 4 unchanged); glossary 2.

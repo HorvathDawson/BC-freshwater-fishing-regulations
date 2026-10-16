@@ -288,19 +288,20 @@ def _and(words: Sequence[str]) -> str:
 
 
 def summary_sentence(parts: Dict[str, str]) -> str:
-    """"1 line, a single barbless hook — one hook, lure or fly — and up to 1 kg of weight." (the
-    owner's sentence, ROUND11 3), a fly mode its lead ("Fly fishing only: …")."""
+    """"1 line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg." (ROUND12 5: no
+    em dash, the owner's easier read), a fly mode its lead ("Fly fishing only: 1 line with a single
+    barbless hook (one fly). No float, sinker or attracting device.")."""
     body = parts.get("lines") or ""
     if parts.get("hook"):
-        body += (", " if body else "") + parts["hook"]
+        body += (" with " if body else "") + parts["hook"]
     if parts.get("attach"):
-        body += f" — {parts['attach']} —"
+        body += f" ({parts['attach']})"
+    body = body.strip()
+    out = (f"{parts['mode']}: {body}" if parts.get("mode") else body[:1].upper() + body[1:]) + "."
     if parts.get("weight"):
-        body += (" with " if parts["weight"] == FLY_ONLY_WEIGHT else " and ") + parts["weight"]
-    body = body.strip(" —")
-    if parts.get("mode"):
-        return f"{parts['mode']}: {body}."
-    return body[:1].upper() + body[1:] + "."
+        w = parts["weight"]
+        out += " " + w[:1].upper() + w[1:] + "."
+    return out
 
 
 def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[dict]:
@@ -354,7 +355,7 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
         if W is not None and W["c"].get("max") is not None:
             n = W["c"]["max"]
             n = int(n) if float(n).is_integer() else n
-            add("weight", f"up to {n} kg of weight", [W])
+            add("weight", f"weight up to {n} kg", [W])
     return out
 
 
@@ -371,7 +372,7 @@ def summary_of(parts: List[dict]) -> dict:
 def _change(me: dict, other: dict) -> Optional[dict]:
     """What another reading's sentence says differently from this one's: its fly mode when it has
     one this reading does not ("fly fishing only"), else its parts that differ ("one hook, lure or
-    fly and up to 1 kg of weight") — None when it reads the same."""
+    fly and weight up to 1 kg") — None when it reads the same."""
     a = {p["part"]: p for p in me["parts"]}
     b = {p["part"]: p for p in other["parts"]}
     diff = [k for k in SUMMARY_PARTS if (a.get(k) or {}).get("says") != (b.get(k) or {}).get("says")]

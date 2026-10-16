@@ -127,8 +127,14 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
         {"kept": 4, "q": "Keep 4 rainbows here", "a": "that’s your trout and char for the day, everywhere."},
         {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: any kind from here, or one from a lake."},
         {"kept": 2, "q": "Keep 2 rainbows here", "a": "no more trout and char from any other stream today; up to 2 more "
-                                                      "from here or from lakes."}]
-    assert _g(F.STREAM)["worked"] == [] and _g(F.LAKE)["worked"] == []
+                                                      "from here or from lakes."},
+        # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
+        {"kept": 1, "q": "Kept some at a lake?", "a": "They count toward the 4 a day, not toward the 2 from streams"},
+        {"kept": 1, "q": "Kept trout or char over 50 cm elsewhere today?",
+         "a": "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "
+              "than a hatchery steelhead."}]
+    assert [w["at"] for w in _g(F.STREAM)["worked"]] == ["stream", "lake", "elsewhere"]
+    assert [w["at"] for w in _g(F.LAKE)["worked"]] == ["elsewhere", "elsewhere"]
 
 
 def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
@@ -144,13 +150,14 @@ def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
     assert not E.legal([rb, rb, ct])                 # 2 rainbows kept here: no other stream today
     assert E.legal([rb, rb, ("CT", "hatchery", 40, "lake")])         # lakes face only the total
     assert not E.legal([rb, rb, rb, rb, ("CT", "hatchery", 40, "lake")])
-    el = F.trout_row(F.card(F.VEDDER, OCT10)[0])["elsewhere"]
-    assert el["ask"][0] == ["Kept 2 on another stream?",
-                            "Keep 0 here, except hatchery rainbow trout 50 cm or less: up to 2 more (4 in all)"]
-    # the Q16 cross-water case is in the sheet, not on the card
-    assert el["ask"][2] == ["Kept trout or char over 50 cm elsewhere today?",
-                            "It counts here too: at most 2 over 50 cm a day in all — only 1 of them "
-                            "may be anything other than a hatchery steelhead."]
+    # ROUND12 4: the kept-elsewhere examples are the card's one list (`worked`); the stream-tally
+    # example is the keep-N count read backwards, so a lifted water drops it (STREAM keeps it)
+    w = _g(F.STREAM)["worked"]
+    assert [w[0]["q"], w[0]["a"], w[0]["here"]] == ["Kept 2 on another stream?", "Keep 0 here", 0]
+    # the Q16 cross-water case is in the list, not on the card
+    assert [x["a"] for x in _g(F.VEDDER)["worked"]][-1] == (
+        "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "
+        "than a hatchery steelhead.")
 
 
 # 9 ---------------------------------------------------------------------------------------------
@@ -194,7 +201,7 @@ def test_check_card_fails_when_the_tally_breaks():
     out, P = F.card(F.VEDDER, OCT10)
     bad = copy.deepcopy(out)
     g = F.trout_group(bad)
-    g["worked"][-1]["other"] = 2
+    g["worked"][2]["other"] = 2                          # "Keep 2 rainbows here"
     probs = CC.check_card(P, bad)
     assert any("worked" in p for p in probs), probs
 

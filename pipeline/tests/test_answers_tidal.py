@@ -112,7 +112,7 @@ def test_the_tidal_sections_carry_their_versions():
     # answers 2.8 (d78cda88, D2/P9): display 7 (`rules[].where`, "Where you can’t fish")
     # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
     # ROUND11 A2/A3: gear 7 (`summary`), display 8 (frame `inherited`)
-    want = {"display": 8, "gear": 7, "licence": 4}
+    want = {"display": 8, "gear": 8, "licence": 4}            # ROUND12 5: gear 8
     assert {s.name: s.version for s in A.SECTIONS if s.name in want} == want
     from pipeline.deliver.answers.encode import SPEC
     for name in want:

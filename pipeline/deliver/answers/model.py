@@ -469,16 +469,27 @@ class CardKind(Model):
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
 
 
+class NoteThen(Model):
+    """A cap nested in a bucket note (ROUND12 3): at most `n` of `kinds` over `over_cm` (gate-proved)."""
+    n: Count
+    over_cm: Cm
+    kinds: Tuple[Fish, ...] = Field(min_length=1)
+
+
 class BucketNote(Model):
-    """ROUND11 A1: a size cap the bucket's kinds share, said ONCE ("Only 1 of these may be over 50 cm,
-    not counting steelhead"; a cap spanning buckets on the first: "Only 1 of the day’s trout and char
-    may be over 50 cm"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),
-    `not_counting` the kinds it names as outside it (still keepable over the size after those `n`)."""
+    """ROUND11 A1 / ROUND12 3: a cap inside the group, said ONCE on the bucket it governs ("Only 1 of
+    these may be over 50 cm, not counting steelhead"; a cap spanning buckets on the first: "Only 1 of
+    the day’s trout and char may be over 50 cm"; a kind's own: "Only 1 rainbow trout may be over 90
+    cm"; a count over two kind rows, `over_cm` 0: "Only 1 of these may be cutthroat trout or rainbow
+    trout"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),
+    `not_counting` the kinds it names as outside it (still keepable over the size after those `n`),
+    `then` the caps nested in it, in order ("…, and only 1 over 50 cm")."""
     says: StrictStr = Field(min_length=1)
     n: Count
     over_cm: Cm
     kinds: Tuple[Fish, ...] = Field(min_length=1)
     not_counting: Tuple[Fish, ...]
+    then: Tuple[NoteThen, ...]
 
 
 class Bucket(Model):
@@ -493,17 +504,35 @@ class Bucket(Model):
 
 
 class Worked(Model):
-    """RULINGS Q23b worked through: after keeping `kept` of the lifted kind here, `here` more here,
-    `other` more on another water of this kind, `away` more on the other kind (proved by the gate)."""
+    """One line of the card's ONE list (RULINGS Q23b; ROUND12 4 folds the kept-elsewhere examples in):
+    after keeping `kept` of `species` (`origin`; the gate takes the first kind and origin that may be
+    kept so) at `at` — "here" (a lifted kind past `share`: "Keep 3 rainbows here"), on another "stream"
+    / "lake" of the region ("Kept some at a lake?") or "elsewhere" (either), fish over
+    `over_cm` when set — `here` more here, `other` more on another water of this kind, `away` more on
+    the other kind (None: not claimed), counting the kinds `of` (None: every kind of the card) and only
+    fish over `over_cm`; `most` "exactly" or "at_most" (a ceiling the answer states). Proved by the
+    gate."""
     kept: Positive
     q: StrictStr = Field(min_length=1)
     a: StrictStr = Field(min_length=1)
-    species: Tuple[Fish, ...] = Field(min_length=1)
-    origin: Literal["hatchery", "wild"]
-    share: RuleIx
-    here: Count
-    other: Count
-    away: Count
+    species: Tuple[Fish, ...]
+    origin: Optional[Literal["hatchery", "wild"]]
+    share: Optional[RuleIx]
+    here: Optional[Count]
+    other: Optional[Count]
+    away: Optional[Count]
+    at: Literal["here", "stream", "lake", "elsewhere"]
+    over_cm: Optional[Cm]
+    most: Literal["exactly", "at_most"]
+    of: Optional[Tuple[Fish, ...]]
+
+    @model_validator(mode="after")
+    def _basket(self):
+        if (self.at == "here") != (self.share is not None):
+            raise ValueError("a keep-here line names the share its kind passes; an elsewhere line none")
+        if self.here is not None and (not self.species or self.origin is None):
+            raise ValueError("a line claiming a number names the kind and origin it starts from")
+        return self
 
 
 class CardState(Model):
@@ -692,8 +721,8 @@ class SummaryChange(Model):
 
 
 class GearSummary(Model):
-    """ROUND11 A2: the day's terminal gear in ONE sentence ("1 line, a single barbless hook — one hook,
-    lure or fly — and up to 1 kg of weight."), made from the count / hook / barb / lure / weight
+    """ROUND11 A2: the day's terminal gear in ONE sentence (ROUND12 5: "1 line with a single barbless
+    hook (one hook, lure or fly). Weight up to 1 kg."), made from the count / hook / barb / lure / weight
     answers; `parts` its pieces, `terms` the glossary keys for the ⓘ (`glossary` ids), `cites` every
     rule deciding it, `changes` the other days of the year that read differently (at this moment)."""
     says: StrictStr = Field(min_length=1)

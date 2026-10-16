@@ -77,18 +77,27 @@ def test_vedder_mouth_oct_10_card(built):
         "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
         "No more than 4 trout and char a day across Region 2, lakes included.",
+        # ROUND12 2: the river's own bucket first
+        "This river’s rule",
+        "RB 4: counts toward the 4 a day",
         "Up to 2 a day between them — all Region 2 streams combined",
         "Only 1 of these may be over 50 cm, not counting steelhead",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
-        "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence",
-        "This river’s rule",
-        "RB 4: counts toward the 4 a day"]
+        "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence"]
+    # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
+    assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
+        == "any length, 50 cm or less"
+    # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
         "Keep 4 rainbows here → that’s your trout and char for the day, everywhere.",
         "Keep 3 rainbows here → 1 more: any kind from here, or one from a lake.",
         "Keep 2 rainbows here → no more trout and char from any other stream today; up to 2 more from here or from "
-        "lakes."]
+        "lakes.",
+        "Kept some at a lake? → They count toward the 4 a day, not toward the 2 from streams",
+        "Kept trout or char over 50 cm elsewhere today? → It counts here too: at most 2 over 50 cm a day in all — "
+        "only 1 of them may be anything other than a hatchery steelhead."]
+    assert row["elsewhere"]["ask"] == []
 
 
 @pytest.mark.needs_bundle
@@ -111,8 +120,11 @@ def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     assert lake[0] == "4 a day" and "Only 1 of these may be over 50 cm" in lake
     stream = _trout(built, R2_STREAM)
     assert stream["group"]["headline"]["says"] == "2 a day from this stream"
-    assert stream["group"]["lifts"] == [] and stream["group"]["worked"] == []
-    assert stream["elsewhere"]["ask"][0] == ["Kept 2 on another stream?", "Keep 0 here"]
+    assert stream["group"]["lifts"] == [] and not [w for w in stream["group"]["worked"] if w["at"] == "here"]
+    # ROUND12 4: the examples are the card's one list
+    assert stream["elsewhere"]["ask"] == []
+    assert [stream["group"]["worked"][0][k] for k in ("q", "a", "here")] == ["Kept 2 on another stream?",
+                                                                            "Keep 0 here", 0]
 
 
 @pytest.mark.slow

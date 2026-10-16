@@ -138,9 +138,10 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     assert [L["says"] for L in g["lifts"]] == [VEDDER_LIFT]
     assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
-    assert row["elsewhere"]["ask"][:2] == [
-        ["Kept 2 on another stream?",
-         "Keep 0 here, except hatchery rainbow trout 50 cm or less: up to 2 more (4 in all)"],
+    # ROUND12 4: the examples are the card's one list; the stream-tally one is the worked keep-N count
+    # read backwards, so the lifted water drops it
+    assert row["elsewhere"]["ask"] == []
+    assert [[w["q"], w["a"]] for w in g["worked"] if w["at"] != "here"][:1] == [
         ["Kept some at a lake?", "They count toward the 4 a day, not toward the 2 from streams"]]
     # the hatchery rainbow's own row names no second group, and says what it counts toward
     own = row_of(built, t, f"{VR}.r9")
@@ -149,9 +150,9 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     # MUTATION: were r4 not lifted for the hatchery rainbow, the 2 would hold it and nothing is excepted
     m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
-    assert m["elsewhere"]["ask"][0][1] == "Keep 0 here"
+    assert m["group"]["worked"][0]["a"] == "Keep 0 here"
     assert m["group"]["headline"]["says"] == "2 a day from this stream"
-    assert m["group"]["lifts"] == [] and m["group"]["worked"] == []   # nothing lifted out of the share
+    assert m["group"]["lifts"] == [] and not [w for w in m["group"]["worked"] if w["at"] == "here"]
 
 
 @pytest.mark.needs_bundle

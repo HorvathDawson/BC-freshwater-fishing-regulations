@@ -931,9 +931,10 @@ function cardBlock(row, id){
   // ROUND11 A1: a size cap the bucket's kinds share is its note, said once (rows 10 `buckets[].notes`)
   const bnotes = b => (b.notes || []).map(n => `<p class="s2"><b>${esc(n.says)}.</b></p>`).join('');
   const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
-  const ask = el && el.ask.length ? `<ul class="exs">${el.ask.map(([q, a], i) => `<li${i ? ' class="sep"' : ''}><span>${esc(q)}</span> <strong>${esc(a)}</strong></li>`).join('')}</ul>` : '';
-  const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
-  const sheet = el ? `<details class="elsewhere" data-dd="${id}e"${ddOpen(id + 'e')}><summary>Fished elsewhere today? ›</summary><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${ask}${worked}</details>` : '';
+  // ROUND12 4 (rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list, `group.worked` (the
+  // keep-N count, then the kept-elsewhere examples it does not repeat) — no dropdown; `elsewhere.ask` is folded
+  const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
+  const sheet = el ? `<section class="elsewhere"><div class="lbl">How it adds up</div><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${worked}</section>` : '';
   const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
   return `<section class="gblock card28">${org}${lines.length ? `<ul class="glifts">${lines.join('')}</ul>` : ''}${buckets}${sheet}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }

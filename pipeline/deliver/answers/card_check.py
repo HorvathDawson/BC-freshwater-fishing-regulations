@@ -346,6 +346,7 @@ def check_group(P, g: dict) -> List[str]:
                     probs.append(f"{where}: kind {k['species']} says {k['n']}, {S} alone keeps {one}")
         # ROUND11 A1: a bucket's size note — at most `n` of its kinds over the size together, and each
         # kind it says does not count still keepable over the size after those `n`
+        # ROUND12 3: a count note (over_cm 0: any length), and each nested cap of a note (`then`)
         for nt in b.get("notes") or []:
             cm = nt["over_cm"]
             over = [f for f in E.fish(nt["kinds"]) if f[2] > cm]
@@ -353,6 +354,11 @@ def check_group(P, g: dict) -> List[str]:
             if not ok:
                 probs.append(f"{where}: bucket {b['title']!r} note says {nt['n']} over {cm} cm, its kinds "
                              f"keep {got} over it")
+            for t in nt.get("then") or []:
+                ok, got = proved(t["n"], [f for f in E.fish(t["kinds"]) if f[2] > t["over_cm"]])
+                if not ok:
+                    probs.append(f"{where}: bucket {b['title']!r} note says {t['n']} over {t['over_cm']} cm "
+                                 f"(nested), its kinds keep {got} over it")
             if nt["not_counting"]:
                 base: List[Fish] = []
                 for f in over:
@@ -393,6 +399,9 @@ def check_group(P, g: dict) -> List[str]:
     other = "stream" if P.kind == "stream" else "lake"
     away = "lake" if P.kind == "stream" else "stream"
     for w in g.get("worked") or []:
+        if w.get("at", "here") != "here":
+            probs += _check_elsewhere_line(E, g, w, where, kinds, other, away)
+            continue
         share = P.by_key[w["share"]]
         lifted = [f for f in E.fish(w["species"], origins=(w["origin"],))
                   if E.state(share, f[0], f[1]) == "lifted"]
@@ -413,6 +422,47 @@ def check_group(P, g: dict) -> List[str]:
         if s["r"] in seen:
             probs.append(f"{where}: the cap {s['r']} is stated twice ({seen[s['r']]}; {s['line']})")
         seen[s["r"]] = s["line"]
+    return probs
+
+
+def _check_elsewhere_line(E: Engine, g: dict, w: dict, where: str, kinds: Sequence[str], other: str,
+                          away: str) -> List[str]:
+    """ROUND12 4: a line of the one list that starts from fish kept ON ANOTHER WATER (`at`: a stream or
+    lake of the region; `over_cm`: fish over that size, and only those counted after): keep `kept` of
+    the line's kind there, then the most of the card's kinds here (another water of this kind, the
+    other kind) is `here` (`other`, `away`) — of the kinds `of` (None: every kind of the card) —
+    exactly, or at most (`most`: "at_most", a ceiling the line states: "at most 2 over 50 cm a day in
+    all")."""
+    probs: List[str] = []
+    cm = w.get("over_cm")
+    if all(w.get(k) is None for k in ("here", "other", "away")):
+        return []
+    # the basket: `kept` fish of the line's kinds kept at that place ("elsewhere": another water of
+    # this kind, else of the other), taken greedily in the line's order (its first kind first). Where
+    # no such basket may be kept today (the region's streams closed on the date, Region 3 in January)
+    # the example cannot happen and there is nothing to prove.
+    base = None
+    for p in ((other, away) if w["at"] == "elsewhere" else (w["at"],)):
+        got: List[Fish] = []
+        for f in [f for S in w["species"] for o in ("hatchery", "wild") for f in E.fish([S], (p,), (o,))
+                  if cm is None or f[2] > cm]:
+            while len(got) < w["kept"] and E.can_keep(got, f):
+                got.append(f)
+        if len(got) == w["kept"]:
+            base = got
+            break
+    if base is None:
+        return []
+    for key, place in (("here", "here"), ("other", other), ("away", away)):
+        claim = w.get(key)
+        if claim is None:
+            continue
+        fish = [f for f in E.fish(w.get("of") or kinds, (place,)) if cm is None or f[2] > cm]
+        got = E.most(fish, base, cap=int(claim) + 1)
+        ok = got <= claim if w.get("most") == "at_most" else got == claim
+        if not ok:
+            probs.append(f"{where}: worked line {w['q']!r}: says {'at most ' if w.get('most') == 'at_most' else ''}"
+                         f"{claim} more ({key}), the rules allow {got}")
     return probs
 
 
@@ -444,7 +494,7 @@ def _unref(v, ids):
     g["lifts"] = [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}
                   for L in g["lifts"]]
     g["buckets"] = [{**b, "by": r(b["by"])} for b in g["buckets"]]
-    g["worked"] = [{**w, "share": r(w["share"])} for w in g["worked"]]
+    g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]
     return g
 

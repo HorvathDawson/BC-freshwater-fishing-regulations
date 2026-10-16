@@ -1591,15 +1591,42 @@ def _scope_name(sc: dict, pool: R) -> Optional[str]:
     return None
 
 
+def _kept_origin(model: dict, S: str) -> Optional[str]:
+    m = _kept(model, S)
+    if m is None:
+        return None
+    R_ = model["R"].get(S) or {}
+    return "hatchery" if R_.get("H") is m else "wild"
+
+
+def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here,
+          over_cm=None, most: str = "exactly", kind: str = "other_kind", of=None) -> dict:
+    """One line of the card's one list (ROUND12 4): the question and answer, and the basket it starts
+    from — `kept` fish of one kind of `kinds` (the gate takes the first it may keep there) kept at a
+    `at` (another stream or lake, or "elsewhere": either; over `over_cm`) — and
+    `here`, the most more here (the gate proves it: exactly, or `most` "at_most" for a ceiling the
+    answer states; `of` the kinds that number counts, None every kind of the card). `kind`: the line's
+    example — "stream_tally" (the share used up on another stream: a worked keep-N count already says
+    it), "other_kind" (some kept on the other kind of water), "tally" (k kept anywhere, the total's
+    number less k here), "over" (one over the size kept elsewhere)."""
+    sp = [x for x in kinds if _kept_origin(model, x) is not None]
+    return {"q": q, "a": a, "kept": kept, "at": at, "species": sp,
+            "origin": _kept_origin(model, sp[0]) if sp else None, "over_cm": over_cm,
+            "here": here if sp else None, "most": most, "kind": kind,
+            "of": None if of is None else list(of)}
+
+
 def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  grp: Optional[dict]) -> dict:
     """The kept-elsewhere line of a keep row (rows F9, F14) — `says` one sentence, `ask`
     [[question, answer]] worked examples — qualified by what the total's sub-caps lift: on the
     Vedder, Oct 10, "Kept 2 on another stream? Keep 0 here, except hatchery rainbow trout 50 cm or
-    less: up to 4 in all" (it was "Keep 0 here": p.22 lifts the stream share for them)."""
+    less: up to 4 in all" (it was "Keep 0 here": p.22 lifts the stream share for them). `lines` the
+    same examples with the basket each starts from and the number it states (`_line`, ROUND12 4: the
+    card folds them into `group.worked`, its one list)."""
     n, pool, nw = row["daily"], row["pool"], row["narrow"]
     s = _scope_name(sc, pool)
-    ask: List[List[str]] = []
+    lines: List[dict] = []
     if sc["share"] and nw is not None and all(_covers(nw, S) for S in row["members"]):
         wk = nw.f["water"]
         other = "lake" if wk == "stream" else "stream"
@@ -1623,7 +1650,13 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             a1 += ", except " + common.join([w for w, _m in ex], " or ")
         a2 = (f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
               if tot != "unlimited" else f"They don’t count toward the {_js(n)} from {wk}s")
-        ask = [[f"Kept {_js(n)} on another {wk}?", a1], [f"Kept some at a {other}?", a2]]
+        held = [S for S in row["members"] if S in (mine or {}).get("of", row["members"])]
+        lifted_own = [P.by_key[L["by"]].f.get("take") for L in (mine or {}).get("lifted", [])]
+        unl = tot == "unlimited" or any(x is None for x in lifted_own)
+        here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
+        here2 = None if unl else min(tot - 1, n + sum(lifted_own))
+        lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
+                 _line(f"Kept some at a {other}?", a2, model, row["members"], 1, other, here2)]
     elif s:
         says = f"Shared with everywhere in {s} you fish today" + \
             (", lakes and streams alike." if not pool.f.get("water") else ".")
@@ -1642,7 +1675,8 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                 if ex:
                     # RULINGS Q23b: lifted fish count toward the tally; they may go past it here
                     a += f" ({ex} may go past it here)"
-            ask = [[f"Kept {k} elsewhere today?", a]]
+            lines = [_line(f"Kept {k} elsewhere today?", a, model, (grp or {}).get("kinds") or row["members"],
+                           k, "elsewhere", None if sh is not None else n - k, kind="tally")]
     else:
         says = (f"This {'river' if P.kind == 'stream' else 'lake'}’s own limit. Fish you kept "
                 f"elsewhere today count toward it too.")
@@ -1655,15 +1689,17 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                      f"day." if not T.f.get("unlimited") else
                      f" They also count toward {whose} {written_name_of(T)}, which has no daily "
                      f"limit.")
-    ask += over_elsewhere(P, row, grp)
-    return {"says": says, "ask": ask}
+    lines += over_elsewhere(P, model, row, grp)
+    return {"says": says, "ask": [[x["q"], x["a"]] for x in lines], "lines": lines}
 
 
-def over_elsewhere(P: "Part", row: dict, grp: Optional[dict]) -> List[List[str]]:
+def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> List[dict]:
     """RULINGS Q16 across waters (answers 2.8, A2): a size clause of the total holding the row's kinds
     counts fish kept anywhere today — said in the kept-elsewhere sheet, never on the card: "Kept a fish
     over 50 cm elsewhere today?" — "It counts here too: at most 2 over 50 cm a day in all — only 1 of
-    them may be anything other than a hatchery steelhead." """
+    them may be anything other than a hatchery steelhead." The line's basket: one of the kinds the
+    smaller clause holds (not a steelhead) kept over the size on another water of this kind; at most
+    the larger clause's number less one more over the size here."""
     if grp is None:
         return []
     sizes = [x for x in grp["subcaps"] if x["over_cm"] is not None and not x["water"]
@@ -1679,7 +1715,9 @@ def over_elsewhere(P: "Part", row: dict, grp: Optional[dict]) -> List[List[str]]
         band = _range_words(a, INF if b is None else b)
         big = xs[0]
         say = f"It counts here too: at most {_js(big['take'])} {band} a day in all"
+        small = big
         if len(xs) > 1 and set(xs[1]["of"]) < set(big["of"]):
+            small = xs[1]
             rest = [S for S in big["of"] if S not in xs[1]["of"]]
             who = " ".join(w for w in ("hatchery" if "ST" in rest and P.steelhead_water else "",
                                        _names(rest)) if w)
@@ -1687,8 +1725,12 @@ def over_elsewhere(P: "Part", row: dict, grp: Optional[dict]) -> List[List[str]]
                     f"{'a ' if len(rest) == 1 else ''}{who}")
         from pipeline.deliver.answers.display import written_name
         who = written_name(P.by_key[big["r"]].x, " or ").replace(" and ", " or ")
-        out.append([f"Kept {who} {band} elsewhere today?",
-                    say + "."])
+        kinds = [S for S in small["of"] if S != "ST"] or list(small["of"])
+        out.append(_line(f"Kept {who} {band} elsewhere today?", say + ".", model, kinds, 1, "elsewhere",
+                         max(0, big["take"] - 1), over_cm=a if b is None else None, most="at_most",
+                         kind="over", of=big["of"]))
+        if b is not None:
+            out[-1]["here"] = None
     return out
 
 
@@ -1766,6 +1808,12 @@ def produce(P: Part) -> dict:
     for i, o in enumerate(rows):
         if o.get("group") is not None:
             o["group"].update(card_of(P, model, o["group"], rows, i))
+            # ROUND12 4: the card's one list holds the kept-elsewhere examples (`group.worked`)
+            if o.get("elsewhere") is not None:
+                o["elsewhere"]["ask"] = []
+    for o in rows:
+        if o.get("elsewhere") is not None:
+            o["elsewhere"].pop("lines", None)
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     return {"spp": model["spp"], "fish": fish, "rows": rows,
@@ -1856,7 +1904,8 @@ def refs(out: dict, ix) -> dict:
                                      "each": [{**e, "by": ix(e["by"])} for e in L["each"]]}
                                     for L in g["lifts"]],
                           "buckets": [{**b, "by": ix(b["by"])} for b in g["buckets"]],
-                          "worked": [{**w, "share": ix(w["share"])} for w in g["worked"]],
+                          "worked": [{**w, "share": None if w["share"] is None else ix(w["share"])}
+                                     for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}
         return o
     return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},

@@ -1388,7 +1388,7 @@
     },
     "GearSummary": {
      "additionalProperties": false,
-     "description": "ROUND11 A2: the day's terminal gear in ONE sentence (\"1 line, a single barbless hook \u2014 one hook,\nlure or fly \u2014 and up to 1 kg of weight.\"), made from the count / hook / barb / lure / weight\nanswers; `parts` its pieces, `terms` the glossary keys for the \u24d8 (`glossary` ids), `cites` every\nrule deciding it, `changes` the other days of the year that read differently (at this moment).",
+     "description": "ROUND11 A2: the day's terminal gear in ONE sentence (ROUND12 5: \"1 line with a single barbless\nhook (one hook, lure or fly). Weight up to 1 kg.\"), made from the count / hook / barb / lure / weight\nanswers; `parts` its pieces, `terms` the glossary keys for the \u24d8 (`glossary` ids), `cites` every\nrule deciding it, `changes` the other days of the year that read differently (at this moment).",
      "properties": {
       "changes": {
        "items": {
@@ -2684,7 +2684,7 @@
     },
     "BucketNote": {
      "additionalProperties": false,
-     "description": "ROUND11 A1: a size cap the bucket's kinds share, said ONCE (\"Only 1 of these may be over 50 cm,\nnot counting steelhead\"; a cap spanning buckets on the first: \"Only 1 of the day\u2019s trout and char\nmay be over 50 cm\"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),\n`not_counting` the kinds it names as outside it (still keepable over the size after those `n`).",
+     "description": "ROUND11 A1 / ROUND12 3: a cap inside the group, said ONCE on the bucket it governs (\"Only 1 of\nthese may be over 50 cm, not counting steelhead\"; a cap spanning buckets on the first: \"Only 1 of\nthe day\u2019s trout and char may be over 50 cm\"; a kind's own: \"Only 1 rainbow trout may be over 90\ncm\"; a count over two kind rows, `over_cm` 0: \"Only 1 of these may be cutthroat trout or rainbow\ntrout\"). `kinds` the kinds it holds (the gate keeps them over `over_cm`: at most `n`),\n`not_counting` the kinds it names as outside it (still keepable over the size after those `n`),\n`then` the caps nested in it, in order (\"\u2026, and only 1 over 50 cm\").",
      "properties": {
       "kinds": {
        "items": {
@@ -2721,6 +2721,13 @@
        "minLength": 1,
        "title": "Says",
        "type": "string"
+      },
+      "then": {
+       "items": {
+        "$ref": "#/$defs/NoteThen"
+       },
+       "title": "Then",
+       "type": "array"
       }
      },
      "required": [
@@ -2728,7 +2735,8 @@
       "n",
       "over_cm",
       "kinds",
-      "not_counting"
+      "not_counting",
+      "then"
      ],
      "title": "BucketNote",
      "type": "object"
@@ -5430,6 +5438,43 @@
      "title": "LTnote",
      "type": "object"
     },
+    "NoteThen": {
+     "additionalProperties": false,
+     "description": "A cap nested in a bucket note (ROUND12 3): at most `n` of `kinds` over `over_cm` (gate-proved).",
+     "properties": {
+      "kinds": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      }
+     },
+     "required": [
+      "n",
+      "over_cm",
+      "kinds"
+     ],
+     "title": "NoteThen",
+     "type": "object"
+    },
     "OriginLine": {
      "additionalProperties": false,
      "properties": {
@@ -6102,40 +6147,114 @@
     },
     "Worked": {
      "additionalProperties": false,
-     "description": "RULINGS Q23b worked through: after keeping `kept` of the lifted kind here, `here` more here,\n`other` more on another water of this kind, `away` more on the other kind (proved by the gate).",
+     "description": "One line of the card's ONE list (RULINGS Q23b; ROUND12 4 folds the kept-elsewhere examples in):\nafter keeping `kept` of `species` (`origin`; the gate takes the first kind and origin that may be\nkept so) at `at` \u2014 \"here\" (a lifted kind past `share`: \"Keep 3 rainbows here\"), on another \"stream\"\n/ \"lake\" of the region (\"Kept some at a lake?\") or \"elsewhere\" (either), fish over\n`over_cm` when set \u2014 `here` more here, `other` more on another water of this kind, `away` more on\nthe other kind (None: not claimed), counting the kinds `of` (None: every kind of the card) and only\nfish over `over_cm`; `most` \"exactly\" or \"at_most\" (a ceiling the answer states). Proved by the\ngate.",
      "properties": {
       "a": {
        "minLength": 1,
        "title": "A",
        "type": "string"
       },
+      "at": {
+       "enum": [
+        "here",
+        "stream",
+        "lake",
+        "elsewhere"
+       ],
+       "title": "At",
+       "type": "string"
+      },
       "away": {
-       "minimum": 0,
-       "title": "Away",
-       "type": "integer"
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Away"
       },
       "here": {
-       "minimum": 0,
-       "title": "Here",
-       "type": "integer"
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Here"
       },
       "kept": {
        "exclusiveMinimum": 0,
        "title": "Kept",
        "type": "integer"
       },
-      "origin": {
+      "most": {
        "enum": [
-        "hatchery",
-        "wild"
+        "exactly",
+        "at_most"
        ],
-       "title": "Origin",
+       "title": "Most",
        "type": "string"
       },
+      "of": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Of"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
       "other": {
-       "minimum": 0,
-       "title": "Other",
-       "type": "integer"
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Other"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Over Cm"
       },
       "q": {
        "minLength": 1,
@@ -6143,15 +6262,21 @@
        "type": "string"
       },
       "share": {
-       "minimum": 0,
-       "title": "Share",
-       "type": "integer"
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Share"
       },
       "species": {
        "items": {
         "type": "string"
        },
-       "minItems": 1,
        "title": "Species",
        "type": "array"
       }
@@ -6165,7 +6290,11 @@
       "share",
       "here",
       "other",
-      "away"
+      "away",
+      "at",
+      "over_cm",
+      "most",
+      "of"
      ],
      "title": "Worked",
      "type": "object"

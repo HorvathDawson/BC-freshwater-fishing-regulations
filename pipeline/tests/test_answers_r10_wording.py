@@ -49,7 +49,7 @@ def test_w1_the_headline_lists_every_lifted_number_above_it_highest_first():
 def test_w1_the_worked_count_follows_the_main_lift_and_the_gate_proves_the_card():
     out, P = F.card(F.TWO, OCT10)
     g = F.trout_group(out)
-    assert [(w["q"], w["a"]) for w in g["worked"]] == [
+    assert [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"] == [
         ("Keep 4 rainbows here", "that’s your trout and char for the day, everywhere."),
         ("Keep 3 rainbows here", "1 more: any kind from here, or one from a lake."),
         ("Keep 2 rainbows here", "no more trout and char from any other stream today; up to 2 more "
@@ -69,7 +69,7 @@ def CC_ix(g, r):
             "lifts": [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}
                       for L in g["lifts"]],
             "buckets": [{**b, "by": r(b["by"])} for b in g["buckets"]],
-            "worked": [{**w, "share": r(w["share"])} for w in g["worked"]],
+            "worked": [{**w, "share": None if w["share"] is None else r(w["share"])} for w in g["worked"]],
             "states": [{**x, "r": r(x["r"])} for x in g["states"]]}
 
 

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "10",
+            "version": "11",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -260,7 +260,20 @@ SPEC = {
                     "each card line states (none twice). `says` and `items` (versions 6-7) are gone; "
                     "`elsewhere` (version 6) on every "
                     "keep row: {says, ask [[question, answer]]} the kept-elsewhere line, qualified "
-                    "by those lifts. A decided answer's winner may be a size release (F13: a take-0 "
+                    "by those lifts. Version 11 (ROUND12 1-4): a kind row's `detail` says a lifted "
+                    "limit (\"any length, 50 cm or less\") and a slot's ranges (\"60 cm or less, or 90 cm "
+                    "or longer\"); a water's own rule bucket(s) come first, then the share, then the "
+                    "rest; EVERY cap inside the group is a bucket note, said once where it binds — a "
+                    "kind's own (\"Only 1 rainbow trout may be over 90 cm\"), a count over two kind rows "
+                    "(`over_cm` 0: \"Only 1 of these may be cutthroat trout or rainbow trout\"), nested "
+                    "caps in order on one note (`then` [{n, over_cm, kinds}]: \"Only 2 of these may be "
+                    "over 30 cm, and only 1 over 50 cm\"); a cap another implies is not said; `worked` is "
+                    "ONE list (\"How it adds up\" and \"Fished elsewhere today?\" merged): the keep-N "
+                    "lines then the kept-elsewhere examples they do not repeat (on a water with no lift, "
+                    "those examples), each {kept, q, a, species, origin, share (keep-here lines only), "
+                    "here, other, away (null: not claimed), at: here | stream | lake, over_cm, of (the "
+                    "kinds the numbers count, null every kind), most: exactly | at_most} proved by the "
+                    "gate; the card row's `elsewhere.ask` is empty (folded), its `says` kept. A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
         },
         "gear": {
@@ -268,14 +281,15 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "7",
+            "version": "8",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
                       "otherwise {summary {says, parts [{part: mode | lines | hook | attach | weight, says, "
                       "cites, terms}], terms, cites, changes [{when, says, cites}]} (version 7, ROUND11 "
-                      "A2: the day's terminal gear in ONE sentence — \"1 line, a single barbless hook — "
-                      "one hook, lure or fly — and up to 1 kg of weight.\" — made from the count, hook, "
+                      "A2: the day's terminal gear in ONE sentence — version 8, ROUND12 5, no em dash: \"1 "
+                      "line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg.\" — "
+                      "made from the count, hook, "
                       "barb, lure and weight answers; `terms` glossary ids for the ⓘ; `changes` the "
                       "other days of the year at this moment that read differently, in calendar "
                       "order: {when: \"May 1–31\", says: \"fly fishing only\"}), "

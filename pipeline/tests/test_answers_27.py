@@ -97,7 +97,8 @@ def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
                          "river’s rule replaces Region 2’s 2-from-streams limit for them."]
     k = _kinds(g)
     # ROUND11 A1: the share's over-50 cap is its bucket's note, said once; no size note on a row
-    assert [n["says"] for n in g["buckets"][0]["notes"]] == [
+    # (ROUND12 2: the river's own bucket first, the share second)
+    assert [n["says"] for n in g["buckets"][1]["notes"]] == [
         "Only 1 of these may be over 50 cm, not counting steelhead"]
     assert k["EB/GB/CT"]["notes"] == [] and k["DV/LT"]["notes"] == []
     assert k["ST"]["name"] == "Steelhead" and k["ST"]["n"] == 2
@@ -115,10 +116,11 @@ def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
     assert _lifts(g) == [
         "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow trout (up "
         "to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
-    assert [b["title"] for b in g["buckets"]] == ["Up to 2 a day between them — all Region 4 streams combined",
-                                                   "This river’s rule"]
+    # ROUND12 2: the river's own bucket first
+    assert [b["title"] for b in g["buckets"]] == ["This river’s rule",
+                                                   "Up to 2 a day between them — all Region 4 streams combined"]
     assert g["headline"]["also"] == [{"n": 5, "says": "5 if they’re rainbow trout"}]
-    assert [w["kept"] for w in g["worked"]] == [5, 4, 3, 2]
+    assert [w["kept"] for w in g["worked"] if w["at"] == "here"] == [5, 4, 3, 2]
 
 
 @pytest.mark.needs_bundle
@@ -137,8 +139,11 @@ def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     # draw from (P4), a bucket of its own; ROUND11 A1: the 1 over 50 cm they all share spans both
     # buckets, so it is said once, on the first, naming the day's fish — never on a row
     assert [b["title"] for b in g["buckets"]] == ["This lake’s rule", "The rest of the 4 a day"]
+    # ROUND12 3: Region 2's "Dolly Varden and lake trout 1" spans the lake's Dolly Varden and the rest's
+    # lake trout — said once, on the first bucket (it was not said at all: 1 of each read as allowed)
     assert [[n["says"] for n in b["notes"]] for b in g["buckets"]] == [
-        ["Only 1 of the day’s trout and char may be over 50 cm"], []]
+        ["Only 1 Dolly Varden/bull trout or lake trout a day in all",
+         "Only 1 of the day’s trout and char may be over 50 cm"], []]
     assert k["EB/GB/CT/RB"]["notes"] == [] and k["LT"]["notes"] == []
     assert k["DV"]["notes"] == ["counts toward the 4 a day"]
     assert not any("steelhead" in t.lower() for kk in k.values() for t in kk["notes"])

@@ -230,12 +230,19 @@ def _sections() -> Tuple[Section, ...]:
         # states — `says`/`items` gone; RULINGS Q23b in `elsewhere`)
         # ROUND10 W1: rows 9 (`group.lifts[]` one per lifting entry with `each` [{kinds, n, by, fish}])
         # ROUND11 A1: rows 10 (`group.buckets[].notes`: a shared size cap said once, on its bucket)
-        Section("rows", 10, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND12 1-4: rows 11 (a kind row's size says a lifted limit, "any length, 50 cm or less", and
+        # a slot's ranges; a water's own bucket first; every cap inside the group a bucket note, nested
+        # in order (`notes[].then`), a count `over_cm` 0; ONE list `group.worked` folding the
+        # kept-elsewhere examples in, each line with its basket (at, over_cm, of, most); the card
+        # row's `elsewhere.ask` empty)
+        Section("rows", 11, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
         # "1 line (rod)")
-        Section("gear", 7, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND12 5: gear 8 (`summary.says` with no em dash: "1 line with a single barbless hook (one
+        # hook, lure or fly). Weight up to 1 kg."; the weight part "weight up to 1 kg")
+        Section("gear", 8, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
