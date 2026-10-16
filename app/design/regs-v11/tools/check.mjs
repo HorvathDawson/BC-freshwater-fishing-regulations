@@ -12,6 +12,8 @@
 //                         lines, hooks, bait, then methods (gear first); the strip's dated changes are on it
 //   boat-lines            (owner 3) the Lines cell says what the data says about a boat: the data's own words where it
 //                         has them (Kootenay Lake), else the cited rule's own title when that rule names a boat
+//   lines-says-and-cites  (gear v6) the Lines cell is the data's sentence ("… in a boat too" on a stream) with one book
+//                         link per page of the rules it cites; Kootenay Lake Main Body's Lines cites 2 rules
 //   licence-last          (owner 3) Licence is its own section and the LAST one
 //   no-part-strip         (owner 5) no numbered part strip on the regulations tab (parts are chosen on the map)
 //   map-way-obvious       (owner 5) a row right under the header says where these rules apply (the part's label from
@@ -126,19 +128,27 @@ for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=10
     const lrow = [...line.querySelectorAll('.grow')].find(r => r.querySelector('.glabel')?.textContent === 'Lines');
     const span = [...(lrow?.querySelectorAll('.gval > span') || [])].map(s => s.textContent.trim()).find(t => /boat/.test(t));
     const key = lrow?.querySelector('[data-rule]')?.dataset.rule, rule = SNAP.rules[key] || {};
-    const boatData = span || (/"angler": "[a-z_]*boat/.test(rule.body || '') ? rule.title : null);
+    const boatData = st.lines?.says || span || (/"angler": "[a-z_]*boat/.test(rule.body || '') ? rule.title : null);
+    const linesCell = bx?.querySelector('[data-k="lines"]'), pages = new Set((st.lines?.cites || []).flatMap(k => (SNAP.ruleInfo[k]?.book || []).map(b => b[0])));
     const boatShown = bx ? [...bx.querySelectorAll('[data-k="lines"] [data-boat]')].map(e => e.textContent.replace(/\\s+/g, ' ').trim()) : [];
     // dated changes from the strip's per-day flags (fly-only 4, flies-only 8, bait ban 16)
     const all = (st.runs || []).reduce((a, [, n]) => a + n, 0), dated = (st.runs || []).filter(([f, n]) => f != null && !(f & 1) && (f & 28) && n < all).length;
     return {n: blocks.length, oneSection: !!home && home.querySelectorAll('.gx').length === 1, order, cells,
       gearFirst: want.every(k => order.includes(k)) && order.indexOf('methods') > Math.max(order.indexOf('lines'), order.indexOf('hooks'), order.indexOf('bait')),
       icons: cells.every(c => c.icon), dated, datedShown: bx ? bx.querySelectorAll('[data-dated]').length : 0,
-      boatData, boatShown, secs: secs.map(s => s.id), last: secs.length ? secs[secs.length - 1].id : null}; })())`));
+      boatData, boatShown, says: st.lines?.says || null, kind: st.kind, cites: (st.lines?.cites || []).length,
+      citesShown: +(linesCell?.querySelector('[data-cites]')?.dataset.cites || 0), pages: pages.size,
+      booksShown: linesCell ? (linesCell.textContent.match(/Book p\\.\\d+/g) || []).length : 0, secs: secs.map(s => s.id), last: secs.length ? secs[secs.length - 1].id : null}; })())`));
 });
 const gbad = Object.entries(gear).filter(([, r]) => !(r.n === 1 && r.oneSection && r.gearFirst && r.icons && (r.dated === 0 || r.datedShown > 0)));
 check('gear-one-summary', !gbad.length, gbad.map(([w, r]) => `${w}: ${r.n} summary blocks, cells ${JSON.stringify(r.order)}${r.icons ? '' : ' (some without an icon)'}; ${r.dated} dated runs, ${r.datedShown} shown on it`).join('; '));
 const bbad = Object.entries(gear).filter(([, r]) => !r.boatData || !r.boatShown.some(t => t.includes(r.boatData)));
 check('boat-lines', !bbad.length, bbad.map(([w, r]) => `${w}: data says ${JSON.stringify(r.boatData)}, Lines shows ${JSON.stringify(r.boatShown)}`).join('; '));
+// gear v6 (answers W4): the Lines cell is the data's sentence; a stream's says "in a boat too"; its book links are
+// every cited rule's pages once; Kootenay Lake Main Body's Lines cites 2 rules (the province's and its own boat rule)
+const v6 = Object.entries(gear).filter(([w, r]) => !(r.says && r.boatShown.some(t => t.includes(r.says)) && r.booksShown === r.pages
+  && (r.kind !== 'stream' || /in a boat too/.test(r.says)) && (w !== 'klmb' || (r.cites === 2 && r.citesShown === 2))));
+check('lines-says-and-cites', !v6.length, v6.map(([w, r]) => `${w} (${r.kind}): says ${JSON.stringify(r.says)}, shown ${JSON.stringify(r.boatShown)}; cites ${r.cites} (shown ${r.citesShown}); ${r.booksShown} book links for ${r.pages} pages`).join('; '));
 const lbad = Object.entries(gear).filter(([, r]) => r.last !== 'g-licence' || r.secs.filter(s => s === 'g-licence').length !== 1);
 check('licence-last', !lbad.length, lbad.map(([w, r]) => `${w}: sections ${JSON.stringify(r.secs)}`).join('; '));
 

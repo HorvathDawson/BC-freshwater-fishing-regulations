@@ -13,7 +13,7 @@
   bait, ways to fish, boats; an icon per cell; the strip's dated fly-only / bait-ban runs sit on the Lures / Bait cell;
   a run all year is no change and is not listed), 2 Always, 3 Licence (its own section, last). Boat lines: only the data
   — the Lines row's own words where it has them (lakes: "2 while alone in a boat"; Kootenay Lake Main Body: "no limit
-  while in a boat"), else the cited rule's own title when that rule's gear names a boat (streams). Checks
+  while in a boat"). Gear v6: the Lines cell is the data's `says` ("1 line (rod), in a boat too" on streams) with book links from `cites` (snap: `st.lines`). Checks
   `gear-one-summary`, `boat-lines`, `licence-last`.
 - **5** No part strip. Under the header: "📍 Where these rules apply · <part label> — View on map ›" (the data's short
   label unless it was cut with "…", then the full label). The map's title: "Where these rules apply" + water · part.

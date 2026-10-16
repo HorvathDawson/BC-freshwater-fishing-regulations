@@ -65,6 +65,11 @@ function extract(SPECS, YR) {
       st.kinds = MODEL.rows.map(row => { try { if (!row.conds) return null; let it = speciesItems(row, rowConds(row)); if (!it) return null;
         if (it.length === 1 && it[0].plain) it = []; return it.map(x => ({ key: x.key, members: [...x.members], static: !x.facts })); } catch (e) { return null; } });
       takeRules(scan(card));
+      // gear v6 (answers W4): the Lines count row's own sentence (`says`, boat included) and every rule deciding it
+      // (`cites`, display indices -> keys via D.rid), read off the page's gear frame for this day
+      { const lp = gearAt(PLACE, md)?.counts?.lines_per_angler;
+        st.lines = lp ? { says: lp.says ?? null, cites: (lp.cites || []).map(i => D.rid[i]).filter(Boolean) } : null;
+        if (st.lines) takeRules(st.lines.cites); }
       // the rule key behind every `by` the quota card names (lifts, each part of a combined lift, buckets): page v36's
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;

@@ -415,6 +415,8 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .gxc[data-k="lines"] .gxv,.gxc[data-k="hooks"] .gxv{font-size:var(--t1);line-height:1.1}
 .gxv{margin:3px 0 0;font:800 var(--t3)/1.25 "Bricolage Grotesque",Archivo,sans-serif}
 .gxs{margin:2px 0 0;font-size:var(--t4);line-height:1.3;color:var(--sub)}
+.gxv.says{display:flex;gap:6px;align-items:flex-start;font-size:var(--t3)!important;line-height:1.3!important}.gxv.says .gi{flex-basis:18px;width:18px;height:18px;margin-top:1px}
+.gxc .gxs .book{min-height:0;padding:12px 0;margin:-12px 8px -12px 0}
 .gxb{display:flex;gap:6px;align-items:flex-start;margin:6px 0 0;padding:4px 6px;background:var(--wash);font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}
 .gxb .gi{flex-basis:18px;width:18px;height:18px}
 .gxd{display:flex;gap:6px;align-items:flex-start;margin:6px 0 0;padding:4px 6px;border-left:3px solid var(--restricted);background:var(--wash);font-size:var(--t4);line-height:1.3}
@@ -735,11 +737,16 @@ function buildGear(){
       return {t: g.querySelector('.glabel')?.textContent || '', b: g.querySelector('.gval b')?.innerHTML || '', sub: [...g.querySelectorAll('.gval > span')].map(x => x.innerHTML), ...c}; });
     terms.forEach(gl => { const row = [...rows].reverse().find(x => x.keys.some(k => k.includes(gl))); if (row) row.b += ' ' + tip(gl); });
     rows.forEach(x => { keys.push(...x.keys); words.push(...x.words); const k = ROWKEY[x.t] || 'other';
-      let subs = x.sub, boat = '';
-      if (k === 'lines') { const bs = subs.find(t => /boat/.test(t));
+      let subs = x.sub, boat = '', val = `<p class="gxv">${x.b}</p>`;
+      if (k === 'lines' && st.lines?.says) {
+        // gear v6 (answers W4): the Lines row's own sentence, boat included, and the book page of every rule deciding it
+        keys.push(...st.lines.cites); words.push(...st.lines.cites.map(wordOf_));
+        val = `<p class="gxv says" data-boat data-cites="${st.lines.cites.length}">${icon('boats')}<span>${esc(st.lines.says)}</span></p>`;
+        subs = subs.filter(t => !/boat/.test(t)); const bk = booksOnce(st.lines.cites); if (bk) subs = subs.concat(bk); }
+      else if (k === 'lines') { const bs = subs.find(t => /boat/.test(t));   // older snapshots: the row's own words about a boat
         if (bs) { subs = subs.filter(t => t !== bs); boat = bs; }
         else { const rk = x.keys.find(namesBoat); if (rk) boat = esc(SNAP.rules[rk].title); } }
-      cells.push(`<div class="gxc gx-${k}" data-k="${k}" role="listitem"><p class="gxl">${icon(k)}${esc(x.t)}</p><p class="gxv">${x.b}</p>${subs.map(t => `<p class="gxs">${t}</p>`).join('')}`
+      cells.push(`<div class="gxc gx-${k}" data-k="${k}" role="listitem"><p class="gxl">${icon(k)}${esc(x.t)}</p>${val}${subs.map(t => `<p class="gxs">${t}</p>`).join('')}`
         + (boat ? `<p class="gxb" data-boat>${icon('boats')}<span>${boat}</span></p>` : '') + (k === 'lures' ? dateds(4 | 8) : '') + '</div>'); }); }
   // bait: the ✓/✕ list, condensed
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
