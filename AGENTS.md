@@ -303,7 +303,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 51. **"(any size)" is a caution, not a reading.** A larger water quota overrides the zone's "1
     over 50 cm" either way; only where the row prints "(any size)" does it carry a structured
     interpretation caution (no size limit, or just no minimum?). Rows with their own sizes or none
-    get no caution. (aeb070cf)
+    get no caution. (aeb070cf) SETTLED by the owner 2026-10-16 (RULINGS Q5a): "(any size)" drops EVERY
+    size constraint of the region for that fish — the bundle derives the lifts (`rules._any_size_lifts`,
+    `exempts[].basis: any_size`; Robb Lake's bull trout under Zone 7A's 1 over 50 cm).
 52. **A zone release limited to a kind of water displaces its own table on that water.** A zone
     release with `water: stream` (extents `feature_types: [stream]`) in force on a stream
     displaces its OWN region's quotas and clauses that keep the fish in the same base dimension

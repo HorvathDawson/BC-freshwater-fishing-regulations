@@ -181,11 +181,11 @@ def test_the_group_lead_says_the_total_and_the_stream_share_of_it_all(built):
 
 def test_the_group_model_requires_the_card():
     ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], "subcaps": [], **{"headline": {"n": 4, "unit": "a day", "says": "4 a day"}, "origin": None, "lifts": [],
-            "total_line": None, "worked": [], "states": [{"r": 1, "line": "headline"}],
+            "total_line": None, "worked": [], "not_kept": [], "states": [{"r": 1, "line": "headline"}],
             "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                          "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                     "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                         "notes": []}]}}
+                         "notes": [], "replaces": None}]}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
     for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
                 {**ok, "states": ok["states"] * 2}):
@@ -333,7 +333,8 @@ def test_every_rule_carries_its_book_pages_and_why_it_applies(built):
     ix = {k: i for i, k in enumerate(data["rule_ids"])}
     r5 = rules[ix[f"{COW}.r5"]]
     assert r5["book"] == [[15, 17]]                       # printed p.15 = PDF p.17
-    assert r5["applies"] == "This water’s own row in the book: Cowichan River."
+    assert r5["applies"] == ("This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: "
+                            "Cowichan River.")             # ROUND13 P: the book by its title
     g5 = rules[ix["z7b:arctic_grayling::arctic_grayling.r5"]]
     assert g5["applies"] == "From the Region 7B table, for Williston Lake."
     assert g5["applies_trib"] == ("Inherited from Williston Lake: the Region 7B table covers its "

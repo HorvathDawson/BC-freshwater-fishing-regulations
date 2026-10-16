@@ -235,14 +235,18 @@ def _sections() -> Tuple[Section, ...]:
         # in order (`notes[].then`), a count `over_cm` 0; ONE list `group.worked` folding the
         # kept-elsewhere examples in, each line with its basket (at, over_cm, of, most); the card
         # row's `elsewhere.ask` empty)
-        Section("rows", 11, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND13 Z/S/D/P: rows 12 (a kind keeping none says "catch and release"; `group.not_kept` every
+        # fish of the row nobody may keep, with whose rule; a lifting bucket's `replaces`; the lake line
+        # says the count left)
+        Section("rows", 12, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
         # "1 line (rod)")
         # ROUND12 5: gear 8 (`summary.says` with no em dash: "1 line with a single barbless hook (one
         # hook, lure or fly). Weight up to 1 kg."; the weight part "weight up to 1 kg")
-        Section("gear", 8, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND13 G/P: gear 9 (no hook named without a hook restriction; "weight on the line up to 1 kg")
+        Section("gear", 9, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
@@ -255,7 +259,8 @@ def _sections() -> Tuple[Section, ...]:
         # answers 2.8: display 7 (`rules[].where`: "Where you can’t fish", the fishway and fish-facility
         # buffers on the Keep side, D2)
         # ROUND11 A3: display 8 (frame `inherited`: a lift the tributary walk carries, in words)
-        Section("display", 8, display.section_scope, prepare=display.section_prepare,
+        # ROUND13 P: display 9 (`rules[].applies` names the book by its title)
+        Section("display", 9, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

@@ -131,7 +131,7 @@ def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
     row, _o, _P = _card(F.VEDDER)
     w = row["group"]["worked"]
     assert [x["q"] for x in w] == ["Keep 4 rainbows here", "Keep 3 rainbows here", "Keep 2 rainbows here",
-                                   "Kept some at a lake?", "Kept trout or char over 50 cm elsewhere today?"]
+                                   "Kept 1 at a lake?", "Kept trout or char over 50 cm elsewhere today?"]
     assert row["elsewhere"]["ask"] == []
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
     lake, over = w[3], w[4]
@@ -145,7 +145,7 @@ def test_w4_no_lift_the_elsewhere_lines_are_the_list():
     w = row["group"]["worked"]
     assert [(x["q"], x["a"]) for x in w] == [
         ("Kept 2 on another stream?", "Keep 0 here"),
-        ("Kept some at a lake?", "They count toward the 4 a day, not toward the 2 from streams"),
+        ("Kept 1 at a lake?", "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."),
         ("Kept trout or char over 50 cm elsewhere today?",
          "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "
          "than a hatchery steelhead.")]
@@ -171,10 +171,11 @@ def test_w5_gear_sentences_have_no_em_dash():
     okanagan = R11._rules("lake")["summary"]["says"]
     kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
     cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
-    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg."
-    assert okanagan == "1 line (2 while alone in a boat) with any hook (one hook, lure or fly). Weight up to 1 kg."
-    assert kootenay == ("1 line (no limit while in a boat) with any hook (one hook, lure or fly). "
-                        "Weight up to 1 kg.")
+    # ROUND13 G/P: no "any hook", "weight on the line" (test_answers_r13_wording.py)
+    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg."
+    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg."
+    assert kootenay == ("1 line (no limit while in a boat) with one hook, lure or fly. "
+                        "Weight on the line up to 1 kg.")
     assert cowichan == ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, sinker or "
                         "attracting device.")
     assert not any("—" in s for s in (vedder, okanagan, kootenay, cowichan))

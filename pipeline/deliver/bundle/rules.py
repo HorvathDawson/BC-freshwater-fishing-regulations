@@ -184,6 +184,8 @@ def size_clause_caution(z) -> dict:
 #: `basis` on a lift the book does not print as an exemption but states by NAMING THE FISH (see
 #: `_named_lifts`). Absent = the rule's own printed `exempts`.
 NAMES_THE_FISH = "names_the_fish"
+#: `basis` on a lift derived from a water row printing "(ANY SIZE)" (`_any_size_lifts`).
+ANY_SIZE_BASIS = "any_size"
 
 #: Groups that are NOT the name of a fish: an aggregate the book counts or closes as a class
 #: ("Trout/char: 5", "No fishing in any stream"). A rule naming one of these names no single fish,
@@ -599,6 +601,51 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
     return out
 
 
+def is_size_constraint(lifted_eid: str, z) -> bool:
+    """A SIZE CONSTRAINT of a region's own table (`z<region>:`, never the province's) for "(any size)"
+    to lift (`_any_size_lifts`): a size clause (`is_size_clause`: "only 1 over 50 cm"), or a size-only
+    rule — bands and no count of its own ("none under 30 cm", "none over 50 cm"). A quota printing
+    its own sizes ("Bull trout: 1, 30-50 cm only") is not one: it competes with the water's quota on
+    its own key, and the water's number already wins there."""
+    if not lifted_eid.startswith("z") or lifted_eid.startswith("zp:"):
+        return False
+    if z.type.value != "retention_limit" or not z.lengths or z.may_target is False:
+        return False
+    return is_size_clause(lifted_eid, z) or (z.take is None and not z.unlimited)
+
+
+def _any_size_lifts(entry_id: str, r, rules_of: dict[str, dict]) -> list[dict]:
+    """"(ANY SIZE)" DROPS EVERY SIZE CONSTRAINT OF ITS REGION FOR ITS FISH (owner, ROUND13 A,
+    2026-10-16 — settling the Q5 caution's question: no size limit at all, not just no minimum). A
+    water row's keeping quota printing "(any size)" lifts every size constraint of its region's tables
+    (`is_size_constraint`: the "only 1 over 50 cm" clauses, the "none under/over X cm" rules) for the
+    fish both name, whether or not the book prints the exemption: Robb Lake's "Bull trout daily quota
+    = 1 (any size)" lifts Zone 7A's "no more than 1 over 50 cm" for bull trout (its printed number is
+    no larger, so Q5 alone never lifted it). Derived HERE, once, into `exempts` with `basis:
+    any_size` — the client never infers it. How far it lifts is `_lift_terms` (fish both name, its
+    dates, origin); the lift holds only where the lifter is bound (the reader lifts on a section only
+    while the lifter speaks there)."""
+    if not entry_id.startswith("r") or r.type.value != "retention_limit" or r.may_target is False \
+            or not (r.unlimited or (r.take or 0) > 0) or r.within or r.lift_only \
+            or not prints_any_size(r):
+        return []
+    region = _zone_region(entry_id)
+    out: list[dict] = []
+    for eid in sorted(rules_of):
+        zr = _zone_region(eid)
+        if not (zr == region or (zr[:-1] == region and zr[-1:] in ("a", "b"))):
+            continue
+        for rid in sorted(rules_of[eid]):
+            z = rules_of[eid][rid]
+            if not is_size_constraint(eid, z):
+                continue
+            terms = _lift_terms(r, z)
+            if terms is None:
+                continue
+            out.append({"entry_id": eid, "rule_id": rid, **terms, "basis": ANY_SIZE_BASIS})
+    return out
+
+
 def is_blanket_closure(r) -> bool:
     """A region's BLANKET closure of a kind of water: "No fishing in any stream in Region 8, Apr
     1-June 30". `take: 0`, `may_target: false`, over every game fish (no species, or the aggregate
@@ -796,6 +843,9 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
     printed = {(x["entry_id"], x["rule_id"]) for x in out}
     derived = [x for x in _named_lifts(entry_id, r, closures or {})
                if (x["entry_id"], x["rule_id"]) not in printed]
+    have = printed | {(x["entry_id"], x["rule_id"]) for x in derived}
+    derived += [x for x in _any_size_lifts(entry_id, r, rules_of)
+                if (x["entry_id"], x["rule_id"]) not in have]
     if derived and r.water is not None:
         own = r.extents or []
         if not own or any([str(t).lower() for t in (x.get("feature_types") or [])]

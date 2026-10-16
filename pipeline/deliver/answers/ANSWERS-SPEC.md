@@ -98,6 +98,44 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND13 (2026-10-16) — rows 12, gear 9, display 9: no size on a kind keeping none, species closures said, what a lift replaces
+
+Same format string (`answers/2`); **rows 12, gear 9, display 9** (ladder 1, licence 4 unchanged). Owner review
+of v14 (ROUND13 Z, S, G, D, P, A); RULINGS P13, P14, Q5a.
+
+* **Z (rows 12).** A kind row keeping none (`n` 0: every band of the species releases) says no size:
+  `detail` "catch and release" — the Bella Coola's cutthroat on Oct 10 ("none under 25 cm and all
+  cutthroat trout catch and release") was "25 cm or longer". A kind keeping some keeps its size words.
+* **S (rows 12).** `group.not_kept` [{species, status: closed | release, says, by, whose}]: every fish of the
+  card's row (`all_members`) that no origin may keep here, one line per deciding rule — "Steelhead: no
+  fishing for them" with `whose` "this river’s rule" (Bella Coola r13; the Fraser above Mission's r5 on Aug
+  15-Dec 31; Region 6's May 15-June 15 steelhead stream closure), "Dolly Varden/bull trout: release every
+  one" (a ✱ tributary of the Duncan, where Kootenay Lake's tributaries row releases bull trout). The page
+  cites `by`'s Book page. The gate proves none may be kept (`card_check`, mutation-pinned).
+* **D (rows 12).** `buckets[].replaces` {says, rules} on a water's own-rule bucket (`why` rule, a lifting
+  entry's), null on every other: each cap of the region the bucket's lifting rules LIFT for its kinds
+  (the reader's verdicts), named from the cap's own number and bands — a share "2-from-streams limit", a
+  count "1-a-day limit", a size clause "1-over-50-cm limit", a floor "30 cm minimum size", a ceiling "50
+  cm maximum size" — by its owner, for the fish it is lifted for: Vedder "Replaces Region 2’s
+  2-from-streams limit and 30 cm minimum size for these fish"; Duncan "Replaces Region 4’s 2-from-streams
+  limit for these fish, and its 1-over-50-cm limit for rainbow trout". The page shows it under the bucket
+  title and no longer shows `lifts` (kept for proof and compatibility).
+* **P (rows 12).** The lake line says the count left after one kept there: "Kept 1 at a lake?" — "Keep 2
+  more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams." (`here`, gate-proved;
+  "Kept some at a lake?" stays only where no number is claimed).
+* **G, P (gear 9).** `summary.says` names no hook when nothing restricts it (the `hook` part stays in
+  `parts`, so `changes` can still say "any hook" on another day): Okanagan Lake "1 line (2 while alone in a
+  boat) with one hook, lure or fly. Weight on the line up to 1 kg."; Vedder "1 line with a single barbless
+  hook (one hook, lure or fly). Weight on the line up to 1 kg." The weight part is "weight on the line up to
+  1 kg".
+* **P (display 9).** `rules[].applies` names the book by its title: "This water’s own row in the 2025–2027
+  BC Freshwater Fishing Regulations Synopsis: Cowichan River." (`common.BOOK_TITLE`).
+* **A (bundle).** A water row's quota printing "(any size)" lifts EVERY size constraint of its region for its
+  fish (`rules._any_size_lifts`, `exempts[].basis: any_size`): Robb Lake's "Bull trout daily quota = 1 (any
+  size)" lifts Zone 7A's 1 over 50 cm for bull trout (its card said "Only 1 of the day’s trout and char may
+  be over 50 cm" over it). The other "(any size)" rows (Duncan, Lardeau, Kootenay Lake Main Body, Quesnel
+  Lake, Kaslo, Keen) already dropped every size constraint.
+
 ## ROUND12 (2026-10-16) — rows 11, gear 8: sizes said whole, own bucket first, every cap once, one list
 
 Same format string (`answers/2`); **rows 11, gear 8** (ladder 1, licence 4, display 8 unchanged). Owner

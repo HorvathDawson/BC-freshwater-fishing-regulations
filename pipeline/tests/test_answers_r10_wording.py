@@ -68,7 +68,9 @@ def CC_ix(g, r):
                         for s in g["subcaps"]],
             "lifts": [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}
                       for L in g["lifts"]],
-            "buckets": [{**b, "by": r(b["by"])} for b in g["buckets"]],
+            "buckets": [{**b, "by": r(b["by"]), "replaces": None if b["replaces"] is None else
+                         {**b["replaces"], "rules": [r(k) for k in b["replaces"]["rules"]]}} for b in g["buckets"]],
+            "not_kept": [{**x, "by": r(x["by"])} for x in g["not_kept"]],
             "worked": [{**w, "share": None if w["share"] is None else r(w["share"])} for w in g["worked"]],
             "states": [{**x, "r": r(x["r"])} for x in g["states"]]}
 

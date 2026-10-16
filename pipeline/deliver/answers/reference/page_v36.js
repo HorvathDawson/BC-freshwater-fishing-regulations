@@ -40,7 +40,7 @@ const gi = id => GLOSS.has(id) ? `<button class="gl" type="button" data-gl="${id
 // the region a row's region-wide limit comes from (its entry `z6:…` -> glossary term `region_6`)
 const regionGi = row => { const m = /^z(\d\w?):/.exec(row?.scope?.entry || ''); return m ? gi('region_' + m[1]) : ''; };
 function openGloss(id){ const t = GLOSS.get(id); if (!t) return;
-  openSheet(t.term, `What does this mean? · Book p.${t.pages.join(', p.')}`, `<p class="glsays">${esc(t.says)}</p>${t.example ? `<p class="glex"><b>For example:</b> ${esc(t.example)}</p>` : ''}<div class="lbl">In the book’s words</div><blockquote class="exact">${esc(t.quote)}</blockquote>`); }
+  openSheet(t.term, `What does this mean? · Book p.${t.pages.join(', p.')}`, `<p class="glsays">${esc(t.says)}</p>${t.example ? `<p class="glex"><b>For example:</b> ${esc(t.example)}</p>` : ''}<div class="lbl">In the words of the 2025–2027 BC Freshwater Fishing Regulations Synopsis</div><blockquote class="exact">${esc(t.quote)}</blockquote>`); }
 
 /* ---------- species (names only) ---------- */
 const FISH = D.species.fish, GROUPS = D.species.groups;
@@ -921,22 +921,27 @@ function groupBlock(row, rc){
 // total_line, buckets, worked; `elsewhere`) — water-first, each fact once, every number proved by card_check.
 // The page words nothing here: it lays the lines out, cites a rule's Book page from display.rules[].book and draws
 // one picture per species of a kind row (P5).
-function bookOf(ix){ const r = PLACE.R(ix), b = r.dr?.book; return b && b.length ? `<button class="bookref" type="button" data-rule="${esc(r.key)}">Book p.${b.map(x => x[0]).join(', p.')}</button>` : ''; }
+function bookOf(ix){ const r = PLACE.R(ix), b = r.dr?.book; return b && b.length ? `<button class="bookref" type="button" data-rule="${esc(r.key)}" title="2025–2027 BC Freshwater Fishing Regulations Synopsis">Book p.${b.map(x => x[0]).join(', p.')}</button>` : ''; }
 function cardBlock(row, id){
   const g = row.raw.group, el = row.raw.elsewhere;
   const org = g.origin ? `<p class="gorigin">${esc(g.origin)} <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button> ${gi('hatchery_wild')}</p>` : '';
-  const lines = [...g.lifts.map(L => `<li>${esc(L.says)} ${bookOf(L.by)}</li>`), ...(g.total_line ? [`<li>${esc(g.total_line)} ${gi('daily_quota')}</li>`] : [])];
+  // ROUND13 D (rows 12): the lift box is gone — a lifting bucket says what it replaces (`buckets[].replaces`);
+  // `g.lifts` stay in the answers for proof only
+  const lines = g.total_line ? [`<li>${esc(g.total_line)} ${gi('daily_quota')}</li>`] : [];
   const pic = S => hasPic(S) ? `<button class="kpic" type="button" data-fish="${S}" aria-label="${esc(spName(S))}">${FISHART.draw(S, { marks:false })}</button>` : '';
   const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
   // ROUND11 A1: a size cap the bucket's kinds share is its note, said once (rows 10 `buckets[].notes`)
   const bnotes = b => (b.notes || []).map(n => `<p class="s2"><b>${esc(n.says)}.</b></p>`).join('');
-  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
+  const repl = b => b.replaces ? `<p class="s2">${esc(b.replaces.says)}.</p>` : '';
+  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${repl(b)}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
+  // ROUND13 S (rows 12): every fish of the row nobody may keep here, said with whose rule and its Book page
+  const nk = (g.not_kept || []).length ? `<section class="bucket notkept">${g.not_kept.map(x => `<div class="krow"><span class="kpics">${x.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(x.says)}</b><p class="s2">${esc(cap(x.whose))} ${bookOf(x.by)}</p></div><b class="kn">${x.status === 'closed' ? '✕' : '0'}</b></div>`).join('')}</section>` : '';
   // ROUND12 4 (rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list, `group.worked` (the
   // keep-N count, then the kept-elsewhere examples it does not repeat) — no dropdown; `elsewhere.ask` is folded
   const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
   const sheet = el ? `<section class="elsewhere"><div class="lbl">How it adds up</div><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${worked}</section>` : '';
   const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
-  return `<section class="gblock card28">${org}${lines.length ? `<ul class="glifts">${lines.join('')}</ul>` : ''}${buckets}${sheet}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
+  return `<section class="gblock card28">${org}${lines.length ? `<ul class="glifts">${lines.join('')}</ul>` : ''}${buckets}${nk}${sheet}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }
 // the keep sentence: "Keep 1 of the 2 · 60 cm or longer · hatchery only"
 const sent = (num, of, segs, o) => { const sg = segs.filter(Boolean); return `<div class="sl">${o ? `<span class="o">${o}</span>` : ''}<span class="k">Keep${of && num >= of ? ' up to' : ''}</span> <b class="n">${num === Infinity ? 'any number' : num}</b>${of && of !== Infinity && num < of ? ` <span class="of">of your ${of}</span>` : ''}${sg.length ? `<span class="segs">${sg.map(x => `<span class="seg">${esc(x)}</span>`).join(' · ')}</span>` : ''}</div>`; };

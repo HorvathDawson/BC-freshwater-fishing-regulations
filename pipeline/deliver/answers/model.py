@@ -492,15 +492,42 @@ class BucketNote(Model):
     then: Tuple[NoteThen, ...]
 
 
+class Replaces(Model):
+    """ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts — `says` names each
+    cap of the region the bucket's lifting rules lift for its kinds ("Replaces Region 2’s 2-from-streams
+    limit and 30 cm minimum size for these fish"), `rules` those caps in the order said."""
+    says: StrictStr = Field(min_length=1)
+    rules: Tuple[RuleIx, ...] = Field(min_length=1)
+
+
 class Bucket(Model):
     """Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,
-    or the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1)."""
+    or the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);
+    `replaces` (ROUND13 D) what a lifting bucket replaces, else None."""
     title: Optional[StrictStr]                        # None: the only bucket, the headline's
     cap: Optional[Count]
     by: RuleIx
     why: Literal["share", "rule", "total"]
     kinds: Tuple[CardKind, ...] = Field(min_length=1)
     notes: Tuple[BucketNote, ...]
+    replaces: Optional[Replaces]
+
+    @model_validator(mode="after")
+    def _replaces_a_lift(self):
+        if self.replaces is not None and self.why != "rule":
+            raise ValueError("only a water's own-rule bucket replaces a cap")
+        return self
+
+
+class NotKept(Model):
+    """ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule —
+    "Steelhead: no fishing for them" (`status` closed), "Dolly Varden/bull trout: release every one"
+    (release); `by` the deciding rule (its Book page), `whose` "this river’s rule". Gate-proved."""
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    status: Literal["closed", "release"]
+    says: StrictStr = Field(min_length=1)
+    by: RuleIx
+    whose: StrictStr = Field(min_length=1)
 
 
 class Worked(Model):
@@ -544,7 +571,7 @@ class CardState(Model):
 class GroupTotal(Model):
     """One total on today's card and its sub-caps (answers 2.5, rows F14) — the DECISION (`pool`,
     `total`, `kinds`, `subcaps`) — and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact
-    once: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `worked`, `states` (`card.py`; every
+    once: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `not_kept`, `worked`, `states` (`card.py`; every
     number proved by `card_check`)."""
     pool: RuleIx
     total: Union[Positive, Literal["unlimited"]]
@@ -555,6 +582,7 @@ class GroupTotal(Model):
     lifts: Tuple[CardLift, ...]
     total_line: Optional[StrictStr]
     buckets: Tuple[Bucket, ...] = Field(min_length=1)
+    not_kept: Tuple[NotKept, ...]
     worked: Tuple[Worked, ...]
     states: Tuple[CardState, ...]
 
@@ -569,6 +597,8 @@ class GroupTotal(Model):
         every = [S for b in self.buckets for k in b.kinds for S in k.species]
         if sorted(every) != sorted(self.kinds):
             raise ValueError("every kind of the total sits in exactly one bucket row")
+        if set(S for x in self.not_kept for S in x.species) & set(self.kinds):
+            raise ValueError("a fish the card keeps is never said not kept")
         rs = [x.r for x in self.states]
         if len(rs) != len(set(rs)):
             raise ValueError("a cap is stated once on the card")

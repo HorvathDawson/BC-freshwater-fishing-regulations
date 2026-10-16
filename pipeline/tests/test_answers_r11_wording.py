@@ -134,7 +134,7 @@ def _rules(kind, hook=None, kootenay=False, fly=None):
 def test_a2_vedder_one_sentence_of_terminal_gear():
     s = _rules("stream", hook=Z2_HOOK)["summary"]
     # ROUND12 5: no em dash
-    assert s["says"] == "1 line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg."
+    assert s["says"] == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg."
     assert s["terms"] == ["single_barbless_hook"]
     assert s["cites"] == [PROVINCE, Z2_HOOK, ATTACH, WEIGHT]
     assert s["changes"] == []
@@ -144,14 +144,14 @@ def test_a2_a_stream_says_one_line_a_lake_keeps_its_boat_clause():
     assert _rules("stream", hook=Z2_HOOK)["counts"]["lines_per_angler"]["says"] == "1 line (rod)"
     okanagan = _rules("lake")
     assert okanagan["counts"]["lines_per_angler"]["says"] == "1 line (rod); 2 while alone in a boat"
-    assert okanagan["summary"]["says"] == ("1 line (2 while alone in a boat) with any hook (one hook, lure or "
-                                           "fly). Weight up to 1 kg.")
+    assert okanagan["summary"]["says"] == ("1 line (2 while alone in a boat) with one hook, lure or "
+                                           "fly. Weight on the line up to 1 kg.")
     assert okanagan["summary"]["terms"] == []
 
 
 def test_a2_kootenay_main_body_no_limit_in_a_boat():
     s = _rules("lake", kootenay=True)["summary"]
-    assert s["says"] == ("1 line (no limit while in a boat) with any hook (one hook, lure or fly). Weight up "
+    assert s["says"] == ("1 line (no limit while in a boat) with one hook, lure or fly. Weight on the line up "
                          "to 1 kg.")
     assert s["cites"] == [PROVINCE, KOOTENAY, ATTACH, WEIGHT]
 
@@ -173,7 +173,7 @@ def test_a2_dated_changes_name_the_other_days():
                                             "cites": [VEDDER_FLY]}]
     assert plain["summary"]["terms"] == ["single_barbless_hook", "fly_fishing"]
     assert may["summary"]["changes"] == [{"when": "Jun 1–Apr 30",
-                                          "says": "one hook, lure or fly and weight up to 1 kg",
+                                          "says": "one hook, lure or fly and weight on the line up to 1 kg",
                                           "cites": [ATTACH, WEIGHT]}]
 
 

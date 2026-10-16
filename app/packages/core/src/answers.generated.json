@@ -2616,7 +2616,7 @@
     },
     "Bucket": {
      "additionalProperties": false,
-     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1).",
+     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);\n`replaces` (ROUND13 D) what a lifting bucket replaces, else None.",
      "properties": {
       "by": {
        "minimum": 0,
@@ -2650,6 +2650,16 @@
        "title": "Notes",
        "type": "array"
       },
+      "replaces": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Replaces"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
       "title": {
        "anyOf": [
         {
@@ -2677,7 +2687,8 @@
       "by",
       "why",
       "kinds",
-      "notes"
+      "notes",
+      "replaces"
      ],
      "title": "Bucket",
      "type": "object"
@@ -4667,7 +4678,7 @@
     },
     "GroupTotal": {
      "additionalProperties": false,
-     "description": "One total on today's card and its sub-caps (answers 2.5, rows F14) \u2014 the DECISION (`pool`,\n`total`, `kinds`, `subcaps`) \u2014 and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact\nonce: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `worked`, `states` (`card.py`; every\nnumber proved by `card_check`).",
+     "description": "One total on today's card and its sub-caps (answers 2.5, rows F14) \u2014 the DECISION (`pool`,\n`total`, `kinds`, `subcaps`) \u2014 and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact\nonce: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `not_kept`, `worked`, `states` (`card.py`; every\nnumber proved by `card_check`).",
      "properties": {
       "buckets": {
        "items": {
@@ -4693,6 +4704,13 @@
         "$ref": "#/$defs/CardLift"
        },
        "title": "Lifts",
+       "type": "array"
+      },
+      "not_kept": {
+       "items": {
+        "$ref": "#/$defs/NotKept"
+       },
+       "title": "Not Kept",
        "type": "array"
       },
       "origin": {
@@ -4767,6 +4785,7 @@
       "lifts",
       "total_line",
       "buckets",
+      "not_kept",
       "worked",
       "states"
      ],
@@ -5438,6 +5457,52 @@
      "title": "LTnote",
      "type": "object"
     },
+    "NotKept": {
+     "additionalProperties": false,
+     "description": "ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule \u2014\n\"Steelhead: no fishing for them\" (`status` closed), \"Dolly Varden/bull trout: release every one\"\n(release); `by` the deciding rule (its Book page), `whose` \"this river\u2019s rule\". Gate-proved.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      },
+      "status": {
+       "enum": [
+        "closed",
+        "release"
+       ],
+       "title": "Status",
+       "type": "string"
+      },
+      "whose": {
+       "minLength": 1,
+       "title": "Whose",
+       "type": "string"
+      }
+     },
+     "required": [
+      "species",
+      "status",
+      "says",
+      "by",
+      "whose"
+     ],
+     "title": "NotKept",
+     "type": "object"
+    },
     "NoteThen": {
      "additionalProperties": false,
      "description": "A cap nested in a bucket note (ROUND12 3): at most `n` of `kinds` over `over_cm` (gate-proved).",
@@ -5637,6 +5702,32 @@
       "open"
      ],
      "title": "RealDaily",
+     "type": "object"
+    },
+    "Replaces": {
+     "additionalProperties": false,
+     "description": "ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts \u2014 `says` names each\ncap of the region the bucket's lifting rules lift for its kinds (\"Replaces Region 2\u2019s 2-from-streams\nlimit and 30 cm minimum size for these fish\"), `rules` those caps in the order said.",
+     "properties": {
+      "rules": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Rules",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "rules"
+     ],
+     "title": "Replaces",
      "type": "object"
     },
     "Row": {

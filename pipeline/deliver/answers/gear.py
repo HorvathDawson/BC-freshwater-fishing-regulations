@@ -287,15 +287,25 @@ def _and(words: Sequence[str]) -> str:
     return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
 
 
+#: the hook answer that restricts nothing: the sentence names no hook then (ROUND13 G, owner: "any hook"
+#: confused; the part stays in `parts` for `changes`)
+NO_HOOK_RESTRICTION = "trebles_and_barbs"
+
+
 def summary_sentence(parts: Dict[str, str]) -> str:
-    """"1 line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg." (ROUND12 5: no
-    em dash, the owner's easier read), a fly mode its lead ("Fly fishing only: 1 line with a single
-    barbless hook (one fly). No float, sinker or attracting device.")."""
+    """"1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg."
+    (ROUND12 5: no em dash, the owner's easier read; ROUND13 P: "weight on the line"), a fly mode its
+    lead ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, sinker or
+    attracting device."); with no hook restriction no hook is named (ROUND13 G): "1 line (2 while alone
+    in a boat) with one hook, lure or fly. Weight on the line up to 1 kg."."""
     body = parts.get("lines") or ""
-    if parts.get("hook"):
-        body += (" with " if body else "") + parts["hook"]
+    hook = parts.get("hook")
+    if hook == HOOK_WORDS[NO_HOOK_RESTRICTION]:
+        hook = None
+    if hook:
+        body += (" with " if body else "") + hook
     if parts.get("attach"):
-        body += f" ({parts['attach']})"
+        body += f" ({parts['attach']})" if hook else (" with " if body else "") + parts["attach"]
     body = body.strip()
     out = (f"{parts['mode']}: {body}" if parts.get("mode") else body[:1].upper() + body[1:]) + "."
     if parts.get("weight"):
@@ -355,7 +365,7 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
         if W is not None and W["c"].get("max") is not None:
             n = W["c"]["max"]
             n = int(n) if float(n).is_integer() else n
-            add("weight", f"weight up to {n} kg", [W])
+            add("weight", f"weight on the line up to {n} kg", [W])
     return out
 
 

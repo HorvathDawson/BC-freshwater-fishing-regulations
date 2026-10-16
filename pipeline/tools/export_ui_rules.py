@@ -1806,7 +1806,11 @@ LIFT_TEXT = {
              "CLOSED TO FISHING (see tables for exceptions)'), and so lifts that closure for the "
              "fish both name — never further than the lifter covers (its dates, `origin`, "
              "`lengths`, and only where the lifter itself is bound), and never a closure whose "
-             "own entry prints its exemptions. Derived when the bundle is built — never infer it. "
+             "own entry prints its exemptions. any_size (owner, ROUND13 A): the lifter is a water "
+             "row's quota printing '(any size)', which drops EVERY size constraint of its region for "
+             "its fish — the 'only 1 over 50 cm' clauses and the 'none under/over X cm' rules (Robb "
+             "Lake's 'Bull trout daily quota = 1 (any size)' lifts Zone 7A's 1 over 50 cm for bull "
+             "trout). Derived when the bundle is built — never infer it. "
              "Absent = the lifter's own printed exemption",
     "equivalent": "'<entry_id>::<rule_id>' — the lifter's printed exemption names that blanket "
                   "closure of its own region, and this item is the SAME KIND of closure in "
@@ -2621,7 +2625,11 @@ def guide_exempts(d: dict) -> dict:
             "with the book's note": pick(
                 lambda x: any(e.get("note") for e in F(x, "exempts") or []), "exempts", n=1),
             "derived — the water names the fish": pick(
-                lambda x: any(e.get("basis") for e in F(x, "exempts") or []), "exempts", n=1),
+                lambda x: any(e.get("basis") == "names_the_fish" for e in F(x, "exempts") or []),
+                "exempts", n=1),
+            "derived — the water prints (any size)": pick(
+                lambda x: any(e.get("basis") == "any_size" for e in F(x, "exempts") or []),
+                "exempts", n=1),
         },
         "rules": sum(bool(F(x, "exempts")) for x in rules.values()),
         "derived_lifts": sum(1 for x in rules.values() for e in F(x, "exempts") or []
@@ -3906,7 +3914,7 @@ def cases(d: dict, bundle: Path) -> dict:
 
     gone = lambda w, x, z: lambda a: rid(z) not in _ids(a)     # noqa: E731
     add("derived_lift", lift_cases(
-        "derived_lift", lambda w, x, z: x.get("basis") and full(x) and water(w),
+        "derived_lift", lambda w, x, z: x.get("basis") == "names_the_fish" and full(x) and water(w),
         lifted_fish, gone))
     add("printed_lift_reopens_closure", lift_cases(
         "printed_lift_reopens_closure",

@@ -142,7 +142,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     # read backwards, so the lifted water drops it
     assert row["elsewhere"]["ask"] == []
     assert [[w["q"], w["a"]] for w in g["worked"] if w["at"] != "here"][:1] == [
-        ["Kept some at a lake?", "They count toward the 4 a day, not toward the 2 from streams"]]
+        ["Kept 1 at a lake?", "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."]]
     # the hatchery rainbow's own row names no second group, and says what it counts toward
     own = row_of(built, t, f"{VR}.r9")
     assert own["group"] is None
@@ -168,11 +168,11 @@ def test_f14_one_group_per_total_and_every_keep_row_says_where_else_counts(built
 
 def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
     ok = {"pool": 1, "total": 4, "kinds": ["CT", "RB"], **{"headline": {"n": 4, "unit": "a day", "says": "4 a day"}, "origin": None, "lifts": [],
-              "total_line": None, "worked": [], "states": [{"r": 1, "line": "headline"}],
+              "total_line": None, "worked": [], "not_kept": [], "states": [{"r": 1, "line": "headline"}],
               "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                            "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                       "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                           "notes": []}]},
+                           "notes": [], "replaces": None}]},
           "subcaps": [{"r": 2, "take": 2, "water": "stream", "over_cm": None, "under_cm": None,
                        "of": ["CT"], "lifted": [{"members": ["RB"], "by": 3}]}]}
     M.GroupTotal.model_validate_json(json.dumps(ok))

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "11",
+            "version": "12",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -273,7 +273,16 @@ SPEC = {
                     "those examples), each {kept, q, a, species, origin, share (keep-here lines only), "
                     "here, other, away (null: not claimed), at: here | stream | lake, over_cm, of (the "
                     "kinds the numbers count, null every kind), most: exactly | at_most} proved by the "
-                    "gate; the card row's `elsewhere.ask` is empty (folded), its `says` kept. A decided answer's winner may be a size release (F13: a take-0 "
+                    "gate; the card row's `elsewhere.ask` is empty (folded), its `says` kept. Version 12 (ROUND13 Z/S/D/P): a "
+                    "kind keeping none says no size (`detail` \"catch and release\"); `not_kept` [{species, "
+                    "status: closed | release, says, by, whose}] every fish of the card's row nobody may keep "
+                    "here, said with whose rule (\"Steelhead: no fishing for them\", \"this river’s rule\"; cite "
+                    "`by`'s Book page; gate-proved: none may be kept); a lifting bucket's `replaces` {says, "
+                    "rules} (null on every other bucket) names each cap of the region its lifts replace "
+                    "(\"Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for these fish\") — "
+                    "show it under the bucket title; `lifts` stay for proof, not for display; the lake line "
+                    "says the count left (\"Kept 1 at a lake?\" \"Keep 2 more here. Fish from lakes count "
+                    "toward the 4 a day, not toward the 2 from streams.\"). A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
         },
         "gear": {
@@ -281,15 +290,17 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "8",
+            "version": "9",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
                       "otherwise {summary {says, parts [{part: mode | lines | hook | attach | weight, says, "
                       "cites, terms}], terms, cites, changes [{when, says, cites}]} (version 7, ROUND11 "
                       "A2: the day's terminal gear in ONE sentence — version 8, ROUND12 5, no em dash: \"1 "
-                      "line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg.\" — "
-                      "made from the count, hook, "
+                      "line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg.\" — version 9, "
+                      "ROUND13 G/P: no hook named when nothing restricts it (\"1 line (2 while alone in a boat) "
+                      "with one hook, lure or fly.\"; the `hook` part stays in `parts`), \"weight on the line up "
+                      "to 1 kg\" — made from the count, hook, "
                       "barb, lure and weight answers; `terms` glossary ids for the ⓘ; `changes` the "
                       "other days of the year at this moment that read differently, in calendar "
                       "order: {when: \"May 1–31\", says: \"fly fishing only\"}), "
@@ -355,7 +366,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "8",
+            "version": "9",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -395,7 +406,8 @@ SPEC = {
                      "(open it at `#page=<PDF page>`; the export guide's `pdf_pages`), `applies` one "
                      "line saying why the rule applies (its scope: B.C.-wide, a region's table, an "
                      "area, this water's own row, a federal or park authority; and what a lift "
-                     "lifts), `applies_trib` the same line where the rule is INHERITED by the "
+                     "lifts; version 9, ROUND13 P: the book named by its title, \"This water’s own row in "
+                     "the 2025–2027 BC Freshwater Fishing Regulations Synopsis: …\"), `applies_trib` the same line where the rule is INHERITED by the "
                      "tributary walk (a part whose rule set lists it under `trib`; null where it never is); "
                      "version 7 (answers 2.8, D2): `where` the heading a standing no-fishing place rule "
                      "shows under on the KEEP side beside the open/closed strip (\"Where you can’t "

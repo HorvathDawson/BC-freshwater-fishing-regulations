@@ -15,7 +15,8 @@ then holds every claim of the card against those maxima:
                              govern the other waters;
   each worked count        = what is left, here / on another stream / on a lake, after keeping that many
                              of the lifted kind here (RULINGS Q23b);
-  no two card lines state the same cap.
+  no two card lines state the same cap;
+  each fish the card says nobody may keep here (`not_kept`, ROUND13 S): none may be kept.
 
 HOW A FISH IS KEPT (`Engine.can_keep`): a fish (species, origin, length, place) — place "here", or
 "stream" / "lake" for another water of that kind in the region — may be kept after the fish already in
@@ -368,6 +369,11 @@ def check_group(P, g: dict) -> List[str]:
                 if len(base) < nt["n"] or not aside or E.most(aside, base, cap=1) < 1:
                     probs.append(f"{where}: bucket {b['title']!r} note says {nt['not_counting']} do not "
                                  f"count toward its {nt['n']} over {cm} cm, but none may be kept after them")
+    # ROUND13 S: a fish the card says nobody may keep here (closed or released) — none may be kept
+    for x in g.get("not_kept") or []:
+        got = E.most(E.fish(x["species"]), cap=1)
+        if got:
+            probs.append(f"{where}: not_kept says {x['species']} {x['status']}, but {got} may be kept here")
     head = g.get("headline")
     if head is not None:
         no_lift = Engine(P, g["pool"], unlift=frozenset(s["r"] for s in g["subcaps"] if s["lifted"]))
@@ -493,7 +499,10 @@ def _unref(v, ids):
                     for s in g["subcaps"]]
     g["lifts"] = [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}
                   for L in g["lifts"]]
-    g["buckets"] = [{**b, "by": r(b["by"])} for b in g["buckets"]]
+    g["buckets"] = [{**b, "by": r(b["by"]),
+                     "replaces": None if b.get("replaces") is None else
+                     {**b["replaces"], "rules": [r(k) for k in b["replaces"]["rules"]]}} for b in g["buckets"]]
+    g["not_kept"] = [{**x, "by": r(x["by"])} for x in g.get("not_kept") or []]
     g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]
     return g

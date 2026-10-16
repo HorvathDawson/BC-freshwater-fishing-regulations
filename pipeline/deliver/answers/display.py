@@ -39,8 +39,8 @@ import math
 import re
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import (AnswersError, cap, clean, join, lc, range_txt, sp_name,
-                                             when_dates)
+from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, cap, clean, join, lc, range_txt,
+                                             sp_name, when_dates)
 from pipeline.deliver.bundle.rules import closure_grade
 
 INF = float("inf")
@@ -1418,7 +1418,8 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     elif rank == 2:
         say = f"For an area — {_lc_place(name)}" + (f", in {region}." if region else ".")
     elif E.get("kind") == "water":
-        say = f"This water’s own row in the book: {name}."
+        # ROUND13 P (persona): the book named by its title
+        say = f"This water’s own row in the {BOOK_TITLE}: {name}."
         trib = f"Inherited from {name}: its row covers its tributaries."
     else:
         # a table's line about named waters (Zone B's "all from Williston Lake and its

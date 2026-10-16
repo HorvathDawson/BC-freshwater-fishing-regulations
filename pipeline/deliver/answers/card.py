@@ -24,6 +24,12 @@ out of them) is said as the angler reads a water:
               cap the kinds share is the bucket's NOTE, said once (ROUND11 A1: "Only 1 of these may be
               over 50 cm, not counting steelhead"; a cap spanning buckets on the first, "Only 1 of the
               day’s trout and char may be over 50 cm") — never on a kind row;
+  replaces    (ROUND13 D) on a water's own-rule bucket, what its lifts replace, generated from them —
+              each lifted cap of the region named: "Replaces Region 2’s 2-from-streams limit and 30 cm
+              minimum size for these fish" (the page's lift box is gone; `lifts` stay for proof);
+  not_kept    (ROUND13 S) every fish the card's row holds that nobody may keep here, with whose rule:
+              "Steelhead: no fishing for them" (Bella Coola r13), "Dolly Varden/bull trout: release every
+              one" — so "not listed" never stands for a closure (the gate proves none may be kept);
   worked      ONE list (ROUND12 4): RULINGS Q23b with the count worked through, for a lift past the share
               ("Keep 4 rainbows here → that’s your trout and char for the day, everywhere."), then the
               kept-elsewhere examples it does not repeat ("Kept some at a lake?", over 50 cm across
@@ -348,6 +354,103 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
         stated.add(sc["r"])
 
 
+#: the order a bucket's replaced caps are named in: counts (the share first), size caps, minimums, maximums
+_CAP_ORDER = ("share", "count", "over", "min", "max")
+
+
+def _cap_name(r) -> Optional[Tuple[str, str]]:
+    """(its order, its name) of a cap a water's rule lifts (ROUND13 D), from the rule's own number and
+    bands: the share "2-from-streams limit", a count "1-a-day limit", a size clause "1-over-50-cm
+    limit", a floor "30 cm minimum size", a ceiling "50 cm maximum size"; None for anything else (a
+    closure, a release)."""
+    from pipeline.deliver.answers.rows import _bands
+    take = r.f.get("take")
+    if isinstance(take, (int, float)) and take > 0 and not r.f.get("lengths"):
+        w = r.f.get("water")
+        return ("share", f"{_js(take)}-from-{w}s limit") if w else ("count", f"{_js(take)}-a-day limit")
+    for a, b, t in _bands(r):
+        if t and a and b == INF:
+            return "over", f"{_js(t)}-over-{_js(a)}-cm limit"
+    for a, b, t in _bands(r):
+        if t == 0 and not a and b != INF:
+            return "min", f"{_js(b)} cm minimum size"
+        if t == 0 and a and b == INF:
+            return "max", f"{_js(a)} cm maximum size"
+    return None
+
+
+def _replaces(P, model: dict, ks: Sequence[str], lifters: set) -> Optional[dict]:
+    """A water's own-rule bucket's statement of what it replaces (ROUND13 D, owner: the lift box goes;
+    the bucket says it): {says, rules} — every cap the reader says the bucket's lifting rules (`lifters`)
+    LIFT for its kinds (a kept origin), each named by its owner (`_cap_name`), for the fish it is lifted
+    for: the Vedder's "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for these fish";
+    the Duncan's "Replaces Region 4’s 2-from-streams limit for these fish, and its 1-over-50-cm limit for
+    rainbow trout". None when no cap is lifted."""
+    got: Dict[str, List[str]] = {}
+    for S in ks:
+        for o in _kept_origins(model, S):
+            for key, v in ((P.ladder.get(S) or {}).get(o) or {}).items():
+                r = P.by_key.get(key)
+                if r is None or not v or v[0] != "lifted" or v[3] not in lifters or _cap_name(r) is None:
+                    continue
+                if S not in got.setdefault(key, []):
+                    got[key].append(S)
+    if not got:
+        return None
+    keys = sorted(got, key=lambda k: (_CAP_ORDER.index(_cap_name(P.by_key[k])[0]), k))
+    every = set(ks)
+    # one phrase per set of fish, the caps lifted for every kind of the bucket first
+    sets: List[Tuple[frozenset, List[str]]] = []
+    for k in sorted(keys, key=lambda k: set(got[k]) != every):
+        fs = frozenset(got[k])
+        hit = next((x for x in sets if x[0] == fs), None)
+        if hit is None:
+            sets.append((fs, [k]))
+        else:
+            hit[1].append(k)
+    said: set = set()
+    parts = []
+    for fs, ks_ in sets:
+        owners: Dict[str, List[str]] = {}
+        for k in ks_:
+            x = P.by_key[k].x
+            owners.setdefault(x.get("entry_name") or "the region", []).append(_cap_name(P.by_key[k])[1])
+        whose = common.join([f"{'its' if o in said else o + '’s'} {common.join(ns, ' and ')}"
+                             for o, ns in owners.items()], " and ")
+        said |= set(owners)
+        for_ = "these fish" if fs == every else _names([S for S in ks if S in fs])
+        parts.append(f"{whose} for {for_}")
+    return {"says": "Replaces " + ", and ".join(parts),
+            "rules": [k for _fs, ks_ in sets for k in ks_]}
+
+
+def _not_kept(P, model: dict, row: dict, kinds: Sequence[str]) -> List[dict]:
+    """ROUND13 S (owner): every fish the card's row holds (`all_members`) that no origin may keep here,
+    SAID — {species, status: closed | release, says, by, whose}: "Steelhead: no fishing for them" with
+    "this river’s rule" (the Bella Coola's r13; the page cites `by`'s Book page), "Dolly Varden/bull
+    trout: release every one". One line per deciding rule and status, in the row's order."""
+    from pipeline.deliver.answers.rows import main_res
+    out: Dict[tuple, dict] = {}
+    for S in row.get("all_members") or []:
+        if S in kinds:
+            continue
+        R_ = model["R"].get(S) or {}
+        m = main_res(R_.get("H"), R_.get("W"))
+        if not m or m["status"] not in ("closed", "release") or m.get("win") is None:
+            continue
+        key = (m["status"], m["win"].key)
+        x = out.get(key)
+        if x is None:
+            x = out[key] = {"species": [], "status": m["status"], "by": m["win"].key,
+                            "whose": _whose(P, m["win"])[1]}
+        x["species"].append(S)
+    for x in out.values():
+        name = "Steelhead" if x["species"] == ["ST"] and P.steelhead_water else common.cap(_names(x["species"]))
+        x["says"] = f"{name}: " + ("no fishing for them" if x["status"] == "closed" else "release every one")
+    return [{"species": x["species"], "status": x["status"], "says": x["says"], "by": x["by"],
+             "whose": x["whose"]} for x in out.values()]
+
+
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     """The card fields of one group total (see the module docstring)."""
     from pipeline.deliver.answers.rows import _lift_words, _kept, written_name_of, keep_range
@@ -553,6 +656,11 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         else:
             name = None
             detail = ", ".join(x for x in (ow, _detail_words(P, model, S, lo, hi)) if x)
+        if n == 0:
+            # ROUND13 Z (owner): a kind keeping none here says no size — every band of it releases (the
+            # Bella Coola's cutthroat on Oct 10: "none under 25 cm and all cutthroat trout catch and
+            # release" is "catch and release", never "25 cm or longer")
+            detail = "catch and release"
         # ROUND11 A1: a size cap is never on a kind row — the bucket's note says it once (below)
         notes: List[str] = []
         if b["why"] == "rule" and not unlimited:
@@ -583,6 +691,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     _say_caps(P, model, grp, kinds, info, where_of, buckets, share, what, states)
     if len(buckets) == 1 and buckets[0]["why"] == "total":
         buckets[0]["title"] = None
+    for b in buckets:
+        lifters = {L["by"] for L in (share or {}).get("lifted", [])
+                   if lift_bucket.get(P.by_key[L["by"]].entry_id) is b}
+        b["replaces"] = _replaces(P, model, [S for S in kinds if where_of[S] is b], lifters) \
+            if lifters else None
+    not_kept = _not_kept(P, model, rows_out[home], kinds)
 
     # -- the worked count (RULINGS Q23b) -----------------------------------------------------------
     worked: List[dict] = []
@@ -632,4 +746,4 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                        "away": None, "at": x["at"], "over_cm": x["over_cm"], "most": x["most"],
                        "of": x["of"]})
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
-            "buckets": buckets, "worked": worked, "states": states}
+            "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states}

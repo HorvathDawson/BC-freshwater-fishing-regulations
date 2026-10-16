@@ -211,6 +211,10 @@ PART_KEY_FIELDS = ("ruleset", "licensing_set", "steelhead_water", "steelhead", "
 #: p.17). Its answers are a DOCUMENTED STATE, never an empty or computed one: the display, gear and
 #: licence frames of a tidal part key are `TIDAL_STATE` (its ladder, answer and rows hold no rule by
 #: definition — the key's `tidal` says why). The export's `waters[].tidal.guide` says the same words.
+#: THE BOOK BY ITS TITLE (ROUND13 P: a line citing "the book" names it) — the footer every numbered page of
+#: the repo's synopsis prints ("2025-2027 BC Freshwater Fishing Regulations Synopsis",
+#: `pipeline.common.synopsis_pages`), the year range with an en dash
+BOOK_TITLE = "2025–2027 BC Freshwater Fishing Regulations Synopsis"
 TIDAL_NOTE = ("Tidal water: a different regulation system. The B.C. freshwater fishing regulations do "
               "not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See "
               "the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a "

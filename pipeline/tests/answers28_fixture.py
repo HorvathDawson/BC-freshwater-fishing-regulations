@@ -28,6 +28,14 @@ ROUND12 (several size caps in one group) adds four waters, each a plain Region 2
   NESTED    a lake with Region 8's stream shape (p.66: 2 over 30 cm and 1 over 50 cm) made up as a Region 2
             lake's own "trout 4, only 2 over 30 cm" beside Region 2's 1 over 50 cm
 
+ROUND13 (owner review of v14) adds two Region 2 steelhead streams, each a plain one plus a row:
+  BELLA     the Bella Coola River's row (p.42, `atnarko_bella_coola_rivers.r3/r4/r13`, copied from the bundle
+            onto a Region 2 entry): "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout
+            catch and release)" and "No Fishing for steelhead" — the cutthroat kind keeps none (Z) and the
+            steelhead closure is said on the card (S)
+  FRASER    the Fraser above Mission's "No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31"
+            (p.23, `fraser_river_upstream_of_mission.r5`, the bundle's record): a DATED species closure
+
 `card(water, md)` asks the reader (`read.effective_rules_bound`, trace, per fish and origin — what the
 verdicts stage stores) over the rule set, builds the `rows.Part` and returns `rows.produce` plus the
 Part: what the answers build would write for that key and day.
@@ -56,6 +64,10 @@ LIFT2 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::ch
 CLAKE_DV = "r2:chilliwack_lake@2-4::chilliwack_lake.r2"
 VEDDER, STREAM, LAKE, TWO, CLAKE = "vedder", "stream", "lake", "two_lifts", "chilliwack_lake"
 WAHLEACH, SLOT, COUNT, NESTED = "wahleach_lake", "slot_lake", "count_stream", "nested_lake"
+BELLA, FRASER = "bella_coola", "fraser_mission"
+BELLA_ST = "r2:bella_coola_river@2-3::bella_coola_river.r13"
+FRASER_ST = ("r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::"
+             "fraser_river_upstream_of_mission.r5")
 #: water -> (set id, kind, steelhead water, steelhead rules here, presence)
 WATERS = {VEDDER: (1, "stream", True, True, "known"),
           STREAM: (2, "stream", True, True, "known"),
@@ -65,7 +77,9 @@ WATERS = {VEDDER: (1, "stream", True, True, "known"),
           WAHLEACH: (6, "lake", False, True, None),
           SLOT: (7, "lake", False, True, None),
           COUNT: (8, "stream", True, True, "known"),
-          NESTED: (9, "lake", False, True, None)}
+          NESTED: (9, "lake", False, True, None),
+          BELLA: (10, "stream", True, True, "known"),
+          FRASER: (11, "stream", True, True, "known")}
 
 
 #: set id -> the water's (set id, kind, steelhead water, steelhead rules here, presence)
@@ -135,6 +149,22 @@ _R12 = {
         ("nested_lake.r2", {"label": "Trout and char (no more than 2 over 30 cm)", "species": ["TROUT_CHAR"],
                             "take": 2, "lengths": [{"min_cm": 30}], "within": "nested_lake.r1",
                             "verbatim": "only 2 over 30 cm"})]),
+    10: ("r2:bella_coola_river@2-3", "Bella Coola River", [
+        ("bella_coola_river.r3", {"label": "Trout and char — 1 per day, all species combined (none under 25 cm)",
+                                  "species": ["TROUT_CHAR"], "take": 1,
+                                  "lengths": [{"min_cm": 25}, {"max_cm": 25, "take": 0}],
+                                  "verbatim": "Trout/char daily quota = 1 (none under 25 cm and all cutthroat "
+                                              "trout catch and release)"}),
+        ("bella_coola_river.r4", {"label": "Cutthroat trout — release all", "species": ["CT"], "take": 0,
+                                  "may_target": 1, "within": "bella_coola_river.r3",
+                                  "verbatim": "all cutthroat trout catch and release"}),
+        ("bella_coola_river.r13", {"label": "No fishing for steelhead", "species": ["ST"], "take": 0,
+                                   "may_target": 0, "verbatim": "No Fishing for steelhead"})]),
+    11: ("r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4", "Fraser River", [
+        ("fraser_river_upstream_of_mission.r5", {
+            "label": "No fishing for steelhead, Aug 15-Dec 31", "species": ["ST"], "take": 0, "may_target": 0,
+            "when": {"dates": [{"from_day": 15, "from_month": 8, "to_day": 31, "to_month": 12}]},
+            "verbatim": "No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31"})]),
 }
 _R12_SETS = {set_id: [(e, r) for r, _f in rows] for set_id, (e, _n, rows) in _R12.items()}
 

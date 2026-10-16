@@ -129,7 +129,8 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
         {"kept": 2, "q": "Keep 2 rainbows here", "a": "no more trout and char from any other stream today; up to 2 more "
                                                       "from here or from lakes."},
         # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
-        {"kept": 1, "q": "Kept some at a lake?", "a": "They count toward the 4 a day, not toward the 2 from streams"},
+        {"kept": 1, "q": "Kept 1 at a lake?",
+         "a": "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."},
         {"kept": 1, "q": "Kept trout or char over 50 cm elsewhere today?",
          "a": "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "
               "than a hatchery steelhead."}]

@@ -1648,15 +1648,24 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                 + f" ({_js(tot)} in all)"
         elif ex:
             a1 += ", except " + common.join([w for w, _m in ex], " or ")
-        a2 = (f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
-              if tot != "unlimited" else f"They don’t count toward the {_js(n)} from {wk}s")
         held = [S for S in row["members"] if S in (mine or {}).get("of", row["members"])]
         lifted_own = [P.by_key[L["by"]].f.get("take") for L in (mine or {}).get("lifted", [])]
         unl = tot == "unlimited" or any(x is None for x in lifted_own)
         here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
         here2 = None if unl else min(tot - 1, n + sum(lifted_own))
+        # ROUND13 P (owner): the lake line says how many are left here after 1 kept there (the gate
+        # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
+        # toward the 2 from streams."
+        if tot == "unlimited":
+            a2 = f"They don’t count toward the {_js(n)} from {wk}s"
+        elif here2 is None:
+            a2 = f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
+        else:
+            a2 = (f"Keep {_js(here2)} more here. Fish from {other}s count toward the {_js(tot)} a day, not "
+                  f"toward the {_js(n)} from {wk}s.")
         lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
-                 _line(f"Kept some at a {other}?", a2, model, row["members"], 1, other, here2)]
+                 _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
+                       model, row["members"], 1, other, here2)]
     elif s:
         says = f"Shared with everywhere in {s} you fish today" + \
             (", lakes and streams alike." if not pool.f.get("water") else ".")
@@ -1903,7 +1912,11 @@ def refs(out: dict, ix) -> dict:
                           "lifts": [{**L, "by": ix(L["by"]),
                                      "each": [{**e, "by": ix(e["by"])} for e in L["each"]]}
                                     for L in g["lifts"]],
-                          "buckets": [{**b, "by": ix(b["by"])} for b in g["buckets"]],
+                          "buckets": [{**b, "by": ix(b["by"]),
+                                       "replaces": None if b["replaces"] is None else
+                                       {**b["replaces"], "rules": [ix(k) for k in b["replaces"]["rules"]]}}
+                                      for b in g["buckets"]],
+                          "not_kept": [{**x, "by": ix(x["by"])} for x in g["not_kept"]],
                           "worked": [{**w, "share": None if w["share"] is None else ix(w["share"])}
                                      for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}

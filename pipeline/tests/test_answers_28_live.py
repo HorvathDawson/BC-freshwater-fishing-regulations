@@ -94,7 +94,7 @@ def test_vedder_mouth_oct_10_card(built):
         "Keep 3 rainbows here → 1 more: any kind from here, or one from a lake.",
         "Keep 2 rainbows here → no more trout and char from any other stream today; up to 2 more from here or from "
         "lakes.",
-        "Kept some at a lake? → They count toward the 4 a day, not toward the 2 from streams",
+        "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
         "Kept trout or char over 50 cm elsewhere today? → It counts here too: at most 2 over 50 cm a day in all — "
         "only 1 of them may be anything other than a hatchery steelhead."]
     assert row["elsewhere"]["ask"] == []
