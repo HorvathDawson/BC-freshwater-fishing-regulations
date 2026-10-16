@@ -9,21 +9,21 @@ const PAGE = pathToFileURL(path.resolve(HERE, '../../regs-v11.html')).href;
 const OUT = path.resolve(HERE, '../screens');
 const V = 'w=vedder&d=1010';
 const SCREENS = [
-  // What you can keep: D2 "Where you can't fish" sits with the open/closed strip
+  // What you can keep: "Where these rules apply" under the header; no part strip (v12, owner 5)
   ['01-keep-vedder-top', V],
   ['02-keep-cowichan-closed', 'w=cowichan&d=1010&p=0'],
-  // B: Gear & licence, one page
-  ['03-gear-vedder-glance', `${V}&sec=gear`],
-  ['04-gear-vedder-licence', `${V}&at=%23g-licence`],
-  ['05-gear-vedder-your-gear', `${V}&at=%23g-line`],
-  ['06-gear-vedder-bait-ways', `${V}&at=%23g-bait`],
-  ['07-gear-vedder-always', `${V}&at=%23g-always`],
+  // Gear & licence: 1 Gear & methods (one what's-allowed block), 2 Always, 3 Licence last (v12, owner 3)
+  ['03-gear-vedder-whats-allowed', `${V}&sec=gear`],
+  ['04-gear-vedder-methods', `${V}&at=%23g-gear%20.gx-weight`],
+  ['05-gear-vedder-always-licence', `${V}&at=%23g-always`],
+  ['06-gear-vedder-licence', `${V}&at=%23g-licence`],
+  ['07-gear-kootenay-boat-lines', 'w=klwa&d=1010&sec=gear'],
   ['08-gear-vedder-u16', `${V}&age=u16&at=%23g-licence`],
-  ['09-gear-vedder-may15', 'w=vedder&d=515&at=%23g-line'],
-  ['10-gear-kootenay', 'w=klwa&d=1010&at=%23g-line'],
+  ['09-gear-vedder-may15', 'w=vedder&d=515&sec=gear'],
+  ['10-gear-kootenay-main-body', 'w=klmb&d=1010&sec=gear'],
   ['11-sheet-gear-sources', `${V}&sec=gear&sheet=srcs:line|vedder_1010`],
   ['12-gear-cowichan-closed', 'w=cowichan&d=1010&p=0&sec=gear'],
-  // C: the water map
+  // C: the water map ("Where these rules apply")
   ['13-map-vedder-open', `${V}&scroll=600&map=1`],
   ['14-map-vedder-step-up-1', `${V}&map=1&mp=1`],
   ['15-map-vedder-step-up-2', `${V}&map=1&mp=2`],
@@ -39,11 +39,11 @@ const SCREENS = [
   ['25-map-roundtrip-2-back-same-scroll', `${V}&scroll=600`],
   // dark mode and 200% text
   ['26-dark-map', `${V}&theme=dark&map=1&mk=0`],
-  ['27-dark-gear', `${V}&theme=dark&at=%23g-line`],
+  ['27-dark-gear', `${V}&theme=dark&sec=gear`],
   ['28-dark-keep', `${V}&theme=dark`],
-  ['29-text-200-gear', `${V}&ts=2&at=%23g-line`],
+  ['29-text-200-gear', `${V}&ts=2&sec=gear`],
   ['30-text-200-map', `${V}&ts=2&map=1`],
-  // round 2: the answers 2.8 quota card
+  // the answers 2.8 quota card; v12: whole pictures under each kind's name
   ['31-card-vedder', `${V}&at=.g28`],
   ['32-card-vedder-how-it-adds-up', `${V}&at=.worked`],
   ['33-sheet-fished-elsewhere', `${V}&sheet=else:vedder_1010|0`],
@@ -54,6 +54,13 @@ const SCREENS = [
   ['38-card-anderson-plain-r3-stream', 'w=anderson&d=1010&at=.g28'],
   ['39-dark-card', `${V}&theme=dark&at=.g28`],
   ['40-text-200-card', `${V}&ts=2&at=.g28`],
+  // v12 (round 10)
+  ['41-keep-vedder-other-fish-and-nofish-note', `${V}&at=.nofish`],
+  ['42-sheet-bull-trout-picture', `${V}&sheet=sp:DV`],
+  ['43-sheet-other-fish-pictures', `${V}&at=.olist&sheet=sp:LT`],
+  ['44-keep-cowichan-part2-where', 'w=cowichan&d=1010&p=1'],
+  ['45-gear-kitimat-boats', 'w=x14p&d=1010&p=0&sec=gear'],
+  ['46-sheet-parts-no-map', 'w=x14p&d=1010&p=0&sheet=parts'],
 ];
 const only = process.argv[2];
 for (const [name, hash] of SCREENS) {

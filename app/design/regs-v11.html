@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Regs v11</title>
-<!-- v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
+<title>Regs v12</title>
+<!-- v12 (round 10, owner 1 2 3 5), in place on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
      `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
@@ -291,10 +291,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ktile.on .tchev{transform:rotate(-135deg);top:20px}
 .gtopic.gpane{grid-column:1 / -1;padding:6px 0 12px;border-top:0;border-bottom:1.5px solid var(--ink)}
 /* B2 a picture on every fish row */
-.th{flex:0 0 56px;width:56px;height:28px;margin-top:1px;background:var(--wash);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.th img{width:100%;height:100%;object-fit:contain;display:block}
+.th{flex:0 0 64px;width:64px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.th img{display:block;width:64px;height:auto;object-fit:contain;background:var(--wash)}
 .th.sil{color:var(--line2)}.th.sil svg{width:40px;height:20px}
 .orow{align-items:center}.orow .on{min-width:0}
+div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px;align-items:center;min-height:44px;padding:9px 0}
+.sbody > .kpics{margin:0 0 8px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .th img{filter:brightness(.82)}}
 :root[data-theme="dark"] .th img{filter:brightness(.82)}
 /* B3 book cites beside every rule chip; 44 px hit area without growing the line */
@@ -317,14 +319,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .poster p{font-size:17px;line-height:1.5;color:var(--sub);max-width:48ch}
 .ctl{border-top:1.5px solid var(--ink);padding:12px 0}.ctl .cs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ctl .pill{min-height:36px}.ctl .pill.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 /* v11 (round 9) */
-/* D2 where you can't fish: with the open/closed strip */
-.nofish{margin:12px 16px 0;padding:8px 0 2px;border-top:1px solid var(--line2)}
-.nofish h3{margin:0 0 2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:800 var(--t3) "Bricolage Grotesque",Archivo,sans-serif}
-.nofish .scope{font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+/* v12 (round 10, owner 1) where you can't fish: a quiet note below the quota tables */
+.nofish{margin:6px 16px 0;padding:10px 0 6px;border-top:1px solid var(--line2);color:var(--sub)}
+.nofish h3{margin:0 0 2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.nofish .scope{font:600 var(--t4) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--faint)}
 .nofish ul{list-style:none;margin:0;padding:0}
-.nofish li{position:relative;padding:3px 0 3px 20px;font-size:var(--t4)}
-.nofish li::before{content:"✕";position:absolute;left:2px;top:3px;color:var(--closed);font-weight:800}
-.nofish .factbtn{display:inline;min-height:0;text-align:left}
+.nofish li{padding:3px 0;font-size:var(--t4);line-height:1.4}
+.nofish .factbtn{display:inline;min-height:0;text-align:left;color:inherit}
 .nofish .cite{display:inline}.nofish .cite .book{display:inline-block;min-height:0;margin:0 0 0 6px;padding:12px 0;margin-block:-12px}
 /* B gear & licence: one page — at a glance, then 1–5 */
 #gear .gpart{padding:16px 0 8px;border-top:1.5px solid var(--ink)}
@@ -396,6 +397,36 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #gear .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
 .ts2 .gdl > div{grid-template-columns:minmax(0,1fr);gap:2px}
 .ts2 .mlegend{max-width:80%}.ts2 .mk span{max-width:240px}
+/* v12 (round 10) 5: where these rules apply, right under the header */
+.where{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 16px;border-bottom:1px solid var(--line2);background:var(--wash)}
+.where .pin{flex:0 0 22px;width:22px;height:22px;color:var(--accent)}
+.where .wt{flex:1;min-width:0}.where .wl{display:block;font:700 var(--t4) Archivo,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.where b{display:block;font:700 var(--t3)/1.3 Archivo,sans-serif}
+.where .wgo{flex:0 0 auto;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;white-space:nowrap}
+.wmap .mh .ttl small{white-space:normal}
+/* v12 (round 10, owner 3) gear & methods: one "what's allowed" block, gear first then methods */
+.gx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);border-top:1px solid var(--line2);margin:2px 0 4px}
+.gxc{padding:9px 8px 9px 0;border-bottom:1px solid var(--line2);min-width:0}
+.gxc:nth-child(odd):not(.wide){padding-right:12px;border-right:1px solid var(--line2)}.gxc:nth-child(even):not(.wide){padding-left:12px}
+.gxc.wide{grid-column:1 / -1}
+.gxl{display:flex;align-items:center;gap:6px;margin:0;font:700 var(--t4)/1.25 Archivo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--sub)}
+.gx .gxi{padding:0;margin-left:0}
+.gi{flex:0 0 20px;width:20px;height:20px;color:var(--ink)}
+.gxc[data-k="lines"] .gxv,.gxc[data-k="hooks"] .gxv{font-size:var(--t1);line-height:1.1}
+.gxv{margin:3px 0 0;font:800 var(--t3)/1.25 "Bricolage Grotesque",Archivo,sans-serif}
+.gxs{margin:2px 0 0;font-size:var(--t4);line-height:1.3;color:var(--sub)}
+.gxb{display:flex;gap:6px;align-items:flex-start;margin:6px 0 0;padding:4px 6px;background:var(--wash);font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}
+.gxb .gi{flex-basis:18px;width:18px;height:18px}
+.gxd{display:flex;gap:6px;align-items:flex-start;margin:6px 0 0;padding:4px 6px;border-left:3px solid var(--restricted);background:var(--wash);font-size:var(--t4);line-height:1.3}
+.gxd .gi{flex-basis:16px;width:16px;height:16px;color:var(--restricted)}.gxd em{font-style:normal;font-weight:700;color:var(--restricted)}
+.gxi{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:2px 14px}
+.gxi li{display:flex;gap:5px;align-items:baseline;font-size:var(--t3)}.gxi li > i{font-style:normal;font-weight:800;width:12px}
+.gxi li.ok > i{color:var(--open)}.gxi li.no > i{color:var(--closed)}
+.gxi li small{display:block;font-size:var(--t4);color:var(--sub);line-height:1.3}
+.gxc[data-k="methods"] .gxi{flex-direction:column}
+.gxno{display:flex;flex-wrap:wrap;gap:2px 12px;margin:6px 0 0;font-size:var(--t4);color:var(--sub)}.gxno i{font-style:normal;font-weight:800;color:var(--closed);margin-right:4px}
+.gxi.plain li{font-size:var(--t4)}
+.ts2 .gx{grid-template-columns:minmax(0,1fr)}.ts2 .gxc{border-right:0!important;padding-left:0!important}
 /* round 9 / answers 2.8: the water-first quota card */
 .g28 .rhead .num{white-space:normal;max-width:42%}.g28 .rhead .num small{white-space:normal}
 .ts2 .g28 .rhead{flex-direction:column;gap:2px}.ts2 .g28 .rhead .num{text-align:left;max-width:none}
@@ -415,9 +446,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .k28 .s2{margin:2px 0 0;font-size:var(--t4);color:var(--sub)}
 .k28 .duty{margin:2px 0 0;font-size:var(--t4);font-weight:700;color:var(--restricted)}
 .k28 .kn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);min-width:1.2em;text-align:right}
-.kpics{display:flex;flex:0 0 92px;padding-top:2px}
-.kp{width:52px;height:26px;background:var(--wash);border:1.5px solid var(--card);border-radius:13px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
-.kp img{width:100%;height:100%;object-fit:contain}.kp.sil{color:var(--line2)}.kp.sil svg{width:36px;height:18px}
+.kpics{display:flex;flex-wrap:wrap;gap:0 8px;margin:2px 0 0}
+/* v12 (owner 2): whole pictures, 2:1 like every photo in the manifest, side by side; the button is the 44 px hit area */
+.kp{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:4px 0;width:80px}
+.kcap{font:600 var(--t4)/1.2 Archivo,sans-serif;color:var(--accent)}
+.kp img{width:80px!important}
+.kp img{display:block;width:72px;height:auto;object-fit:contain;background:var(--wash)}
+.kp.sil{color:var(--line2);min-height:44px}.kp.sil svg{width:56px;height:28px}
 .worked{margin-top:12px}
 .worked ul{list-style:none;margin:0;padding:0}
 .worked li{padding:6px 0;border-top:1px solid var(--line);font-size:var(--t4)}.worked li:first-child{border-top:0}
@@ -435,7 +470,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       <div class="wmap" id="wmap"></div>
     </div>
     <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div></div>
-  <div class="poster"><h1>Regs v11</h1>
+  <div class="poster"><h1>Regs v12</h1>
     <p>One Regulations surface with two parts, <b>What you can keep</b> and <b>Gear &amp; licence</b>, under one header. Every fact is page v36’s, from a script-made snapshot. Strip flags, book pages and group items come from answers 2.6.</p>
     <div class="ctl"><span class="lab">Water and day</span><div class="cs" id="c-w"></div></div>
     <div class="ctl"><span class="lab">Theme and text</span><div class="cs" id="c-t"></div></div></div>
@@ -473,6 +508,8 @@ const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x
 const ST = () => SNAP.states[sid()];
 const SYNOPSIS_PDF = 'https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf';
 const bookLinks = key => { const i = SNAP.ruleInfo[key]; if (!i || !i.book) return ''; return i.book.map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
+const booksOnce = keys => { const pages = new Map(); keys.forEach(k => (SNAP.ruleInfo[k]?.book || []).forEach(([pr, pdf]) => pages.has(pr) || pages.set(pr, pdf)));
+  return [...pages].map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
 const appliesOf = key => { const i = SNAP.ruleInfo[key]; return i ? [i.applies, i.applies_trib].filter(Boolean) : []; };
 /* the strip from the data's per-day flags (answers 2.6): closed 1, release 2, fly-only 4, flies-only 8, bait ban 16.
    Legend words are the data's own (display.strip[].label). */
@@ -492,15 +529,20 @@ const FISHPIC = code => (FISHMANIFEST.images || []).filter(i => i.code === code)
 /* B2: one picture per fish/kind row: the first fish of the row that has a photo, else a neutral silhouette (UI art, no fact) */
 const SIL = '<svg viewBox="0 0 64 32" aria-hidden="true"><path d="M6 16c7-8 18-11 29-9.5 7 1 12 4.5 16 9.5-4 5-9 8.5-16 9.5C24 27 13 24 6 16Zm45 0 9-7.5v15Z" fill="currentColor"/><circle cx="15" cy="14" r="1.6" fill="var(--wash)"/></svg>';
 function thumb(codes){ const c = (codes || []).find(x => FISHPIC(x).length);
-  return `<span class="th${c ? '' : ' sil'}" aria-hidden="true">${c ? `<img src="../apps/mobile/assets/fish/${FISHPIC(c)[0].file}" alt="" loading="lazy">` : SIL}</span>`; }
+  return c ? fishBtn(c, 'th') : `<span class="th sil" aria-hidden="true">${SIL}</span>`; }
+/* v12 (owner 2): a species' picture: the whole photo (the manifest's pictures are all 2:1, the box is 2:1, contain),
+   a button that opens its picture sheet; no photo: the neutral silhouette, not a button */
+const fishName = c => SNAP.fish[c]?.name || FISHPIC(c)[0]?.caption || c;
+function fishBtn(c, cls = 'kp'){ const f = FISHPIC(c)[0];
+  if (!f) return `<span class="${cls} sil" aria-hidden="true">${SIL}</span>`;
+  // the kind rows caption each picture with the photo's own caption (the manifest's), so a name can be found and tapped
+  return `<button type="button" class="${cls}" data-open="sp:${c}" aria-label="What a ${esc(fishName(c))} looks like"><img src="../apps/mobile/assets/fish/${f.file}" alt="" loading="lazy" style="aspect-ratio:${f.width}/${f.height}">${cls === 'kp' ? `<span class="kcap">${esc(f.caption)} ›</span>` : ''}</button>`; }
 /* B3: every cited rule carries its book page: after each remaining data-rule chip, the data's "Book p.N ↗" */
 const citeBooks = html => html.replace(/<button class="bookref"[^>]*\bdata-rule="([^"]+)"[^>]*>[^<]*<\/button>/g, (m, key) => bookLinks(key) || m).replace(/(<button\b[^>]*\bdata-rule="([^"]+)"[^>]*>[\s\S]*?<\/button>)/g, (m, b, key) => { const bl = bookLinks(key); return bl ? `<span class="cite">${b}${bl}</span>` : b; });
 /* B4: a lone ⓘ stays inline after its term; two or more side by side become one "What these words mean" link */
 const tip = id => `<button class="gl" type="button" data-gl="${id}" aria-label="What does ${esc((SNAP.gloss[id]?.title || id))} mean?">ⓘ</button>`;
 const tips = ids => !ids.length ? '' : ids.length === 1 ? tip(ids[0]) : `<button class="glk" type="button" data-gl="${ids.join(',')}">What these words mean</button>`;
 const combineTips = html => html.replace(/(?:<button class="gl"[^>]*?data-gl="\w+"[^>]*>ⓘ<\/button>\s*){2,}/g, run => ' ' + tips([...run.matchAll(/data-gl="(\w+)"/g)].map(m => m[1])) + ' ');
-/* B5: the part strip uses the data's short label when it has one, else the full label */
-const partLbl = o => !o ? '' : (Object.entries(o).find(([k, v]) => /short/i.test(k) && v)?.[1]) || o.t.replace(/ · \d+ sections?$/, '');
 
 /* ---------- header: back · water · date, then [What you can keep | Gear & licence] + View on map, then parts ---------- */
 function statusOf(st){ const h = st.cardHTML; return /wsstat closed/.test(h) ? 'closed' : /wsstat open/.test(h) ? 'open' : 'unknown'; }
@@ -512,9 +554,24 @@ function hdr(){
       <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
     <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div>
       ${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '<!--'}<button class="mapbtn" data-map="1" aria-label="View this water on a map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3.5H21V20.5H3Z" stroke-width="1.8"/><path d="M8 3.5V9L12.5 13.5V20.5M17.5 3.5V7L12.5 13.5" stroke-width="2.2"/></svg><span>Map</span></button>${WATERS[S.w].map && WM.waters[WATERS[S.w].map] ? '' : '-->'}</div>
-    ${parts ? `<div class="parts" role="group" aria-label="Parts, from the mouth">${parts.map((id, i) => { const s2 = SNAP.states[id], k2 = statusOf(s2), on = i === S.p;
-      return `<button aria-current="${on}" data-part="${i}" aria-label="Part ${i+1}: ${esc(st.parts.find(o => o.v === s2.part)?.t || '')}, ${k2}"><i class="${k2==='closed'?'s-closed':'s-keep'}"></i>${i+1}${on ? `<span>${esc(partLbl(st.parts.find(o => o.v === s2.part)))}</span>` : ''}</button>`; }).join('')}</div>` : ''}</div>`;
+    </div>`;
 }
+/* v12 (round 10, owner 5): no part strip. Right under the header, one row says where these rules apply (the part's
+   label from the data) and opens the water map, the one place parts are chosen. A label the data shortened with "…"
+   is never used: the full one is. Waters this prototype has no map for get a parts list sheet instead. */
+const fullPart = o => !o ? '' : (o.short && !/…/.test(o.short) ? o.short : o.t.replace(/ · \d+ sections?$/, ''));
+function hereLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part);
+  if (o) return fullPart(o);
+  const g = WATERS[S.w].map && WM.waters[WATERS[S.w].map];
+  if (g) { const p = g.parts[curPart()]; return p.short && !/…/.test(p.short) ? p.short : p.name; }
+  return ''; }
+const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true" class="pin"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.8" r="2.3" fill="currentColor"/></svg>';
+function whereRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = hereLabel();
+  const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
+  const inner = `${PIN}<span class="wt"><span class="wl">Where these rules apply</span><b>${esc(lbl || st.name)}</b></span>`;
+  if (hasMap) return `<button class="where" type="button" data-map="1">${inner}<span class="wgo">View on map ›</span></button>`;
+  if (many) return `<button class="where" type="button" data-open="parts">${inner}<span class="wgo">Other parts ›</span></button>`;
+  return `<div class="where">${inner}</div>`; }
 
 /* ---------- transform v36's card fragment into v10's layout ---------- */
 function speciesRow(codes){
@@ -530,13 +587,13 @@ function buildKeep(){
     const lg = root.querySelector('.wstrip .slegend'); const html = `<div class="slegend">${flagLegend(st.runs)}</div>`;
     if (lg) lg.outerHTML = html; else root.querySelector('.wstrip .smonths')?.insertAdjacentHTML('afterend', html); }
   root.querySelectorAll('.looks, .lthumb').forEach(e => e.remove());
-  // D2: the no-fishing buffers (fishway 23 m, fish facility 100 m) sit with the open/closed strip as "Where you can't fish",
-  // not after the fish (where they read as the top of Gear & licence). The data's own lines and scope.
-  const cav = root.querySelector('.caveats');
-  if (cav) { const anchor = root.querySelector('.banner') || root.querySelector('.wstrip'), sec = doc.createElement('section');
-    sec.className = 'nofish'; sec.setAttribute('aria-labelledby', 'nofish-h');
-    sec.innerHTML = `<h3 id="nofish-h">Where you can’t fish ${(sc => sc && !/^where you can.t fish$/i.test(sc.trim()) ? `<span class="scope">${esc(sc)}</span>` : '')(cav.querySelector('.lbl')?.textContent || '')}</h3><ul>${[...cav.querySelectorAll('li')].map(li => `<li>${li.innerHTML}</li>`).join('')}</ul>`;
-    cav.remove(); if (anchor) anchor.after(sec); else root.prepend(sec); }
+  // v12 (round 10, owner 1): the no-fishing buffers (fishway 23 m, fish facility 100 m) are a quiet note BELOW the quota
+  // tables (after the groups and Other fish), not a list of red ✕ rules up front. The data's own lines and scope.
+  const cav = root.querySelector('.caveats'); let nofish = null;
+  if (cav) { nofish = doc.createElement('section');
+    nofish.className = 'nofish'; nofish.setAttribute('aria-labelledby', 'nofish-h');
+    nofish.innerHTML = `<h3 id="nofish-h">Where you can’t fish ${(sc => sc && !/^where you can.t fish$/i.test(sc.trim()) ? `<span class="scope">${esc(sc)}</span>` : '')(cav.querySelector('.lbl')?.textContent || '')}</h3><ul>${[...cav.querySelectorAll('li')].map(li => `<li>${li.innerHTML}</li>`).join('')}</ul>`;
+    cav.remove(); }
   // B4: an ⓘ the page puts before its term ("ⓘ Possession: …") goes right after the term
   root.querySelectorAll('.gl').forEach(b => { const n = b.nextSibling; const m = n && n.nodeType === 3 && n.textContent.match(/^(\s*)([^:.]{1,40})(:[\s\S]*)$/);
     if (m) { n.textContent = m[3]; b.before(doc.createTextNode(m[1] + m[2])); } });
@@ -556,15 +613,17 @@ function buildKeep(){
     const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
     const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
     const vb = [...art.querySelectorAll('section.bucket')];
-    const lifts = (g.lifts || []).map((l, i) => { const b = (g.buckets || []).find(x => x.by === l.by && x.why === 'rule');
-      return `<div class="lift"><span class="ltag">${esc(b?.title || '')}</span><p>${esc(l.says)} ${bookLinks(keyIn(lis[i]))}</p></div>`; }).join('');
+    // a lift cites EVERY lifting rule's book page, once each (answers rows v9: a water lifting several kinds has one
+    // lift with each[] = {kinds, n, by}; older snapshots carry one lift per kind, so [l] stands in when each is absent)
+    const lifts = (g.lifts || []).map((l, i) => { const parts = l.each && l.each.length ? l.each : [l];
+      const b = (g.buckets || []).find(x => parts.some(e => e.by === x.by) && x.why === 'rule');
+      const keys = [...new Set(parts.map(e => st.ruleKey?.[e.by]).filter(Boolean))];
+      return `<div class="lift"><span class="ltag">${esc(b?.title || '')}</span><p>${esc(l.says)} ${keys.length ? booksOnce(keys) : bookLinks(keyIn(lis[i]))}</p></div>`; }).join('');
     const total = g.total_line ? `<p class="gtotal">${esc(g.total_line)} ${tips(glOf(lis[(g.lifts || []).length]))}</p>` : '';
-    // one picture per species, stacked into a fixed 92 px column: the more species, the more they overlap
-    const pics = codes => { const step = codes.length > 1 ? Math.min(20, 40 / (codes.length - 1)) : 0;
-      return `<span class="kpics">${codes.map((c, i) => { const f = FISHPIC(c)[0], nm = SNAP.fish[c]?.name || c;
-      return `<button type="button" class="kp${f ? '' : ' sil'}"${i ? ` style="margin-left:${(step - 52).toFixed(1)}px"` : ''}${SNAP.fish[c] ? ` data-open="sp:${c}"` : ''} aria-label="${esc(nm)}">${f ? `<img src="../apps/mobile/assets/fish/${f.file}" alt="" loading="lazy">` : SIL}</button>`; }).join('')}</span>`; };
+    // v12 (owner 2): one WHOLE picture per species, side by side under the kind's name, never stacked or cropped
+    const pics = codes => `<span class="kpics">${codes.map(c => fishBtn(c)).join('')}</span>`;
     const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
-      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bk.title ? `<p class="bkh">${esc(bk.title)}${key ? ` · ${bookLinks(key)}` : ''}</p>` : ''}${bk.kinds.map(k => `<div class="krow k28">${pics(k.species)}<div class="kb"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bk.title ? `<p class="bkh">${esc(bk.title)}${key ? ` · ${bookLinks(key)}` : ''}</p>` : ''}${bk.kinds.map(k => `<div class="krow k28"><div class="kb"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail)}</span>` : ''}${pics(k.species)}${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}</div>${k.n != null ? `<b class="kn">${k.n}</b>` : ''}</div>`).join('')}</section>`; }).join('');
     const worked = (g.worked || []).length ? `<div class="worked"><p class="bkh">How it adds up</p><ul>${g.worked.map(w => `<li><span>${esc(w.q)} →</span> <b>${esc(w.a)}</b></li>`).join('')}</ul></div>` : '';
     const fe = raw.elsewhere && raw.elsewhere.ask.length ? `<button class="fe" data-open="else:${sid()}|${ri}">Fished elsewhere today? ${CHEVI}</button>` : '';
     const quiet = art.querySelector('.gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
@@ -576,10 +635,12 @@ function buildKeep(){
     const arts = [...o.querySelectorAll(':scope > article.row')], list = o.querySelector('.olist');
     const rows = [...list.querySelectorAll('.orow')].map((r, i) => { const id = `${sid()}|o${i}`; OTHERS_[id] = arts[i] ? arts[i].outerHTML : '';
       const codes = arts[i] ? (st.rows[+(arts[i].dataset.row || 'r0').slice(1)] || {}).members : [];
-      return `<button class="orow" data-open="other:${id}">${thumb(codes)}${r.innerHTML}${CHEV}</button>`; }).join('');
+      OTHERS_[id] = {html: OTHERS_[id], codes: codes || []};
+      return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>`; }).join('');
     o.outerHTML = `<section class="sec" style="padding-top:14px;border-top:1.5px solid var(--ink)"><div class="sech"><h2>Other fish</h2></div><div class="olist">${rows}</div></section>`;
   });
   // closed "Other fish"-less waters keep their banner; the char row etc. stay as they are
+  if (nofish) root.append(nofish);
   return citeBooks(combineTips(root.innerHTML.replace(/ open=""/g, '')));
 }
 const KINDS = {}, OTHERS_ = {};
@@ -595,7 +656,8 @@ function span(a, b){ const A = dayDate(a), B = dayDate(b), m = x => MON[x.getMon
   return a === b ? `${m(A)} ${A.getDate()}` : A.getMonth() === B.getMonth() ? `${m(A)} ${A.getDate()}–${B.getDate()}` : `${m(A)} ${A.getDate()}–${m(B)} ${B.getDate()}`; }
 /* the strip's runs that carry any of `bits` (answers 2.6: fly-only 4, flies-only 8, bait ban 16), in the data's words */
 function dated(st, bits){ const out = []; let i = 0; const t = dayIx(S.d);
-  for (const [f, n] of st.runs || []) { if (f != null && !(f & 1) && (f & bits))
+  const all = (st.runs || []).reduce((a, [, n]) => a + n, 0);
+  for (const [f, n] of st.runs || []) { if (f != null && !(f & 1) && (f & bits) && n < all)   // a run all year long is no change
       out.push({when: span(i, i + n - 1), words: [4, 8, 16].filter(b => b & bits & f).map(FLAG).join(' · '), now: t >= i && t < i + n});
     i += n; }
   return out; }
@@ -638,54 +700,85 @@ function licence(st, id){
   LICSRC[`lic|${id}|u16`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${t}</p>${x.from.b}`).join('')} : null;
   return {html: got.map(([t, x]) => `<p class="u16h">${t}</p>${x.html}`).join(''), words: got.flatMap(([, x]) => x.words), names: [], head: got[0][1].head, keyed: 'u16'};
 }
+/* v12 (round 10, owner 3): Gear & licence is three sections: 1 Gear & methods, ONE compact "what's allowed" block (gear
+   first: lines, hooks, points, barbs, lures, weight, bait; then methods and boats), with the strip's dated changes on the
+   cell they change; 2 Always; 3 Licence, its own section, last. Every value is the snapshot's (v36's panes); each
+   cell's label is the data's own row label. A boat: only what the data says (the Lines row's own words, else the
+   title of the rule that row cites when that rule's gear names a boat). */
+const IC = {
+  lines: '<path d="M4 20 19 4"/><circle cx="8.5" cy="15.5" r="2.4"/><path d="M19 4v9"/>',
+  hooks: '<path d="M14 3v10a4 4 0 0 1-8 0v-2"/><path d="M6 11l-2 2.5"/><circle cx="14" cy="3.5" r="1"/>',
+  points: '<path d="M12 3v11a3.5 3.5 0 0 1-7 0"/><path d="M5 14l-1.8-2"/>',
+  barbs: '<path d="M12 3v11a3.5 3.5 0 0 1-7 0"/><path d="M5 14v-3.5L7 13"/><path d="M3 21 21 3" stroke-dasharray="2 2.5"/>',
+  lures: '<path d="M4 12c3-5 9-6 14-3l3 3-3 3c-5 3-11 2-14-3Z"/><circle cx="16" cy="11.5" r="1"/><path d="M4 12l-2 3"/>',
+  weight: '<path d="M12 3v4"/><path d="M12 7c3.5 3 5 6 5 8.5a5 5 0 0 1-10 0C7 13 8.5 10 12 7Z"/>',
+  bait: '<path d="M4 15c2-4 4 2 6-1s3-6 5-3 3 5 5 1"/><circle cx="20" cy="12" r=".9"/>',
+  methods: '<path d="M4 20 18 6"/><path d="M14 4h6v6"/><path d="M4 9l5 5"/>',
+  boats: '<path d="M3 15h18l-3 5H6Z"/><path d="M12 15V4l6 8h-6"/>',
+  other: '<circle cx="12" cy="12" r="8"/>',
+  cal: '<rect x="4" y="5" width="16" height="15"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+};
+const icon = k => `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k] || IC.other}</svg>`;
+const ROWKEY = {'Lines': 'lines', 'Hook, lure or fly per line': 'hooks', 'Hook points': 'points', 'Barbs': 'barbs', 'Lures': 'lures', 'Weight on the line': 'weight'};
+const gearJSON = key => { const m = (SNAP.rules[key]?.body || '').match(/<pre class="gjson">([\s\S]*?)<\/pre>/);
+  try { return m ? JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')) : null; } catch (e) { return null; } };
+const namesBoat = key => (gearJSON(key)?.gear || []).some(g => /boat/.test(JSON.stringify(g.when || {})));
 function buildGear(){
   const st = ST(), id = sid();
   if (!st.kitTiles) return `<p class="foot">No gear may go in the water and no licence is needed while fishing is closed.</p>`;
   learnChipWords(st);
-  const tiles = {}; parse(st.kitTiles.replace(/<span class="bk (ok|no)">([^<]+?)&nbsp;<i>([✓✕])<\/i><\/span>/g, '<span class="bk $1"><i>$3</i>&nbsp;$2</span>')).querySelectorAll('.ktile').forEach(t => { tiles[t.dataset.kit] = {kv: t.querySelector('.kv')?.innerHTML || '', ks: t.querySelector('.ks')?.innerHTML || ''}; });
-  const secs = [];
-  // 1 Licence
-  const L = licence(st, id), u16 = S.age === 'u16';
-  secs.push({k: 'licence', h: 'Licence', glance: L.names.length ? `<b>${esc(L.names[0])}</b>${L.names.length > 1 ? `<small>+ ${L.names.slice(1).map(esc).join(' · ')} if needed</small>` : ''}` : `<b>${esc(L.head)}</b>`,
-    body: `<div class="segm who" role="group" aria-label="Who is fishing"><button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>${L.html}`
-      + sourcesLine(`lic|${id}|${L.keyed}`, [], L.words)});
-  // 2 Your gear: one definition list; dated changes inline
+  const secs = [], cells = [], keys = [], words = [];
+  const dateds = bits => dated(st, bits).map(x => `<p class="gxd${x.now ? ' now' : ''}" data-dated>${icon('cal')}<span><b>${x.when}</b> ${x.words}${x.now ? ' <em>· in force today</em>' : ''}</span></p>`).join('');
+  // gear: the Line & hooks rows, in the data's order
   if (st.panes.line) { const r = parse(st.panes.line), terms = [...r.querySelectorAll('.kitnote [data-gl]')].map(b => b.dataset.gl);
     const rows = [...r.querySelectorAll('.grow')].map(g => { const c = takeChips(g, '.gsrc');
       return {t: g.querySelector('.glabel')?.textContent || '', b: g.querySelector('.gval b')?.innerHTML || '', sub: [...g.querySelectorAll('.gval > span')].map(x => x.innerHTML), ...c}; });
-    // the trailing "Single barbless hook ⓘ" box is gone: its ⓘ sits after the last line its rule decides
     terms.forEach(gl => { const row = [...rows].reverse().find(x => x.keys.some(k => k.includes(gl))); if (row) row.b += ' ' + tip(gl); });
-    secs.push({k: 'line', h: 'Your gear', glance: `<b>${tiles.line?.kv || ''}</b><small>${tiles.line?.ks || ''}</small>`,
-      body: dayLine() + `<dl class="gdl">${rows.map(x => `<div><dt>${esc(x.t)}</dt><dd><b>${x.b}</b>${x.sub.map(s => `<span>${s}</span>`).join('')}</dd></div>`).join('')}</dl>` + datedRows(dated(st, 4 | 8))
-        + sourcesLine(`line|${id}`, rows.flatMap(x => x.keys), rows.flatMap(x => x.words))}); }
-  // 3 Bait: the ✓/✕ list and any dated ban
+    rows.forEach(x => { keys.push(...x.keys); words.push(...x.words); const k = ROWKEY[x.t] || 'other';
+      let subs = x.sub, boat = '';
+      if (k === 'lines') { const bs = subs.find(t => /boat/.test(t));
+        if (bs) { subs = subs.filter(t => t !== bs); boat = bs; }
+        else { const rk = x.keys.find(namesBoat); if (rk) boat = esc(SNAP.rules[rk].title); } }
+      cells.push(`<div class="gxc gx-${k}" data-k="${k}" role="listitem"><p class="gxl">${icon(k)}${esc(x.t)}</p><p class="gxv">${x.b}</p>${subs.map(t => `<p class="gxs">${t}</p>`).join('')}`
+        + (boat ? `<p class="gxb" data-boat>${icon('boats')}<span>${boat}</span></p>` : '') + (k === 'lures' ? dateds(4 | 8) : '') + '</div>'); }); }
+  // bait: the ✓/✕ list, condensed
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
-    const keys = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
-    secs.push({k: 'bait', h: 'Bait', glance: `<b>${tiles.bait?.kv || ''}</b><small>${tiles.bait?.ks || ''}</small>`,
-      body: dayLine() + r.innerHTML + datedRows(dated(st, 16)) + sourcesLine(`bait|${id}`, keys, keys.map(wordOf_))}); }
-  // 4 Ways to fish
-  if (st.panes.ways) { const r = parse(st.panes.ways); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
-    const keys = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
-    secs.push({k: 'ways', h: 'Ways to fish', glance: `<b>${tiles.ways?.kv || ''}</b><small>${tiles.ways?.ks || ''}</small>`,
-      body: r.innerHTML + sourcesLine(`ways|${id}`, keys, keys.map(wordOf_))}); }
-  // 5 Always: the data's headings, folded; a heading with fewer than 3 rules shares a fold with the next
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    const items = [...r.querySelectorAll('.bait')].map(b => ({ok: b.classList.contains('ok'), n: b.querySelector('b')?.innerHTML || '', s: b.querySelector('span')?.innerHTML || ''}));
+    const note = [...r.querySelectorAll('p')].map(p => p.innerHTML);
+    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${icon('bait')}${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}<ul class="gxi">${items.map(x => `<li class="${x.ok ? 'ok' : 'no'}"><i>${x.ok ? '✓' : '✕'}</i><span><b>${x.n}</b>${x.s && !/^(allowed|bait ban)$/.test(x.s) ? ` <small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${dateds(16)}</div>`); }
+  // methods: what's allowed (with the data's conditions), then what is not
+  if (st.panes.ways) { const r = parse(st.panes.ways);
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    const ok = [...r.querySelectorAll('.wrow')].map(w => ({n: w.querySelector('b')?.innerHTML || '', s: w.querySelector('small')?.innerHTML || ''}));
+    const no = [...r.querySelectorAll('.nochip')].map(c => c.textContent.replace(/^✕/, '').trim());
+    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${icon('methods')}${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><ul class="gxi">${ok.map(x => `<li class="ok"><i>✓</i><span><b>${x.n}</b>${x.s ? `<small>${x.s}</small>` : ''}</span></li>`).join('')}</ul>${no.length ? `<p class="gxno">${no.map(t => `<span><i>✕</i>${esc(t)}</span>`).join('')}</p>` : ''}</div>`); }
+  // boats: the data's boat rules for this water, when it has any
+  if (st.panes.boats) { const r = parse(st.panes.boats);
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    r.querySelectorAll('.src').forEach(e => e.remove());
+    cells.push(`<div class="gxc wide" data-k="boats" role="listitem"><p class="gxl">${icon('boats')}${esc(r.querySelector('h3')?.textContent || 'Boats')}</p><ul class="gxi plain">${[...r.querySelectorAll('.factbtn')].map(b => `<li><span>${b.innerHTML}</span></li>`).join('')}</ul></div>`); }
+  secs.push({k: 'gear', h: 'Gear & methods', body: dayLine() + `<div class="gx" role="list" aria-label="What’s allowed">${cells.join('')}</div>` + sourcesLine(`line|${id}`, keys, words)});
+  // Always: the data's headings, folded; a heading with fewer than 3 rules shares a fold with the next
   if (st.panes.always) { const r = parse(st.panes.always), cards = [...r.querySelectorAll('.hcard')], folds = [];
     for (const c of cards) { const last = folds[folds.length - 1], n = c.querySelectorAll('li').length;
       if (last && last.n < 3) { last.cards.push(c); last.n += n; } else folds.push({cards: [c], n}); }
-    const keys = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
-    secs.push({k: 'always', h: 'Always', glance: `<b>${tiles.always?.kv || ''}</b><small>${tiles.always?.ks || ''}</small>`,
-      body: folds.map(f => `<details class="afold"><summary><span>${f.cards.map(c => esc(c.querySelector('.hh')?.textContent || '')).join(' · ')}</span><em>${f.n}</em></summary>${f.cards.map(c => (f.cards.length > 1 ? `<p class="hh">${esc(c.querySelector('.hh')?.textContent || '')}</p>` : '') + c.querySelector('ul').outerHTML).join('')}</details>`).join('')
-        + sourcesLine(`always|${id}`, keys, keys.map(wordOf_))}); }
-  const glance = `<nav class="glance" aria-label="At a glance">${secs.map((x, i) => `<button type="button" data-jump="g-${x.k}"><span class="gn">${i + 1}</span><span class="gk">${x.h}</span><span class="gv">${x.glance}</span>${CHEVI}</button>`).join('')}</nav>`;
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
+    secs.push({k: 'always', h: 'Always', body: folds.map(f => `<details class="afold"><summary><span>${f.cards.map(c => esc(c.querySelector('.hh')?.textContent || '')).join(' · ')}</span><em>${f.n}</em></summary>${f.cards.map(c => (f.cards.length > 1 ? `<p class="hh">${esc(c.querySelector('.hh')?.textContent || '')}</p>` : '') + c.querySelector('ul').outerHTML).join('')}</details>`).join('')
+        + sourcesLine(`always|${id}`, ks, ks.map(wordOf_))}); }
+  // Licence: its own section, last
+  const L = licence(st, id), u16 = S.age === 'u16';
+  secs.push({k: 'licence', h: 'Licence', body: `<div class="segm who" role="group" aria-label="Who is fishing"><button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>${L.html}`
+      + sourcesLine(`lic|${id}|${L.keyed}`, [], L.words)});
   // no per-line book cites here: each section's one Sources line carries its pages
-  return combineTips(glance + secs.map((x, i) => `<section class="gpart gtopic" id="g-${x.k}" aria-labelledby="gh-${x.k}"><h3 id="gh-${x.k}"><span class="gn">${i + 1}</span>${x.h}</h3>${x.body}</section>`).join(''));
+  return combineTips(secs.map(x => `<section class="gpart gtopic" id="g-${x.k}" aria-labelledby="gh-${x.k}"><h3 id="gh-${x.k}">${x.h}</h3>${x.body}</section>`).join(''));
 }
 
 /* ---------- render ---------- */
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   const sc = $('sc'), prev = sc.scrollTop;
-  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
+  sc.innerHTML = hdr() + whereRow() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
   $('wmap').innerHTML = +S.map ? mapHtml() : ''; $('wmap').classList.toggle('on', !!+S.map);
@@ -724,15 +817,19 @@ function sheetHtml(k){
   if (k === 'date') { const days = Object.keys(WATERS[S.w].snap).map(Number).sort((a,b) => a-b);
     return head('Which day?', '') + `<div class="sbody"><div class="lab">Days in this prototype’s snapshot</div>${days.map(d => `<button class="orow" data-day="${d}"><span class="on">${wday(d)} ${fmt(d)}${d === 1010 ? ' · today' : ''}</span>${d === S.d ? '<b>✓</b>' : ''}</button>`).join('')}
       <p class="note2">The app reads any day; this prototype holds only the days above.</p></div>`; }
+  if (k === 'parts') { const ids = WATERS[S.w].snap[S.d];
+    return head('Parts of this water', '') + `<div class="sbody"><p class="note2">This prototype has no map of this water, so its parts are listed here.</p>${ids.map((id, i) => { const t = SNAP.states[id], o = t.parts.find(x => x.v === t.part);
+      return `<button class="orow" data-part="${i}"><span class="on">${esc(fullPart(o) || t.name)} <span class="muted small">${esc(statusOf(t))}</span></span>${i === S.p ? '<b>✓</b>' : ''}</button>`; }).join('')}</div>`; }
   if (k.startsWith('srcs:')) { const keys = SRCS[k.slice(5)] || [];
     return head('Sources', '') + `<div class="sbody">${keys.map(key => `<div class="prule"><button class="pline pl2" type="button" data-open="rule:${key}"><span>${esc(SNAP.rules[key].title)}</span><em>${esc(levelOf(key))}</em></button>${appliesOf(key).map(a => `<span class="appl">${esc(a)}</span>`).join('')}${bookLinks(key)}</div>`).join('')}</div>`; }
   if (k.startsWith('licsrc:')) { const x = LICSRC[k.slice(7)]; if (!x) return '';
     return head(esc(x.t || 'Sources'), '') + `<div class="sbody gtopic">${x.b}</div>`; }
   if (k.startsWith('kind:')) { const x = KINDS[k.slice(5)]; if (!x) return '';
     return head(esc(x.title), '') + `<div class="sbody"><div class="krow" style="border:0;padding-top:4px"><span class="kb">${x.head.replace(/<b class="nm">[\s\S]*?<\/b>/, '')}</span></div><div class="lbl">How this was decided</div>${scopeLines(x.dec.replace(/<div class="lbl">How this was decided<\/div>/,''))}</div>`; }
-  if (k.startsWith('other:')) { const x = OTHERS_[k.slice(6)]; if (!x) return '';
+  if (k.startsWith('other:')) { const o = OTHERS_[k.slice(6)]; if (!o) return ''; const x = o.html;
+    const ph = o.codes.filter(c => FISHPIC(c).length), phRow = ph.length ? `<span class="kpics">${ph.map(c => fishBtn(c)).join('')}</span>` : '';
     const t = (x.match(/<span class="rtitle">([^<]+)/) || [])[1] || 'Other fish';
-    return head(esc(t), '') + `<div class="sbody">${citeBooks(scopeLines(x.replace(/<span class="rtitle">[^<]+<\/span>/,'').replace(/<details class="decide"[^>]*>/g,'<div>').replace(/<\/details>/g,'</div>').replace(/<summary>How this was decided<\/summary>/g,'<div class="lbl">How this was decided</div>')))}</div>`; }
+    return head(esc(t), '') + `<div class="sbody">${phRow}${citeBooks(scopeLines(x.replace(/<span class="rtitle">[^<]+<\/span>/,'').replace(/<details class="decide"[^>]*>/g,'<div>').replace(/<\/details>/g,'</div>').replace(/<summary>How this was decided<\/summary>/g,'<div class="lbl">How this was decided</div>')))}</div>`; }
   if (k.startsWith('rule:')) { const r = SNAP.rules[k.slice(5)]; if (!r) return '';
     const key = k.slice(5); return head(esc(r.title), esc(r.sub.replace(/^(.+?) rule · \1$/, '$1'))) + `<div class="sbody">${appliesOf(key).map(a => `<p class="appl">${esc(a)}</p>`).join('')}${r.body}<p>${bookLinks(key)}</p></div>`; }
   if (k.startsWith('gl:')) { const ids = k.slice(3).split(',').filter(id => SNAP.gloss[id]); if (!ids.length) return '';
@@ -742,9 +839,10 @@ function sheetHtml(k){
   if (k.startsWith('else:')) { const [id, ri] = k.slice(5).split('|'), e = SNAP.states[id].rows[+ri].elsewhere;
     return head('Fished elsewhere today?', esc(e.says)) + `<div class="sbody">${e.ask.map(([q, a]) => `<div class="srow"><span>${esc(q)}</span><b>${esc(a)}</b></div>`).join('')}</div>`; }
   if (k === 'hatch') { const h = SNAP.howtell; let i = 0; const body = h.body.replace(/<figure class="fishart">/g, () => `<figure class="fishart">${window.FISHART ? FISHART.draw('RB', {marks:false, adiMark:true, clipped: i++ === 1}) : ''}`); return head(esc(h.title), esc(h.sub)) + `<div class="sbody">${body}</div>`; }
-  if (k.startsWith('sp:')) { const c = k.slice(3), f = SNAP.fish[c], pics = FISHPIC(c); if (!f) return '';
-    return head(esc(f.name), '') + `<div class="sbody">${pics.map(p => `<div class="pic"><img src="../apps/mobile/assets/fish/${p.file}" alt="${esc(p.caption)}"></div><div class="cred">${esc(p.caption)}${p.phase ? ' · ' + esc(p.phase) : ''} · ${esc(p.credit)} (${esc(p.source)})</div>`).join('')}
-      <div class="lbl">What to look for</div><ul class="tips">${f.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`; }
+  if (k.startsWith('sp:')) { const c = k.slice(3), f = SNAP.fish[c], pics = FISHPIC(c); if (!f && !pics.length) return '';
+    const tipsL = f?.tips || [];
+    return head(esc(fishName(c)), '') + `<div class="sbody">${pics.map(p => `<div class="pic"><img src="../apps/mobile/assets/fish/${p.file}" alt="${esc(p.caption)}"></div><div class="cred">${esc(p.caption)}${p.phase ? ' · ' + esc(p.phase) : ''} · ${esc(p.credit)} (${esc(p.source)})</div>`).join('')}
+      ${tipsL.length ? `<div class="lbl">What to look for</div><ul class="tips">${tipsL.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}</div>`; }
   return '';
 }
 
@@ -797,7 +895,7 @@ function mapHtml(){
   const pop = S.mk >= 0 && g.marks[S.mk] ? markPop(g, g.marks[S.mk]) : '';
   const kinds = ['closed', 'own', 'base'];
   const whole = S.mw ? 'This part' : (p.kind === 'lake' ? 'Whole lake' : 'Whole river');
-  return `<div class="mh"><button class="mback" type="button" data-unmap>‹ Back to regulations</button><div class="ttl"><b>${esc(ST().name)}</b></div></div>
+  return `<div class="mh"><button class="mback" type="button" data-unmap aria-label="Back to regulations">‹ Back</button><div class="ttl"><b>Where these rules apply</b><small>${esc(ST().name)}${hereLabel() && hereLabel() !== ST().name ? ` · ${esc(hereLabel())}` : ''}</small></div></div>
     <div class="mcanvas" id="mcanvas">${svg}<div class="mmarks" id="mmarks"></div>
       <div class="mlegend" aria-label="What the colours mean"><b>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</b>${kinds.map(x => `<span><i class="sw ${x}"></i>${esc(WM.words[x])}</span>`).join('')}<span><i class="sw you"></i>The part you are looking at</span></div>
       <button class="mwhole" type="button" data-mwhole aria-label="${whole}">${S.mw ? '' : '⤢ '}${whole}</button>${pop}</div>

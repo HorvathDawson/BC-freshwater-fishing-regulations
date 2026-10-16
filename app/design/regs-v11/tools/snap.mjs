@@ -65,6 +65,13 @@ function extract(SPECS, YR) {
       st.kinds = MODEL.rows.map(row => { try { if (!row.conds) return null; let it = speciesItems(row, rowConds(row)); if (!it) return null;
         if (it.length === 1 && it[0].plain) it = []; return it.map(x => ({ key: x.key, members: [...x.members], static: !x.facts })); } catch (e) { return null; } });
       takeRules(scan(card));
+      // the rule key behind every `by` the quota card names (lifts, each part of a combined lift, buckets): page v36's
+      // display index -> key (D.rid), so the prototype cites every lifting rule's book page
+      { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;
+          (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
+          (g.buckets || []).forEach(b => bys.add(b.by)); });
+        st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];
+        takeRules(Object.values(st.ruleKey)); }
       (MODEL.rows || []).forEach(r => [...(r.raw?.members || []), ...(r.raw?.group?.kinds || [])].forEach(c => codes.add(c)));
       // the row sources sheets
       for (const s of new Set([...$('card').querySelectorAll('[data-src]')].map(e => e.dataset.src))) {
@@ -89,7 +96,9 @@ function extract(SPECS, YR) {
     }
   }
   for (const g of glIds) { openGloss(g); out.gloss[g] = sheet(); }
-  for (const c of codes) if (FISHART.has(c)) out.fish[c] = { name: FISHART.SPECIES[c].name || spName(c), tips: FISHART.SPECIES[c].tips };
+  // every fish the page names (v12: any species with a photo opens its picture sheet, not only FISHART's): its name, and
+  // FISHART's look-for notes where it has them
+  for (const c of codes) out.fish[c] = FISHART.has(c) ? { name: FISHART.SPECIES[c].name || spName(c), tips: FISHART.SPECIES[c].tips } : { name: spName(c), tips: [] };
   $('scrim').hidden = true;
   return out;
 }
