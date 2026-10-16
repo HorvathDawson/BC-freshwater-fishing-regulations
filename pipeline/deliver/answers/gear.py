@@ -222,6 +222,39 @@ def _entries(active: Sequence[Rule], kind: Optional[str]) -> List[dict]:
     return out
 
 
+#: ROUND10 W4: a circumstance of a line count in words ("while alone in a boat", "on a lake")
+_CIRC_WORDS = {"in_boat": "while in a boat", "alone_in_boat": "while alone in a boat",
+               "water=lake": "on a lake", "water=stream": "on a stream"}
+_BOATS = ("in_boat", "alone_in_boat")
+
+
+def _lines_n(c: dict, first: bool) -> str:
+    if c.get("unlimited"):
+        return "no limit"
+    n = c.get("max")
+    if n is None:
+        return f"at least {int(c['min'])}" if c.get("min") is not None else "no limit"
+    n = int(n) if float(n).is_integer() else n
+    return (f"{n} line (rod)" if n == 1 else f"{n} lines (rods)") if first else str(n)
+
+
+def lines_says(main: dict, held: Sequence[dict]) -> str:
+    """The Lines row in plain words, from the clauses that decide it (ROUND10 W4, design v12 "lines
+    in a boat and out of a boat"): a stream "1 line (rod), in a boat too"; a lake "1 line (rod); 2
+    while alone in a boat"; Kootenay Lake's main body "1 line (rod); no limit while in a boat"."""
+    out = _lines_n(main["c"], True)
+    for e in held:
+        words = [_CIRC_WORDS.get(t, t.replace("_", " ")) for t in e["circ"]]
+        if e["targeting_codes"]:
+            words.append("when fishing for " + ", ".join(e["targeting"] or e["targeting_codes"]))
+        if e["note"]:
+            words.append(e["note"])
+        out += f"; {_lines_n(e['c'], False)} " + " ".join(words)
+    if not any(t in _BOATS for e in held for t in e["circ"]):
+        out += ", in a boat too"
+    return out
+
+
 def _main(e: dict) -> bool:
     return not e["circ"] and not e["targeting"] and not e["note"]
 
@@ -293,9 +326,15 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
     ans["counts"] = {}
     for s, L in sorted(counts.items()):
         row = {"by": ref(L[0]), "over": [ref(e) for e in L[1:]]}
-        also = [circ_ref(e) for e in circ_for(s)]
+        held = circ_for(s)
+        also = [circ_ref(e) for e in held]
         if also:
             row["also"] = also
+        # ROUND10 W4: every rule deciding the row (its main clause and every circumstance beside it),
+        # each cited for its Book page (Kootenay Lake's boat clause was shown, never cited)
+        row["cites"] = list(dict.fromkeys([L[0]["r"].key] + [e["r"].key for e in held]))
+        if s == "lines_per_angler":
+            row["says"] = lines_says(L[0], held)
         ans["counts"][s] = row
     ans["specs"] = {s: [ref(e) for e in L] for s, L in sorted(specs.items())}
     ans["elements"] = {k: {"verdict": v["s"], "by": ref(v["e"]),

@@ -264,11 +264,13 @@ SPEC = {
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "5",
+            "version": "6",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
-                      "otherwise {counts {slot: {by, over, also?}}, specs {slot: [clause]}, "
+                      "otherwise {counts {slot: {by, over, also?, cites, says?}} (version 6, ROUND10 W4: "
+                      "`cites` every rule deciding the row, `says` the Lines row in plain words — "
+                      "\"1 line (rod), in a boat too\", \"1 line (rod); 2 while alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
                       "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "

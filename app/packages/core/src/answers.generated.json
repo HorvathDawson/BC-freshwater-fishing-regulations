@@ -937,6 +937,15 @@
        "title": "By",
        "type": "array"
       },
+      "cites": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Cites",
+       "type": "array"
+      },
       "over": {
        "items": {
         "maxItems": 2,
@@ -955,11 +964,24 @@
        },
        "title": "Over",
        "type": "array"
+      },
+      "says": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Says"
       }
      },
      "required": [
       "by",
-      "over"
+      "over",
+      "cites"
      ],
      "title": "CountPick",
      "type": "object"

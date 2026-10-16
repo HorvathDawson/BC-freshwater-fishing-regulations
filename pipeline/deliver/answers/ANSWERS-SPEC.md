@@ -127,6 +127,10 @@ rule facts are stored whole).
   trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."; a single lift reads as above.
   `lifts[].each` [{kinds, n, by, fish}] every lifting rule (each `by` cites its Book page), the lift's `by`
   and `n` the first's, `kinds` all; `headline.also` every lifted number above the headline, highest first.
+  ROUND10 W4 (gear 6): every count row carries `cites` (every rule deciding it — its main clause's and
+  each circumstance's — for its Book page: Kootenay Lake's boat clause) and the Lines row `says` it in
+  plain words from those clauses: a stream "1 line (rod), in a boat too", a lake "1 line (rod); 2 while
+  alone in a boat", Kootenay Lake Main Body "1 line (rod); no limit while in a boat".
   ROUND10 W2/W3: a part with a main run never mentions its side channels; no label is cut (`…`) — an end
   name is said whole, a part with no run shows its full label.
   A row's lifts name the water as "this river" (a row's own noun): the rows are keyed by CONTENT (a key is

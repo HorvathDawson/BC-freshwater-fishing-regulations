@@ -131,3 +131,41 @@ def test_w3_a_full_label_hint_is_never_cut():
     labels = D.part_labels(D.Water("w", w, doc))
     assert labels[0] == f"From the mouth up to the top of the river — {what.lower()}", labels
     assert not any("…" in t for t in labels), labels
+
+
+# W4 --------------------------------------------------------------------------------------------
+# The Lines row (design v12: "make clear lines in a boat and out of a boat"): a plain statement per
+# water, derived from the clauses that decide it, and every rule deciding it cited (Kootenay Lake's
+# boat clause was shown but never cited, so its Book page never showed). The real clauses:
+PROVINCE = "zp:terminal_tackle::terminal_tackle.r1"      # "At most 2 lines (rods) per angler (lake,
+KOOTENAY = "r4:kootenay_lake_main_body::kootenay_lake_main_body.r1"   # alone in a boat); at most 1"
+
+
+def _lines(kind, kootenay=False):
+    from pipeline.deliver.answers import gear as G
+    tackle = {"family": "gear_and_method", "type": "tackle_restriction"}
+    rules = [G.Rule(PROVINCE, 4, {**tackle, "gear": [
+        {"max": 2.0, "slot": "lines_per_angler", "when": {"angler": "alone_in_boat", "water": "lake"}},
+        {"max": 1.0, "slot": "lines_per_angler"}]}),
+        G.Rule("zp:allowable_methods::allowable_methods.r2b", 4, {**tackle, "while": ["ice_fishing"],
+               "gear": [{"max": 1.0, "slot": "lines_per_angler"}]})]
+    if kootenay:
+        rules.append(G.Rule(KOOTENAY, 0, {**tackle, "gear": [
+            {"slot": "lines_per_angler", "unlimited": True, "when": {"angler": "in_boat"}}]}))
+    return G.resolve(rules, kind, ["angling"])["counts"]["lines_per_angler"]
+
+
+def test_w4_a_stream_says_its_one_line_holds_in_a_boat_too():
+    L = _lines("stream")
+    assert (L["says"], L["cites"]) == ("1 line (rod), in a boat too", [PROVINCE])
+
+
+def test_w4_a_lake_says_two_while_alone_in_a_boat():
+    L = _lines("lake")
+    assert (L["says"], L["cites"]) == ("1 line (rod); 2 while alone in a boat", [PROVINCE])
+    assert _lines(None)["says"] == "1 line (rod); 2 while alone in a boat on a lake"
+
+
+def test_w4_kootenay_lake_cites_its_boat_rule():
+    L = _lines("lake", kootenay=True)
+    assert (L["says"], L["cites"]) == ("1 line (rod); no limit while in a boat", [PROVINCE, KOOTENAY])

@@ -228,9 +228,11 @@ def _sections() -> Tuple[Section, ...]:
         # `rows[].elsewhere`, the group totals and the kept-elsewhere line)
         # answers 2.8: rows 8 (`group` is the CARD: headline, origin, lifts, total_line, buckets, worked,
         # states — `says`/`items` gone; RULINGS Q23b in `elsewhere`)
-        Section("rows", 8, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND10 W1: rows 9 (`group.lifts[]` one per lifting entry with `each` [{kinds, n, by, fish}])
+        Section("rows", 9, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
-        Section("gear", 5, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
+        Section("gear", 6, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),

@@ -392,9 +392,13 @@ def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alon
     also = {tuple(c.get("while") or ()): c["clause"] for c in lines.get("also", [])}
     assert also.get(("in_boat",), [""])[0].endswith("kootenay_lake_main_body.r1")
     assert ("alone_in_boat",) not in also, "the row's boat clause replaces the province's 2"
+    # ROUND10 W4: said plainly, and the boat rule cited for its Book page
+    assert lines["says"] == "1 line (rod); no limit while in a boat"
+    assert lines["cites"][0] == province and lines["cites"][1].endswith("kootenay_lake_main_body.r1")
     k = _key_of(B, "wbk:329563838")                                       # Kamloops Lake
     a = _answer(B, k, month_day(200), lawful)
     lines = a["counts"]["lines_per_angler"]
     assert lines["by"] == [province, 1]
     assert [c["clause"] for c in lines.get("also", []) if c.get("while") == ["alone_in_boat"]] \
         == [[province, 0]], lines
+    assert (lines["says"], lines["cites"]) == ("1 line (rod); 2 while alone in a boat", [province])

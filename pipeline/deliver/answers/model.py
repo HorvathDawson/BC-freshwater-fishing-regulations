@@ -608,6 +608,11 @@ class CountPick(Model):
     by: ClauseRef
     over: Tuple[ClauseRef, ...]
     also: Optional[Tuple[Circumstance, ...]] = None
+    #: ROUND10 W4: every rule deciding the row (`by`'s, then each `also`'s), each cited for its Book page
+    cites: Tuple[RuleIx, ...] = Field(min_length=1)
+    #: ROUND10 W4: the Lines row in plain words ("1 line (rod), in a boat too"; "1 line (rod); 2 while
+    #: alone in a boat"); `lines_per_angler` only
+    says: Optional[StrictStr] = None
 
 
 class ElementPick(Model):
