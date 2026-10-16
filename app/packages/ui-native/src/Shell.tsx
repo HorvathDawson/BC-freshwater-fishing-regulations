@@ -27,6 +27,7 @@ import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
+import { MapDay, dayLabel } from "./MapDay";
 import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
@@ -92,6 +93,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const facts = useDataFacts(source, feed);
   const counts = facts.state === "ready" ? facts.value.counts : null;
   const [tab, setTab] = useState<TabKey>("map");
+  /** The day the map's status colours answer for; null is today. */
+  const [mapDay, setMapDay] = useState<Date | null>(null);
   const [item, setItem] = useState<ItemId | null>(null);
   /**
    * The water chosen from SEARCH, which the map opens on and lights when the reader comes
@@ -270,8 +273,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const statusIndex = useStatusIndex(source, tiles?.atlas);
   const statusOk = statusIndex !== null && !mixedPair;
   const statusMapData = useMemo(
-    () => (statusOk && tab === "map" ? statusData(statusIndex, visible, new Date()) : undefined),
-    [statusOk, statusIndex, tab, visible]);
+    () => (statusOk && tab === "map" ? statusData(statusIndex, visible, mapDay ?? new Date()) : undefined),
+    [statusOk, statusIndex, tab, visible, mapDay]);
 
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
@@ -656,11 +659,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           ) : (
             // The three statuses, in the words and colours every surface uses (@app/core
             // WATER_STATUS through the map's theme) — for today.
-            WATER_STATUSES.map((s) => (
-              <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
-                           line
-                           label={s === "closed" ? "Closed today" : WATER_STATUS[s].label} />
-            ))
+            <>
+              <MapDay palette={palette} day={mapDay} onDay={setMapDay} />
+              {WATER_STATUSES.map((s) => (
+                <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
+                             line
+                             label={s === "closed" ? (mapDay ? `Closed on ${dayLabel(mapDay)}` : "Closed today")
+                                    : WATER_STATUS[s].label} />
+              ))}
+            </>
           )}
         </LegendStrip>
       )}
