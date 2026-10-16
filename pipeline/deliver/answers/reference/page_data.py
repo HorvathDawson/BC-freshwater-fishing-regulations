@@ -49,7 +49,10 @@ CALENDAR_JS = HERE / "calendar.generated.js"
 #: the ones added for the v36 review (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal),
 #: Koch Creek (owner, 2026-10-15) and Iron River (a Quinsam River tributary: the inherited summer-closure
 #: exemption, ROUND11 A3).
-EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244", "gnis:2349", "gnis:10307"]
+#: and waters with more than one size cap in a group (owner, ROUND12): Wahleach (Jones) Lake, Bennett Lake,
+#: Bella Coola River, Coquitlam River.
+EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244", "gnis:2349", "gnis:10307",
+                "wbk:329177886", "wbk:328961756", "gnis:11611", "gnis:19986"]
 
 RULE_KEEP = convert.RULE_KEEP
 LIC_KEEP = convert.LIC_KEEP
