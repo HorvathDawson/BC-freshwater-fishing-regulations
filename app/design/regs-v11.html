@@ -460,6 +460,10 @@ const WATERS = {
   // round 2: plain waters (no row of their own); not in the water map export
   wilkes:{snap:{1010:'wilkes_1010'}, map:null}, anderson:{snap:{1010:'anderson_1010'}, map:null},
 };
+// every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
+for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p)(\d*)_(\d+)$/); if (!m) continue;
+  const w = WATERS[m[1]] || (WATERS[m[1]] = {snap:{}, map:null, name: SNAP.states[k].name});
+  if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
 const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:''};
@@ -531,7 +535,7 @@ function buildKeep(){
   const cav = root.querySelector('.caveats');
   if (cav) { const anchor = root.querySelector('.banner') || root.querySelector('.wstrip'), sec = doc.createElement('section');
     sec.className = 'nofish'; sec.setAttribute('aria-labelledby', 'nofish-h');
-    sec.innerHTML = `<h3 id="nofish-h">Where you can’t fish <span class="scope">${esc(cav.querySelector('.lbl')?.textContent || '')}</span></h3><ul>${[...cav.querySelectorAll('li')].map(li => `<li>${li.innerHTML}</li>`).join('')}</ul>`;
+    sec.innerHTML = `<h3 id="nofish-h">Where you can’t fish ${(sc => sc && !/^where you can.t fish$/i.test(sc.trim()) ? `<span class="scope">${esc(sc)}</span>` : '')(cav.querySelector('.lbl')?.textContent || '')}</h3><ul>${[...cav.querySelectorAll('li')].map(li => `<li>${li.innerHTML}</li>`).join('')}</ul>`;
     cav.remove(); if (anchor) anchor.after(sec); else root.prepend(sec); }
   // B4: an ⓘ the page puts before its term ("ⓘ Possession: …") goes right after the term
   root.querySelectorAll('.gl').forEach(b => { const n = b.nextSibling; const m = n && n.nodeType === 3 && n.textContent.match(/^(\s*)([^:.]{1,40})(:[\s\S]*)$/);
@@ -899,7 +903,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0}, true); } });
 function poster(){
   $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
-    .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${S.w==='cowichan'?'|'+S.p:''}`===k?'on':''}" data-cw="${k}">${t}</button>`).join('');
+    .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${S.w==='cowichan'?'|'+S.p:''}`===k?'on':''}" data-cw="${k}">${t}</button>`).join('')
+    + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
+      .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;
+  $('c-all').onchange = e => { if (e.target.value) { const [w, dd] = e.target.value.split('|'); go({w, d:+dd, p:0, sheet:'', map:0}); } };
   $('c-t').innerHTML = [['','Auto'],['light','Light'],['dark','Dark'],['|2','200% text']].map(([k,t]) => `<button class="pill" data-ct="${k}">${t}</button>`).join('');
 }
 (function(){ const h = new URLSearchParams(location.hash.slice(1));

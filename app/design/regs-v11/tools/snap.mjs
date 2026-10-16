@@ -23,6 +23,9 @@ const SPECS = [
   // round 2: plain waters (no row of their own: only zone + province rules). Page v36 offers 32 waters; these are its
   // only ones with no entries in the export. It offers no plain lake.
   ['anderson_1010', 'Anderson River', 1010], ['wilkes_1010', 'Wilkes Creek', 1010],
+  // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
+  // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
+  ['*', null, 1010],
 ];
 
 // runs inside the page: uses the page's own globals (state, WATERS, renderAll, openRule, …)
@@ -50,7 +53,7 @@ function extract(SPECS, YR) {
     go(wi, defaultPart(wi), md);
     const water = WATERS[wi], sel = $('part');
     const parts = sel ? [...sel.options].map(o => ({ v: o.value, t: o.textContent, ...shortOf(water, +o.value) })) : [];
-    const each = idT.includes('{v}') ? parts.map(p => p.v) : [null];
+    const each = idT.includes('{v}') && parts.length ? parts.map(p => p.v) : [null];
     for (const v of each) {
       if (v != null) go(wi, +v, md);
       const id = idT.replace('{v}', v ?? '');
@@ -98,7 +101,23 @@ const pin = `(() => { const T = new Date('${TODAY}').getTime(), D = Date; class 
 const b = await open(pathToFileURL(page).href, { init: pin });
 try {
   for (let t = 0; t < 300 && !(await b.evaluate(`typeof renderAll === 'function' && !!document.querySelector('#card *')`)); t++) await new Promise(r => setTimeout(r, 100));
-  const snap = await b.evaluate(`(${extract})(${JSON.stringify(SPECS)}, ${YEAR})`);
+  // the snapshot of every water is tens of MB: one evaluate result that size never arrives over the DevTools socket,
+  // so it stays in the page as a string and is read back in slices
+  // one water at a time (a hang names its water), each result read back in slices, merged here
+  const names = await b.evaluate(`WATERS.map(w => w.name)`), named = new Set(SPECS.map(x => x[1]).filter(Boolean));
+  const specs = SPECS.flatMap(sp => sp[0] !== '*' ? [sp]
+    : names.map((n, wi) => named.has(n) ? null : [`x${wi}p{v}_${sp[2]}`, n, sp[2]]).filter(Boolean));
+  const within = (p, ms, what) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(`snap: ${what} took over ${ms / 1000} s`)), ms))]);
+  const snap = { states: {}, rules: {}, ruleInfo: {}, gloss: {}, sources: {}, fish: {}, howtell: null };
+  for (const sp of specs) {
+    const len = await within(b.evaluate(`(window.__SNAP = JSON.stringify((${extract})(${JSON.stringify([sp])}, ${YEAR}))).length`), 120000, sp[1]);
+    let raw = '';
+    for (let i = 0; i < len; i += 4e6) raw += await b.evaluate(`window.__SNAP.slice(${i}, ${i + 4e6})`);
+    const one = JSON.parse(raw);
+    for (const k of ['states', 'rules', 'ruleInfo', 'gloss', 'sources', 'fish']) Object.assign(snap[k], one[k]);
+    snap.howtell = snap.howtell || one.howtell; snap.strip = one.strip;
+    process.stderr.write(`  ${sp[0]} ${sp[1]}: ${Object.keys(one.states).length} states\n`);
+  }
   // pictures are drawn by the prototype (FISHART / the app's photos); page whitespace is collapsed
   const tidy = o => typeof o === 'string' ? o.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/\n\s*/g, ' ')
     : Array.isArray(o) ? o.map(tidy) : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, tidy(v)])) : o;

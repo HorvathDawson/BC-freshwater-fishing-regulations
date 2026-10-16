@@ -46,8 +46,9 @@ JS = HERE / "page_v36.js"
 CALENDAR_JS = HERE / "calendar.generated.js"
 
 #: The waters the page offers: v35's 28 (page order; Kootenay Lake's Lower West Arm among them), then
-#: the ones added for the v36 review (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal).
-EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244"]
+#: the ones added for the v36 review (Vedder River, Anderson River, Teslin Lake, Nitinat Lake — tidal),
+#: and Koch Creek (owner, 2026-10-15).
+EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244", "gnis:2349"]
 
 RULE_KEEP = convert.RULE_KEEP
 LIC_KEEP = convert.LIC_KEEP
