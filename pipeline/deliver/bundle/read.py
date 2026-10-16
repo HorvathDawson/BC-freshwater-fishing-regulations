@@ -366,6 +366,17 @@ def home_region(db, section: int) -> str | None:
     return row[0] if row else None
 
 
+def straddles(db, section: int) -> list[dict]:
+    """The rule boundaries this section RUNS ACROSS (`section_straddle`, R10): one dict per
+    (entry, rule) — `how` 'projected' (the channel itself crosses; `share` of its length lies on
+    `side`) or 'follows' (it joins a channel that crosses) — `side` 'in' when the rule applies here.
+    `rule_id` '' is the row's own scope. [] for a section that crosses none."""
+    return [{"entry_id": e, "rule_id": r, "how": h, "side": s, "share": sh}
+            for e, r, h, s, sh in db.execute(
+                "SELECT entry_id, rule_id, how, side, share FROM section_straddle WHERE sid = ? "
+                "ORDER BY entry_id, rule_id", (section,))]
+
+
 def steelhead_water(db, section: int) -> bool:
     """Whether the book's steelhead definition holds on this section (`steelhead_water`): a
     rainbow over 50 cm here is a steelhead. A bundle without the table is refused."""

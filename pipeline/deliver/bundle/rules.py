@@ -1267,6 +1267,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     if set(own.values()) - {ce.entry_id for ce in ces if getattr(ce, "tidal", False)}:
         raise SystemExit(f"tidal: the reach run names tidal rows the corpus does not mark tidal "
                          f"({sorted(set(own.values()))}) — re-run the reach builder")
+    # THE CHANNELS THAT RUN ACROSS A RULE'S BOUNDARY (R10, `section_straddle`), READ FROM THE RUN.
+    from pipeline.atlas.reach.io import STRADDLE_TABLE
+    crossing = run_rows(straddle_crossing(read_table(reaches, STRADDLE_TABLE)), sid,
+                        STRADDLE_TABLE)
+    db.executemany("INSERT INTO section_straddle (sid, entry_id, rule_id, how, side, share) "
+                   "VALUES (?,?,?,?,?,?)", [(x["sid"], x["entry_id"], x["rule_id"], x["how"],
+                                             x["side"], x["share"]) for x in crossing])
+    cov.filled("section_straddle", len(crossing))
 
     # Licensing: the other half of each entry, placed by the same reach run.
     from pipeline.deliver.bundle import licensing as _licensing
@@ -1486,6 +1494,32 @@ def prove_steelhead_presence(db, code: dict, anadromous: set, applies: set) -> N
     if sr != applies:
         raise SystemExit(f"section_steelhead_rules: the stored form does not reproduce the reach "
                          f"run's sections where steelhead rules apply ({len(sr ^ applies)} differ)")
+
+
+def straddle_crossing(rows: list[dict]) -> list[dict]:
+    """The run's `straddle` rows that `section_straddle` lists: every projected piece with length on
+    BOTH sides of its cut (`share` < 1), and every piece that followed one of those in the same
+    extent. One row per (section, entry, rule): a rule whose two extents both judged a piece is
+    'in' when either took it, with the first extent's share."""
+    by_ext: dict[tuple, list[dict]] = {}
+    for r in rows:
+        by_ext.setdefault((r["entry_id"], r["rule_id"], r["extent"]), []).append(r)
+    out: dict[tuple, dict] = {}
+    for k in sorted(by_ext, key=lambda k: (k[0], k[1], -1 if k[2] is None else k[2])):
+        crossing = {r["section_id"] for r in by_ext[k]
+                    if r["how"] == "projected" and r["share"] < 1}
+        for r in sorted(by_ext[k], key=lambda r: r["section_id"]):
+            if r["section_id"] not in crossing and not (
+                    r["how"] == "follows" and set(r["braids"]) & crossing):
+                continue
+            key = (r["section_id"], r["entry_id"], r["rule_id"])
+            row = {"section_id": r["section_id"], "entry_id": r["entry_id"],
+                   "rule_id": r["rule_id"], "how": r["how"], "side": r["side"],
+                   "share": round(r["share"], 3) if r["how"] == "projected" else None}
+            if key in out:
+                row = dict(out[key], side="in" if "in" in (out[key]["side"], r["side"]) else "out")
+            out[key] = row
+    return [out[k] for k in sorted(out)]
 
 
 def run_rows(rows: list[dict], sid: dict[str, int], what: str) -> list[dict]:

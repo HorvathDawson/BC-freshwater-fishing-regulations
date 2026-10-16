@@ -37,6 +37,30 @@ STEELHEAD_TABLE = "steelhead_presence"
 #: of its own in report.json (`tidal_digest`, `outside_digest`).
 TIDAL_TABLE = "tidal"
 OUTSIDE_TABLE = "outside_bc"
+#: THE BRAIDS PLACED ACROSS A CUT (R10, owner 2026-10-16, `extent.STRADDLING_BRAIDS_TAKE_THEIR_
+#: MAJORITY_SIDE`): one row per (rule, extent, piece) a cut's majority-side placement decided —
+#: {entry_id, rule_id ("" for the row's own scope), extent (null for the scope), section_id, how
+#: ("projected" | "follows"), side ("in" | "out": whether the rule's extent took it), share (the
+#: share of its length on that side, projected onto the cut's line; null for "follows"), braids
+#: (the placed braids a "follows" piece joined)}. Read from the run's `straddle_placed` /
+#: `scope_straddle_placed` diagnostics — one source — and read by the bundle (`section_straddle`).
+STRADDLE_TABLE = "straddle"
+
+
+def straddle_rows(diagnostics) -> list[dict]:
+    """`STRADDLE_TABLE`'s rows, from a run's diagnostics."""
+    out = []
+    for d in diagnostics:
+        if d.kind not in ("straddle_placed", "scope_straddle_placed"):
+            continue
+        for p, m in sorted(d.payload["pieces"].items()):
+            out.append({"entry_id": d.entry_id, "rule_id": d.rule_id,
+                        "extent": d.payload.get("extent"), "section_id": p, "how": m["how"],
+                        "side": m["side"], "share": m.get("share"),
+                        "braids": list(m.get("braids") or ())})
+    out.sort(key=lambda r: (r["entry_id"], r["rule_id"], -1 if r["extent"] is None
+                            else r["extent"], r["section_id"]))
+    return out
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -129,6 +153,7 @@ def write_run(out_dir: str | Path, result, entries=None, *,
                            for s, e in sorted((getattr(result, "tidal", None) or {}).items())]
     tables[OUTSIDE_TABLE] = [{"section_id": s}
                              for s in sorted(getattr(result, "outside", None) or ())]
+    tables[STRADDLE_TABLE] = straddle_rows(result.diagnostics)
     for name, rows in tables.items():
         _write_jsonl(out / f"{name}.jsonl", rows)
 
@@ -138,6 +163,7 @@ def write_run(out_dir: str | Path, result, entries=None, *,
     report["steelhead_digest"] = _table_digest(tables[STEELHEAD_TABLE])
     report["tidal_digest"] = _table_digest(tables[TIDAL_TABLE])
     report["outside_digest"] = _table_digest(tables[OUTSIDE_TABLE])
+    report["straddle_digest"] = _table_digest(tables[STRADDLE_TABLE])
     if isinstance(entries, dict):           # the corpus the run was made from (P2)
         from pipeline.regs.parsing.io import corpus_digest
         report["entries_digest"] = corpus_digest(entries)

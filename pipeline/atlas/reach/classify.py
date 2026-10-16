@@ -109,6 +109,20 @@ def wants_tributaries(rule: dict, entry: dict) -> bool:
     return bool(own) or bool(rule.get("tributaries_only"))
 
 
+
+def _straddle_placed(diags: list, entry_id: str, rid: str, i: int, got: dict) -> None:
+    """REPORTED, and carried to the bundle (`io.STRADDLE_TABLE`): every braid this extent placed
+    on the side of its cut holding most of its length, and every piece that followed one (R10,
+    `extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE`)."""
+    placed = got.get("straddle_placed") or {}
+    if placed:
+        diags.append(Diagnostic(entry_id, rid, "straddle_placed", {
+            "extent": i, "pieces": {p: dict(m) for p, m in sorted(placed.items())},
+            "why": "a braid straddling the cut takes the side holding most of its length "
+                   "(projected onto the cut's line); a piece joining it follows it",
+        }))
+
+
 def classify(
     entry_id: str,
     rule: dict,
@@ -217,6 +231,7 @@ def classify(
                 }))
             for amb in got.get("ambiguous_cut") or []:
                 diags.append(Diagnostic(entry_id, rid, "ambiguous_cut", dict(amb, extent=i)))
+            _straddle_placed(diags, entry_id, rid, i, got)
             continue
         sections |= set(got.get("sections") or ())
         seeds |= set(got.get("seed") if (WALK_BEFORE_AREA and "seed" in got)
@@ -235,6 +250,7 @@ def classify(
 
         for amb in got.get("ambiguous_cut") or []:
             diags.append(Diagnostic(entry_id, rid, "ambiguous_cut", dict(amb, extent=i)))
+        _straddle_placed(diags, entry_id, rid, i, got)
 
     if not resolved_any:
         return unresolved(*_why(extents, registry, covered_ids))

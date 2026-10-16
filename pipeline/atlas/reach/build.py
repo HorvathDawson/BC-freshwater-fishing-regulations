@@ -127,9 +127,17 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         covered = (covered_fn(e, registry) if covered_fn
                    else _covered_ids(e, registry))
 
-        clip, scope_failed = entry_scope(e, covered, registry, graph)
+        scope_marks: dict[str, dict] = {}
+        clip, scope_failed = entry_scope(e, covered, registry, graph, marks=scope_marks)
         if scope_failed:
             report.scope_unresolved.append(entry_id)
+        if scope_marks:
+            # THE ROW'S OWN SCOPE placed a braid straddling its cut on its majority side (R10):
+            # reported per entry (rule_id ""), and carried like a rule's (`io.STRADDLE_TABLE`).
+            diagnostics.append(Diagnostic(entry_id, "", "scope_straddle_placed", {
+                "pieces": {p: scope_marks[p] for p in sorted(scope_marks)},
+                "why": "a braid straddling the row's cut takes the side holding most of its "
+                       "length; every rule of the row is clipped to that side"}))
         # PIECES THE ROW'S OWN SCOPE COULD NOT PLACE. `entry_scope` keeps only what its extents
         # place, so a braid straddling the row's cut left EVERY rule of the row with no word said
         # — the Peace's side channels across the Site C reach were covered by none of its three
@@ -939,7 +947,7 @@ def _expander(graph, registry, covered, rule, entry, *, window=None, region=None
     return expand
 
 
-def entry_scope(e: dict, covered: list[str], registry, graph):
+def entry_scope(e: dict, covered: list[str], registry, graph, marks: dict | None = None):
     """The stretch the ENTRY is about, or (None, []) when it is about the whole water.
 
     The synopsis qualifies a row in its NAME — "FRASER RIVER (upstream of the CPR Bridge
@@ -963,6 +971,14 @@ def entry_scope(e: dict, covered: list[str], registry, graph):
             failed.append(sc)
             continue
         out |= set(got.get("sections") or ())
+        if marks is not None:
+            for p, m in (got.get("straddle_placed") or {}).items():
+                marks.setdefault(p, dict(m))
+    if marks:
+        # `marks` (optional, R10): the braids the scope placed on the side of its cut holding most
+        # of their length, with the side they ended on across the scope's extents.
+        for p, m in marks.items():
+            m["side"] = "in" if p in out else "out"
     return (out or None), failed
 
 

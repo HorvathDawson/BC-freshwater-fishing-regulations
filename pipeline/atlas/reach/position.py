@@ -79,3 +79,48 @@ def nearest_pieces(graph, waters, pieces) -> dict[str, str]:
                 if lines[ids[int(j)]].distance(shape) <= best + 1e-6]
         out[w] = min(ties) if ties else ids[int(i)]
     return out
+
+
+#: The spacing (metres) at which a braid is sampled for `share_within`: each sample stands for an
+#: equal length of the braid, so the share is a share of LENGTH, never of vertices.
+SHARE_STEP_M = 5.0
+
+
+def share_within(graph, piece: str, line_pieces, lo: float, hi: float) -> float | None:
+    """The share of `piece`'s LENGTH whose projection onto the cut's own blue line falls inside the
+    measure window ``[lo, hi]`` — or None when the graph has no geometry attached (`attach`) or
+    either the piece or the line has none (never a guess).
+
+    `line_pieces` are the scoped water's pieces ON the cut's line. Each sample of the braid (every
+    `SHARE_STEP_M`) is projected onto the nearest of them, and its route measure there is read from
+    that piece's own range: ``down_m + fraction along × (up_m − down_m)`` — FWA lines are digitized
+    from the mouth upward, as the measures run. A braid's two junctions cannot say this alone: the
+    edge a braid leaves the main line by carries a measure on the BRAID, not on the main line, and
+    a braid's length is not spread evenly between its ends. (R10, owner 2026-10-16.)"""
+    geoms = _geoms(graph)
+    if geoms is None:
+        return None
+    _, lines = geoms
+    line = lines.get(piece)
+    if line is None or line.is_empty or not line.length:
+        return None
+    ids = sorted(p for p in line_pieces
+                 if lines.get(p) is not None and not lines[p].is_empty and lines[p].length
+                 and p in graph.nodes)
+    if not ids:
+        return None
+    from shapely.strtree import STRtree
+    tree = STRtree([lines[p] for p in ids])
+    k = max(1, int(round(line.length / SHARE_STEP_M)))
+    inside = 0
+    for j in range(k):
+        pt = line.interpolate((j + 0.5) * line.length / k)
+        near = lines[ids[int(tree.nearest(pt))]].distance(pt)
+        # Ties go to the lowest id, so the answer never depends on the tree's order.
+        hit = min(ids[int(i)] for i in tree.query(pt, predicate="dwithin", distance=near + 1e-6)
+                  if lines[ids[int(i)]].distance(pt) <= near + 1e-6)
+        n, ln = graph.nodes[hit], lines[hit]
+        m = n.down_m + ln.project(pt) / ln.length * (n.up_m - n.down_m)
+        if lo <= m <= hi:
+            inside += 1
+    return inside / k

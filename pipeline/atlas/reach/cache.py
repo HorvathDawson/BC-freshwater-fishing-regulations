@@ -75,7 +75,10 @@ from typing import Callable
 #: 18: (D5, owner 2026-10-12) a piece the neighbour pass leaves unplaced is placed by its FLOW PATH
 #:    through lakes, ponds, other waters and water outside B.C. to the first section of its own water
 #:    (`extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW`); what stays unplaced carries a typed reason.
-POLICY_VERSION = "18"
+#: 19: (R10, owner 2026-10-16) a braid straddling a cut takes the side holding most of its length,
+#:    projected onto the cut's line, and is marked (`extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE`);
+#:    a piece joining it follows it; an even split or no geometry stays unplaced.
+POLICY_VERSION = "19"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
