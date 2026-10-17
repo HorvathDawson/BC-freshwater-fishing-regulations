@@ -32,6 +32,10 @@ const SPECS = [
   ['bc{v}_1010', 'Bella Coola River', 1010], ['bc{v}_501', 'Bella Coola River', 501],
   // round 13 phase 2: Ape Creek, a Bella Coola tributary, on the same two days
   ['ape{v}_1010', 'Ape Creek', 1010], ['ape{v}_501', 'Ape Creek', 501],
+  // round 15 follow-up: two tributaries where the nearer ✱ row wins (T14), on the prototype's today and Jun 15 — Glenn
+  // Creek (Trout Lake's rule for its tributaries) and Hamill Creek (the Duncan River's)
+  ['glenn{v}_1010', 'Glenn Creek', 1010], ['glenn{v}_615', 'Glenn Creek', 615],
+  ['hamill{v}_1010', 'Hamill Creek', 1010], ['hamill{v}_615', 'Hamill Creek', 615],
   // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
   // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
   ['*', null, 1010],

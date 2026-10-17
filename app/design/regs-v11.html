@@ -626,7 +626,9 @@ const WATERS = {
 WATERS.bellacoola.name = SNAP.states[WATERS.bellacoola.snap[1010][0]]?.name;
 // round 13 phase 2: Ape Creek, a Bella Coola tributary, on the same two days (a part list when the page offers one)
 { const one = (pre, md) => { const ps = PARTS(pre, md); return ps.length ? ps : `${pre}_${md}`; };
-  WATERS.ape = {snap:{1010:one('ape', 1010), 501:one('ape', 501)}, map:null}; WATERS.ape.name = SNAP.states[[].concat(WATERS.ape.snap[1010])[0]]?.name; }
+  WATERS.ape = {snap:{1010:one('ape', 1010), 501:one('ape', 501)}, map:null}; WATERS.ape.name = SNAP.states[[].concat(WATERS.ape.snap[1010])[0]]?.name;
+  // round 15 follow-up: Glenn Creek (a Trout Lake tributary) and Hamill Creek (a Duncan River tributary), Oct 10 and Jun 15
+  for (const w of ['glenn', 'hamill']) { WATERS[w] = {snap:{1010:one(w, 1010), 615:one(w, 615)}, map:null}; WATERS[w].name = SNAP.states[[].concat(WATERS[w].snap[1010])[0]]?.name; } }
 // every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
 // round 11: Iron River (a Quinsam tributary, Jul 20 and Oct 10: the inherited summer opening)
 for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*)_(\d+)$/); if (!m) continue;
@@ -746,6 +748,17 @@ function buildKeep(){
   // B4: an ⓘ the page puts before its term ("ⓘ Possession: …") goes right after the term
   root.querySelectorAll('.gl').forEach(b => { const n = b.nextSibling; const m = n && n.nodeType === 3 && n.textContent.match(/^(\s*)([^:.]{1,40})(:[\s\S]*)$/);
     if (m) { n.textContent = m[3]; b.before(doc.createTextNode(m[1] + m[2])); } });
+  // round 15 follow-up: a closed card says each sentence once. The year strip's status and reopening come first ("Closed",
+  // "Opens Jul 1"); a phrase of the banner's headline (split at " · "), a sentence of the banner, or a sentence of its
+  // link that says the same words again (case, punctuation and "again" aside) is not drawn: Vedder Jun 15 said
+  // "opens Jul 1" three times. A headline with nothing left goes; the link keeps its own words ("See the rules from then ›").
+  { const ban = root.querySelector('.banner');
+    if (ban) { const key = t => (t || '').toLowerCase().replace(/\bagain\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim(), seen = new Set();
+      const fresh = t => { const k = key(t); if (!k) return true; if (seen.has(k)) return false; seen.add(k); return true; };
+      root.querySelectorAll('.wstrip .wsline > span').forEach(e => fresh(e.textContent));
+      ban.querySelectorAll('.big').forEach(e => { const ph = e.textContent.split(' · ').filter(fresh); if (ph.length) e.textContent = ph.join(' · '); else e.remove(); });
+      ban.querySelectorAll(':scope > p').forEach(e => { if (!fresh(e.textContent)) e.remove(); });
+      ban.querySelectorAll('.golink').forEach(e => { if (e.children.length) return; e.textContent = e.textContent.split(/(?<=\.)\s+/).filter(fresh).join(' '); }); } }
   root.querySelectorAll('.closechain li').forEach(li => { const t = li.firstChild; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(/^No fishing for any game fish,?\s*/, '').replace(/^from streams,\s*/, 'From streams, ');
     const sc = li.querySelector('.muted'), b = li.querySelector('.srcbtn'); li.innerHTML = `<span class="cd">${esc(li.firstChild.textContent.trim())}${sc ? ` <span class="muted small">${esc(sc.textContent)}</span>` : ''}</span>${b ? b.outerHTML : ''}`; });
   // round 9 / answers 2.8: each group drawn from the data's card (rows[i].group) — headline, origin, lifts, total line,
@@ -1327,6 +1340,8 @@ function poster(){
     .concat(['1010', '501'].flatMap(d => [].concat(WATERS.bellacoola.snap[d] || []).map((id, p) => { const st = SNAP.states[id], o = st.parts.find(x => x.v === st.part);
       return [`bellacoola|${d}|${p}`, `${st.name.replace(/ River$/, '')} · ${fmt(+d)} · ${o?.short || ''}`]; })
       .concat(Array.isArray(WATERS.ape.snap[d]) ? [] : [[`ape|${d}`, `${WATERS.ape.name} · ${fmt(+d)}`]])))
+    // round 15 follow-up: the two nearer-row tributaries on Jun 15, named by the snapshot's own water names
+    .concat(['glenn', 'hamill'].filter(w => WATERS[w]?.snap[615] && !Array.isArray(WATERS[w].snap[615])).map(w => [`${w}|615`, `${WATERS[w].name} · ${fmt(615)}`]))
     .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${k.split('|').length > 2 ? '|'+S.p : ''}`===k?'on':''}" data-cw="${k}">${esc(t)}</button>`).join('')
     + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
       .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;

@@ -129,6 +129,12 @@ const SCREENS = [
   ['97-keep-vedder-jun15-closed', 'w=vedder&d=615'],
   ['98-licence-vedder-u16-by-residency', `${V}&age=u16&at=%23g-licence`],
   ['99-card-bella-coola-may1-size-box', 'w=bellacoola&d=501&p=0&at=.sgrp'],
+  // round 15 follow-up: the two nearer-row tributaries on Jun 15 (Glenn: Trout Lake's rule for its tributaries releases
+  // bull trout; Hamill: the Duncan River's rule keeps 2); the closed card saying each sentence once
+  ['100-card-glenn-creek-jun15', 'w=glenn&d=615&at=.g28'],
+  ['101-card-glenn-creek-jun15-not-kept', 'w=glenn&d=615&at=.nkt'],
+  ['102-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
+  ['103-keep-vedder-jun15-closed-once', 'w=vedder&d=615'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

@@ -1,5 +1,12 @@
 # regs v17 (round 15) — in place on regs-v11.html
 
+- **Follow-up (page v36 @ 388b2b7b, 41 waters, 132 states).** Glenn Creek (a Trout Lake tributary: bull trout released
+  by "Trout Lake’s rule for its tributaries") and Hamill Creek (a Duncan tributary: the Duncan River’s 2 bull trout),
+  snapshotted on Oct 10 and Jun 15 (`w=glenn`, `w=hamill`), with Jun 15 quick pills. A closed card says each sentence
+  once: the year strip's "Closed" / "Opens Jul 1" first; a banner headline phrase, banner sentence or link sentence
+  saying the same words (case, punctuation, "again" aside) is not drawn (Vedder Jun 15, Cowichan mouth). Checks
+  `closed-card-once`, `nearer-row-tribs-front`. Screens 100-103.
+
 - **Phase 2 (rows 14, licence 5, display 11; page v36 @ b881e931, re-snapped, 128 states).** snap.mjs also copies
   `rows[].restates`, each answer's `profile_labels` label (`licLabel`), the licence frame's `under_16` (`u16`), and the
   `by` of every size group, weekday part rule and restatement into `ruleKey`; it reads each water back in 1 MB slices

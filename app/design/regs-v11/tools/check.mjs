@@ -14,7 +14,7 @@
 //   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
-//   u16-by-residency, week-parts-decided
+//   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -764,6 +764,26 @@ for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
 });
 const wkb15 = WK15.filter(x => !x.out.length || x.out.some(o => !o.status || !o.list || !o.inBox || !o.parts.length || o.parts.some(p => !p.ok) || o.restates.some(r => r.n !== 1)));
 check('week-parts-decided', WK15.length === 2 && !wkb15.length, wkb15.map(x => JSON.stringify(x)).join('; '));
+
+// ---------- round 15 follow-up ----------
+// a closed card says each sentence once: the strip's status and reopening, the banner's headline (split at " · "), its
+// sentences and its link's sentences, compared as words (case, punctuation and "again" aside) — Vedder Jun 15 said
+// "opens Jul 1" three times; and the two nearer-row tributaries are in the snapshot on Jun 15 with quick pills
+const C15 = [];
+for (const hash of ['w=vedder&d=615', 'w=cowichan&d=1010&p=0']) await page(hash, async b => {
+  C15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const K = document.getElementById('keep'), key = t => (t || '').toLowerCase().replace(/\\bagain\\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    const ph = [...K.querySelectorAll('.wstrip .wsline > span')].map(e => e.textContent);
+    K.querySelectorAll('.banner .big').forEach(e => ph.push(...e.textContent.split(' · ')));
+    K.querySelectorAll('.banner > p').forEach(e => ph.push(e.textContent));
+    K.querySelectorAll('.banner .golink').forEach(e => ph.push(...e.textContent.split(/(?<=\\.)\\s+/)));
+    const ks = ph.map(key).filter(Boolean), dup = ks.filter((k, i) => ks.indexOf(k) !== i);
+    return {at: location.hash, banner: !!K.querySelector('.banner'), dup}; })())`)));
+});
+const cb15 = C15.filter(x => !x.banner || x.dup.length);
+check('closed-card-once', C15.length === 2 && !cb15.length, cb15.map(x => JSON.stringify(x)).join('; '));
+const T15 = await page('w=glenn&d=615', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => ['glenn', 'hamill'].map(w => ({w, ok: !!WATERS[w]?.snap[615] && !!SNAP.states[[].concat(WATERS[w].snap[615])[0]],
+  pill: !!document.querySelector('#c-w [data-cw="' + w + '|615"]'), name: WATERS[w]?.name})))())`)));
+check('nearer-row-tribs-front', T15.every(x => x.ok && x.pill && x.name), JSON.stringify(T15));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
