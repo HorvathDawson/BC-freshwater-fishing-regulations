@@ -15,6 +15,8 @@
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
 //   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
+//   (round 18) phone-real-height, header-compact, group-head-compact (place-in-header: the action now beside the label);
+//   ONLY=18 runs just these
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -68,6 +70,8 @@ var szFirst = (sec, z) => [...(sec?.querySelectorAll('.krow[data-sp]') || [])].f
 const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
+// ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+if (process.env.ONLY === '18') { await round18(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 
 // 2–4. on the Vedder, Oct 10, with the Line & hooks topic showing (v10 opens it with kit=line; v11 shows everything)
 await page('w=vedder&d=1010&sec=gear&kit=line', async b => {
@@ -190,10 +194,10 @@ await page('w=vedder&d=1010', async b => {
         : hasMap ? [uncut(WM.waters[w.map].parts[curPart()].short), WM.waters[w.map].parts[curPart()].name].filter(Boolean) : [];
       const act = hasMap ? hdr.querySelector('[data-map]') : many ? hdr.querySelector('[data-open="parts"]') : null;
       const r = place?.getBoundingClientRect(), hr = hdr.getBoundingClientRect();
-      // round 12: the label is a full-width line of its own; the action sits below it, never beside it (measured before the
-      // map opens, which re-renders the header)
-      const own = !txt || (() => { const a = hdr.querySelector('.pgo') || act, w = hdr.querySelector('.ttl b').getBoundingClientRect();
-        return Math.abs(r.left - w.left) < 2 && hr.right - r.right < 20 && (!a || a.getBoundingClientRect().top >= r.bottom - 1); })();
+      // round 12: the label is a line of its own under the name; round 18 (owner 6): ONE line, the action beside it on that
+      // line (header-compact) — measured before the map opens, which re-renders the header
+      const own = !txt || (() => { const a = hdr.querySelector('.pgo') || act, w = hdr.querySelector('.ttl b').getBoundingClientRect(), ar = a?.getBoundingClientRect();
+        return Math.abs(r.left - w.left) < 2 && (!ar || (ar.top < r.bottom && ar.bottom > r.top && hr.right - ar.right < 20)); })();
       let title = ''; if (hasMap && act) { act.click(); await new Promise(r => setTimeout(r, 300)); title = norm(document.querySelector('#wmap .mh')?.textContent); }
       return JSON.stringify({hash: location.hash.slice(8), kind: st.kind, name: norm(hdr.querySelector('.ttl b')?.textContent) === st.name, txt, labels,
         // round 12 (owner 1 + 4): no kind ("stream ·"): the place is the part's label itself, nothing for a whole water
@@ -207,7 +211,7 @@ await page('w=vedder&d=1010', async b => {
   }
 });
 const hbad = HS.filter(h => !(h.name && h.lead && h.label && h.own && !h.count && (h.visible || !h.txt) && h.act && h.date && !h.mapbtn && !h.row));
-check('place-in-header', HS.length > 40 && !hbad.length, `${hbad.length} of ${HS.length} fresh loads: ` + hbad.slice(0, 3).map(h => `${h.hash}: place ${JSON.stringify(h.txt.slice(0, 90))} (labels ${JSON.stringify(h.labels)})${h.name ? '' : ', no name'}${h.lead ? '' : ', still leads with the kind'}${h.label ? '' : ', not the bare label'}${h.own ? '' : ', not a full-width line of its own (the action beside it)'}${h.count ? ', a section count' : ''}${h.visible ? '' : ', not visible in the header'}${h.act ? '' : ', no map / parts action'}${h.date ? '' : ', no date control'}${h.mapbtn ? ', a MAP button' : ''}${h.row ? ', a place row outside the header' : ''}`).join('; '));
+check('place-in-header', HS.length > 40 && !hbad.length, `${hbad.length} of ${HS.length} fresh loads: ` + hbad.slice(0, 3).map(h => `${h.hash}: place ${JSON.stringify(h.txt.slice(0, 90))} (labels ${JSON.stringify(h.labels)})${h.name ? '' : ', no name'}${h.lead ? '' : ', still leads with the kind'}${h.label ? '' : ', not the bare label'}${h.own ? '' : ', not under the name with the action beside it'}${h.count ? ', a section count' : ''}${h.visible ? '' : ', not visible in the header'}${h.act ? '' : ', no map / parts action'}${h.date ? '' : ', no date control'}${h.mapbtn ? ', a MAP button' : ''}${h.row ? ', a place row outside the header' : ''}`).join('; '));
 check('no-part-strip', !HS.some(h => h.strip), HS.filter(h => h.strip).map(h => `${h.hash}: ${h.strip} part-strip elements`).join('; '));
 
 // 5–6. the water map, light and dark
@@ -966,6 +970,81 @@ for (const hash of R17) await page(hash, async b => {
 const cc17 = CC17.filter(x => x.bad.length || !x.nums);
 check('card-is-the-caps', CC17.length === R17.length && !cc17.length, cc17.map(x => `${x.at}: ${x.nums} numbers; ${x.bad.slice(0, 6).join(' | ')}`).join('; '));
 
+await round18();
+
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
 process.exit(failed ? 1 : 0);
+
+// ---------- round 18 ----------
+async function round18(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (5) the phone is a REAL phone: the frame's inside is 390 x 844 (an iPhone 14's points), the app's own four tabs and the
+  // home indicator take their place at the bottom, and the regulations scroll INSIDE it in no more height than an iPhone
+  // 14 leaves an app with a standard 49 pt tab bar (844 - 47 status - 49 tabs - 34 home = 714); framed on a desktop and as
+  // the screens are shot. Before round 18 the frame was 846 tall with its border, no tab bar or home band: 800 px of rules
+  const PH = [];
+  for (const [mode, hash, width, height] of [['shot', 'shot=1&w=chilliwack&d=1010&p=1', 440, 900], ['desk', 'w=chilliwack&d=1010&p=1', 1280, 1000]]) {
+    const b = await open(`${pathToFileURL(PAGE).href}#${hash}`, { width, height, offline: true });
+    try { await new Promise(r => setTimeout(r, 500));
+      PH.push({mode, ...JSON.parse(await b.evaluate(`JSON.stringify((() => { const app = document.querySelector('.app'), sc = document.getElementById('sc'), r = app.getBoundingClientRect();
+        const tabs = app.querySelector(':scope > nav.tabs[role=tablist]'), home = app.querySelector(':scope > .home');
+        return {w: app.clientWidth, h: app.clientHeight, inWin: r.bottom <= innerHeight + 0.5, tabs: tabs ? [...tabs.querySelectorAll('[role=tab]')].map(t => t.textContent.trim() + (t.getAttribute('aria-selected') === 'true' ? '*' : '')) : null,
+          tabsBottom: tabs ? Math.round(tabs.getBoundingClientRect().bottom - r.top) : -1, home: home ? Math.round(home.getBoundingClientRect().height) : 0,
+          seen: sc.clientHeight, scrolls: sc.scrollHeight > sc.clientHeight + 200, docScroll: document.scrollingElement.scrollHeight - innerHeight}; })())`))});
+    } finally { await b.close(); } }
+  const phb = PH.filter(x => x.w !== 390 || x.h !== 844 || !x.inWin || JSON.stringify(x.tabs?.map(t => t.replace('*', ''))) !== '["Map","Search","Conditions","Spots"]'
+    || x.tabs.filter(t => t.endsWith('*')).length !== 1 || x.home < 30 || x.seen > 714 || !x.scrolls || (x.mode === 'shot' && x.docScroll > 0));
+  check('phone-real-height', PH.length === 2 && !phb.length, phb.map(x => JSON.stringify(x)).join('; '));
+
+  // (6) the header fits a phone: water name and date on ONE line; the part's label ONE line, the data's short label when it
+  // is uncut (the full one in the map's title / the parts sheet), "View on map ›" (or "Other parts ›") inline beside it;
+  // slim tabs; at most 120 px in all (Chilliwack part 2, Oct 10: 179 px before)
+  const HC = [];
+  for (const hash of ['w=chilliwack&d=1010&p=1', 'w=chilliwack&d=1010&p=0', 'w=vedder&d=1010', 'w=cowichan&d=1010&p=1', 'w=x14p&d=1010&p=1', 'w=klwa&d=1010', 'w=bellacoola&d=501&p=0', 'w=x19p&d=1010&p=4']) await page(hash, async b => {
+    HC.push(JSON.parse(await b.evaluate(`(async () => { ${norm} const hdr = document.getElementById('hdr'), st = ST(), w = WATERS[S.w], hasMap = !!(w.map && WM.waters[w.map]);
+      const o = st.parts.find(x => x.v === st.part), uncut = x => x && !/…/.test(x) ? x : null, mp = hasMap ? WM.waters[w.map].parts[curPart()] : null;
+      const long = o ? o.t.replace(/ · \\d+ sections?$/, '') : mp ? mp.name : '', want = o ? (uncut(o.short) || long) : mp ? (uncut(mp.short) || mp.name) : '';
+      const R = e => e?.getBoundingClientRect(), nm = R(hdr.querySelector('.ttl b')), dt = R(hdr.querySelector('[data-open="date"]'));
+      const pl = hdr.querySelector('[data-place]'), pr = R(pl), act = hdr.querySelector('.pgo'), ar = R(act), lh = pl ? parseFloat(getComputedStyle(pl).lineHeight) : 0;
+      const txt = norm(pl?.textContent), tl = R(hdr.querySelector('[role=tablist]'));
+      const res = {hash: location.hash.slice(8), h: Math.round(R(hdr).height), dateInline: !!nm && !!dt && dt.top < nm.bottom && dt.bottom > nm.top,
+        txt, want, oneLine: !txt || (pr.height <= lh * 1.5 && getComputedStyle(pl).whiteSpace === 'nowrap'), label: !want || want === st.name ? !txt : txt === want,
+        actInline: !txt || (!!ar && ar.top < pr.bottom && ar.bottom > pr.top), tabs: tl ? Math.round(tl.height) : -1};
+      let full = '';
+      if (txt && txt !== long) { const go = hdr.querySelector('[data-map]') || hdr.querySelector('[data-open="parts"]'); go?.click(); await new Promise(r => setTimeout(r, 350));
+        full = norm((document.querySelector('#wmap.on .mh') || document.querySelector('#sheet'))?.textContent); }
+      return JSON.stringify({...res, fullShown: !txt || txt === long || full.includes(long)}); })()`)));
+  });
+  const hcb = HC.filter(x => x.h > 120 || !x.dateInline || !x.oneLine || !x.label || !x.actInline || !x.fullShown || x.tabs < 0 || x.tabs > 36);
+  check('header-compact', HC.length === 8 && !hcb.length, hcb.map(x => JSON.stringify(x)).join('; '));
+
+  // (4) each group's top is ONE compact block (.ghd): the group's name and scope, its big number with its unit on the same
+  // line (and the data's `also`), the origin as a tag (the data's words before " — ", "Hatchery only") with the rest and
+  // How to tell beside it, the total line; every one of these the data's words, inside the block, nothing else in it; the
+  // Vedder Oct 10 block no taller than 145 px (two thirds of the 218 px before)
+  const GH = [];
+  for (const hash of ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=501', 'w=klwa&d=1010', 'w=x35p&d=1010']) await page(hash, async b => {
+    GH.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), out = [];
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+        const blk = art.querySelector(':scope > .ghd'), h = g.headline, R = e => e?.getBoundingClientRect(), bad = [];
+        if (!blk) { out.push({bad: ['no .ghd block']}); return; }
+        const num = blk.querySelector('.num'), big = num?.querySelector('.ghn'), unit = num?.querySelector('.ghu');
+        if (!blk.querySelector('.rtitle')) bad.push('no name');
+        if (h.n != null) { if (norm(big?.textContent) !== String(h.n)) bad.push('number ' + norm(big?.textContent));
+          if (norm(unit?.textContent) !== h.unit) bad.push('unit ' + norm(unit?.textContent));
+          const bn = R(big), un = R(unit); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); }
+        (h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
+        if (g.origin) { const og = blk.querySelector('[data-origin]'), cut = g.origin.indexOf(' — ');
+          const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
+          if (said.replace(/ — /, ' ') !== g.origin.replace(/ — /, ' ') && said !== g.origin) bad.push('origin ' + said);
+          if (cut > 0 && norm(og?.querySelector('.gtag')?.textContent) !== g.origin.slice(0, cut)) bad.push('tag ' + norm(og?.querySelector('.gtag')?.textContent));
+          if (art.querySelector('[data-howtell]') && !og?.querySelector('[data-howtell]')) bad.push('How to tell outside the block'); }
+        if (g.total_line && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');
+        if (art.querySelector(':scope > .gorigin, :scope > .gtotal, :scope > .rhead')) bad.push('a head line outside the block');
+        out.push({t: norm(blk.querySelector('.rtitle')?.textContent), h: Math.round(R(blk).height), bad}); });
+      return {hash: location.hash.slice(8), out}; })())`)));
+  });
+  const ghb = GH.filter(x => !x.out.length || x.out.some(g => g.bad.length) || (x.hash === 'w=vedder&d=1010' && x.out[0].h > 145));
+  check('group-head-compact', GH.length === 6 && !ghb.length, ghb.map(x => `${x.hash}: ${JSON.stringify(x.out)}`).join('; '));
+}

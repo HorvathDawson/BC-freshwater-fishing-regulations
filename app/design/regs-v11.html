@@ -30,16 +30,22 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .lab{font:700 var(--t4)/1.3 Archivo,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
 .wrap{max-width:1180px;margin:0 auto;padding:48px 32px 80px;display:grid;grid-template-columns:392px minmax(0,1fr);gap:72px;align-items:start}
-.app{position:relative;width:392px;height:846px;border:1.5px solid var(--ink);background:var(--card);overflow:hidden;position:sticky;top:32px;display:flex;flex-direction:column;box-shadow:4px 4px 0 var(--shadow)}
-@media (max-width:520px){.wrap{display:block;padding:0}.app{width:100vw;height:100svh;border:0;box-shadow:none;position:relative}.poster{display:none}}
-.shot .wrap{display:block;padding:0}.shot .app{width:390px!important;height:844px!important;border:0;box-shadow:none;position:relative;top:0}.shot .poster{display:none}
+.app{position:relative;width:390px;height:844px;outline:1.5px solid var(--ink);background:var(--card);overflow:hidden;position:sticky;top:32px;display:flex;flex-direction:column;box-shadow:5.5px 5.5px 0 var(--shadow)}
+@media (max-width:520px){.wrap{display:block;padding:0}.app{width:100vw;height:100svh;outline:0;box-shadow:none;position:relative}.poster{display:none}.app > .home{display:none}}
+.shot .wrap{display:block;padding:0}.shot .app{width:390px!important;height:844px!important;border:0;outline:0;box-shadow:none;position:relative;top:0}.shot .poster{display:none}.shot .app > .home{display:flex}
 .tall .app{height:auto!important;overflow:visible}.tall .body{overflow:visible}.tall #reg{position:relative}.tall .scroller{position:relative;overflow:visible}.tall .hdr{position:relative}
-.sb{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;font:700 15px Archivo,sans-serif;background:var(--card)}
+.sb{flex:0 0 47px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;font:700 15px Archivo,sans-serif;background:var(--card)}
 .sb i{font-style:normal;font-size:11px;letter-spacing:.1em}
 .body{position:relative;flex:1 1 auto;min-height:0;overflow:hidden}
+/* round 18 (owner 5): a REAL phone, 390 x 844 inside (an iPhone 14's points): the status bar (47), the app's own four
+   tabs (TabBar.tsx: Map · Search · Conditions · Spots, the water opened from Search) and the home indicator (34) take
+   their place, so the regulations scroll in the ~700 px a phone leaves them and density decisions are honest */
+.home{flex:0 0 34px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;background:var(--card)}
+.home i{display:block;width:134px;height:5px;border-radius:3px;background:var(--ink)}
 /* water tabs (TabBar.tsx look) */
-.tabs{flex:0 0 auto;display:flex;border-top:1.5px solid var(--ink);background:var(--card);padding:8px 0 12px}
-.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--sub);min-height:48px}
+.tabs{flex:0 0 auto;display:flex;border-top:1.5px solid var(--ink);background:var(--card);padding:9px 0 4px;position:relative;z-index:1}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--sub);min-height:44px}
+.tabs svg{stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .tabs svg{width:22px;height:22px;fill:none;stroke:currentColor}
 .tabs em{font:normal 700 9.5px/12px Archivo,sans-serif;letter-spacing:1.1px;text-transform:uppercase}
 .tabs u{display:block;width:22px;height:2.5px}
@@ -194,7 +200,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .u16sum li.mine b::after{content:" ✓";color:var(--accent)}
 .u16h,.resfor{margin:12px 0 2px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
 /* sheets (Sheet.tsx) */
-.scrim{position:absolute;inset:44px 0 0 0;background:var(--scrim);display:none;z-index:20}.scrim.on{display:block}
+.scrim{position:absolute;inset:47px 0 0 0;background:var(--scrim);display:none;z-index:20}.scrim.on{display:block}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--card);border-top:1.5px solid var(--ink);max-height:88%;display:flex;flex-direction:column;transform:translateY(101%);transition:transform .2s}
 .sheet.on{transform:none}
 .shead{padding:10px 8px 0 16px;border-bottom:1.5px solid var(--ink)}
@@ -315,7 +321,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .wmap .mbody{position:relative;flex:1}
 .wmap svg{position:absolute;inset:0;width:100%;height:100%}
 .wmap .legend{position:absolute;left:12px;right:12px;bottom:12px;background:var(--card);border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);padding:8px 10px;font-size:var(--t4)}
-.toast{position:absolute;left:16px;right:16px;bottom:16px;z-index:30;background:var(--ink);color:var(--card);padding:10px 14px;font-size:var(--t4);display:none}.toast.on{display:block}
+.toast{position:absolute;left:16px;right:16px;bottom:112px;z-index:30;background:var(--ink);color:var(--card);padding:10px 14px;font-size:var(--t4);display:none}.toast.on{display:block}
 .poster h1{font:800 56px/.95 "Bricolage Grotesque",Archivo,sans-serif;margin:0 0 14px}
 .poster p{font-size:17px;line-height:1.5;color:var(--sub);max-width:48ch}
 .ctl{border-top:1.5px solid var(--ink);padding:12px 0}.ctl .cs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ctl .pill{min-height:36px}.ctl .pill.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
@@ -446,6 +452,28 @@ button.hplace:active .pl{color:var(--accent)}
 .segm[role=tablist] button{flex:0 0 auto;min-height:38px;padding:2px 0 0;border:0;border-bottom:3px solid transparent;background:none;color:var(--sub);font:700 var(--t4) Archivo,sans-serif;letter-spacing:.2px}
 .segm[role=tablist] button+button{border-left:0}
 .segm[role=tablist] button[aria-pressed="true"]{background:none;color:var(--ink);border-bottom-color:var(--ink)}
+/* round 18 (owner 4): the group's top as one compact block */
+.ghd{padding-bottom:6px}
+.g28 .ghd .rhead{flex-direction:column;gap:2px}
+.ghd .rtitle .scope{display:inline;margin-left:8px;vertical-align:1px}
+.g28 .ghd .rhead .num{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;max-width:none;text-align:left;white-space:normal}
+.ghd .num .ghn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open)}
+.ghd .num .ghu{font:700 var(--t3)/1.2 Archivo,sans-serif;color:var(--ink)}
+.ghd .num .also{flex-basis:100%;max-width:none;margin-top:2px;text-align:left;font:600 var(--t4)/1.3 Archivo,sans-serif}
+.g28 .ghd .gorigin{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;margin:4px 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}
+.ghd .gtag{display:inline-block;padding:2px 5px;border:1.5px solid var(--ink);font:800 11px/1.2 Archivo,sans-serif;letter-spacing:.4px;text-transform:uppercase}
+.ghd .gorigin .linkbtn{min-height:32px;font-size:var(--t4)}
+.ghd .gtotal{margin:0;font-size:var(--t4);line-height:1.35}
+/* round 18 (owner 6): the header fits a phone — name and date on one line, the part's label ONE line with "View on map ›"
+   beside it, slim tabs (Chilliwack part 2, Oct 10: 179 -> ~110 px) */
+.r1{min-height:44px;padding-top:0}
+.hdate{min-height:44px;padding:0 2px 0 8px;border:0;gap:6px;color:var(--accent);font:700 var(--t4) Archivo,sans-serif}
+.hplace{flex-direction:row;align-items:center;gap:12px;padding:0 16px 4px 56px;margin-top:-8px;min-height:30px}
+.hplace .pl{flex:1 1 auto;width:auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+.hplace .pgo{flex:0 0 auto;min-height:0}
+.hdr .r2{padding-top:0}.segm[role=tablist] button{min-height:34px}
+.orow .plong{display:block;margin-top:2px;font-size:var(--t4);color:var(--sub);line-height:1.3}
+.ts2 .hplace{flex-wrap:wrap}
 /* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
 .bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
 /* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
@@ -611,6 +639,8 @@ details.bookw blockquote{margin:0 0 10px}
       <div id="reg"><div class="scroller" id="sc"></div></div>
       <div class="wmap" id="wmap"></div>
     </div>
+    <nav class="tabs" role="tablist" aria-label="App"><button role="tab" aria-selected="false" data-toast="The app’s Map tab"><svg viewBox="0 0 23 23" aria-hidden="true"><path d="M2.5 5.5 8 3l7 2.5 5.5-2.5v15L15 20.5 8 18l-5.5 2.5Z"/><path d="M8 3v15"/><path d="M15 5.5v15"/></svg><em>Map</em><u></u></button><button role="tab" aria-selected="true" data-toast="Back to the app’s Search"><svg viewBox="0 0 23 23" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="M15.6 15.6 20.5 20.5"/></svg><em>Search</em><u></u></button><button role="tab" aria-selected="false" data-toast="Conditions: the app’s existing water conditions"><svg viewBox="0 0 23 23" aria-hidden="true"><path d="M2.5 15c2.4 0 2.4-3 4.8-3s2.4 3 4.8 3 2.4-3 4.8-3 2.4 3 4.6 3"/><path d="M2.5 8.5c2.4 0 2.4-3 4.8-3s2.4 3 4.8 3 2.4-3 4.8-3 2.4 3 4.6 3"/></svg><em>Conditions</em><u></u></button><button role="tab" aria-selected="false" data-toast="The app’s Spots tab"><svg viewBox="0 0 23 23" aria-hidden="true"><path d="M11.5 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="11.5" cy="10" r="2.6"/></svg><em>Spots</em><u></u></button></nav>
+    <div class="home" aria-hidden="true"><i></i></div>
     <div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><div class="toast" id="toast"></div></div>
   <div class="poster"><h1>Regs v14</h1>
     <p>One Regulations surface with two parts, <b>What you can keep</b> and <b>Gear &amp; licence</b>, under one header. Every fact is page v36’s, from a script-made snapshot. Strip flags, book pages and group items come from answers 2.6.</p>
@@ -718,19 +748,27 @@ function hereLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part);
   const g = WATERS[S.w].map && WM.waters[WATERS[S.w].map];
   if (g) { const p = g.parts[curPart()]; return p.short && !/…/.test(p.short) ? p.short : p.name; }
   return ''; }
-function placeRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = hereLabel() === st.name ? '' : hereLabel();   // a whole water: its name is the title already
-  const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
-  // round 12 (owner 1 + 4): no kind; the part's label alone, a full-width line of its own under the water's name, and the
-  // action on the line below it (the whole block is the button); a whole water with nowhere to go: no line at all
-  const inner = lbl ? `<span class="pl" data-place>${esc(lbl)}</span>` : '';
-  if (hasMap) return `<button class="hplace" type="button" data-map="1" aria-label="Where these rules apply: ${esc(lbl || st.name)}. View on map">${inner}<span class="pgo">View on map ›</span></button>`;
-  if (many) return `<button class="hplace" type="button" data-open="parts">${inner}<span class="pgo">Other parts ›</span></button>`;
+/* round 18 (owner 6): the header's label is the data's SHORT label when it is uncut ("Tamihi Rapids Bridge → 100 m below
+   the Slesse Creek confluence"), else the long one; ONE line, cut by the screen with "…"; the full label is the map's title
+   (hereLabel) and the parts sheet's */
+function shortLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part), uncut = x => x && !/…/.test(x) ? x : '';
+  if (o) return uncut(o.short) || o.t.replace(/ · \d+ sections?$/, '');
+  const g = WATERS[S.w].map && WM.waters[WATERS[S.w].map];
+  if (g) { const p = g.parts[curPart()]; return uncut(p.short) || p.name; }
+  return ''; }
+function placeRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = shortLabel() === st.name ? '' : shortLabel();   // a whole water: its name is the title already
+  const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1, full = hereLabel() || lbl;
+  // round 18 (owner 6): the label and the action share ONE line (the whole line is the button); a whole water with nowhere
+  // to go: no line at all
+  const inner = lbl ? `<span class="pl" data-place title="${esc(full)}">${esc(lbl)}</span>` : '';
+  if (hasMap) return `<button class="hplace" type="button" data-map="1" aria-label="Where these rules apply: ${esc(full || st.name)}. View on map">${inner}<span class="pgo">View on map ›</span></button>`;
+  if (many) return `<button class="hplace" type="button" data-open="parts" aria-label="Where these rules apply: ${esc(full || st.name)}. Other parts">${inner}<span class="pgo">Other parts ›</span></button>`;
   return inner ? `<div class="hplace">${inner}</div>` : ''; }
 function hdr(){
   const st = ST(), k = statusOf(st), col = k === 'closed' ? '--closed' : k === 'open' ? '--open' : '--faint';
   return `<div class="hdr" id="hdr"><div class="r1"><button class="back" aria-label="Back to search" data-toast="Back to the app’s Search">‹</button>
       <div class="ttl"><b>${esc(st.name)}</b></div>
-      <button class="pill" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span><em>Change date</em>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
+      <button class="pill hdate" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
     ${placeRow()}
     <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div></div>
     </div>`;
@@ -805,7 +843,8 @@ function buildKeep(){
     const h = g.headline, cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
     const head = art.querySelector('.rhead .rtitle')?.outerHTML || '';
     const also = (h.also || []).map(x => `<small class="also">or ${esc(x.says)}</small>`).join('');
-    const num = h.n != null ? `<div class="num">${h.n}<small>${esc(h.unit)}</small>${also}</div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
+    // round 18 (owner 4): the number and its unit read as one line ("2 a day from this stream"), the data's `also` under it
+    const num = h.n != null ? `<div class="num"><b class="ghn">${h.n}</b> <span class="ghu">${esc(h.unit)}</span>${also}</div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
     const gor = art.querySelector('.gorigin'), lis = [...art.querySelectorAll('ul.glifts > li')];
     const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
     const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
@@ -893,10 +932,16 @@ function buildKeep(){
     const fe = '';
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
-    const orig = g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : '';
+    // round 18 (owner 4): the origin as a tag — the data's words before " — " ("Hatchery only") — then the rest of its words
+    // and page v36's How to tell beside it, on one line where it fits
+    const ocut = (g.origin || '').indexOf(' — '), obtn = gor ? [...gor.querySelectorAll('button')].map(x => x.outerHTML).join(' ') : '';
+    const orig = !g.origin ? '' : ocut > 0 ? `<p class="gorigin" data-origin><span class="gtag">${esc(g.origin.slice(0, ocut))}</span> <span>${esc(g.origin.slice(ocut + 3))}</span> ${obtn}</p>`
+      : `<p class="gorigin" data-origin><span>${esc(g.origin)}</span> ${obtn}</p>`;
     // round 17 (owner): the quota table and the catch checker are gone; the bucket card is THE display (the data's
     // group.table / cap_kinds / caps prove its numbers in check.mjs only, card-is-the-caps — never drawn)
-    art.innerHTML = `<div class="rhead">${head}${num}</div>${orig}${total}${buckets}${nk}${worked}${quiet}${more}`;
+    // round 18 (owner 4): the group's top is ONE compact block — name · scope, the number with its unit, the origin tag with
+    // How to tell, the total line — instead of a title beside a narrow number column and three loose lines under it
+    art.innerHTML = `<div class="ghd"><div class="rhead">${head}${num}</div>${orig}${total}</div>${buckets}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1179,7 +1224,8 @@ function sheetHtml(k){
       <p class="note2">The app reads any day; this prototype holds only the days above.</p></div>`; }
   if (k === 'parts') { const ids = WATERS[S.w].snap[S.d];
     return head('Parts of this water', '') + `<div class="sbody"><p class="note2">This prototype has no map of this water, so its parts are listed here.</p>${ids.map((id, i) => { const t = SNAP.states[id], o = t.parts.find(x => x.v === t.part);
-      return `<button class="orow" data-part="${i}"><span class="on">${esc(fullPart(o) || t.name)} <span class="muted small">${esc(statusOf(t))}</span></span>${i === S.p ? '<b>✓</b>' : ''}</button>`; }).join('')}</div>`; }
+      const long = o ? o.t.replace(/ · \d+ sections?$/, '') : '';   // round 18: the full label here, the header shows the short one
+      return `<button class="orow" data-part="${i}"><span class="on">${esc(fullPart(o) || t.name)} <span class="muted small">${esc(statusOf(t))}</span>${long && long !== fullPart(o) ? `<small class="plong">${esc(long)}</small>` : ''}</span>${i === S.p ? '<b>✓</b>' : ''}</button>`; }).join('')}</div>`; }
   if (k.startsWith('srcs:')) { const keys = SRCS[k.slice(5)] || [];
     return head('Sources', '') + `<div class="sbody">${keys.map(key => `<div class="prule"><button class="pline pl2" type="button" data-open="rule:${key}"><span>${esc(SNAP.rules[key].title)}</span><em>${esc(levelOf(key))}</em></button>${appliesOf(key).map(a => `<span class="appl">${esc(a)}</span>`).join('')}${bookLinks(key)}</div>`).join('')}</div>`; }
   if (k.startsWith('licsrc:')) { const x = LICSRC[k.slice(7)]; if (!x) return '';

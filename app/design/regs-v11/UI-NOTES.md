@@ -1,3 +1,26 @@
+# regs v20 (round 18, owner review of v19) — in place on regs-v11.html
+
+- **5 A real phone.** The frame is 390 x 844 INSIDE (an iPhone 14's points; the 1.5 px edge is now an outline, so it
+  takes nothing), with a 47 px status bar, the app's own four tabs at the bottom (TabBar.tsx: Map · Search · Conditions ·
+  Spots, Riffle's icons; Search marked, the water came from Search; each a toast) and a 34 px home indicator. The
+  regulations now scroll inside 703 px (800 before: the frame had no tab bar and no home band, ~100 px more than a phone
+  leaves an app). At phone width (≤ 520 px) the frame is the viewport and the home band is the OS's, so not drawn. Sheets
+  and the scrim start under the 47 px bar; the toast sits above the tabs. Check `phone-real-height` (shot + desktop: inside
+  390 x 844, the four tabs with one selected, the home band, ≤ 714 px of rules = 844 - 47 - 49 - 34, scrolls inside).
+- **6 Header.** ‹ · water name · date on ONE line (the date pill lost its "Change date" caption; the aria-label keeps it);
+  the part's label ONE line, the data's SHORT label when uncut ("Tamihi Rapids Bridge → 100 m below the Slesse Creek
+  confluence"), else the long one, cut with "…" by the screen, with "View on map ›" / "Other parts ›" beside it on that
+  line; the full label is the map's title and, for a water without a map, a small line under each part in the parts
+  sheet (and the label's `title`). Slim tabs 34 px. Chilliwack part 2, Oct 10: **179 → 103 px**. Check `header-compact`
+  (8 states: ≤ 120 px, date beside the name, one-line label = the data's short label, action on its line, the full label
+  shown where the action goes, tabs ≤ 36 px); `place-in-header` now wants the action beside the label.
+- **4 Group top, one block** (`.ghd`, today's fields): name · scope on one line; the big number with its unit on one line
+  ("**2** a day from this stream"), the data's `also` under it; the origin as a tag, its words before " — " ("HATCHERY
+  ONLY"), then the rest ("release wild trout and char.") and How to tell on the same line; the total line small. Vedder
+  Oct 10: **218 → 142 px**. Check `group-head-compact` (6 states: every part the data's words, inside the block, number
+  and unit on one line; Vedder ≤ 145 px, two thirds of before).
+- Screens 131-134. Fail-before: scratchpad r18-check-before.txt (3 of 3 FAIL on the v19 page); full suite 68/68.
+
 # regs v19 (round 17, owner: revert the table, refine the card) — in place on regs-v11.html
 
 - **1 Revert.** The quota table and the catch checker are gone from the page: no `#qt` toggle, no table / form / evaluator

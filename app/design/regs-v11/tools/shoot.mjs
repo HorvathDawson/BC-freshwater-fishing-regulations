@@ -157,6 +157,12 @@ const SCREENS = [
   ['128-card-bennett-lake', 'w=x35p&d=1010&at=.szl'],
   ['129-card-ape-creek-may1', 'w=ape&d=501&at=.g28'],
   ['130-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
+  // round 18: a real phone (390 x 844 inside, the app's tabs and home indicator); the compact header (Chilliwack part 2,
+  // Oct 10: 179 -> 103 px); the group's top as one block
+  ['131-phone-chilliwack-part2-header', 'w=chilliwack&d=1010&p=1'],
+  ['132-header-chilliwack-part2-map-full-label', 'w=chilliwack&d=1010&p=1&map=1'],
+  ['133-card-vedder-oct10-group-head', `${V}&at=.g28`],
+  ['134-card-vedder-may15-group-head', 'w=vedder&d=515&at=.g28'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {
