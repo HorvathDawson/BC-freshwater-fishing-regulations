@@ -7136,7 +7136,7 @@
     },
     "TreeExtra": {
      "additionalProperties": false,
-     "description": "RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept \u2014\n\"1 over 50 cm / 20 in \u2014 a second may be a hatchery steelhead\".",
+     "description": "RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept \u2014\n\"1 over 50 cm / 20 in a day \u2014 a second may be a hatchery steelhead\".",
      "properties": {
       "n": {
        "exclusiveMinimum": 0,
@@ -7352,7 +7352,7 @@
     },
     "TreeTier": {
      "additionalProperties": false,
-     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day across\nRegion 2, lakes included\"), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream\"), count (\"1 between them\") or\nsize (\"1 over 50 cm / 20 in \u2014 a second may be a hatchery steelhead\": `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
+     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day across\nRegion 2, lakes included\"), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream\"), count (\"1 between them\") or\nsize (\"1 over 50 cm / 20 in a day \u2014 a second may be a hatchery steelhead\": `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
      "properties": {
       "by": {
        "minimum": 0,

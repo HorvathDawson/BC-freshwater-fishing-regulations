@@ -107,9 +107,9 @@ Owner review of v19 (ROUND18 1-4, 7, 8; items 1, 5, 6 are the page's); RULINGS P
   own rule's bucket: says "This river’s rule: up to 4 a day", `whose`, `replaces` with inches, `why_here` "its row
   covers its tributaries, so it applies here" where the rule reached this water by the tributary walk, `line`), `share`
   ("2 a day from this stream"), `count` ("1 between them"), `size` (`over_cm`, `species` its cap names, `then`, `extra`
-  {n, species}: RULINGS Q16 as one tier, "1 over 50 cm / 20 in — a second may be a hatchery steelhead"). An own tier
+  {n, species}: RULINGS Q16 as one tier, "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead"). An own tier
   sits under the share where it holds share kinds to fewer, else under the total; a size tier sits in the tier holding
-  every kind its cap names (the total where it spans tiers) and holds the kinds wholly over its size, only where it
+  every kind its cap names (the total where it spans tiers) and holds the kinds wholly over its size it truly caps (a kind its `extra` lets past stays in the tier above: no kind sits under a tier smaller than its number), only where it
   limits them below that tier's number (or lets a steelhead past it).
 - Kinds {node "kind", species, name, n, says "Up to 2 may be brook, brown or cutthroat trout", detail "hatchery, 30 cm
   / 12 in or longer", sizes {cm, in}, also_counts, duties, sentence, presence?}: each EXACTLY ONCE under the tightest

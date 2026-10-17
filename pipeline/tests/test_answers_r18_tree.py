@@ -56,21 +56,22 @@ def test_1_the_vedder_tree():
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be rainbow trout (hatchery, any length, 50 cm / 20 in or less)"
     assert rb["sizes"] == {"cm": [[0, 50]], "in": [[0, 20]]}
     assert (share["tier"], share["n"], share["says"]) == ("share", 2, "2 a day from this stream")
-    trout, size = share["children"]
+    trout, st, size = share["children"]
     assert trout["sentence"] == ("Of the 2 a day: up to 2 may be brook, brown or cutthroat trout (hatchery, "
                                  "30 cm / 12 in or longer) — only 1 over 50 cm / 20 in, if you haven’t already "
                                  "kept a Dolly Varden/bull trout or lake trout over 50 cm")
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
     (ac,) = trout["also_counts"]
     assert (ac["tier"], ac["n"], ac["over_cm"]) == (size["id"], 1, 50)
-    # 3: the Q16 pair is ONE size tier holding the kinds wholly over the size
+    # 3: the Q16 pair is ONE size tier holding only the kinds it truly caps; the steelhead it lets past sits in
+    # the share ("of the 1 … up to 2" would contradict itself)
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert size["says"] == "1 over 50 cm / 20 in — a second may be a hatchery steelhead"
+    assert size["says"] == "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead"
     assert size["extra"] == {"n": 1, "species": ["ST"]}
-    dv, st = size["children"]
+    (dv,) = size["children"]
     assert dv["sentence"] == ("Of the 1 over 50 cm / 20 in: up to 1 may be Dolly Varden/bull trout or lake trout "
                               "(hatchery, 60 cm / 24 in or longer)")
-    assert st["sentence"] == "Of the 1 over 50 cm / 20 in: up to 2 may be steelhead (hatchery rainbow trout over 50 cm / 20 in)"
+    assert st["sentence"] == "Of the 2 a day: up to 2 may be steelhead (hatchery rainbow trout over 50 cm / 20 in)"
     assert st["duties"] == ["10 a year", "stop fishing for the day after 2", "record each one on your licence"]
     assert st["presence"]["line"] == "known_with_rules"
 
@@ -97,7 +98,7 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
         "Of the 1 between them: up to 1 may be cutthroat trout (hatchery, 30–33 cm / 12–13 in)",
         "Of the 1 between them: up to 1 may be rainbow trout (hatchery, 30–50 cm / 12–20 in)"]
     # no steelhead may be kept (closed): the size tier is the plain "1 over 50 cm"
-    assert (size["tier"], size["says"], size["extra"]) == ("size", "1 over 50 cm / 20 in", None)
+    assert (size["tier"], size["says"], size["extra"]) == ("size", "1 over 50 cm / 20 in a day", None)
 
 
 # 4 ---------------------------------------------------------------------------------------------
@@ -138,7 +139,7 @@ def test_the_gate_refuses_a_wrong_tree():
     def tier_n(g):
         g["tree"][0]["children"][1]["n"] = 3                       # the share tier
     def size_extra(g):
-        g["tree"][0]["children"][1]["children"][1]["extra"]["n"] = 2
+        g["tree"][0]["children"][1]["children"][2]["extra"]["n"] = 2
     def also(g):
         g["tree"][0]["children"][1]["children"][0]["also_counts"][0]["n"] = 2
     def twice(g):
@@ -151,7 +152,11 @@ def test_the_gate_refuses_a_wrong_tree():
         g["tree"][0]["children"][0]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
     def header(g):
         g["header"]["says"] = g["header"]["says"].replace("4 across", "5 across")
-    for fn in (tier_n, size_extra, also, twice, words, sizes, header):
+    def over_tier(g):                                              # the steelhead back under the size tier
+        share = g["tree"][0]["children"][1]
+        st = share["children"].pop(1)
+        share["children"][1]["children"].append(st)
+    for fn in (tier_n, size_extra, also, twice, words, sizes, header, over_tier):
         assert _mutated(fn), fn.__name__
 
 

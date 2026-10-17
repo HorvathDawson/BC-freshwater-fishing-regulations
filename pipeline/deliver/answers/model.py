@@ -737,7 +737,7 @@ class TreeThen(Model):
 
 class TreeExtra(Model):
     """RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept —
-    "1 over 50 cm / 20 in — a second may be a hatchery steelhead"."""
+    "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead"."""
     n: Positive
     species: Tuple[Fish, ...] = Field(min_length=1)
 
@@ -787,7 +787,7 @@ class TreeTier(Model):
     Region 2, lakes included"), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
     `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
     this water by the tributary walk — and `line`), share ("2 a day from this stream"), count ("1 between them") or
-    size ("1 over 50 cm / 20 in — a second may be a hatchery steelhead": `over_cm`, `species` the kinds its cap
+    size ("1 over 50 cm / 20 in a day — a second may be a hatchery steelhead": `over_cm`, `species` the kinds its cap
     names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
     node: Literal["tier"]
     id: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]

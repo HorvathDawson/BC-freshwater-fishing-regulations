@@ -595,6 +595,12 @@ def check_tree(P, g: dict) -> List[str]:
         if x["node"] == "kind":
             if parent is None:
                 probs.append(f"{where}: kind {x['species']} sits outside every tier")
+            # ROUND18 fix: a kind never keeps more than the tier it sits in ("Of the 1 …: up to 2" contradicts itself);
+            # a kind a size tier's `extra` lets past sits in the parent tier, never under the size tier
+            elif parent["n"] is not None and (x["n"] is None or x["n"] > parent["n"]) or \
+                    set(x["species"]) & set((parent.get("extra") or {}).get("species") or []):
+                probs.append(f"{where}: kind {x['species']} says {x['n']} under the tier {parent['says']!r} "
+                             f"({parent['n']})")
             seen += x["species"]
             ok_n = eq(most(E.fish(x["species"]), x["n"]), x["n"])
             if not ok_n or any(not eq(most(E.fish([S]), x["n"]), x["n"]) for S in x["species"]):

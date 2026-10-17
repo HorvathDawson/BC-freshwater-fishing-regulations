@@ -15,7 +15,7 @@ count groups, size groups and notes) as that tree; it decides nothing new.
          share  the stream (lake) share ("2 a day from this stream")
          count  a count over some of a tier's kinds ("1 between them")
          size   a size cap holding the kinds wholly over its size ("1 over 50 cm / 20 in"); RULINGS Q16's pair
-                (1 over 50 cm, 2 with a steelhead) is ONE tier: "1 over 50 cm / 20 in — a second may be a
+                (1 over 50 cm, 2 with a steelhead) is ONE tier: "1 over 50 cm / 20 in a day — a second may be a
                 hatchery steelhead" (`extra` {n, species}); a cap with no kind wholly over its size is no
                 tier, only the kinds' `also_counts`
   kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, duties, sentence}: each
@@ -265,13 +265,14 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                              and set(sz["species"]) | {"ST"} <= set(s["of"])]
                     room = min(takes + [INF if t["n"] is None else t["n"], INF if st["n"] is None else st["n"]])
                     if room != INF and room - sz["n"] >= 1:
+                        # the steelhead it lets past stays in the parent tier: "of the 1 … up to 2" contradicts itself
                         extra = {"n": _num(room - sz["n"]), "species": ["ST"]}
-                        kids.append(st)
             if not kids or (extra is None and t["n"] is not None and sz["n"] >= t["n"]):
                 continue
             says = f"{'None' if not sz['n'] else _js(sz['n'])} over {common.cm_in(cm)}"
             for th in sz.get("then") or []:
                 says += f", and {'none' if not th['n'] else _js(th['n'])} over {common.cm_in(th['over_cm'])}"
+            says += " a day"
             if extra is not None:
                 # RULINGS Q16 (Region 1/2): "no more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)"
                 os_ = st["_origins"]

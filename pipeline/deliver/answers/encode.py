@@ -342,7 +342,7 @@ SPEC = {
                     "tributaries, so it applies here\" where the tributary walk brought the rule, else null, `line` all "
                     "three in one line), \"share\" (\"2 a day from this stream\"), \"count\" (\"1 between them\") and "
                     "\"size\" (`over_cm`, `species` the kinds its cap names, `then` [{n, over_cm}] nested caps, `extra` "
-                    "{n, species} | null — RULINGS Q16 as ONE tier: \"1 over 50 cm / 20 in — a second may be a hatchery "
+                    "{n, species} | null — RULINGS Q16 as ONE tier: \"1 over 50 cm / 20 in a day — a second may be a hatchery "
                     "steelhead\"), and kinds {node \"kind\", species, name, n, says \"Up to 2 may be brook, brown or "
                     "cutthroat trout\", detail \"hatchery, 30 cm / 12 in or longer\", sizes {cm [[from, to|null]], in "
                     "[[from, to|null]]}, also_counts [{tier (a size tier's id) | null, by | null, n, over_cm (0: a count), "
