@@ -1,3 +1,12 @@
+# regs v16 (round 14) — in place on regs-v11.html
+
+- **2 Licence, Under 16.** The Under 16 tab shows the default angler's (B.C. resident) under-16 answer as the same open
+  "You need" list as 16 or older: page v36 gives it as a box ("No licence needed to fish here" + its sentence), which is
+  now an item of a list under the page's own "You need" label (read from the 16-or-older answer); a box both ages share
+  (a classified water's Class I/II box) stays a box. Nothing about it is folded. Other residencies stay in their "Rules
+  for other anglers · <residency>" dropdowns, the tab's own age first. Check `licence-u16-you-need` (Vedder + a classified
+  water, both tabs). Screen 71 renamed 71-licence-vedder-u16-you-need.
+
 # regs v15 (round 13, owner H L B) — in place on regs-v11.html
 
 - **Phase 2 (rows 12, gear 9, display 9; page v36 @ c4eecc9e, 128 states).** D: the lift box is gone; a water's

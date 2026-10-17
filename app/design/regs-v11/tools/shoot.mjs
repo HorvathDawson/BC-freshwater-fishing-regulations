@@ -91,7 +91,7 @@ const SCREENS = [
   // residencies in their own "Rules for other anglers" dropdowns (L); Bella Coola on May 1, each part, and its quick pills (B)
   ['69-header-vedder-top', V],
   ['70-header-vedder-scrolled', `${V}&scroll=900`],
-  ['71-licence-vedder-u16-one-block', `${V}&age=u16&at=%23g-licence`],
+  ['71-licence-vedder-u16-you-need', `${V}&age=u16&at=%23g-licence`],
   ['72-licence-vedder-other-anglers-open', `${V}&age=u16&open=%5Bdata-res%3D%22non_resident%22%5D&at=%5Bdata-res%3D%22non_resident%22%5D`],
   ['73-card-bella-coola-may1', 'w=bellacoola&d=501&p=1&at=.g28'],
   ['74-card-bella-coola-side-channels-may1', 'w=bellacoola&d=501&p=0&at=.g28'],

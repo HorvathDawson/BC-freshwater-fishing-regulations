@@ -12,6 +12,7 @@
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
 //   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired); phase 2:
 //   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
+//   (round 14) licence-u16-you-need
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -527,6 +528,30 @@ check('gear-no-any-hook', !ah.length, ah.map(([w, r]) => `${w}: ${JSON.stringify
 const A13 = await page('w=ape&d=501', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const w = WATERS.ape; if (!w) return {missing: true};
   return {days: Object.keys(w.snap).map(Number), name: document.querySelector('#hdr .ttl')?.textContent.trim(), pills: [...document.querySelectorAll('#c-w [data-cw^="ape|"]')].map(e => e.dataset.cw)}; })())`)));
 check('ape-creek-front', !A13.missing && [1010, 501].every(d => A13.days.includes(d) && A13.pills.some(p => p.split('|')[1] === String(d))) && A13.name === 'Ape Creek', JSON.stringify(A13));
+
+// ---------- round 14 ----------
+// (2) Licence: the Under 16 tab shows the default angler's under-16 answer as the SAME open "You need" list as 16 or older
+// (the page's own label and words), outside every fold; on the Vedder and on a classified water (whose classified box both
+// ages share). In each other residency's dropdown the tab's own age comes first.
+const CLW = await page('w=vedder&d=1010', async b => JSON.parse(await b.evaluate(`JSON.stringify(Object.entries(WATERS).flatMap(([w, x]) =>
+  Object.entries(x.snap).map(([d, ids]) => [w, d, [].concat(ids)[0]])).find(([, , i]) => /class="classbox"/.test(SNAP.states[i]?.licence?.adult || '')) || null)`)));
+const L14 = [];
+for (const [w, d] of [['vedder', '1010'], ...(CLW ? [[CLW[0], CLW[1]]] : [])]) for (const age of ['adult', 'u16'])
+  await page(`w=${w}&d=${d}&age=${age}&at=%23g-licence`, async b => {
+  L14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), L = document.getElementById('g-licence'), norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+    const mineH = st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}], ad = document.createElement('div'); ad.innerHTML = st.licence.adult;
+    const label = norm(ad.querySelector('.needs .lbl')?.textContent), md = document.createElement('div'); md.innerHTML = mineH;
+    const shared = new Set([...ad.querySelectorAll('.classbox')].map(e => norm(e.textContent)));
+    const answer = [...md.querySelectorAll('.needs li > b, .classbox > b')].filter(e => !shared.has(norm(e.parentElement.textContent))).map(e => norm(e.textContent));
+    const lists = [...(L?.querySelectorAll('.needs') || [])].filter(n => !n.closest('details'));
+    const list = lists[0], items = list ? [...list.querySelectorAll('li > b')].map(e => norm(e.textContent)) : [];
+    const order = [...(L?.querySelectorAll('details.others') || [])].map(f => norm(f.querySelector('.u16h')?.textContent));
+    return {w: S.w, age: S.age, label, lists: lists.length, shownLabel: norm(list?.querySelector('.lbl')?.textContent), visible: !!list && list.getBoundingClientRect().height > 0,
+      answer, items, order, want: [...ad.querySelectorAll('#who-age option')].find(o => o.value === (S.age === 'u16' ? 'under_16' : '16_plus'))?.textContent.trim()}; })())`)));
+});
+const lb14 = L14.filter(x => x.lists !== 1 || !x.label || x.shownLabel !== x.label || !x.visible || !x.answer.length || x.answer.join('|') !== x.items.join('|')
+  || !x.order.length || x.order.some(o => o !== x.want));
+check('licence-u16-you-need', L14.length === 4 && !lb14.length, lb14.map(x => JSON.stringify(x)).join('; ') || `checked ${L14.length} of 4 (classified water: ${JSON.stringify(CLW)})`);
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

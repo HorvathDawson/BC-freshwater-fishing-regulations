@@ -851,10 +851,20 @@ function licence(st, id){
     const names = [...r.querySelectorAll('.needs li > b')].map(b => b.textContent.replace(/ⓘ/g, '').trim());
     const head = names[0] || (r.querySelector('b')?.textContent || '').trim();
     return {html: r.innerHTML.replace(/ open=""/g, ''), words, names, head, from}; };
-  const u16 = S.age === 'u16', mine = one(st.licence[u16 ? 'u16_res' : 'adult']);
+  // round 14 (owner 2): an answer the page gives as a box ("No licence needed to fish here", under 16) is the same "You
+  // need" list as 16 or older, in the page's own label and words; a box both ages share (a classified water) stays a box
+  const asNeeds = h => { const r = parse(h); if (r.querySelector('.needs')) return h;
+    const ad = parse(st.licence.adult), label = ad.querySelector('.needs .lbl')?.textContent.trim(), norm = t => t.replace(/\s+/g, ' ').trim();
+    const shared = new Set([...ad.querySelectorAll('.classbox')].map(e => norm(e.textContent)));
+    const own = [...r.querySelectorAll('.classbox')].filter(e => !shared.has(norm(e.textContent)));
+    if (!label || !own.length) return h;
+    own[0].insertAdjacentHTML('beforebegin', `<div class="needs"><div class="lbl">${esc(label)}</div><ul>${own.map(e => `<li>${e.innerHTML}</li>`).join('')}</ul></div>`);
+    own.forEach(e => e.remove()); return r.innerHTML; };
+  const u16 = S.age === 'u16', mine = one(asNeeds(st.licence[u16 ? 'u16_res' : 'adult']));
   const ages = [['adult', optText('age', '16_plus')], ['u16', optText('age', 'under_16')]];
   const others = [['non_resident', 'adult_non', 'u16_non'], ['non_resident_alien', 'adult_alien', 'u16_alien']].filter(([, a, u]) => st.licence[a] || st.licence[u])
     .map(([res, a, u]) => ({res, name: optText('residency', res), got: [[ages[0][1], st.licence[a] ? one(st.licence[a], true) : null], [ages[1][1], st.licence[u] ? one(st.licence[u], true) : null]].filter(([, x]) => x)}));
+  if (u16) others.forEach(o => o.got.reverse());   // round 14: the tab's own age first in each dropdown
   const fr = [[optText('residency', 'resident'), mine]].concat(others.flatMap(o => o.got.map(([t, x]) => [`${o.name} · ${t}`, x]))).filter(([, x]) => x.from);
   LICSRC[`lic|${id}|${u16 ? 'u16' : 'adult'}`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.from.b}`).join('')} : null;
   const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">${esc(othersName)} · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
