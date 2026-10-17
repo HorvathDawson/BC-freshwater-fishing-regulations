@@ -225,10 +225,14 @@ function buildModel(w, md){ const c = settle(w, md), r = rowsAt(w, c.s); return 
 
 /* ---------- through the year: per day, read from the segment holding it ---------- */
 const RANKSTAT = { keep:3, nolimit:3, release:2, closed:1 };
+// ROUND14 5 (rows 13 `week`): a day cut by WEEKDAY moments reads as its best answer over them — a weekday
+// window is said in words (`rows[].week`), never as a strip of single days or a list of dates
 function dayStatus(w, md, members){
-  const r = rowsAt(w, segOf(w, md)); let best = 'none', bv = 0; if (!r) return 'none';
-  for (const S of members){ const m = r.R[S] ? mainRes(r.R[S].H, r.R[S].W) : null; if (m && RANKSTAT[m.status] > bv){ bv = RANKSTAT[m.status]; best = m.status === 'nolimit' ? 'keep' : m.status; } }
-  return best;
+  const M = momentsOf(w), wk = M ? daySegs(w, md).filter(j => !M[j].hours) : [];
+  let best = 'none', bv = 0, any = false;
+  for (const s of (wk.length > 1 ? wk : [segOf(w, md)])){ const r = rowsAt(w, s); if (!r) continue; any = true;
+    for (const S of members){ const m = r.R[S] ? mainRes(r.R[S].H, r.R[S].W) : null; if (m && RANKSTAT[m.status] > bv){ bv = RANKSTAT[m.status]; best = m.status === 'nolimit' ? 'keep' : m.status; } } }
+  return any ? best : 'none';
 }
 function strip(w, members){
   const segs = []; let cur = null, len = 0;
@@ -561,7 +565,9 @@ function timedHtml(ctx){
   // a fish whose answer differs between the day's moments
   // (a moment the water is closed at is said once, above, never fish by fish)
   const rs = ss.filter(j => j === cur || dispOf(j)?.status !== 'closed').map(j => [j, rowsAt(w, j)]), spp = [...new Set(rs.flatMap(([, r]) => r ? r.spp : []))];
+  const weekly = new Set(rs.flatMap(([, r]) => r ? r.rows.flatMap(x => x.raw?.week?.species || []) : []));
   for (const S of spp){
+    if (weekly.has(S)) continue;              // ROUND14 5: its row says the weekday window (`rows[].week`)
     const by = rs.map(([j, r]) => [j, r && r.R[S] ? mainRes(r.R[S].H, r.R[S].W) : null]);
     const words = by.map(([j, d]) => [j, answerTxt(d)]); if (new Set(words.map(([, t]) => t)).size < 2) continue;
     const grp = new Map(); words.forEach(([j, t]) => (grp.get(t) || grp.set(t, []).get(t)).push(j));
@@ -914,7 +920,7 @@ function groupBlock(row, rc){
       : `<li>${gen ? '<i class="ck">✓</i>' : p.ic ? ICON[p.ic] : '<span class="ic"></span>'}<div><b>${esc(gen && /^Only \d+ fish over/.test(hd) && !/ (total|all)/.test(hd) ? hd.replace(/ fish over (\d+ cm)$/, ' fish over $1 in total') : !gen && !/don’t count$/.test(sub) && /^\(?(.+?)\)?$/.test(sub) && /^Only \d+ fish over/.test(hd) ? hd.replace(/ fish over/, ' ' + sub.replace(/[()]/g, '') + ' over') : hd)}</b>${sub && !(!gen && !/don’t count$/.test(sub) && /^Only \d+ fish over/.test(hd)) ? `<span class="in">${/don’t count$/.test(sub) ? ` (${esc(sub)})` : ', ' + esc(sub)}</span>` : ''}</div></li>`); });
   const apart = MODEL.rows.filter(r => r !== row && r.pool && row.pool && r.members.length && r.members.every(S => { const m = mainRes(MODEL.R[S]?.H, MODEL.R[S]?.W); return m && m.roles.get(row.pool.key)?.role === 'lifted'; }));
   apart.forEach(r => (VAR === 'B' ? conds : oth).push(`<li><span class="ic"></span><div><b>${esc(rowTitle(r))}: own limit of ${r.daily} a day</b><span class="sub">Not part of these ${n}. See its row below.</span></div></li>`));
-  const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
+  const sp = noRulesLine(row);
   return `<section class="gblock">${facts.join('')}${ex}${conds.length ? (VAR === 'B' ? `<ul class="gconds">${conds.join('')}</ul>` : `<div class="gfor">${VAR === 'C' ? '' : '<div class="lbl">Across all kinds</div>'}<ul class="gconds v2">${conds.join('')}</ul></div>`) : ''}${oth.length ? `<div class="gfor">${conds.length ? '<div class="lbl">Also</div>' : ''}<ul class="gconds v2 oth">${oth.join('')}</ul></div>` : ''}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }
 // answers 2.8 (ROUND9 A1-A3): THE QUOTA CARD, read from the answers (rows `group`: headline, origin, lifts,
@@ -929,18 +935,21 @@ function cardBlock(row, id){
   // `g.lifts` stay in the answers for proof only
   const lines = g.total_line ? [`<li>${esc(g.total_line)} ${gi('daily_quota')}</li>`] : [];
   const pic = S => hasPic(S) ? `<button class="kpic" type="button" data-fish="${S}" aria-label="${esc(spName(S))}">${FISHART.draw(S, { marks:false })}</button>` : '';
-  const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
+  // ROUND14 4 (rows 13): the steelhead presence line sits in the steelhead's own section (`presence`)
+  const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}${presHtml(k.presence)}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
+  // ROUND14 3 (rows 13): a count over some of the bucket's kinds is a nested group, said before the size notes
+  const subs = b => (b.groups || []).map(s => `<section class="bucket sub" style="margin-left:14px;padding-left:8px;border-left:2px solid #c9c9c9"><div class="lbl">${esc(s.says)} · ${bookOf(s.by)}</div>${s.kinds.map(kind).join('')}</section>`).join('');
   // ROUND11 A1: a size cap the bucket's kinds share is its note, said once (rows 10 `buckets[].notes`)
   const bnotes = b => (b.notes || []).map(n => `<p class="s2"><b>${esc(n.says)}.</b></p>`).join('');
   const repl = b => b.replaces ? `<p class="s2">${esc(b.replaces.says)}.</p>` : '';
-  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${repl(b)}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
+  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${repl(b)}${subs(b)}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
   // ROUND13 S (rows 12): every fish of the row nobody may keep here, said with whose rule and its Book page
-  const nk = (g.not_kept || []).length ? `<section class="bucket notkept">${g.not_kept.map(x => `<div class="krow"><span class="kpics">${x.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(x.says)}</b><p class="s2">${esc(cap(x.whose))} ${bookOf(x.by)}</p></div><b class="kn">${x.status === 'closed' ? '✕' : '0'}</b></div>`).join('')}</section>` : '';
+  const nk = (g.not_kept || []).length ? `<section class="bucket notkept">${g.not_kept.map(x => `<div class="krow"><span class="kpics">${x.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(x.says)}</b><p class="s2">${esc(cap(x.whose))} ${bookOf(x.by)}</p>${presHtml(x.presence)}</div><b class="kn">${x.status === 'closed' ? '✕' : '0'}</b></div>`).join('')}</section>` : '';
   // ROUND12 4 (rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list, `group.worked` (the
   // keep-N count, then the kept-elsewhere examples it does not repeat) — no dropdown; `elsewhere.ask` is folded
   const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
   const sheet = el ? `<section class="elsewhere"><div class="lbl">How it adds up</div><p class="gline">${esc(el.says)} ${regionGi(row)}</p>${worked}</section>` : '';
-  const sp = (row.allMembers.includes('ST') || (row.allMembers.includes('RB') && !MODEL.rows.some(r => r.allMembers.includes('ST')))) ? steelPresence() : '';
+  const sp = noRulesLine(row);
   return `<section class="gblock card28">${org}${lines.length ? `<ul class="glifts">${lines.join('')}</ul>` : ''}${buckets}${nk}${sheet}${sp ? `<p class="gquiet">${esc(sp)} ${gi('steelhead')}</p>` : ''}</section>`;
 }
 // the keep sentence: "Keep 1 of the 2 · 60 cm or longer · hatchery only"
@@ -955,6 +964,12 @@ function isSteelRiver(){ return !!(PLACE.key && PLACE.key[2]); }
 // how sure we are that steelhead are here (answers rows steelhead_line)
 const STEEL_LINE = { possible_with_rules:'Steelhead rules apply here; steelhead may not be present in this water.', known_with_rules:'Steelhead are known to be in this water.', known_no_rules:'Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.' };
 function steelPresence(){ const l = MODEL.line; return l == null ? '' : STEEL_LINE[l] || `(steelhead line “${l}”: no words for it)`; }
+// ROUND14 4 (rows 13): the presence line where steelhead rules apply is the answers' `presence`, inside the
+// steelhead section; only "recorded here, but no steelhead rule applies" (about rainbow trout) stays on the card
+const presHtml = p => p ? `<p class="gquiet">${esc(p.says)} ${gi('steelhead')}</p>` : '';
+const noRulesLine = row => MODEL.line === 'known_no_rules' && row.allMembers.includes('RB') ? steelPresence() : '';
+// ROUND14 5 (rows 13): a weekday window in words (`rows[].week`), the same on every day of the week
+const weekHtml = row => row.raw?.week ? `<p class="sum week">${esc(row.raw.week.says)}.</p>` : '';
 // "Only 2 at 30–50 cm. Only 1 over 50 cm." reads as 3: a cap that runs on to the top is "of those"
 function capLines(q, topN){
   const out = [], used = new Set();
@@ -1073,13 +1088,13 @@ const sameSet = (a, b) => a && b && a.length === b.length && a.every(x => b.incl
 function summaryHtml(row, id){
   const decided = `<details class="decide" data-dd="${id}d"${ddOpen(id + 'd')}><summary>How this was decided</summary><div class="ddbody">${ladderHtml(row, id)}</div></details>`;
   if (!row.pool){ const named = row.prot ? row.prot.map(spName).join(', ') : !row.members.length ? namedIn(row.win) : ''; const sg = row.members.length ? strip(PLACE, row.members) : null, never = sg && !sg.some(([st]) => st === 'keep'), un = sg && !never ? runUntil(sg, state.md) : '', rt = sg ? (never ? ((row.kind === 'closed' ? '' : 'No keeping at any time of year. ') + closedRuns(sg)).trim() : runTxt(sg, state.md, true)) : '';
-    return `<p class="sum">${row.kind === 'closed' ? `Don’t fish for them${un ? ' until ' + un : ''}. If one bites, carefully release it.` : `You can fish for them, but release every one${un ? ' until ' + un : ''}.`}${rt ? ' ' + esc(rt) : un ? '' : row.win.wins.length ? ' ' + esc(cap(winTxt(row.win).slice(2))) + '.' : ''}</p>${named ? (nl => nl.length > 5 ? `<details class="names"><summary>Which fish (${nl.length})</summary><p class="names">${esc(nl.join(' · '))}</p></details>` : `<p class="names">${esc(nl.join(' · '))}</p>`)(row.prot ? row.prot.map(spName) : named.split(/,\s*/)) : ''}${miniStrip(PLACE, row.members, state.md)}${decided}`; }
+    return `${row.raw?.week ? weekHtml(row) : `<p class="sum">${row.kind === 'closed' ? `Don’t fish for them${un ? ' until ' + un : ''}. If one bites, carefully release it.` : `You can fish for them, but release every one${un ? ' until ' + un : ''}.`}${rt ? ' ' + esc(rt) : un ? '' : row.win.wins.length ? ' ' + esc(cap(winTxt(row.win).slice(2))) + '.' : ''}</p>`}${presHtml(row.raw?.presence)}${named ? (nl => nl.length > 5 ? `<details class="names"><summary>Which fish (${nl.length})</summary><p class="names">${esc(nl.join(' · '))}</p></details>` : `<p class="names">${esc(nl.join(' · '))}</p>`)(row.prot ? row.prot.map(spName) : named.split(/,\s*/)) : ''}${miniStrip(PLACE, row.members, state.md)}${decided}`; }
   if (!row.conds) return missing('the conditions on keeping of this row (rows conds)') + decided;
   const rc = rowConds(row);
   const pics = row.allMembers.filter(hasPic);
   const photos = pics.length ? `<details class="looks" data-dd="${id}p"${ddOpen(id + 'p')}><summary>${pics.length > 1 ? `What they look like <span class="lc">${pics.length} fish</span>` : `What ${/^[aeiou]/i.test(spName(pics[0])) ? 'an' : 'a'} ${esc(spName(pics[0]).toLowerCase())} looks like`}</summary><div class="lstrip">${pics.map(S => `<button class="lthumb" type="button" data-fish="${S}">${FISHART.draw(S, { marks:false })}<span>${esc(spName(S))}</span></button>`).join('')}</div></details>` : '';
   const more = [liftNoteHtml(row), miniStrip(PLACE, row.members, state.md) ? stripHtml(PLACE, row.members, state.md) : ''].join('');
-  if (row.raw?.group?.buckets) return cardBlock(row, id) + more + `<button class="linkrow" type="button" data-src="${id}">See every regulation line ›</button>`;
+  if (row.raw?.group?.buckets) return weekHtml(row) + cardBlock(row, id) + presHtml(row.raw.presence) + more + `<button class="linkrow" type="button" data-src="${id}">See every regulation line ›</button>`;
   const sb = speciesBlock(row, rc, id);
   const srcLink = `<button class="linkrow" type="button" data-src="${id}">See every regulation line ›</button>`;
   const s = scopeOf(row);
@@ -1098,9 +1113,9 @@ function summaryHtml(row, id){
   const simple = !sb && !rc.conds.length && !nar0(row) && row.kind === 'keep';
   if (simple && single && /class="seg"/.test(single) && !/class="s2"|class="chips"/.test(single)){
     const segs = [...single.matchAll(/<span class="seg">· ([^<]+)<\/span>/g)].map(m => m[1]);
-    return `<p class="gsub">${segs.length ? esc(cap(segs.join(', '))) + '.' : ''}${s ? `${segs.length ? ' ' : ''}Shared with all of ${esc(s)} today.` : ''}</p>` + photos + more + decided; }
+    return weekHtml(row) + `<p class="gsub">${segs.length ? esc(cap(segs.join(', '))) + '.' : ''}${s ? `${segs.length ? ' ' : ''}Shared with all of ${esc(s)} today.` : ''}</p>` + presHtml(row.raw?.presence) + photos + more + decided; }
   const gb = simple ? (s ? `<p class="gsub">Shared with all of ${esc(s)} today.</p>` : '') : groupBlock(row, rc);
-  return gb + single + sb + photos + more + (sb ? srcLink : decided);
+  return weekHtml(row) + gb + single + sb + presHtml(row.raw?.presence) + photos + more + (sb ? srcLink : decided);
 }
 function parentRow(row){ return row.pool ? MODEL.rows.find(r => r !== row && r.pool && row.members.every(S => r.allMembers.includes(S) || r.groups.some(g => g.members.includes(S))) && r.groups.some(g => g.facts.some(l => l.t === 'xref' && row.members.some(S => g.members.includes(S))))) : null; }
 function rowHtml(row, i){
