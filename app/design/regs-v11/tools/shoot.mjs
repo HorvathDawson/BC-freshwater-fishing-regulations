@@ -135,25 +135,28 @@ const SCREENS = [
   ['101-card-glenn-creek-jun15-not-kept', 'w=glenn&d=615&at=.nkt'],
   ['102-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
   ['103-keep-vedder-jun15-closed-once', 'w=vedder&d=615'],
-  // round 16: the gear sentence as labelled lines (5); How it adds up closes its group (2, the #qt=0 bucket view); the
-  // quota table + Check my catch, the data's table / cap_kinds / caps (1); rule titles, cautions, restatements (3, Q1, Q2)
+  // round 16: the gear sentence as labelled lines (5); How it adds up closes its group (2); the
+  // (round 16 table screens 108-116 retired in round 17); rule titles, cautions, restatements (3, Q1, Q2)
   ['104-gear-vedder-lines', `${V}&sec=gear`],
   ['105-gear-vedder-may15-fly-only-lines', 'w=vedder&d=515&sec=gear'],
   ['106-gear-kootenay-main-body-lines', 'w=klmb&d=1010&sec=gear'],
-  ['107-card-ape-creek-may1-adds-up-last', 'w=ape&d=501&qt=0&at=.nkt'],
-  ['108-table-bella-coola-may1', 'w=bellacoola&d=501&p=0&at=.g28'],
-  ['109-table-bella-coola-may1-limits', 'w=bellacoola&d=501&p=0&at=.qcaps'],
-  ['110-table-bella-coola-may1-after-cutthroat', 'w=bellacoola&d=501&p=0&bk=CT:30:h:-&at=.g28'],
-  ['111-table-bella-coola-may1-check-release', 'w=bellacoola&d=501&p=0&bk=CT:30:h:-&qm=RB:30:h:-&qs=RB&at=.qform'],
-  ['112-table-vedder-oct10', `${V}&at=.g28`],
-  ['113-table-ape-creek-may1', 'w=ape&d=501&at=.g28'],
-  ['114-table-bella-coola-may1-mainstem', 'w=bellacoola&d=501&p=1&at=.g28'],
-  ['115-table-bella-coola-may1-after-brown-55', 'w=bellacoola&d=501&p=1&bk=GB:55:h:-&qm=GB:55:h:-&qok=1&qs=GB&qc=55&at=.g28'],
-  ['116-table-bennett-lake', 'w=x35p&d=1010&at=.g28'],
+  ['107-card-ape-creek-may1-adds-up-last', 'w=ape&d=501&at=.nkt'],
   ['117-sheet-bella-coola-sources-titles', `w=bellacoola&d=501&p=0&sheet=${encodeURIComponent('src:bc0_501|r0')}`],
   ['118-keep-glenn-may1-caution', 'w=glenn&d=501'],
   ['119-sheet-schooler-grayling-restates', `w=x41p&d=1010&sheet=${encodeURIComponent('other:x41p_1010|o3')}`],
   ['120-licence-vedder-u16-book-words', `${V}&age=u16&at=%23g-licence`],
+  // round 17: the table and the catch checker are gone (108-116 retired); the bucket card, every row with its own number,
+  // the size cap a compact line with the rows it covers, each covered row tagged
+  ['121-card-bella-coola-may1-side-channels', 'w=bellacoola&d=501&p=0&at=.g28'],
+  ['122-card-bella-coola-may1-side-channels-size-line', 'w=bellacoola&d=501&p=0&at=.szl'],
+  ['123-card-bella-coola-may1-mainstem', 'w=bellacoola&d=501&p=1&at=.g28'],
+  ['124-card-bella-coola-may1-mainstem-size-line', 'w=bellacoola&d=501&p=1&at=.szl'],
+  ['125-card-vedder-oct10', `${V}&at=.g28`],
+  ['126-card-vedder-oct10-size-line', `${V}&at=.szl`],
+  ['127-card-vedder-may15', 'w=vedder&d=515&at=.g28'],
+  ['128-card-bennett-lake', 'w=x35p&d=1010&at=.szl'],
+  ['129-card-ape-creek-may1', 'w=ape&d=501&at=.g28'],
+  ['130-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

@@ -467,42 +467,9 @@ button.hplace:active .pl{color:var(--accent)}
 /* v13 (round 11, owner 3): one gear sentence, dated chips, no icons; the province-wide rules a reference fold */
 .gsum{margin:2px 0 10px}
 .gsay{margin:0;font:700 var(--t2)/1.35 Archivo,sans-serif}
-/* round 16 (owner 1, prototype): the quota table + Check my catch */
-.qt{margin-top:10px}
-.qtab{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--t4)}
-.qtab thead th{padding:4px 2px 6px;font:700 var(--t4)/1.2 Archivo,sans-serif;color:var(--sub);text-align:center;border-bottom:1.5px solid var(--ink);vertical-align:bottom}
-.qtab thead th small{font-weight:500}
-.qtab thead th.qf{width:38%;text-align:left;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
-.qtab tbody tr{border-bottom:1px solid var(--line)}
-.qtab th.qn{padding:6px 4px 6px 0;text-align:left;font-weight:400}
-.qtab th.qn .th{display:block;width:56px;margin-bottom:2px}.qtab th.qn .th img{width:56px}
-.qtab th.qn b{display:block;font:700 var(--t4)/1.2 Archivo,sans-serif;color:var(--ink)}
-.qtab td{text-align:center;padding:6px 2px}
-.qtab td.qk b{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open)}
-.qtab td.qr{color:var(--restricted);font-weight:500}.qtab td.q-closed{color:var(--closed);font-weight:700}.qtab td.q-full{color:var(--sub)}
-.qtab td.qas{color:var(--faint)}.qtab td.qk small{display:block;font-size:.7rem;font-weight:600;color:var(--sub);margin-top:1px}
-.qtab td.qk b.qnl{font:700 var(--t4) Archivo,sans-serif;color:var(--open)}
-.qtab th.qn .qnote{display:block;margin-top:2px;font-size:.7rem;color:var(--sub);font-weight:400}
 .inhc{margin:2px 0 0;font-size:var(--t4);color:var(--sub)}
 .srow .stt{display:block;font-weight:700}.srow .sq{display:block;margin-top:1px;font-size:var(--t4);color:var(--sub)}
 .rnote{margin:2px 0 4px 10px;font-size:var(--t4);color:var(--sub)}
-.qlab{margin:8px 0 2px;font-size:var(--t4);color:var(--sub)}.qtab td.qk small.qband{color:var(--faint);font-weight:500}
-.qels{margin:10px 0 0;font-size:var(--t4);color:var(--sub)}.qres small{display:block;margin-top:3px;color:var(--sub)}
-.qtab tr.qclosed td{color:var(--closed);font-weight:700;text-align:left}.qtab tr.qrel td{color:var(--restricted);font-weight:600;text-align:left}
-.qcaps{list-style:none;margin:8px 0 0;padding:0}
-.qcaph{margin-top:12px}
-.qcaps li{padding:6px 0;border-top:1px solid var(--line)}.qcaps li:first-child{border-top:0}
-.qcaps li b{display:block;font:600 var(--t3)/1.3 Archivo,sans-serif}.qcaps li span{font-size:var(--t4);color:var(--sub)}.qcaps .book{min-height:0;padding:12px 0;margin:-12px 0}
-.qtab td small{display:block;margin-top:2px;font-weight:400;font-size:var(--t4);color:var(--sub)}.qtab td small .book{min-height:0;padding:12px 0;margin:-12px 0}
-.qform{margin-top:14px;padding-top:8px;border-top:1.5px solid var(--ink)}
-.qin{display:flex;gap:8px;margin:6px 0}.qin select{flex:1 1 auto;min-width:0;min-height:44px;font:600 var(--t3) Archivo,sans-serif;border:1.5px solid var(--ink);background:var(--card);color:var(--ink)}
-.qcm{display:flex;align-items:center;gap:4px;font-weight:600}.qcm input{width:4.2em;min-height:44px;font:700 var(--t3) Archivo,sans-serif;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);text-align:center}
-.qwhere{margin:6px 0}
-.qadd{width:100%;min-height:44px;margin-top:4px;background:var(--ink);color:var(--card);font:700 var(--t3) Archivo,sans-serif;border:0}
-.qres{margin:10px 0 0;padding:8px 10px;font-size:var(--t3);line-height:1.35}.qres.ok{border-left:3px solid var(--open)}.qres.no{border-left:3px solid var(--restricted)}
-.qres.no b{color:var(--restricted)}.qres.ok b{color:var(--open)}
-.qbask{list-style:none;margin:8px 0 0;padding:0}.qbask li{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);font-size:var(--t4)}
-.qbask button{min-width:44px;min-height:40px;color:var(--sub)}
 /* round 16 (owner 5): the gear sentence as labelled lines — label in a fixed column, the value big; a fly-only mode first */
 .gmode{margin:0 0 8px;padding:6px 0 6px 10px;border-left:3px solid var(--restricted);font:800 var(--t2)/1.3 "Bricolage Grotesque",Archivo,sans-serif;color:var(--restricted)}
 .glines,#gear .glines{list-style:none;margin:0;padding:0}
@@ -594,6 +561,11 @@ details.bookw blockquote{margin:0 0 10px}
 .wkpart .wkd{display:inline-block;min-width:4.6em;font-weight:700}.wkpart:not(.today) .pline span{color:var(--sub)}
 .wkpart.today .pline em{color:var(--accent);font-weight:700}
 /* round 14: a nested count group (first in its bucket) and the steelhead presence line inside its section */
+.ktags{margin:3px 0 0;display:flex;flex-wrap:wrap;gap:4px}
+.ktag{font:600 var(--t5,12px)/1.3 Archivo,sans-serif;color:var(--sub);border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
+/* round 17: a size cap as one compact boxed line with the rows it covers */
+.szl{margin:8px 0 0;padding:5px 10px;border:1.5px solid var(--line2);border-radius:6px;font:600 var(--t4)/1.35 Archivo,sans-serif}
+.szl .qgn{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--ink)}.szl .szb{white-space:nowrap}.szl .book{display:inline;min-height:0;padding:12px 0;margin:-12px 0;font-weight:500}
 .qgrp{margin:8px 0 6px;border:1.5px solid var(--line2);border-radius:6px;padding:6px 10px 2px}
 .qgh{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;font-size:var(--t3);font-weight:600;line-height:1.3}.qgh .qgw{font-weight:700}
 .qgh .qgn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--ink)}.qgb{margin:0 0 2px;color:var(--sub);font-size:var(--t4)}
@@ -681,7 +653,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {qt:1, bk:'', qm:'', qok:'', qw:'h', qo:'w', qs:'', qc:30, w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -769,110 +741,6 @@ function speciesRow(codes){
   if (!cs.length) return '';
   return `<div class="spg" role="list" aria-label="What they look like">${cs.map(c => `<button role="listitem" data-open="sp:${c}"><span class="im"><img src="../apps/mobile/assets/fish/${FISHPIC(c)[0].file}" alt="" loading="lazy"></span><span>${esc(SNAP.fish[c].name)}</span></button>`).join('')}</div>`;
 }
-/* ---------- round 16 (owner 1): the quota TABLE and "Check my catch" ----------
-   The data's per-group table (rows 15 `group.table` {bands, cells, steelhead_cm}) is the group's display: rows the fish,
-   columns the size bands (the union of every row's cut points; a row's band spans the columns it covers), each cell the
-   number of that fish at that size you may keep here alone, or the data's word for none (released, closed, too small,
-   too big, protected size); "hatchery only" / per origin small. On a steelhead water a rainbow over steelhead_cm IS a
-   steelhead (`as`): the rainbow row stops there and the steelhead row starts there, each saying so in the other's span.
-   "Check my catch" evaluates the data's cap system as given (`cap_kinds`, `caps`): a basket {here|stream|lake: {kind:
-   count}} is legal iff every cap's count <= take, an if_kept_here cap holding only once the basket keeps one of its here
-   kinds; a cell's remaining = the most more of its kinds kept here that keeps the basket legal (a small search).
-   #qt=0 draws the round 15 buckets instead (comparison). Basket in the hash: bk=SP:cm:place(h|s|l):origin(h|w|-),… */
-const QPL = {h: 'here', s: 'stream', l: 'lake'};
-const qAccepts = (caps, bk) => caps.every(c => { const n = ['here', 'stream', 'lake'].reduce((t, p) => t + c.kinds[p].reduce((u, k) => u + (bk[p]?.[k] || 0), 0), 0);
-  if (c.if_kept_here && !c.kinds.here.some(k => bk.here?.[k])) return true; return n <= c.take; });
-const qFailing = (caps, bk) => caps.filter(c => !qAccepts([c], bk));
-const qAdd = (bk, p, k, n = 1) => ({...bk, [p]: {...(bk[p] || {}), [k]: ((bk[p] || {})[k] || 0) + n}});
-// the most more fish of the kinds `ids` kept here, the basket staying legal (null: no cap holds them)
-function qMore(caps, bk, ids){
-  const zero = new Set(caps.filter(c => !c.take).flatMap(c => c.kinds.here)), free = ids.filter(k => !zero.has(k));
-  if (!free.length) return 0;
-  if (free.some(k => !caps.some(c => c.take && c.kinds.here.includes(k)))) return null;
-  const ub = Object.fromEntries(free.map(k => [k, Math.min(...caps.filter(c => c.take && c.kinds.here.includes(k)).map(c => c.take))]));
-  let best = 0;
-  const go = (i, cur, got) => { if (!qAccepts(caps, cur)) return; if (got > best) best = got; if (i === free.length) return;
-    if (got + free.slice(i).reduce((t, k) => t + ub[k], 0) <= best) return;
-    for (let x = ub[free[i]]; x >= 0; x--) go(i + 1, x ? qAdd(cur, 'here', free[i], x) : cur, got + x); };
-  go(0, bk, 0); return best; }
-const qBasket = () => (S.bk || '').split(',').filter(Boolean).map(t => { const [code, cm, place, origin] = t.split(':'); return {code, cm: +cm, place: QPL[place] ? place : 'h', origin: origin === 'h' || origin === 'w' ? origin : ''}; });
-const qEnc = fs => fs.map(f => `${f.code}:${f.cm}:${f.place}:${f.origin || '-'}`).join(',');
-// hatchery / wild is asked only where it changes a fish someone may keep (a closed steelhead's split never asks)
-const qSplit = g => { const keep = new Set(Object.entries(g.table?.cells || {}).flatMap(([sp, cs]) => cs.filter(c => c.n !== 0).map(c => c.as || sp)));
-  return (g.cap_kinds || []).some(k => k.origin && keep.has(k.species)); };
-// a fish -> its kind: on a steelhead water a rainbow over the steelhead size is a steelhead (and the other way)
-function qKind(g, f){ const st = g.table?.steelhead_cm, has = sp => (g.cap_kinds || []).some(k => k.species === sp);
-  let sp = f.code; if (st != null && has('RB') && has('ST')) { if (sp === 'RB' && f.cm >= st) sp = 'ST'; else if (sp === 'ST' && f.cm < st) sp = 'RB'; }
-  const o = f.origin === 'h' ? 'hatchery' : f.origin === 'w' ? 'wild' : null;
-  return (g.cap_kinds || []).find(k => k.species === sp && f.cm >= (k.from || 0) && (k.to == null || f.cm < k.to) && (!k.origin || !o || k.origin === o)) || null; }
-const qBk = (g, fs) => fs.reduce((bk, f) => { const k = qKind(g, f); return k ? qAdd(bk, QPL[f.place], k.id) : bk; }, {});
-// basket order: fish kept elsewhere first, then here (the data's reading)
-const qOrder = fs => [...fs.filter(f => f.place !== 'h'), ...fs.filter(f => f.place === 'h')];
-function qWhy(st, g, fs, f){ const k = qKind(g, f), nm = fishName(f.code);
-  if (!k) return {no: `${nm}: not one of this group’s fish at ${f.cm} cm.`};
-  const bk = qBk(g, fs), after = qAdd(bk, 'here', k.id), bad = qFailing(g.caps, after);
-  if (!bad.length) return null;
-  const c = bad.find(c => !c.take) || bad[0], key = st.ruleKey?.[c.by], had = ['here', 'stream', 'lake'].reduce((t, p) => t + c.kinds[p].reduce((u, x) => u + (bk[p]?.[x] || 0), 0), 0);
-  return {no: c.take ? `${c.says} You have ${had} toward it already.` : c.says, key}; }
-const whoseOf = key => (SNAP.rules[key]?.sub || '').split(' · ')[0];
-let QT_ = {};
-function qtHtml(st, ri, g, raw){
-  const T = g.table, fs = qOrder(qBasket()), bk = qBk(g, fs), OPEN = 1e9; QT_[ri] = {st, g};
-  // the reader's rows: a steelhead water's rainbow stops at the steelhead size, the steelhead starts there
-  // neighbouring cells that are the other fish (`as`) are one span: "under 50 cm: rainbow trout"
-  const bw = (a, b) => b >= OPEN ? (a ? `over ${a} cm` : 'any size') : !a ? `under ${b} cm` : `${a}–${b} cm`;
-  const isAs = (sp, c) => c.as && c.as !== sp && T.bands[c.as];
-  const rows = Object.keys(T.bands).map(sp => ({sp, cells: T.bands[sp].map((b, i) => ({...b, ...T.cells[sp][i], to: b.to ?? OPEN}))
-    .reduce((out, c) => { const l = out[out.length - 1]; if (l && isAs(sp, l) && isAs(sp, c) && l.as === c.as) { l.to = c.to; l.says = bw(l.from || 0, c.to); } else out.push({...c}); return out; }, [])}));
-  // the group's origin line already says "Hatchery only": a cell repeats it only when the cells differ
-  const keepO = new Set(rows.flatMap(r => r.cells.filter(c => c.n !== 0 && !isAs(r.sp, c)).map(c => c.origin || '-')));
-  const sayO = true;   // persona (round 16): with the mark left to the origin line, Vedder's cutthroat "2" read as wild fish too
-  const cuts = [...new Set(rows.flatMap(r => r.cells.flatMap(c => [c.from || 0, c.to])))].filter(v => v > 0 && v < OPEN).sort((a, b) => a - b);
-  const cols = [0, ...cuts].map((lo, i) => ({lo, hi: i < cuts.length ? cuts[i] : OPEN}));
-  const colLab = c => c.hi >= OPEN ? (c.lo ? `over ${c.lo}` : 'any size') : !c.lo ? `under ${c.hi}` : `${c.lo}–${c.hi}`;
-  const head = `<tr><th scope="col" class="qf">${fs.length ? 'Still yours here' : 'Fish'}</th>${cols.map(c => `<th scope="col">${esc(colLab(c))}${c.hi < OPEN || c.lo ? '<small> cm</small>' : ''}</th>`).join('')}</tr>`;
-  const kindsOf = (sp, c) => (g.cap_kinds || []).filter(k => k.species === (c.as || sp) && (k.from || 0) < c.to && (k.to == null || k.to > (c.from || 0)));
-  const noteOf = sp => { const ks = (g.buckets || []).flatMap(bk => [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds]).filter(k => k.species.includes(sp));
-    const ns = [...new Set(ks.flatMap(k => [...k.notes, ...k.duties]))], pr = [...ks.map(k => k.presence), ...(g.not_kept || []).filter(x => x.species.includes(sp)).map(x => x.presence)].find(Boolean);
-    return ns.map(n => `<small class="qnote">${esc(cap1_(n))}</small>`).join('') + (pr ? `<small class="qnote" data-presence>${esc(pr.says)} ${tip('steelhead')}</small>` : ''); };
-  const cell = (sp, c) => { const span = cols.filter(x => x.lo >= (c.from || 0) && x.hi <= c.to).length;
-    if (isAs(sp, c)) return `<td colspan="${span}" class="qas" data-qcell="${c.from || 0}" data-qas="${c.as}"><small>${esc(c.says)} is a ${esc(fishName(c.as).toLowerCase())}</small></td>`;
-    if (c.n === 0) return `<td colspan="${span}" class="qr q-${c.why === 'closed' ? 'closed' : 'rel'}" data-qcell="${c.from || 0}" data-qn="0">${esc(c.why)}</td>`;
-    const ids = kindsOf(sp, c).filter(k => !c.origin || !k.origin || k.origin === c.origin).map(k => k.id);
-    const left = fs.length ? qMore(g.caps, bk, ids) : c.n;
-    const mark = c.origin && sayO ? `<small>${esc(c.origin)} only</small>` : c.by_origin ? `<small>${Object.entries(c.by_origin).map(([o, n]) => `${esc(o)} ${n ?? 'no limit'}`).join(' · ')}</small>` : '';
-    if (left === 0) return `<td colspan="${span}" class="qr q-full" data-qcell="${c.from || 0}" data-qn="0">none left</td>`;
-    const band = span > 1 ? `<small class="qband">${esc(c.says)}</small>` : '';   // persona: a number centred over 2+ columns hid its band
-    return `<td colspan="${span}" class="qk" data-qcell="${c.from || 0}" data-qn="${left ?? ''}">${left == null ? '<b class="qnl">no limit</b>' : `<b>${left}</b>`}${band}${mark}</td>`; };
-  const body = rows.map(r => `<tr data-qsp="${r.sp}"><th scope="row" class="qn">${fishBtn(r.sp, 'th')}<b>${esc(fishName(r.sp))}</b>${noteOf(r.sp)}</th>${r.cells.map(c => cell(r.sp, c)).join('')}</tr>`).join('');
-  // the shared limits: every cap over two or more fish that keeps some, once, in the data's words, whose rule · Book page
-  const seen = new Set(), caps = g.caps.filter(c => c.take && new Set([...c.kinds.here, ...c.kinds.stream, ...c.kinds.lake].map(k => k.split('.')[0])).size > 1 && !seen.has(c.says) && seen.add(c.says))
-    .map(c => { const key = st.ruleKey?.[c.by]; return `<li data-qcap><b>${esc(c.says)}</b>${key ? `<span>${esc(whoseOf(key))} · ${bookLinks(key)}</span>` : ''}</li>`; }).join('');
-  const els = raw.elsewhere?.says ? `<p class="qels" data-qels>${esc(raw.elsewhere.says)}</p>` : '';
-  const sel = (g.cap_kinds || []).length ? Object.keys(T.bands) : [];
-  const last = S.qm ? (() => { const [code, cm, place, origin] = S.qm.split(':'), f = {code, cm: +cm, place, origin: origin === '-' ? '' : origin};
-    if (place !== 'h') { const bad = qFailing(g.caps, bk); return `<p class="qres ${bad.length ? 'no' : 'ok'}" data-qres role="status"><b>${bad.length ? 'Over a limit.' : 'Counted.'}</b> ${bad.length ? esc(bad[0].says) : 'It counts toward the limits above that count fish kept elsewhere today; the table shows what is left here.'}</p>`; }
-    const why = S.qok === '1' ? null : qWhy(st, g, fs.filter((x, i) => i < fs.length), f);
-    // a length exactly on a cut point: the data's bands carry no inclusive / exclusive end, so it is read as the longer band and said
-    const edge = (g.cap_kinds || []).some(k => k.from === f.cm) ? `<small class="qedge">${f.cm}\u00a0cm is exactly on a size line in the rules; this reads it as the longer size.</small>` : '';
-    return `<p class="qres ${why ? 'no' : 'ok'}" data-qres role="status">${why ? `<b>Release it.</b> ${esc(why.no)}${why.key ? ` <small>${esc(whoseOf(why.key))} · ${bookLinks(why.key)}</small>` : ''}` : `<b>✓ You can keep it.</b> The table shows what is left.`}${edge}</p>`; })() : '';
-  const list = fs.length ? `<ul class="qbask">${qBasket().map((f, i) => `<li><span>${esc(fishName(f.code))} · ${f.cm} cm${f.origin ? ' · ' + (f.origin === 'h' ? 'hatchery' : 'wild') : ''} · ${f.place === 'h' ? 'kept here' : f.place === 's' ? 'kept on another stream' : 'kept on a lake'}</span><button type="button" data-qdel="${i}" aria-label="Take it off">✕</button></li>`).join('')}</ul>` : '';
-  const form = !sel.length ? '' : `<div class="qform" data-qform data-qrow="${ri}"><p class="bkh">Check my catch</p>
-    <div class="qin"><select data-qsel aria-label="Which fish">${sel.map(c => `<option value="${c}"${S.qs === c ? ' selected' : ''}>${esc(fishName(c))}</option>`).join('')}</select>
-    <label class="qcm"><input type="number" inputmode="numeric" min="1" max="200" value="${+S.qc || 30}" aria-label="Length in cm"> cm</label></div>
-    ${qSplit(g) ? `<div class="segm qorig" role="group" aria-label="Hatchery or wild"><button type="button" aria-pressed="${S.qo !== 'h'}" data-qo="w">Wild</button><button type="button" aria-pressed="${S.qo === 'h'}" data-qo="h">Hatchery (fin clipped)</button></div>` : ''}
-    <p class="qlab">Where is this fish?</p><div class="segm qwhere" role="group" aria-label="Where you kept it"><button type="button" aria-pressed="${!S.qw || S.qw === 'h'}" data-qw="h">Here</button><button type="button" aria-pressed="${S.qw === 's'}" data-qw="s">Kept on another stream today</button><button type="button" aria-pressed="${S.qw === 'l'}" data-qw="l">Kept on a lake today</button></div>
-    <button type="button" class="qadd" data-qadd>${S.qw && S.qw !== 'h' ? 'Add a fish I kept today' : 'Can I keep it?'}</button>${last}${list}</div>`;
-  return `<section class="qt" data-qtable aria-label="What you can keep, by size"><table class="qtab"><thead>${head}</thead><tbody>${body}</tbody></table>${caps ? `<p class="bkh qcaph">Shared limits</p><ul class="qcaps">${caps}</ul>` : ''}${els}</section>${form}`; }
-const cap1_ = t => t ? t[0].toUpperCase() + t.slice(1) : t;
-document.addEventListener('click', e => { const t = e.target.closest('[data-qadd],[data-qdel],[data-qw],[data-qo]'); if (!t) return;
-  const box = t.closest('[data-qform]'), basket = qBasket();
-  if (t.dataset.qw) return go({qw: t.dataset.qw}, true);
-  if (t.dataset.qo) return go({qo: t.dataset.qo}, true);
-  if (t.dataset.qdel != null) { basket.splice(+t.dataset.qdel, 1); return go({bk: qEnc(basket), qm: '', qok: ''}, true); }
-  const {st, g} = QT_[box.dataset.qrow], f = {code: box.querySelector('select').value, cm: +box.querySelector('input').value || 0, place: S.qw && S.qw !== 'h' ? S.qw : 'h', origin: qSplit(g) ? (S.qo === 'h' ? 'h' : 'w') : ''};
-  const ok = f.place !== 'h' || !qWhy(st, g, qOrder(basket), f);
-  go({bk: qEnc(ok ? [...basket, f] : basket), qm: `${f.code}:${f.cm}:${f.place}:${f.origin || '-'}`, qok: ok && f.place === 'h' ? '1' : '', qs: f.code, qc: f.cm}, true); });
 function buildKeep(){
   const st = ST(), doc = new DOMParser().parseFromString(`<div id="root">${st.cardHTML}</div>`, 'text/html'), root = doc.getElementById('root');
   // the strip: the data's per-day flags (answers 2.6)
@@ -963,30 +831,52 @@ function buildKeep(){
     const same = (a, b) => a.length === b.length && a.every(x => b.includes(x));
     const presOf = k => k.presence || st.rows.find((r, j) => r.presence && !drawn.has('r' + j) && same(r.members || [], k.species))?.presence;
     const presP = p => p ? `<p class="kpres" data-presence>${esc(p.says)} ${tip('steelhead')}</p>` : '';
-    // in a nested group a kind's own number that only repeats the group's ("1 between them") is not drawn (persona: two
-    // green 1s read as 2); a smaller one stays
-    // round 15 (persona): the same holds for a bucket's shared number over two or more kinds (Ape Creek May 1: "1 a day",
-    // brown trout 1 + rainbow trout 1 read as 2); a kind keeping none draws no 0 — its words say "catch and release"
-    const krow = (k, sg) => `<div class="krow k28${k.n === 0 ? ' kzero' : ''}"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${presP(presOf(k))}${pics(k.species)}</div>${k.n != null && k.n !== 0 && !(sg && k.n >= sg.n) ? `<b class="kn">${k.n}</b>` : ''}</div>`;
+    // round 17 (owner, Bella Coola May 1): every kind row ALWAYS shows its own number. Hiding a number that equalled a
+    // shared cap (rounds 14-15) left "brook, brown and lake trout" with none, and a 30 cm bull trout's answer could not be
+    // read off its row. So the rows never read as adding up, each says what it shares in a small tag under its name: a
+    // count group's "shares the 1 between them", a size cap's "shares the 1 over 50 cm" (both from the cap's own words), a
+    // shared bucket's "within the river’s 2". A kind keeping none still draws no 0 (its words say "catch and release").
+    const ktags = ts => ts.length ? `<p class="ktags">${ts.map(t => `<span class="ktag" data-${t.k}>${esc(t.t).replace(/(\d) cm/g, '$1 cm')}</span>`).join('')}</p>` : '';
+    const krow = (k, ts = []) => `<div class="krow k28${k.n === 0 ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail).replace(/(\d) cm/g, '$1 cm')}</span>` : ''}</p>${k.n ? ktags(ts) : ''}${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${presP(presOf(k))}${pics(k.species)}</div>${k.n != null && k.n !== 0 ? `<b class="kn">${k.n}</b>` : ''}</div>`;
+    // a cap's words split at its number: "Cutthroat trout or rainbow trout: 1 between them" -> who, before, after
+    const capWords = (says, n) => { const cut = says.indexOf(': '), who = cut < 0 ? '' : says.slice(0, cut), rest = cut < 0 ? says : says.slice(cut + 2);
+      const m = rest.match(new RegExp(`^(.*?)\\b${n}\\b(.*)$`)); return {who, rest, m: !!m, pre: m ? m[1].trim() : '', post: m ? m[2].trim() : ''}; };
+    const sizeTag = z => { const w = capWords(z.says, z.n); return {k: 'shares', t: `shares the ${z.n} ${w.m ? w.post.replace(/\s*between them$/, '') : `over ${z.over_cm} cm`}`}; };
+    const covers = (z, sp) => sp.some(c => z.species.includes(c));
     // round 14 (rows 13, item 3): a count over SOME of the bucket's kinds is a nested group (`buckets[].groups`), drawn first in
     // its bucket (before the size notes and the other kinds): the data's words with its number big, its rule's book page,
     // then each of its kinds with its own size, inside one box so they read as sharing the number
-    const qgrp = sg => { const cut = sg.says.indexOf(': '), who = cut < 0 ? '' : sg.says.slice(0, cut + 1), rest = cut < 0 ? sg.says : sg.says.slice(cut + 2);
+    const qgrp = (sg, zs = []) => { const cut = sg.says.indexOf(': '), who = cut < 0 ? '' : sg.says.slice(0, cut + 1), rest = cut < 0 ? sg.says : sg.says.slice(cut + 2);
+      const gw = capWords(sg.says, sg.n), gtag = {k: 'shares', t: `shares the ${sg.n}${gw.m && gw.post ? ' ' + gw.post : ''}`};
       const m = rest.match(new RegExp(`^(.*?)\\b${sg.n}\\b(.*)$`)), key = st.ruleKey?.[sg.by];
-      return `<div class="qgrp" data-qgroup><p class="qgh">${who ? `<span class="qgw">${esc(who)}</span> ` : ''}${m ? `${m[1].trim() ? `<span>${esc(m[1].trim())}</span> ` : ''}<b class="qgn">${sg.n}</b> <span>${esc(m[2].trim())}</span>` : `<span>${esc(rest)}</span>`}</p>${key ? `<p class="qgb">${bookLinks(key)}</p>` : ''}${sg.kinds.map(k => krow(k, sg)).join('')}</div>`; };
-    // round 15 (rows 14, item 1): a size cap is a group naming exactly the kinds it can bind (`buckets[].sizes`), drawn in
-    // the SAME box as a count group: the kinds it names, its number big, its rule's book page, a picture of each fish it
-    // binds. The kind rows stay in the bucket (a cap may span buckets or cut a kind row), so the box holds no rows.
-    const sgrp = z => { const cut = z.says.indexOf(': '), who = cut < 0 ? '' : z.says.slice(0, cut + 1), rest = cut < 0 ? z.says : z.says.slice(cut + 2);
-      const m = rest.match(new RegExp(`^(.*?)\\b${z.n}\\b(.*)$`)), key = st.ruleKey?.[z.by];
-      return `<div class="qgrp sgrp" data-sgroup><p class="qgh">${who ? `<span class="qgw">${esc(who)}</span> ` : ''}${m ? `${m[1].trim() ? `<span>${esc(m[1].trim())}</span> ` : ''}<b class="qgn">${z.n}</b> <span>${esc(m[2].trim()).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : `<span>${esc(rest)}</span>`}</p>${key ? `<p class="qgb">${bookLinks(key)}</p>` : ''}${pics(z.species)}</div>`; };
+      return `<div class="qgrp" data-qgroup><p class="qgh">${who ? `<span class="qgw">${esc(who)}</span> ` : ''}${m ? `${m[1].trim() ? `<span>${esc(m[1].trim())}</span> ` : ''}<b class="qgn">${sg.n}</b> <span>${esc(m[2].trim())}</span>` : `<span>${esc(rest)}</span>`}</p>${key ? `<p class="qgb">${bookLinks(key)}</p>` : ''}${sg.kinds.map(k => krow(k, [gtag, ...zs.filter(z => covers(z, k.species)).map(sizeTag)])).join('')}</div>`; };
+    // round 17 (owner): a size cap is a compact boxed LINE, no pictures (the rows under it carry them), naming the fish it
+    // binds: the data's words re-ordered round its number ("Brown trout, …: only 1 over 50 cm between them" -> "Only 1
+    // brown trout, … over 50 cm"), its rule's Book page; it stands right before the first row it covers (szAt below)
+    const lc1 = t => { const [w, nx] = t.split(/[ /]/); return w && /^[A-Z][a-z]+$/.test(w) && w !== 'Arctic' && nx && /^[a-z]/.test(nx) ? t[0].toLowerCase() + t.slice(1) : t; };
+    const sgrp = z => { const w = capWords(z.says, z.n), key = st.ruleKey?.[z.by], nb = t => esc(t).replace(/(\d) cm/g, '$1 cm');
+      const words = w.m && w.who ? `${w.pre ? `<span>${nb(cap1(w.pre))}</span> ` : ''}<b class="qgn">${z.n}</b> <span>${nb(lc1(w.who))} ${nb(w.post.replace(/\s*between them$/, ''))}</span>`
+        : nb(z.says).replace(new RegExp(`\\b${z.n}\\b`), `<b class="qgn">${z.n}</b>`);
+      return `<p class="szl" data-sgroup>${words}${key ? ` <span class="szb">${bookLinks(key)}</span>` : ''}</p>`; };
     // round 15 (rows 14, item 5): an own-rule bucket's shared cap (`buckets[].between`, "Up to 2 a day between them") is said
     // like a share bucket's number: big, under the title, so its kinds' own numbers never read as adding up
     const betw = bk => { if (!bk.between) return ''; const m = bk.between.match(/^(.*?)\b(\d+)\b(.*)$/);
       return m ? `<p class="bkt1 bbetw" data-between>${m[1].trim() ? `<span class="bkp">${esc(m[1].trim())}</span> ` : ''}<b class="bkn">${m[2]}</b> <span class="bkw">${esc(m[3].trim())}</span></p>` : `<p class="bkt1 bbetw" data-between>${esc(bk.between)}</p>`; };
     const shared = bk => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; return n && bk.kinds.length + (bk.groups || []).length >= 2 ? {n} : null; };
-    const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
-      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${betw(bk)}${bk.replaces ? `<p class="brepl" data-replaces>${esc(bk.replaces.says.replace(/\.?$/, '.'))}</p>` : ''}${(bk.groups || []).map(qgrp).join('')}${(bk.sizes || []).map(sgrp).join('')}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => krow(k, shared(bk))).join('')}</section>`; }).join('');
+    // round 17: a row of a shared bucket says it is within the bucket's number ("within the river’s 2": the bucket's own
+    // title when it is a rule's, else the number and its unit from the title, or the headline's for an untitled bucket);
+    // not where the kind's own note already says "counts toward the N"
+    const within = (bk, k) => { const sh = shared(bk); if (!sh || new RegExp(`\\bthe ${sh.n}\\b`).test(k.notes.join(' '))) return [];
+      const t = (bk.title || '').match(/^(?:this|the) (.+) rule$/i); if (t) return [{k: 'within', t: `within the ${t[1]} ${sh.n}`}];
+      const m = (bk.title || '').split(' — ')[0].match(new RegExp(`\\b${sh.n}\\b(.*)$`)), unit = m ? m[1].replace(/\s*between them$/, '').trim() : bk.title ? '' : h.n === sh.n ? h.unit : '';
+      return [{k: 'within', t: `within the ${sh.n}${unit ? ' ' + unit : ''}`}]; };
+    const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl')), zs = bk.sizes || [];
+      // groups, notes, kinds in the data's order; each size line goes right before the first group or row it covers
+      const items = [...(bk.groups || []).map(sg => ({sp: sg.kinds.filter(k => k.n).flatMap(k => k.species), html: qgrp(sg, zs)})),
+        ...(bk.notes || []).map(n => ({sp: [], note: 1, html: `<p class="bnote" data-bnote>${esc(n.says)}</p>`})),
+        ...bk.kinds.map(k => ({sp: k.n ? k.species : [], html: krow(k, [...within(bk, k), ...zs.filter(z => covers(z, k.species)).map(sizeTag)])}))];
+      zs.forEach(z => { let at = items.findIndex(x => !x.size && covers(z, x.sp)); if (at < 0) at = items.length; items.splice(at, 0, {sp: [], size: 1, html: sgrp(z)}); });
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${betw(bk)}${bk.replaces ? `<p class="brepl" data-replaces>${esc(bk.replaces.says.replace(/\.?$/, '.'))}</p>` : ''}${items.map(x => x.html).join('')}</section>`; }).join('');
     // round 13 (S, rows 12): every fish of the row nobody may keep here, one line per deciding rule (`group.not_kept`): the
     // data's words, whose rule and its Book page, the fish pictured; a closure (✕, closed colour) reads apart from a release.
     // round 15 (8): a release line draws NO number — its words say it; a bare big 0 under the buckets read as a total above
@@ -1004,9 +894,9 @@ function buildKeep(){
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
     const orig = g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : '';
-    // round 16 (1, rows 15): the group's table + Check my catch is its display (#qt=0: the round 15 buckets, for comparison)
-    art.innerHTML = +S.qt && g.table ? `<div class="rhead">${head}${num}</div>${orig}${qtHtml(st, ri, g, raw)}${quiet}${more}`
-      : `<div class="rhead">${head}${num}</div>${orig}${total}${buckets}${nk}${worked}${quiet}${more}`;
+    // round 17 (owner): the quota table and the catch checker are gone; the bucket card is THE display (the data's
+    // group.table / cap_kinds / caps prove its numbers in check.mjs only, card-is-the-caps — never drawn)
+    art.innerHTML = `<div class="rhead">${head}${num}</div>${orig}${total}${buckets}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1526,7 +1416,7 @@ function poster(){
 }
 (function(){ const h = new URLSearchParams(location.hash.slice(1));
   if (h.get('shot')) document.documentElement.classList.add('shot'); if (h.get('tall')) document.documentElement.classList.add('tall');
-  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll','qt','qc'].includes(k) ? +v : v;
+  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
   const sec = S.sec; render();
   if (sec === 'gear' && !S.scroll && !S.at) requestAnimationFrame(() => { $('sc').scrollTop = $('gear').offsetTop - $('hdr').offsetHeight + 2; mini(); });
   if (S.open) document.querySelectorAll(S.open).forEach(d => { d.open = true; });   // round 13: a screen of a fold opened

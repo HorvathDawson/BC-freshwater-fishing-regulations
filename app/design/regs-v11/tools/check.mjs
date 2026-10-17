@@ -15,7 +15,9 @@
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
 //   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
-//   (round 16) gear-lines, worked-last; phase 2: table-is-the-data, checker-is-the-caps, check-my-catch, rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
+//   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
+//   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
+//   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
 //   no longer holds How it adds up before the not-kept lines)
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
@@ -51,13 +53,16 @@ const THEME = n => JSON.parse(fs.readFileSync(path.join(APP, 'packages/map/style
 const results = [];
 const check = (name, ok, why) => { results.push([name, ok, why]); console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : `  — ${why}`}`); };
 
-// round 16 phase 2: the table is each group's display; the checks of the round 9-15 bucket layout read it at #qt=0, where
-// the page still draws it for comparison (table-is-the-data, checker-is-the-caps, check-my-catch hold the table)
-const QT0 = '&qt=0';
 async function page(hash, fn) {
   const b = await open(`${pathToFileURL(PAGE).href}#shot=1&${hash}`, { offline: true });
   try { await new Promise(r => setTimeout(r, 400)); return await fn(b); } finally { await b.close(); }
 }
+
+// round 17 (owner): a size cap is a compact line ([data-sgroup], no pictures) naming the fish it binds and its number, over
+// its size; szFirst = the first kind row ([data-sp]) of a bucket the cap covers, which the line must stand right before
+const SZH = `var szShown = (el, z) => { const t = (el?.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase(), who = z.says.split(': ')[0];
+  return !!el && !el.querySelector('img') && new RegExp('\\\\b' + z.n + '\\\\b').test(t) && t.includes('over ' + z.over_cm + ' cm') && who.split(/, | or /).every(nm => t.includes(nm.toLowerCase())); };
+var szFirst = (sec, z) => [...(sec?.querySelectorAll('.krow[data-sp]') || [])].find(r => r.dataset.sp.split(' ').some(c => z.species.includes(c)));`;
 
 // 1. zero hand-written facts
 const src = fs.readFileSync(PAGE, 'utf8');
@@ -242,7 +247,7 @@ await page('w=vedder&d=1010&scroll=600', async b => {
 const CARDS = [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=1010'], ['cow part 2', 'w=cowichan&d=1010&p=1'],
   ['chilliwack', 'w=chilliwack&d=1010&p=0'], ['wilkes', 'w=wilkes&d=1010']];
 const card = {headline: [], book: [], pics: [], once: []};
-for (const [name, hash] of CARDS) await page(hash + QT0, async b => {
+for (const [name, hash] of CARDS) await page(hash, async b => {
   const r = JSON.parse(await b.evaluate(`JSON.stringify((() => {
     const out = []; if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return [{missing: true}];
     const st = SNAP.states[sid()], norm = t => t.replace(/\\s+/g, ' ').trim();
@@ -255,7 +260,7 @@ for (const [name, hash] of CARDS) await page(hash + QT0, async b => {
         return el ? [(norm(el.textContent).match(/Book p\\.\\d+/g) || []).length, Math.max(1, want.size)] : [-1, 1]; });
       const kinds = (g.buckets || []).flatMap(bk => bk.kinds).map(k => { const row = [...art.querySelectorAll('.krow')].find(e => e.textContent.includes(k.name));
         return [k.name, k.species.length, row ? row.querySelectorAll('img, svg').length : -1]; });
-      const lines = [...art.querySelectorAll('p, li')].map(e => norm(e.textContent)).filter(Boolean);
+      const lines = [...art.querySelectorAll('p:not(.ktags), li')].map(e => norm(e.textContent)).filter(Boolean);   /* round 17: a row's shares / within tags repeat by design */
       const dup = lines.filter((t, i) => lines.indexOf(t) !== i);
       out.push({head: g.headline.n, num, total: g.total, totalLine: !!g.total_line, lifts, kinds, dup});
     }); return out; })())`));
@@ -279,8 +284,8 @@ check('card-cap-once', !badO.length, `${badO.length} groups: e.g. ${JSON.stringi
 // (the title after " — ") a smaller line; the bucket's size note (rows 10 `notes[].says`) said once, under the title,
 // before its kinds; each kind row reads on one line — name, detail, number — with its notes BEFORE its pictures
 const BK = {big: [], note: [], line: []};
-for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iron', 'w=iron&d=720']])) await page(hash + QT0, async b => {
-  const r = JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {missing: true};
+for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iron', 'w=iron&d=720'], ['bella coola may', 'w=bellacoola&d=501&p=0'], ['bennett', 'w=x35p&d=1010']])) await page(hash, async b => {
+  const r = JSON.parse(await b.evaluate(`${SZH} JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {big: [], note: [], line: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => {
       const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
@@ -290,8 +295,11 @@ for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iro
           const n = el?.querySelector('.bkn'), sc = el?.querySelector('.bks'), scope = bk.title.split(' — ')[1] || '';
           const fs = e => e ? parseFloat(getComputedStyle(e).fontSize) : 0;
           out.big.push([bk.title, !!n && norm(n.textContent) === String(bk.cap) && fs(n) >= 24 && (!scope || (!!sc && norm(sc.textContent).includes(scope) && fs(sc) < fs(n)))]); }
-        /* round 15 (rows 14): a size cap is now a size group (sizes, drawn [data-sgroup]); it is held to the same rule */
-        [...(bk.notes || []), ...(bk.sizes || [])].forEach(nt => { const all = norm(art.textContent).split(norm(nt.says)).length - 1, ne = el ? [...el.querySelectorAll('[data-bnote], [data-sgroup]')].find(e => norm(e.textContent).includes(norm(nt.says))) : null;
+        /* round 17 (owner): a size cap is a compact line ([data-sgroup]) placed with the rows it covers: once, naming them,
+           before the first row it covers (szShown / szFirst below) */
+        (bk.sizes || []).forEach((z, j) => { const ne = el?.querySelectorAll('[data-sgroup]')[j], k1 = szFirst(el, z);
+          out.note.push([z.says, szShown(ne, z) && art.querySelectorAll('[data-sgroup]').length === (g.buckets || []).reduce((t, b) => t + (b.sizes || []).length, 0) && (!k1 || !!(ne.compareDocumentPosition(k1) & Node.DOCUMENT_POSITION_FOLLOWING))]); });
+        (bk.notes || []).forEach(nt => { const all = norm(art.textContent).split(norm(nt.says)).length - 1, ne = el ? [...el.querySelectorAll('[data-bnote], [data-sgroup]')].find(e => norm(e.textContent).includes(norm(nt.says))) : null;
           const k1 = el?.querySelector('.krow'); out.note.push([nt.says, all === 1 && !!ne && (!k1 || !!(ne.compareDocumentPosition(k1) & Node.DOCUMENT_POSITION_FOLLOWING))]); });
       });
       art.querySelectorAll('.krow.k28').forEach(k => { const nm = k.querySelector('.nm'), kn = k.querySelector('.kn'), dt = k.querySelector('.kdet');
@@ -432,8 +440,8 @@ check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.str
 const W2 = [];
 const CARDS2 = CARDS.concat([['vedder may', 'w=vedder&d=515'], ['morley', 'w=x12p&d=1010'], ['atlin', 'w=x3p&d=1010'], ['iron', 'w=iron&d=720'],
   ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=bellacoola&d=1010&p=1'], ['bella coola may', 'w=bellacoola&d=501&p=1'], ['ape', 'w=ape&d=1010'], ['ape may', 'w=ape&d=501'], ['fraser', 'w=x15p&d=1010&p=0']]);
-for (const [name, hash] of CARDS2) await page(hash + QT0, async b => {
-  W2.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
+for (const [name, hash] of CARDS2) await page(hash, async b => {
+  W2.push(JSON.parse(await b.evaluate(`${SZH} JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {name: ${JSON.stringify(name)}, fe: /fished elsewhere today/i.test(document.getElementById('keep').textContent), g: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const raw = st.rows[+(art.dataset.row || 'r0').slice(1)] || {}, g = raw.group; if (!g || !g.headline) return;
       const lists = [...art.querySelectorAll('.worked')], wl = lists[0], wt = norm(wl?.textContent), at = norm(art.textContent);
@@ -445,8 +453,8 @@ for (const [name, hash] of CARDS2) await page(hash + QT0, async b => {
         order: (g.buckets || []).map((bk, i) => !!secs[i] && bk.kinds.every(k => norm(secs[i].textContent).includes(norm(k.name)))),
         sizes: (g.buckets || []).flatMap((bk, i) => bk.kinds.map(k => !k.detail || [...(secs[i]?.querySelectorAll('.krow') || [])].some(r => norm(r.textContent).includes(norm(k.name)) && norm(r.querySelector('.kdet')?.textContent) === norm(k.detail)))),
         caps: (g.buckets || []).reduce((t, bk) => t + (bk.notes || []).length + (bk.sizes || []).length + (bk.groups || []).length + (bk.between ? 1 : 0), 0),
-        notes: (g.buckets || []).flatMap((bk, i) => [...(bk.notes || []), ...(bk.sizes || [])].map(n => at.split(norm(n.says)).length === 2 && norm(secs[i]?.textContent).includes(norm(n.says))
-          && (n.then || []).every(t => norm(n.says).includes(String(t.over_cm)) || [...secs[i].querySelectorAll('[data-then]')].some(e => norm(e.textContent).includes(String(t.over_cm)))))),
+        notes: (g.buckets || []).flatMap((bk, i) => [...(bk.sizes || []).map((z, j) => szShown(secs[i]?.querySelectorAll('[data-sgroup]')[j], z)), ...(bk.notes || []).map(n => at.split(norm(n.says)).length === 2 && norm(secs[i]?.textContent).includes(norm(n.says))
+          && (n.then || []).every(t => norm(n.says).includes(String(t.over_cm)) || [...secs[i].querySelectorAll('[data-then]')].some(e => norm(e.textContent).includes(String(t.over_cm)))))]),
         first: (g.buckets || [])[0]?.why || null, whys: (g.buckets || []).map(bk => bk.why)}); });
     return out; })())`)));
 });
@@ -509,7 +517,7 @@ check('bella-coola-front', !B13.missing && [1010, 501].every(d => B13.days.inclu
 
 // ---------- round 13 phase 2 (rows 12, gear 9, display 9) ----------
 const C13 = [];
-for (const [name, hash] of CARDS2) await page(hash + QT0, async b => {
+for (const [name, hash] of CARDS2) await page(hash, async b => {
   C13.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), cap = t => t ? t[0].toUpperCase() + t.slice(1) : t, out = {name: ${JSON.stringify(name)}, lift: document.querySelectorAll('#keep .lift, #keep .glifts .lift').length, rep: [], nk: [], zero: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
@@ -572,7 +580,7 @@ const NG = await page('w=vedder&d=1010', async b => JSON.parse(await b.evaluate(
   Object.entries(x.snap).flatMap(([d, ids]) => [].concat(ids).map((i, p) => [w, d, p, i]))).filter(([, , , i]) => (SNAP.states[i]?.rows || []).some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).length))))`)));
 const NGW = [...NG.filter(x => x[0] === 'bellacoola' && x[1] === '501'), ...NG.filter(x => x[0] !== 'bellacoola').slice(0, 1)];
 const N14 = [];
-for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}` + QT0, async b => {
+for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}`, async b => {
   N14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
       const secs = [...art.querySelectorAll('section.bkt')];
@@ -580,7 +588,7 @@ for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}` + QT0, async b =>
         const kids = el ? [...el.querySelectorAll('.krow')].map(r => ({nm: norm(r.querySelector('.nm')?.textContent), det: norm(r.querySelector('.kdet')?.textContent), n: norm(r.querySelector('.kn')?.textContent)})) : [];
         const later = el ? [...secs[i].querySelectorAll('.bnote, :scope > .krow')] : [];
         out.push({says: sg.says, el: !!el, first: !!el && norm(el.firstElementChild?.textContent).startsWith(norm(sg.says.split(':')[0])), shown: norm(el?.textContent).includes(norm(sg.says.split(':')[1] || sg.says)),
-          kinds: sg.kinds.every(k => kids.some(x => x.nm === norm(k.name) && x.det === norm(k.detail).replace(/(\\d) cm/g, '$1 cm').replace(/ /g, ' ') && x.n === (k.n >= sg.n ? '' : String(k.n)))),
+          kinds: sg.kinds.every(k => kids.some(x => x.nm === norm(k.name) && x.det === norm(k.detail).replace(/(\\d) cm/g, '$1 cm').replace(/ /g, ' ') && x.n === (k.n ? String(k.n) : ''))),
           before: later.every(e => el.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING),
           once: sg.kinds.every(k => [...art.querySelectorAll('.krow .nm')].filter(e => norm(e.textContent) === norm(k.name)).length === 1)}); })); });
     return {at: location.hash, out}; })())`)));
@@ -597,7 +605,7 @@ const morePres = await page('w=vedder&d=1010', async b => JSON.parse(await b.eva
   return [pick(s => s.rows.some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).some(g => g.kinds.some(k => k.presence))))),
     pick(s => s.rows.some(r => r.presence && !r.group?.headline && r.kind !== 'closed')), pick(s => s.steelLine === 'known_no_rules')].filter(Boolean); })())`)));
 const P14 = [];
-for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}` + QT0, async b => {
+for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}`, async b => {
   P14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), K = document.getElementById('keep'), out = [];
     const arts = [...K.querySelectorAll('article.row.ledger')].filter(a => !a.closest('details'));
     const artOf = i => arts.find(a => a.dataset.row === 'r' + i);
@@ -643,7 +651,7 @@ check('week-in-words', W14.length === 2 && !wb14.length, wb14.map(x => JSON.stri
 // (6, rows 13) not-kept lines: one per status and deciding row, in the data's order and words (Vedder May 15 "Rainbow trout
 // and cutthroat trout: release every one"; Ape Creek's char named with its members)
 const K14 = [];
-for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=${d}` + QT0, async b => {
+for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=${d}`, async b => {
   K14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !(g.not_kept || []).length) return;
       out.push({want: g.not_kept.map(x => norm(x.says)), shown: [...art.querySelectorAll('[data-notkept] .nm')].map(e => norm(e.textContent))}); });
@@ -669,7 +677,7 @@ for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 
       const secs = [...art.querySelectorAll('section.bkt')], wk = art.querySelector('.worked'), nk = art.querySelector('.nkt');
       if (wk && nk) order.push(!!(wk.compareDocumentPosition(nk) & Node.DOCUMENT_POSITION_FOLLOWING));
       (g.buckets || []).forEach((bk, i) => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; if (!n || bk.kinds.length + (bk.groups || []).length < 2) return;
-        [...(secs[i]?.querySelectorAll(':scope > .krow .kn') || [])].forEach(e => { if (+own(e) >= n) rep.push(norm(e.closest('.krow').textContent).slice(0, 50)); }); }); });
+        /* round 17 (owner): a kind's own number is ALWAYS drawn now (kind-number-always), so no repeat is hidden */ }); });
     // round 16 (2): "How it adds up" now closes its group (worked-last), so the order is no longer held here
     return {at: location.hash, bare, rep, order: true, aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
 });
@@ -718,7 +726,7 @@ check('week-sheet-one-story', K15.length === 2 && !kb15.length, kb15.map(x => JS
 // with its number big, its rule's book page, a picture of every fish it binds; no size note left as a bare line
 // (5) an own-rule bucket's shared cap (`buckets[].between`) is said big under its title, once
 const S15 = [];
-for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=ape&d=501']) await page(hash + QT0, async b => {
+for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=ape&d=501']) await page(hash, async b => {
   S15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), sz = [], bw = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
       const secs = [...art.querySelectorAll('section.bkt')];
@@ -734,8 +742,7 @@ for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedde
       art.querySelectorAll('.bnote').forEach(e => { if (/\\bcm\\b/.test(e.textContent)) sz.push({says: norm(e.textContent), el: false, bareNote: true}); }); });
     return {at: location.hash, sz, bw}; })())`)));
 });
-const sb15 = S15.filter(x => x.sz.some(z => !z.el || !z.box || !z.words || !z.big || !z.book || !z.pics));
-check('size-group-box', S15.some(x => x.sz.length) && !sb15.length, sb15.map(x => JSON.stringify(x)).join('; ') || 'no size group checked');
+// round 17 (owner): size-group-box retired — the size cap is a compact line without pictures now (size-cap-line)
 const bb15 = S15.filter(x => x.bw.some(z => !z.el || !z.big || !z.words || !z.once));
 check('bucket-between-big', S15.some(x => x.bw.length) && !bb15.length, bb15.map(x => JSON.stringify(x)).join('; ') || 'no between checked');
 
@@ -824,7 +831,7 @@ check('gear-lines', G16.length === 5 && G16.some(x => x.shown?.[0]?.k === 'mode'
 // (2) "How it adds up" closes its group: no bucket, kind row, count box or not-kept line of the group after it (Ape Creek
 // May 1: it sat between the trout and the steelhead / char lines)
 const A16 = [];
-for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d=1010', 'w=bellacoola&d=501&p=0']) await page(hash + QT0, async b => {
+for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d=1010', 'w=bellacoola&d=501&p=0']) await page(hash, async b => {
   A16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const wk = art.querySelector(':scope > .worked'); if (!wk) return;
       const later = [...art.querySelectorAll('section.bkt, .krow, .nkt, .qgrp')].filter(e => !wk.contains(e) && !!(wk.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING));
@@ -834,66 +841,9 @@ for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d
 const ab16 = A16.filter(x => x.out.some(o => o.later.length));
 check('worked-last', A16.length === 5 && A16.some(x => x.out.some(o => o.nk)) && !ab16.length, ab16.map(x => JSON.stringify(x)).join('; ') || 'no group with How it adds up AND not-kept lines checked');
 
-// ---------- round 16 phase 2 (rows 15: group.table, cap_kinds, caps) ----------
-// (1) the table is each group's display and says what the data says: a row per table species, every band's cell its
-// number (data-qn) or its `why` word, a steelhead-water rainbow / steelhead band that is the other fish (`as`) drawn as
-// that fish's span; the page's own cell search over the cap system gives the same numbers as the data (and as the
-// pipeline's most_here, oracle.json)
-const ORACLE = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'oracle.json'), 'utf8'));
-const TB16 = [];
-for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=x35p&d=1010', 'w=ape&d=501']) await page(hash, async b => {
-  TB16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), out = [];
-    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline || !g.table) return;
-      const tb = art.querySelector('[data-qtable]'), bad = [];
-      for (const [sp, bands] of Object.entries(g.table.bands)) { const row = tb?.querySelector('[data-qsp="' + sp + '"]'); if (!row) { bad.push(sp + ': no row'); continue; }
-        bands.forEach((bd, i) => { const c = g.table.cells[sp][i], td = row.querySelector('[data-qcell="' + (bd.from || 0) + '"]');
-          if (c.as && c.as !== sp && g.table.bands[c.as]) { if (!row.querySelector('[data-qas="' + c.as + '"]')) bad.push(sp + ' ' + bd.says + ': not drawn as ' + c.as); return; }
-          if (!td) { bad.push(sp + ' ' + bd.says + ': no cell'); return; }
-          if (String(td.dataset.qn) !== (c.n == null ? '' : String(c.n))) bad.push(sp + ' ' + bd.says + ': ' + td.dataset.qn + ' vs ' + c.n);
-          if (c.n === 0 && !td.textContent.includes(c.why)) bad.push(sp + ' ' + bd.says + ': no "' + c.why + '"'); }); }
-      out.push({rows: tb ? tb.querySelectorAll('[data-qsp]').length : 0, want: Object.keys(g.table.bands).length, buckets: art.querySelectorAll('section.bkt').length, bad}); });
-    return {at: location.hash, out}; })())`)));
-});
-const tb16 = TB16.filter(x => !x.out.length || x.out.some(o => o.rows !== o.want || o.buckets || o.bad.length));
-check('table-is-the-data', TB16.length === 5 && !tb16.length, tb16.map(x => JSON.stringify(x)).join('; '));
-// (1) the page's checker IS the data's cap system: on every oracle basket (seeded random + each cap at its take and one
-// past it; Bella Coola May 1 both parts, Vedder Oct 10, Bennett Lake) it accepts exactly what caps.accepts accepts, and
-// its most-alone search equals caps.most_here for every table cell
-const CK16 = [];
-for (const [sid_, hash] of [['bc0_501', 'w=bellacoola&d=501&p=0'], ['bc1_501', 'w=bellacoola&d=501&p=1'], ['vedder_1010', 'w=vedder&d=1010'], ['x35p_1010', 'w=x35p&d=1010']]) await page(hash, async b => {
-  const gs = ORACLE.groups.filter(x => x.id === sid_);
-  CK16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = SNAP.states[${JSON.stringify(sid_)}], gs = ${JSON.stringify(gs)};
-    return {id: ${JSON.stringify(sid_)}, n: gs.length, baskets: gs.reduce((t, x) => t + x.baskets.length, 0),
-      wrong: gs.flatMap(x => x.baskets.filter(o => qAccepts(st.rows[x.ri].group.caps, o.b) !== o.ok).map(o => ({ri: x.ri, ...o}))).slice(0, 5),
-      cells: gs.flatMap(x => x.cells.filter(c => { const m = qMore(st.rows[x.ri].group.caps, {}, c.ids); return m !== c.most; }).map(c => ({ri: x.ri, sp: c.sp, i: c.i, most: c.most, page: qMore(st.rows[x.ri].group.caps, {}, c.ids)}))).slice(0, 5)}; })())`)));
-});
-const ck16 = CK16.filter(x => !x.n || x.wrong.length || x.cells.length);
-check('checker-is-the-caps', CK16.length === 4 && CK16.every(x => x.baskets > 100) && !ck16.length, ck16.map(x => JSON.stringify(x)).join('; '));
-// (1) Check my catch, as an angler uses it: Bella Coola May 1 — a 30 cm bull trout is 1 here; after a 30 cm cutthroat kept
-// here no rainbow is keepable (the cap's own words) and a 30 cm brook trout is; a 55 cm brown trout kept on another
-// stream leaves no trout or char over 50 cm here. Vedder Oct 10 — a wild 35 cm cutthroat is released, a hatchery one kept.
-// Every shared limit (a cap over two or more fish that keeps some) is said once, with its Book page.
-const UI16 = [];
-const flow = async (hash, steps) => page(hash, async b => JSON.parse(await b.evaluate(`(async () => { const out = [], wait = () => new Promise(r => setTimeout(r, 120));
-  const dv = document.querySelector('#keep [data-qform]')?.closest('article').querySelector('[data-qsp="DV"] [data-qcell="25"]')?.dataset.qn ?? '';
-  const form = () => document.querySelector('#keep [data-qform]'), click = sel => { form().querySelector(sel).click(); };
-  for (const [code, cm, place, origin] of ${JSON.stringify(steps)}) {
-    click('[data-qw="' + place + '"]'); await wait(); if (origin && form().querySelector('[data-qo]')) { click('[data-qo="' + origin + '"]'); await wait(); }
-    form().querySelector('select').value = code; form().querySelector('input').value = cm; click('[data-qadd]'); await wait();
-    const r = document.querySelector('#keep [data-qres]'); out.push({code, cm, place, origin, no: !!r && r.classList.contains('no'), t: (r?.textContent || '').replace(/\\s+/g, ' ').trim()}); }
-  const art = form().closest('article'), st = ST(), g = st.rows[+art.dataset.row.slice(1)].group, norm = t => (t || '').replace(/\\s+/g, ' ').trim();
-  const caps = [...new Set(g.caps.filter(c => c.take && new Set([...c.kinds.here, ...c.kinds.stream, ...c.kinds.lake].map(k => k.split('.')[0])).size > 1).map(c => c.says))];
-  const lines = [...art.querySelectorAll('[data-qcap]')].map(e => norm(e.textContent));
-  return JSON.stringify({at: location.hash, out, caps: caps.map(c => ({c, n: lines.filter(l => l.includes(norm(c))).length, book: lines.some(l => l.includes(norm(c)) && /p\\.\\d+/.test(l))})),
-    dv}); })()`)));
-UI16.push(await flow('w=bellacoola&d=501&p=0', [['CT', 30, 'h'], ['RB', 30, 'h'], ['EB', 30, 'h']]));
-UI16.push(await flow('w=bellacoola&d=501&p=1', [['GB', 55, 's'], ['GB', 55, 'h'], ['LT', 30, 'h']]));
-UI16.push(await flow('w=vedder&d=1010', [['CT', 35, 'h', 'w'], ['CT', 35, 'h', 'h']]));
-const want16 = [[false, true, false], [false, true, false], [true, false]];
-const ui16 = UI16.filter((x, i) => x.out.map(o => o.no).join() !== want16[i].join() || x.caps.some(c => c.n !== 1 || !c.book) || !x.caps.length);
-check('check-my-catch', UI16.length === 3 && UI16[0].dv === '1' && /1 cutthroat trout or rainbow trout/i.test(UI16[0].out[1].t) && !ui16.length,
-  UI16.map(x => JSON.stringify(x)).join('; '));
-
+// ---------- round 16 phase 2 (rows 15) ----------
+// round 17: the quota table and Check my catch are gone (owner); table-is-the-data, checker-is-the-caps and check-my-catch
+// are retired; the data's table / caps / oracle.json now prove the card's numbers (card-is-the-caps, round 17 block)
 // (3, display 12) a rule listed in a sources sheet is headed by its effect in words (`rules[].title`, "Release all
 // steelhead"), its book words under it as the quote — never the raw list item ("ALL STEELHEAD") as the heading
 const RT16 = await page('w=bellacoola&d=501&p=0&sheet=' + encodeURIComponent('src:bc0_501|r0'), async b => JSON.parse(await b.evaluate(`JSON.stringify((() => {
@@ -919,6 +869,102 @@ const RS16 = await page('w=x41p&d=1010', async b => JSON.parse(await b.evaluate(
       out.push({row: i, notes: notes.length, inWon: !!notes[0]?.closest('li.won'), own}); }); });
   return {out}; })())`)));
 check('restates-one-line', RS16.out.length > 0 && RS16.out.every(x => x.notes === 1 && x.inWon && !x.own), JSON.stringify(RS16));
+
+// ---------- round 17 (owner: the quota table and Check my catch go; the bucket card is THE display, refined) ----------
+const R17 = ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=x35p&d=1010', 'w=ape&d=501', 'w=hamill&d=615'];
+// (1) no table UI is left: none of its code in the page, nothing drawn, and an old #qt=1 link draws the buckets
+const QSRC = ['data-qtable', 'data-qform', 'qtHtml', 'Check my catch', 'qAccepts', 'qMore', 'class="qtab'].filter(t => src.includes(t));
+const NQ = [];
+for (const hash of R17) await page(hash + '&qt=1&bk=CT:30:h:-', async b => NQ.push(JSON.parse(await b.evaluate(`JSON.stringify({at: location.hash,
+  table: document.querySelectorAll('#keep [data-qtable], #keep table, #keep [data-qform], #keep select').length,
+  buckets: document.querySelectorAll('#keep section.bkt').length, qt: 'qt' in S || 'bk' in S})`))));
+const nq = NQ.filter(x => x.table || !x.buckets || x.qt);
+check('no-quota-table', !QSRC.length && NQ.length === R17.length && !nq.length, `page source has ${JSON.stringify(QSRC)}; ${nq.map(x => JSON.stringify(x)).join('; ')}`);
+
+// (3) every kind row keeping some ALWAYS shows its own number (the data's n), also when it equals a shared cap; a size
+// cap is a compact line (no pictures) right before the rows it covers, naming them, and each covered row carries a small
+// "shares the N over X cm" tag (no other row does); a row of a shared bucket says it is within that bucket's number;
+// no species picture twice in a group
+const K17 = [];
+for (const hash of R17) await page(hash, async b => K17.push(JSON.parse(await b.evaluate(`${SZH} JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {at: location.hash, num: [], sz: [], tag: [], within: [], twice: []};
+  document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+    const secs = [...art.querySelectorAll('section.bkt')];
+    const pics = [...art.querySelectorAll('[data-open^="sp:"]')].map(e => e.dataset.open); out.twice.push(...pics.filter((c, i) => pics.indexOf(c) !== i));
+    (g.buckets || []).forEach((bk, i) => { const sec = secs[i], rows = [...(sec?.querySelectorAll('.krow[data-sp]') || [])];
+      const rowOf = k => rows.find(r => r.dataset.sp === k.species.join(' ') && norm(r.querySelector('.nm')?.textContent) === norm(k.name));
+      const all = [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds];
+      all.forEach(k => { const r = rowOf(k), kn = norm(r?.querySelector('.kn')?.textContent);
+        if (!r || kn !== (k.n ? String(k.n) : '')) out.num.push([k.name, k.n, r ? kn : 'no row']); });
+      (bk.sizes || []).forEach((z, j) => { const el = sec?.querySelectorAll('[data-sgroup]')[j], first = szFirst(sec, z), h = el ? el.getBoundingClientRect().height : 0;
+        const cap1 = el ? [...el.querySelectorAll('.qgn')].map(e => norm(e.textContent)) : [];
+        const next = el?.nextElementSibling, adj = !!first && (next === first || (next && next.contains(first)));
+        const want = 'shares the ' + z.n + ' over ' + z.over_cm + ' cm';
+        if (!szShown(el, z) || cap1.join() !== String(z.n) || h > 60 || !adj) out.sz.push({says: z.says, shown: szShown(el, z), big: cap1, h, adj});
+        all.forEach(k => { const r = rowOf(k), cov = k.n > 0 && k.species.some(c => z.species.includes(c)), tg = [...(r?.querySelectorAll('[data-shares]') || [])].map(e => norm(e.textContent));
+          if (cov !== tg.includes(want)) out.tag.push([k.name, cov, tg]); }); });
+      const n = bk.cap ?? +((bk.between || '').match(/\\d+/) || [])[0];
+      if (n && bk.kinds.length + (bk.groups || []).length >= 2) bk.kinds.forEach(k => { const r = rowOf(k), w = norm(r?.querySelector('[data-within]')?.textContent);
+        const said = k.notes.some(x => new RegExp('\\\\bthe ' + n + '\\\\b').test(x));
+        if (k.n > 0 && !said && !new RegExp('^within the .*\\\\b' + n + '\\\\b').test(w)) out.within.push([k.name, w]); });
+    }); });
+  return out; })())`))));
+const kb17 = K17.filter(x => x.num.length), sb17 = K17.filter(x => x.sz.length || x.tag.length), wb17 = K17.filter(x => x.within.length || x.twice.length);
+check('kind-number-always', K17.length === R17.length && !kb17.length, kb17.map(x => `${x.at}: ${JSON.stringify(x.num)}`).join('; '));
+check('size-cap-line', K17.some(x => x.at.includes('bellacoola')) && !sb17.length, sb17.map(x => `${x.at}: ${JSON.stringify({sz: x.sz, tag: x.tag})}`).join('; '));
+check('within-shared-no-twice', !wb17.length, wb17.map(x => `${x.at}: ${JSON.stringify({within: x.within, twice: x.twice})}`).join('; '));
+// the owner's own question, read straight off one row: a 30 cm bull trout on the Bella Coola on May 1 (both parts)
+const BT17 = [];
+for (const p of [0, 1]) await page(`w=bellacoola&d=501&p=${p}`, async b => BT17.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+  const r = document.querySelector('#keep .krow[data-sp="DV"]');
+  return {p: ${p}, name: norm(r?.querySelector('.nm')?.textContent), det: norm(r?.querySelector('.kdet')?.textContent), n: norm(r?.querySelector('.kn')?.textContent),
+    within: norm(r?.querySelector('[data-within]')?.textContent), shares: norm(r?.querySelector('[data-shares]')?.textContent),
+    box: !!document.querySelector('#keep [data-qgroup]'), between: norm(document.querySelector('#keep [data-between]')?.textContent)}; })())`))));
+const bt17 = BT17.filter(x => x.name !== 'Dolly Varden/bull trout' || x.det !== '25 cm or longer' || x.n !== '1' || x.within !== 'within the river’s 2' || x.shares !== 'shares the 1 over 50 cm' || !x.box || x.between !== 'Up to 2 a day between them');
+check('bull-trout-row', BT17.length === 2 && !bt17.length, JSON.stringify(bt17));
+
+// (2) INTERNAL TEST, never drawn: every number the card shows agrees with the data's own table and cap system (rows 15
+// group.table / cap_kinds / caps) and with the pipeline's caps.most_here (oracle.json): each kind row's number is the most
+// any of its fish's table cells keeps (each such cell = most_here); a kind keeping none has only none-cells; a size-covered
+// row's cells over the size keep min(row, cap); a count group's number is a cap's take over exactly its fish; a size
+// line's number is a cap's take over fish at / over its size including all it names; a bucket's number is a cap's take
+// over all its kept fish
+const ORACLE = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'oracle.json'), 'utf8'));
+const CC17 = [];
+for (const hash of R17) await page(hash, async b => {
+  const id = await b.evaluate('sid()'), orc = ORACLE.groups.filter(x => x.id === id);
+  CC17.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), orc = ${JSON.stringify(orc)}, norm = t => (t || '').replace(/\\s+/g, ' ').trim(), bad = [];
+    let nums = 0;
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const ri = +(art.dataset.row || 'r0').slice(1), g = (st.rows[ri] || {}).group; if (!g || !g.headline || !g.table) return;
+      const T = g.table, ck = Object.fromEntries((g.cap_kinds || []).map(k => [k.id, k])), O = orc.find(x => x.ri === ri);
+      if (!O) bad.push('row ' + ri + ': no oracle');
+      const cellsOf = sp => (T.bands[sp] || []).map((bd, i) => ({...bd, ...T.cells[sp][i], sp, i})).filter(c => !(c.as && c.as !== sp && T.bands[c.as]));
+      const most = c => O?.cells.find(x => x.sp === c.sp && x.i === c.i)?.most;
+      const spOf = ids => new Set(ids.map(x => ck[x]?.species));
+      const capOver = (n, test) => (g.caps || []).some(c => c.take === n && test(c));
+      const secs = [...art.querySelectorAll('section.bkt')];
+      (g.buckets || []).forEach((bk, i) => { const sec = secs[i];
+        const all = [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds];
+        all.forEach(k => { const r = [...(sec?.querySelectorAll('.krow[data-sp]') || [])].find(e => e.dataset.sp === k.species.join(' ') && norm(e.querySelector('.nm')?.textContent) === norm(k.name));
+          const shown = norm(r?.querySelector('.kn')?.textContent), cs = k.species.flatMap(cellsOf), keep = cs.filter(c => c.n !== 0);
+          if (k.n === 0) { if (shown || keep.length) bad.push(k.name + ': keeps none, cells ' + JSON.stringify(keep.map(c => [c.sp, c.says, c.n]))); return; }
+          nums++;
+          const mx = keep.some(c => c.n == null) ? null : Math.max(...keep.map(c => c.n));
+          if (shown !== String(mx)) bad.push(k.name + ': shows ' + shown + ', table most ' + mx);
+          keep.forEach(c => { if (most(c) !== undefined && most(c) !== c.n) bad.push(k.name + ' ' + c.sp + ' ' + c.says + ': table ' + c.n + ', most_here ' + most(c)); });
+          (bk.sizes || []).filter(z => k.species.some(s => z.species.includes(s))).forEach(z => keep.filter(c => (c.from || 0) >= z.over_cm && z.species.includes(c.sp)).forEach(c => {
+            if (c.n !== Math.min(+shown, z.n)) bad.push(k.name + ' ' + c.sp + ' ' + c.says + ': ' + c.n + ' vs min(' + shown + ', ' + z.n + ')'); })); });
+        (bk.groups || []).forEach((sg, j) => { const el = sec?.querySelectorAll('[data-qgroup]')[j], n = +norm(el?.querySelector('.qgn')?.textContent); nums++;
+          const want = new Set(sg.kinds.flatMap(k => k.species));
+          if (n !== sg.n || !capOver(n, c => { const s = spOf(c.kinds.here); return s.size === want.size && [...want].every(x => s.has(x)); })) bad.push(sg.says + ': shows ' + n + ', no cap of that take over exactly its fish'); });
+        (bk.sizes || []).forEach((z, j) => { const el = sec?.querySelectorAll('[data-sgroup]')[j], n = +norm(el?.querySelector('.qgn')?.textContent); nums++;
+          if (n !== z.n || !capOver(n, c => c.kinds.here.length && c.kinds.here.every(x => (ck[x]?.from || 0) >= z.over_cm) && z.species.every(x => spOf(c.kinds.here).has(x)))) bad.push(z.says + ': shows ' + n + ', no cap of that take over its fish at its size'); });
+        const bn = [...(sec?.querySelectorAll('.bkn') || [])].map(e => +norm(e.textContent));
+        bn.forEach(n => { nums++; const want = new Set(all.filter(k => k.n !== 0).flatMap(k => k.species));
+          if (!capOver(n, c => [...want].every(x => spOf(c.kinds.here).has(x)))) bad.push((bk.title || 'bucket') + ': shows ' + n + ', no cap of that take over all its kept fish'); }); }); });
+    return {at: location.hash, id: sid(), nums, bad}; })())`)));
+});
+const cc17 = CC17.filter(x => x.bad.length || !x.nums);
+check('card-is-the-caps', CC17.length === R17.length && !cc17.length, cc17.map(x => `${x.at}: ${x.nums} numbers; ${x.bad.slice(0, 6).join(' | ')}`).join('; '));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

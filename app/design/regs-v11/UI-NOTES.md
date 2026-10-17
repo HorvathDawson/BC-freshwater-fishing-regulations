@@ -1,3 +1,31 @@
+# regs v19 (round 17, owner: revert the table, refine the card) — in place on regs-v11.html
+
+- **1 Revert.** The quota table and the catch checker are gone from the page: no `#qt` toggle, no table / form / evaluator
+  code or CSS (`qtHtml`, `qAccepts`, `qMore`, basket hash keys removed; an old `#qt=1&bk=…` link draws the buckets). The
+  round-15 bucket / group card is THE display. Checks `table-is-the-data`, `checker-is-the-caps`, `check-my-catch`,
+  `size-group-box` retired; the round 9-15 card checks read the default page (no `#qt=0`). Screens 108-116 deleted.
+- **2 Internal test only.** `group.table` / `cap_kinds` / `caps` stay in the snapshot and `oracle.json` (now also Vedder
+  May 15, Ape Creek May 1, Hamill Jun 15: 18 groups, 3,100 baskets) but are never drawn. `card-is-the-caps`: on Bella
+  Coola May 1 (both parts), Vedder Oct 10 / May 15, Bennett Lake, Ape Creek May 1, Hamill Jun 15 every number the card
+  shows agrees with them: a kind row's number = the most of any of its fish's table cells (each = `caps.most_here`); a
+  kind keeping none has only none-cells; a size-covered row's cells over the size = min(row, cap); a count group's number
+  = a cap's take over exactly its fish; a size line's = a cap's take over fish at its size naming all it names; a
+  bucket's = a cap's take over all its kept fish.
+- **3 Card refined** (owner's Bella Coola May 1 complaint). Every kind row ALWAYS shows its own number (`kind-number-
+  always`; the round 14/15 hiding of a number equal to a shared cap is reversed). Each row says what it shares in small
+  tags under its name: a count group's "shares the 1 between them", a size cap's "shares the 1 over 50 cm" (the cap's own
+  words split at its number), a shared bucket's "within the river’s 2" (the bucket's rule title; else its number + unit,
+  "within the 2 a day"; not where the kind's note already says "counts toward the N"). The size cap is a compact boxed
+  line, no pictures, re-ordered from the data's words ("Only **1** brown trout, Dolly Varden/bull trout, lake trout or
+  brook trout over 50 cm · Book p.42"), standing right before the first row it covers (`size-cap-line`). The CT/RB count
+  box and "This river’s rule · Up to 2 a day between them" stay. No species picture twice in a group
+  (`within-shared-no-twice`). The owner's question off one row: "Dolly Varden/bull trout 25 cm or longer · 1 · within
+  the river’s 2 · shares the 1 over 50 cm" (`bull-trout-row`). Screens 121-130.
+- Persona (haiku): "30 cm bull trout, Bella Coola May 1" → 1 (read off the row; both parts). "Vedder today, how many
+  trout" → hatchery only, 4 hatchery rainbows (≤50 cm), the others 2 between them. Trips left: the "shares the 1 over
+  50 cm" tag under a "25 cm or longer" row took a second read; whether the steelhead line counts toward the 2 (its row
+  carries "within the 2 a day") and how the "Kept … elsewhere" lines combine — data / wording, not changed here.
+
 # regs v18 (round 16) — in place on regs-v11.html
 
 - **5 Gear in labelled lines.** The gear sentence ("1 line (2 while alone in a boat) with one hook, lure or fly. Weight on

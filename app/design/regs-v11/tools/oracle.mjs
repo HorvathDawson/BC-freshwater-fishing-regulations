@@ -1,11 +1,11 @@
-// The cap system's own answers for check.mjs (round 16): seeded random baskets (and each cap at its take and one past it)
+// The cap system’s own answers for check.mjs (round 16; round 17: an internal test only, never drawn — card-is-the-caps): seeded random baskets (and each cap at its take and one past it)
 // over the data's cap kinds of a few cards, judged by the pipeline's evaluator (pipeline.deliver.answers.caps.accepts,
 // which the card gate proves equal to the engine) and the most of each table cell's kinds kept here alone
 // (caps.most_here). check.mjs runs the page's own checker on the same baskets and needs no Python.
 //   node app/design/regs-v11/tools/oracle.mjs      (after snap.mjs)   -> app/design/regs-v11/oracle.json
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url'; import { execFileSync } from 'node:child_process';
 const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, '../../../..');
-const STATES = ['bc0_501', 'bc1_501', 'vedder_1010', 'x35p_1010'];
+const STATES = ['bc0_501', 'bc1_501', 'vedder_1010', 'x35p_1010', 'vedder_515', 'ape_501', 'hamill_615'];
 const src = fs.readFileSync(path.join(HERE, '..', 'v36snap.js'), 'utf8'), SNAP = JSON.parse(src.slice(src.indexOf('{'), src.lastIndexOf('}') + 1));
 let seed = 16; const rnd = n => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
 const PL = ['here', 'stream', 'lake'], jobs = [];
