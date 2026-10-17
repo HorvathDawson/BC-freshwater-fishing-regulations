@@ -1,3 +1,49 @@
+# regs v18 (round 16) — in place on regs-v11.html
+
+- **5 Gear in labelled lines.** The gear sentence ("1 line (2 while alone in a boat) with one hook, lure or fly. Weight on
+  the line up to 1 kg. Book p.8") is drawn from its own parts (gear `summary.parts`; snap.mjs now copies them): a fly-only
+  mode first, on its own in the restricted colour ("Fly fishing only ⓘ"), then **Lines · Hooks · Weight on the line**,
+  label in a fixed 7.4em column (the dated rows' column), value big. Hooks = the `attach` words then the `hook` words on a
+  second line ("One hook, lure or fly / Single barbless hook ⓘ"). A part the sentence leaves out (no hook restriction:
+  "any hook", Kootenay Lake Main Body) is not drawn; a value repeating its label drops it ("Up to 1 kg"), a leading "a"
+  goes. Each part's ⓘ on its line; the book pages once, under the lines; "Different on other days" after them, carrying
+  any ⓘ only a change needs. Check `gear-lines` (Vedder Oct 10 / May 15, Bella Coola May 1, Kootenay LWA, Main Body);
+  `gear-sentence` / `gear-sentence-plain` now read the lines. Screens 104-106.
+- **2 How it adds up closes its group.** After the buckets AND the not-kept lines (Ape Creek May 1 had it between the
+  trout and the steelhead / char lines), opening on a 1.5 px ink rule so it reads as the group's sum, not a note on the
+  line above (the round 15 persona trip it was moved up for). Its words ("This river's own limit. …") are the data's;
+  making them specific is DATA's (round 16 item 2). Check `worked-last`; `no-bare-zero` no longer holds the old order.
+  Screen 107.
+- **1 PROTOTYPE: the quota table + Check my catch** (`#qt=1`; a basket `#bk=CT:30:h,RB:40:e`, last tried fish `#qm=…`).
+  Ready for DATA's per-group `table` {bands, cells} + `caps` [{take, kinds, scope, by, says}]: everything is drawn from a
+  model of that shape (`qtModel`), so only the adapter changes when it lands.
+  - **Table first.** Rows = each fish of the group (picture + name, the picture opens its sheet); columns = size bands
+    from the rules' own cut points (Bella Coola May 1: under 25 · 25–33 · 33–50 · over 50 cm); each cell the number you
+    may keep of that fish at that size, alone, big in the open colour; "release" (restricted colour, lighter) where none.
+    A fish nobody may keep is one cell across the bands: the data's words ("✕ no fishing for them", "release every
+    one"), then whose rule and its Book page, small (provenance light).
+  - **Shared limits** below, under "Shared limits": every cap over two or more fish, once, in the data's words, then
+    whose rule · Book page ("Cutthroat trout or rainbow trout: 1 between them / This river's rule · Book p.43"; the
+    region's total line). A one-fish cap is only its cells.
+  - **Check my catch**: fish ▾, length (cm), Here | Elsewhere today, "Add this fish". The table re-reads as "Still yours
+    today": each cell = the most more of that fish at that size that keeps every cap holding (a small search over the
+    count). A fish that can't be kept is not added; the reason in plain words: "Release it. Cutthroat trout or rainbow
+    trout: 1 between them, and you have kept 1." / "Rainbow trout here: 25–50 cm." / the closure's words and whose rule.
+    A fish kept elsewhere is always added ("Counted. Fish kept elsewhere today count here too"); the basket lists each
+    fish with ✕ to take it off.
+  - **Provisional adapter (today's data, to be replaced):** a species' sizes from its kind's size words; caps from the
+    bucket / nested group / size group / subcap numbers and the region total, every cap counting fish kept elsewhere (the
+    data's `elsewhere.says` on these waters); origin (hatchery / wild) is ignored. Known gaps it shows: Vedder's hatchery
+    rainbow over 50 cm (counted as steelhead) reads "release"; a group's shared not-kept rule is repeated on each of its
+    fish's rows (Ape Creek char). The data's `table` / `caps` close both.
+  - Check `table-mock` (Bella Coola May 1: a row per fish with a picture, steelhead closed, each shared limit once; after
+    a 30 cm cutthroat kept here no rainbow is keepable and a 25–33 cm brook trout still is; adding a 30 cm rainbow says
+    why in the group's words). Screens 108-113 (Bella Coola May 1 table / limits / after a cutthroat / a release reason;
+    Vedder Oct 10; Ape Creek May 1).
+  - After DATA delivers: the table becomes each group's primary display (replacing buckets / size boxes once the persona
+    reads it better), `caps` evaluated as given (scope here | day | …), checks against the data's cells and scripted
+    baskets (Bella Coola May 1, Vedder Oct 10, Bennett).
+
 # regs v17 (round 15) — in place on regs-v11.html
 
 - **Follow-up (page v36 @ 388b2b7b, 41 waters, 132 states).** Glenn Creek (a Trout Lake tributary: bull trout released

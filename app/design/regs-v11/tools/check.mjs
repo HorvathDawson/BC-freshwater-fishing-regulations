@@ -15,6 +15,8 @@
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
 //   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
+//   (round 16) gear-lines, worked-last, table-mock (gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
+//   no longer holds How it adds up before the not-kept lines)
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -134,21 +136,23 @@ for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=10
   gear[name] = JSON.parse(await b.evaluate(`JSON.stringify((() => {
     const g = document.getElementById('gear'), secs = [...g.querySelectorAll('.gpart')], st = SNAP.states[sid()], sm = st.summary;
     const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
-    const box = g.querySelector('[data-summary]'), say = box?.querySelector('.gsay');
+    // round 16 (5): the sentence is drawn as labelled lines ([data-gline], gear-lines checks them); the box's lines are the shown text
+    const box = g.querySelector('[data-summary]'), say = box?.querySelector('.glines');
     const pages = new Set((sm?.cites || []).flatMap(k => (SNAP.ruleInfo[k]?.book || []).map(b => b[0])));
     const chips = box ? [...box.querySelectorAll('[data-change]')].map(e => norm(e.textContent)) : [];
     const ref = g.querySelector('details[data-reference]');
     return {sm: !!sm, says: sm?.says || null, kind: st.kind, shown: say ? norm(say.textContent) : null, times: sm ? (norm(g.textContent).split(norm(sm.says)).length - 1) : 0,
       pages: pages.size, books: box ? (norm(box.querySelector('.gbooks')?.textContent).match(/Book p\\.\\d+/g) || []).length : 0,
       changes: (sm?.changes || []).map(c => [c.when, c.says]), chips,
-      terms: (sm?.terms || []), tips: say ? [...say.querySelectorAll('[data-gl]')].flatMap(e => e.dataset.gl.split(',')) : [],
+      lines: box ? box.querySelectorAll('[data-gline]').length : 0,
+      terms: (sm?.terms || []), tips: box ? [...box.querySelectorAll('[data-gl]')].flatMap(e => e.dataset.gl.split(',')) : [],
       icons: g.querySelectorAll('svg.gi, .gi').length, bait: !!g.querySelector('[data-k="bait"]'), ways: !!g.querySelector('[data-k="methods"]'),
       secs: secs.map(s => s.id), last: secs.length ? secs[secs.length - 1].id : null,
       always: secs.filter(s => /^always$/i.test(norm(s.querySelector('h3')?.textContent))).length,
       ref: ref ? {open: ref.open, after: !!secs.length && !!(secs[secs.length - 1].compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING), n: ref.querySelectorAll('[data-rule], .factbtn').length} : null,
       hasAlways: !!(st.panes && st.panes.always)}; })())`));
 });
-const sbad = Object.entries(gear).filter(([, r]) => !(r.sm && r.shown && r.shown.startsWith(r.says) && r.times === 1 && r.books === r.pages
+const sbad = Object.entries(gear).filter(([, r]) => !(r.sm && r.shown && r.lines && r.books === r.pages
   && r.changes.length === r.chips.length && r.changes.every(([w, t], i) => r.chips[i].includes(w) && r.chips[i].includes(t))
   && r.terms.every(t => r.tips.includes(t)) && (r.kind !== 'stream' || !/boat/.test(r.says))));
 check('gear-sentence', !sbad.length, sbad.map(([w, r]) => `${w}: data ${JSON.stringify(r.says)} ${r.sm ? '' : '(no summary in the snapshot)'}, shown ${JSON.stringify(r.shown)} ×${r.times}; ${r.books} book links for ${r.pages} pages; changes ${JSON.stringify(r.changes)} vs chips ${JSON.stringify(r.chips)}; terms ${JSON.stringify(r.terms)} vs ⓘ ${JSON.stringify(r.tips)}`).join('; '));
@@ -450,7 +454,8 @@ check('buckets-own-first-sizes-whole', !ob.length && W2.some(x => x.name === 've
 const nb = W2.filter(x => !x.missing && x.g.some(g => !g.notes.every(Boolean)));
 check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.caps >= 3)), nb.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => g.notes))}`).join('; ') || 'no group with several caps checked');
 // gear 8: the sentence as the data says it (no em dash)
-const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown) || !r.shown.startsWith(r.says));
+// round 16 (5): the sentence is labelled lines now (gear-lines); no em dash in them
+const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown));
 check('gear-sentence-plain', !gd.length, gd.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
 
 // ---------- round 13 ----------
@@ -662,7 +667,8 @@ for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 
       if (wk && nk) order.push(!!(wk.compareDocumentPosition(nk) & Node.DOCUMENT_POSITION_FOLLOWING));
       (g.buckets || []).forEach((bk, i) => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; if (!n || bk.kinds.length + (bk.groups || []).length < 2) return;
         [...(secs[i]?.querySelectorAll(':scope > .krow .kn') || [])].forEach(e => { if (+own(e) >= n) rep.push(norm(e.closest('.krow').textContent).slice(0, 50)); }); }); });
-    return {at: location.hash, bare, rep, order: order.every(Boolean), aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
+    // round 16 (2): "How it adds up" now closes its group (worked-last), so the order is no longer held here
+    return {at: location.hash, bare, rep, order: true, aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
 });
 const zb15 = Z15.filter(x => x.bare.length || x.aboveWorked.length || x.rep.length || !x.order);
 check('no-bare-zero', Z15.length === 5 && !zb15.length, zb15.map(x => JSON.stringify(x)).join('; '));
@@ -784,6 +790,69 @@ check('closed-card-once', C15.length === 2 && !cb15.length, cb15.map(x => JSON.s
 const T15 = await page('w=glenn&d=615', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => ['glenn', 'hamill'].map(w => ({w, ok: !!WATERS[w]?.snap[615] && !!SNAP.states[[].concat(WATERS[w].snap[615])[0]],
   pill: !!document.querySelector('#c-w [data-cw="' + w + '|615"]'), name: WATERS[w]?.name})))())`)));
 check('nearer-row-tribs-front', T15.every(x => x.ok && x.pill && x.name), JSON.stringify(T15));
+
+// ---------- round 16 ----------
+// (5) the gear sentence as short labelled lines from the data's parts (gear.summary.parts): a fly-only mode first, then
+// Lines · Hook, lure or fly · Weight; every part the sentence says drawn once, on a labelled line (a part the sentence
+// leaves out, "any hook", not drawn); no run-on sentence; ONE Book line after the lines (a link per page); the dated
+// changes after it; every glossary term still has its ⓘ
+const G16 = [];
+for (const hash of ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=klwa&d=1010', 'w=klmb&d=1010']) await page(hash + '&sec=gear', async b => {
+  G16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const sm = ST().summary, norm = t => (t || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+    const box = document.querySelector('#gear [data-summary]'); if (!sm || !box) return {at: location.hash, box: !!box, sm: !!sm};
+    const lines = [...box.querySelectorAll('[data-gline]')], say = norm(sm.says), txt = norm(box.textContent);
+    const shown = lines.map(l => ({k: l.dataset.gline, lab: norm(l.querySelector('.glab')?.textContent), val: norm(l.querySelector('.gval')?.textContent)}));
+    const stem = t => norm(t).replace(/^(a|an)\\s+/, '').replace(/^(weight on the line|lines?|hooks?)\\s+/, '');
+    const books = box.querySelectorAll('.gbooks'), ch = box.querySelector('[data-change]');
+    const after = (a, b) => !!a && !!b && !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const pages = new Set((sm.cites || []).flatMap(k => (SNAP.ruleInfo[k]?.book || []).map(x => x[0])));
+    return {at: location.hash, box: true, sm: true, sentence: !!box.querySelector('.gsay'), shown,
+      modeFirst: !sm.parts.some(p => p.part === 'mode') || shown[0]?.k === 'mode',
+      each: sm.parts.filter(p => say.includes(norm(p.says))).map(p => ({p: p.part, n: txt.split(stem(p.says)).length - 1, onLine: shown.some(s => s.val.includes(stem(p.says)))})),
+      labels: shown.filter(s => s.k !== 'mode').every(s => s.lab), dropped: sm.parts.filter(p => !say.includes(norm(p.says)) && txt.includes(norm(p.says))).map(p => p.part),
+      books: books.length, bookN: (books[0]?.textContent.match(/p\\.\\d+/g) || []).length, pages: pages.size,
+      booksAfter: after(lines[lines.length - 1], books[0]), changesAfter: !ch || after(books[0], ch),
+      terms: (sm.terms || []).every(t => [...box.querySelectorAll('[data-gl]')].some(e => e.dataset.gl.split(',').includes(t)))}; })())`)));
+});
+const gb16 = G16.filter(x => !x.box || !x.sm || x.sentence || !x.modeFirst || !x.each.length || x.each.some(e => e.n !== 1 || !e.onLine) || !x.labels || x.dropped.length
+  || x.books !== 1 || x.bookN !== x.pages || !x.booksAfter || !x.changesAfter || !x.terms);
+check('gear-lines', G16.length === 5 && G16.some(x => x.shown?.[0]?.k === 'mode') && !gb16.length, gb16.map(x => JSON.stringify(x)).join('; '));
+
+// (2) "How it adds up" closes its group: no bucket, kind row, count box or not-kept line of the group after it (Ape Creek
+// May 1: it sat between the trout and the steelhead / char lines)
+const A16 = [];
+for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d=1010', 'w=bellacoola&d=501&p=0']) await page(hash, async b => {
+  A16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const out = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const wk = art.querySelector(':scope > .worked'); if (!wk) return;
+      const later = [...art.querySelectorAll('section.bkt, .krow, .nkt, .qgrp')].filter(e => !wk.contains(e) && !!(wk.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING));
+      out.push({nk: !!art.querySelector('.nkt'), later: later.map(e => e.textContent.replace(/\\s+/g, ' ').trim().slice(0, 50))}); });
+    return {at: location.hash, out}; })())`)));
+});
+const ab16 = A16.filter(x => x.out.some(o => o.later.length));
+check('worked-last', A16.length === 5 && A16.some(x => x.out.some(o => o.nk)) && !ab16.length, ab16.map(x => JSON.stringify(x)).join('; ') || 'no group with How it adds up AND not-kept lines checked');
+
+// (1, prototype) the quota table + "Check my catch" mock (#qt=1, today's data through a provisional adapter until the data
+// carries table + caps): Bella Coola May 1 — a row per fish of the group (picture + name), the steelhead row closed; every
+// shared limit once; after a 30 cm cutthroat kept here, no rainbow is keepable (1 between them) and one more brook trout
+// 25–33 cm is (2 between them); adding a 30 cm rainbow then says why not, in the group's own words
+const Q16 = await page('w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h', async b => JSON.parse(await b.evaluate(`(async () => {
+  const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => (st.rows[+a.dataset.row.slice(1)] || {}).group?.headline);
+  const g = st.rows[+art.dataset.row.slice(1)].group, tb = art.querySelector('[data-qtable]');
+  const want = [...new Set([...g.buckets.flatMap(bk => [...bk.kinds, ...(bk.groups || []).flatMap(x => x.kinds)].flatMap(k => k.species)), ...g.not_kept.flatMap(x => x.species)])];
+  const rows = tb ? [...tb.querySelectorAll('[data-qsp]')] : [], row = c => rows.find(r => r.dataset.qsp === c);
+  const cells = c => [...(row(c)?.querySelectorAll('[data-qcell]') || [])].map(e => ({band: e.dataset.qcell, t: norm(e.textContent)}));
+  const capT = [...art.querySelectorAll('[data-qcap]')].map(e => norm(e.textContent));
+  const caps = [...g.buckets.flatMap(bk => [...(bk.groups || []), ...(bk.sizes || [])].map(x => x.says)), ...g.buckets.map(bk => bk.between).filter(Boolean)];
+  const rb = cells('RB'), eb = cells('EB'), st2 = row('ST');
+  const sel = art.querySelector('[data-qform] select'), cm = art.querySelector('[data-qform] input[type=number]');
+  let res = null; if (sel && cm) { sel.value = 'RB'; cm.value = '30'; art.querySelector('[data-qadd]').click(); await new Promise(r => setTimeout(r, 200));
+    const a2 = [...document.querySelectorAll('#keep [data-qres]')][0]; res = a2 ? {no: a2.classList.contains('no'), t: norm(a2.textContent)} : null; }
+  return JSON.stringify({table: !!tb, want, rows: rows.map(r => r.dataset.qsp), pics: rows.filter(r => r.querySelector('img')).length,
+    rbKeep: rb.filter(c => /^\\d+$/.test(c.t) && +c.t > 0).length, ebOne: eb.some(c => c.t === '1'), stClosed: !!st2 && /✕|no fishing/i.test(norm(st2.textContent)),
+    caps: caps.map(c => capT.filter(t => t.includes(norm(c))).length), res}); })()`)));
+const q16ok = Q16.table && Q16.want.every(c => Q16.rows.includes(c)) && Q16.pics === Q16.rows.length && Q16.rbKeep === 0 && Q16.ebOne && Q16.stClosed
+  && Q16.caps.length && Q16.caps.every(n => n === 1) && Q16.res?.no && /1 between them/.test(Q16.res.t);
+check('table-mock', q16ok, JSON.stringify(Q16));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

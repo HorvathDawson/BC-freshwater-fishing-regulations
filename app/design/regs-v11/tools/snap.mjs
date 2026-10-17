@@ -92,6 +92,8 @@ function extract(SPECS, YR) {
       // other days whose sentence differs (cites: display indices -> keys via D.rid)
       { const sm = gearAt(PLACE, md)?.summary, key = i => D.rid[i];
         st.summary = sm ? { says: sm.says, terms: [...(sm.terms || [])], cites: (sm.cites || []).map(key).filter(Boolean),
+          // round 16 (5): the sentence's parts (mode | lines | hook | attach | weight), each its words, rules and terms
+          parts: (sm.parts || []).map(p => ({ part: p.part, says: p.says, cites: (p.cites || []).map(key).filter(Boolean), terms: [...(p.terms || [])] })),
           changes: (sm.changes || []).map(c => ({ when: c.when, says: c.says, cites: (c.cites || []).map(key).filter(Boolean) })) } : null;
         if (st.summary) { st.summary.terms.forEach(t => glIds.add(t)); takeRules([...st.summary.cites, ...st.summary.changes.flatMap(c => c.cites)]); } }
       // display 8 (ROUND11 A3): a lift another water's row carries here (the frame's `inherited`): its words and the

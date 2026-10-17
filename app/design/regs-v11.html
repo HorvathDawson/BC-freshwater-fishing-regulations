@@ -467,6 +467,43 @@ button.hplace:active .pl{color:var(--accent)}
 /* v13 (round 11, owner 3): one gear sentence, dated chips, no icons; the province-wide rules a reference fold */
 .gsum{margin:2px 0 10px}
 .gsay{margin:0;font:700 var(--t2)/1.35 Archivo,sans-serif}
+/* round 16 (owner 1, prototype): the quota table + Check my catch */
+.qt{margin-top:10px}
+.qtab{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--t4)}
+.qtab thead th{padding:4px 2px 6px;font:700 var(--t4)/1.2 Archivo,sans-serif;color:var(--sub);text-align:center;border-bottom:1.5px solid var(--ink);vertical-align:bottom}
+.qtab thead th small{font-weight:500}
+.qtab thead th.qf{width:38%;text-align:left;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+.qtab tbody tr{border-bottom:1px solid var(--line)}
+.qtab th.qn{padding:6px 4px 6px 0;text-align:left;font-weight:400}
+.qtab th.qn .th{display:block;width:56px;margin-bottom:2px}.qtab th.qn .th img{width:56px}
+.qtab th.qn b{display:block;font:700 var(--t4)/1.2 Archivo,sans-serif;color:var(--ink)}
+.qtab td{text-align:center;padding:6px 2px}
+.qtab td.qk b{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open)}
+.qtab td.qr{color:var(--restricted);font-weight:500}
+.qtab tr.qclosed td{color:var(--closed);font-weight:700;text-align:left}.qtab tr.qrel td{color:var(--restricted);font-weight:600;text-align:left}
+.qcaps{list-style:none;margin:8px 0 0;padding:0}
+.qcaph{margin-top:12px}
+.qcaps li{padding:6px 0;border-top:1px solid var(--line)}.qcaps li:first-child{border-top:0}
+.qcaps li b{display:block;font:600 var(--t3)/1.3 Archivo,sans-serif}.qcaps li span{font-size:var(--t4);color:var(--sub)}.qcaps .book{min-height:0;padding:12px 0;margin:-12px 0}
+.qtab td small{display:block;margin-top:2px;font-weight:400;font-size:var(--t4);color:var(--sub)}.qtab td small .book{min-height:0;padding:12px 0;margin:-12px 0}
+.qform{margin-top:14px;padding-top:8px;border-top:1.5px solid var(--ink)}
+.qin{display:flex;gap:8px;margin:6px 0}.qin select{flex:1 1 auto;min-width:0;min-height:44px;font:600 var(--t3) Archivo,sans-serif;border:1.5px solid var(--ink);background:var(--card);color:var(--ink)}
+.qcm{display:flex;align-items:center;gap:4px;font-weight:600}.qcm input{width:4.2em;min-height:44px;font:700 var(--t3) Archivo,sans-serif;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);text-align:center}
+.qwhere{margin:6px 0}
+.qadd{width:100%;min-height:44px;margin-top:4px;background:var(--ink);color:var(--card);font:700 var(--t3) Archivo,sans-serif;border:0}
+.qres{margin:10px 0 0;padding:8px 10px;font-size:var(--t3);line-height:1.35}.qres.ok{border-left:3px solid var(--open)}.qres.no{border-left:3px solid var(--restricted)}
+.qres.no b{color:var(--restricted)}.qres.ok b{color:var(--open)}
+.qbask{list-style:none;margin:8px 0 0;padding:0}.qbask li{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);font-size:var(--t4)}
+.qbask button{min-width:44px;min-height:40px;color:var(--sub)}
+/* round 16 (owner 5): the gear sentence as labelled lines — label in a fixed column, the value big; a fly-only mode first */
+.gmode{margin:0 0 8px;padding:6px 0 6px 10px;border-left:3px solid var(--restricted);font:800 var(--t2)/1.3 "Bricolage Grotesque",Archivo,sans-serif;color:var(--restricted)}
+.glines,#gear .glines{list-style:none;margin:0;padding:0}
+.gline{display:grid;grid-template-columns:7.4em minmax(0,1fr);gap:0 8px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}
+.gline:first-child{border-top:0;padding-top:2px}
+.gline .glab{font:700 var(--t4)/1.3 Archivo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+.gline .gval{font:700 var(--t2)/1.35 Archivo,sans-serif;color:var(--ink)}
+.gsum .gbooks{margin-top:6px}
+.ts2 .gline{grid-template-columns:minmax(0,1fr)}
 .gchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
 .gchip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1.5px solid var(--restricted);font:600 var(--t4)/1.3 Archivo,sans-serif}
 .gchip b{color:var(--restricted)}
@@ -577,7 +614,7 @@ details.bookw blockquote{margin:0 0 10px}
 .kp img{width:80px!important}
 .kp img{display:block;width:72px;height:auto;object-fit:contain;background:var(--wash)}
 .kp.sil{color:var(--line2);min-height:44px}.kp.sil svg{width:56px;height:28px}
-.worked{margin-top:14px}.worked .wsays{margin:2px 0 4px;font-size:var(--t4);color:var(--sub)}
+.worked{margin-top:14px;padding-top:8px;border-top:1.5px solid var(--ink)}.worked .wsays{margin:2px 0 4px;font-size:var(--t4);color:var(--sub)}
 .worked li.wq span{display:block;color:var(--ink);font-weight:600}.worked li.wq b{font-weight:400;color:var(--sub)}
 .worked ul{list-style:none;margin:0;padding:0}
 .worked li{padding:6px 0;border-top:1px solid var(--line);font-size:var(--t4)}.worked li:first-child{border-top:0}
@@ -636,7 +673,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
+const S = {qt:0, bk:'', qm:'', qw:'h', qs:'', qc:30, w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -724,6 +761,89 @@ function speciesRow(codes){
   if (!cs.length) return '';
   return `<div class="spg" role="list" aria-label="What they look like">${cs.map(c => `<button role="listitem" data-open="sp:${c}"><span class="im"><img src="../apps/mobile/assets/fish/${FISHPIC(c)[0].file}" alt="" loading="lazy"></span><span>${esc(SNAP.fish[c].name)}</span></button>`).join('')}</div>`;
 }
+/* ---------- round 16 (owner 1, PROTOTYPE): the quota TABLE and "Check my catch" (#qt=1; a basket in #bk=CT:30:h,…) ----------
+   Drawn from a model in the shape the data will carry per group — a table (size bands, a number per species × band) and
+   caps [{take, kinds, scope, by, says}] where a basket is legal iff every cap holds — so only qtModel changes when that
+   arrives. Until then qtModel is a PROVISIONAL adapter over today's group fields: a species' sizes from its kind's size
+   words, the cut points from those and the caps' over_cm, the caps from the bucket / group / size / subcap / total numbers,
+   every cap counting fish kept elsewhere today (the data's elsewhere.says on the waters shot). Every word drawn is the data's. */
+const QT_OPEN = 1e9;
+function qtRanges(detail){ const d = (detail || '').replace(/ /g, ' '), out = [];
+  for (const part of d.split(/,\s*or\s+|\s+or\s+(?=\d)/)) { let m;
+    if ((m = part.match(/(\d+)\s*[–-]\s*(\d+)\s*cm/))) out.push([+m[1], +m[2]]);
+    else if ((m = part.match(/(\d+)\s*cm or longer/))) out.push([+m[1], QT_OPEN]);
+    else if ((m = part.match(/(\d+)\s*cm or less/))) out.push([0, +m[1]]);
+    else if ((m = part.match(/over (\d+)\s*cm/))) out.push([+m[1] + 0.01, QT_OPEN]); }
+  return out.length ? out : [[0, QT_OPEN]]; }
+function qtModel(st, g){
+  const sp = new Map(), kinds = g.buckets.flatMap(bk => [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds]);
+  kinds.forEach(k => k.species.forEach(c => sp.has(c) || sp.set(c, {code: c, detail: k.detail, status: k.n === 0 ? 'release' : 'keep', ranges: k.n === 0 ? [] : qtRanges(k.detail)})));
+  (g.not_kept || []).forEach(x => x.species.forEach(c => sp.has(c) || sp.set(c, {code: c, status: x.status, says: x.says, whose: x.whose, by: x.by, ranges: []})));
+  const caps = [], add = (take, of, o = {}) => { of = [...new Set(of)].filter(c => sp.has(c)); if (!take || !of.length) return;
+    const key = [take, [...of].sort().join(','), o.over ?? '', o.under ?? ''].join('|'), had = caps.find(c => c.key === key);
+    if (had) { if (!had.says && o.says) Object.assign(had, {says: o.says, by: o.by, whose: o.whose}); return; }
+    caps.push({key, take, kinds: of, over: o.over ?? null, under: o.under ?? null, scope: 'day', says: o.says || '', by: o.by ?? null, whose: o.whose || ''}); };
+  g.buckets.forEach(bk => { const ks = [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds], all = ks.flatMap(k => k.species), whose = bk.why === 'rule' ? bk.title : '';
+    (bk.groups || []).forEach(x => add(x.n, x.kinds.flatMap(k => k.species), {says: x.says, by: x.by, whose}));
+    (bk.sizes || []).forEach(z => add(z.n, z.species, {over: z.over_cm, says: z.says, by: z.by, whose}));
+    const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0];
+    if (n && new Set(all).size > 1) add(n, all, {says: bk.between || bk.title || '', by: bk.by, whose: bk.between ? whose : ''});
+    ks.forEach(k => k.n && add(k.n, k.species)); });
+  (g.subcaps || []).forEach(c => add(c.take, c.of, {over: c.over_cm, under: c.under_cm}));
+  if (g.total) add(g.total, [...sp.values()].filter(x => x.status === 'keep').map(x => x.code), {says: g.total_line || ''});
+  const cuts = [...new Set([...[...sp.values()].flatMap(x => x.ranges.flat()), ...caps.flatMap(c => [c.over, c.under])]
+    .filter(v => v != null && v > 0 && v < QT_OPEN).map(v => Math.round(v)))].sort((a, b) => a - b);
+  const bands = cuts.length ? [{lo: 0, hi: cuts[0], label: `under ${cuts[0]}`}, ...cuts.slice(1).map((c, i) => ({lo: cuts[i], hi: c, label: `${cuts[i]}–${c}`})), {lo: cuts[cuts.length - 1], hi: QT_OPEN, label: `over ${cuts[cuts.length - 1]}`}]
+    : [{lo: 0, hi: QT_OPEN, label: 'any size'}];
+  bands.forEach(b => { b.at = b.hi >= QT_OPEN ? b.lo + 1 : (b.lo + b.hi) / 2; });
+  return {sp, caps, bands, rows: [...sp.values()]}; }
+const qtKeepable = (M, f) => { const x = M.sp.get(f.code); return !!x && x.status === 'keep' && x.ranges.some(([lo, hi]) => f.cm >= lo && f.cm <= hi); };
+const qtCount = (c, basket) => basket.filter(f => c.kinds.includes(f.code) && (c.over == null || f.cm > c.over) && (c.under == null || f.cm < c.under) && (f.where === 'h' || c.scope === 'day')).length;
+const qtLegal = (M, basket) => M.caps.every(c => qtCount(c, basket) <= c.take);
+// a cell: how many more of that fish, at that size, keep every cap holding (a small search over the count)
+const qtMore = (M, basket, code, cm) => { if (!qtKeepable(M, {code, cm})) return 0; const f = {code, cm, where: 'h'}; let m = 0;
+  while (m < 99 && qtLegal(M, [...basket, ...Array(m + 1).fill(f)])) m++; return m; };
+const qtBasket = () => (S.bk || '').split(',').filter(Boolean).map(t => { const [code, cm, where] = t.split(':'); return {code, cm: +cm, where: where === 'e' ? 'e' : 'h'}; });
+function qtWhy(M, basket, f){ const x = M.sp.get(f.code), nm = fishName(f.code);
+  if (!x) return '';
+  if (x.status === 'closed') return `${x.says}. ${cap1_(x.whose)}.`;
+  if (x.status === 'release') return `${nm}: ${x.detail}.`;
+  if (!qtKeepable(M, f)) return `${nm} here: ${x.detail}.`;
+  const c = M.caps.find(c => qtCount(c, [...basket, f]) > c.take); if (!c) return '';
+  const had = qtCount(c, basket);
+  return c.says ? `${c.says.replace(/\.$/, '')}, and you have kept ${had}.` : `${nm}: ${c.take}, and you have kept ${had}.`; }
+const cap1_ = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+let QT_ = {};
+function qtHtml(st, ri, g){
+  const M = qtModel(st, g), basket = qtBasket(), here = basket.filter(f => f.where === 'h'); QT_[ri] = M;
+  const head = `<tr><th scope="col" class="qf">${basket.length ? 'Still yours today' : 'Fish'}</th>${M.bands.map(b => `<th scope="col">${esc(b.label)}<small> cm</small></th>`).join('')}</tr>`;
+  const name = c => `<th scope="row" class="qn">${fishBtn(c, 'th')}<b>${esc(fishName(c))}</b></th>`;
+  const body = M.rows.map(x => { const n = M.bands.length;
+    // a fish nobody may keep here: one cell across the bands, the data's words, then whose rule and its Book page, small
+    const whose = x => { const key = st.ruleKey?.[x.by]; return x.whose || key ? `<small>${esc(cap1_(x.whose || ''))}${x.whose && key ? ' · ' : ''}${key ? bookLinks(key) : ''}</small>` : ''; };
+    if (x.status === 'closed') return `<tr data-qsp="${x.code}" class="qclosed">${name(x.code)}<td colspan="${n}" data-qcell="all"><b>✕</b> ${esc(x.says.replace(/^[^:]*:\s*/, ''))}${whose(x)}</td></tr>`;
+    if (x.status === 'release') return `<tr data-qsp="${x.code}" class="qrel">${name(x.code)}<td colspan="${n}" data-qcell="all">${esc(x.detail || x.says.replace(/^[^:]*:\s*/, ''))}${whose(x)}</td></tr>`;
+    return `<tr data-qsp="${x.code}">${name(x.code)}${M.bands.map((b, i) => { const m = qtMore(M, basket, x.code, b.at);
+      return m ? `<td data-qcell="${i}" class="qk"><b>${m}</b></td>` : `<td data-qcell="${i}" class="qr">${qtKeepable(M, {code: x.code, cm: b.at}) ? 'full' : 'release'}</td>`; }).join('')}</tr>`; }).join('');
+  const caps = M.caps.filter(c => c.says && c.kinds.length > 1).map(c => { const key = st.ruleKey?.[c.by];
+    return `<li data-qcap><b>${esc(c.says)}</b>${c.whose || key ? `<span>${esc(c.whose)}${c.whose && key ? ' · ' : ''}${key ? bookLinks(key) : ''}</span>` : ''}</li>`; }).join('');
+  const keepers = M.rows;
+  const last = S.qm ? (() => { const [code, cm, where] = S.qm.split(':'), f = {code, cm: +cm, where}; const why = where === 'h' ? qtWhy(M, basket, f) : '';
+    return `<p class="qres ${why ? 'no' : 'ok'}" data-qres role="status">${why ? `<b>Release it.</b> ${esc(why)}` : where === 'h' ? `<b>✓ You can keep it.</b> The table shows what is left.` : `<b>Counted.</b> Fish kept elsewhere today count here too; the table shows what is left.`}</p>`; })() : '';
+  const list = basket.length ? `<ul class="qbask">${basket.map((f, i) => `<li><span>${esc(fishName(f.code))} · ${f.cm} cm · ${f.where === 'h' ? 'here' : 'elsewhere today'}</span><button type="button" data-qdel="${i}" aria-label="Take it off">✕</button></li>`).join('')}</ul>` : '';
+  const form = `<div class="qform" data-qform data-qrow="${ri}"><p class="bkh">Check my catch</p>
+    <div class="qin"><select aria-label="Which fish">${keepers.map(x => `<option value="${x.code}"${S.qs === x.code ? ' selected' : ''}>${esc(fishName(x.code))}</option>`).join('')}</select>
+    <label class="qcm"><input type="number" inputmode="numeric" min="1" max="200" value="${+S.qc || 30}" aria-label="Length in cm"> cm</label></div>
+    <div class="segm qwhere" role="group" aria-label="Where you kept it"><button type="button" aria-pressed="${S.qw !== 'e'}" data-qw="h">Here</button><button type="button" aria-pressed="${S.qw === 'e'}" data-qw="e">Elsewhere today</button></div>
+    <button type="button" class="qadd" data-qadd>Add this fish</button>${last}${list}</div>`;
+  return `<section class="qt" data-qtable aria-label="What you can keep, by size"><table class="qtab"><thead>${head}</thead><tbody>${body}</tbody></table>${caps ? `<p class="bkh qcaph">Shared limits</p><ul class="qcaps">${caps}</ul>` : ''}</section>${form}`; }
+document.addEventListener('click', e => { const t = e.target.closest('[data-qadd],[data-qdel],[data-qw]'); if (!t) return;
+  const box = t.closest('[data-qform]'), M = QT_[box?.dataset.qrow], basket = qtBasket(), enc = b => b.map(f => `${f.code}:${f.cm}:${f.where}`).join(',');
+  if (t.dataset.qw) return go({qw: t.dataset.qw}, true);
+  if (t.dataset.qdel != null) { basket.splice(+t.dataset.qdel, 1); return go({bk: enc(basket), qm: ''}, true); }
+  const f = {code: box.querySelector('select').value, cm: +box.querySelector('input').value || 0, where: S.qw === 'e' ? 'e' : 'h'};
+  const ok = f.where === 'e' || !qtWhy(M, basket, f);
+  go({bk: ok ? enc([...basket, f]) : enc(basket), qm: `${f.code}:${f.cm}:${f.where}`, qs: f.code, qc: f.cm}, true); });
 function buildKeep(){
   const st = ST(), doc = new DOMParser().parseFromString(`<div id="root">${st.cardHTML}</div>`, 'text/html'), root = doc.getElementById('root');
   // the strip: the data's per-day flags (answers 2.6)
@@ -837,8 +957,9 @@ function buildKeep(){
     // round 15 (8): a release line draws NO number — its words say it; a bare big 0 under the buckets read as a total above
     // "How it adds up" ("Keep 2 more here", Vedder May 15)
     const nk = (g.not_kept || []).length ? `<section class="nkt" aria-label="Not kept here">${g.not_kept.map(x => `<div class="krow k28 nkr ${x.status}" data-notkept="${x.status}"><div class="kb"><p class="kl"><b class="nm">${esc(x.says)}</b></p><p class="s2">${esc(cap1(x.whose))}${st.ruleKey?.[x.by] ? ' · ' + bookLinks(st.ruleKey[x.by]) : ''}</p>${presP(x.presence)}${pics(x.species)}</div>${x.status === 'closed' ? '<b class="kn">✕</b>' : ''}</div>`).join('')}</section>` : '';
-    // round 15 (persona): "How it adds up" follows the buckets directly, BEFORE the not-kept lines (Vedder May 15: "Keep 2
-    // more here" right under "Rainbow trout and cutthroat trout: release every one" read as being about those fish)
+    // round 16 (owner 2): "How it adds up" closes its group — after the buckets AND the not-kept lines (Ape Creek May 1: it
+    // sat between the trout and the steelhead / char lines, before the end of the section). It opens on a full rule of its
+    // own so it reads as the group's sum, not as a note on the line above it (the round 15 persona trip, Vedder May 15)
     // round 12 (answers rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list after the buckets — the data's
     // elsewhere.says, then every group.worked line once: a keep-here line "Keep 3 rainbows here → …", the kept-elsewhere
     // lines as questions with their answers. No dropdown, no sheet.
@@ -847,7 +968,10 @@ function buildKeep(){
     const fe = '';
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
-    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${total}${buckets}${worked}${nk}${quiet}${more}`;
+    const orig = g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : '';
+    // round 16 (1, prototype): #qt=1 draws the group as the quota table + Check my catch instead of its buckets
+    art.innerHTML = +S.qt ? `<div class="rhead">${head}${num}</div>${orig}${qtHtml(st, ri, g)}${quiet}${more}`
+      : `<div class="rhead">${head}${num}</div>${orig}${total}${buckets}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1028,11 +1152,24 @@ function buildGear(){
   const sm = st.summary;
   let sentence = '';
   if (sm) { const ck = [...sm.cites, ...sm.changes.flatMap(c => c.cites)]; keys.push(...ck); words.push(...ck.map(wordOf_));
-    const gl = sm.terms.filter(t => SNAP.gloss[t]);
-    const tipBtn = !gl.length ? '' : `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`;
-    sentence = `<div class="gsum" data-summary><p class="gsay">${esc(sm.says)}${tipBtn ? ' ' + tipBtn : ''}</p>`
-      + (sm.changes.length ? `<p class="dlab">Different on other days</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : '')
-      + `<p class="gbooks">${booksOnce(sm.cites)}</p></div>`; }
+    const tipFor = ts => { const gl = ts.filter(t => SNAP.gloss[t]); return !gl.length ? '' : ' ' + `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`; };
+    // round 16 (owner 5): the sentence was busy ("1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the
+    // line up to 1 kg. Book p.8"). It is drawn as short labelled lines from its own parts (gear `summary.parts`): a fly-only
+    // mode first, on its own, then Lines · Hooks · Weight on the line, each value big; a part the sentence leaves out (no
+    // hook restriction: "any hook") is not drawn. A value repeating its label ("weight on the line …") drops it; a leading
+    // "a" goes. Each part's ⓘ sits on its line; the book pages once, under the lines; the dated changes after them.
+    const say = sm.says.toLowerCase(), cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+    const parts = (sm.parts || []).filter(p => say.includes(p.says.toLowerCase())), of = k => parts.filter(p => k.includes(p.part));
+    const val = (p, lab) => { let t = p.says.replace(/^(a|an)\s+/i, ''); if (lab && t.toLowerCase().startsWith(lab.toLowerCase() + ' ')) t = t.slice(lab.length + 1); return cap1(t); };
+    const GLAB = [['lines', 'Lines', ['lines']], ['hook', 'Hooks', ['attach', 'hook']], ['weight', 'Weight on the line', ['weight']]];
+    const used = new Set();
+    const mode = of(['mode']).map(p => { p.terms.forEach(t => used.add(t)); return `<p class="gmode" data-gline="mode"><b class="gval">${esc(p.says)}</b>${tipFor(p.terms)}</p>`; }).join('');
+    const rows = GLAB.map(([k, lab, ks]) => { const ps = ks.flatMap(x => of([x])); if (!ps.length) return '';
+      return `<li class="gline" data-gline="${k}"><span class="glab">${esc(lab)}</span><span class="gval">${ps.map(p => { p.terms.forEach(t => used.add(t)); return `<b>${esc(val(p, lab))}</b>${tipFor(p.terms)}`; }).join('<br>')}</span></li>`; }).join('');
+    const rest = sm.terms.filter(t => !used.has(t));
+    sentence = `<div class="gsum" data-summary>${mode}<ul class="glines">${rows}</ul><p class="gbooks">${booksOnce(sm.cites)}</p>`
+      + (sm.changes.length ? `<p class="dlab">Different on other days${tipFor(rest)}</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : rest.length ? `<p class="gbooks">${tipFor(rest)}</p>` : '')
+      + `</div>`; }
   // bait: the ✓/✕ list, as it was
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
@@ -1352,7 +1489,7 @@ function poster(){
 }
 (function(){ const h = new URLSearchParams(location.hash.slice(1));
   if (h.get('shot')) document.documentElement.classList.add('shot'); if (h.get('tall')) document.documentElement.classList.add('tall');
-  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
+  for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll','qt','qc'].includes(k) ? +v : v;
   const sec = S.sec; render();
   if (sec === 'gear' && !S.scroll && !S.at) requestAnimationFrame(() => { $('sc').scrollTop = $('gear').offsetTop - $('hdr').offsetHeight + 2; mini(); });
   if (S.open) document.querySelectorAll(S.open).forEach(d => { d.open = true; });   // round 13: a screen of a fold opened

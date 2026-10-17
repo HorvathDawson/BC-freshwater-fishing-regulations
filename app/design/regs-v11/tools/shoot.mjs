@@ -135,6 +135,18 @@ const SCREENS = [
   ['101-card-glenn-creek-jun15-not-kept', 'w=glenn&d=615&at=.nkt'],
   ['102-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
   ['103-keep-vedder-jun15-closed-once', 'w=vedder&d=615'],
+  // round 16: the gear sentence as labelled lines (5); How it adds up closes its group (2); the quota table + Check my
+  // catch PROTOTYPE (#qt=1, today's data through the provisional adapter; 1)
+  ['104-gear-vedder-lines', `${V}&sec=gear`],
+  ['105-gear-vedder-may15-fly-only-lines', 'w=vedder&d=515&sec=gear'],
+  ['106-gear-kootenay-main-body-lines', 'w=klmb&d=1010&sec=gear'],
+  ['107-card-ape-creek-may1-adds-up-last', 'w=ape&d=501&at=.nkt'],
+  ['108-table-bella-coola-may1', 'w=bellacoola&d=501&p=0&qt=1&at=.g28'],
+  ['109-table-bella-coola-may1-limits', 'w=bellacoola&d=501&p=0&qt=1&at=.qcaps'],
+  ['110-table-bella-coola-may1-after-cutthroat', 'w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h&at=.g28'],
+  ['111-table-bella-coola-may1-check-release', 'w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h&qm=RB:30:h&at=.qform'],
+  ['112-table-vedder-oct10', `${V}&qt=1&at=.g28`],
+  ['113-table-ape-creek-may1', 'w=ape&d=501&qt=1&at=.g28'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {
