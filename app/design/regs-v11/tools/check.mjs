@@ -13,7 +13,8 @@
 //   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired); phase 2:
 //   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
-//   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story
+//   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
+//   u16-by-residency, week-parts-decided
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -282,7 +283,8 @@ for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iro
           const n = el?.querySelector('.bkn'), sc = el?.querySelector('.bks'), scope = bk.title.split(' — ')[1] || '';
           const fs = e => e ? parseFloat(getComputedStyle(e).fontSize) : 0;
           out.big.push([bk.title, !!n && norm(n.textContent) === String(bk.cap) && fs(n) >= 24 && (!scope || (!!sc && norm(sc.textContent).includes(scope) && fs(sc) < fs(n)))]); }
-        (bk.notes || []).forEach(nt => { const all = norm(art.textContent).split(norm(nt.says)).length - 1, ne = el ? [...el.querySelectorAll('[data-bnote]')].find(e => norm(e.textContent).includes(norm(nt.says))) : null;
+        /* round 15 (rows 14): a size cap is now a size group (sizes, drawn [data-sgroup]); it is held to the same rule */
+        [...(bk.notes || []), ...(bk.sizes || [])].forEach(nt => { const all = norm(art.textContent).split(norm(nt.says)).length - 1, ne = el ? [...el.querySelectorAll('[data-bnote], [data-sgroup]')].find(e => norm(e.textContent).includes(norm(nt.says))) : null;
           const k1 = el?.querySelector('.krow'); out.note.push([nt.says, all === 1 && !!ne && (!k1 || !!(ne.compareDocumentPosition(k1) & Node.DOCUMENT_POSITION_FOLLOWING))]); });
       });
       art.querySelectorAll('.krow.k28').forEach(k => { const nm = k.querySelector('.nm'), kn = k.querySelector('.kn'), dt = k.querySelector('.kdet');
@@ -435,7 +437,8 @@ for (const [name, hash] of CARDS2) await page(hash, async b => {
         lines: worked.map(w => wt.includes(norm(w.q)) && wt.includes(norm(w.a)) && at.split(norm(w.a)).length === 2 && (w.at !== 'here') === !wt.includes(norm(w.q) + ' →')),
         order: (g.buckets || []).map((bk, i) => !!secs[i] && bk.kinds.every(k => norm(secs[i].textContent).includes(norm(k.name)))),
         sizes: (g.buckets || []).flatMap((bk, i) => bk.kinds.map(k => !k.detail || [...(secs[i]?.querySelectorAll('.krow') || [])].some(r => norm(r.textContent).includes(norm(k.name)) && norm(r.querySelector('.kdet')?.textContent) === norm(k.detail)))),
-        notes: (g.buckets || []).flatMap((bk, i) => (bk.notes || []).map(n => at.split(norm(n.says)).length === 2 && norm(secs[i]?.textContent).includes(norm(n.says))
+        caps: (g.buckets || []).reduce((t, bk) => t + (bk.notes || []).length + (bk.sizes || []).length + (bk.groups || []).length + (bk.between ? 1 : 0), 0),
+        notes: (g.buckets || []).flatMap((bk, i) => [...(bk.notes || []), ...(bk.sizes || [])].map(n => at.split(norm(n.says)).length === 2 && norm(secs[i]?.textContent).includes(norm(n.says))
           && (n.then || []).every(t => norm(n.says).includes(String(t.over_cm)) || [...secs[i].querySelectorAll('[data-then]')].some(e => norm(e.textContent).includes(String(t.over_cm)))))),
         first: (g.buckets || [])[0]?.why || null, whys: (g.buckets || []).map(bk => bk.why)}); });
     return out; })())`)));
@@ -445,7 +448,7 @@ check('one-worked-list', W2.some(x => x.g && x.g.some(g => g.lines.length > 3)) 
 const ob = W2.filter(x => !x.missing && x.g.some(g => !g.order.every(Boolean) || (g.whys.includes('rule') && g.first !== 'rule') || !g.sizes.every(Boolean)));
 check('buckets-own-first-sizes-whole', !ob.length && W2.some(x => x.name === 'vedder' && x.g[0]?.first === 'rule'), ob.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => [g.whys, g.order, g.sizes]))}`).join('; '));
 const nb = W2.filter(x => !x.missing && x.g.some(g => !g.notes.every(Boolean)));
-check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.notes.length >= 3)), nb.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => g.notes))}`).join('; ') || 'no group with several caps checked');
+check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.caps >= 3)), nb.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => g.notes))}`).join('; ') || 'no group with several caps checked');
 // gear 8: the sentence as the data says it (no em dash)
 const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown) || !r.shown.startsWith(r.says));
 check('gear-sentence-plain', !gd.length, gd.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
@@ -543,8 +546,8 @@ for (const [w, d] of [['vedder', '1010'], ...(CLW ? [[CLW[0], CLW[1]]] : [])]) f
     const mineH = st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}], ad = document.createElement('div'); ad.innerHTML = st.licence.adult;
     const label = norm(ad.querySelector('.needs .lbl')?.textContent), md = document.createElement('div'); md.innerHTML = mineH;
     const shared = new Set([...ad.querySelectorAll('.classbox')].map(e => norm(e.textContent)));
-    const answer = [...md.querySelectorAll('.needs li > b, .classbox > b')].filter(e => !shared.has(norm(e.parentElement.textContent))).map(e => norm(e.textContent));
-    const lists = [...(L?.querySelectorAll('.needs') || [])].filter(n => !n.closest('details'));
+    const answer = [...md.querySelectorAll('.needs:not(.u16) li > b, .classbox > b')].filter(e => !shared.has(norm(e.parentElement.textContent))).map(e => norm(e.textContent));
+    const lists = [...(L?.querySelectorAll('.needs:not(.u16sum)') || [])].filter(n => !n.closest('details'));
     const list = lists[0], items = list ? [...list.querySelectorAll('li > b')].map(e => norm(e.textContent)) : [];
     const order = [...(L?.querySelectorAll('details.others') || [])].map(f => norm(f.querySelector('.u16h')?.textContent));
     return {w: S.w, age: S.age, label, lists: lists.length, shownLabel: norm(list?.querySelector('.lbl')?.textContent), visible: !!list && list.getBoundingClientRect().height > 0,
@@ -648,12 +651,20 @@ const Z15 = [];
 for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 'w=ape&d=501', 'w=vedder&d=1010']) await page(hash, async b => {
   Z15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
     const own = e => norm([...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(''));
-    const bare = [...document.querySelectorAll('#keep .kn, #keep .num, #keep .bkn, #keep .qgn')].filter(e => own(e) === '0' && !e.closest('section.bkt'))
+    const bare = [...document.querySelectorAll('#keep .kn, #keep .num, #keep .bkn, #keep .qgn')].filter(e => own(e) === '0')
       .map(e => norm(e.closest('.krow, .rhead')?.textContent).slice(0, 70));
     const w = document.querySelector('#keep .worked'), prev = w?.previousElementSibling;
-    return {at: location.hash, bare, aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
+    // persona (round 15): a kind's number that only repeats its bucket's shared number (2+ kinds) is not drawn; the
+    // not-kept lines come after "How it adds up"
+    const st = ST(), rep = [], order = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+      const secs = [...art.querySelectorAll('section.bkt')], wk = art.querySelector('.worked'), nk = art.querySelector('.nkt');
+      if (wk && nk) order.push(!!(wk.compareDocumentPosition(nk) & Node.DOCUMENT_POSITION_FOLLOWING));
+      (g.buckets || []).forEach((bk, i) => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; if (!n || bk.kinds.length + (bk.groups || []).length < 2) return;
+        [...(secs[i]?.querySelectorAll(':scope > .krow .kn') || [])].forEach(e => { if (+own(e) >= n) rep.push(norm(e.closest('.krow').textContent).slice(0, 50)); }); }); });
+    return {at: location.hash, bare, rep, order: order.every(Boolean), aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
 });
-const zb15 = Z15.filter(x => x.bare.length || x.aboveWorked.length);
+const zb15 = Z15.filter(x => x.bare.length || x.aboveWorked.length || x.rep.length || !x.order);
 check('no-bare-zero', Z15.length === 5 && !zb15.length, zb15.map(x => JSON.stringify(x)).join('; '));
 
 // (8) the licence tab says which residency (and age) the open answer is for: the page's own residency and age names, a
@@ -665,15 +676,16 @@ for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%2
     const res = norm(ad.querySelector('#who-residency option[value="resident"]')?.textContent), ag = norm(ad.querySelector('#who-age option[value="' + (S.age === 'u16' ? 'under_16' : '16_plus') + '"]')?.textContent);
     const lab = [...(L?.querySelectorAll('[data-for-res]') || [])].filter(e => !e.closest('details'));
     const ans = [...(L?.querySelectorAll('.needs, .classbox') || [])].find(e => !e.closest('details'));
-    return {age: S.age, want: res && ag ? res + ' · ' + ag : '', shown: lab.map(e => norm(e.textContent)), before: !!lab[0] && !!ans && !!(lab[0].compareDocumentPosition(ans) & Node.DOCUMENT_POSITION_FOLLOWING),
+    const pl = (ST().licLabel || {})[S.age === 'u16' ? 'u16_res' : 'adult'];   // licence 5: the data's own profile label
+    return {age: S.age, want: pl ? pl : res && ag ? res + ' · ' + ag : '', shown: lab.map(e => norm(e.textContent)), before: !!lab[0] && !!ans && !!(lab[0].compareDocumentPosition(ans) & Node.DOCUMENT_POSITION_FOLLOWING),
       visible: !!lab[0] && lab[0].getBoundingClientRect().height > 0}; })())`)));
 });
 const rb15 = R15.filter(x => !x.want || x.shown.length !== 1 || x.shown[0] !== x.want || !x.before || !x.visible);
 check('licence-says-residency', R15.length === 2 && !rb15.length, rb15.map(x => JSON.stringify(x)).join('; '));
 
 // (3) a row that answers by weekday reads as ONE explanation in its sheet (Kootenay LWA kokanee, Sat + Mon): one status
-// block first — the day's status, the data's weekday sentence, and every day-part the data gives (`week`'s lists, each
-// in its words, today's marked) — then "How this was decided"; no status drawn a second time; no rule line twice
+// block first — the day, the data's weekday status, the data's weekday sentence — then "How this was decided" (whose
+// day-parts week-parts-decided checks); no status drawn a second time; no rule line twice
 const K15 = [];
 for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
   K15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
@@ -689,8 +701,69 @@ for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
         parts: parts.every(p => norm(box?.textContent).includes(norm(p.says))), dup: lines.filter((t, j) => lines.indexOf(t) !== j)}); });
     return {d: S.d, out}; })())`)));
 });
-const kb15 = K15.filter(x => !x.out.length || x.out.some(o => !o.sheet || !o.box || !o.says || !o.status || o.outside || !o.order || !o.parts || o.dup.length));
+const kb15 = K15.filter(x => !x.out.length || x.out.some(o => !o.sheet || !o.box || !o.says || !o.status || o.outside || !o.order || o.dup.length));
 check('week-sheet-one-story', K15.length === 2 && !kb15.length, kb15.map(x => JSON.stringify(x)).join('; '));
+
+// ---------- round 15 phase 2 (rows 14, licence 5, display 11) ----------
+// (1) a size cap is a boxed group (`buckets[].sizes`) in the SAME box as a count group: inside its bucket, the data's words
+// with its number big, its rule's book page, a picture of every fish it binds; no size note left as a bare line
+// (5) an own-rule bucket's shared cap (`buckets[].between`) is said big under its title, once
+const S15 = [];
+for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=ape&d=501']) await page(hash, async b => {
+  S15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), sz = [], bw = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+      const secs = [...art.querySelectorAll('section.bkt')];
+      (g.buckets || []).forEach((bk, i) => {
+        (bk.sizes || []).forEach((z, j) => { const el = secs[i]?.querySelectorAll('[data-sgroup]')[j], key = (st.ruleKey || {})[z.by];
+          const pages = (SNAP.ruleInfo[key]?.book || []).map(x => 'p.' + x[0]), fs = el ? [...el.querySelectorAll('[data-open^="sp:"]')].map(e => e.dataset.open.slice(3)) : [];
+          sz.push({says: z.says, el: !!el, box: !!el && el.classList.contains('qgrp'), words: !!el && norm(el.textContent).includes(norm(z.says).replace(/(\\d) cm/g, '$1 cm').slice(0, 20)),
+            big: norm(el?.querySelector('.qgn')?.textContent) === String(z.n), book: !!el && pages.length > 0 && pages.every(p => norm(el.textContent).includes(p)),
+            pics: z.species.filter(c => (SNAP.fish[c] || FISHPIC(c).length)).every(c => fs.includes(c))}); });
+        if (bk.between) { const el = secs[i]?.querySelector('[data-between]'), n = (bk.between.match(/\\d+/) || [])[0];
+          bw.push({between: bk.between, el: !!el, big: norm(el?.querySelector('.bkn')?.textContent) === n, words: norm(el?.textContent) === norm(bk.between).replace(/\\s+/g, ' '),
+            once: norm(art.textContent).split(norm(bk.between)).length <= 2}); } });
+      art.querySelectorAll('.bnote').forEach(e => { if (/\\bcm\\b/.test(e.textContent)) sz.push({says: norm(e.textContent), el: false, bareNote: true}); }); });
+    return {at: location.hash, sz, bw}; })())`)));
+});
+const sb15 = S15.filter(x => x.sz.some(z => !z.el || !z.box || !z.words || !z.big || !z.book || !z.pics));
+check('size-group-box', S15.some(x => x.sz.length) && !sb15.length, sb15.map(x => JSON.stringify(x)).join('; ') || 'no size group checked');
+const bb15 = S15.filter(x => x.bw.some(z => !z.el || !z.big || !z.words || !z.once));
+check('bucket-between-big', S15.some(x => x.bw.length) && !bb15.length, bb15.map(x => JSON.stringify(x)).join('; ') || 'no between checked');
+
+// (2) the Under 16 tab shows, OPEN and outside every fold, what each residency's under-16 angler needs (the frame's
+// `under_16`): one item per residency, its label and its words, the tab's own residency marked; the 16-or-older tab does not
+const U15 = [];
+for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%23g-licence`, async b => {
+  U15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), L = document.getElementById('g-licence');
+    const box = [...(L?.querySelectorAll('[data-u16sum]') || [])].filter(e => !e.closest('details')), inFold = L ? L.querySelectorAll('details [data-u16sum]').length : -1;
+    const items = box[0] ? [...box[0].querySelectorAll('li')].map(li => ({t: norm(li.textContent), mine: li.classList.contains('mine')})) : [];
+    return {age: S.age, want: (st.u16 || []).map(x => ({label: x.label, says: x.says, mine: x.residency === 'resident'})), boxes: box.length, inFold, items,
+      visible: !!box[0] && box[0].getBoundingClientRect().height > 0}; })())`)));
+});
+const ub15 = U15.filter(x => !x.want.length || x.inFold || (x.age === 'u16' ? (x.boxes !== 1 || !x.visible || x.items.length !== x.want.length
+  || x.want.some((w, i) => !x.items[i] || !x.items[i].t.includes(norm0(w.label)) || !x.items[i].t.includes(norm0(w.says)) || x.items[i].mine !== w.mine)) : x.boxes));
+function norm0(t) { return (t || '').replace(/\s+/g, ' ').trim(); }
+check('u16-by-residency', U15.length === 2 && !ub15.length, ub15.map(x => JSON.stringify(x)).join('; '));
+
+// (3) the weekday sheet: the status box says the data's weekday status; "How this was decided" lists EVERY day-part with its
+// days, its words and its rules' book pages (today's marked), then each restatement note once; the Other fish line
+// says the split under the fish's name
+const WK15 = [];
+for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
+  WK15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+    st.rows.forEach((r, i) => { if (!r.week) return;
+      const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
+      const body = o ? new DOMParser().parseFromString(sheetHtml('other:' + o[0]), 'text/html').body : null, box = body?.querySelector('[data-wkstat]');
+      const parts = [...(body?.querySelectorAll('[data-wkpart]') || [])];
+      const pg = rs => rs.flatMap(x => (SNAP.ruleInfo[(st.ruleKey || {})[x]]?.book || []).map(b => 'p.' + b[0]));
+      out.push({status: r.week.status, list: [...document.querySelectorAll('#keep [data-owk]')].some(e => norm(e.textContent) === norm(r.week.status)), inBox: !!box && (!r.week.status || norm(box.textContent).includes(norm(r.week.status))),
+        parts: (r.week.parts || []).map((p, j) => ({days: p.days, ok: !!parts[j] && !box?.contains(parts[j]) && norm(parts[j].textContent).includes(norm(p.days)) && norm(parts[j].textContent).toLowerCase().includes(norm(p.says).toLowerCase())
+          && pg(p.rules || []).every(x => norm(parts[j].textContent).includes(x)) && parts[j].classList.contains('today') === !!p.today})),
+        restates: (r.restates || []).map(x => ({says: x.says, n: norm(body?.textContent).split(norm(x.says)).length - 1}))}); });
+    return {d: S.d, out}; })())`)));
+});
+const wkb15 = WK15.filter(x => !x.out.length || x.out.some(o => !o.status || !o.list || !o.inBox || !o.parts.length || o.parts.some(p => !p.ok) || o.restates.some(r => r.n !== 1)));
+check('week-parts-decided', WK15.length === 2 && !wkb15.length, wkb15.map(x => JSON.stringify(x)).join('; '));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

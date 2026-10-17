@@ -189,6 +189,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .gtopic summary{min-height:44px;display:flex;align-items:center;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--sub);cursor:pointer}
 .gtopic .paper,.gtopic .kitnote{background:var(--wash);padding:8px 10px;margin:6px 0;font-size:var(--t4)}
 .who{margin:6px 0 8px}
+.k28.kzero .kdet{color:var(--restricted);font-weight:600}
+.owk{display:block;font:500 var(--t5,12px)/1.3 Archivo,sans-serif;color:var(--sub);margin-top:2px}
+.u16sum li.mine b::after{content:" ✓";color:var(--accent)}
 .u16h,.resfor{margin:12px 0 2px;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
 /* sheets (Sheet.tsx) */
 .scrim{position:absolute;inset:44px 0 0 0;background:var(--scrim);display:none;z-index:20}.scrim.on{display:block}
@@ -542,8 +545,9 @@ details.bookw blockquote{margin:0 0 10px}
 .wkstat .num small{font:600 var(--t4) Archivo,sans-serif;color:var(--sub)}
 .wkstat .pill{border:0;padding:0;min-height:0;font:700 var(--t2) Archivo,sans-serif}
 .wkstat .sum.week{margin:0;font-size:var(--t3)}
-.wkstat .wkparts{list-style:none;margin:8px 0 0;padding:0}.wkstat .wkparts li{padding:5px 0;border-top:1px solid var(--line);color:var(--sub)}
-.wkstat .wkparts li.today{color:var(--ink);font-weight:700}
+.wkstat .wkst{margin:4px 0 6px;font:700 var(--t2)/1.25 Archivo,sans-serif;color:var(--ink)}
+.wkpart .wkd{display:inline-block;min-width:4.6em;font-weight:700}.wkpart:not(.today) .pline span{color:var(--sub)}
+.wkpart.today .pline em{color:var(--accent);font-weight:700}
 /* round 14: a nested count group (first in its bucket) and the steelhead presence line inside its section */
 .qgrp{margin:8px 0 6px;border:1.5px solid var(--line2);border-radius:6px;padding:6px 10px 2px}
 .qgh{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;font-size:var(--t3);font-weight:600;line-height:1.3}.qgh .qgw{font-weight:700}
@@ -793,20 +797,35 @@ function buildKeep(){
     const presP = p => p ? `<p class="kpres" data-presence>${esc(p.says)} ${tip('steelhead')}</p>` : '';
     // in a nested group a kind's own number that only repeats the group's ("1 between them") is not drawn (persona: two
     // green 1s read as 2); a smaller one stays
-    const krow = (k, sg) => `<div class="krow k28"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${presP(presOf(k))}${pics(k.species)}</div>${k.n != null && !(sg && k.n >= sg.n) ? `<b class="kn${k.n === 0 ? ' none' : ''}">${k.n}</b>` : ''}</div>`;
+    // round 15 (persona): the same holds for a bucket's shared number over two or more kinds (Ape Creek May 1: "1 a day",
+    // brown trout 1 + rainbow trout 1 read as 2); a kind keeping none draws no 0 — its words say "catch and release"
+    const krow = (k, sg) => `<div class="krow k28${k.n === 0 ? ' kzero' : ''}"><div class="kb"><p class="kl"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">${esc(k.detail).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : ''}</p>${k.notes.length ? `<p class="s2">${k.notes.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${k.duties.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : ''}${presP(presOf(k))}${pics(k.species)}</div>${k.n != null && k.n !== 0 && !(sg && k.n >= sg.n) ? `<b class="kn">${k.n}</b>` : ''}</div>`;
     // round 14 (rows 13, item 3): a count over SOME of the bucket's kinds is a nested group (`buckets[].groups`), drawn first in
     // its bucket (before the size notes and the other kinds): the data's words with its number big, its rule's book page,
     // then each of its kinds with its own size, inside one box so they read as sharing the number
     const qgrp = sg => { const cut = sg.says.indexOf(': '), who = cut < 0 ? '' : sg.says.slice(0, cut + 1), rest = cut < 0 ? sg.says : sg.says.slice(cut + 2);
       const m = rest.match(new RegExp(`^(.*?)\\b${sg.n}\\b(.*)$`)), key = st.ruleKey?.[sg.by];
       return `<div class="qgrp" data-qgroup><p class="qgh">${who ? `<span class="qgw">${esc(who)}</span> ` : ''}${m ? `${m[1].trim() ? `<span>${esc(m[1].trim())}</span> ` : ''}<b class="qgn">${sg.n}</b> <span>${esc(m[2].trim())}</span>` : `<span>${esc(rest)}</span>`}</p>${key ? `<p class="qgb">${bookLinks(key)}</p>` : ''}${sg.kinds.map(k => krow(k, sg)).join('')}</div>`; };
+    // round 15 (rows 14, item 1): a size cap is a group naming exactly the kinds it can bind (`buckets[].sizes`), drawn in
+    // the SAME box as a count group: the kinds it names, its number big, its rule's book page, a picture of each fish it
+    // binds. The kind rows stay in the bucket (a cap may span buckets or cut a kind row), so the box holds no rows.
+    const sgrp = z => { const cut = z.says.indexOf(': '), who = cut < 0 ? '' : z.says.slice(0, cut + 1), rest = cut < 0 ? z.says : z.says.slice(cut + 2);
+      const m = rest.match(new RegExp(`^(.*?)\\b${z.n}\\b(.*)$`)), key = st.ruleKey?.[z.by];
+      return `<div class="qgrp sgrp" data-sgroup><p class="qgh">${who ? `<span class="qgw">${esc(who)}</span> ` : ''}${m ? `${m[1].trim() ? `<span>${esc(m[1].trim())}</span> ` : ''}<b class="qgn">${z.n}</b> <span>${esc(m[2].trim()).replace(/(\d) cm/g, '$1\u00a0cm')}</span>` : `<span>${esc(rest)}</span>`}</p>${key ? `<p class="qgb">${bookLinks(key)}</p>` : ''}${pics(z.species)}</div>`; };
+    // round 15 (rows 14, item 5): an own-rule bucket's shared cap (`buckets[].between`, "Up to 2 a day between them") is said
+    // like a share bucket's number: big, under the title, so its kinds' own numbers never read as adding up
+    const betw = bk => { if (!bk.between) return ''; const m = bk.between.match(/^(.*?)\b(\d+)\b(.*)$/);
+      return m ? `<p class="bkt1 bbetw" data-between>${m[1].trim() ? `<span class="bkp">${esc(m[1].trim())}</span> ` : ''}<b class="bkn">${m[2]}</b> <span class="bkw">${esc(m[3].trim())}</span></p>` : `<p class="bkt1 bbetw" data-between>${esc(bk.between)}</p>`; };
+    const shared = bk => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; return n && bk.kinds.length + (bk.groups || []).length >= 2 ? {n} : null; };
     const buckets = (g.buckets || []).map((bk, bi) => { const key = keyIn(vb[bi]?.querySelector('.lbl'));
-      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${bk.replaces ? `<p class="brepl" data-replaces>${esc(bk.replaces.says.replace(/\.?$/, '.'))}</p>` : ''}${(bk.groups || []).map(qgrp).join('')}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => krow(k)).join('')}</section>`; }).join('');
+      return `<section class="bkt${bk.why === 'rule' ? ' rule' : ''}">${bhead(bk, key)}${betw(bk)}${bk.replaces ? `<p class="brepl" data-replaces>${esc(bk.replaces.says.replace(/\.?$/, '.'))}</p>` : ''}${(bk.groups || []).map(qgrp).join('')}${(bk.sizes || []).map(sgrp).join('')}${(bk.notes || []).map(n => `<p class="bnote" data-bnote>${esc(n.says)}</p>`).join('')}${bk.kinds.map(k => krow(k, shared(bk))).join('')}</section>`; }).join('');
     // round 13 (S, rows 12): every fish of the row nobody may keep here, one line per deciding rule (`group.not_kept`): the
     // data's words, whose rule and its Book page, the fish pictured; a closure (✕, closed colour) reads apart from a release.
     // round 15 (8): a release line draws NO number — its words say it; a bare big 0 under the buckets read as a total above
     // "How it adds up" ("Keep 2 more here", Vedder May 15)
     const nk = (g.not_kept || []).length ? `<section class="nkt" aria-label="Not kept here">${g.not_kept.map(x => `<div class="krow k28 nkr ${x.status}" data-notkept="${x.status}"><div class="kb"><p class="kl"><b class="nm">${esc(x.says)}</b></p><p class="s2">${esc(cap1(x.whose))}${st.ruleKey?.[x.by] ? ' · ' + bookLinks(st.ruleKey[x.by]) : ''}</p>${presP(x.presence)}${pics(x.species)}</div>${x.status === 'closed' ? '<b class="kn">✕</b>' : ''}</div>`).join('')}</section>` : '';
+    // round 15 (persona): "How it adds up" follows the buckets directly, BEFORE the not-kept lines (Vedder May 15: "Keep 2
+    // more here" right under "Rainbow trout and cutthroat trout: release every one" read as being about those fish)
     // round 12 (answers rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list after the buckets — the data's
     // elsewhere.says, then every group.worked line once: a keep-here line "Keep 3 rainbows here → …", the kept-elsewhere
     // lines as questions with their answers. No dropdown, no sheet.
@@ -815,7 +834,7 @@ function buildKeep(){
     const fe = '';
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
-    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${total}${buckets}${nk}${worked}${quiet}${more}`;
+    art.innerHTML = `<div class="rhead">${head}${num}</div>${g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : ''}${total}${buckets}${worked}${nk}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -824,6 +843,10 @@ function buildKeep(){
     const rows = [...list.querySelectorAll('.orow')].map((r, i) => { const id = `${sid()}|o${i}`; OTHERS_[id] = arts[i] ? arts[i].outerHTML : '';
       const codes = arts[i] ? (st.rows[+(arts[i].dataset.row || 'r0').slice(1)] || {}).members : [];
       OTHERS_[id] = {html: OTHERS_[id], codes: codes || []};
+      // round 15 (3): a row answering by weekday says its split under its name (`week.status`), so today's one word is
+      // never read as the rule
+      const wk = arts[i] ? st.rows[+(arts[i].dataset.row || 'r0').slice(1)]?.week : null;
+      if (wk?.status) r.querySelector('.on')?.insertAdjacentHTML('beforeend', `<small class="owk" data-owk>${esc(wk.status)}</small>`);
       return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>`; }).join('');
     o.outerHTML = `<section class="sec" style="padding-top:14px;border-top:1.5px solid var(--ink)"><div class="sech"><h2>Other fish</h2></div><div class="olist">${rows}</div></section>`;
   });
@@ -837,16 +860,27 @@ const KINDS = {}, OTHERS_ = {};
 // weekday (no date: the window is said by weekday), its status (page v36's number or pill), the data's weekday sentence, then each day-part the data lists (`week`'s
 // arrays, each in its own words, today's marked); its title is the sheet's, so the row's own head is not drawn again
 function weekSheet(html){
-  const r = parse(html), art = r.querySelector('article.row[data-row]'), row = art && ST().rows[+art.dataset.row.slice(1)], norm = t => (t || '').replace(/\s+/g, ' ').trim();
+  const r = parse(html), art = r.querySelector('article.row[data-row]'), st = ST(), row = art && st.rows[+art.dataset.row.slice(1)], norm = t => (t || '').replace(/\s+/g, ' ').trim();
   r.querySelectorAll('.ladder2 ul').forEach(ul => { const seen = new Set();
     [...ul.children].forEach(li => { const t = norm(li.querySelector('.pline > span')?.textContent); if (!t) return; if (seen.has(t)) li.remove(); else seen.add(t); }); });
-  if (!row?.week) return r.innerHTML;
-  const head = art.querySelector('.rhead'), sum = art.querySelector('.sum.week'), scope = head?.querySelector('.rtitle .scope');
-  const stat = [...(head?.querySelectorAll('.num, .pill, .gl') || [])].map(e => e.outerHTML).join('');
-  const parts = Object.values(row.week).filter(Array.isArray).flat().filter(p => p && typeof p === 'object' && p.says);
-  const list = parts.length ? `<ul class="wkparts">${parts.map(p => `<li${p.today ? ' class="today"' : ''}>${esc(p.says)}</li>`).join('')}</ul>` : '';
-  head?.insertAdjacentHTML('beforebegin', `<div class="wkstat" data-wkstat><p class="gday">${S.d === 1010 ? 'Today · ' : ''}${wday(S.d)}${scope ? ` <span class="scope">${esc(scope.textContent)}</span>` : ''}</p><div class="wkv" data-wkv>${stat}</div>${sum ? sum.outerHTML : ''}${list}</div>`);
-  head?.remove(); sum?.remove();
+  const w = row?.week; if (!w) return r.innerHTML;
+  const head = art.querySelector('.rhead'), sum = art.querySelector('.sum.week'), scope = head?.querySelector('.rtitle .scope'), cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+  // the status: the data's weekday status ("Weekends: keep 5 · Weekdays: release"); page v36's day verdict only without one
+  const stat = w.status ? `<p class="wkst" data-wkv>${esc(w.status)}</p>` : `<div class="wkv" data-wkv>${[...(head?.querySelectorAll('.num, .pill, .gl') || [])].map(e => e.outerHTML).join('')}</div>`;
+  head?.insertAdjacentHTML('beforebegin', `<div class="wkstat" data-wkstat><p class="gday">${S.d === 1010 ? 'Today · ' : ''}${wday(S.d)}${scope ? ` <span class="scope">${esc(scope.textContent)}</span>` : ''}</p>${stat}<p class="sum week">${esc(w.says.replace(/\.?$/, '.'))}</p></div>`);
+  // page v36's own weekday lines under its sentence (the parts list and the restatement notes) are said once, below
+  if (sum) { let n = sum.nextElementSibling; while (n && (n.matches('ul.plain') || n.matches('p.s2'))) { const x = n.nextElementSibling; n.remove(); n = x; } sum.remove(); }
+  head?.remove();
+  // "How this was decided": every day-part is a line of the deciding step (its days and words, today's tagged, its rule's
+  // sheet, where it applies and Book page), then each same-row restatement (the combined quota note) once
+  const parts = (w.parts || []).filter(p => p.says), rs = row.restates || [];
+  const lq = art.querySelector('.ddbody .lq'), ul = lq?.querySelector('.ladder2 ul');
+  if (lq && ul && parts.length) {
+    lq.querySelector('.lres')?.remove();
+    const line = (key, words, tag, attrs) => `<li ${attrs}>${key ? `<button class="pline pl2" type="button" data-rule="${key}"><span>${words}</span>${tag ? `<em>${tag}</em>` : ''}</button>` : `<span>${words}</span>`}</li>`;
+    ul.innerHTML = parts.map(p => line(st.ruleKey?.[(p.rules || [])[0]], `<b class="wkd">${esc(p.days)}</b> ${esc(cap1(p.says))}`, p.today ? 'Today' : '', `class="won wkpart${p.today ? ' today' : ''}" data-wkpart`)).join('')
+      + rs.map(x => line(st.ruleKey?.[x.r], esc(x.says), '', 'class="won wkrest" data-restates')).join('');
+  }
   return r.innerHTML; }
 /* ---------- B: Gear & licence, ONE page in the order an angler gets ready ----------
    1 Licence (the switch lives here) · 2 Your gear · 3 Bait · 4 Ways to fish · 5 Always, under an at-a-glance list
@@ -891,9 +925,16 @@ function licence(st, id){
   // round 13 (owner L): each tab shows ONLY the default angler's answer (B.C. resident; the page's own default); every other
   // residency is a "Rules for other anglers" dropdown of its own (the page's fold name), carrying that residency's 16-or-older
   // AND under-16 answers. The page's own "Rules for other anglers (N)" fold is replaced by these: its lines are those answers'.
-  const prof = parse(st.licence.adult), optText = (axis, v) => (prof.querySelector(`#who-${axis} option[value="${v}"]`)?.textContent || '').trim();
+  // round 15 (licence 5, item 2): page v36 now puts, above each answer, whose answer it is ("Showing the answer for: …") and,
+  // under 16, what every residency's under-16 angler needs ("Under 16, by where you live"). Both come out of each answer:
+  // whose it is is this section's own label (`profile_labels`), and the per-residency list is drawn once, OPEN, on the
+  // Under 16 tab (its own words; the tab's residency marked) — the dropdowns keep each residency's full detail
+  const lift = h => { const r = parse(h || ''); r.querySelectorAll('p.muted.small').forEach(p => { if (p.querySelector('b') && /:\s*$/.test(p.firstChild?.textContent || '')) p.remove(); });
+    const u = r.querySelector('.needs.u16'); u?.remove(); return {html: r.innerHTML, u16: u}; };
+  const LF = Object.fromEntries(Object.entries(st.licence).map(([k, h]) => [k, lift(h)])), LH = Object.fromEntries(Object.entries(LF).map(([k, x]) => [k, x.html]));
+  const prof = parse(LH.adult), optText = (axis, v) => (prof.querySelector(`#who-${axis} option[value="${v}"]`)?.textContent || '').trim();
   const isOthers = d => /other anglers\s*\(\d+\)\s*$/i.test(d.querySelector('summary')?.textContent || '');   // "… (7)": not the guiding fold
-  const othersName = (() => { for (const h of Object.values(st.licence)) { const d = [...parse(h).querySelectorAll('details.lostlist')].find(isOthers);
+  const othersName = (() => { for (const h of Object.values(LH)) { const d = [...parse(h).querySelectorAll('details.lostlist')].find(isOthers);
     if (d) return d.querySelector('summary').textContent.replace(/\s*\(\d+\)\s*$/, '').trim(); } return ''; })();
   const one = (h, bare) => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
     const words = [...r.querySelectorAll('.lhead .src')].map(e => e.textContent.trim());
@@ -908,23 +949,26 @@ function licence(st, id){
   // round 14 (owner 2): an answer the page gives as a box ("No licence needed to fish here", under 16) is the same "You
   // need" list as 16 or older, in the page's own label and words; a box both ages share (a classified water) stays a box
   const asNeeds = h => { const r = parse(h); if (r.querySelector('.needs')) return h;
-    const ad = parse(st.licence.adult), label = ad.querySelector('.needs .lbl')?.textContent.trim(), norm = t => t.replace(/\s+/g, ' ').trim();
+    const ad = parse(LH.adult), label = ad.querySelector('.needs .lbl')?.textContent.trim(), norm = t => t.replace(/\s+/g, ' ').trim();
     const shared = new Set([...ad.querySelectorAll('.classbox')].map(e => norm(e.textContent)));
     const own = [...r.querySelectorAll('.classbox')].filter(e => !shared.has(norm(e.textContent)));
     if (!label || !own.length) return h;
     own[0].insertAdjacentHTML('beforebegin', `<div class="needs"><div class="lbl">${esc(label)}</div><ul>${own.map(e => `<li>${e.innerHTML}</li>`).join('')}</ul></div>`);
     own.forEach(e => e.remove()); return r.innerHTML; };
-  const u16 = S.age === 'u16', mine = one(asNeeds(st.licence[u16 ? 'u16_res' : 'adult']));
+  const u16 = S.age === 'u16', mine = one(asNeeds(LH[u16 ? 'u16_res' : 'adult']));
   const ages = [['adult', optText('age', '16_plus')], ['u16', optText('age', 'under_16')]];
-  const others = [['non_resident', 'adult_non', 'u16_non'], ['non_resident_alien', 'adult_alien', 'u16_alien']].filter(([, a, u]) => st.licence[a] || st.licence[u])
-    .map(([res, a, u]) => ({res, name: optText('residency', res), got: [[ages[0][1], st.licence[a] ? one(st.licence[a], true) : null], [ages[1][1], st.licence[u] ? one(st.licence[u], true) : null]].filter(([, x]) => x)}));
+  const others = [['non_resident', 'adult_non', 'u16_non'], ['non_resident_alien', 'adult_alien', 'u16_alien']].filter(([, a, u]) => LH[a] || LH[u])
+    .map(([res, a, u]) => ({res, name: optText('residency', res), got: [[ages[0][1], LH[a] ? one(LH[a], true) : null], [ages[1][1], LH[u] ? one(LH[u], true) : null]].filter(([, x]) => x)}));
   if (u16) others.forEach(o => o.got.reverse());   // round 14: the tab's own age first in each dropdown
   const fr = [[optText('residency', 'resident'), mine]].concat(others.flatMap(o => o.got.map(([t, x]) => [`${o.name} · ${t}`, x]))).filter(([, x]) => x.from);
   LICSRC[`lic|${id}|${u16 ? 'u16' : 'adult'}`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.from.b}`).join('')} : null;
   const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">${esc(othersName)} · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
   // round 15 (8): the open answer says whose it is — the page's own residency and age names, a label right above it
-  const forWho = `<p class="resfor" data-for-res>${esc(optText('residency', 'resident'))} · ${esc(ages[u16 ? 1 : 0][1])}</p>`;
-  return {html: forWho + mine.html + folds, words: [...mine.words, ...others.flatMap(o => o.got.flatMap(([, x]) => x.words))].filter((w, i, all) => all.indexOf(w) === i), names: mine.names, head: mine.head, keyed: u16 ? 'u16' : 'adult'};
+  const lab = st.licLabel?.[u16 ? 'u16_res' : 'adult'], forWho = `<p class="resfor" data-for-res>${esc(lab || `${optText('residency', 'resident')} · ${ages[u16 ? 1 : 0][1]}`)}</p>`;
+  const sum = u16 && LF.u16_res?.u16 ? `<div class="needs u16sum" data-u16sum>${LF.u16_res.u16.innerHTML}</div>` : '';
+  // the summary sits right under the answer, before the answer's own folds (guiding)
+  const cut = mine.html.indexOf('<details'), body = sum ? (cut < 0 ? mine.html + sum : mine.html.slice(0, cut) + sum + mine.html.slice(cut)) : mine.html;
+  return {html: forWho + body + folds, words: [...mine.words, ...others.flatMap(o => o.got.flatMap(([, x]) => x.words))].filter((w, i, all) => all.indexOf(w) === i), names: mine.names, head: mine.head, keyed: u16 ? 'u16' : 'adult'};
 }
 /* v12 (round 10, owner 3): Gear & licence is three sections: 1 Gear & methods, ONE compact "what's allowed" block (gear
    first: lines, hooks, points, barbs, lures, weight, bait; then methods and boats), with the strip's dated changes on the

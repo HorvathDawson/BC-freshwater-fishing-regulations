@@ -117,6 +117,18 @@ const SCREENS = [
   ['88-card-vedder-may15-no-bare-zero', 'w=vedder&d=515&at=.nkt'],
   ['89-licence-vedder-adult-for-whom', `${V}&at=%23g-licence`],
   ['90-licence-vedder-u16-for-whom', `${V}&age=u16&at=%23g-licence`],
+  // round 15 phase 2 (rows 14, licence 5, display 11): size groups boxed + own-rule shared cap (Bella Coola May 1), the
+  // tributaries rule (Ape Creek), hatchery in kind details (Vedder May 15), no presence on a closed day (Vedder Jun 15),
+  // weekday parts + the combined-quota note (kokanee), the Under 16 summary by residency
+  ['91-card-bella-coola-may1-size-group', 'w=bellacoola&d=501&p=0&at=.g28'],
+  ['92-card-bella-coola-may1-side-channels', 'w=bellacoola&d=501&p=1&at=.g28'],
+  ['93-card-ape-creek-oct10', 'w=ape&d=1010&at=.nkt'],
+  ['94-card-ape-creek-may1', 'w=ape&d=501&at=.g28'],
+  ['95-card-vedder-oct10', `${V}&at=.g28`],
+  ['96-card-vedder-may15', 'w=vedder&d=515&at=.g28'],
+  ['97-keep-vedder-jun15-closed', 'w=vedder&d=615'],
+  ['98-licence-vedder-u16-by-residency', `${V}&age=u16&at=%23g-licence`],
+  ['99-card-bella-coola-may1-size-box', 'w=bellacoola&d=501&p=0&at=.sgrp'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

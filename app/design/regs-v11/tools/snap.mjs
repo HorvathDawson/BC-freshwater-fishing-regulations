@@ -71,7 +71,9 @@ function extract(SPECS, YR) {
       const st = { name: water.name, kind: water.kind, sub: document.querySelector('[data-f="sub"]').textContent, parts,
         part: sel ? $('part').value : null, md, cardHTML: card, runs: runsOf(), rows: MODEL.rows.map(({ raw: r }) => ({ kind: st_(r.kind), members: r.members, daily: r.daily ?? null, group: r.group ?? null, elsewhere: r.elsewhere ?? null,
         // rows 13 (ROUND14 4, 5): the steelhead presence line when the row itself holds it, and a weekday window in words
-        presence: r.presence ?? null, week: r.week ?? null })),
+        presence: r.presence ?? null, week: r.week ?? null,
+        // rows 14 (ROUND15 3): a same-row rule stating exactly what the winner states (its note, book words)
+        restates: r.restates ?? null })),
         steelLine: MODEL.line ?? null };   // the frame's steelhead_line (only known_no_rules stays on the card)
       // each row's kinds, in the page's order (its "Each kind" list): the fish codes of each, for the pictures
       st.kinds = MODEL.rows.map(row => { try { if (!row.conds) return null; let it = speciesItems(row, rowConds(row)); if (!it) return null;
@@ -97,8 +99,10 @@ function extract(SPECS, YR) {
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;
           (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
-          (g.buckets || []).forEach(b => { bys.add(b.by); (b.groups || []).forEach(s => bys.add(s.by)); });   // rows 13: nested count groups
+          (g.buckets || []).forEach(b => { bys.add(b.by); (b.groups || []).forEach(s => bys.add(s.by)); (b.sizes || []).forEach(z => bys.add(z.by)); });   // rows 13: nested count groups; rows 14: size groups
           (g.not_kept || []).forEach(x => bys.add(x.by)); });   // round 13 S: whose rule closes / releases a fish of the row
+        // rows 14 (ROUND15 3): each weekday part's rules and each restatement's rule
+        MODEL.rows.forEach(({ raw: r }) => { (r.week?.parts || []).forEach(p => (p.rules || []).forEach(x => bys.add(x))); (r.restates || []).forEach(x => bys.add(x.r)); });
         st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];
         takeRules(Object.values(st.ruleKey)); }
       (MODEL.rows || []).forEach(r => [...(r.raw?.members || []), ...(r.raw?.group?.kinds || [])].forEach(c => codes.add(c)));
@@ -116,11 +120,15 @@ function extract(SPECS, YR) {
       if (grid) { st.kitTiles = grid.innerHTML; st.panes = {};
         for (const k of [...grid.querySelectorAll('[data-kit]')].map(b => b.dataset.kit)) { state.kit = k; renderKit();
           st.panes[k] = $('kit').querySelector('.kpane').innerHTML; takeRules(scan(st.panes[k])); }
-        st.licence = {};
+        st.licence = {}; st.licLabel = {};
         // round 13 (owner L): every residency's 16-or-older answer too, for the "Rules for other anglers" dropdowns
         for (const [lk, residency, age] of [['adult', 'resident', '16_plus'], ['adult_non', 'non_resident', '16_plus'], ['adult_alien', 'non_resident_alien', '16_plus'], ['u16_res', 'resident', 'under_16'], ['u16_non', 'non_resident', 'under_16'], ['u16_alien', 'non_resident_alien', 'under_16']]) {
-          state.kit = 'licence'; state.who = { ...state.who, residency, age }; renderKit(); st.licence[lk] = $('kit').querySelector('.kpane').innerHTML; takeRules(scan(st.licence[lk])); }
-      } else { st.kitTiles = ''; st.panes = {}; st.licence = { adult: '', adult_non: '', adult_alien: '', u16_res: '', u16_non: '', u16_alien: '' }; }
+          state.kit = 'licence'; state.who = { ...state.who, residency, age }; renderKit(); st.licence[lk] = $('kit').querySelector('.kpane').innerHTML; takeRules(scan(st.licence[lk]));
+          // licence 5 (ROUND15 2): whose answer each one is (`profile_labels`, the page's profile index)
+          st.licLabel[lk] = (SEC.licence.profile_labels || [])[profileIx(state.who)] ?? null; }
+        // licence 5: what every residency's under-16 angler needs here (the frame's `under_16`, labelled per residency)
+        st.u16 = licAt(PLACE, md)?.under16 ?? null;
+      } else { st.kitTiles = ''; st.panes = {}; st.licence = { adult: '', adult_non: '', adult_alien: '', u16_res: '', u16_non: '', u16_alien: '' }; st.licLabel = {}; st.u16 = null; }
       takeRules(scan(st.kitTop));
       out.states[id] = st;
     }
@@ -152,9 +160,10 @@ try {
   const within = (p, ms, what) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(`snap: ${what} took over ${ms / 1000} s`)), ms))]);
   const snap = { states: {}, rules: {}, ruleInfo: {}, gloss: {}, sources: {}, fish: {}, howtell: null };
   for (const sp of specs) {
+    process.stderr.write(`  > ${sp[0]} ${sp[1]} …\n`);
     const len = await within(b.evaluate(`(window.__SNAP = JSON.stringify((${extract})(${JSON.stringify([sp])}, ${YEAR}))).length`), 120000, sp[1]);
     let raw = '';
-    for (let i = 0; i < len; i += 4e6) raw += await b.evaluate(`window.__SNAP.slice(${i}, ${i + 4e6})`);
+    for (let i = 0; i < len; i += 1e6) raw += await within(b.evaluate(`window.__SNAP.slice(${i}, ${i + 1e6})`), 60000, `${sp[1]} slice ${i}`);
     const one = JSON.parse(raw);
     for (const k of ['states', 'rules', 'ruleInfo', 'gloss', 'sources', 'fish']) Object.assign(snap[k], one[k]);
     snap.howtell = snap.howtell || one.howtell; snap.strip = one.strip;

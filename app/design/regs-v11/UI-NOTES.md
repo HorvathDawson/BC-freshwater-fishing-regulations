@@ -1,5 +1,26 @@
 # regs v17 (round 15) — in place on regs-v11.html
 
+- **Phase 2 (rows 14, licence 5, display 11; page v36 @ b881e931, re-snapped, 128 states).** snap.mjs also copies
+  `rows[].restates`, each answer's `profile_labels` label (`licLabel`), the licence frame's `under_16` (`u16`), and the
+  `by` of every size group, weekday part rule and restatement into `ruleKey`; it reads each water back in 1 MB slices
+  under a timeout (a 4 MB slice of the Fraser hung the DevTools socket) and names each water before it starts.
+  **1 Size groups** (`buckets[].sizes`): the count group's box (`.qgrp.sgrp`): the kinds it names, its number big, its
+  rule's Book page, a picture of each fish it binds; the kind rows stay in the bucket. Check `size-group-box`.
+  **5 Shared cap** (`buckets[].between`): big under the own-rule bucket's title, like a share bucket ("Up to **2** a day
+  between them"). Check `bucket-between-big`. **2 Under 16**: the open answer's label is the data's profile label
+  ("B.C. resident, under 16"); on the Under 16 tab page v36's "Under 16, by where you live" list (one item per residency,
+  label + words, the tab's own marked ✓) sits OPEN right under the answer; it and "Showing the answer for" come out of
+  every other answer (dropdowns keep the detail). Check `u16-by-residency`. **3 Weekday sheet**: status box = the weekday,
+  the data's `week.status` ("Weekends: keep 5 · Weekdays: release"), the sentence; "How this was decided" lists each
+  `week.parts` as a rule line (days, words, "Today" tag, where it applies, Book page) then the restatement (combined quota
+  with the Upper West Arm) once; page v36's own parts/notes under the sentence are not repeated. The Other fish line shows
+  `week.status` under "Kokanee". Check `week-parts-decided`. 6/7/8 words (tributaries rule, no presence when closed,
+  "hatchery, …", "the") are the data's and render as given. Screens 85, 86, 89-99 (all re-shot).
+  Persona (haiku): a kind's number repeating its bucket's shared number (2+ kinds) is not drawn (Ape Creek May 1 "1 a
+  day" over brown 1 + rainbow 1 read as 2), a kind keeping none draws no 0 (its "catch and release" in the release
+  colour), and "How it adds up" now precedes the not-kept lines (Vedder May 15 "Keep 2 more here" read as about the
+  released rainbows); held by `no-bare-zero`. `bucket-note-once` / `every-cap-once` count size groups as caps.
+
 - **DO NOW (render-only, page v36 @ 545ac9fd snapshot).** **8 No bare 0**: a not-kept RELEASE line draws no number (its
   words, in the release colour, say it); only a closure keeps its ✕. A big 0 under the buckets read as a total above "How
   it adds up" ("Keep 2 more here", Vedder May 15). A kind's 0 inside a bucket's column of counts stays. Check
