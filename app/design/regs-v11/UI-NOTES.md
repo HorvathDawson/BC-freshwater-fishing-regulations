@@ -1,3 +1,15 @@
+# regs v17 (round 15) — in place on regs-v11.html
+
+- **DO NOW (render-only, page v36 @ 545ac9fd snapshot).** **8 No bare 0**: a not-kept RELEASE line draws no number (its
+  words, in the release colour, say it); only a closure keeps its ✕. A big 0 under the buckets read as a total above "How
+  it adds up" ("Keep 2 more here", Vedder May 15). A kind's 0 inside a bucket's column of counts stays. Check
+  `no-bare-zero` (`not-kept-said` now wants no mark on a release line). **8 Licence for whom**: the open answer has a
+  label right above it, the page's own residency and age names ("B.C. resident · Under 16"). Check
+  `licence-says-residency`. **3 Weekday sheet**: a row with `rows[].week` opens its sheet with ONE status block (the day,
+  page v36's number or pill, the data's weekday sentence, and each day-part any `week` array gives, today's marked), then
+  "How this was decided"; a rule line repeating the one above it in the same step is drawn once (every sheet). Check
+  `week-sheet-one-story`. Screens 84-90.
+
 # regs v16 (round 14) — in place on regs-v11.html
 
 - **Phase 2 (rows 13, display 10; page v36 @ 545ac9fd, re-snapped, 128 states).** snap.mjs now also copies each row's

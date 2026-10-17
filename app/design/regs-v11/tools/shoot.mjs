@@ -112,6 +112,11 @@ const SCREENS = [
   ['85-sheet-kootenay-kokanee-sat', 'w=klwa&d=1010&sheet=other:klwa_1010|o0'],
   ['86-sheet-kootenay-kokanee-mon', 'w=klwa&d=1012&sheet=other:klwa_1012|o0'],
   ['87-card-ape-creek-char', 'w=ape&d=1010&at=.nkt'],
+  // round 15: no bare 0 above "How it adds up" (Vedder May 15); the licence answer says whose it is; the weekday kokanee
+  // sheet as one story (status block, then how it was decided)
+  ['88-card-vedder-may15-no-bare-zero', 'w=vedder&d=515&at=.nkt'],
+  ['89-licence-vedder-adult-for-whom', `${V}&at=%23g-licence`],
+  ['90-licence-vedder-u16-for-whom', `${V}&age=u16&at=%23g-licence`],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

@@ -13,6 +13,7 @@
 //   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired); phase 2:
 //   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
+//   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -516,7 +517,7 @@ const lf = C13.filter(x => x.missing || x.lift);
 check('no-lift-box', !lf.length, lf.map(x => `${x.name}: ${x.missing ? 'not in the snapshot' : x.lift + ' lift box(es)'}`).join('; '));
 const rp = C13.filter(x => !x.missing && x.rep.some(r => r.shown !== r.says.replace(/\.?$/, '.') || !r.underTitle || !r.once));
 check('bucket-replaces', C13.some(x => x.rep && x.rep.length) && !rp.length, rp.map(x => `${x.name}: ${JSON.stringify(x.rep)}`).join('; ') || 'no bucket with replaces checked');
-const nkb = C13.filter(x => !x.missing && x.nk.some(n => !n.row || n.cls !== n.status || n.mark !== (n.status === 'closed' ? '✕' : '0') || !n.whose || !n.book));
+const nkb = C13.filter(x => !x.missing && x.nk.some(n => !n.row || n.cls !== n.status || n.mark !== (n.status === 'closed' ? '✕' : '') || !n.whose || !n.book));
 check('not-kept-said', C13.some(x => x.nk && x.nk.some(n => n.status === 'closed')) && C13.some(x => x.nk && x.nk.some(n => n.status === 'release')) && !nkb.length,
   nkb.map(x => `${x.name}: ${JSON.stringify(x.nk)}`).join('; ') || 'no closed AND release line checked');
 const zb = C13.filter(x => !x.missing && x.zero.some(z => /\bcm\b/.test(z.det) || z.det !== z.want));
@@ -639,6 +640,57 @@ for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=
 });
 const kb14 = K14.filter(x => !x.out.length || x.out.some(o => o.want.join('|') !== o.shown.join('|')));
 check('not-kept-merged', !kb14.length && K14.some(x => x.out.some(o => o.want.some(t => /rainbow trout and cutthroat trout/i.test(t)))), kb14.map(x => JSON.stringify(x)).join('; ') || JSON.stringify(K14));
+
+// ---------- round 15 ----------
+// (8) no bare big number outside a bucket's column of counts: a line nobody may keep says it in words, so no big 0 stands
+// alone above "How it adds up" (Vedder May 15's rainbow / cutthroat release line sat a 0 over "Keep 2 more here")
+const Z15 = [];
+for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 'w=ape&d=501', 'w=vedder&d=1010']) await page(hash, async b => {
+  Z15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+    const own = e => norm([...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(''));
+    const bare = [...document.querySelectorAll('#keep .kn, #keep .num, #keep .bkn, #keep .qgn')].filter(e => own(e) === '0' && !e.closest('section.bkt'))
+      .map(e => norm(e.closest('.krow, .rhead')?.textContent).slice(0, 70));
+    const w = document.querySelector('#keep .worked'), prev = w?.previousElementSibling;
+    return {at: location.hash, bare, aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
+});
+const zb15 = Z15.filter(x => x.bare.length || x.aboveWorked.length);
+check('no-bare-zero', Z15.length === 5 && !zb15.length, zb15.map(x => JSON.stringify(x)).join('; '));
+
+// (8) the licence tab says which residency (and age) the open answer is for: the page's own residency and age names, a
+// label right above the answer, outside every fold, on both tabs
+const R15 = [];
+for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%23g-licence`, async b => {
+  R15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim(), L = document.getElementById('g-licence');
+    const ad = document.createElement('div'); ad.innerHTML = ST().licence.adult;
+    const res = norm(ad.querySelector('#who-residency option[value="resident"]')?.textContent), ag = norm(ad.querySelector('#who-age option[value="' + (S.age === 'u16' ? 'under_16' : '16_plus') + '"]')?.textContent);
+    const lab = [...(L?.querySelectorAll('[data-for-res]') || [])].filter(e => !e.closest('details'));
+    const ans = [...(L?.querySelectorAll('.needs, .classbox') || [])].find(e => !e.closest('details'));
+    return {age: S.age, want: res && ag ? res + ' · ' + ag : '', shown: lab.map(e => norm(e.textContent)), before: !!lab[0] && !!ans && !!(lab[0].compareDocumentPosition(ans) & Node.DOCUMENT_POSITION_FOLLOWING),
+      visible: !!lab[0] && lab[0].getBoundingClientRect().height > 0}; })())`)));
+});
+const rb15 = R15.filter(x => !x.want || x.shown.length !== 1 || x.shown[0] !== x.want || !x.before || !x.visible);
+check('licence-says-residency', R15.length === 2 && !rb15.length, rb15.map(x => JSON.stringify(x)).join('; '));
+
+// (3) a row that answers by weekday reads as ONE explanation in its sheet (Kootenay LWA kokanee, Sat + Mon): one status
+// block first — the day's status, the data's weekday sentence, and every day-part the data gives (`week`'s lists, each
+// in its words, today's marked) — then "How this was decided"; no status drawn a second time; no rule line twice
+const K15 = [];
+for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
+  K15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+    st.rows.forEach((r, i) => { if (!r.week) return;
+      const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
+      const body = o ? new DOMParser().parseFromString(sheetHtml('other:' + o[0]), 'text/html').body : null;
+      const box = body?.querySelector('[data-wkstat]'), dec = [...(body?.querySelectorAll('.lbl') || [])].find(e => /how this was decided/i.test(e.textContent));
+      const parts = Object.values(r.week).filter(Array.isArray).flat().filter(p => p && typeof p === 'object' && p.says);
+      const lines = [...(body?.querySelectorAll('.pline > span:first-child') || [])].filter(e => !e.closest('details')).map(e => norm(e.textContent));
+      out.push({sheet: !!o, box: !!box, says: !!box && norm(box.textContent).includes(norm(r.week.says)),
+        status: box ? box.querySelectorAll('.num, .pill, [data-wkv]').length : 0, outside: body ? [...body.querySelectorAll('.num, .pill')].filter(e => !box?.contains(e)).length : -1,
+        order: !!box && !!dec && !!(box.compareDocumentPosition(dec) & Node.DOCUMENT_POSITION_FOLLOWING),
+        parts: parts.every(p => norm(box?.textContent).includes(norm(p.says))), dup: lines.filter((t, j) => lines.indexOf(t) !== j)}); });
+    return {d: S.d, out}; })())`)));
+});
+const kb15 = K15.filter(x => !x.out.length || x.out.some(o => !o.sheet || !o.box || !o.says || !o.status || o.outside || !o.order || !o.parts || o.dup.length));
+check('week-sheet-one-story', K15.length === 2 && !kb15.length, kb15.map(x => JSON.stringify(x)).join('; '));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
