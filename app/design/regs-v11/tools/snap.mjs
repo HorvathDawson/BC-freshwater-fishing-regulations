@@ -69,7 +69,10 @@ function extract(SPECS, YR) {
       $('card').querySelectorAll('[data-src]').forEach(e => { e.dataset.src2 = `${id}|${e.dataset.src}`; });
       const card = $('card').innerHTML;
       const st = { name: water.name, kind: water.kind, sub: document.querySelector('[data-f="sub"]').textContent, parts,
-        part: sel ? $('part').value : null, md, cardHTML: card, runs: runsOf(), rows: MODEL.rows.map(({ raw: r }) => ({ kind: st_(r.kind), members: r.members, daily: r.daily ?? null, group: r.group ?? null, elsewhere: r.elsewhere ?? null })) };
+        part: sel ? $('part').value : null, md, cardHTML: card, runs: runsOf(), rows: MODEL.rows.map(({ raw: r }) => ({ kind: st_(r.kind), members: r.members, daily: r.daily ?? null, group: r.group ?? null, elsewhere: r.elsewhere ?? null,
+        // rows 13 (ROUND14 4, 5): the steelhead presence line when the row itself holds it, and a weekday window in words
+        presence: r.presence ?? null, week: r.week ?? null })),
+        steelLine: MODEL.line ?? null };   // the frame's steelhead_line (only known_no_rules stays on the card)
       // each row's kinds, in the page's order (its "Each kind" list): the fish codes of each, for the pictures
       st.kinds = MODEL.rows.map(row => { try { if (!row.conds) return null; let it = speciesItems(row, rowConds(row)); if (!it) return null;
         if (it.length === 1 && it[0].plain) it = []; return it.map(x => ({ key: x.key, members: [...x.members], static: !x.facts })); } catch (e) { return null; } });
@@ -94,7 +97,7 @@ function extract(SPECS, YR) {
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;
           (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
-          (g.buckets || []).forEach(b => bys.add(b.by));
+          (g.buckets || []).forEach(b => { bys.add(b.by); (b.groups || []).forEach(s => bys.add(s.by)); });   // rows 13: nested count groups
           (g.not_kept || []).forEach(x => bys.add(x.by)); });   // round 13 S: whose rule closes / releases a fish of the row
         st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];
         takeRules(Object.values(st.ruleKey)); }

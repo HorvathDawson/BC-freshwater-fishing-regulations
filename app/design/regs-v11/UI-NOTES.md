@@ -1,5 +1,19 @@
 # regs v16 (round 14) — in place on regs-v11.html
 
+- **Phase 2 (rows 13, display 10; page v36 @ 545ac9fd, re-snapped, 128 states).** snap.mjs now also copies each row's
+  `presence` and `week`, the frame's `steelhead_line` (`steelLine`), and every nested group's `by` into `ruleKey`.
+  **3 Nested count groups** (`buckets[].groups`): first in their bucket, before the size notes and the other kinds, a
+  box: the group's words with its number big ("Cutthroat trout or rainbow trout: **1** between them"), its rule's book
+  page, then each of its kinds with its own size; a kind's number that only repeats the group's is not drawn (persona: two
+  1s read as 2). Check `nested-count-group`. **4 Steelhead presence** in its own section, once: the kind row
+  (`kinds[].presence`, also inside a group), the not-kept line (`not_kept[].presence`), or the row (page v36's own HTML;
+  a row page v36 draws as a kind of another card, Kitimat's steelhead, puts it on that kind row). The card-level quiet
+  line is only page v36's `known_no_rules` one. A closed day (Vedder Jun 15) draws no sections, so no presence line.
+  Check `presence-in-section`. **5 Weekdays in words**: the kokanee row says "Keep up to 5 on Saturdays and Sundays;
+  release Monday to Friday." (page v36's `.sum.week`, no date list); the day's one-word verdict beside it in "How this
+  was decided" is dropped. Check `week-in-words` (Sat + Mon). **6** Not-kept lines in the data's order and words
+  (Vedder May 15 one rainbow + cutthroat line; Ape Creek char with members). Check `not-kept-merged`. Screens 81-87.
+
 - **2 Licence, Under 16.** The Under 16 tab shows the default angler's (B.C. resident) under-16 answer as the same open
   "You need" list as 16 or older: page v36 gives it as a box ("No licence needed to fish here" + its sentence), which is
   now an item of a list under the page's own "You need" label (read from the 16-or-older answer); a box both ages share

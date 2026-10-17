@@ -103,6 +103,15 @@ const SCREENS = [
   ['78-card-ape-creek', 'w=ape&d=1010&at=.g28'],
   ['79-card-ape-creek-may1', 'w=ape&d=501&at=.nkt'],
   ['80-gear-vedder-sentence', `${V}&at=%23g-gear`],
+  // round 14: nested count group (Bella Coola May 1), steelhead presence in its own section, weekday window in words
+  // (Kootenay LWA kokanee, Sat + Mon), merged release lines (Vedder May 15, Ape Creek), Under 16 "You need"
+  ['81-card-bella-coola-may1-group', 'w=bellacoola&d=501&p=1&at=.g28'],
+  ['82-card-bella-coola-may1-steelhead', 'w=bellacoola&d=501&p=1&at=.nkt'],
+  ['83-card-vedder-oct10', `${V}&at=.g28`],
+  ['84-card-vedder-may15', 'w=vedder&d=515&at=.nkt'],
+  ['85-sheet-kootenay-kokanee-sat', 'w=klwa&d=1010&sheet=other:klwa_1010|o0'],
+  ['86-sheet-kootenay-kokanee-mon', 'w=klwa&d=1012&sheet=other:klwa_1012|o0'],
+  ['87-card-ape-creek-char', 'w=ape&d=1010&at=.nkt'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

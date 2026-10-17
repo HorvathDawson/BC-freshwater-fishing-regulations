@@ -12,7 +12,7 @@
 //   kind-row-one-line, inherited-line, braid-review: see each check's comment below
 //   (round 13) header-one-shape, licence-others-in-dropdowns, bella-coola-front (compact-header-place retired); phase 2:
 //   no-lift-box, bucket-replaces, not-kept-said, zero-kind-no-size, gear-no-any-hook, ape-creek-front (card-one-book-per-lift retired)
-//   (round 14) licence-u16-you-need
+//   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
 //   gear 8): one-worked-list, buckets-own-first-sizes-whole, every-cap-once, gear-sentence-plain
@@ -552,6 +552,93 @@ for (const [w, d] of [['vedder', '1010'], ...(CLW ? [[CLW[0], CLW[1]]] : [])]) f
 const lb14 = L14.filter(x => x.lists !== 1 || !x.label || x.shownLabel !== x.label || !x.visible || !x.answer.length || x.answer.join('|') !== x.items.join('|')
   || !x.order.length || x.order.some(o => o !== x.want));
 check('licence-u16-you-need', L14.length === 4 && !lb14.length, lb14.map(x => JSON.stringify(x)).join('; ') || `checked ${L14.length} of 4 (classified water: ${JSON.stringify(CLW)})`);
+
+// (3, rows 13) a count over SOME of a bucket's kinds is a nested group (`buckets[].groups`): drawn inside its bucket,
+// BEFORE the bucket's size notes and its other kinds, the group's own words first, then each of its kinds with its own size
+// (Bella Coola May 1, both parts, and the first other state the snapshot has with a group)
+const NG = await page('w=vedder&d=1010', async b => JSON.parse(await b.evaluate(`JSON.stringify(Object.entries(WATERS).flatMap(([w, x]) =>
+  Object.entries(x.snap).flatMap(([d, ids]) => [].concat(ids).map((i, p) => [w, d, p, i]))).filter(([, , , i]) => (SNAP.states[i]?.rows || []).some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).length))))`)));
+const NGW = [...NG.filter(x => x[0] === 'bellacoola' && x[1] === '501'), ...NG.filter(x => x[0] !== 'bellacoola').slice(0, 1)];
+const N14 = [];
+for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}`, async b => {
+  N14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+      const secs = [...art.querySelectorAll('section.bkt')];
+      (g.buckets || []).forEach((bk, i) => (bk.groups || []).forEach((sg, j) => { const el = secs[i]?.querySelectorAll('[data-qgroup]')[j];
+        const kids = el ? [...el.querySelectorAll('.krow')].map(r => ({nm: norm(r.querySelector('.nm')?.textContent), det: norm(r.querySelector('.kdet')?.textContent), n: norm(r.querySelector('.kn')?.textContent)})) : [];
+        const later = el ? [...secs[i].querySelectorAll('.bnote, :scope > .krow')] : [];
+        out.push({says: sg.says, el: !!el, first: !!el && norm(el.firstElementChild?.textContent).startsWith(norm(sg.says.split(':')[0])), shown: norm(el?.textContent).includes(norm(sg.says.split(':')[1] || sg.says)),
+          kinds: sg.kinds.every(k => kids.some(x => x.nm === norm(k.name) && x.det === norm(k.detail).replace(/(\\d) cm/g, '$1 cm').replace(/ /g, ' ') && x.n === (k.n >= sg.n ? '' : String(k.n)))),
+          before: later.every(e => el.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING),
+          once: sg.kinds.every(k => [...art.querySelectorAll('.krow .nm')].filter(e => norm(e.textContent) === norm(k.name)).length === 1)}); })); });
+    return {at: location.hash, out}; })())`)));
+});
+const nb14 = N14.filter(x => !x.out.length || x.out.some(o => !o.el || !o.first || !o.shown || !o.kinds || !o.before || !o.once));
+check('nested-count-group', NGW.length >= 2 && !nb14.length, nb14.map(x => JSON.stringify(x)).join('; ') || `states checked: ${JSON.stringify(NGW)}`);
+
+// (4, rows 13) the steelhead presence line sits INSIDE the steelhead's own section, once: its kind row, its not-kept line,
+// or its own row (a sheet when that row is under Other fish); no card-level steelhead note but known_no_rules
+const PRES = [['vedder', '1010', 0], ['vedder', '615', 0], ['bellacoola', '501', 1], ['ape', '1010', 0]];
+const morePres = await page('w=vedder&d=1010', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const all = Object.entries(WATERS).flatMap(([w, x]) =>
+  Object.entries(x.snap).flatMap(([d, ids]) => [].concat(ids).map((i, p) => [w, d, p, SNAP.states[i]]))).filter(x => x[3]);
+  const pick = f => { const x = all.find(([w, , , s]) => !['vedder', 'bellacoola', 'ape'].includes(w) && f(s)); return x ? [x[0], x[1], x[2]] : null; };
+  return [pick(s => s.rows.some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).some(g => g.kinds.some(k => k.presence))))),
+    pick(s => s.rows.some(r => r.presence && !r.group?.headline && r.kind !== 'closed')), pick(s => s.steelLine === 'known_no_rules')].filter(Boolean); })())`)));
+const P14 = [];
+for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}`, async b => {
+  P14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), K = document.getElementById('keep'), out = [];
+    const arts = [...K.querySelectorAll('article.row.ledger')].filter(a => !a.closest('details'));
+    const artOf = i => arts.find(a => a.dataset.row === 'r' + i);
+    let placed = 0;
+    st.rows.forEach((r, i) => { const g = r.group, art = artOf(i);
+      (g?.buckets || []).forEach(bk => [...bk.kinds, ...(bk.groups || []).flatMap(s => s.kinds)].forEach(k => { if (!k.presence) return; placed++;
+        const row = [...(art?.querySelectorAll('.krow') || [])].find(e => norm(e.querySelector('.nm')?.textContent) === norm(k.name));
+        out.push({where: 'kind ' + k.name, ok: !!row && norm(row.textContent).includes(norm(k.presence.says))}); }));
+      (g?.not_kept || []).forEach(x => { if (!x.presence) return; placed++;
+        const row = [...(art?.querySelectorAll('[data-notkept]') || [])].find(e => norm(e.textContent).includes(norm(x.says)));
+        out.push({where: 'not_kept ' + x.says, ok: !!row && norm(row.textContent).includes(norm(x.presence.says))}); });
+      if (r.presence) { if (art) { placed++; out.push({where: 'row ' + i, ok: norm(art.textContent).includes(norm(r.presence.says))}); }
+        else if (!arts.length && K.querySelector('.banner')) out.push({where: 'closed row ' + i + ' (closed card: no sections drawn)', ok: true, closed: true});
+        else if ([...K.querySelectorAll('.krow')].some(e => { const fs = [...e.querySelectorAll('[data-open^="sp:"]')].map(x => x.dataset.open.slice(3));
+            return fs.length === r.members.length && r.members.every(c => fs.includes(c)); })) { placed++;   // the row drawn as a kind of another card
+          const e = [...K.querySelectorAll('.krow')].find(e => { const fs = [...e.querySelectorAll('[data-open^="sp:"]')].map(x => x.dataset.open.slice(3)); return fs.length === r.members.length && r.members.every(c => fs.includes(c)); });
+          out.push({where: 'kind of another row ' + i, ok: norm(e.textContent).includes(norm(r.presence.says))}); }
+        else { const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
+          out.push({where: 'sheet row ' + i, ok: !!o && norm(new DOMParser().parseFromString(o[1].html, 'text/html').body.textContent).includes(norm(r.presence.says))}); } } });
+    const words = [...new Set([...st.rows.flatMap(r => [r.presence, ...(r.group?.not_kept || []).map(x => x.presence), ...(r.group?.buckets || []).flatMap(bk => [...bk.kinds, ...(bk.groups || []).flatMap(s => s.kinds)].map(k => k.presence))]).filter(Boolean).map(p => norm(p.says))])];
+    const said = words.reduce((n, w) => n + norm(K.textContent).split(w).length - 1, 0);
+    return {at: location.hash, steelLine: st.steelLine, placed, said, out}; })())`)));
+});
+const pb14 = P14.filter(x => x.out.some(o => !o.ok) || x.said !== x.placed);
+check('presence-in-section', P14.some(x => x.out.some(o => o.where.startsWith('not_kept'))) && P14.some(x => x.out.some(o => o.where.startsWith('kind'))) && !pb14.length,
+  pb14.map(x => JSON.stringify(x)).join('; ') || JSON.stringify(P14.map(x => [x.at, x.out.length])));
+
+// (5, rows 13) a weekday window is said in words (`rows[].week`), in place of the day's keep / release words: the
+// Kootenay LWA kokanee sheet on Saturday and Monday shows the data's sentence, no date in it, no day's verdict beside it
+const W14 = [];
+for (const d of ['1010', '1012']) await page(`w=klwa&d=${d}`, async b => {
+  W14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+    st.rows.forEach((r, i) => { if (!r.week) return;
+      const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
+      const t = o ? norm(new DOMParser().parseFromString(sheetHtml('other:' + o[0]), 'text/html').body.textContent) : '';
+      out.push({says: r.week.says, shown: t.includes(norm(r.week.says)), dates: (t.match(/\\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{1,2}\\b/g) || []).length,
+        verdict: /Release every one here|\\d+ a day here|\\buntil\\b|\\bfrom (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\b/.test(t), sheet: !!o}); });
+    return {d: S.d, out}; })())`)));
+});
+const wb14 = W14.filter(x => !x.out.length || x.out.some(o => !o.sheet || !o.shown || o.dates || o.verdict));
+check('week-in-words', W14.length === 2 && !wb14.length, wb14.map(x => JSON.stringify(x)).join('; '));
+
+// (6, rows 13) not-kept lines: one per status and deciding row, in the data's order and words (Vedder May 15 "Rainbow trout
+// and cutthroat trout: release every one"; Ape Creek's char named with its members)
+const K14 = [];
+for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=${d}`, async b => {
+  K14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !(g.not_kept || []).length) return;
+      out.push({want: g.not_kept.map(x => norm(x.says)), shown: [...art.querySelectorAll('[data-notkept] .nm')].map(e => norm(e.textContent))}); });
+    return {at: location.hash, out}; })())`)));
+});
+const kb14 = K14.filter(x => !x.out.length || x.out.some(o => o.want.join('|') !== o.shown.join('|')));
+check('not-kept-merged', !kb14.length && K14.some(x => x.out.some(o => o.want.some(t => /rainbow trout and cutthroat trout/i.test(t)))), kb14.map(x => JSON.stringify(x)).join('; ') || JSON.stringify(K14));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
