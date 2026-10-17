@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "13",
+            "version": "14",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -296,7 +296,21 @@ SPEC = {
                     "strip at every moment of a day (the best answer), never as a list of dates; `not_kept` is "
                     "one line per status and deciding row, fish in the book's order, a group named with its "
                     "members (\"Char (Dolly Varden/bull trout, lake trout and brook trout): release every one\"), "
-                    "`rules` every deciding rule (`by` the first). A decided answer's winner may be a size release (F13: a take-0 "
+                    "`rules` every deciding rule (`by` the first). Version 14 (ROUND15 1/3/5-8): a SIZE CAP IS A GROUP "
+                    "`buckets[].sizes` [{says, n, over_cm, by, species, not_counting, then [{n, over_cm, species}]}] "
+                    "naming EXACTLY the kinds it can bind today (kept and able to pass the size, the book's order: "
+                    "\"Brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between "
+                    "them\") — it names its kinds, their rows stay in the bucket; show it boxed like a count group; "
+                    "`notes` now hold only a count spanning buckets (`over_cm` 0); `buckets[].between` (\"Up to 2 a "
+                    "day between them\") an own-rule bucket's shared cap, else null; each kept kind's `detail` says "
+                    "its origin (\"hatchery, 30 cm or longer\"); a rule restating its row's winner (same fish, "
+                    "number, days, sizes) is ONE ladder line (role agrees) and a note `rows[].restates` [{r, of, says}] "
+                    "(the Lower West Arm's combined kokanee quota with the Upper West Arm); `week` adds `status` "
+                    "(\"Weekends: keep 5 · Weekdays: release\") and `parts` [{species, days \"Sat–Sun\", when "
+                    "\"Saturday and Sunday\", weekdays, status, n, says \"keep up to 5\", rules, today}] — how it was "
+                    "decided per day-part, `today` the frame's own moment; a tributaries-only rule reached by the walk "
+                    "is \"the Bella Coola River’s rule for its tributaries\"; no presence line on a wholly closed "
+                    "water; no \"the\" before a lake's name. A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
         },
         "gear": {
@@ -344,9 +358,16 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "4",
+            "version": "5",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[holds, documents]] — indexes into `holds` and `documents`",
+            "frames": "[[holds, documents, under_16?]] — indexes into `holds`, `documents` and `under_16` "
+                      "(absent on tidal water)",
+            "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
+                        "prices}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
+                        "angler needs here, per residency (not guided, no status), read off the profiles' "
+                        "answers: fish with a licensed adult (`counts`: what they keep counts toward the "
+                        "adult's limit) or buy `buy` (`own_limit`: and keep a limit of their own); `says` the "
+                        "sentence (\"No licence needed.\")",
             "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
                      "only) | {holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
                      "designations, stamp_period, contested, considered}] — licensing refs: the "
@@ -375,12 +396,16 @@ SPEC = {
             "profiles": "[residency/age/guidance/status] — the 60 angler profiles; the index is "
                         "mixed radix over `profile_dims`",
             "profile_dims": "[[dimension, [value]]] — residency, age, guidance, status",
+            "residency_labels": "{residency: words} — version 5 (ROUND15 2): \"B.C. resident\", \"Canadian, "
+                                "other province\", \"From outside Canada\" — the answer says whose it is",
+            "profile_labels": "[words per profile] — version 5: each profile's answer labelled, in `profiles` "
+                              "order (\"B.C. resident, 16 or older\")",
         },
         "display": {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "10",
+            "version": "11",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -567,20 +592,25 @@ class RowsCodec:
 
 class LicenceCodec:
     name = "licence"
-    static_keys = ("profiles", "profile_dims")
+    static_keys = ("profiles", "profile_dims", "residency_labels", "profile_labels")
 
     def encode(self, values, rix, fix):
-        holds, answers, docs, frames = Table(), Table(), Table(), Table()
+        holds, answers, docs, u16, frames = Table(), Table(), Table(), Table(), Table()
         refs = []
         for v in values:
-            refs.append(frames.add([holds.add(v["holds"]),
-                                    docs.add([answers.add(p) for p in v["profiles"]])]))
+            row = [holds.add(v["holds"]), docs.add([answers.add(p) for p in v["profiles"]])]
+            if v.get("under_16") is not None:
+                row.append(u16.add(v["under_16"]))            # ROUND15 2
+            refs.append(frames.add(row))
         return {"holds": holds.rows, "answers": answers.rows, "documents": docs.rows,
-                "frames": frames.rows}, refs
+                "under_16": u16.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        h, d = sec["frames"][ref]
-        return {"holds": sec["holds"][h], "profiles": [sec["answers"][i] for i in sec["documents"][d]]}
+        h, d, *u = sec["frames"][ref]
+        out = {"holds": sec["holds"][h], "profiles": [sec["answers"][i] for i in sec["documents"][d]]}
+        if u:
+            out["under_16"] = sec["under_16"][u[0]]
+        return out
 
 
 #: One codec per section the file may hold — the encoder and the decoder iterate this.

@@ -98,6 +98,34 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND15 (2026-10-16) — rows 14, licence 5, display 11: size groups, shared caps, weekday parts, under 16
+
+Owner review of v16 (ROUND15 1-8); RULINGS P19-P24; owner questions in handoff/PLAN/r15_questions.md.
+
+- **Size cap = size group** (`rows[].group.buckets[].sizes` [{says, n, over_cm, by, species, not_counting,
+  then [{n, over_cm, species}]}]): names EXACTLY the kinds it can bind today, book order ("Brown trout, Dolly
+  Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between them"). A sibling of `groups`, not a
+  holder of kind rows: a cap spans buckets on 141 of 1,026 live cards, cuts a kind row on 56, overlaps a count
+  group on 10 (scratch scan), so it NAMES its kinds and their rows stay in the bucket. Size notes are gone
+  (`notes` keep only counts spanning buckets; the model refuses a size note). The gate proves the number, the
+  nested caps, that each named kind may pass the size here and that no kind the rule binds goes unnamed.
+- **`buckets[].between`**: "Up to 2 a day between them" on an own-rule bucket whose cap holds several kinds
+  together (null otherwise).
+- **`rows[].restates`** [{r, of, says}]: a rule of the winner's own row stating exactly what it states (fish,
+  number, days, sizes, origin, water) is role `agrees` (one ladder line) and a note with its book words — the
+  Lower West Arm's r5 (combined kokanee quota with the Upper West Arm).
+- **`rows[].week`** adds `status` ("Weekends: keep 5 · Weekdays: release") and `parts` [{species, days "Sat–Sun",
+  when "Saturday and Sunday", weekdays, status, n, says "keep up to 5", rules, today}] on every moment's frame;
+  `restates` carried to every moment's frame of the row.
+- Whose words: a tributaries-only rule by the walk "the Bella Coola River’s rule for its tributaries"; "the" only
+  before river/channel/canal/slough/arm/narrows (`common.the_name`, also display's inherited line). Each kept
+  kind's `detail` keeps its origin ("hatchery, 30 cm or longer"). "Kept 2 on another stream?" → "None more here".
+  No presence line on a wholly closed water (every row closed).
+- **Licence 5**: frame `under_16` [{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc,
+  name, prices}], own_limit, says}] per residency (not guided, no status), read off the profile answers;
+  statics `residency_labels`, `profile_labels` (60, in `profiles` order). Wire `frames` rows are
+  [holds, documents, under_16?].
+
 ## ROUND14 (2026-10-16) — rows 13, display 10: nested count groups, whose bucket, steelhead in its section, weekdays in words, one not-kept line per row; the nearer ✱ row
 
 Same format string (`answers/2`); **rows 13, display 10** (ladder 1, gear 9, licence 4 unchanged). Owner review

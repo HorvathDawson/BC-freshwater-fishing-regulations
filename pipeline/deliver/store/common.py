@@ -58,7 +58,7 @@ BLOB_COLUMNS = {
     "ladder_verdict": "j", "ladder_frame": "j",
     "rows_decided": "j", "rows_row": "j", "rows_frame": "j",
     "gear_frame": "j",
-    "licence_hold": "j", "licence_answer": "j", "licence_doc": "j", "licence_frame": "j",
+    "licence_hold": "j", "licence_answer": "j", "licence_doc": "j", "licence_frame": "j", "licence_u16": "j",
     "display_frame": "j", "display_rule": "j",
     "item": "x", "xpart": "j", "picker": "j", "runs": "j",
     "rule": "j", "lic": "j", "entry": "j", "ruleset": "j", "lset": "j",

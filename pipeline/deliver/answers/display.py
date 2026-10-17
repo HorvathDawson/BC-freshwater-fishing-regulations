@@ -1358,7 +1358,8 @@ def inherited_line(lifter: str, lifted: Sequence[str], doc: dict) -> str:
     ts = [doc["rules"][t] for t in lifted]
     fx = _fx(x)
     owner = trib_owner(x, doc.get("entries"))
-    whose = f"{'' if re.search(r'(Lake|Lakes|Biny)$', owner) else 'the '}{owner}’s"
+    from pipeline.deliver.answers.common import the_name
+    whose = f"{the_name(owner)}’s"                     # ROUND15 8: "the Quinsam River’s", "Trout Lake’s"
     days: set = set()
     for t in ts:
         days |= _days(_fx(t).get("when"))

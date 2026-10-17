@@ -44,10 +44,13 @@ def test_a1_the_share_bucket_says_the_over_50_cap_once_steelhead_aside():
     g = _g(F.VEDDER)
     share = g["buckets"][1]                                     # ROUND12 2: the river's own bucket first
     assert share["title"] == "Up to 2 a day between them — all Region 2 streams combined"
-    assert share["notes"] == [{"says": "Only 1 of these may be over 50 cm, not counting steelhead",
-                               "n": 1, "over_cm": 50, "kinds": ["EB", "GB", "CT", "DV", "LT"],
-                               "not_counting": ["ST"], "then": []}]
-    assert g["buckets"][0]["notes"] == []                       # this river's rule: rainbows ≤ 50 cm
+    # ROUND15 1: the cap is a size group naming the kinds it binds; steelhead stay outside it
+    assert share["notes"] == []
+    assert share["sizes"] == [{"says": "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or "
+                                       "brook trout: only 1 over 50 cm between them",
+                               "n": 1, "over_cm": 50, "by": "z2:trout_char_quota::trout_char_quota.r2",
+                               "species": ["CT", "GB", "DV", "LT", "EB"], "not_counting": ["ST"], "then": []}]
+    assert g["buckets"][0]["sizes"] == []                       # this river's rule: rainbows ≤ 50 cm
     assert not any(w in t for t in _row_notes(g) for w in SIZE_WORDS), _row_notes(g)
     assert _row_notes(g) == ["counts toward the 4 a day"]
 
@@ -55,7 +58,9 @@ def test_a1_the_share_bucket_says_the_over_50_cap_once_steelhead_aside():
 def test_a1_a_lake_says_it_on_its_only_bucket():
     g = _g(F.LAKE)
     assert [b["title"] for b in g["buckets"]] == [None]
-    assert [n["says"] for n in g["buckets"][0]["notes"]] == ["Only 1 of these may be over 50 cm"]
+    assert [n["says"] for n in g["buckets"][0]["sizes"]] == [
+        "Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 "
+        "over 50 cm between them"]
     assert _row_notes(g) == []
 
 
@@ -67,11 +72,10 @@ def test_a1_a_cap_spanning_buckets_is_said_once_where_the_reader_meets_it():
     # ROUND12 3: Region 2's Dolly Varden and lake trout 1 (together) spans the same two buckets
     assert g["buckets"][0]["notes"] == [{"says": "Only 1 Dolly Varden/bull trout or lake trout a day in all",
                                          "n": 1, "over_cm": 0, "kinds": ["DV", "LT"], "not_counting": [],
-                                         "then": []},
-                                        {"says": "Only 1 of the day’s trout and char may be over 50 cm",
-                                         "n": 1, "over_cm": 50,
-                                         "kinds": ["EB", "GB", "CT", "DV", "LT", "RB"],
-                                         "not_counting": [], "then": []}]
+                                         "then": []}]
+    assert [(x["says"], x["species"]) for x in g["buckets"][0]["sizes"]] == [
+        ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: "
+         "only 1 over 50 cm between them", ["RB", "CT", "GB", "DV", "LT", "EB"])]
     assert g["buckets"][1]["notes"] == []
     assert _row_notes(g) == ["counts toward the 4 a day"]
     states = [s["r"] for s in g["states"]]
@@ -88,12 +92,16 @@ def test_a1_the_gate_fails_a_wrong_bucket_note():
     """MUTATION: the note says 2 over 50 cm; then: steelhead said to count."""
     out, P = F.card(F.VEDDER, OCT10)
     bad = copy.deepcopy(out)
-    F.trout_group(bad)["buckets"][1]["notes"][0]["n"] = 2
-    assert any("note" in p for p in CC.check_card(P, bad))
+    F.trout_group(bad)["buckets"][1]["sizes"][0]["n"] = 2
+    assert any("size group" in p for p in CC.check_card(P, bad))
     bad = copy.deepcopy(out)
-    n = F.trout_group(bad)["buckets"][1]["notes"][0]
-    n["kinds"], n["not_counting"] = n["kinds"] + ["ST"], []
-    assert any("note" in p for p in CC.check_card(P, bad))
+    n = F.trout_group(bad)["buckets"][1]["sizes"][0]
+    n["species"], n["not_counting"] = n["species"] + ["ST"], []
+    assert any("size group" in p for p in CC.check_card(P, bad))
+    bad = copy.deepcopy(out)
+    n = F.trout_group(bad)["buckets"][1]["sizes"][0]
+    n["species"] = n["species"][1:]                              # ROUND15 1: a kind it binds, unnamed
+    assert any("does not name it" in p for p in CC.check_card(P, bad))
 
 
 # A2 --------------------------------------------------------------------------------------------

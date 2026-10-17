@@ -54,7 +54,7 @@ def test_z_a_kind_keeping_none_says_no_size():
 
 def test_z_a_kind_keeping_some_keeps_its_size_words():
     g, _o, _P = _group(F.BELLA)
-    assert _kinds(g)["Rainbow trout"]["detail"] == "30–50 cm"
+    assert _kinds(g)["Rainbow trout"]["detail"] == "hatchery, 30–50 cm"      # ROUND15 8: its origin too
     g, _o, _P = _group(F.SLOT)
     assert _kinds(g)["Rainbow trout"]["detail"] == "60 cm or less, or 90 cm or longer"
 

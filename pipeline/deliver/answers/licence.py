@@ -41,6 +41,89 @@ PROFILE_DIMS: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
 )
 
 
+#: ROUND15 2 (owner): every profile dimension's value in the page's words — the licence answer says whose it is
+RESIDENCY_LABELS = {"resident": "B.C. resident", "non_resident": "Canadian, other province",
+                    "non_resident_alien": "From outside Canada"}
+AGE_LABELS = {"16_plus": "16 or older", "under_16": "under 16"}
+STATUS_LABELS = {"none": None, "indian_bc_resident": "status First Nations, living in B.C.", "metis": "Métis",
+                 "disabled": "disabled", "aged_65_plus": "65 or older"}
+
+
+def profile_labels() -> List[str]:
+    """ROUND15 2: each profile's answer labelled in words, in `profiles` order — "B.C. resident, 16 or older",
+    "From outside Canada, under 16, guided, Métis"."""
+    out = []
+    for p in profiles():
+        bits = [RESIDENCY_LABELS[p["residency"]], AGE_LABELS[p["age"]]]
+        if p["guidance"] == "guided":
+            bits.append("guided")
+        if STATUS_LABELS[p["status"]]:
+            bits.append(STATUS_LABELS[p["status"]])
+        out.append(", ".join(bits))
+    return out
+
+
+def _price_words(p: dict) -> str:
+    return " · ".join(([f"${p['year']:.2f} a year"] if "year" in p else []) + [f"${x:.2f} a day" for x in p.get("day") or []]
+                      + [f"${x:.2f} for 8 days" for x in p.get("eight_days") or []])
+
+
+def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dict]:
+    """ROUND15 2 (owner): WHAT AN UNDER-16 ANGLER NEEDS, per residency, in one compact list — read off the
+    profile answers already decided (not guided, no status), never decided again: [{residency, label,
+    none_needed, with_adult {who, counts} | null (fish with a licensed adult; `counts`: what they keep counts
+    toward the adult's limit), buy [{doc, name, prices}] (the documents to buy: the under-16's own, else
+    what the 16-or-older angler of the same residency buys to fish here, when the record lets the youth fish
+    as one), own_limit (buying gives the youth a limit of their own), says}] — "Fish with a licensed adult (16
+    or older): what you keep counts toward their limit. Or buy your own basic angling licence ($62.87 a year ·
+    …) and keep your own limit."; B.C. residents "No licence needed."."""
+    P = profiles()
+    ix = {(p["residency"], p["age"]): i for i, p in enumerate(P)
+          if p["guidance"] == "non_guided" and p["status"] == "none"}
+    nm = lambda d: names.get(d) or d.replace("_", " ")
+    out = []
+    for res in RESIDENCY_LABELS:
+        a, adult = answers[ix[(res, "under_16")]], answers[ix[(res, "16_plus")]]
+        if a.get("tidal"):
+            continue
+        fish = next((x for x in a.get("requirements") or [] if x["when"]["act"] == "fishing"
+                     and any(q.get("accompanied_by") or q.get("as") for q in x["paths"])), None)
+        acc = next((q for q in (fish or {}).get("paths") or [] if q.get("accompanied_by")), None)
+        as_ = next((q for q in (fish or {}).get("paths") or [] if q.get("as")), None)
+        with_adult = None
+        if acc is not None:
+            who = ((acc["accompanied_by"].get("who") or {}).get("age") or ["16_plus"])
+            with_adult = {"who": " or ".join(AGE_LABELS[w] for w in who),
+                          "counts": acc.get("quota") == "counts_to_companion"}
+        own = [b for b in a.get("documents") or [] if b.get("base")]
+        src = own or ((adult.get("documents") or []) if as_ is not None else [])
+        buy = [{"doc": b["doc"], "name": common_cap(nm(b["doc"])), "prices": b.get("prices") or {}}
+               for b in src if b.get("base")]
+        own_limit = bool(as_ is not None and as_.get("quota") == "own" and not own)
+        none = bool(a.get("none_needed")) and not buy and with_adult is None
+        parts = []
+        if none:
+            parts.append("No licence needed.")
+        if with_adult is not None:
+            parts.append(f"Fish with a licensed adult ({with_adult['who']})"
+                         + (": what you keep counts toward their limit." if with_adult["counts"] else "."))
+        if buy:
+            docs = " + ".join(f"{nm(b['doc'])} ({_price_words(b['prices'])})" if b["prices"] else nm(b["doc"])
+                              for b in buy)
+            if with_adult is not None:
+                parts.append(f"Or buy your own {docs}" + (" and keep your own limit." if own_limit else "."))
+            else:
+                parts.append(f"Buy {docs}.")
+        out.append({"residency": res, "label": RESIDENCY_LABELS[res], "none_needed": none,
+                    "with_adult": with_adult, "buy": buy, "own_limit": own_limit,
+                    "says": " ".join(parts) or "No licence needed."})
+    return out
+
+
+def common_cap(s: str) -> str:
+    return s[:1].upper() + s[1:]
+
+
 def profiles() -> List[Dict[str, str]]:
     return [dict(zip((d for d, _ in PROFILE_DIMS), combo))
             for combo in itertools.product(*(v for _, v in PROFILE_DIMS))]
@@ -445,7 +528,11 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
         mk = dumps([wire, [a for a, _ in alts]])
         if mk not in memo:
             memo[mk] = [documents(C, h, alts, p, ref) for p in P]
-        ans = {"holds": wire, "profiles": memo[mk]}
+        names = memo.get("_names")
+        if names is None:
+            names = memo["_names"] = dict(db.execute("SELECT doc_id, name FROM licence"))
+        # ROUND15 2: the under-16 summary per residency, read off the profiles' answers
+        ans = {"holds": wire, "profiles": memo[mk], "under_16": under_16_summary(memo[mk], names)}
         s = dumps(wire)
         if s != last:
             year[d] = ans
@@ -576,7 +663,9 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
         raise AnswersError("licence: the bundle's licensing records are not the export's "
                            "licensing_ids, in order")
     return {"profiles": ["/".join(p[d] for d, _ in PROFILE_DIMS) for p in profiles()],
-            "profile_dims": [[d, list(v)] for d, v in PROFILE_DIMS]}
+            "profile_dims": [[d, list(v)] for d, v in PROFILE_DIMS],
+            # ROUND15 2: whose answer it is, in words — every residency, and every profile
+            "residency_labels": dict(RESIDENCY_LABELS), "profile_labels": profile_labels()}
 
 
 def contested_sets(db) -> set:

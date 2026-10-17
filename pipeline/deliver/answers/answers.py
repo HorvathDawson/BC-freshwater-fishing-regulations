@@ -241,7 +241,12 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND14 3-6: rows 13 (`buckets[].groups` nested count groups, a water's own equal pool its own
         # bucket; `presence` inside the steelhead section; `rows[].week` a weekday window in words;
         # `not_kept` one line per status and row, book order, groups with their members, `rules`)
-        Section("rows", 13, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND15 1/3/5-8: rows 14 (`buckets[].sizes` a size cap is a group naming the kinds it binds, the
+        # size notes gone; `buckets[].between` an own-rule bucket's shared cap; `rows[].restates` a same-row
+        # restatement as a note, one ladder line; `week.status` / `week.parts` [{days, when, weekdays, status,
+        # n, says, rules, today}]; a tributaries-only rule "…’s rule for its tributaries"; no presence on a
+        # wholly closed water; each kept kind says its origin; "None more here"; no "the" before a lake)
+        Section("rows", 14, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -251,7 +256,8 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND13 G/P: gear 9 (no hook named without a hook restriction; "weight on the line up to 1 kg")
         Section("gear", 9, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
-        Section("licence", 4, licence.section_scope, prepare=licence.section_prepare,
+        # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
+        Section("licence", 5, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
         # answers 2.6: rows 7 (F15 the group's lead sentence + `items`), display 5 (`strip` per
         # segment from the rows and gear frames there; `rules[].book` / `applies`; statics
@@ -264,7 +270,8 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND11 A3: display 8 (frame `inherited`: a lift the tributary walk carries, in words)
         # ROUND13 P: display 9 (`rules[].applies` names the book by its title)
         # ROUND14 1: display 10 (static `reasons` gains `nearer_row`: the nearer ✱ row's words, T14)
-        Section("display", 10, display.section_scope, prepare=display.section_prepare,
+        # ROUND15 8: display 11 (an inherited lift's owner takes "the" only before a river, channel or arm)
+        Section("display", 11, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

@@ -56,7 +56,7 @@ def _text(row):
     out = [g["headline"]["says"], g["origin"], *[L["says"] for L in g["lifts"]], g["total_line"]]
     for b in g["buckets"]:
         out.append(b["title"])
-        out += [n["says"] for n in b.get("notes") or []]
+        out += [n["says"] for n in b.get("notes") or []] + [n["says"] for n in b.get("sizes") or []]
         out += [f"{'/'.join(k['species'])} {k['n']}: " + " · ".join(k["notes"] + k["duties"])
                 for k in b["kinds"]]
     return [t for t in out if t]
@@ -81,13 +81,14 @@ def test_vedder_mouth_oct_10_card(built):
         "This river’s rule",
         "RB 4: counts toward the 4 a day",
         "Up to 2 a day between them — all Region 2 streams combined",
-        "Only 1 of these may be over 50 cm, not counting steelhead",
+        "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm "
+        "between them",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
         "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence"]
     # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
     assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
-        == "any length, 50 cm or less"
+        == "hatchery, any length, 50 cm or less"
     # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
         "Keep 4 rainbows here → that’s your trout and char for the day, everywhere.",
@@ -117,14 +118,15 @@ def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     k = _text(_trout(built, KOOTENAY_MAIN))
     assert k[0] == "5 a day" and not any("rule replaces" in t for t in k)
     lake = _text(_trout(built, R2_LAKE))
-    assert lake[0] == "4 a day" and "Only 1 of these may be over 50 cm" in lake
+    assert lake[0] == "4 a day" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
+                                     "trout or brook trout: only 1 over 50 cm between them") in lake
     stream = _trout(built, R2_STREAM)
     assert stream["group"]["headline"]["says"] == "2 a day from this stream"
     assert stream["group"]["lifts"] == [] and not [w for w in stream["group"]["worked"] if w["at"] == "here"]
     # ROUND12 4: the examples are the card's one list
     assert stream["elsewhere"]["ask"] == []
     assert [stream["group"]["worked"][0][k] for k in ("q", "a", "here")] == ["Kept 2 on another stream?",
-                                                                            "Keep 0 here", 0]
+                                                                            "None more here", 0]
 
 
 @pytest.mark.slow

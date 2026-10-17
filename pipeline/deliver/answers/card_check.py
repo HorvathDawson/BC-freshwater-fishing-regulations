@@ -376,6 +376,41 @@ def check_group(P, g: dict) -> List[str]:
                 if len(base) < nt["n"] or not aside or E.most(aside, base, cap=1) < 1:
                     probs.append(f"{where}: bucket {b['title']!r} note says {nt['not_counting']} do not "
                                  f"count toward its {nt['n']} over {cm} cm, but none may be kept after them")
+        # ROUND15 1: a size group — at most `n` of its kinds over the size together (each nested cap too),
+        # EXACTLY the kinds it binds: each it names may be kept over the size here, and no other kind of
+        # the card the cap's rule decides over the size goes unnamed; the kinds it says do not count
+        # still keepable over the size after those `n`
+        for sz in b.get("sizes") or []:
+            cm = sz["over_cm"]
+            over = [f for f in E.fish(sz["species"]) if f[2] > cm]
+            ok, got = proved(sz["n"], over)
+            if not ok:
+                probs.append(f"{where}: size group {sz['says']!r} says {sz['n']} over {cm} cm, its kinds keep {got}")
+            for t in sz.get("then") or []:
+                ok, got = proved(t["n"], [f for f in E.fish(t["species"]) if f[2] > t["over_cm"]])
+                if not ok:
+                    probs.append(f"{where}: size group {sz['says']!r} says {t['n']} over {t['over_cm']} cm "
+                                 f"(nested), its kinds keep {got}")
+            for S in sz["species"]:
+                if not [f for f in over if f[0] == S]:
+                    probs.append(f"{where}: size group {sz['says']!r} names {S}, which cannot be kept over {cm} cm here")
+            r = E.P.by_key.get(sz["by"])
+            if r is not None:
+                for S in kinds:
+                    if S in sz["species"] or S in sz["not_counting"]:
+                        continue
+                    if any(E.checks(r, f) and ((E._band(r, f[2]) or (0, None))[1] or 0) > 0
+                           for f in E.fish([S]) if f[2] > cm):
+                        probs.append(f"{where}: size group {sz['says']!r} binds {S} over {cm} cm but does not name it")
+            if sz["not_counting"]:
+                base = []
+                for f in over:
+                    while len(base) < sz["n"] and E.can_keep(base, f):
+                        base.append(f)
+                aside = [f for f in E.fish(sz["not_counting"]) if f[2] > cm]
+                if len(base) < sz["n"] or not aside or E.most(aside, base, cap=1) < 1:
+                    probs.append(f"{where}: size group {sz['says']!r} says {sz['not_counting']} do not count, "
+                                 f"but none may be kept after its {sz['n']}")
     # ROUND13 S: a fish the card says nobody may keep here (closed or released) — none may be kept
     for x in g.get("not_kept") or []:
         got = E.most(E.fish(x["species"]), cap=1)
@@ -511,7 +546,8 @@ def _unref(v, ids):
                      {**b["replaces"], "rules": [r(k) for k in b["replaces"]["rules"]]}} for b in g["buckets"]]
     g["not_kept"] = [{**x, "by": r(x["by"]), "rules": [r(k) for k in x.get("rules") or []]}
                      for x in g.get("not_kept") or []]
-    g["buckets"] = [{**b, "groups": [{**s, "by": r(s["by"])} for s in b.get("groups") or []]}
+    g["buckets"] = [{**b, "groups": [{**s, "by": r(s["by"])} for s in b.get("groups") or []],
+                     "sizes": [{**s, "by": r(s["by"])} for s in b.get("sizes") or []]}
                     for b in g["buckets"]]
     g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]

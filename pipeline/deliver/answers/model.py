@@ -517,6 +517,31 @@ class BucketNote(Model):
     then: Tuple[NoteThen, ...]
 
 
+class SizeThen(Model):
+    """A size cap nested in a size group (ROUND15 1): at most `n` of `species` over `over_cm` (gate-proved)."""
+    n: Count
+    over_cm: Cm
+    species: Tuple[Fish, ...] = Field(min_length=1)
+
+
+class SizeGroup(Model):
+    """ROUND15 1 (owner): a size cap as a BOXED GROUP, like a count group, naming EXACTLY the kinds it can
+    bind today — kept and able to pass the size — in the book's order: "Brown trout, Dolly Varden/bull trout,
+    lake trout or brook trout: only 1 over 50 cm between them" (the Bella Coola mainstem, May 1 — never the
+    cutthroat ≤33 cm, the rainbow ≤50 cm or a closed steelhead). It NAMES its kinds (`species`; each one's
+    kind row stays in its bucket — a cap may span buckets or cut a kind row); `by` the cap's rule;
+    `not_counting` kinds of the card it says stay outside it (still keepable over the size after its `n`);
+    `then` the caps nested in it ("…, and only 1 over 50 cm"). The gate proves the number, that each kind
+    named may pass the size here, and that no kind the rule binds over the size goes unnamed."""
+    says: StrictStr = Field(min_length=1)
+    n: Count
+    over_cm: Cm
+    by: RuleIx
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    not_counting: Tuple[Fish, ...]
+    then: Tuple[SizeThen, ...]
+
+
 class Replaces(Model):
     """ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts — `says` names each
     cap of the region the bucket's lifting rules lift for its kinds ("Replaces Region 2’s 2-from-streams
@@ -538,11 +563,17 @@ class Bucket(Model):
     groups: Tuple[SubGroup, ...]
     notes: Tuple[BucketNote, ...]
     replaces: Optional[Replaces]
+    sizes: Tuple[SizeGroup, ...] = ()                 # ROUND15 1: the size caps, each a group
+    between: Optional[StrictStr] = None               # ROUND15 5: "Up to 2 a day between them"
 
     @model_validator(mode="after")
     def _replaces_a_lift(self):
         if self.replaces is not None and self.why != "rule":
             raise ValueError("only a water's own-rule bucket replaces a cap")
+        if any(n.over_cm for n in self.notes):
+            raise ValueError("a size cap is a size group (ROUND15 1), never a note")
+        if self.between is not None and self.why != "rule":
+            raise ValueError("only a water's own-rule bucket says its shared cap")
         return self
 
 
@@ -660,6 +691,39 @@ class Week(Model):
     named: "Kokanee: …")."""
     species: Tuple[Fish, ...] = Field(min_length=1)
     says: StrictStr = Field(min_length=1)
+    status: Optional[StrictStr] = None                # ROUND15 3: "Weekends: keep 5 · Weekdays: release"
+    parts: Tuple["WeekPart", ...] = ()                # ROUND15 3: each day-part, how it was decided
+
+    @model_validator(mode="after")
+    def _one_today(self):
+        for S in self.species:
+            mine = [p for p in self.parts if S in p.species]
+            if mine and sum(p.today for p in mine) != 1:
+                raise ValueError("exactly one day-part of a fish is today's")
+        return self
+
+
+class WeekPart(Model):
+    """ROUND15 3: one day-part of a weekday window — `days` "Sat–Sun", `when` "Saturday and Sunday",
+    `weekdays` the days, `status` and `n` (keep: the number), `says` "keep up to 5", `rules` the rule(s)
+    deciding it (how it was decided), `today` the frame's own moment is in it."""
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    days: StrictStr = Field(min_length=1)
+    when: StrictStr = Field(min_length=1)
+    weekdays: Tuple[WeekdayLit, ...] = Field(min_length=1)
+    status: Decided_
+    n: Optional[Count]
+    says: StrictStr = Field(min_length=1)
+    rules: Tuple[RuleIx, ...] = Field(min_length=1)
+    today: StrictBool
+
+
+class Restated(Model):
+    """ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) — one
+    ladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota."""
+    r: RuleIx
+    of: RuleIx
+    says: StrictStr = Field(min_length=1)
 
 
 class Row(Model):
@@ -683,6 +747,7 @@ class Row(Model):
     elsewhere: Optional[Elsewhere] = None             # answers 2.5: set <=> a keep row
     presence: Optional[Presence] = None               # ROUND14 4: on the steelhead's own row
     week: Optional[Week] = None                       # ROUND14 5: its fish's weekday window in words
+    restates: Optional[Tuple[Restated, ...]] = None   # ROUND15 3: same-row restatements, as notes
 
     @model_validator(mode="after")
     def _pool_rows(self):
@@ -960,9 +1025,34 @@ class TidalHolds(Model):
     tidal: TidalState
 
 
+class WithAdult(Model):
+    who: StrictStr = Field(min_length=1)
+    counts: StrictBool
+
+
+class BuyDoc(Model):
+    doc: StrictStr = Field(min_length=1)
+    name: StrictStr = Field(min_length=1)
+    prices: Prices
+
+
+class UnderSixteen(Model):
+    """ROUND15 2 (owner): what an under-16 angler of one residency needs here (not guided, no status), read
+    off the profiles' answers (`licence.under_16_summary`): fish with a licensed adult (`with_adult`), or
+    buy `buy` (`own_limit`: a limit of their own), or nothing; `says` the sentence."""
+    residency: Literal["resident", "non_resident", "non_resident_alien"]
+    label: StrictStr = Field(min_length=1)
+    none_needed: StrictBool
+    with_adult: Optional[WithAdult]
+    buy: Tuple[BuyDoc, ...]
+    own_limit: StrictBool
+    says: StrictStr = Field(min_length=1)
+
+
 class LicenceFrame(Model):
     holds: Union[Holds, TidalHolds]
     profiles: Tuple[Union[ProfileAnswer, TidalProfile], ...]
+    under_16: Optional[Tuple[UnderSixteen, ...]] = None     # ROUND15 2; absent on tidal water
 
     @model_validator(mode="after")
     def _sixty(self):

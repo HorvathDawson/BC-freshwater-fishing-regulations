@@ -150,7 +150,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     # MUTATION: were r4 not lifted for the hatchery rainbow, the 2 would hold it and nothing is excepted
     m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
-    assert m["group"]["worked"][0]["a"] == "Keep 0 here"
+    assert m["group"]["worked"][0]["a"] == "None more here"
     assert m["group"]["headline"]["says"] == "2 a day from this stream"
     assert m["group"]["lifts"] == [] and not [w for w in m["group"]["worked"] if w["at"] == "here"]
 

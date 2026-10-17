@@ -42,8 +42,8 @@ def test_3_a_count_over_some_of_a_buckets_kinds_is_a_nested_group():
     assert [n["says"] for n in b["notes"] if n["over_cm"] == 0] == []          # no count note
     (sub,) = b["groups"]
     assert (sub["says"], sub["n"], sub["by"]) == ("Cutthroat trout or rainbow trout: 1 between them", 1, F.BELLA_R6)
-    assert [(k["name"], k["detail"], k["n"]) for k in sub["kinds"]] == [("Cutthroat trout", "30–33 cm", 1),
-                                                                         ("Rainbow trout", "30–50 cm", 1)]
+    assert [(k["name"], k["detail"], k["n"]) for k in sub["kinds"]] == [("Cutthroat trout", "hatchery, 30–33 cm", 1),
+                                                                         ("Rainbow trout", "hatchery, 30–50 cm", 1)]
     assert not {S for k in b["kinds"] for S in k["species"]} & {"CT", "RB"}
 
 
@@ -63,10 +63,11 @@ def test_3_the_gate_proves_the_nested_group():
     assert CC.check_card(P, out) == []
 
 
-def test_3_a_size_cap_stays_a_note():
+def test_3_a_size_cap_is_no_nested_count_group():
+    """ROUND15 1 revises "a size cap stays a note": it is a size group (`sizes`), never a count group."""
     g, _o, _P = _group(F.NESTED)
     assert all(not b.get("groups") for b in g["buckets"])
-    assert any("over 30 cm" in n["says"] for b in g["buckets"] for n in b["notes"])
+    assert any("over 30 cm" in n["says"] for b in g["buckets"] for n in b["sizes"])
 
 
 # 4 ---------------------------------------------------------------------------------------------
@@ -109,7 +110,7 @@ def test_5_a_weekday_window_is_said_as_weekdays_on_every_moment():
     says = "Keep up to 5 on Saturdays and Sundays; release Monday to Friday"
     for frame in got:
         (ko,) = [r for r in frame["rows"] if r["all_members"] == ["KO"]]
-        assert ko["week"] == {"species": ["KO"], "says": says}
+        assert (ko["week"]["species"], ko["week"]["says"]) == (["KO"], says)
         assert not [r for r in frame["rows"] if r["all_members"] != ["KO"] and r.get("week")]
     assert "week" not in [r for r in sat["rows"] if r["all_members"] == ["KO"]][0]   # inputs untouched
 

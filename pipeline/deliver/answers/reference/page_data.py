@@ -285,7 +285,7 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
 
     # licence
     Lc = S["licence"]
-    holds, answers, docs, frames = Interner(), Interner(), Interner(), Interner()
+    holds, answers, docs, u16, frames = Interner(), Interner(), Interner(), Interner(), Interner()
     at = []
     for k in order:
         if k not in full:
@@ -293,15 +293,19 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
             continue
         row = []
         for f in Lc["at"][k]:
-            h, d = Lc["frames"][f]
+            h, d, *u = Lc["frames"][f]
             hv = Lc["holds"][h]
             av = [Lc["answers"][i] for i in Lc["documents"][d]]
             _lic_refs(hv, av, lrefs)
-            row.append(frames.add([holds.add(hv), docs.add([answers.add(a) for a in av])]))
+            fr = [holds.add(hv), docs.add([answers.add(a) for a in av])]
+            if u:                                            # ROUND15 2: the under-16 summary
+                fr.append(u16.add(Lc["under_16"][u[0]]))
+            row.append(frames.add(fr))
         at.append(row)
     out["licence"] = {"version": Lc["version"], "holds": holds.rows, "answers": answers.rows,
-                      "documents": docs.rows, "frames": frames.rows, "at": at,
-                      "profiles": Lc["profiles"], "profile_dims": Lc["profile_dims"]}
+                      "documents": docs.rows, "under_16": u16.rows, "frames": frames.rows, "at": at,
+                      "profiles": Lc["profiles"], "profile_dims": Lc["profile_dims"],
+                      "residency_labels": Lc.get("residency_labels"), "profile_labels": Lc.get("profile_labels")}
     return out, keys, (segs.rows, seg_moments.rows), new_of, rrefs, lrefs
 
 

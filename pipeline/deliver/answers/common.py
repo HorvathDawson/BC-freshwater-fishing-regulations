@@ -401,6 +401,23 @@ def cap(s: str) -> str:
     return s[:1].upper() + s[1:] if s else s
 
 
+#: ROUND15 8: the head nouns that take "the" before a water's name ("the Bella Coola River", "the Powerhouse
+#: Channel"); a lake, creek or pond takes none ("Trout Lake’s rule", "Ape Creek’s rule")
+_THE_NOUNS = ("river", "rivers", "channel", "canal", "slough", "arm", "narrows")
+
+
+def the_name(name: str) -> str:
+    """A water's name as it reads inside a sentence (ROUND15 8, owner: no "the Trout Lake’s rule"): "the"
+    only where the name's head noun — its last word before any " — part" or "(…)" — is a river, channel,
+    canal, slough, arm or narrows; "Kootenay Lake — Lower West Arm" is the lake's ("Kootenay Lake")."""
+    name = (name or "").strip()
+    if re.match(r"(?i)^the\s", name):
+        return name
+    head = re.split(r"\s+[—–-]\s+|\s*\(", name)[0]
+    last = re.sub(r"[^a-z]", "", (head.split() or [""])[-1].lower())
+    return f"the {name}" if last in _THE_NOUNS else name
+
+
 def join(names: Sequence[str], conj: str = " and ") -> str:
     names = list(names)
     if len(names) < 2:

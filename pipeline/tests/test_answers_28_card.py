@@ -46,7 +46,7 @@ def _card_text(g, row):
     out += [g["total_line"]] if g["total_line"] else []
     for b in g["buckets"]:
         out += [b["title"]] if b["title"] else []
-        out += [n["says"] for n in b.get("notes") or []]
+        out += [n["says"] for n in b.get("notes") or []] + [n["says"] for n in b.get("sizes") or []]
         for k in b["kinds"]:
             out += [k["name"], k["detail"], *k["notes"], *k["duties"]]
     return [t for t in out if t]
@@ -87,8 +87,10 @@ def test_steelhead_share_the_2_from_streams():
 def test_over_50_is_said_once_on_its_bucket():
     """ROUND11 A1 (owner, superseding "over 50 cm lives on the kind rows"): the bucket's note."""
     g = _g(F.VEDDER)
-    assert [n["says"] for n in _kind(g, "CT")[0]["notes"]] == [
-        "Only 1 of these may be over 50 cm, not counting steelhead"]
+    # ROUND15 1: a size group naming the kinds it binds
+    assert [n["says"] for n in _kind(g, "CT")[0]["sizes"]] == [
+        "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm "
+        "between them"]
     assert _kind(g, "CT")[1]["notes"] == [] and _kind(g, "DV")[1]["notes"] == []
     assert _kind(g, "ST")[1]["notes"] == []
     assert not any("Over 50 cm: at most" in t for t in _card_text(g, None))
@@ -154,7 +156,7 @@ def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
     # ROUND12 4: the kept-elsewhere examples are the card's one list (`worked`); the stream-tally
     # example is the keep-N count read backwards, so a lifted water drops it (STREAM keeps it)
     w = _g(F.STREAM)["worked"]
-    assert [w[0]["q"], w[0]["a"], w[0]["here"]] == ["Kept 2 on another stream?", "Keep 0 here", 0]
+    assert [w[0]["q"], w[0]["a"], w[0]["here"]] == ["Kept 2 on another stream?", "None more here", 0]
     # the Q16 cross-water case is in the list, not on the card
     assert [x["a"] for x in _g(F.VEDDER)["worked"]][-1] == (
         "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "

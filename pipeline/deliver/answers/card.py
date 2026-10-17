@@ -21,9 +21,10 @@ out of them) is said as the angler reads a water:
               cutthroat, brook and brown; Dolly Varden and lake trout), the lifting rule ("This river’s
               rule": rainbow trout 4), or the total — each kind with its number, origin and size, its
               duties (10 a year, record it, stop after 2) and its SPECIES (one picture each, P5); a size
-              cap the kinds share is the bucket's NOTE, said once (ROUND11 A1: "Only 1 of these may be
-              over 50 cm, not counting steelhead"; a cap spanning buckets on the first, "Only 1 of the
-              day’s trout and char may be over 50 cm") — never on a kind row;
+              cap is a SIZE GROUP of the bucket (ROUND15 1, `sizes`), naming exactly the kinds it can bind
+              ("Brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between
+              them"; a cap spanning buckets on the first) — never on a kind row; a count spanning buckets
+              stays a note; an own-rule bucket says its shared cap (ROUND15 5, `between`);
   replaces    (ROUND13 D) on a water's own-rule bucket, what its lifts replace, generated from them —
               each lifted cap of the region named: "Replaces Region 2’s 2-from-streams limit and 30 cm
               minimum size for these fish" (the page's lift box is gone; `lifts` stay for proof);
@@ -145,15 +146,20 @@ def _whose(P, L) -> Tuple[str, str]:
     its name."""
     from pipeline.deliver.answers.rows import badge_of
     name = re.sub(r"^the ", "", (L.x.get("entry_name") or "").strip(), flags=re.I)
+    the = common.the_name(name)            # ROUND15 8: "the Bella Coola River", "Trout Lake"
     if L.via == "trib" and name:
-        return f"On the {name} and its tributaries", f"the {name}’s rule"
+        if L.f.get("tributaries_only"):
+            # ROUND15 6 (owner): a rule the row prints for its TRIBUTARIES ONLY is said as that — Ape Creek's
+            # char release is "the Bella Coola River’s rule for its tributaries", never the mainstem's rule
+            return f"On {the}’s tributaries", f"{the}’s rule for its tributaries"
+        return f"On {the} and its tributaries", f"{the}’s rule"
     b = badge_of(L)
     if b == "water":
         n = _noun(P, L)
         # a row naming a lake that also holds a stream (Shuswap Lake's row on the Little River): the
         # water by its name, never "this lake" on a river
         if name and (n in ("lake", "reservoir", "pond")) != (P.kind == "lake"):
-            return f"On the {name}", f"the {name}’s rule"
+            return f"On {the}", f"{the}’s rule"
         return f"On this {n}", f"this {n}’s rule"
     if b == "bc":
         return "In B.C.", "the B.C. rule"
@@ -339,37 +345,36 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
         cov |= set(over)
         holding = holding_of(over)
         first = holding[0]
-        n_w = "None" if not sc["take"] else f"Only {_js(sc['take'])}"
-        # nested in a note already said on this bucket: a smaller size holding every one of these
-        # with a larger number — "Only 2 of these may be over 30 cm, and only 1 over 50 cm"
-        host = next((nt for o, ov, nt in said if nt in first["notes"] and o["over_cm"] < cm
-                     and o["take"] > sc["take"] and set(over) <= set(ov) and not nt["not_counting"]
-                     and nt["over_cm"] > 0), None)
+        n_w = "none" if not sc["take"] else f"only {_js(sc['take'])}"
+        # nested in a size group already said on this bucket: a smaller size holding every one of these
+        # with a larger number — "…: only 2 over 30 cm between them, and only 1 over 50 cm"
+        host = next((nt for o, ov, nt in said if nt in first["sizes"] and o["over_cm"] < cm
+                     and o["take"] > sc["take"] and set(over) <= set(ov) and not nt["not_counting"]),
+                    None)
         if host is not None and len(holding) == 1:
-            host["says"] += f", and {n_w.lower()} over {_js(cm)} cm"
-            host["then"].append({"n": sc["take"], "over_cm": cm, "kinds": over})
+            host["says"] += f", and {n_w} over {_js(cm)} cm"
+            host["then"].append({"n": sc["take"], "over_cm": cm, "species": book_order(over)})
             said.append((sc, over, host))
-            states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} note"})
+            states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} size group"})
             stated.add(sc["r"])
             continue
         pool = kind_rows(first) if len(holding) == 1 else [k for b in buckets for k in kind_rows(b)]
         aside = [S for k in pool for S in k["species"] if S not in sc["of"] and info[S]["hi"] > cm]
-        one_kind = len(holding) == 1 and len(kind_rows(first)) == 1 and len(kind_rows(first)[0]["species"]) == 1
-        if one_kind or (aside and len(over) <= len(aside)):
-            # a kind's own cap (Bennett Lake's lake trout), or a cap on a few of the kinds (Region 4's
-            # "rainbow and cutthroat trout, no more than 1 over 50 cm"): name them — and claim nothing
-            # of the rest (another region's cap may hold them on a boundary water)
-            says = f"{n_w} {_names(over, ' or ')} may be over {_js(cm)} cm"
+        if aside and len(over) <= len(aside):
+            # a cap on a few of the kinds (Region 4's "rainbow and cutthroat trout, no more than 1 over 50
+            # cm"): it claims nothing of the rest (another region's cap may hold them on a boundary water)
             aside = []
-        else:
-            who = "these" if len(holding) == 1 else f"the day’s {what}"
-            says = f"{n_w} of {who} may be over {_js(cm)} cm"
-            if aside:
-                says += f", not counting {_names(aside, ' or ')}"
-        note = {"says": says, "n": sc["take"], "over_cm": cm, "kinds": over, "not_counting": aside, "then": []}
-        first["notes"].append(note)
-        said.append((sc, over, note))
-        states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} note"})
+        # ROUND15 1 (owner): a size cap is a BOXED GROUP like the count groups, naming EXACTLY the kinds it
+        # can bind today — kept and able to pass the size (Bella Coola May 1: brown trout, Dolly Varden/bull
+        # trout, lake trout and brook trout; never cutthroat ≤33 cm, rainbow ≤50 cm or a closed steelhead)
+        sp = book_order(over)
+        group = {"says": f"{_named_list(sp)}: {n_w} over {_js(cm)} cm"
+                         + (" between them" if len(sp) > 1 or len(over) > 1 else ""),
+                 "n": sc["take"], "over_cm": cm, "by": sc["r"], "species": sp,
+                 "not_counting": book_order(aside), "then": []}
+        first["sizes"].append(group)
+        said.append((sc, over, group))
+        states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} size group"})
         stated.add(sc["r"])
 
 
@@ -449,6 +454,12 @@ def book_order(codes: Sequence[str]) -> List[str]:
     from pipeline.regs.parsing.catalogue import BOOK_SPECIES
     rank = {S: i for i, S in enumerate(BOOK_SPECIES)}
     return sorted(codes, key=lambda S: (rank.get(S, len(rank)), list(codes).index(S)))
+
+
+def _named_list(codes: Sequence[str]) -> str:
+    """ROUND15 1: the kinds a size group binds, each named ("Brown trout, Dolly Varden/bull trout, lake
+    trout or brook trout") — never a group's name, which would claim kinds it does not bind."""
+    return common.cap(common.join([common.lc(common.sp_name(c)) for c in codes], " or "))
 
 
 def _named_with_members(codes: Sequence[str]) -> str:
@@ -731,15 +742,23 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         for k in b["kinds"]:
             if k["name"] is None:
                 k["name"] = common.cap(_names(k["species"]))
-            if not one_origin:
-                continue
-            # the origin line says it once for every kind
-            k["detail"] = re.sub(r"^(hatchery|wild), ", "", k["detail"])
+            # ROUND15 8 (owner): each kept kind says its origin ("hatchery, 30 cm or longer") even where the
+            # origin line says it for every kind — a row read alone must not look like any origin is kept
     buckets = [b for b in buckets if b["kinds"]]
     for b in buckets:
         b["notes"] = []
         b["groups"] = []
+        b["sizes"] = []
     _say_caps(P, model, grp, kinds, info, where_of, buckets, share, what, states)
+    # ROUND15 5 (owner): an own-rule bucket SAYS its shared cap where it holds its kinds together — the
+    # Bella Coola's "Up to 2 a day between them" (the tester added the group's 1 to the other kinds' 2 and
+    # got 3); one kind, or a cap no smaller than its rows together, needs none
+    for b in buckets:
+        rows_n = [k["n"] for k in b["kinds"]] + [s["n"] for s in b["groups"]]
+        many = len({S for k in kind_rows(b) for S in k["species"]}) > 1
+        free = INF if any(n is None for n in rows_n) else sum(rows_n)
+        b["between"] = f"Up to {_js(b['cap'])} a day between them" \
+            if b["why"] == "rule" and b["cap"] is not None and many and b["cap"] < free else None
     if len(buckets) == 1 and buckets[0]["why"] == "total":
         buckets[0]["title"] = None
     for b in buckets:

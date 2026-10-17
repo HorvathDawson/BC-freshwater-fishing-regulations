@@ -283,6 +283,13 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     for O in outers:
         setr(O, "contains")
     also = [p for p in by_take if p is not win and p not in outers] if win.k == "pool" else []
+    # ROUND15 3 (owner): a rule of the winner's OWN ROW saying the very same thing (fish, number, days,
+    # sizes, origin, kind of water) is the same statement printed twice — the Lower West Arm's r5, the
+    # combined kokanee quota with the Upper West Arm, modelled as "kokanee 5, Saturday and Sunday" beside r3:
+    # it agrees with the winner (one ladder line); its words are the row's note (`restates`)
+    for p in [p for p in also if restates(p, win)]:
+        setr(p, "agrees", win.key)
+        also.remove(p)
     for p in also:
         setr(p, "also")
     if win.k == "gate":
@@ -425,6 +432,40 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         elif r.k in ("size", "subcap", "sizecap", "annual", "possession_cap", "duty"):
             setr(r, "moot", win.key)
     return res
+
+
+_SAME_FIELDS = ("species", "species_except", "take", "unlimited", "when", "lengths", "origin", "water",
+                "while", "when_targeting", "dimension", "type")
+
+
+def restates(p: R, win: R) -> bool:
+    """ROUND15 3: `p` is a rule of the winner's own row stating exactly what the winner states."""
+    return p.entry_id == win.entry_id and p.key != win.key and p.via == win.via \
+        and all(json.dumps(p.f.get(k), sort_keys=True) == json.dumps(win.f.get(k), sort_keys=True)
+                for k in _SAME_FIELDS)
+
+
+def restated_words(r: R) -> str:
+    """The book's words of a restating rule, as a note: "NOTE: the combined daily quota … cannot exceed 5" ->
+    "The combined daily quota … cannot exceed 5." (whitespace folded, the "NOTE:" lead dropped)."""
+    w = re.sub(r"\s+", " ", r.f.get("verbatim") or r.f.get("label") or "").strip()
+    w = re.sub(r"(?i)^note:\s*", "", w)
+    return common.cap(w.rstrip(".")) + "."
+
+
+def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
+    """ROUND15 3: the rules of a row's winners' own rows that restate them, as notes [{r, of, says}]."""
+    out: List[dict] = []
+    for S in row["allMembers"]:
+        for v in (model["R"].get(S) or {}).values():
+            if not v:
+                continue
+            for k, x in v["roles"].items():
+                r = P.by_key.get(k)
+                if x["role"] == "agrees" and r is not None and r.k == "pool" and restates(r, v["win"]) \
+                        and not any(o["r"] == k for o in out):
+                    out.append({"r": k, "of": v["win"].key, "says": restated_words(r)})
+    return out
 
 
 def fish_range(P: "Part", S: str) -> Tuple[float, float]:
@@ -1642,7 +1683,8 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             more = (tot - n) if own is None or tot == "unlimited" else min(own, tot - n) \
                 if tot != "unlimited" else own
             ex.append((_lift_words(P, L["by"], L["members"]), more))
-        a1 = "Keep 0 here"
+        # ROUND15 8: no bare "0" in an answer (it reads as a count): "None more here"
+        a1 = "None more here"
         if ex and tot != "unlimited":
             a1 += ", except " + common.join([f"{w}: up to {_js(m)} more" for w, m in ex], "; ") \
                 + f" ({_js(tot)} in all)"
@@ -1775,6 +1817,9 @@ def produce(P: Part) -> dict:
              "prot": row.get("prot"), "wins": [r.key for r in row["wins"]] if row.get("wins") else None,
              "lift_notes": [[n["by"], n["q"]] for n in row["liftNotes"]],
              "scope": scope_of(P, row)}
+        rs = row_restates(P, model, row)
+        if rs:
+            o["restates"] = rs
         if row.get("pool"):
             rc = row_conds(P, model, row)
             o["conds"] = [cond_out(c) for c in rc["conds"]]
@@ -1826,7 +1871,10 @@ def produce(P: Part) -> dict:
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     line = steelhead_line(P.presence, has_row)
-    place_presence(rows, line)
+    # ROUND15 7 (owner): where the whole water is closed to all fishing (every row closed: the Vedder on Jun
+    # 15) there is no steelhead section to read, and no presence line is needed
+    if not all(o["kind"] == "closed" for o in rows if o["all_members"]):
+        place_presence(rows, line)
     return {"spp": model["spp"], "fish": fish, "rows": rows, "steelhead_line": line}
 
 
@@ -1872,8 +1920,37 @@ def weekdays_words(days: Sequence[str]) -> str:
     return "on " + common.join([WEEKDAYS[i] + "s" for i in ix])
 
 
-def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float]]]:
-    """(status, daily) of one fish in a rows frame: the stricter origin's (`main_res`)."""
+def weekdays_short(days: Sequence[str]) -> str:
+    """ROUND15 3: a set of weekdays in a short label — "Sat–Sun", "Mon–Fri" (a run), "Mon, Wed"."""
+    from pipeline.deliver.calendar import WEEKDAYS
+    ix = sorted(WEEKDAYS.index(d) for d in days)
+    ab = [WEEKDAYS[i][:3] for i in ix]
+    if len(ix) >= 2 and ix == list(range(ix[0], ix[0] + len(ix))):
+        return f"{ab[0]}–{ab[-1]}"
+    return ", ".join(ab)
+
+
+def weekdays_label(days: Sequence[str]) -> str:
+    """ROUND15 3: a set of weekdays as the status names it — "Weekends", "Weekdays", else the short label."""
+    s = set(days)
+    if s == {"Saturday", "Sunday"}:
+        return "Weekends"
+    if s == {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}:
+        return "Weekdays"
+    return weekdays_short(days)
+
+
+def weekdays_when(days: Sequence[str]) -> str:
+    """ROUND15 3: the days a part holds in words — "Monday to Friday", "Saturday and Sunday"."""
+    from pipeline.deliver.calendar import WEEKDAYS
+    ix = sorted(WEEKDAYS.index(d) for d in days)
+    if len(ix) >= 3 and ix == list(range(ix[0], ix[0] + len(ix))):
+        return f"{WEEKDAYS[ix[0]]} to {WEEKDAYS[ix[-1]]}"
+    return common.join([WEEKDAYS[i] for i in ix])
+
+
+def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float], str]]:
+    """(status, daily, winner) of one fish in a rows frame: the stricter origin's (`main_res`)."""
     v = (frame.get("fish") or {}).get(S) or {}
     h, w = v.get("hatchery"), v.get("wild")
     got = [x for x in (h, w) if x is not None]
@@ -1883,46 +1960,74 @@ def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float]]]:
     keep = [x for x in got if x["status"] in ("keep", "no_limit")]
     best = max(got, key=lambda x: (rank.get(x["status"], -1), x.get("daily") or 0)) if keep else \
         min(got, key=lambda x: rank.get(x["status"], 9))
-    return best["status"], best.get("daily")
+    return best["status"], best.get("daily"), best["win"]
+
+
+_WEEK_RANK = {"no_limit": 3, "keep": 2, "release": 1, "closed": 0}
 
 
 def say_weekdays(frames: Sequence[dict], moments: Sequence[Optional[dict]]) -> List[dict]:
     """ROUND14 5 (owner): A WEEKDAY WINDOW SAID AS WEEKDAYS. `frames` are one day's rows frames, one per
     moment (`moments`: `calendar.Moment.as_json`, weekdays and no hours window). Every row of every frame
-    whose fish answer differently by weekday carries `week` {species, says}: Kootenay Lake's Lower West
-    Arm kokanee "Keep up to 5 on Saturdays and Sundays; release Monday to Friday" — on the Saturday frame
-    and the Monday one alike, so no moment's card contradicts another. Returns new frames (the inputs
-    are not changed); frames cut by an hours window are returned as they are."""
+    whose fish answer differently by weekday carries `week`: Kootenay Lake's Lower West Arm kokanee —
+      says    "Keep up to 5 on Saturdays and Sundays; release Monday to Friday" (one sentence);
+      status  (ROUND15 3) "Weekends: keep 5 · Weekdays: release" — the row's status, never one moment's;
+      parts   (ROUND15 3) [{days "Sat–Sun", when "Saturday and Sunday", weekdays, status, n, says "keep up to
+              5", rules [the deciding rule], today}] — how it was decided, each day-part with its rule; `today`
+              marks the frame's own moment —
+    the same on the Saturday frame and the Monday one, so no moment's card contradicts another. A row's
+    `restates` notes (the combined quota with the Upper West Arm) are carried to every moment's frame.
+    Returns new frames (the inputs are not changed); frames cut by an hours window are returned as they are."""
     import copy
     if len(frames) < 2 or any(m is None or m.get("hours") for m in moments):
         return list(frames)
     fish = sorted({S for f in frames for S in (f.get("fish") or {})})
-    split: Dict[str, List[Tuple[Tuple[str, Optional[float]], List[str]]]] = {}
+    split: Dict[str, List[Tuple[Tuple[str, Optional[float]], List[str], List[str]]]] = {}
     for S in fish:
-        by: Dict[tuple, List[str]] = {}
+        by: Dict[tuple, Tuple[List[str], List[str]]] = {}
         for f, m in zip(frames, moments):
             a = _week_answer(f, S)
             if a is None:
                 break
-            by.setdefault(a, []).extend(m["weekdays"])
+            days, rules = by.setdefault(a[:2], ([], []))
+            days.extend(m["weekdays"])
+            if a[2] not in rules:
+                rules.append(a[2])
         else:
             if len(by) > 1:
-                split[S] = sorted(by.items(), key=lambda x: (-{"no_limit": 3, "keep": 2, "release": 1,
-                                                               "closed": 0}.get(x[0][0], -1), x[1]))
+                split[S] = sorted(((k, d, r) for k, (d, r) in by.items()),
+                                  key=lambda x: (-_WEEK_RANK.get(x[0][0], -1), x[1]))
     if not split:
         return list(frames)
 
+    def verb(status, daily, short=False) -> str:
+        if status == "no_limit":
+            return "no limit" if short else "keep any number"
+        if status == "keep":
+            return f"keep {_js(daily)}" if short else f"keep up to {_js(daily)}"
+        if status == "release":
+            return "release" if short else "release every one"
+        return "closed" if short else "no fishing for them"
+
     def words(pattern) -> str:
         out = []
-        for (status, daily), days in pattern:
+        for (status, daily), days, _r in pattern:
             what = ("keep any number" if status == "no_limit" else
                     f"keep up to {_js(daily)}" if status == "keep" else
                     "release" if status == "release" else "no fishing for them")
             out.append(f"{what} {weekdays_words(days)}")
         return common.cap("; ".join(out))
 
-    got = []
+    restated: Dict[tuple, List[dict]] = {}
     for f in frames:
+        for r in f.get("rows") or []:
+            for x in r.get("restates") or []:
+                got = restated.setdefault(tuple(r.get("all_members") or []), [])
+                if x not in got:
+                    got.append(x)
+
+    got = []
+    for f, m in zip(frames, moments):
         f2 = copy.deepcopy(f)
         for r in f2.get("rows") or []:
             mine = [S for S in r.get("all_members") or [] if S in split]
@@ -1930,14 +2035,26 @@ def say_weekdays(frames: Sequence[dict], moments: Sequence[Optional[dict]]) -> L
                 continue
             pats = sorted({json.dumps(split[S]) for S in mine})
             named = len(pats) > 1 or len(mine) < len(r["all_members"])
-            parts = []
+            says_l, status_l, parts = [], [], []
             for p in pats:
-                w = words(json.loads(p))
+                pat = json.loads(p)
+                w = words(pat)
                 who = [S for S in mine if json.dumps(split[S]) == p]
+                lead = f"{common.cap(_names(who, ' and '))}: " if named else ""
                 # several fish of the row: each named ("Kokanee: keep up to 5 …")
-                parts.append(f"{common.cap(_names(who, ' and '))}: {w[:1].lower()}{w[1:]}" if named else w)
-            says = "; ".join(parts)
-            r["week"] = {"species": mine, "says": says}
+                says_l.append(f"{lead}{w[:1].lower()}{w[1:]}" if named else w)
+                status_l.append(lead + " · ".join(f"{weekdays_label(d)}: {verb(st, n, True)}"
+                                                  for (st, n), d, _r in pat))
+                for (st, n), d, rules in pat:
+                    parts.append({"species": who, "days": weekdays_short(d), "when": weekdays_when(d),
+                                  "weekdays": d, "status": st, "n": _num(n) if st == "keep" else None,
+                                  "says": verb(st, n), "rules": rules,
+                                  "today": bool(set(m["weekdays"]) & set(d))})
+            r["week"] = {"species": mine, "says": "; ".join(says_l), "status": "; ".join(status_l),
+                         "parts": parts}
+            notes = restated.get(tuple(r.get("all_members") or []))
+            if notes:
+                r["restates"] = notes
         got.append(f2)
     return got
 
@@ -2014,6 +2131,8 @@ def refs(out: dict, ix) -> dict:
              "groups": [{**g, "facts": [line(l) for l in g["facts"]]} for g in r["groups"]],
              "wins": None if r["wins"] is None else [ix(w) for w in r["wins"]],
              "lift_notes": [[ix(by), q] for by, q in r["lift_notes"]]}
+        if r.get("restates"):
+            o["restates"] = [{**x, "r": ix(x["r"]), "of": ix(x["of"])} for x in r["restates"]]
         if "conds" in r:
             o["conds"] = [{**c, "r": None if c.get("r") is None else ix(c["r"])} for c in r["conds"]]
         if r.get("group") is not None:
@@ -2027,6 +2146,7 @@ def refs(out: dict, ix) -> dict:
                                     for L in g["lifts"]],
                           "buckets": [{**b, "by": ix(b["by"]),
                                        "groups": [{**s, "by": ix(s["by"])} for s in b["groups"]],
+                                       "sizes": [{**s, "by": ix(s["by"])} for s in b.get("sizes") or []],
                                        "replaces": None if b["replaces"] is None else
                                        {**b["replaces"], "rules": [ix(k) for k in b["replaces"]["rules"]]}}
                                       for b in g["buckets"]],

@@ -80,11 +80,16 @@ VEDDER, STREAM, LAKE, TWO, CLAKE = "vedder", "stream", "lake", "two_lifts", "chi
 WAHLEACH, SLOT, COUNT, NESTED = "wahleach_lake", "slot_lake", "count_stream", "nested_lake"
 BELLA, FRASER = "bella_coola", "fraser_mission"
 BELLA_MAY, VEDDER_MAY, BELLA_TRIB, LWA = "bella_coola_may", "vedder_may", "bella_coola_trib", "lwa_lake"
+BELLA_MAY_ST, SHUT = "bella_coola_may_steelhead_closed", "shut_stream"
 BELLA_R5 = "r2:bella_coola_river@2-3::bella_coola_river.r5"
 BELLA_R6 = "r2:bella_coola_river@2-3::bella_coola_river.r6"
 VEDDER_R6 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r6"
 VEDDER_R7 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r7"
 BELLA_R9 = "r2:bella_coola_river@2-3::bella_coola_river.r9"
+BELLA_R2 = "r2:bella_coola_river@2-3::bella_coola_river.r2"
+LWA_R3 = "r2:lower_west_arm@2-3::kootenay_lake_lower_west_arm.r3"
+LWA_R4 = "r2:lower_west_arm@2-3::kootenay_lake_lower_west_arm.r4"
+LWA_R5 = "r2:lower_west_arm@2-3::kootenay_lake_lower_west_arm.r5"
 BELLA_ST = "r2:bella_coola_river@2-3::bella_coola_river.r13"
 FRASER_ST = ("r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::"
              "fraser_river_upstream_of_mission.r5")
@@ -103,7 +108,9 @@ WATERS = {VEDDER: (1, "stream", True, True, "known"),
           BELLA_MAY: (12, "stream", True, True, "known"),
           VEDDER_MAY: (13, "stream", True, True, "known"),
           BELLA_TRIB: (14, "stream", True, True, "known"),
-          LWA: (15, "lake", False, True, None)}
+          LWA: (15, "lake", False, True, None),
+          BELLA_MAY_ST: (16, "stream", True, True, "known"),
+          SHUT: (17, "stream", True, True, "known")}
 
 
 #: set id -> the water's (set id, kind, steelhead water, steelhead rules here, presence)
@@ -140,7 +147,7 @@ def _load() -> _B:
     sets[5] = sorted(sets[3] + [(*dv, "reach")])
     for set_id, ks in _R12_SETS.items():
         base = sets[2] if WATERS_BY_SET[set_id][1] == "stream" else sets[3]
-        sets[set_id] = sorted(base + [(e, r, "reach") for e, r in ks])
+        sets[set_id] = sorted(base + [(e, r, _VIA.get(set_id, "reach")) for e, r in ks])
     return _B(rules=got, sets=sets)
 
 
@@ -226,8 +233,8 @@ _R12.update({
                                          "verbatim": "hatchery cutthroat catch and release"})]),
     14: ("r2:bella_coola_river@2-3", "Bella Coola River", [
         *_R12[10][2],
-        ("bella_coola_river.r9", {"label": "Char — release all, Sep 1-May 31", "species": ["CHAR"], "take": 0,
-                                  "may_target": 1,
+        ("bella_coola_river.r9", {"label": "Char — release all, Sep 1-May 31 — tributaries only",
+                                  "species": ["CHAR"], "take": 0, "may_target": 1, "tributaries_only": True,
                                   "when": {"dates": [{"from_day": 1, "from_month": 9, "to_day": 31, "to_month": 5}]},
                                   "verbatim": "char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31"})]),
     15: ("r2:lower_west_arm@2-3", "Kootenay Lake — Lower West Arm", [
@@ -241,8 +248,24 @@ _R12.update({
                                              "when": {"weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday",
                                                                    "Friday"]},
                                              "verbatim": "Kokanee catch and release Monday through Friday of each "
-                                                         "week."})]),
+                                                         "week."}),
+        ("kootenay_lake_lower_west_arm.r5", {"label": "Kokanee — 5 per day, on Saturdays and Sundays",
+                                             "species": ["KO"], "take": 5,
+                                             "when": {"weekdays": ["Saturday", "Sunday"]},
+                                             "verbatim": "NOTE: the combined daily quota for kokanee from the Upper "
+                                                         "West Arm (when open to\nkokanee harvest) and the Lower West "
+                                                         "Arm (when open to kokanee harvest) cannot exceed 5"})]),
 })
+_R12.update({
+    16: ("r2:bella_coola_river@2-3", "Bella Coola River", [*_R12[12][2], _R12[10][2][2]]),
+    17: ("r2:shut_creek@2-3", "Shut Creek", [
+        ("shut_creek.r1", {"label": "No fishing, Jun 1-Jul 31", "species": ["ALL_GAME_FISH"], "take": 0,
+                           "may_target": 0,
+                           "when": {"dates": [{"from_day": 1, "from_month": 6, "to_day": 31, "to_month": 7}]},
+                           "verbatim": "No Fishing June 1-July 31"})]),
+})
+#: set id -> how its own rows reach it (ROUND15 6: Ape Creek takes the Bella Coola's rows by the walk)
+_VIA = {14: "trib"}
 _R12_SETS = {set_id: [(e, r) for r, _f in rows] for set_id, (e, _n, rows) in _R12.items()}
 #: the fish asked on a water beyond `FISH` (the kokanee on the Lower West Arm)
 _EXTRA_FISH = {LWA: ("KO",)}

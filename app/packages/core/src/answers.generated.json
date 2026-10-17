@@ -1830,6 +1830,31 @@
      "title": "Accompanied",
      "type": "object"
     },
+    "BuyDoc": {
+     "additionalProperties": false,
+     "properties": {
+      "doc": {
+       "minLength": 1,
+       "title": "Doc",
+       "type": "string"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "prices": {
+       "$ref": "#/$defs/Prices"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "prices"
+     ],
+     "title": "BuyDoc",
+     "type": "object"
+    },
     "DocumentNeed": {
      "additionalProperties": false,
      "properties": {
@@ -2469,6 +2494,67 @@
      "title": "TidalState",
      "type": "object"
     },
+    "UnderSixteen": {
+     "additionalProperties": false,
+     "description": "ROUND15 2 (owner): what an under-16 angler of one residency needs here (not guided, no status), read\noff the profiles' answers (`licence.under_16_summary`): fish with a licensed adult (`with_adult`), or\nbuy `buy` (`own_limit`: a limit of their own), or nothing; `says` the sentence.",
+     "properties": {
+      "buy": {
+       "items": {
+        "$ref": "#/$defs/BuyDoc"
+       },
+       "title": "Buy",
+       "type": "array"
+      },
+      "label": {
+       "minLength": 1,
+       "title": "Label",
+       "type": "string"
+      },
+      "none_needed": {
+       "title": "None Needed",
+       "type": "boolean"
+      },
+      "own_limit": {
+       "title": "Own Limit",
+       "type": "boolean"
+      },
+      "residency": {
+       "enum": [
+        "resident",
+        "non_resident",
+        "non_resident_alien"
+       ],
+       "title": "Residency",
+       "type": "string"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "with_adult": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/WithAdult"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      }
+     },
+     "required": [
+      "residency",
+      "label",
+      "none_needed",
+      "with_adult",
+      "buy",
+      "own_limit",
+      "says"
+     ],
+     "title": "UnderSixteen",
+     "type": "object"
+    },
     "When": {
      "additionalProperties": false,
      "properties": {
@@ -2535,6 +2621,26 @@
      ],
      "title": "When",
      "type": "object"
+    },
+    "WithAdult": {
+     "additionalProperties": false,
+     "properties": {
+      "counts": {
+       "title": "Counts",
+       "type": "boolean"
+      },
+      "who": {
+       "minLength": 1,
+       "title": "Who",
+       "type": "string"
+      }
+     },
+     "required": [
+      "who",
+      "counts"
+     ],
+     "title": "WithAdult",
+     "type": "object"
     }
    },
    "additionalProperties": false,
@@ -2563,6 +2669,21 @@
      },
      "title": "Profiles",
      "type": "array"
+    },
+    "under_16": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/$defs/UnderSixteen"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Under 16"
     }
    },
    "required": [
@@ -2620,6 +2741,18 @@
      "additionalProperties": false,
      "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);\n`replaces` (ROUND13 D) what a lifting bucket replaces, else None; `groups` (ROUND14 3) its nested\ncount groups, each holding some of its kind rows (said before the notes).",
      "properties": {
+      "between": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Between"
+      },
       "by": {
        "minimum": 0,
        "title": "By",
@@ -2668,6 +2801,14 @@
          "type": "null"
         }
        ]
+      },
+      "sizes": {
+       "default": [],
+       "items": {
+        "$ref": "#/$defs/SizeGroup"
+       },
+       "title": "Sizes",
+       "type": "array"
       },
       "title": {
        "anyOf": [
@@ -5797,6 +5938,34 @@
      "title": "Replaces",
      "type": "object"
     },
+    "Restated": {
+     "additionalProperties": false,
+     "description": "ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) \u2014 one\nladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota.",
+     "properties": {
+      "of": {
+       "minimum": 0,
+       "title": "Of",
+       "type": "integer"
+      },
+      "r": {
+       "minimum": 0,
+       "title": "R",
+       "type": "integer"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "r",
+      "of",
+      "says"
+     ],
+     "title": "Restated",
+     "type": "object"
+    },
     "Row": {
      "additionalProperties": false,
      "properties": {
@@ -6096,6 +6265,21 @@
        ],
        "default": null
       },
+      "restates": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/Restated"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Restates"
+      },
       "scope": {
        "anyOf": [
         {
@@ -6213,6 +6397,108 @@
       "members"
      ],
      "title": "SharedCount",
+     "type": "object"
+    },
+    "SizeGroup": {
+     "additionalProperties": false,
+     "description": "ROUND15 1 (owner): a size cap as a BOXED GROUP, like a count group, naming EXACTLY the kinds it can\nbind today \u2014 kept and able to pass the size \u2014 in the book's order: \"Brown trout, Dolly Varden/bull trout,\nlake trout or brook trout: only 1 over 50 cm between them\" (the Bella Coola mainstem, May 1 \u2014 never the\ncutthroat \u226433 cm, the rainbow \u226450 cm or a closed steelhead). It NAMES its kinds (`species`; each one's\nkind row stays in its bucket \u2014 a cap may span buckets or cut a kind row); `by` the cap's rule;\n`not_counting` kinds of the card it says stay outside it (still keepable over the size after its `n`);\n`then` the caps nested in it (\"\u2026, and only 1 over 50 cm\"). The gate proves the number, that each kind\nnamed may pass the size here, and that no kind the rule binds over the size goes unnamed.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "not_counting": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Not Counting",
+       "type": "array"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      },
+      "then": {
+       "items": {
+        "$ref": "#/$defs/SizeThen"
+       },
+       "title": "Then",
+       "type": "array"
+      }
+     },
+     "required": [
+      "says",
+      "n",
+      "over_cm",
+      "by",
+      "species",
+      "not_counting",
+      "then"
+     ],
+     "title": "SizeGroup",
+     "type": "object"
+    },
+    "SizeThen": {
+     "additionalProperties": false,
+     "description": "A size cap nested in a size group (ROUND15 1): at most `n` of `species` over `over_cm` (gate-proved).",
+     "properties": {
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "n",
+      "over_cm",
+      "species"
+     ],
+     "title": "SizeThen",
      "type": "object"
     },
     "SubGroup": {
@@ -6366,6 +6652,14 @@
      "additionalProperties": false,
      "description": "ROUND14 5: a weekday window said as weekdays, the same on every moment's frame of the day \u2014\n\"Keep up to 5 on Saturdays and Sundays; release Monday to Friday\" (Kootenay Lake's Lower West Arm\nkokanee); `species` the row's fish whose answer it is (several fish answering differently are each\nnamed: \"Kokanee: \u2026\").",
      "properties": {
+      "parts": {
+       "default": [],
+       "items": {
+        "$ref": "#/$defs/WeekPart"
+       },
+       "title": "Parts",
+       "type": "array"
+      },
       "says": {
        "minLength": 1,
        "title": "Says",
@@ -6378,6 +6672,18 @@
        "minItems": 1,
        "title": "Species",
        "type": "array"
+      },
+      "status": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Status"
       }
      },
      "required": [
@@ -6385,6 +6691,100 @@
       "says"
      ],
      "title": "Week",
+     "type": "object"
+    },
+    "WeekPart": {
+     "additionalProperties": false,
+     "description": "ROUND15 3: one day-part of a weekday window \u2014 `days` \"Sat\u2013Sun\", `when` \"Saturday and Sunday\",\n`weekdays` the days, `status` and `n` (keep: the number), `says` \"keep up to 5\", `rules` the rule(s)\ndeciding it (how it was decided), `today` the frame's own moment is in it.",
+     "properties": {
+      "days": {
+       "minLength": 1,
+       "title": "Days",
+       "type": "string"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "rules": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Rules",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      },
+      "status": {
+       "enum": [
+        "keep",
+        "no_limit",
+        "release",
+        "closed"
+       ],
+       "title": "Status",
+       "type": "string"
+      },
+      "today": {
+       "title": "Today",
+       "type": "boolean"
+      },
+      "weekdays": {
+       "items": {
+        "enum": [
+         "Monday",
+         "Tuesday",
+         "Wednesday",
+         "Thursday",
+         "Friday",
+         "Saturday",
+         "Sunday"
+        ],
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Weekdays",
+       "type": "array"
+      },
+      "when": {
+       "minLength": 1,
+       "title": "When",
+       "type": "string"
+      }
+     },
+     "required": [
+      "species",
+      "days",
+      "when",
+      "weekdays",
+      "status",
+      "n",
+      "says",
+      "rules",
+      "today"
+     ],
+     "title": "WeekPart",
      "type": "object"
     },
     "Worked": {

@@ -98,8 +98,11 @@ def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     k = _kinds(g)
     # ROUND11 A1: the share's over-50 cap is its bucket's note, said once; no size note on a row
     # (ROUND12 2: the river's own bucket first, the share second)
-    assert [n["says"] for n in g["buckets"][1]["notes"]] == [
-        "Only 1 of these may be over 50 cm, not counting steelhead"]
+    # ROUND15 1: a size group naming the kinds it binds (steelhead not among them)
+    assert [n["says"] for n in g["buckets"][1]["sizes"]] == [
+        "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm "
+        "between them"]
+    assert g["buckets"][1]["sizes"][0]["not_counting"] == ["ST"]
     assert k["EB/GB/CT"]["notes"] == [] and k["DV/LT"]["notes"] == []
     assert k["ST"]["name"] == "Steelhead" and k["ST"]["n"] == 2
     assert k["RB"]["n"] == 4 and k["RB"]["notes"] == ["counts toward the 4 a day"]
@@ -142,8 +145,11 @@ def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     # ROUND12 3: Region 2's "Dolly Varden and lake trout 1" spans the lake's Dolly Varden and the rest's
     # lake trout — said once, on the first bucket (it was not said at all: 1 of each read as allowed)
     assert [[n["says"] for n in b["notes"]] for b in g["buckets"]] == [
-        ["Only 1 Dolly Varden/bull trout or lake trout a day in all",
-         "Only 1 of the day’s trout and char may be over 50 cm"], []]
+        ["Only 1 Dolly Varden/bull trout or lake trout a day in all"], []]
+    # ROUND15 1: the over-50 cap spanning both buckets is ONE size group, on the first, naming every kind
+    assert [[n["says"] for n in b["sizes"]] for b in g["buckets"]] == [
+        ["Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: "
+         "only 1 over 50 cm between them"], []]
     assert k["EB/GB/CT/RB"]["notes"] == [] and k["LT"]["notes"] == []
     assert k["DV"]["notes"] == ["counts toward the 4 a day"]
     assert not any("steelhead" in t.lower() for kk in k.values() for t in kk["notes"])

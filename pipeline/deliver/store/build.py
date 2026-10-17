@@ -39,12 +39,14 @@ FAMILIES = {("ladder", "verdicts"): "ladder_verdict", ("ladder", "frames"): "lad
             ("rows", "frames"): "rows_frame", ("gear", "frames"): "gear_frame",
             ("licence", "holds"): "licence_hold", ("licence", "answers"): "licence_answer",
             ("licence", "documents"): "licence_doc", ("licence", "frames"): "licence_frame",
+            ("licence", "under_16"): "licence_u16",                     # ROUND15 2
             ("display", "frames"): "display_frame", ("display", "rules"): "display_rule"}
 #: Section keys held as `static` rows (whole values).
 SECTION_STATIC = {("ladder", "reasons"), ("ladder", "reason_state"),
                   ("gear", "province_methods"), ("gear", "parent"), ("gear", "methods"),
                   ("gear", "moments"), ("gear", "conduct_means"), ("gear", "count_nouns"),
                   ("licence", "profiles"), ("licence", "profile_dims"),
+                  ("licence", "residency_labels"), ("licence", "profile_labels"),     # ROUND15 2
                   ("display", "strip"), ("display", "reasons"), ("display", "licensing")}
 #: The answers' top-level keys held in tables; every other one is a `static` row.
 TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "places", "sections")
