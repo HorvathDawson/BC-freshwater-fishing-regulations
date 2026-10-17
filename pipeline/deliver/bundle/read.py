@@ -532,6 +532,17 @@ OWN_ROW_BEATS_INHERITED = True
 #: named so a test can switch it off and prove the step decides it.
 OWN_ROW_REPLACES_INHERITED = True
 
+#: POLICY (owner ruling 2026-10-16, ROUND14 1, RULINGS T14): WHERE TWO ✱ ROWS COMPETE ON A TRIBUTARY,
+#: THE ROW OF THE WATER NEAREST THAT STREAM WINS — on the Duncan River's tributaries the Duncan's "bull
+#: trout daily quota = 2 (any size)" beats Kootenay Lake's tributaries' "Bull trout catch and release".
+#: Both rules reach the stream by the tributary walk (the `inherited` rung); NEARER is the bundle's
+#: `trib_nearer` (`bundle/nearer.py`: near's own water drains into far's, so walking down from the
+#: stream near's water is met first). Decided BEFORE NAMING, as the own row is (T4) — the nearer row is
+#: the more specific statement for the stream — and never a closure either way (an inherited closure
+#: is only lifted). A farther row's release it beats releases nothing (step 5). `effective_rules` step
+#: 4; named so a test can switch it off and prove the step decides it.
+NEARER_ROW_BEATS_FARTHER = True
+
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
@@ -553,6 +564,7 @@ LOSS_REASONS = {
     "moot_size_clause": "moot",              # step 5b: "doesn't matter today"
     "stricter_region": "displaced",          # step 6: the other region's stricter rule
     "same_as_peer": "displaced",             # step 6: the other region's identical line (RU-8)
+    "nearer_row": "displaced",               # step 4: the nearer ✱ row beats a farther one (T14)
 }
 
 #: The states a loser takes (`LOSS_REASONS` values, in their first order): lifted, displaced, moot.
@@ -576,6 +588,37 @@ def place(rule: dict, via: str) -> int:
 
 
 _ladder_place = place
+
+
+#: (near, far) water-row entry pairs per bundle path (`bundle.nearer`, table `trib_nearer`)
+_NEARER_BY_PATH: dict = {}
+
+
+def _nearer_of(path: str) -> frozenset:
+    """The bundle's `trib_nearer` pairs (ROUND14 1), read once per path. A real bundle without the
+    table is refused (rebuild it); a hand-made one (no `rule` table) or a test's seeded rule table
+    (a path that is no file) has none unless a test seeds `_NEARER_BY_PATH`."""
+    got = _NEARER_BY_PATH.get(path)
+    if got is not None:
+        return got
+    import os
+    if path in _RULES_BY_PATH and not os.path.exists(path):
+        got = frozenset()
+    else:
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        try:
+            names = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+            if "trib_nearer" in names:
+                got = frozenset(db.execute("SELECT near, far FROM trib_nearer"))
+            elif "rule" in names:
+                raise SystemExit(f"read: {path} has no `trib_nearer` table — rebuild the bundle "
+                                 f"(`python -m pipeline.deliver.bundle`)")
+            else:
+                got = frozenset()
+        finally:
+            db.close()
+    _NEARER_BY_PATH[path] = got
+    return got
 
 
 def _rules_of(path: str) -> dict:
@@ -686,6 +729,11 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          River's tributaries") gets both, and on one key its own rule speaks — "trout/char daily
          quota = 1" over the inherited "Rainbow trout catch and release" for a rainbow. Never a
          closure either way: an inherited closure is only lifted, an own closure beats as before.
+         THE NEARER ✱ ROW BEATS A FARTHER ONE, BEFORE NAMING (owner ruling 2026-10-16, T14,
+         `NEARER_ROW_BEATS_FARTHER`): two rows reaching the stream by the walk, the one whose water
+         drains into the other's (`trib_nearer`) speaks — on the Duncan's tributaries the Duncan's
+         "bull trout daily quota = 2" over Kootenay Lake's tributaries' bull trout release. Never a
+         closure either way.
          So a water row that itself names the fish ("Bull trout daily quota = 1") beats the
          zone's bull trout rule: both name it, and the water is more specific.
          A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
@@ -885,7 +933,8 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     steelhead_here = bool(steelhead_here) and fish == "RB"
     orig = _rules_of(path)
     s = _Ask(orig=orig, every=orig, here={(e, r): via for e, r, via in bound if (e, r) in orig},
-             fish=fish, on=on, at=at, origin=origin, by_naming=by_naming)
+             fish=fish, on=on, at=at, origin=origin, by_naming=by_naming,
+             nearer=_nearer_of(path) if NEARER_ROW_BEATS_FARTHER else frozenset())
     _step0_steelhead_sizes(s, steelhead_here)
     _step1_in_force(s)
     _step3_lifts(s)
@@ -915,6 +964,7 @@ class _Ask:
     at: object
     origin: str | None
     by_naming: bool
+    nearer: frozenset = frozenset()                    # (near, far) entries (`trib_nearer`, T14)
     # WHY EACH LOSER LOST (gap G1): rule -> (reason, the rule that beat it), kept on every call —
     # the steps remove rules only through `lose`, so the trace is the same code path as the
     # answer; `trace` only decides whether the losers are returned.
@@ -1112,7 +1162,24 @@ class _Ask:
             return True
         if self.own_over_inherited(k, o):
             return False
+        if self.nearer_over_farther(o, k):
+            return True
+        if self.nearer_over_farther(k, o):
+            return False
         return self.order(o) < self.order(k)
+
+    def nearer_over_farther(self, o, k) -> bool:
+        """THE NEARER ✱ ROW BEATS A FARTHER ONE (owner ruling T14, `NEARER_ROW_BEATS_FARTHER`): both
+        reach this section by the tributary walk as water rows, `o`'s water is nearer the stream than
+        `k`'s (`trib_nearer`), and neither is a closure (an inherited closure is only lifted)."""
+        return (o[0], k[0]) in self.nearer and self.here[o] == "trib" and self.here[k] == "trib" \
+            and self.every[o]["_rank"] == 0 and self.every[k]["_rank"] == 0 \
+            and not self.closure(o) and not self.closure(k)
+
+    def precedes(self, o, k) -> bool:
+        """A precedence that decides BEFORE NAMING: the own row over what it inherits (T4), the nearer
+        ✱ row over a farther one (T14) — the edges a cycle is broken at (step 4)."""
+        return self.own_over_inherited(o, k) or self.nearer_over_farther(o, k)
 
     def own_over_inherited(self, o, k) -> bool:
         """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (user ruling Q5, `OWN_ROW_BEATS_INHERITED`):
@@ -1307,7 +1374,7 @@ def _step4_competition(s: _Ask) -> None:
                         moved = True
             undecided = [k for k in group if k not in stands and k not in falls]
             broken = [k for k in undecided
-                      if any(o in undecided and s.own_over_inherited(o, k) for o in beaters[k])]
+                      if any(o in undecided and s.precedes(o, k) for o in beaters[k])]
             if not broken:
                 break
             falls |= set(broken)
@@ -1315,7 +1382,8 @@ def _step4_competition(s: _Ask) -> None:
         for k in sorted(falls):
             won = sorted(o for o in beaters[k] if o in stands) or sorted(beaters[k])
             s.lose(k, "water_dates" if s.water_dates_override(won[0], k)
-                   else "own_row" if s.own_over_inherited(won[0], k) else "ladder", won[0])
+                   else "own_row" if s.own_over_inherited(won[0], k)
+                   else "nearer_row" if s.nearer_over_farther(won[0], k) else "ladder", won[0])
         s.overridden |= {k for k in falls
                          if any(o in stands and s.water_dates_override(o, k) for o in beaters[k])}
 
@@ -1499,7 +1567,7 @@ def _beaten_by(s: _Ask, k) -> list:
     every = s.every
     g = s.keyed.get((every[k]["type"], every[k]["dimension"]), [])
     return [o for o in g if s.order(o) < s.order(k) and s.family(o) != s.family(k)
-            and not s.peers(o, k) and not s.own_over_inherited(k, o)]
+            and not s.peers(o, k) and not s.precedes(k, o)]
 
 
 def _same_row_dated_release(s: _Ask, k) -> bool:
@@ -1569,7 +1637,9 @@ def _step5_water_release(s: _Ask) -> None:
         # A release a water row's own dates overrode releases nothing here (SP-12): it is not in
         # force at this water on this day, whatever step 4's naming said about it. Nor does an
         # INHERITED release the water's own row beat (Q5): the own row answers for the fish here.
-        if not o or k in s.overridden or (k not in out_ and why.get(k, ("",))[0] == "own_row"):
+        # Nor a release a NEARER ✱ row beat (T14): the nearer row answers for the fish here.
+        if not o or k in s.overridden or (k not in out_
+                                          and why.get(k, ("",))[0] in ("own_row", "nearer_row")):
             continue
         by = _beaten_by(s, k)
         if any(every[b]["_rank"] < 0 and yields_to_release(every[b]) for b in by):

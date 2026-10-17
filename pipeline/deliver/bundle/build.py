@@ -831,6 +831,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         geoms = pickle.load(fh)
     _place_water(db, build_dir, places, registry_items, geoms, cov)
     _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov)
+    # WHICH WATER EACH WATER DRAINS INTO (ROUND14 1, `nearer.item_down`): read from the graph while it
+    # is loaded; `trib_nearer` is derived from it once the rule sets are written
+    from pipeline.deliver.bundle import nearer as _nearer
+    _nearer.write_item_down(db, graph, registry_items, cov)
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
     places = _water_places(build_dir, graph, registry_items)
@@ -889,6 +893,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
+        # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
+        _nearer.write_trib_nearer(db, cov)
+        _nearer.prove(db)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.

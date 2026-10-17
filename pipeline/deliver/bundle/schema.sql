@@ -562,6 +562,18 @@ CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id T
                       via TEXT NOT NULL,          -- reach | trib
                       PRIMARY KEY (set_id, entry_id, rule_id)) WITHOUT ROWID;
 
+-- WHICH ✱ ROW IS NEARER A TRIBUTARY (owner ruling 2026-10-16, RULINGS T14; `bundle/nearer.py`).
+-- `item_down`: each named water's outlets followed down the atlas flow graph (mainstem first) to the
+-- first OTHER named water each meets. `trib_nearer`: (near, far) water-row entries whose rules reach a
+-- section together by the tributary walk, near's own water draining into far's (and never the
+-- reverse) — on such a section near is the nearer row, and its rule beats far's (`read` step 4,
+-- `NEARER_ROW_BEATS_FARTHER`): the Duncan River's tributaries take the Duncan's bull trout 2 over
+-- Kootenay Lake's tributaries' release. Rows whose waters do not nest are absent (not ordered).
+CREATE TABLE item_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL,
+                        PRIMARY KEY (ord, down_ord)) WITHOUT ROWID;
+CREATE TABLE trib_nearer (near TEXT NOT NULL, far TEXT NOT NULL,
+                          PRIMARY KEY (near, far)) WITHOUT ROWID;
+
 -- licensing -----------------------------------------------------------------------
 -- WHAT YOU MUST HOLD, and which waters are Classified. Not rules: licensing never competes and
 -- never votes on open/closed — whatever reads the rules for a water's status must never read

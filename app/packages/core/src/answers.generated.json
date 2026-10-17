@@ -282,7 +282,8 @@
      "same_row_release",
      "moot_size_clause",
      "stricter_region",
-     "same_as_peer"
+     "same_as_peer",
+     "nearer_row"
     ]
    },
    "type": "object"
@@ -1458,7 +1459,8 @@
         "same_row_release",
         "moot_size_clause",
         "stricter_region",
-        "same_as_peer"
+        "same_as_peer",
+        "nearer_row"
        ],
        "title": "Reason",
        "type": "string"
@@ -2616,7 +2618,7 @@
     },
     "Bucket": {
      "additionalProperties": false,
-     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);\n`replaces` (ROUND13 D) what a lifting bucket replaces, else None.",
+     "description": "Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,\nor the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);\n`replaces` (ROUND13 D) what a lifting bucket replaces, else None; `groups` (ROUND14 3) its nested\ncount groups, each holding some of its kind rows (said before the notes).",
      "properties": {
       "by": {
        "minimum": 0,
@@ -2634,6 +2636,13 @@
         }
        ],
        "title": "Cap"
+      },
+      "groups": {
+       "items": {
+        "$ref": "#/$defs/SubGroup"
+       },
+       "title": "Groups",
+       "type": "array"
       },
       "kinds": {
        "items": {
@@ -2687,6 +2696,7 @@
       "by",
       "why",
       "kinds",
+      "groups",
       "notes",
       "replaces"
      ],
@@ -3394,7 +3404,7 @@
     },
     "CardKind": {
      "additionalProperties": false,
-     "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the\nrow's own cap counts toward \u2014 never a size cap, ROUND11 A1), duties (a year, record it, stop\nafter).",
+     "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the\nrow's own cap counts toward \u2014 never a size cap, ROUND11 A1), duties (a year, record it, stop\nafter); `presence` (ROUND14 4) the steelhead presence line on the steelhead kind row.",
      "properties": {
       "detail": {
        "title": "Detail",
@@ -3432,6 +3442,17 @@
        },
        "title": "Notes",
        "type": "array"
+      },
+      "presence": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Presence"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "species": {
        "items": {
@@ -5459,12 +5480,32 @@
     },
     "NotKept": {
      "additionalProperties": false,
-     "description": "ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule \u2014\n\"Steelhead: no fishing for them\" (`status` closed), \"Dolly Varden/bull trout: release every one\"\n(release); `by` the deciding rule (its Book page), `whose` \"this river\u2019s rule\". Gate-proved.",
+     "description": "ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule \u2014\n\"Steelhead: no fishing for them\" (`status` closed), \"Dolly Varden/bull trout: release every one\"\n(release); `by` the deciding rule (its Book page), `whose` \"this river\u2019s rule\". Gate-proved.\nROUND14 6: one line per status and deciding row, fish in the book's order (\"Rainbow trout and\ncutthroat trout: release every one\"), a group named with its members; `rules` every deciding rule\n(`by` the first). ROUND14 4: `presence` the steelhead presence line on the steelhead's line.",
      "properties": {
       "by": {
        "minimum": 0,
        "title": "By",
        "type": "integer"
+      },
+      "presence": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Presence"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
+      "rules": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Rules",
+       "type": "array"
       },
       "says": {
        "minLength": 1,
@@ -5498,6 +5539,7 @@
       "status",
       "says",
       "by",
+      "rules",
       "whose"
      ],
      "title": "NotKept",
@@ -5611,6 +5653,31 @@
       "o"
      ],
      "title": "OriginLine",
+     "type": "object"
+    },
+    "Presence": {
+     "additionalProperties": false,
+     "description": "ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,\na not-kept steelhead line, or the steelhead's own row) \u2014 `line` the frame's `steelhead_line` code,\n`says` its words (\"Steelhead are known to be in this water.\").",
+     "properties": {
+      "line": {
+       "enum": [
+        "possible_with_rules",
+        "known_with_rules"
+       ],
+       "title": "Line",
+       "type": "string"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "line",
+      "says"
+     ],
+     "title": "Presence",
      "type": "object"
     },
     "RealDaily": {
@@ -5993,6 +6060,17 @@
        ],
        "title": "Pool"
       },
+      "presence": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Presence"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
       "prot": {
        "anyOf": [
         {
@@ -6027,6 +6105,17 @@
          "type": "null"
         }
        ]
+      },
+      "week": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Week"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "win": {
        "anyOf": [
@@ -6124,6 +6213,43 @@
       "members"
      ],
      "title": "SharedCount",
+     "type": "object"
+    },
+    "SubGroup": {
+     "additionalProperties": false,
+     "description": "ROUND14 3: a count over SOME of a bucket's kinds, nested in it with those kinds and their own\nsizes \u2014 \"Cutthroat trout or rainbow trout: 1 between them\" (the Bella Coola mainstem, Apr 1-May 31);\n`by` the count's rule; the gate proves the kinds together keep exactly `n`.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "kinds": {
+       "items": {
+        "$ref": "#/$defs/CardKind"
+       },
+       "minItems": 2,
+       "title": "Kinds",
+       "type": "array"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "n",
+      "by",
+      "kinds"
+     ],
+     "title": "SubGroup",
      "type": "object"
     },
     "Subcap": {
@@ -6234,6 +6360,31 @@
       "by"
      ],
      "title": "SubcapLift",
+     "type": "object"
+    },
+    "Week": {
+     "additionalProperties": false,
+     "description": "ROUND14 5: a weekday window said as weekdays, the same on every moment's frame of the day \u2014\n\"Keep up to 5 on Saturdays and Sundays; release Monday to Friday\" (Kootenay Lake's Lower West Arm\nkokanee); `species` the row's fish whose answer it is (several fish answering differently are each\nnamed: \"Kokanee: \u2026\").",
+     "properties": {
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "species",
+      "says"
+     ],
+     "title": "Week",
      "type": "object"
     },
     "Worked": {

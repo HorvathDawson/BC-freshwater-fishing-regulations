@@ -593,7 +593,10 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     Dinosaur r1 walk, their other rules do not). A ✱ ROW'S EXEMPTION WALKS WITH IT (rule 57, D4/T13). A TRIBUTARY WITH
     ITS OWN ROW gets both its own and its inherited rules; on one competition key its OWN row speaks,
     before naming (`read.OWN_ROW_BEATS_INHERITED`, Granby under "Kettle River's tributaries") — never a
-    closure either way (an inherited closure is only lifted). A FISH EXACTLY ON A PRINTED SIZE BOUND IS
+    closure either way (an inherited closure is only lifted). TWO ✱ ROWS COMPETING ON ONE TRIBUTARY: the row whose water
+    is NEARER the stream wins, before naming, never a closure (owner 2026-10-16, RULINGS T14,
+    `read.NEARER_ROW_BEATS_FARTHER`): nearer = its own water drains into the other's, read from the bundle's
+    `trib_nearer` (built from `item_down`, each water's outlets followed down the graph, `bundle/nearer.py`). A FISH EXACTLY ON A PRINTED SIZE BOUND IS
     LEGAL: a take-0 band does not hold its own bounds (`catalogue.EXACT_BOUND_IS_LEGAL`); the book's "X
     cm or more/or less" is the band's `closed: true`. TROUT/CHAR: rule 46 (a)/(b), relatedness per rule
     pair. A RECORD'S `verbatim` CARRIES NO EXTRACTION MARKUP (`**`,

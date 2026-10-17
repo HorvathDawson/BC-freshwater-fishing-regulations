@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "12",
+            "version": "13",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -282,7 +282,21 @@ SPEC = {
                     "(\"Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for these fish\") — "
                     "show it under the bucket title; `lifts` stay for proof, not for display; the lake line "
                     "says the count left (\"Kept 1 at a lake?\" \"Keep 2 more here. Fish from lakes count "
-                    "toward the 4 a day, not toward the 2 from streams.\"). A decided answer's winner may be a size release (F13: a take-0 "
+                    "toward the 4 a day, not toward the 2 from streams.\"). Version 13 (ROUND14 3-6): a count over SOME of a bucket's kinds is a "
+                    "nested group `buckets[].groups` [{says, n, by, kinds}] (\"Cutthroat trout or rainbow trout: 1 "
+                    "between them\", each kind row with its own size; show the groups before the bucket's size "
+                    "notes; those kinds are no longer in `buckets[].kinds`); a water's own pool printing the "
+                    "share's very number is its own bucket (\"This river’s rule\", the Bella Coola mainstem's 2); "
+                    "the steelhead presence line `presence` {line: possible_with_rules | known_with_rules, says} "
+                    "sits INSIDE the steelhead section, exactly once — on the card's steelhead kind row, on its "
+                    "not-kept steelhead line, or on the steelhead's own row (`rows[].presence`); `known_no_rules` "
+                    "stays the frame's `steelhead_line` only; a weekday window `rows[].week` {species, says} "
+                    "(\"Keep up to 5 on Saturdays and Sundays; release Monday to Friday\") on every moment's frame "
+                    "of the day alike — show it in place of the day's keep / release words, and read the year "
+                    "strip at every moment of a day (the best answer), never as a list of dates; `not_kept` is "
+                    "one line per status and deciding row, fish in the book's order, a group named with its "
+                    "members (\"Char (Dolly Varden/bull trout, lake trout and brook trout): release every one\"), "
+                    "`rules` every deciding rule (`by` the first). A decided answer's winner may be a size release (F13: a take-0 "
                     "band releasing the fish's whole range, status release)",
         },
         "gear": {
@@ -366,7 +380,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "9",
+            "version": "10",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "

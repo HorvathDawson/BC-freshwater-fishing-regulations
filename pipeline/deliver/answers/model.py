@@ -457,16 +457,41 @@ class CardLift(Model):
         return self
 
 
+class Presence(Model):
+    """ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,
+    a not-kept steelhead line, or the steelhead's own row) — `line` the frame's `steelhead_line` code,
+    `says` its words ("Steelhead are known to be in this water.")."""
+    line: Literal["possible_with_rules", "known_with_rules"]
+    says: StrictStr = Field(min_length=1)
+
+
 class CardKind(Model):
     """One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the
     row's own cap counts toward — never a size cap, ROUND11 A1), duties (a year, record it, stop
-    after)."""
+    after); `presence` (ROUND14 4) the steelhead presence line on the steelhead kind row."""
     species: Tuple[Fish, ...] = Field(min_length=1)
     name: StrictStr = Field(min_length=1)
     detail: StrictStr
     n: Optional[Count]
     notes: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
+    presence: Optional[Presence] = None
+
+    @model_validator(mode="after")
+    def _presence_on_steelhead(self):
+        if self.presence is not None and "ST" not in self.species:
+            raise ValueError("the steelhead presence line sits on the steelhead's own section")
+        return self
+
+
+class SubGroup(Model):
+    """ROUND14 3: a count over SOME of a bucket's kinds, nested in it with those kinds and their own
+    sizes — "Cutthroat trout or rainbow trout: 1 between them" (the Bella Coola mainstem, Apr 1-May 31);
+    `by` the count's rule; the gate proves the kinds together keep exactly `n`."""
+    says: StrictStr = Field(min_length=1)
+    n: Count
+    by: RuleIx
+    kinds: Tuple[CardKind, ...] = Field(min_length=2)
 
 
 class NoteThen(Model):
@@ -503,12 +528,14 @@ class Replaces(Model):
 class Bucket(Model):
     """Kinds grouped under the cap they draw from: the stream (lake) share, a water's lifting rule,
     or the total; `by` the rule of that cap; `notes` the size caps said on it (ROUND11 A1);
-    `replaces` (ROUND13 D) what a lifting bucket replaces, else None."""
+    `replaces` (ROUND13 D) what a lifting bucket replaces, else None; `groups` (ROUND14 3) its nested
+    count groups, each holding some of its kind rows (said before the notes)."""
     title: Optional[StrictStr]                        # None: the only bucket, the headline's
     cap: Optional[Count]
     by: RuleIx
     why: Literal["share", "rule", "total"]
     kinds: Tuple[CardKind, ...] = Field(min_length=1)
+    groups: Tuple[SubGroup, ...]
     notes: Tuple[BucketNote, ...]
     replaces: Optional[Replaces]
 
@@ -522,12 +549,25 @@ class Bucket(Model):
 class NotKept(Model):
     """ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule —
     "Steelhead: no fishing for them" (`status` closed), "Dolly Varden/bull trout: release every one"
-    (release); `by` the deciding rule (its Book page), `whose` "this river’s rule". Gate-proved."""
+    (release); `by` the deciding rule (its Book page), `whose` "this river’s rule". Gate-proved.
+    ROUND14 6: one line per status and deciding row, fish in the book's order ("Rainbow trout and
+    cutthroat trout: release every one"), a group named with its members; `rules` every deciding rule
+    (`by` the first). ROUND14 4: `presence` the steelhead presence line on the steelhead's line."""
     species: Tuple[Fish, ...] = Field(min_length=1)
     status: Literal["closed", "release"]
     says: StrictStr = Field(min_length=1)
     by: RuleIx
+    rules: Tuple[RuleIx, ...] = Field(min_length=1)
     whose: StrictStr = Field(min_length=1)
+    presence: Optional[Presence] = None
+
+    @model_validator(mode="after")
+    def _by_first(self):
+        if self.rules[0] != self.by:
+            raise ValueError("a not-kept line's `by` is the first of its `rules`")
+        if self.presence is not None and "ST" not in self.species:
+            raise ValueError("the steelhead presence line sits on the steelhead's own section")
+        return self
 
 
 class Worked(Model):
@@ -594,7 +634,8 @@ class GroupTotal(Model):
             if not set(s.of) <= set(self.kinds) or any(not set(L.members) <= set(self.kinds)
                                                        for L in s.lifted):
                 raise ValueError("a sub-cap holds (or lifts) only kinds counting toward the total")
-        every = [S for b in self.buckets for k in b.kinds for S in k.species]
+        every = [S for b in self.buckets for k in (*b.kinds, *(k for s in b.groups for k in s.kinds))
+                 for S in k.species]
         if sorted(every) != sorted(self.kinds):
             raise ValueError("every kind of the total sits in exactly one bucket row")
         if set(S for x in self.not_kept for S in x.species) & set(self.kinds):
@@ -610,6 +651,15 @@ class Elsewhere(Model):
     [[question, answer]]."""
     says: StrictStr = Field(min_length=1)
     ask: Tuple[Tuple[StrictStr, StrictStr], ...]
+
+
+class Week(Model):
+    """ROUND14 5: a weekday window said as weekdays, the same on every moment's frame of the day —
+    "Keep up to 5 on Saturdays and Sundays; release Monday to Friday" (Kootenay Lake's Lower West Arm
+    kokanee); `species` the row's fish whose answer it is (several fish answering differently are each
+    named: "Kokanee: …")."""
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)
 
 
 class Row(Model):
@@ -631,6 +681,8 @@ class Row(Model):
     real_daily: Optional[RealDaily] = None            # only on a pool row
     group: Optional[GroupTotal] = None                # answers 2.5: on ONE row per total
     elsewhere: Optional[Elsewhere] = None             # answers 2.5: set <=> a keep row
+    presence: Optional[Presence] = None               # ROUND14 4: on the steelhead's own row
+    week: Optional[Week] = None                       # ROUND14 5: its fish's weekday window in words
 
     @model_validator(mode="after")
     def _pool_rows(self):
@@ -651,6 +703,10 @@ class Row(Model):
             raise ValueError("a real daily limit only on a pool row")
         if (self.daily is not None) != (self.kind == "keep"):
             raise ValueError(f"daily {self.daily} on a {self.kind} row: set <=> keep")
+        if self.presence is not None and "ST" not in self.all_members:
+            raise ValueError("the steelhead presence line sits on the steelhead's own row")
+        if self.week is not None and not set(self.week.species) <= set(self.all_members):
+            raise ValueError("a row's weekday window names only its own fish")
         return self
 
 

@@ -333,11 +333,18 @@ def check_group(P, g: dict) -> List[str]:
         return (got >= CAP if c is None else got == c), got
 
     for b in g.get("buckets") or []:
-        sp = [S for k in b["kinds"] for S in k["species"]]
+        rows_ = list(b["kinds"]) + [k for s in b.get("groups") or [] for k in s["kinds"]]
+        sp = [S for k in rows_ for S in k["species"]]
         ok, got = proved(b["cap"], E.fish(sp))
         if not ok:
             probs.append(f"{where}: bucket {b['title']!r} says {b['cap']}, its kinds together keep {got}")
-        for k in b["kinds"]:
+        # ROUND14 3: a nested group — its kinds together keep exactly its number
+        for s in b.get("groups") or []:
+            ok, got = proved(s["n"], E.fish([S for k in s["kinds"] for S in k["species"]]))
+            if not ok:
+                probs.append(f"{where}: bucket {b['title']!r} group {s['says']!r} says {s['n']}, its kinds "
+                             f"together keep {got}")
+        for k in rows_:
             ok, got = proved(k["n"], E.fish(k["species"]))
             if not ok:
                 probs.append(f"{where}: kind {k['species']} says {k['n']}, alone it keeps {got}")
@@ -502,7 +509,10 @@ def _unref(v, ids):
     g["buckets"] = [{**b, "by": r(b["by"]),
                      "replaces": None if b.get("replaces") is None else
                      {**b["replaces"], "rules": [r(k) for k in b["replaces"]["rules"]]}} for b in g["buckets"]]
-    g["not_kept"] = [{**x, "by": r(x["by"])} for x in g.get("not_kept") or []]
+    g["not_kept"] = [{**x, "by": r(x["by"]), "rules": [r(k) for k in x.get("rules") or []]}
+                     for x in g.get("not_kept") or []]
+    g["buckets"] = [{**b, "groups": [{**s, "by": r(s["by"])} for s in b.get("groups") or []]}
+                    for b in g["buckets"]]
     g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]
     return g

@@ -172,7 +172,7 @@ def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
               "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                            "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                       "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                           "notes": [], "replaces": None}]},
+                           "groups": [], "notes": [], "replaces": None}]},
           "subcaps": [{"r": 2, "take": 2, "water": "stream", "over_cm": None, "under_cm": None,
                        "of": ["CT"], "lifted": [{"members": ["RB"], "by": 3}]}]}
     M.GroupTotal.model_validate_json(json.dumps(ok))

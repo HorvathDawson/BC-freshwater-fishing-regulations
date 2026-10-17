@@ -32,6 +32,7 @@ from pipeline.tests import answers28_fixture as F
 from pipeline.tests import test_answers_r11_wording as R11
 
 OCT10, JUL15 = (10, 10), (7, 15)
+KNOWN = {"line": "known_with_rules", "says": "Steelhead are known to be in this water."}
 
 
 def _group(water, md=OCT10):
@@ -62,13 +63,15 @@ def test_z_a_kind_keeping_some_keeps_its_size_words():
 def test_s_an_undated_species_closure_is_said_on_the_card():
     g, _o, _P = _group(F.BELLA)
     assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them",
-                              "by": F.BELLA_ST, "whose": "this river’s rule"}]
+                              "by": F.BELLA_ST, "rules": [F.BELLA_ST], "whose": "this river’s rule",
+                              "presence": KNOWN}]                                   # ROUND14 4/6
 
 
 def test_s_a_dated_species_closure_is_said_on_its_dates_only():
     g, _o, _P = _group(F.FRASER)
     assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them",
-                              "by": F.FRASER_ST, "whose": "this river’s rule"}]
+                              "by": F.FRASER_ST, "rules": [F.FRASER_ST], "whose": "this river’s rule",
+                              "presence": KNOWN}]                                   # ROUND14 4/6
     g, _o, _P = _group(F.FRASER, JUL15)
     assert g["not_kept"] == [] and "ST" in g["kinds"]
 

@@ -253,6 +253,11 @@ def _caps_here(P, model: dict, grp: dict, kinds: Sequence[str], share: Optional[
     return sizes, counts
 
 
+def kind_rows(b: dict) -> List[dict]:
+    """A bucket's kind rows, its nested groups' included (ROUND14 3)."""
+    return list(b["kinds"]) + [k for g in b.get("groups") or [] for k in g["kinds"]]
+
+
 def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, dict],
               where_of: Dict[str, dict], buckets: List[dict], share: Optional[dict], what: str,
               states: List[dict]) -> None:
@@ -283,6 +288,20 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
         if len(holding) == 1 and holding[0]["cap"] is not None:
             free = min(free, holding[0]["cap"])
         if c["take"] >= free:
+            continue
+        # ROUND14 3 (owner): a count over SOME of one bucket's kind rows (each wholly inside it) is a NESTED
+        # GROUP of that bucket, holding those kinds with their own sizes — the Bella Coola mainstem's "of
+        # which only one may be a trout (cutthroat or rainbow)": "Cutthroat trout or rainbow trout: 1 between
+        # them"; a quota group comes before the size notes. Size caps stay notes.
+        if len(holding) == 1 and all(set(k["species"]) <= set(K) for _b, k in rk) \
+                and len(rk) < len(holding[0]["kinds"]):
+            b0 = holding[0]
+            moved = [k for _b, k in rk]
+            b0["kinds"] = [k for k in b0["kinds"] if k not in moved]
+            b0["groups"].append({"says": f"{common.cap(_names(K, ' or '))}: {_js(c['take'])} between them",
+                                 "n": c["take"], "by": c["r"], "kinds": moved})
+            states.append({"r": c["r"], "line": f"bucket {b0['title'] or 'the card'} group"})
+            stated.add(c["r"])
             continue
         # one bucket: "Only 1 of these may be cutthroat trout or rainbow trout"; across buckets (Region 2's
         # Dolly Varden and lake trout 1 beside Chilliwack Lake's own Dolly Varden rule): the kinds named
@@ -333,9 +352,9 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
             states.append({"r": sc["r"], "line": f"bucket {first['title'] or 'the card'} note"})
             stated.add(sc["r"])
             continue
-        pool = first["kinds"] if len(holding) == 1 else [k for b in buckets for k in b["kinds"]]
+        pool = kind_rows(first) if len(holding) == 1 else [k for b in buckets for k in kind_rows(b)]
         aside = [S for k in pool for S in k["species"] if S not in sc["of"] and info[S]["hi"] > cm]
-        one_kind = len(holding) == 1 and len(first["kinds"]) == 1 and len(first["kinds"][0]["species"]) == 1
+        one_kind = len(holding) == 1 and len(kind_rows(first)) == 1 and len(kind_rows(first)[0]["species"]) == 1
         if one_kind or (aside and len(over) <= len(aside)):
             # a kind's own cap (Bennett Lake's lake trout), or a cap on a few of the kinds (Region 4's
             # "rainbow and cutthroat trout, no more than 1 over 50 cm"): name them — and claim nothing
@@ -424,36 +443,60 @@ def _replaces(P, model: dict, ks: Sequence[str], lifters: set) -> Optional[dict]
             "rules": [k for _fs, ks_ in sets for k in ks_]}
 
 
+def book_order(codes: Sequence[str]) -> List[str]:
+    """Fish in the book's order (p.80, `catalogue.BOOK_SPECIES`: rainbow trout, steelhead, cutthroat
+    trout, brown trout, Dolly Varden, lake trout, brook trout, …); anything else after, as given."""
+    from pipeline.regs.parsing.catalogue import BOOK_SPECIES
+    rank = {S: i for i, S in enumerate(BOOK_SPECIES)}
+    return sorted(codes, key=lambda S: (rank.get(S, len(rank)), list(codes).index(S)))
+
+
+def _named_with_members(codes: Sequence[str]) -> str:
+    """ROUND14 6 (owner): a closed group said WITH its members, "Char (Dolly Varden/bull trout, lake trout
+    and brook trout)"; fish that are no group joined, "Rainbow trout and cutthroat trout"."""
+    names = [common.lc(common.sp_name(c)) for c in codes]
+    g = common.group_for(codes)
+    if g:
+        return f"{common.cap(g)} ({common.join(names)})"
+    return common.cap(common.join(names))
+
+
 def _not_kept(P, model: dict, row: dict, kinds: Sequence[str]) -> List[dict]:
     """ROUND13 S (owner): every fish the card's row holds (`all_members`) that no origin may keep here,
-    SAID — {species, status: closed | release, says, by, whose}: "Steelhead: no fishing for them" with
-    "this river’s rule" (the Bella Coola's r13; the page cites `by`'s Book page), "Dolly Varden/bull
-    trout: release every one". One line per deciding rule and status, in the row's order."""
+    SAID — {species, status: closed | release, says, by, rules, whose}: "Steelhead: no fishing for them"
+    with "this river’s rule" (the Bella Coola's r13; the page cites `by`'s Book page), "Dolly Varden/bull
+    trout: release every one". ROUND14 6 (owner): ONE line per status and deciding ROW — the Vedder's May
+    hatchery rainbow and cutthroat releases (r6, r7) are "Rainbow trout and cutthroat trout: release every
+    one", `rules` every deciding rule, `by` the first — fish in the book's order (`book_order`), lines in
+    the order of their first fish, a closed group named with its members (`_named_with_members`)."""
     from pipeline.deliver.answers.rows import main_res
     out: Dict[tuple, dict] = {}
-    for S in row.get("all_members") or []:
+    for S in book_order(row.get("all_members") or []):
         if S in kinds:
             continue
         R_ = model["R"].get(S) or {}
         m = main_res(R_.get("H"), R_.get("W"))
         if not m or m["status"] not in ("closed", "release") or m.get("win") is None:
             continue
-        key = (m["status"], m["win"].key)
+        whose = _whose(P, m["win"])[1]
+        key = (m["status"], m["win"].entry_id, whose)
         x = out.get(key)
         if x is None:
-            x = out[key] = {"species": [], "status": m["status"], "by": m["win"].key,
-                            "whose": _whose(P, m["win"])[1]}
+            x = out[key] = {"species": [], "status": m["status"], "by": m["win"].key, "rules": [],
+                            "whose": whose}
         x["species"].append(S)
+        if m["win"].key not in x["rules"]:
+            x["rules"].append(m["win"].key)
     for x in out.values():
-        name = "Steelhead" if x["species"] == ["ST"] and P.steelhead_water else common.cap(_names(x["species"]))
+        name = "Steelhead" if x["species"] == ["ST"] and P.steelhead_water else _named_with_members(x["species"])
         x["says"] = f"{name}: " + ("no fishing for them" if x["status"] == "closed" else "release every one")
     return [{"species": x["species"], "status": x["status"], "says": x["says"], "by": x["by"],
-             "whose": x["whose"]} for x in out.values()]
+             "rules": x["rules"], "whose": x["whose"]} for x in out.values()]
 
 
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     """The card fields of one group total (see the module docstring)."""
-    from pipeline.deliver.answers.rows import _lift_words, _kept, written_name_of, keep_range
+    from pipeline.deliver.answers.rows import _lift_words, _kept, badge_of, written_name_of, keep_range
     T = P.by_key[grp["pool"]]
     total = grp["total"]
     unlimited = total == "unlimited"
@@ -484,9 +527,14 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         default = share["take"] if share is not None and S in share["of"] else cap_all
         m = _kept(model, S)
         W = m["win"] if m else None
+        # ROUND14 3 (owner): WHOSE RULE a bucket is. A water's own pool smaller than the share or the total
+        # draws its kinds into its own bucket; one printing the SAME number as the region's share does too
+        # — the Bella Coola mainstem's "trout/char daily quota = 2" (Apr 1-May 31) is the river's rule,
+        # never "all Region 5 streams combined" though Region 5's 2 from streams says the same
+        own_equal = W is not None and share is not None and S in share["of"] and badge_of(W) == "water"
         inner = W if (W is not None and W.k == "pool" and W.key != grp["pool"] and S not in by_lift
                       and isinstance(W.f.get("take"), (int, float)) and not W.f.get("unlimited")
-                      and W.f["take"] < default) else None
+                      and (W.f["take"] < default or (own_equal and W.f["take"] == default))) else None
         info[S] = {"n": n, "said_by": said_by, "lo": lo, "hi": hi, "inner": inner}
 
     def capacity(K: Sequence[str], base) -> Optional[float]:
@@ -665,7 +713,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         notes: List[str] = []
         if b["why"] == "rule" and not unlimited:
             if b not in lift_bucket.values() and share is not None and S in share["of"]:
-                notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
+                # (ROUND14 3: not under the water's own rule printing the share's very number)
+                if info[S]["inner"] is None or info[S]["inner"].f["take"] != share["take"]:
+                    notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
             else:
                 notes.append(f"counts toward the {_js(total)} a day")
         duties = _duties(P, model, S, n)
@@ -688,6 +738,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     buckets = [b for b in buckets if b["kinds"]]
     for b in buckets:
         b["notes"] = []
+        b["groups"] = []
     _say_caps(P, model, grp, kinds, info, where_of, buckets, share, what, states)
     if len(buckets) == 1 and buckets[0]["why"] == "total":
         buckets[0]["title"] = None

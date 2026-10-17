@@ -84,11 +84,12 @@ def test_w3_a_kinds_own_cap_on_its_bucket():
 
 
 def test_w3_a_count_cap_over_two_kind_rows():
+    """ROUND14 3 (owner): the count over two of the bucket's kind rows is a NESTED GROUP now, not a note."""
     row, _o, _P = _card(F.COUNT)
-    assert _notes(row["group"]) == [(None, "Only 1 of these may be cutthroat trout or rainbow trout"),
-                                    (None, "Only 1 of these may be over 50 cm, not counting steelhead")]
-    n = row["group"]["buckets"][0]["notes"][0]
-    assert (n["n"], n["over_cm"], n["kinds"]) == (1, 0, ["CT", "RB"])
+    assert _notes(row["group"]) == [(None, "Only 1 of these may be over 50 cm, not counting steelhead")]
+    (sub,) = row["group"]["buckets"][0]["groups"]
+    assert (sub["says"], sub["n"], [k["species"] for k in sub["kinds"]]) == (
+        "Cutthroat trout or rainbow trout: 1 between them", 1, [["CT"], ["RB"]])
 
 
 def test_w3_nested_caps_in_order_on_one_note():

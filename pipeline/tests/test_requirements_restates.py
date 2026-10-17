@@ -143,6 +143,7 @@ def _tiny(tmp_path, rules: list) -> str:
         " steelhead_rules integer, kind text, sections integer, rep_sid integer);"
         "create table section_ruleset (sid integer, set_id integer, key_ix integer);"
         "create table ruleset (set_id integer, entry_id text, rule_id text, via text);"
+        "create table trib_nearer (near text, far text);"
         "insert into section_ruleset values (1, 0, 0);"
         "insert into rule_key values (0, 0, 0, 1, NULL, 1, 1);")
     con.executemany("insert into meta values (?, ?)", [("section_handles", "0" * 16),

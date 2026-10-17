@@ -185,7 +185,7 @@ def test_the_group_model_requires_the_card():
             "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                          "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                     "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                         "notes": [], "replaces": None}]}}
+                         "groups": [], "notes": [], "replaces": None}]}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
     for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
                 {**ok, "states": ok["states"] * 2}):
@@ -270,6 +270,12 @@ def test_the_reader_breaks_a_cycle_at_the_own_row():
 
         def own_over_inherited(self, o, k):
             return (o, k) == ("own", "inh")
+
+        def nearer_over_farther(self, o, k):        # ROUND14 1: no nearer ✱ row in this ring
+            return False
+
+        def precedes(self, o, k):
+            return self.own_over_inherited(o, k) or self.nearer_over_farther(o, k)
 
         def water_dates_override(self, o, k):
             return False

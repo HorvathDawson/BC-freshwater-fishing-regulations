@@ -36,6 +36,20 @@ ROUND13 (owner review of v14) adds two Region 2 steelhead streams, each a plain 
   FRASER    the Fraser above Mission's "No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31"
             (p.23, `fraser_river_upstream_of_mission.r5`, the bundle's record): a DATED species closure
 
+ROUND14 (owner review of v15) adds four waters, each a plain Region 2 water plus real rows (the bundle's
+records, copied onto a Region 2 entry):
+  BELLA_MAY   the Bella Coola mainstem, Apr 1-May 31 (`atnarko_bella_coola_rivers.r5-r8`, p.42): "trout/char
+              daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25
+              cm", no cutthroat over 33 cm, no rainbow over 50 cm — the count over two kinds is a nested group
+              (item 3), and the 2 is the river's OWN rule though it equals Region 2's 2 from streams
+  VEDDER_MAY  the Vedder on May 15 (`chilliwack_vedder_rivers.r6/r7`, p.22): hatchery rainbow trout (50 cm or
+              less) and hatchery cutthroat catch and release May 1-31 — one not-kept line (item 6)
+  BELLA_TRIB  BELLA plus `atnarko_bella_coola_rivers.r9` "char catch and release, Sept 1-May 31" — a group said
+              with its members (item 6)
+  LWA         Kootenay Lake's Lower West Arm kokanee (`kootenay_lake_lower_west_arm.r3/r4`, p.37): "5 a day,
+              only Saturday and Sunday" / "catch and release Monday through Friday" on a lake — asked at the
+              two moments (item 5)
+
 `card(water, md)` asks the reader (`read.effective_rules_bound`, trace, per fish and origin — what the
 verdicts stage stores) over the rule set, builds the `rows.Part` and returns `rows.produce` plus the
 Part: what the answers build would write for that key and day.
@@ -65,6 +79,12 @@ CLAKE_DV = "r2:chilliwack_lake@2-4::chilliwack_lake.r2"
 VEDDER, STREAM, LAKE, TWO, CLAKE = "vedder", "stream", "lake", "two_lifts", "chilliwack_lake"
 WAHLEACH, SLOT, COUNT, NESTED = "wahleach_lake", "slot_lake", "count_stream", "nested_lake"
 BELLA, FRASER = "bella_coola", "fraser_mission"
+BELLA_MAY, VEDDER_MAY, BELLA_TRIB, LWA = "bella_coola_may", "vedder_may", "bella_coola_trib", "lwa_lake"
+BELLA_R5 = "r2:bella_coola_river@2-3::bella_coola_river.r5"
+BELLA_R6 = "r2:bella_coola_river@2-3::bella_coola_river.r6"
+VEDDER_R6 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r6"
+VEDDER_R7 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r7"
+BELLA_R9 = "r2:bella_coola_river@2-3::bella_coola_river.r9"
 BELLA_ST = "r2:bella_coola_river@2-3::bella_coola_river.r13"
 FRASER_ST = ("r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::"
              "fraser_river_upstream_of_mission.r5")
@@ -79,7 +99,11 @@ WATERS = {VEDDER: (1, "stream", True, True, "known"),
           COUNT: (8, "stream", True, True, "known"),
           NESTED: (9, "lake", False, True, None),
           BELLA: (10, "stream", True, True, "known"),
-          FRASER: (11, "stream", True, True, "known")}
+          FRASER: (11, "stream", True, True, "known"),
+          BELLA_MAY: (12, "stream", True, True, "known"),
+          VEDDER_MAY: (13, "stream", True, True, "known"),
+          BELLA_TRIB: (14, "stream", True, True, "known"),
+          LWA: (15, "lake", False, True, None)}
 
 
 #: set id -> the water's (set id, kind, steelhead water, steelhead rules here, presence)
@@ -166,7 +190,62 @@ _R12 = {
             "when": {"dates": [{"from_day": 15, "from_month": 8, "to_day": 31, "to_month": 12}]},
             "verbatim": "No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31"})]),
 }
+_APR_MAY = {"dates": [{"from_day": 1, "from_month": 4, "to_day": 31, "to_month": 5}]}
+_MAY = {"dates": [{"from_day": 1, "from_month": 5, "to_day": 31, "to_month": 5}]}
+_VEDDER_E = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
+_R12.update({
+    12: ("r2:bella_coola_river@2-3", "Bella Coola River", [
+        ("bella_coola_river.r5", {"label": "Trout and char — 2 per day, all species combined (none under 25 cm), "
+                                           "Apr 1-May 31", "species": ["TROUT_CHAR"], "take": 2,
+                                  "lengths": [{"min_cm": 25}, {"max_cm": 25, "take": 0}], "when": _APR_MAY,
+                                  "verbatim": "on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2, of which "
+                                              "only one may be a trout (cutthroat or rainbow) and none may be under "
+                                              "25 cm"}),
+        ("bella_coola_river.r6", {"label": "Cutthroat trout and Rainbow trout — 1 per day, all species combined, "
+                                           "Apr 1-May 31", "species": ["CT", "RB"], "take": 1,
+                                  "within": "bella_coola_river.r5", "when": _APR_MAY,
+                                  "verbatim": "of which only one may be a trout (cutthroat or rainbow) and none may "
+                                              "be under 25 cm"}),
+        ("bella_coola_river.r7", {"label": "Cutthroat trout (none over 33 cm), Apr 1-May 31", "species": ["CT"],
+                                  "take": None, "dimension": "daily/size", "lengths": [{"min_cm": 33, "take": 0}],
+                                  "within": "bella_coola_river.r6", "when": _APR_MAY,
+                                  "verbatim": "no cutthroat may be over 33 cm"}),
+        ("bella_coola_river.r8", {"label": "Rainbow trout (none over 50 cm), Apr 1-May 31", "species": ["RB"],
+                                  "take": None, "dimension": "daily/size", "lengths": [{"min_cm": 50, "take": 0}],
+                                  "within": "bella_coola_river.r6", "when": _APR_MAY,
+                                  "verbatim": "no rainbow may be over 50 cm"})]),
+    13: (_VEDDER_E, "Chilliwack River", [
+        ("chilliwack_vedder_rivers.r6", {"label": "Rainbow trout (none 50 cm or less), hatchery only, May 1-May 31",
+                                         "species": ["RB"], "take": None, "dimension": "daily/size@origin=hatchery",
+                                         "lengths": [{"closed": True, "max_cm": 50, "take": 0}], "origin": "hatchery",
+                                         "may_target": 1, "when": _MAY,
+                                         "verbatim": "hatchery rainbow trout catch and release (50 cm or less)"}),
+        ("chilliwack_vedder_rivers.r7", {"label": "Cutthroat trout — release all, hatchery only, May 1-May 31",
+                                         "species": ["CT"], "take": 0, "dimension": "daily@origin=hatchery",
+                                         "origin": "hatchery", "may_target": 1, "when": _MAY,
+                                         "verbatim": "hatchery cutthroat catch and release"})]),
+    14: ("r2:bella_coola_river@2-3", "Bella Coola River", [
+        *_R12[10][2],
+        ("bella_coola_river.r9", {"label": "Char — release all, Sep 1-May 31", "species": ["CHAR"], "take": 0,
+                                  "may_target": 1,
+                                  "when": {"dates": [{"from_day": 1, "from_month": 9, "to_day": 31, "to_month": 5}]},
+                                  "verbatim": "char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31"})]),
+    15: ("r2:lower_west_arm@2-3", "Kootenay Lake — Lower West Arm", [
+        ("kootenay_lake_lower_west_arm.r3", {"label": "Kokanee — 5 per day, on Saturdays and Sundays",
+                                             "species": ["KO"], "take": 5,
+                                             "when": {"weekdays": ["Saturday", "Sunday"]},
+                                             "verbatim": "kokanee daily quota = 5, but only on Saturday and Sunday "
+                                                         "of each week."}),
+        ("kootenay_lake_lower_west_arm.r4", {"label": "Kokanee — release all, Monday to Friday", "species": ["KO"],
+                                             "take": 0, "may_target": 1,
+                                             "when": {"weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday",
+                                                                   "Friday"]},
+                                             "verbatim": "Kokanee catch and release Monday through Friday of each "
+                                                         "week."})]),
+})
 _R12_SETS = {set_id: [(e, r) for r, _f in rows] for set_id, (e, _n, rows) in _R12.items()}
+#: the fish asked on a water beyond `FISH` (the kokanee on the Lower West Arm)
+_EXTRA_FISH = {LWA: ("KO",)}
 
 
 def _r12_rows() -> List[dict]:
@@ -208,25 +287,27 @@ def _second_lift(r9: dict) -> dict:
     return {k: v for k, v in x.items() if v is not None or k in r9 and r9[k] is None}
 
 
-def ladder(water: str, md: Tuple[int, int]) -> dict:
-    """Every asked fish's traced verdict per origin, as the verdicts stage stores it."""
+def ladder(water: str, md: Tuple[int, int], at=None) -> dict:
+    """Every asked fish's traced verdict per origin, as the verdicts stage stores it (at a moment,
+    `calendar.Moment`, where the water's rules hold some weekdays)."""
     B = _load()
     set_id, _kind, sw, sr, _pres = WATERS[water]
     bound = B.sets[set_id]
     return {f: {o: A.ladder_verdict(read.effective_rules_bound(
         bound, sw, md, f, PATH, steelhead_rules_here=sr, origin=None if o == "none" else o,
-        trace=True)) for o in ORIGINS} for f in FISH}
+        trace=True, at=at)) for o in ORIGINS} for f in FISH + _EXTRA_FISH.get(water, ())}
 
 
-def part(water: str, md: Tuple[int, int], lad: dict | None = None) -> RW.Part:
+def part(water: str, md: Tuple[int, int], lad: dict | None = None, at=None) -> RW.Part:
     B = _load()
     set_id, kind, sw, sr, pres = WATERS[water]
-    return RW.Part(B, set_id, sw, sr, kind, pres, lad if lad is not None else ladder(water, md), md, {})
+    return RW.Part(B, set_id, sw, sr, kind, pres, lad if lad is not None else ladder(water, md, at), md, {},
+                   at=at)
 
 
-def card(water: str, md: Tuple[int, int], lad: dict | None = None):
+def card(water: str, md: Tuple[int, int], lad: dict | None = None, at=None):
     """(the rows `produce` writes for the water on the day, its Part)."""
-    P = part(water, md, lad)
+    P = part(water, md, lad, at)
     return RW.produce(P), P
 
 

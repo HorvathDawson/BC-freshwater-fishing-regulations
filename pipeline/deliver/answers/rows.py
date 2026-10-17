@@ -1825,8 +1825,121 @@ def produce(P: Part) -> dict:
             o["elsewhere"].pop("lines", None)
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
-    return {"spp": model["spp"], "fish": fish, "rows": rows,
-            "steelhead_line": steelhead_line(P.presence, has_row)}
+    line = steelhead_line(P.presence, has_row)
+    place_presence(rows, line)
+    return {"spp": model["spp"], "fish": fish, "rows": rows, "steelhead_line": line}
+
+
+#: ROUND14 4 (owner): the presence line, in angler words, said INSIDE the steelhead section
+PRESENCE_WORDS = {"possible_with_rules": "Steelhead rules apply here; steelhead may not be present in this water.",
+                  "known_with_rules": "Steelhead are known to be in this water."}
+
+
+def place_presence(rows: List[dict], line: Optional[str]) -> None:
+    """ROUND14 4 (owner): where steelhead are known (or steelhead rules apply), the presence line
+    (`presence` {line, says}) sits IN THE STEELHEAD SECTION, exactly once: the card's steelhead kind row
+    (kept), its not-kept steelhead line (closed or released), else the row holding steelhead (a release
+    or closed row, or a keep row with no card). A line with no steelhead section is refused — never the
+    note without the section. `known_no_rules` is about rainbow trout and stays the frame's own."""
+    if line not in PRESENCE_WORDS:
+        return
+    note = {"line": line, "says": PRESENCE_WORDS[line]}
+    for r in rows:
+        if "ST" not in (r.get("all_members") or []):
+            continue
+        g = r.get("group") or {}
+        for b in g.get("buckets") or []:
+            for k in list(b["kinds"]) + [k for s in b.get("groups") or [] for k in s["kinds"]]:
+                if "ST" in k["species"]:
+                    k["presence"] = note
+                    return
+        for x in g.get("not_kept") or []:
+            if "ST" in x["species"]:
+                x["presence"] = note
+                return
+        r["presence"] = note
+        return
+    raise AnswersError(f"rows: steelhead line {line!r} with no steelhead section on the card")
+
+
+def weekdays_words(days: Sequence[str]) -> str:
+    """ROUND14 5: a set of weekdays in words — a run of three or more "Monday to Friday", else each day
+    in the plural, "on Saturdays and Sundays" ("on Mondays and Wednesdays")."""
+    from pipeline.deliver.calendar import WEEKDAYS
+    ix = sorted(WEEKDAYS.index(d) for d in days)
+    if len(ix) >= 3 and ix == list(range(ix[0], ix[0] + len(ix))):
+        return f"{WEEKDAYS[ix[0]]} to {WEEKDAYS[ix[-1]]}"
+    return "on " + common.join([WEEKDAYS[i] + "s" for i in ix])
+
+
+def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float]]]:
+    """(status, daily) of one fish in a rows frame: the stricter origin's (`main_res`)."""
+    v = (frame.get("fish") or {}).get(S) or {}
+    h, w = v.get("hatchery"), v.get("wild")
+    got = [x for x in (h, w) if x is not None]
+    if not got:
+        return None
+    rank = {"closed": 0, "release": 1, "keep": 2, "no_limit": 3}
+    keep = [x for x in got if x["status"] in ("keep", "no_limit")]
+    best = max(got, key=lambda x: (rank.get(x["status"], -1), x.get("daily") or 0)) if keep else \
+        min(got, key=lambda x: rank.get(x["status"], 9))
+    return best["status"], best.get("daily")
+
+
+def say_weekdays(frames: Sequence[dict], moments: Sequence[Optional[dict]]) -> List[dict]:
+    """ROUND14 5 (owner): A WEEKDAY WINDOW SAID AS WEEKDAYS. `frames` are one day's rows frames, one per
+    moment (`moments`: `calendar.Moment.as_json`, weekdays and no hours window). Every row of every frame
+    whose fish answer differently by weekday carries `week` {species, says}: Kootenay Lake's Lower West
+    Arm kokanee "Keep up to 5 on Saturdays and Sundays; release Monday to Friday" — on the Saturday frame
+    and the Monday one alike, so no moment's card contradicts another. Returns new frames (the inputs
+    are not changed); frames cut by an hours window are returned as they are."""
+    import copy
+    if len(frames) < 2 or any(m is None or m.get("hours") for m in moments):
+        return list(frames)
+    fish = sorted({S for f in frames for S in (f.get("fish") or {})})
+    split: Dict[str, List[Tuple[Tuple[str, Optional[float]], List[str]]]] = {}
+    for S in fish:
+        by: Dict[tuple, List[str]] = {}
+        for f, m in zip(frames, moments):
+            a = _week_answer(f, S)
+            if a is None:
+                break
+            by.setdefault(a, []).extend(m["weekdays"])
+        else:
+            if len(by) > 1:
+                split[S] = sorted(by.items(), key=lambda x: (-{"no_limit": 3, "keep": 2, "release": 1,
+                                                               "closed": 0}.get(x[0][0], -1), x[1]))
+    if not split:
+        return list(frames)
+
+    def words(pattern) -> str:
+        out = []
+        for (status, daily), days in pattern:
+            what = ("keep any number" if status == "no_limit" else
+                    f"keep up to {_js(daily)}" if status == "keep" else
+                    "release" if status == "release" else "no fishing for them")
+            out.append(f"{what} {weekdays_words(days)}")
+        return common.cap("; ".join(out))
+
+    got = []
+    for f in frames:
+        f2 = copy.deepcopy(f)
+        for r in f2.get("rows") or []:
+            mine = [S for S in r.get("all_members") or [] if S in split]
+            if not mine:
+                continue
+            pats = sorted({json.dumps(split[S]) for S in mine})
+            named = len(pats) > 1 or len(mine) < len(r["all_members"])
+            parts = []
+            for p in pats:
+                w = words(json.loads(p))
+                who = [S for S in mine if json.dumps(split[S]) == p]
+                # several fish of the row: each named ("Kokanee: keep up to 5 …")
+                parts.append(f"{common.cap(_names(who, ' and '))}: {w[:1].lower()}{w[1:]}" if named else w)
+            says = "; ".join(parts)
+            r["week"] = {"species": mine, "says": says}
+        got.append(f2)
+    return got
 
 
 # --------------------------------------------------------------------------------------------
@@ -1913,10 +2026,12 @@ def refs(out: dict, ix) -> dict:
                                      "each": [{**e, "by": ix(e["by"])} for e in L["each"]]}
                                     for L in g["lifts"]],
                           "buckets": [{**b, "by": ix(b["by"]),
+                                       "groups": [{**s, "by": ix(s["by"])} for s in b["groups"]],
                                        "replaces": None if b["replaces"] is None else
                                        {**b["replaces"], "rules": [ix(k) for k in b["replaces"]["rules"]]}}
                                       for b in g["buckets"]],
-                          "not_kept": [{**x, "by": ix(x["by"])} for x in g["not_kept"]],
+                          "not_kept": [{**x, "by": ix(x["by"]), "rules": [ix(k) for k in x["rules"]]}
+                                       for x in g["not_kept"]],
                           "worked": [{**w, "share": None if w["share"] is None else ix(w["share"])}
                                      for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}

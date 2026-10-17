@@ -238,7 +238,10 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND13 Z/S/D/P: rows 12 (a kind keeping none says "catch and release"; `group.not_kept` every
         # fish of the row nobody may keep, with whose rule; a lifting bucket's `replaces`; the lake line
         # says the count left)
-        Section("rows", 12, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND14 3-6: rows 13 (`buckets[].groups` nested count groups, a water's own equal pool its own
+        # bucket; `presence` inside the steelhead section; `rows[].week` a weekday window in words;
+        # `not_kept` one line per status and row, book order, groups with their members, `rules`)
+        Section("rows", 13, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -260,7 +263,8 @@ def _sections() -> Tuple[Section, ...]:
         # buffers on the Keep side, D2)
         # ROUND11 A3: display 8 (frame `inherited`: a lift the tributary walk carries, in words)
         # ROUND13 P: display 9 (`rules[].applies` names the book by its title)
-        Section("display", 9, display.section_scope, prepare=display.section_prepare,
+        # ROUND14 1: display 10 (static `reasons` gains `nearer_row`: the nearer ✱ row's words, T14)
+        Section("display", 10, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )
@@ -447,6 +451,23 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
             m_count = len(pd) // DAYS
             out[s.name].append([vals[pd[(d - 1) * m_count + (m if m_count > 1 else 0)]]
                                 for d, m in picks])
+    # ROUND14 5 (owner): A WEEKDAY WINDOW SAID AS WEEKDAYS — the rows frames of one day's moments (the
+    # segments repeating one start) each carry, on a row whose fish answer differently by weekday, the
+    # same `week` sentence ("Keep up to 5 on Saturdays and Sundays; release Monday to Friday")
+    if "rows" in out:
+        from pipeline.deliver.answers.rows import say_weekdays
+        for ki in range(len(keys)):
+            at, starts = seg_moments[ki], segs[ki]
+            if at is None:
+                continue
+            j = 0
+            while j < len(starts):
+                k = j
+                while k + 1 < len(starts) and starts[k + 1] == starts[j]:
+                    k += 1
+                if k > j:
+                    out["rows"][ki][j:k + 1] = say_weekdays(out["rows"][ki][j:k + 1], at[j:k + 1])
+                j = k + 1
     # a value finished from other sections' values at the same key and segment (answers 2.6)
     for s in chosen:
         if s.compose is None:

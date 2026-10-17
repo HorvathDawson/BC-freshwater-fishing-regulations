@@ -1251,6 +1251,8 @@ REASON_WORDS = {
     "lifted": ("Lifted here by {by}.", "Lifts {rule} here."),
     "ladder": ("Replaced by {by}: closer to this water, or names the fish.", "Replaces {rule}."),
     "own_row": ("Replaced by this water’s own row: {by}.", "This water’s own row replaces {rule}."),
+    "nearer_row": ("Replaced by {by}: its water is nearer this stream.",
+                   "Its water is nearer this stream, so it replaces {rule}."),
     "water_dates": ("Replaced on these dates by {by}, which prints its own dates.",
                     "Its own dates replace {rule}."),
     "zone_release": ("Silenced by {by}: the table releases these fish.",

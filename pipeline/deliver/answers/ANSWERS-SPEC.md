@@ -98,6 +98,39 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND14 (2026-10-16) — rows 13, display 10: nested count groups, whose bucket, steelhead in its section, weekdays in words, one not-kept line per row; the nearer ✱ row
+
+Same format string (`answers/2`); **rows 13, display 10** (ladder 1, gear 9, licence 4 unchanged). Owner review
+of v15 (ROUND14 1, 3-6); RULINGS T14, P15-P18.
+
+* **1 (reader, bundle; display 10).** Two ✱ rows competing on a tributary: the row of the water NEAREST the
+  stream wins (`read.NEARER_ROW_BEATS_FARTHER`, bundle tables `item_down` / `trib_nearer`, `bundle/nearer.py`):
+  a loser's reason `nearer_row` (appended to `read.LOSS_REASONS`, so existing reason indexes are unchanged);
+  `display.reasons.nearer_row` {lost: "Replaced by {by}: its water is nearer this stream.", won: …}. The Duncan
+  River's own tributaries keep 2 bull trout (the Duncan's rule) where Kootenay Lake's tributaries' release spoke.
+* **3 (rows 13).** `buckets[].groups` [{says, n, by, kinds}]: a count over SOME of a bucket's kinds (each kind
+  row wholly inside it) is a nested group holding those kind rows with their own sizes — "Cutthroat trout or
+  rainbow trout: 1 between them" (the Bella Coola mainstem, Apr 1-May 31, r6) — and those kinds leave the
+  bucket's `kinds`; show groups before the bucket's size notes; size caps stay `notes`. The gate proves each
+  group's kinds together keep exactly `n`. A water's own pool printing the share's very number is its own
+  bucket ("This river’s rule", r5's 2), not the region's share ("all Region 5 streams combined"); its kinds
+  carry no "counts toward the 2 from streams".
+* **4 (rows 13).** `presence` {line: possible_with_rules | known_with_rules, says} sits INSIDE the steelhead
+  section, exactly once: the card's steelhead kind row (`buckets[].kinds[].presence`, or a group's), else its
+  not-kept steelhead line (`not_kept[].presence`), else the steelhead's own row (`rows[].presence`). A
+  steelhead line with no steelhead section is a build error (`rows.place_presence`). `known_no_rules` (about
+  rainbow trout) stays only the frame's `steelhead_line`.
+* **5 (rows 13).** `rows[].week` {species, says}: a row whose fish answer differently by WEEKDAY carries the
+  window in words on every moment's frame of the day — Kootenay Lake's Lower West Arm kokanee "Keep up to 5 on
+  Saturdays and Sundays; release Monday to Friday" (`rows.say_weekdays`, applied in `answers.build` over the
+  segments repeating one start; frames cut by an hours window are untouched). Show it in place of the day's
+  keep / release words; read the year strip at a day's best answer over its weekday moments (never a list of
+  weekend dates, never "release until Oct 16 / keep from Oct 17").
+* **6 (rows 13).** `not_kept` is one line per status and deciding ROW (was: per rule), fish in the book's order
+  (p.80, `card.book_order`), a closed group named with its members; `rules` every deciding rule (`by` the
+  first): Vedder May 15 "Rainbow trout and cutthroat trout: release every one" (r6, r7); Ape Creek "Char (Dolly
+  Varden/bull trout, lake trout and brook trout): release every one".
+
 ## ROUND13 (2026-10-16) — rows 12, gear 9, display 9: no size on a kind keeping none, species closures said, what a lift replaces
 
 Same format string (`answers/2`); **rows 12, gear 9, display 9** (ladder 1, licence 4 unchanged). Owner review
